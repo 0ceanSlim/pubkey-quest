@@ -1429,9 +1429,15 @@ function updateChangeCount(count) {
 // Toggle staging panel
 window.toggleStagingPanel = function() {
     const panel = document.getElementById('staging-panel');
-    panel.classList.toggle('visible');
-    if (panel.classList.contains('visible')) {
+    if (!panel.classList.contains('visible')) {
+        // Show panel - ensure display is block first, then add visible class for animation
         panel.style.display = 'block';
+        // Small delay to allow display change to take effect before animation
+        setTimeout(() => {
+            panel.classList.add('visible');
+        }, 10);
+    } else {
+        panel.classList.remove('visible');
     }
 };
 

@@ -93,6 +93,12 @@ async function initStaging() {
         console.log(`🔧 Staging mode: ${stagingMode}`);
 
         if (stagingMode === 'staging') {
+            // Show toggle button
+            const stagingToggle = document.getElementById('staging-toggle');
+            if (stagingToggle) {
+                stagingToggle.classList.remove('hidden');
+            }
+
             // Try to reuse existing session from localStorage
             let existingSessionID = localStorage.getItem('codex_staging_session');
 
@@ -106,7 +112,6 @@ async function initStaging() {
                     // Update change count
                     const changes = await verifyResponse.json();
                     updateChangeCount(changes.length);
-                    document.getElementById('staging-panel').classList.add('visible');
                     return;
                 }
             }
@@ -125,7 +130,6 @@ async function initStaging() {
             localStorage.setItem('codex_staging_session', stagingSessionID);
 
             console.log('✅ Created new session:', stagingSessionID);
-            document.getElementById('staging-panel').classList.add('visible');
         }
     } catch (error) {
         console.error('❌ Failed to initialize staging:', error);
@@ -181,7 +185,7 @@ function populateGearForm() {
     html += '<div class="codex-section win95-inset pixel-clip mb-20">';
     html += '<h3 class="codex-section-title">EQUIPMENT CHOICES</h3>';
     html += renderEquipmentChoices(entry.starting_gear.equipment_choices);
-    html += '<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addEquipmentChoice() codex-btn-add">+ ADD CHOICE</button>';
+    html += '<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addEquipmentChoice()">+ ADD CHOICE</button>';
     html += '</div>';
 
     // Pack Choice
@@ -191,7 +195,7 @@ function populateGearForm() {
         html += renderPackChoice(entry.starting_gear.pack_choice);
     } else {
         html += '<p class="text-muted mb-10">No pack choice defined</p>';
-        html += '<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addPackChoice() codex-btn-add">+ ADD PACK CHOICE</button>';
+        html += '<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addPackChoice()">+ ADD PACK CHOICE</button>';
     }
     html += '</div>';
 
@@ -199,7 +203,7 @@ function populateGearForm() {
     html += '<div class="codex-section win95-inset pixel-clip mb-20">';
     html += '<h3 class="codex-section-title">GIVEN ITEMS</h3>';
     html += renderGivenItems(entry.starting_gear.given_items);
-    html += '<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addGivenItem() codex-btn-add">+ ADD ITEM</button>';
+    html += '<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addGivenItem()">+ ADD ITEM</button>';
     html += '</div>';
 
     gearForm.innerHTML = html;
@@ -218,7 +222,7 @@ function renderEquipmentChoices(choices) {
         });
 
         html += '<div class="codex-btn-group">';
-        html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addOption(${choiceIndex}) codex-btn-add">+ ADD OPTION</button>`;
+        html += `<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addOption(${choiceIndex})">+ ADD OPTION</button>`;
         html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="removeChoice(${choiceIndex})">REMOVE CHOICE</button>`;
         html += '</div>';
         html += '</div>';
@@ -304,7 +308,7 @@ function renderBundleOption(choiceIndex, optionIndex, option) {
         `;
     });
 
-    html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addBundleItem(${choiceIndex}, ${optionIndex}) codex-btn-add">+ ADD ITEM TO BUNDLE</button>`;
+    html += `<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addBundleItem(${choiceIndex}, ${optionIndex})">+ ADD ITEM TO BUNDLE</button>`;
     html += '</div>';
     return html;
 }
@@ -332,7 +336,7 @@ function renderMultiSlotOption(choiceIndex, optionIndex, option) {
                     </div>
                 `;
             });
-            html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addWeaponChoice(${choiceIndex}, ${optionIndex}, ${slotIndex}) codex-btn-add">+ ADD WEAPON OPTION</button>`;
+            html += `<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addWeaponChoice(${choiceIndex}, ${optionIndex}, ${slotIndex})">+ ADD WEAPON OPTION</button>`;
             html += '</div>';
         } else if (slot.type === 'fixed') {
             html += `
@@ -356,8 +360,8 @@ function renderMultiSlotOption(choiceIndex, optionIndex, option) {
     });
 
     html += '<div class="codex-btn-group" style="margin-top: 10px;">';
-    html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addWeaponChoiceSlot(${choiceIndex}, ${optionIndex}) codex-btn-add">+ ADD WEAPON CHOICE SLOT</button>`;
-    html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addFixedSlot(${choiceIndex}, ${optionIndex}) codex-btn-add">+ ADD FIXED ITEM SLOT</button>`;
+    html += `<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addWeaponChoiceSlot(${choiceIndex}, ${optionIndex})">+ ADD WEAPON CHOICE SLOT</button>`;
+    html += `<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addFixedSlot(${choiceIndex}, ${optionIndex})">+ ADD FIXED ITEM SLOT</button>`;
     html += '</div>';
     html += '</div>';
     return html;
@@ -383,7 +387,7 @@ function renderPackChoice(packChoice) {
         `;
     });
 
-    html += `<button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="addPackOption() codex-btn-add">+ ADD PACK</button>`;
+    html += `<button class="codex-btn codex-btn-sm codex-btn-add pixel-clip-sm" onclick="addPackOption()">+ ADD PACK</button>`;
     return html;
 }
 
@@ -460,7 +464,16 @@ function setupEventListeners() {
 // Toggle staging panel
 function toggleStagingPanel() {
     const panel = document.getElementById('staging-panel');
-    panel.classList.toggle('visible');
+    if (!panel.classList.contains('visible')) {
+        // Show panel - ensure display is block first, then add visible class for animation
+        panel.style.display = 'block';
+        // Small delay to allow display change to take effect before animation
+        setTimeout(() => {
+            panel.classList.add('visible');
+        }, 10);
+    } else {
+        panel.classList.remove('visible');
+    }
 }
 
 // Close staging panel

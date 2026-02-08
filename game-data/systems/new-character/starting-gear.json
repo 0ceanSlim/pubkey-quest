@@ -109,12 +109,7 @@
             {
               "type": "single",
               "item": "handaxe",
-              "quantity": 1
-            },
-            {
-              "type": "single",
-              "item": "handaxe",
-              "quantity": 1
+              "quantity": 2
             },
             {
               "type": "single",
@@ -129,11 +124,6 @@
             {
               "type": "single",
               "item": "greatclub",
-              "quantity": 1
-            },
-            {
-              "type": "single",
-              "item": "handaxe",
               "quantity": 1
             },
             {
@@ -167,29 +157,52 @@
               "quantity": 1
             },
             {
-              "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "crossbow-light",
+                  "quantity": 1
+                },
+                {
+                  "item": "crossbow-bolts",
+                  "quantity": 20
+                }
+              ]
             },
             {
               "type": "single",
               "item": "dart",
-              "quantity": 1
+              "quantity": 40
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         }
       ],
-      "pack_choice": null,
       "given_items": [
         {
           "item": "explorers-pack",
@@ -270,24 +283,52 @@
               "quantity": 1
             },
             {
-              "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "crossbow-light",
+                  "quantity": 1
+                },
+                {
+                  "item": "crossbow-bolts",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "dart",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "dart",
+                  "quantity": 40
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         },
@@ -528,23 +569,34 @@
             },
             {
               "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
-            },
-            {
-              "type": "single",
               "item": "dart",
-              "quantity": 1
+              "quantity": 40
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         },
@@ -702,24 +754,43 @@
               "quantity": 1
             },
             {
-              "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "crossbow-light",
+                  "quantity": 1
+                },
+                {
+                  "item": "dart",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "dart",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
-            },
-            {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         },
@@ -864,7 +935,6 @@
           ]
         }
       ],
-      "pack_choice": null,
       "given_items": [
         {
           "item": "leather-set",
@@ -1094,24 +1164,48 @@
               "quantity": 1
             },
             {
-              "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "crossbow-light",
+                  "quantity": 1
+                },
+                {
+                  "item": "crossbow-bolts",
+                  "quantity": 20
+                }
+              ]
             },
             {
               "type": "single",
               "item": "dart",
-              "quantity": 1
+              "quantity": 40
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         }
@@ -1224,11 +1318,6 @@
           "options": [
             {
               "type": "single",
-              "item": "javelin",
-              "quantity": 5
-            },
-            {
-              "type": "single",
               "item": "club",
               "quantity": 1
             },
@@ -1316,6 +1405,10 @@
                 {
                   "item": "holy-water",
                   "quantity": 2
+                },
+                {
+                  "item": "component-pouch",
+                  "quantity": 1
                 }
               ]
             },
@@ -1333,6 +1426,10 @@
                 {
                   "item": "salt",
                   "quantity": 2
+                },
+                {
+                  "item": "component-pouch",
+                  "quantity": 1
                 }
               ]
             }
@@ -1577,23 +1674,34 @@
             },
             {
               "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
-            },
-            {
-              "type": "single",
               "item": "dart",
-              "quantity": 1
+              "quantity": 40
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         },
@@ -1770,23 +1878,34 @@
             },
             {
               "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
-            },
-            {
-              "type": "single",
               "item": "dart",
-              "quantity": 1
+              "quantity": 40
             },
             {
-              "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "shortbow",
+                  "quantity": 1
+                },
+                {
+                  "item": "arrows",
+                  "quantity": 20
+                }
+              ]
             },
             {
-              "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "type": "bundle",
+              "items": [
+                {
+                  "item": "sling",
+                  "quantity": 1
+                },
+                {
+                  "item": "sling-bullet",
+                  "quantity": 20
+                }
+              ]
             }
           ]
         },
@@ -1845,23 +1964,23 @@
             },
             {
               "type": "single",
-              "item": "crossbow-light",
-              "quantity": 1
+              "item": "crossbow-bolts",
+              "quantity": 20
             },
             {
               "type": "single",
               "item": "dart",
-              "quantity": 1
+              "quantity": 40
             },
             {
               "type": "single",
-              "item": "shortbow",
-              "quantity": 1
+              "item": "arrows",
+              "quantity": 20
             },
             {
               "type": "single",
-              "item": "sling",
-              "quantity": 1
+              "item": "sling-bullet",
+              "quantity": 20
             }
           ]
         },
@@ -2085,10 +2204,6 @@
       "given_items": [
         {
           "item": "spellbook",
-          "quantity": 1
-        },
-        {
-          "item": "sulfur",
           "quantity": 1
         }
       ]
