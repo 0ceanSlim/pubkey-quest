@@ -623,3 +623,118 @@ func normalizePropertyNames(item map[string]interface{}, filename string) (map[s
 
 	return normalized, changes
 }
+
+// CleanupStartingGear reorders fields in starting gear to maintain consistency
+// Field order: given_items, equipment_choices, pack_choice
+func CleanupStartingGear(dryRun bool) (*CleanupResult, error) {
+	result := &CleanupResult{
+		Changes: []Change{},
+	}
+
+	filePath := "game-data/systems/new-character/starting-gear.json"
+
+	// Read file
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return result, fmt.Errorf("failed to read starting-gear.json: %w", err)
+	}
+
+	var gearData []interface{}
+	if err := json.Unmarshal(data, &gearData); err != nil {
+		return result, fmt.Errorf("failed to parse starting-gear.json: %w", err)
+	}
+
+	modified := false
+	result.FilesProcessed = 1
+
+	// Process each class entry
+	for i, classEntry := range gearData {
+		classMap, ok := classEntry.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		className, _ := classMap["class"].(string)
+		startingGear, ok := classMap["starting_gear"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		// Create new ordered map
+		orderedGear := make(map[string]interface{})
+
+		// Field order: given_items, equipment_choices, pack_choice
+		fieldOrder := []string{"given_items", "equipment_choices", "pack_choice"}
+
+		// Track if order changed by comparing first non-empty field
+		firstField := ""
+		for _, key := range fieldOrder {
+			if _, exists := startingGear[key]; exists && firstField == "" {
+				firstField = key
+				break
+			}
+		}
+
+		// Get actual first key in the map
+		actualFirstKey := ""
+		for key := range startingGear {
+			actualFirstKey = key
+			break
+		}
+
+		needsReorder := (firstField != "" && actualFirstKey != firstField)
+
+		// Copy fields in the correct order
+		for _, field := range fieldOrder {
+			if val, exists := startingGear[field]; exists {
+				orderedGear[field] = val
+			}
+		}
+
+		// Copy any other fields that might exist (shouldn't be any, but just in case)
+		for key, val := range startingGear {
+			if _, exists := orderedGear[key]; !exists {
+				orderedGear[key] = val
+				result.Changes = append(result.Changes, Change{
+					File:    "starting-gear.json",
+					Type:    "fixed",
+					Field:   className,
+					Message: fmt.Sprintf("Found unexpected field '%s'", key),
+				})
+			}
+		}
+
+		// Update if order changed
+		if needsReorder {
+			modified = true
+			result.Changes = append(result.Changes, Change{
+				File:    "starting-gear.json",
+				Type:    "reordered",
+				Field:   className,
+				Message: "Reordered fields to: given_items, equipment_choices, pack_choice",
+			})
+		}
+
+		// Update the entry
+		classMap["starting_gear"] = orderedGear
+		gearData[i] = classMap
+	}
+
+	// Write back if modified and not dry run
+	if modified {
+		result.FilesModified = 1
+		if !dryRun {
+			cleanedData, err := json.MarshalIndent(gearData, "", "  ")
+			if err != nil {
+				return result, fmt.Errorf("failed to marshal cleaned data: %w", err)
+			}
+
+			if err := os.WriteFile(filePath, cleanedData, 0644); err != nil {
+				return result, fmt.Errorf("failed to write cleaned file: %w", err)
+			}
+		}
+	}
+
+	log.Printf("Starting gear cleanup complete: 1 file processed, %d modified", result.FilesModified)
+	return result, nil
+}

@@ -279,6 +279,22 @@
     border: 2px solid var(--color-textHighlighted);
   }
 
+  /* Effect group headers (for categorizing effects) */
+  .effect-group-header {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--codex-text-secondary);
+    padding: 8px 4px 4px 4px;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--color-bgTertiary);
+    letter-spacing: 0.5px;
+  }
+
+  .effect-group-header:first-child {
+    margin-top: 0;
+  }
+
   /* Main content panel */
   .codex-main {
     flex: 1;

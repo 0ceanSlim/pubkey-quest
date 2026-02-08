@@ -1,4 +1,4 @@
-// Character Editor - Entry Point
+// Starting Gear Editor - Entry Point
 
 // State
 let allClasses = [];           // Array of StartingGearEntry
@@ -10,7 +10,7 @@ let characterData = {};        // All character data files
 
 // Initialization
 async function init() {
-    console.log('🚀 Initializing Character Editor...');
+    console.log('🚀 Initializing Starting Gear Editor...');
 
     // Detect theme from main game
     const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -18,10 +18,9 @@ async function init() {
     console.log(`🎨 Theme: ${savedTheme}`);
 
     await loadData();
-    setupTabs();
     setupEventListeners();
 
-    console.log('✅ Character Editor initialized');
+    console.log('✅ Starting Gear Editor initialized');
 }
 
 // Load all data
@@ -450,25 +449,6 @@ function renderGivenItems(items) {
     return html;
 }
 
-// Setup tabs
-function setupTabs() {
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.dataset.tab;
-
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-        });
-    });
-}
-
 // Setup event listeners
 function setupEventListeners() {
     // Starting Gear
@@ -614,8 +594,6 @@ function validateOptionItems(option, context, issues) {
         });
     }
 }
-
-// Placeholder tab save function removed - tabs now navigate to dedicated editors
 
 // Staging panel functions
 async function viewChanges() {

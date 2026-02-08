@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starting Gear Editor - CODEX</title>
+    <link rel="icon" type="image/png" href="/www/res/img/codex.png" />
+    <link rel="stylesheet" href="/dist/codex/styles.css">
+</head>
+<body>
+    <div class="codex-container">
+        <!-- Header -->
+        <div class="codex-header">
+            <h1 class="codex-title">⚔️ STARTING GEAR EDITOR</h1>
+            <a href="/" class="codex-btn">← BACK TO HOME</a>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="codex-layout">
+            <!-- Sidebar: Class List -->
+            <aside class="codex-sidebar win95-inset pixel-clip">
+                <h2 class="codex-sidebar-title">CLASSES</h2>
+                <ul class="codex-list" id="class-list">
+                    <!-- Populated by JavaScript -->
+                </ul>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="codex-main win95-inset pixel-clip">
+                <div id="gear-form">
+                    <p style="text-align: center; color: var(--color-textMuted);">Select a class from the sidebar</p>
+                </div>
+                <div class="codex-btn-group">
+                    <button id="save-gear-btn" class="codex-btn codex-btn-primary pixel-clip-sm">💾 SAVE CHANGES</button>
+                    <button id="validate-gear-btn" class="codex-btn pixel-clip-sm">✓ VALIDATE</button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Staging Toggle Button -->
+    <button id="staging-toggle" class="staging-toggle hidden">
+        STAGING
+        <span id="staging-badge" class="staging-change-badge">0</span>
+    </button>
+
+    <!-- Staging Panel -->
+    <div id="staging-panel" class="staging-panel pixel-clip">
+        <button class="staging-panel-close" onclick="closeStagingPanel()">×</button>
+        <h3 class="staging-title">📦 STAGING CHANGES</h3>
+        <div class="change-count" id="change-count">0 changes</div>
+        <div class="codex-btn-group">
+            <button id="view-changes-btn" class="codex-btn codex-btn-sm pixel-clip-sm">VIEW</button>
+            <button id="submit-pr-btn" class="codex-btn codex-btn-sm pixel-clip-sm">SUBMIT PR</button>
+            <button id="clear-staging-btn" class="codex-btn codex-btn-sm pixel-clip-sm">CLEAR</button>
+        </div>
+    </div>
+
+    <!-- Item Datalist for Autocomplete -->
+    <datalist id="item-datalist">
+        <!-- Populated by JavaScript -->
+    </datalist>
+
+    <!-- Status Message Container -->
+    <div id="status-container"></div>
+
+    <script type="module" src="/dist/codex/starting-gear-editor.js"></script>
+</body>
+</html>

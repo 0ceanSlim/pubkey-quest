@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/codex/migration"
 	"pubkey-quest/cmd/codex/pixellab"
 	"pubkey-quest/cmd/codex/staging"
+	"pubkey-quest/cmd/codex/systemseditor"
 	"pubkey-quest/cmd/codex/validation"
 
 	"github.com/gorilla/mux"
@@ -22,6 +23,7 @@ import (
 
 var editor *itemeditor.Editor
 var charEditor *charactereditor.Editor
+var sysEditor *systemseditor.Editor
 var cfg *config.Config
 
 // Version is set at build time via ldflags
@@ -131,6 +133,14 @@ func main() {
 		log.Printf("✅ Character editor initialized")
 	}
 
+	// Initialize systems editor
+	sysEditor = systemseditor.NewEditor(cfg)
+	if err := sysEditor.LoadAll(); err != nil {
+		log.Printf("⚠️ Warning: Failed to load systems data: %v", err)
+	} else {
+		log.Printf("✅ Systems editor initialized with %d effects", len(sysEditor.Effects))
+	}
+
 	// Initialize staging system
 	staging.SetConfig(cfg)
 	staging.Manager.StartCleanupRoutine()
@@ -141,8 +151,8 @@ func main() {
 	// Home page
 	r.HandleFunc("/", handleHome).Methods("GET")
 
-	// Character editor routes
-	r.HandleFunc("/tools/character-editor", handleCharacterEditor).Methods("GET")
+	// Starting Gear editor routes
+	r.HandleFunc("/tools/starting-gear-editor", handleStartingGearEditor).Methods("GET")
 	r.HandleFunc("/api/character-data", charEditor.HandleGetAllData).Methods("GET")
 	r.HandleFunc("/api/character-data/starting-gear", charEditor.HandleGetStartingGear).Methods("GET")
 	r.HandleFunc("/api/character-data/starting-gear", charEditor.HandleSaveStartingGear).Methods("PUT")
@@ -159,6 +169,16 @@ func main() {
 	r.HandleFunc("/api/character-data/starting-spells", charEditor.HandleGetOtherFile("starting-spells")).Methods("GET")
 	r.HandleFunc("/api/character-data/starting-spells", charEditor.HandleSaveOtherFile("starting-spells")).Methods("PUT")
 
+	// Systems editor routes
+	r.HandleFunc("/tools/systems-editor", sysEditor.HandlePage).Methods("GET")
+	r.HandleFunc("/api/systems-data", sysEditor.HandleGetSystemsData).Methods("GET")
+	r.HandleFunc("/api/effects", sysEditor.HandleGetEffects).Methods("GET")
+	r.HandleFunc("/api/effects", sysEditor.HandleCreateEffect).Methods("POST")
+	r.HandleFunc("/api/effects/{id}", sysEditor.HandleSaveEffect).Methods("PUT")
+	r.HandleFunc("/api/effects/{id}", sysEditor.HandleDeleteEffect).Methods("DELETE")
+	r.HandleFunc("/api/effect-types", sysEditor.HandleGetEffectTypes).Methods("GET")
+	r.HandleFunc("/api/effect-types", sysEditor.HandleSaveEffectTypes).Methods("PUT")
+
 	// Item editor routes
 	r.HandleFunc("/tools/item-editor", editor.HandleItemEditor).Methods("GET")
 	r.HandleFunc("/api/items", editor.HandleGetItems).Methods("GET")
@@ -174,10 +194,6 @@ func main() {
 	r.HandleFunc("/api/items/{filename}/generate-image", editor.HandleGenerateImage).Methods("POST")
 	r.HandleFunc("/api/items/{filename}/image", editor.HandleGetImage).Methods("GET")
 	r.HandleFunc("/api/items/{filename}/accept-image", editor.HandleAcceptImage).Methods("POST")
-
-	// Effects data routes
-	r.HandleFunc("/api/effects", editor.HandleGetEffects).Methods("GET")
-	r.HandleFunc("/api/effect-types", editor.HandleGetEffectTypes).Methods("GET")
 
 	// Database migration routes
 	r.HandleFunc("/tools/database-migration", handleDatabaseMigration).Methods("GET")
@@ -224,7 +240,7 @@ type HomeData struct {
 func handleHome(w http.ResponseWriter, r *http.Request) {
 	mode := staging.DetectMode(r, cfg)
 
-	tmpl, err := template.ParseFiles("cmd/codex/html/home-new.html")
+	tmpl, err := template.ParseFiles("cmd/codex/html/home.html")
 	if err != nil {
 		http.Error(w, "Failed to load template", http.StatusInternalServerError)
 		log.Printf("❌ Template error: %v", err)
@@ -342,7 +358,7 @@ func handleCleanupRun(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-// Character editor handler
-func handleCharacterEditor(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "cmd/codex/html/character-editor.html")
+// Starting Gear editor handler
+func handleStartingGearEditor(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "cmd/codex/html/starting-gear-editor.html")
 }

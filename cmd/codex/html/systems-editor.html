@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systems Editor - CODEX</title>
+    <link rel="icon" type="image/png" href="/www/res/img/codex.png" />
+    <link rel="stylesheet" href="/dist/codex/styles.css">
+</head>
+<body>
+    <div class="codex-container">
+        <!-- Header -->
+        <div class="codex-header">
+            <h1 class="codex-title">🔧 SYSTEMS EDITOR</h1>
+            <a href="/" class="codex-btn">← BACK TO HOME</a>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="codex-layout">
+            <!-- Sidebar: Effect List -->
+            <aside class="codex-sidebar win95-inset pixel-clip">
+                <h2 class="codex-sidebar-title">EFFECTS</h2>
+                <button id="new-effect-btn" class="codex-btn codex-btn-add pixel-clip-sm mb-10" style="width: 100%;">+ NEW EFFECT</button>
+                <ul class="codex-list" id="effect-list">
+                    <!-- Populated by JavaScript -->
+                </ul>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="codex-main win95-inset pixel-clip">
+                <!-- Tabs -->
+                <div class="codex-tabs">
+                    <button class="codex-tab active pixel-clip-sm" data-tab="effects">EFFECTS</button>
+                    <button class="codex-tab pixel-clip-sm" data-tab="effect-types">EFFECT TYPES</button>
+                    <button class="codex-tab pixel-clip-sm" data-tab="character-gen">CHARACTER GEN</button>
+                    <button class="codex-tab pixel-clip-sm" data-tab="game-systems">GAME SYSTEMS</button>
+                </div>
+
+                <!-- Tab Content: Effects -->
+                <div id="tab-effects" class="tab-content active">
+                    <div id="effect-form">
+                        <p style="text-align: center; color: var(--color-textMuted);">Select an effect from the sidebar or create a new one</p>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Effect Types -->
+                <div id="tab-effect-types" class="tab-content" style="display: none;">
+                    <div class="codex-section win95-inset pixel-clip">
+                        <h3 class="codex-section-title">EFFECT TYPE DEFINITIONS</h3>
+                        <p class="text-muted mb-10">Define what properties can be modified by effects (strength, hp, mana, etc.)</p>
+                        <div id="effect-types-editor">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <div class="codex-btn-group">
+                            <button id="save-effect-types-btn" class="codex-btn codex-btn-primary pixel-clip-sm">💾 SAVE EFFECT TYPES</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Character Generation -->
+                <div id="tab-character-gen" class="tab-content" style="display: none;">
+                    <div class="codex-section win95-inset pixel-clip" style="text-align: center; padding: 3rem;">
+                        <h3 class="text-2xl mb-4" style="color: var(--codex-yellow);">🔨 UNDER CONSTRUCTION</h3>
+                        <p class="mb-6" style="color: var(--codex-text-secondary);">Character generation data editors coming soon.</p>
+                        <p style="color: var(--codex-text-muted); font-size: 12px;">Will include: Base HP, Starting Gold, Generation Weights, Introductions, Starting Locations</p>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Game Systems -->
+                <div id="tab-game-systems" class="tab-content" style="display: none;">
+                    <div class="codex-section win95-inset pixel-clip" style="text-align: center; padding: 3rem;">
+                        <h3 class="text-2xl mb-4" style="color: var(--codex-yellow);">🔨 UNDER CONSTRUCTION</h3>
+                        <p class="mb-6" style="color: var(--codex-text-secondary);">Game system editors coming soon.</p>
+                        <p style="color: var(--codex-text-muted); font-size: 12px;">Will include: Advancement, Combat, Encumbrance, Class Abilities</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Staging Toggle Button -->
+    <button id="staging-toggle" class="staging-toggle hidden">
+        STAGING
+        <span id="staging-badge" class="staging-change-badge">0</span>
+    </button>
+
+    <!-- Staging Panel -->
+    <div id="staging-panel" class="staging-panel pixel-clip">
+        <button class="staging-panel-close" onclick="closeStagingPanel()">×</button>
+        <h3 class="staging-title">📦 STAGING CHANGES</h3>
+        <div class="change-count" id="change-count">0 changes</div>
+        <div class="codex-btn-group">
+            <button id="view-changes-btn" class="codex-btn codex-btn-sm pixel-clip-sm">VIEW</button>
+            <button id="submit-pr-btn" class="codex-btn codex-btn-sm pixel-clip-sm">SUBMIT PR</button>
+            <button id="clear-staging-btn" class="codex-btn codex-btn-sm pixel-clip-sm">CLEAR</button>
+        </div>
+    </div>
+
+    <!-- Status Message Container -->
+    <div id="status-container"></div>
+
+    <script type="module" src="/dist/codex/systems-editor.js"></script>
+</body>
+</html>

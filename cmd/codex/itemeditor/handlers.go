@@ -20,7 +20,7 @@ import (
 
 // HandleItemEditor renders the item editor UI
 func (e *Editor) HandleItemEditor(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "cmd/codex/html/item-editor-v2.html")
+	http.ServeFile(w, r, "cmd/codex/html/item-editor.html")
 }
 
 // HandleGetItems returns all items as JSON
