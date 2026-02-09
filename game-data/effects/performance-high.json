@@ -1,17 +1,20 @@
 {
-  "id": "performance-high",
-  "name": "Performance High",
-  "description": "Feeling confident and charismatic after a successful performance",
-  "message": "You feel a surge of confidence from your successful performance!",
   "category": "buff",
-  "effects": [
+  "description": "Feeling confident and charismatic after a successful performance",
+  "id": "performance-high",
+  "message": "You feel a surge of confidence from your successful performance!",
+  "modifiers": [
     {
-      "type": "charisma",
-      "value": 2,
-      "duration": 720,
-      "delay": 0
+      "stat": "charisma",
+      "type": "constant",
+      "value": 2
     }
   ],
-  "icon": "musical_note",
-  "color": "green"
+  "name": "Performance High",
+  "removal": {
+    "timer": 720,
+    "type": "timed"
+  },
+  "source_type": "applied",
+  "visible": true
 }

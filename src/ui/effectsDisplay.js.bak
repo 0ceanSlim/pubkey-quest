@@ -66,9 +66,9 @@ class EffectsDisplay {
 
         // Initial render from current state
         const state = getGameStateSync();
-        // console.log('EffectsDisplay init - state:', state);
-        // console.log('EffectsDisplay init - state?.character:', state?.character);
-        // console.log('EffectsDisplay init - active_effects:', state?.character?.active_effects || state?.active_effects);
+        console.log('EffectsDisplay init - state:', state);
+        console.log('EffectsDisplay init - state?.character:', state?.character);
+        console.log('EffectsDisplay init - active_effects:', state?.character?.active_effects || state?.active_effects);
 
         const activeEffects = state?.character?.active_effects || state?.active_effects;
         const fatigue = state?.character?.fatigue ?? state?.fatigue;
@@ -79,7 +79,7 @@ class EffectsDisplay {
 
             // Also initialize radial progress indicators
             const accumulators = this.getAccumulatorValues(activeEffects);
-            // console.log('EffectsDisplay init - accumulators:', accumulators, 'fatigue:', fatigue, 'hunger:', hunger);
+            console.log('EffectsDisplay init - accumulators:', accumulators, 'fatigue:', fatigue, 'hunger:', hunger);
             this.updateFatigueIcon(fatigue, accumulators.fatigueAccumulator, accumulators.fatigueInterval);
             this.updateHungerIcon(hunger, accumulators.hungerAccumulator, accumulators.hungerInterval);
         }
@@ -92,7 +92,7 @@ class EffectsDisplay {
      * @param {object} state - The loaded game state
      */
     initializeFromState(state) {
-        // console.log('EffectsDisplay initializeFromState called with state:', state);
+        console.log('EffectsDisplay initializeFromState called with state:', state);
 
         // Ensure container is set (in case init() hasn't run yet)
         if (!this.container) {
@@ -104,18 +104,18 @@ class EffectsDisplay {
         const fatigue = state?.character?.fatigue ?? state?.fatigue;
         const hunger = state?.character?.hunger ?? state?.hunger;
 
-        // console.log('initializeFromState - activeEffects:', activeEffects);
-        // console.log('initializeFromState - container:', this.container);
+        console.log('initializeFromState - activeEffects:', activeEffects);
+        console.log('initializeFromState - container:', this.container);
 
         if (activeEffects && activeEffects.length > 0) {
             this.renderEffects(activeEffects);
 
             const accumulators = this.getAccumulatorValues(activeEffects);
-            // console.log('initializeFromState - accumulators:', accumulators, 'fatigue:', fatigue, 'hunger:', hunger);
+            console.log('initializeFromState - accumulators:', accumulators, 'fatigue:', fatigue, 'hunger:', hunger);
             this.updateFatigueIcon(fatigue, accumulators.fatigueAccumulator, accumulators.fatigueInterval);
             this.updateHungerIcon(hunger, accumulators.hungerAccumulator, accumulators.hungerInterval);
         } else {
-            // console.log('initializeFromState - no active effects to render');
+            console.log('initializeFromState - no active effects to render');
         }
     }
 
@@ -419,7 +419,7 @@ class EffectsDisplay {
         const iconEl = document.getElementById('fatigue-icon');
         const progressEl = document.getElementById('fatigue-progress');
 
-        // console.log('updateFatigueIcon called:', { fatigueLevel, accumulator, tickInterval, hasProgressEl: !!progressEl });
+        console.log('updateFatigueIcon called:', { fatigueLevel, accumulator, tickInterval, hasProgressEl: !!progressEl });
 
         if (iconEl) {
             // Use appropriate fatigue icon (fatigue-00.png through fatigue-10.png)
@@ -445,7 +445,7 @@ class EffectsDisplay {
             const circumference = 94.25;
             const progress = accumulator / tickInterval;
             const offset = circumference * (1 - progress);
-            // console.log('Fatigue radial update:', { progress, offset, circumference });
+            console.log('Fatigue radial update:', { progress, offset, circumference });
             progressEl.setAttribute('stroke-dasharray', String(circumference));
             progressEl.setAttribute('stroke-dashoffset', String(offset));
         }
@@ -461,7 +461,7 @@ class EffectsDisplay {
         const iconEl = document.getElementById('hunger-icon');
         const progressEl = document.getElementById('hunger-progress');
 
-        // console.log('updateHungerIcon called:', { hungerLevel, accumulator, tickInterval, hasProgressEl: !!progressEl });
+        console.log('updateHungerIcon called:', { hungerLevel, accumulator, tickInterval, hasProgressEl: !!progressEl });
 
         if (iconEl) {
             // Use appropriate hunger icon (hunger-00.png through hunger-03.png)
@@ -483,7 +483,7 @@ class EffectsDisplay {
             const circumference = 94.25;
             const progress = accumulator / tickInterval;
             const offset = circumference * (1 - progress);
-            // console.log('Hunger radial update:', { progress, offset, circumference, hungerLevel });
+            console.log('Hunger radial update:', { progress, offset, circumference, hungerLevel });
             progressEl.setAttribute('stroke-dasharray', String(circumference));
             progressEl.setAttribute('stroke-dashoffset', String(offset));
         } else if (progressEl) {

@@ -2,21 +2,25 @@
   "id": "poison",
   "name": "Poisoned",
   "description": "Suffering from poison, taking damage over time",
-  "effects": [
+  "source_type": "applied",
+  "category": "debuff",
+  "removal": {
+    "type": "timed",
+    "timer": 360
+  },
+  "modifiers": [
     {
-      "type": "constitution",
+      "stat": "constitution",
       "value": -2,
-      "duration": 360,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "hp",
+      "stat": "hp",
       "value": -1,
-      "duration": 360,
-      "delay": 0,
+      "type": "periodic",
       "tick_interval": 60
     }
   ],
-  "icon": "skull",
-  "color": "purple"
+  "message": "You've been poisoned!",
+  "visible": true
 }

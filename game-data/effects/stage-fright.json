@@ -1,17 +1,20 @@
 {
-  "id": "stage-fright",
-  "name": "Stage Fright",
-  "description": "Shaken and less confident after a poor performance",
-  "message": "Your poor performance has shaken your confidence.",
   "category": "debuff",
-  "effects": [
+  "description": "Shaken and less confident after a poor performance",
+  "id": "stage-fright",
+  "message": "Your poor performance has shaken your confidence.",
+  "modifiers": [
     {
-      "type": "charisma",
-      "value": -1,
-      "duration": 720,
-      "delay": 0
+      "stat": "charisma",
+      "type": "constant",
+      "value": -1
     }
   ],
-  "icon": "sad_face",
-  "color": "red"
+  "name": "Stage Fright",
+  "removal": {
+    "timer": 720,
+    "type": "timed"
+  },
+  "source_type": "applied",
+  "visible": true
 }

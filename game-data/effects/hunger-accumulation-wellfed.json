@@ -1,18 +1,19 @@
 {
-  "id": "hunger-accumulation-wellfed",
-  "name": "Hunger (Well Fed)",
+  "category": "status",
   "description": "Hunger decreases at normal rate when well fed. Decreases hunger level every 4 hours.",
-  "category": "system",
-  "silent": true,
-  "effects": [
+  "id": "hunger-accumulation-wellfed",
+  "modifiers": [
     {
-      "type": "hunger",
-      "value": -1,
-      "duration": 0,
-      "delay": 0,
-      "tick_interval": 240
+      "stat": "hunger",
+      "tick_interval": 240,
+      "type": "periodic",
+      "value": -1
     }
   ],
-  "icon": "clock",
-  "color": "gray"
+  "name": "Hunger (Well Fed)",
+  "removal": {
+    "type": "permanent"
+  },
+  "source_type": "system_ticker",
+  "visible": false
 }

@@ -2,23 +2,29 @@
   "id": "encumbrance-encumbered",
   "name": "Encumbered",
   "description": "You are heavily burdened. Every step is laborious and dangerous.",
-  "message": "You're heavily encumbered! Movement is severely restricted.",
+  "source_type": "system_status",
   "category": "debuff",
-  "silent": false,
-  "effects": [
+  "system_check": {
+    "stat": "weight_percent",
+    "operator": ">",
+    "value": 150
+  },
+  "removal": {
+    "type": "conditional",
+    "condition": "weight_percent <= 150"
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": -2,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "strength",
+      "stat": "strength",
       "value": -2,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "weight",
-  "color": "orange"
+  "message": "You're heavily encumbered! Movement is severely restricted.",
+  "visible": true
 }

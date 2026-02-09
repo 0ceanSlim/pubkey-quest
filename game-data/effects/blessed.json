@@ -2,20 +2,24 @@
   "id": "blessed",
   "name": "Blessed",
   "description": "Protected by divine power, wiser and more charismatic",
-  "effects": [
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 600
+  },
+  "modifiers": [
     {
-      "type": "wisdom",
-      "value": 2,
-      "duration": 600,
-      "delay": 0
+      "stat": "wisdom",
+      "type": "constant",
+      "value": 2
     },
     {
-      "type": "charisma",
-      "value": 1,
-      "duration": 600,
-      "delay": 0
+      "stat": "charisma",
+      "type": "constant",
+      "value": 1
     }
   ],
-  "icon": "star",
-  "color": "gold"
+  "message": "You feel blessed by divine power!",
+  "visible": true
 }

@@ -1,18 +1,19 @@
 {
-  "id": "hunger-accumulation-stuffed",
-  "name": "Hunger (Stuffed)",
+  "category": "status",
   "description": "Hunger decreases slowly when stuffed. Decreases hunger level every 6 hours.",
-  "category": "system",
-  "silent": true,
-  "effects": [
+  "id": "hunger-accumulation-stuffed",
+  "modifiers": [
     {
-      "type": "hunger",
-      "value": -1,
-      "duration": 0,
-      "delay": 0,
-      "tick_interval": 360
+      "stat": "hunger",
+      "tick_interval": 360,
+      "type": "periodic",
+      "value": -1
     }
   ],
-  "icon": "clock",
-  "color": "gray"
+  "name": "Hunger (Stuffed)",
+  "removal": {
+    "type": "permanent"
+  },
+  "source_type": "system_ticker",
+  "visible": false
 }

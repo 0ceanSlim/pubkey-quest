@@ -2,16 +2,24 @@
   "id": "hungry",
   "name": "Hungry",
   "description": "Feeling hungry. Minor penalty to dexterity.",
-  "message": "Your stomach rumbles. You should find something to eat soon.",
+  "source_type": "system_status",
   "category": "debuff",
-  "effects": [
+  "system_check": {
+    "stat": "hunger",
+    "operator": "==",
+    "value": 1
+  },
+  "removal": {
+    "type": "conditional",
+    "condition": "hunger != 1"
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": -1,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "hungry",
-  "color": "orange"
+  "message": "Your stomach rumbles. You should find something to eat soon.",
+  "visible": true
 }

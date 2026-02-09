@@ -138,10 +138,10 @@ func (e *Editor) DeleteEffect(effectID string) error {
 }
 
 func (e *Editor) ValidateEffect(effect Effect) error {
-	// Check that all effect.Effects[].Type references valid EffectTypeDefinition
-	for _, detail := range effect.Effects {
-		if _, exists := e.EffectTypes.EffectTypes[detail.Type]; !exists {
-			return fmt.Errorf("invalid effect type '%s' (not defined in systems/effects.json)", detail.Type)
+	// Check that all effect.Modifiers[].Stat references valid EffectTypeDefinition
+	for _, modifier := range effect.Modifiers {
+		if _, exists := e.EffectTypes.EffectTypes[modifier.Stat]; !exists {
+			return fmt.Errorf("invalid effect stat '%s' (not defined in systems/effects.json)", modifier.Stat)
 		}
 	}
 

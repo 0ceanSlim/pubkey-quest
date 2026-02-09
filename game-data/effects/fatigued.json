@@ -2,28 +2,34 @@
   "id": "fatigued",
   "name": "Fatigued",
   "description": "Heavily fatigued. Significant penalties to physical and mental performance.",
-  "message": "You're heavily fatigued. You need to rest immediately!",
+  "source_type": "system_status",
   "category": "debuff",
-  "effects": [
+  "removal": {
+    "type": "conditional",
+    "condition": "fatigue != 9"
+  },
+  "system_check": {
+    "stat": "fatigue",
+    "operator": "==",
+    "value": 9
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": -3,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "constitution",
+      "stat": "strength",
       "value": -2,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "wisdom",
+      "stat": "wisdom",
       "value": -1,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "fatigued",
-  "color": "red"
+  "message": "You're heavily fatigued. You need to rest immediately!",
+  "visible": true
 }

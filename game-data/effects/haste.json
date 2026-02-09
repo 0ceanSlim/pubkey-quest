@@ -2,14 +2,19 @@
   "id": "haste",
   "name": "Haste",
   "description": "Moving with supernatural speed and agility",
-  "effects": [
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 60
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": 4,
-      "duration": 60,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "lightning",
-  "color": "cyan"
+  "message": "You feel supernaturally quick!",
+  "visible": true
 }

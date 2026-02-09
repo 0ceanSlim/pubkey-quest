@@ -2,17 +2,30 @@
   "id": "starving",
   "name": "Starving",
   "description": "Starving to death. Losing 1 HP every 4 hours.",
-  "message": "You are starving! Find food immediately or you will die!",
+  "source_type": "system_status",
   "category": "debuff",
-  "effects": [
+  "removal": {
+    "type": "conditional",
+    "condition": "hunger != 0"
+  },
+  "system_check": {
+    "stat": "hunger",
+    "operator": "==",
+    "value": 0
+  },
+  "modifiers": [
     {
-      "type": "hp",
+      "stat": "hp",
       "value": -1,
-      "duration": 0,
-      "delay": 0,
+      "type": "periodic",
       "tick_interval": 240
+    },
+    {
+      "stat": "constitution",
+      "value": -1,
+      "type": "constant"
     }
   ],
-  "icon": "starving",
-  "color": "red"
+  "message": "You are starving! Find food immediately or you will die!",
+  "visible": true
 }

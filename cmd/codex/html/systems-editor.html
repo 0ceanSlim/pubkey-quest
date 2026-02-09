@@ -30,16 +30,38 @@
             <main class="codex-main win95-inset pixel-clip">
                 <!-- Tabs -->
                 <div class="codex-tabs">
-                    <button class="codex-tab active pixel-clip-sm" data-tab="effects">EFFECTS</button>
+                    <button class="codex-tab active pixel-clip-sm" data-tab="effects">EFFECTS LIST</button>
+                    <button class="codex-tab pixel-clip-sm" data-tab="fatigue">FATIGUE</button>
+                    <button class="codex-tab pixel-clip-sm" data-tab="hunger">HUNGER</button>
+                    <button class="codex-tab pixel-clip-sm" data-tab="weight">WEIGHT</button>
                     <button class="codex-tab pixel-clip-sm" data-tab="effect-types">EFFECT TYPES</button>
-                    <button class="codex-tab pixel-clip-sm" data-tab="character-gen">CHARACTER GEN</button>
-                    <button class="codex-tab pixel-clip-sm" data-tab="game-systems">GAME SYSTEMS</button>
                 </div>
 
-                <!-- Tab Content: Effects -->
+                <!-- Tab Content: Effects List -->
                 <div id="tab-effects" class="tab-content active">
                     <div id="effect-form">
                         <p style="text-align: center; color: var(--color-textMuted);">Select an effect from the sidebar or create a new one</p>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Fatigue System -->
+                <div id="tab-fatigue" class="tab-content" style="display: none;">
+                    <div id="fatigue-editor">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Hunger System -->
+                <div id="tab-hunger" class="tab-content" style="display: none;">
+                    <div id="hunger-editor">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Weight System -->
+                <div id="tab-weight" class="tab-content" style="display: none;">
+                    <div id="weight-editor">
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
 

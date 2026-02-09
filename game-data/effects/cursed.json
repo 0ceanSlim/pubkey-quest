@@ -2,20 +2,24 @@
   "id": "cursed",
   "name": "Cursed",
   "description": "Afflicted by dark magic - less wise and charismatic",
-  "effects": [
+  "source_type": "applied",
+  "category": "debuff",
+  "removal": {
+    "type": "timed",
+    "timer": 1440
+  },
+  "modifiers": [
     {
-      "type": "wisdom",
+      "stat": "wisdom",
       "value": -2,
-      "duration": 1440,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "charisma",
+      "stat": "charisma",
       "value": -2,
-      "duration": 1440,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "dark_cloud",
-  "color": "black"
+  "message": "You feel afflicted by dark magic!",
+  "visible": true
 }

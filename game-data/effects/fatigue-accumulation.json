@@ -2,17 +2,18 @@
   "id": "fatigue-accumulation",
   "name": "Fatigue Accumulation",
   "description": "Fatigue builds up over time from activity. Increases fatigue level every hour.",
-  "category": "system",
-  "silent": true,
-  "effects": [
+  "source_type": "system_ticker",
+  "category": "status",
+  "removal": {
+    "type": "permanent"
+  },
+  "modifiers": [
     {
-      "type": "fatigue",
+      "stat": "fatigue",
       "value": 1,
-      "duration": 0,
-      "delay": 0,
+      "type": "periodic",
       "tick_interval": 60
     }
   ],
-  "icon": "clock",
-  "color": "gray"
+  "visible": false
 }

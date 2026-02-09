@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"pubkey-quest/cmd/server/db"
-	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/types"
 )
 
@@ -154,48 +153,17 @@ func GetEncumbranceLevel(state *types.SaveFile) string {
 }
 
 // UpdateEncumbrancePenaltyEffects applies appropriate penalty effects based on encumbrance level
-// light (0-50%): +1 DEX bonus
-// normal (51-100%): No effect (baseline)
-// overweight (101-150%): -1 DEX, -1 STR
-// encumbered (151-200%): -2 DEX, -2 STR
-// overloaded (201%+): -3 DEX, -3 STR, -2 CON
+// Now uses data-driven system - effect activation defined in JSON system_check
 func UpdateEncumbrancePenaltyEffects(state *types.SaveFile) (*types.EffectMessage, error) {
-	// Remove all existing encumbrance penalty effects
-	RemoveEncumbrancePenaltyEffects(state)
-
-	// Apply penalty/bonus effect based on encumbrance level
-	level := GetEncumbranceLevel(state)
-
-	switch level {
-	case "light":
-		return effects.ApplyEffectWithMessage(state, "encumbrance-light")
-	case "normal":
-		// Normal - no effect (baseline)
-		return nil, nil
-	case "overweight":
-		return effects.ApplyEffectWithMessage(state, "encumbrance-overweight")
-	case "encumbered":
-		return effects.ApplyEffectWithMessage(state, "encumbrance-encumbered")
-	case "overloaded":
-		return effects.ApplyEffectWithMessage(state, "encumbrance-overloaded")
-	default:
-		return nil, nil
-	}
+	// Use generic data-driven system
+	return UpdateSystemStatusEffects(state, "encumbrance")
 }
 
-// RemoveEncumbrancePenaltyEffects removes all encumbrance penalty effects
+// RemoveEncumbrancePenaltyEffects - DEPRECATED: Now handled by UpdateSystemStatusEffects
+// Kept for backward compatibility but no longer used
 func RemoveEncumbrancePenaltyEffects(state *types.SaveFile) {
-	var remainingEffects []types.ActiveEffect
-	for _, activeEffect := range state.ActiveEffects {
-		// Keep non-encumbrance-penalty effects
-		if activeEffect.EffectID != "encumbrance-light" &&
-			activeEffect.EffectID != "encumbrance-overweight" &&
-			activeEffect.EffectID != "encumbrance-encumbered" &&
-			activeEffect.EffectID != "encumbrance-overloaded" {
-			remainingEffects = append(remainingEffects, activeEffect)
-		}
-	}
-	state.ActiveEffects = remainingEffects
+	// This function is no longer needed - UpdateSystemStatusEffects handles removal
+	log.Printf("⚠️ RemoveEncumbrancePenaltyEffects called but is deprecated - use UpdateSystemStatusEffects")
 }
 
 // HandleEncumbranceChange processes encumbrance change after inventory modifications

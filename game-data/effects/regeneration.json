@@ -2,15 +2,20 @@
   "id": "regeneration",
   "name": "Regeneration",
   "description": "Healing over time from magical regeneration",
-  "effects": [
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 600
+  },
+  "modifiers": [
     {
-      "type": "hp",
+      "stat": "hp",
       "value": 1,
-      "duration": 600,
-      "delay": 0,
+      "type": "periodic",
       "tick_interval": 60
     }
   ],
-  "icon": "heart",
-  "color": "pink"
+  "message": "You feel your wounds beginning to heal!",
+  "visible": true
 }

@@ -94,6 +94,68 @@ func initDatabase(dbPath string) error {
 	return nil
 }
 
+// migrateEffectsSchema adds source_type column to effects table if it doesn't exist
+func migrateEffectsSchema() error {
+	// Check if source_type column exists
+	var columnExists bool
+	err := database.QueryRow(`
+		SELECT COUNT(*) > 0
+		FROM pragma_table_info('effects')
+		WHERE name = 'source_type'
+	`).Scan(&columnExists)
+
+	if err != nil {
+		return fmt.Errorf("failed to check for source_type column: %v", err)
+	}
+
+	if columnExists {
+		log.Println("✅ Effects table already has source_type column")
+		return nil
+	}
+
+	log.Println("🔧 Adding source_type column to effects table...")
+
+	// Add the column
+	_, err = database.Exec(`ALTER TABLE effects ADD COLUMN source_type TEXT`)
+	if err != nil {
+		return fmt.Errorf("failed to add source_type column: %v", err)
+	}
+
+	// Update existing rows by reading their properties JSON
+	rows, err := database.Query(`SELECT id, properties FROM effects`)
+	if err != nil {
+		return fmt.Errorf("failed to query effects: %v", err)
+	}
+	defer rows.Close()
+
+	updateCount := 0
+	for rows.Next() {
+		var id, propsJSON string
+		if err := rows.Scan(&id, &propsJSON); err != nil {
+			continue
+		}
+
+		var effect map[string]interface{}
+		if err := json.Unmarshal([]byte(propsJSON), &effect); err != nil {
+			log.Printf("⚠️ Failed to parse effect %s: %v", id, err)
+			continue
+		}
+
+		sourceType, _ := effect["source_type"].(string)
+		if sourceType != "" {
+			_, err = database.Exec(`UPDATE effects SET source_type = ? WHERE id = ?`, sourceType, id)
+			if err != nil {
+				log.Printf("⚠️ Failed to update source_type for %s: %v", id, err)
+			} else {
+				updateCount++
+			}
+		}
+	}
+
+	log.Printf("✅ Added source_type column and updated %d effects", updateCount)
+	return nil
+}
+
 // createTables creates all the necessary database tables
 func createTables() error {
 	log.Println("📋 Creating database tables...")
@@ -174,6 +236,7 @@ func createTables() error {
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			description TEXT,
+			source_type TEXT,
 			properties TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
@@ -197,6 +260,13 @@ func createTables() error {
 		if _, err := database.Exec(table); err != nil {
 			return fmt.Errorf("failed to create table: %v", err)
 		}
+	}
+
+	// Migrate existing effects table to add source_type column if it doesn't exist
+	// This is needed for databases created before the data-driven refactor
+	if err := migrateEffectsSchema(); err != nil {
+		log.Printf("⚠️ Warning: failed to migrate effects schema: %v", err)
+		// Don't fail - the table might already have the column
 	}
 
 	log.Println("✅ Database tables created successfully")
@@ -743,12 +813,13 @@ func migrateEffectFile(filePath string) error {
 	// Convert effect data to required fields
 	name, _ := effect["name"].(string)
 	description, _ := effect["description"].(string)
+	sourceType, _ := effect["source_type"].(string)
 
 	// Serialize all properties as JSON
 	propertiesJSON, _ := json.Marshal(effect)
 
-	stmt := `INSERT INTO effects (id, name, description, properties) VALUES (?, ?, ?, ?)`
-	_, err = database.Exec(stmt, id, name, description, string(propertiesJSON))
+	stmt := `INSERT INTO effects (id, name, description, source_type, properties) VALUES (?, ?, ?, ?, ?)`
+	_, err = database.Exec(stmt, id, name, description, sourceType, string(propertiesJSON))
 	return err
 }
 

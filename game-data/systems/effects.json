@@ -3,79 +3,111 @@
   "_notes": [
     "This file defines valid effect TYPE keywords",
     "Actual named effects (poison, drunk, performance-high, etc.) are in game-data/effects/",
-    "Each effect type specifies what game property it modifies"
+    "Each effect type specifies what game property it modifies",
+    "Category determines what kind of modifiers are allowed:",
+    "  - stat: Only instant modifiers (STR, DEX, CON, INT, WIS, CHA)",
+    "  - capacity: Only instant modifiers (max_hp, max_mana, weight_capacity)",
+    "  - resource: Both instant AND periodic modifiers (hp, mana, hunger, fatigue)"
   ],
 
   "effect_types": {
     "strength": {
       "id": "strength",
       "property": "stats.strength",
-      "description": "Modifies strength stat"
+      "description": "Modifies strength stat",
+      "category": "stat",
+      "allows_periodic": false
     },
     "dexterity": {
       "id": "dexterity",
       "property": "stats.dexterity",
-      "description": "Modifies dexterity stat"
+      "description": "Modifies dexterity stat",
+      "category": "stat",
+      "allows_periodic": false
     },
     "constitution": {
       "id": "constitution",
       "property": "stats.constitution",
-      "description": "Modifies constitution stat"
+      "description": "Modifies constitution stat",
+      "category": "stat",
+      "allows_periodic": false
     },
     "intelligence": {
       "id": "intelligence",
       "property": "stats.intelligence",
-      "description": "Modifies intelligence stat"
+      "description": "Modifies intelligence stat",
+      "category": "stat",
+      "allows_periodic": false
     },
     "wisdom": {
       "id": "wisdom",
       "property": "stats.wisdom",
-      "description": "Modifies wisdom stat"
+      "description": "Modifies wisdom stat",
+      "category": "stat",
+      "allows_periodic": false
     },
     "charisma": {
       "id": "charisma",
       "property": "stats.charisma",
-      "description": "Modifies charisma stat"
+      "description": "Modifies charisma stat",
+      "category": "stat",
+      "allows_periodic": false
     },
     "hp": {
       "id": "hp",
       "property": "hp",
-      "description": "Modifies current hit points"
+      "description": "Modifies current hit points",
+      "category": "resource",
+      "allows_periodic": true
     },
     "max_hp": {
       "id": "max_hp",
       "property": "max_hp",
-      "description": "Modifies maximum hit points"
+      "description": "Modifies maximum hit points",
+      "category": "capacity",
+      "allows_periodic": false
     },
     "mana": {
       "id": "mana",
       "property": "mana",
-      "description": "Modifies current mana"
+      "description": "Modifies current mana",
+      "category": "resource",
+      "allows_periodic": true
     },
     "max_mana": {
       "id": "max_mana",
       "property": "max_mana",
-      "description": "Modifies maximum mana"
+      "description": "Modifies maximum mana",
+      "category": "capacity",
+      "allows_periodic": false
     },
     "xp_rate": {
       "id": "xp_rate",
       "property": "xp_rate_modifier",
-      "description": "Modifies experience point gain rate (multiplicative)"
+      "description": "Modifies experience point gain rate (multiplicative)",
+      "category": "capacity",
+      "allows_periodic": false
     },
     "fatigue": {
       "id": "fatigue",
       "property": "fatigue",
-      "description": "Modifies fatigue level"
+      "description": "Modifies fatigue level",
+      "category": "resource",
+      "allows_periodic": true
     },
     "hunger": {
       "id": "hunger",
       "property": "hunger",
-      "description": "Modifies hunger level"
+      "description": "Modifies hunger level",
+      "category": "resource",
+      "allows_periodic": true
     },
     "weight_capacity": {
       "id": "weight_capacity",
       "property": "weight_capacity_modifier",
-      "description": "Modifies maximum carry weight"
+      "description": "Modifies maximum carry weight",
+      "category": "capacity",
+      "allows_periodic": false
     }
   }
 }

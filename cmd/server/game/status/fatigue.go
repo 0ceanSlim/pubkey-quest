@@ -8,40 +8,24 @@ import (
 )
 
 // UpdateFatiguePenaltyEffects applies appropriate penalty effects based on fatigue level
-// New thresholds: 0-5 (no penalty), 6 (tired), 8 (very tired), 9 (fatigued), 10 (exhaustion)
+// Now uses data-driven system - effect activation defined in JSON system_check
 func UpdateFatiguePenaltyEffects(state *types.SaveFile) (*types.EffectMessage, error) {
-	// Remove all existing fatigue penalty effects
-	RemoveFatiguePenaltyEffects(state)
-
-	// Apply penalty effect based on current fatigue level
-	switch {
-	case state.Fatigue >= 10:
-		return effects.ApplyEffectWithMessage(state, "exhaustion")
-	case state.Fatigue == 9:
-		return effects.ApplyEffectWithMessage(state, "fatigued")
-	case state.Fatigue == 8:
-		return effects.ApplyEffectWithMessage(state, "very-tired")
-	case state.Fatigue >= 6:
-		return effects.ApplyEffectWithMessage(state, "tired")
-	default:
-		// Fatigue 0-5: No fatigue penalty (fresh)
-		return nil, nil
+	// Clamp fatigue to valid range
+	if state.Fatigue < 0 {
+		state.Fatigue = 0
+	} else if state.Fatigue > 10 {
+		state.Fatigue = 10
 	}
+
+	// Use generic data-driven system
+	return UpdateSystemStatusEffects(state, "fatigue")
 }
 
-// RemoveFatiguePenaltyEffects removes all fatigue penalty effects
+// RemoveFatiguePenaltyEffects - DEPRECATED: Now handled by UpdateSystemStatusEffects
+// Kept for backward compatibility but no longer used
 func RemoveFatiguePenaltyEffects(state *types.SaveFile) {
-	var remainingEffects []types.ActiveEffect
-	for _, activeEffect := range state.ActiveEffects {
-		// Keep non-fatigue-penalty effects
-		if activeEffect.EffectID != "tired" &&
-			activeEffect.EffectID != "very-tired" &&
-			activeEffect.EffectID != "fatigued" &&
-			activeEffect.EffectID != "exhaustion" {
-			remainingEffects = append(remainingEffects, activeEffect)
-		}
-	}
-	state.ActiveEffects = remainingEffects
+	// This function is no longer needed - UpdateSystemStatusEffects handles removal
+	log.Printf("⚠️ RemoveFatiguePenaltyEffects called but is deprecated - use UpdateSystemStatusEffects")
 }
 
 // EnsureFatigueAccumulation ensures the fatigue accumulation effect is active

@@ -2,16 +2,24 @@
   "id": "tired",
   "name": "Tired",
   "description": "Feeling a bit tired. Minor penalties to performance.",
-  "message": "You're feeling tired.",
+  "source_type": "system_status",
   "category": "debuff",
-  "effects": [
+  "removal": {
+    "type": "conditional",
+    "condition": "fatigue != 6"
+  },
+  "system_check": {
+    "stat": "fatigue",
+    "operator": ">=",
+    "value": 6
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": -1,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "tired",
-  "color": "yellow"
+  "message": "You're feeling tired.",
+  "visible": true
 }

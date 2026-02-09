@@ -73,6 +73,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, gearIssues...)
 	}
 
+	// Validate effects
+	if effectIssues, err := ValidateEffects(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, effectIssues...)
+	}
+
 	// Calculate stats
 	for _, issue := range result.Issues {
 		result.Stats.TotalFiles++
@@ -1401,4 +1408,508 @@ func validateMultiSlotOption(opt map[string]interface{}, className string, choic
 			})
 		}
 	}
+}
+
+// ValidateEffects validates all effect files against the new schema
+func ValidateEffects() ([]Issue, error) {
+	issues := []Issue{}
+	effectsPath := "game-data/effects"
+
+	// Load effect types for validation
+	effectTypes, err := loadEffectTypes("game-data/systems/effects.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to load effect types: %w", err)
+	}
+
+	// Find all effect files
+	err = filepath.WalkDir(effectsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !d.IsDir() && strings.HasSuffix(path, ".json") {
+			effectIssues := validateEffectFile(path, effectTypes)
+			issues = append(issues, effectIssues...)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return issues, nil
+}
+
+func loadEffectTypes(path string) (map[string]effectTypeInfo, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper struct {
+		EffectTypes map[string]effectTypeInfo `json:"effect_types"`
+	}
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return nil, err
+	}
+
+	return wrapper.EffectTypes, nil
+}
+
+type effectTypeInfo struct {
+	ID             string `json:"id"`
+	Property       string `json:"property"`
+	Description    string `json:"description"`
+	Category       string `json:"category"`
+	AllowsPeriodic bool   `json:"allows_periodic"`
+}
+
+func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) []Issue {
+	issues := []Issue{}
+	filename := filepath.Base(filePath)
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Message:  fmt.Sprintf("Failed to read file: %v", err),
+		})
+		return issues
+	}
+
+	var effect map[string]interface{}
+	if err := json.Unmarshal(data, &effect); err != nil {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Message:  fmt.Sprintf("Failed to parse JSON: %v", err),
+		})
+		return issues
+	}
+
+	// Rule 1: Required fields
+	requiredFields := []string{"id", "name", "description"}
+	for _, field := range requiredFields {
+		if _, exists := effect[field]; !exists {
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "effects",
+				File:     filename,
+				Field:    field,
+				Message:  fmt.Sprintf("Required field '%s' is missing", field),
+			})
+		}
+	}
+
+	// Check for new structure vs old structure
+	hasModifiers := false
+	if modifiers, ok := effect["modifiers"].([]interface{}); ok && len(modifiers) > 0 {
+		hasModifiers = true
+	}
+
+	hasOldStructure := false
+	if effects, ok := effect["effects"].([]interface{}); ok && len(effects) > 0 {
+		hasOldStructure = true
+	}
+
+	// Check for new required fields
+	if !hasModifiers {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Field:    "modifiers",
+			Message:  "Required field 'modifiers' is missing or empty (use 'modifiers' instead of 'effects')",
+		})
+	}
+
+	if _, exists := effect["source_type"]; !exists {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Field:    "source_type",
+			Message:  "Required field 'source_type' is missing (must be 'system_ticker', 'system_status', or 'applied')",
+		})
+	}
+
+	if _, exists := effect["category"]; !exists {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Field:    "category",
+			Message:  "Required field 'category' is missing (must be 'buff', 'debuff', or 'status')",
+		})
+	}
+
+	if _, exists := effect["removal"]; !exists {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Field:    "removal",
+			Message:  "Required field 'removal' is missing",
+		})
+	}
+
+	if _, exists := effect["visible"]; !exists {
+		issues = append(issues, Issue{
+			Type:     "error",
+			Category: "effects",
+			File:     filename,
+			Field:    "visible",
+			Message:  "Required field 'visible' is missing",
+		})
+	}
+
+	// Rule 2: source_type validation
+	if sourceType, ok := effect["source_type"].(string); ok {
+		validSourceTypes := map[string]bool{
+			"system_ticker": true,
+			"system_status": true,
+			"applied":       true,
+		}
+		if !validSourceTypes[sourceType] {
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "effects",
+				File:     filename,
+				Field:    "source_type",
+				Message:  fmt.Sprintf("Invalid source_type '%s' (must be 'system_ticker', 'system_status', or 'applied')", sourceType),
+			})
+		}
+
+		// NEW RULE: system_status effects must have system_check
+		if sourceType == "system_status" {
+			if systemCheck, ok := effect["system_check"].(map[string]interface{}); !ok {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    "system_check",
+					Message:  "system_status effects must have 'system_check' defined",
+				})
+			} else {
+				// Validate system_check fields
+				validStats := map[string]bool{"hunger": true, "fatigue": true, "weight_percent": true, "hp_percent": true, "mana_percent": true}
+				validOperators := map[string]bool{"==": true, "!=": true, "<": true, "<=": true, ">": true, ">=": true}
+
+				if stat, ok := systemCheck["stat"].(string); !ok || stat == "" {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    "system_check.stat",
+						Message:  "system_check must have 'stat' field",
+					})
+				} else if !validStats[stat] {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    "system_check.stat",
+						Message:  fmt.Sprintf("Invalid stat '%s' (must be: hunger, fatigue, weight_percent, hp_percent, mana_percent)", stat),
+					})
+				} else {
+					// Validate value range based on stat
+					if value, ok := systemCheck["value"].(float64); ok {
+						intValue := int(value)
+						switch stat {
+						case "hunger":
+							if intValue < 0 || intValue > 3 {
+								issues = append(issues, Issue{
+									Type:     "error",
+									Category: "effects",
+									File:     filename,
+									Field:    "system_check.value",
+									Message:  "hunger value must be 0-3",
+								})
+							}
+						case "fatigue":
+							if intValue < 0 || intValue > 10 {
+								issues = append(issues, Issue{
+									Type:     "error",
+									Category: "effects",
+									File:     filename,
+									Field:    "system_check.value",
+									Message:  "fatigue value must be 0-10",
+								})
+							}
+						case "weight_percent":
+							if intValue < 0 || intValue > 300 {
+								issues = append(issues, Issue{
+									Type:     "error",
+									Category: "effects",
+									File:     filename,
+									Field:    "system_check.value",
+									Message:  "weight_percent value must be 0-300",
+								})
+							}
+						case "hp_percent", "mana_percent":
+							if intValue < 0 || intValue > 100 {
+								issues = append(issues, Issue{
+									Type:     "error",
+									Category: "effects",
+									File:     filename,
+									Field:    "system_check.value",
+									Message:  fmt.Sprintf("%s value must be 0-100", stat),
+								})
+							}
+						}
+					}
+				}
+
+				if operator, ok := systemCheck["operator"].(string); !ok || operator == "" {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    "system_check.operator",
+						Message:  "system_check must have 'operator' field",
+					})
+				} else if !validOperators[operator] {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    "system_check.operator",
+						Message:  fmt.Sprintf("Invalid operator '%s' (must be: ==, !=, <, <=, >, >=)", operator),
+					})
+				}
+
+				if _, ok := systemCheck["value"]; !ok {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    "system_check.value",
+						Message:  "system_check must have 'value' field",
+					})
+				}
+			}
+		}
+
+		// Rule 4 & 5: visible field validation
+		if visible, ok := effect["visible"].(bool); ok {
+			if sourceType == "system_ticker" && visible {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    "visible",
+					Message:  "system_ticker effects must have visible=false",
+				})
+			}
+			if (sourceType == "system_status" || sourceType == "applied") && !visible {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    "visible",
+					Message:  fmt.Sprintf("%s effects must have visible=true", sourceType),
+				})
+			}
+		}
+
+		// Rule 10: Applied effects should have message
+		if sourceType == "applied" {
+			if message, ok := effect["message"].(string); !ok || strings.TrimSpace(message) == "" {
+				issues = append(issues, Issue{
+					Type:     "warning",
+					Category: "effects",
+					File:     filename,
+					Field:    "message",
+					Message:  "Applied effects should have a message field",
+				})
+			}
+		}
+	}
+
+	// Rule 3: category validation
+	if category, ok := effect["category"].(string); ok {
+		validCategories := map[string]bool{
+			"buff":   true,
+			"debuff": true,
+			"status": true,
+		}
+		if !validCategories[category] {
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "effects",
+				File:     filename,
+				Field:    "category",
+				Message:  fmt.Sprintf("Invalid category '%s' (must be 'buff', 'debuff', or 'status')", category),
+			})
+		}
+	}
+
+	// Rule 6-9: Modifier validation
+	if modifiers, ok := effect["modifiers"].([]interface{}); ok {
+		periodicCount := make(map[string]int) // Track periodic modifiers per stat
+
+		for i, mod := range modifiers {
+			modMap, ok := mod.(map[string]interface{})
+			if !ok {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    fmt.Sprintf("modifiers[%d]", i),
+					Message:  "Modifier must be an object",
+				})
+				continue
+			}
+
+			// Validate stat type exists
+			stat, ok := modMap["stat"].(string)
+			if !ok {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    fmt.Sprintf("modifiers[%d].stat", i),
+					Message:  "Modifier must have 'stat' field",
+				})
+				continue
+			}
+
+			effectType, exists := effectTypes[stat]
+			if !exists {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    fmt.Sprintf("modifiers[%d].stat", i),
+					Message:  fmt.Sprintf("Unknown stat type '%s'", stat),
+				})
+				continue
+			}
+
+			// Validate modifier type
+			modType, ok := modMap["type"].(string)
+			if !ok {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    fmt.Sprintf("modifiers[%d].type", i),
+					Message:  "Modifier must have 'type' field",
+				})
+				continue
+			}
+
+			if modType != "instant" && modType != "periodic" {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    fmt.Sprintf("modifiers[%d].type", i),
+					Message:  fmt.Sprintf("Invalid modifier type '%s' (must be 'instant' or 'periodic')", modType),
+				})
+			}
+
+			// Rule 7: Stats and capacities cannot be periodic
+			if modType == "periodic" && !effectType.AllowsPeriodic {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    fmt.Sprintf("modifiers[%d]", i),
+					Message:  fmt.Sprintf("Stat type '%s' (category: %s) cannot have periodic modifiers", stat, effectType.Category),
+				})
+			}
+
+			// Periodic modifiers need tick_interval
+			if modType == "periodic" {
+				if tickInterval, ok := modMap["tick_interval"].(float64); !ok || tickInterval <= 0 {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    fmt.Sprintf("modifiers[%d].tick_interval", i),
+						Message:  "Periodic modifiers must have tick_interval > 0",
+					})
+				}
+			}
+
+			// Count periodic modifiers per stat
+			if modType == "periodic" {
+				periodicCount[stat]++
+			}
+
+			// Rule 13: Delay only makes sense for applied effects
+			if delay, ok := modMap["delay"].(float64); ok && delay > 0 {
+				if sourceType, ok := effect["source_type"].(string); ok && sourceType != "applied" {
+					issues = append(issues, Issue{
+						Type:     "warning",
+						Category: "effects",
+						File:     filename,
+						Field:    fmt.Sprintf("modifiers[%d].delay", i),
+						Message:  fmt.Sprintf("Delay field is unusual for %s effects (typically only used for applied effects)", sourceType),
+					})
+				}
+			}
+		}
+
+		// Rule 6: Only one periodic modifier per stat per effect
+		for stat, count := range periodicCount {
+			if count > 1 {
+				issues = append(issues, Issue{
+					Type:     "error",
+					Category: "effects",
+					File:     filename,
+					Field:    "modifiers",
+					Message:  fmt.Sprintf("Multiple periodic modifiers for stat '%s' (max: 1 per stat)", stat),
+				})
+			}
+		}
+	}
+
+	// Rule 11-14: Deprecated fields
+	if _, exists := effect["icon"]; exists {
+		issues = append(issues, Issue{
+			Type:     "warning",
+			Category: "effects",
+			File:     filename,
+			Field:    "icon",
+			Message:  "Deprecated field 'icon' found (frontend derives icon from effect ID)",
+		})
+	}
+
+	if _, exists := effect["color"]; exists {
+		issues = append(issues, Issue{
+			Type:     "warning",
+			Category: "effects",
+			File:     filename,
+			Field:    "color",
+			Message:  "Deprecated field 'color' found (frontend uses hardcoded colors)",
+		})
+	}
+
+	if _, exists := effect["silent"]; exists {
+		issues = append(issues, Issue{
+			Type:     "warning",
+			Category: "effects",
+			File:     filename,
+			Field:    "silent",
+			Message:  "Deprecated field 'silent' found (use 'visible' instead)",
+		})
+	}
+
+	if hasOldStructure {
+		issues = append(issues, Issue{
+			Type:     "warning",
+			Category: "effects",
+			File:     filename,
+			Field:    "effects",
+			Message:  "Deprecated field 'effects' found (use 'modifiers' instead)",
+		})
+	}
+
+	return issues
 }

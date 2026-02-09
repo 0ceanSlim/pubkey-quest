@@ -2,26 +2,29 @@
   "id": "rage",
   "name": "Rage",
   "description": "Filled with battle fury - stronger but less intelligent",
-  "effects": [
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
     {
-      "type": "strength",
+      "stat": "strength",
       "value": 4,
-      "duration": 120,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "constitution",
+      "stat": "constitution",
       "value": 2,
-      "duration": 120,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "intelligence",
+      "stat": "intelligence",
       "value": -2,
-      "duration": 120,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "fire",
-  "color": "red"
+  "message": "You fly into a rage!",
+  "visible": true
 }

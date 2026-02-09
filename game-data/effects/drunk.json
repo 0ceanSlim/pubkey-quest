@@ -2,26 +2,29 @@
   "id": "drunk",
   "name": "Drunk",
   "description": "Intoxicated from alcohol - less coordinated but more charismatic",
-  "effects": [
+  "source_type": "applied",
+  "category": "debuff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": -2,
-      "duration": 240,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "wisdom",
+      "stat": "wisdom",
       "value": -1,
-      "duration": 240,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "charisma",
+      "stat": "charisma",
       "value": 1,
-      "duration": 240,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "bottle",
-  "color": "yellow"
+  "message": "You're feeling a bit tipsy...",
+  "visible": true
 }

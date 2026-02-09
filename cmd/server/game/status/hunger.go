@@ -8,48 +8,24 @@ import (
 )
 
 // UpdateHungerPenaltyEffects applies appropriate penalty effects based on hunger level
-// 3/3 "Stuffed": +1 CON, -1 STR, -1 DEX
-// 2/3 "Well Fed": No effect (baseline)
-// 1/3 "Hungry": -1 DEX only
-// 0/3 "Famished": -1 HP every 4 hours
+// Now uses data-driven system - effect activation defined in JSON system_check
 func UpdateHungerPenaltyEffects(state *types.SaveFile) (*types.EffectMessage, error) {
-	// Remove all existing hunger penalty effects
-	RemoveHungerPenaltyEffects(state)
-
-	// Apply penalty/bonus effect based on current hunger level
-	switch state.Hunger {
-	case 0:
-		return effects.ApplyEffectWithMessage(state, "starving")
-	case 1:
-		return effects.ApplyEffectWithMessage(state, "hungry")
-	case 2:
-		// Well fed - no effect (baseline)
-		return nil, nil
-	case 3:
-		return effects.ApplyEffectWithMessage(state, "stuffed")
-	default:
-		// Clamp to valid range
-		if state.Hunger < 0 {
-			state.Hunger = 0
-			return effects.ApplyEffectWithMessage(state, "starving")
-		}
+	// Clamp hunger to valid range
+	if state.Hunger < 0 {
+		state.Hunger = 0
+	} else if state.Hunger > 3 {
 		state.Hunger = 3
-		return effects.ApplyEffectWithMessage(state, "stuffed")
 	}
+
+	// Use generic data-driven system
+	return UpdateSystemStatusEffects(state, "hunger")
 }
 
-// RemoveHungerPenaltyEffects removes all hunger penalty effects
+// RemoveHungerPenaltyEffects - DEPRECATED: Now handled by UpdateSystemStatusEffects
+// Kept for backward compatibility but no longer used
 func RemoveHungerPenaltyEffects(state *types.SaveFile) {
-	var remainingEffects []types.ActiveEffect
-	for _, activeEffect := range state.ActiveEffects {
-		// Keep non-hunger-penalty effects
-		if activeEffect.EffectID != "starving" &&
-			activeEffect.EffectID != "hungry" &&
-			activeEffect.EffectID != "stuffed" {
-			remainingEffects = append(remainingEffects, activeEffect)
-		}
-	}
-	state.ActiveEffects = remainingEffects
+	// This function is no longer needed - UpdateSystemStatusEffects handles removal
+	log.Printf("⚠️ RemoveHungerPenaltyEffects called but is deprecated - use UpdateSystemStatusEffects")
 }
 
 // EnsureHungerAccumulation ensures hunger accumulation effect is present (no swapping needed)

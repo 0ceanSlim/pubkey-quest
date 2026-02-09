@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/types"
@@ -28,51 +29,71 @@ func ApplyEffectWithMessage(state *types.SaveFile, effectID string) (*types.Effe
 		state.ActiveEffects = []types.ActiveEffect{}
 	}
 
-	// Get effect details
-	effects, _ := effectData["effects"].([]interface{})
-	_, _ = effectData["name"].(string) // name unused but kept for documentation
-	message, _ := effectData["message"].(string)
-	color, _ := effectData["color"].(string)
-	category, _ := effectData["category"].(string)
-	silent, _ := effectData["silent"].(bool)
-
-	if effects == nil {
-		return nil, fmt.Errorf("effect %s has no effects array", effectID)
+	// Calculate total duration from removal config
+	duration := 0.0
+	if effectData.Removal.Type == "timed" || effectData.Removal.Type == "hybrid" {
+		duration = float64(effectData.Removal.Timer)
 	}
 
-	// Apply each effect component
-	for idx, effectRaw := range effects {
-		effect, ok := effectRaw.(map[string]interface{})
-		if !ok {
-			continue
-		}
+	// Apply each modifier
+	for idx, modifier := range effectData.Modifiers {
+		// Determine how to apply based on type
+		switch modifier.Type {
+		case "instant":
+			// Instant: Apply once to resources (hp, mana, hunger, fatigue) then done
+			// Only add to active effects if there's a delay
+			if modifier.Delay > 0 {
+				activeEffect := types.ActiveEffect{
+					EffectID:          effectID,
+					EffectIndex:       idx,
+					DurationRemaining: duration,
+					TotalDuration:     duration,
+					DelayRemaining:    float64(modifier.Delay),
+					TickAccumulator:   0.0,
+					AppliedAt:         state.TimeOfDay,
+				}
+				state.ActiveEffects = append(state.ActiveEffects, activeEffect)
+			} else {
+				// Apply immediately
+				ApplyImmediateEffect(state, modifier.Stat, modifier.Value)
+			}
 
-		effectType, _ := effect["type"].(string)
-		value, _ := effect["value"].(float64)
-		duration, _ := effect["duration"].(float64)
-		delay, _ := effect["delay"].(float64)
-		tickInterval, _ := effect["tick_interval"].(float64)
-
-		// Determine if this should be an immediate effect or active effect
-		// Immediate effects: instant hp/mana/fatigue/hunger changes with no duration/delay/tick
-		// Active effects: everything else (stat modifiers, over-time effects, delayed effects)
-		isStatModifier := effectType == "strength" || effectType == "dexterity" ||
-			effectType == "constitution" || effectType == "intelligence" ||
-			effectType == "wisdom" || effectType == "charisma"
-
-		shouldBeActive := tickInterval > 0 || duration > 0 || delay > 0 || isStatModifier
-
-		if !shouldBeActive {
-			// Apply immediately (only for instant hp/mana/fatigue/hunger changes)
-			ApplyImmediateEffect(state, effectType, int(value))
-		} else {
-			// Add to active effects for over-time processing or permanent stat modifiers
+		case "constant":
+			// Constant: Stat modifiers that apply while effect is active
+			// Always add to active effects (duration tracks when effect ends)
 			activeEffect := types.ActiveEffect{
 				EffectID:          effectID,
 				EffectIndex:       idx,
 				DurationRemaining: duration,
-				TotalDuration:     duration, // Store original duration for progress calculation
-				DelayRemaining:    delay,
+				TotalDuration:     duration,
+				DelayRemaining:    float64(modifier.Delay),
+				TickAccumulator:   0.0,
+				AppliedAt:         state.TimeOfDay,
+			}
+			state.ActiveEffects = append(state.ActiveEffects, activeEffect)
+
+		case "periodic":
+			// Periodic: Apply repeatedly every tick_interval
+			activeEffect := types.ActiveEffect{
+				EffectID:          effectID,
+				EffectIndex:       idx,
+				DurationRemaining: duration,
+				TotalDuration:     duration,
+				DelayRemaining:    float64(modifier.Delay),
+				TickAccumulator:   0.0,
+				AppliedAt:         state.TimeOfDay,
+			}
+			state.ActiveEffects = append(state.ActiveEffects, activeEffect)
+
+		default:
+			// Unknown type, treat as constant for backward compatibility
+			log.Printf("⚠️ Unknown modifier type '%s', treating as constant", modifier.Type)
+			activeEffect := types.ActiveEffect{
+				EffectID:          effectID,
+				EffectIndex:       idx,
+				DurationRemaining: duration,
+				TotalDuration:     duration,
+				DelayRemaining:    float64(modifier.Delay),
 				TickAccumulator:   0.0,
 				AppliedAt:         state.TimeOfDay,
 			}
@@ -80,12 +101,12 @@ func ApplyEffectWithMessage(state *types.SaveFile, effectID string) (*types.Effe
 		}
 	}
 
-	// Return effect message
+	// Return effect message (convert visible to silent for backward compatibility)
 	effectMsg := &types.EffectMessage{
-		Message:  message,
-		Color:    color,
-		Category: category,
-		Silent:   silent,
+		Message:  effectData.Message,
+		Color:    "", // Frontend will determine color based on category
+		Category: effectData.Category,
+		Silent:   !effectData.Visible,
 	}
 
 	return effectMsg, nil
@@ -133,30 +154,19 @@ func ApplyImmediateEffect(state *types.SaveFile, effectType string, value int) {
 	}
 }
 
-// GetEffectTemplate loads effect template data and returns the specific effect at index
-func GetEffectTemplate(effectID string, effectIndex int) (effectType string, value float64, tickInterval float64, name string, err error) {
+// GetEffectTemplate loads effect template data and returns the specific modifier at index
+func GetEffectTemplate(effectID string, effectIndex int) (stat string, value int, tickInterval int, name string, err error) {
 	effectData, err := LoadEffectData(effectID)
 	if err != nil {
 		return "", 0, 0, "", fmt.Errorf("failed to load effect %s: %v", effectID, err)
 	}
 
-	name, _ = effectData["name"].(string)
-	effects, _ := effectData["effects"].([]interface{})
-
-	if effects == nil || effectIndex >= len(effects) {
-		return "", 0, 0, name, fmt.Errorf("invalid effect index %d for effect %s", effectIndex, effectID)
+	if effectIndex >= len(effectData.Modifiers) {
+		return "", 0, 0, effectData.Name, fmt.Errorf("invalid modifier index %d for effect %s", effectIndex, effectID)
 	}
 
-	effectObj, ok := effects[effectIndex].(map[string]interface{})
-	if !ok {
-		return "", 0, 0, name, fmt.Errorf("invalid effect data at index %d", effectIndex)
-	}
-
-	effectType, _ = effectObj["type"].(string)
-	value, _ = effectObj["value"].(float64)
-	tickInterval, _ = effectObj["tick_interval"].(float64)
-
-	return effectType, value, tickInterval, name, nil
+	modifier := effectData.Modifiers[effectIndex]
+	return modifier.Stat, modifier.Value, modifier.TickInterval, effectData.Name, nil
 }
 
 // TickEffects processes all active effects, applying stat modifiers and ticking down durations
@@ -170,8 +180,8 @@ func TickEffects(state *types.SaveFile, minutesElapsed int) []types.EffectMessag
 	var messages []types.EffectMessage
 
 	for _, activeEffect := range state.ActiveEffects {
-		// Load effect template to get type, value, tick_interval
-		effectType, value, tickInterval, name, err := GetEffectTemplate(activeEffect.EffectID, activeEffect.EffectIndex)
+		// Load effect template to get stat, value, tick_interval
+		stat, value, tickInterval, name, err := GetEffectTemplate(activeEffect.EffectID, activeEffect.EffectIndex)
 		if err != nil {
 			log.Printf("⚠️ Failed to load effect template for %s: %v", activeEffect.EffectID, err)
 			continue
@@ -207,12 +217,12 @@ func TickEffects(state *types.SaveFile, minutesElapsed int) []types.EffectMessag
 
 			if tickInterval > 0 {
 				activeEffect.TickAccumulator += float64(minutesElapsed)
-				for activeEffect.TickAccumulator >= tickInterval {
-					ApplyImmediateEffect(state, effectType, int(value))
-					activeEffect.TickAccumulator -= tickInterval
+				for activeEffect.TickAccumulator >= float64(tickInterval) {
+					ApplyImmediateEffect(state, stat, value)
+					activeEffect.TickAccumulator -= float64(tickInterval)
 
 					// For starvation damage, show message
-					if activeEffect.EffectID == "starving" && effectType == "hp" {
+					if activeEffect.EffectID == "starving" && stat == "hp" {
 						messages = append(messages, types.EffectMessage{
 							Message:  "You're starving! You lose 1 HP from lack of food.",
 							Color:    "red",
@@ -303,17 +313,17 @@ func GetActiveStatModifiers(state *types.SaveFile) map[string]int {
 			continue
 		}
 
-		// Load effect template to get type and value
-		effectType, value, _, _, err := GetEffectTemplate(activeEffect.EffectID, activeEffect.EffectIndex)
+		// Load effect template to get stat and value
+		stat, value, _, _, err := GetEffectTemplate(activeEffect.EffectID, activeEffect.EffectIndex)
 		if err != nil {
 			log.Printf("⚠️ Failed to load effect template for %s: %v", activeEffect.EffectID, err)
 			continue
 		}
 
 		// Only apply stat modifiers (not instant effects like hp/mana)
-		switch effectType {
+		switch stat {
 		case "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma":
-			modifiers[effectType] += int(value)
+			modifiers[stat] += value
 		}
 	}
 
@@ -321,7 +331,7 @@ func GetActiveStatModifiers(state *types.SaveFile) map[string]int {
 }
 
 // LoadEffectData loads effect data from database
-func LoadEffectData(effectID string) (map[string]interface{}, error) {
+func LoadEffectData(effectID string) (*types.EffectData, error) {
 	// Normalize old effect IDs for backward compatibility
 	effectID = NormalizeEffectID(effectID)
 
@@ -337,13 +347,115 @@ func LoadEffectData(effectID string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("effect not found in database: %s", effectID)
 	}
 
-	// Parse properties JSON
-	var effectData map[string]interface{}
+	// Parse properties JSON into strongly typed struct
+	var effectData types.EffectData
 	if err := json.Unmarshal([]byte(propertiesJSON), &effectData); err != nil {
 		return nil, fmt.Errorf("failed to parse effect properties: %v", err)
 	}
 
-	return effectData, nil
+	return &effectData, nil
+}
+
+// EvaluateSystemCheck checks if an effect's system check condition is met
+func EvaluateSystemCheck(effectData *types.EffectData, state *types.SaveFile) bool {
+	if effectData.SystemCheck == nil {
+		return false
+	}
+
+	sc := effectData.SystemCheck
+	condition := fmt.Sprintf("%s %s %d", sc.Stat, sc.Operator, sc.Value)
+
+	return EvaluateCondition(condition, state)
+}
+
+// GetSystemStatusEffectsByCategory returns all system_status effects, optionally filtered by category
+func GetSystemStatusEffectsByCategory(category string) ([]*types.EffectData, error) {
+	database := db.GetDB()
+	if database == nil {
+		return nil, fmt.Errorf("database not available")
+	}
+
+	// Query all system_status effects
+	rows, err := database.Query(`
+		SELECT id, properties
+		FROM effects
+		WHERE source_type = 'system_status'
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var effects []*types.EffectData
+	for rows.Next() {
+		var id, properties string
+		if err := rows.Scan(&id, &properties); err != nil {
+			continue
+		}
+
+		var effectData types.EffectData
+		if err := json.Unmarshal([]byte(properties), &effectData); err != nil {
+			log.Printf("⚠️ Failed to parse effect %s: %v", id, err)
+			continue
+		}
+
+		// Filter by category if specified
+		// Category maps to the stat being checked in SystemCheck
+		if category == "" || matchesCategory(&effectData, category) {
+			effects = append(effects, &effectData)
+		}
+	}
+
+	return effects, nil
+}
+
+// matchesCategory checks if an effect belongs to a category based on its SystemCheck stat
+func matchesCategory(effect *types.EffectData, category string) bool {
+	if effect.SystemCheck == nil {
+		return false
+	}
+
+	// Map category to stat name
+	switch category {
+	case "fatigue":
+		return effect.SystemCheck.Stat == "fatigue"
+	case "hunger":
+		return effect.SystemCheck.Stat == "hunger"
+	case "encumbrance":
+		return effect.SystemCheck.Stat == "weight_percent"
+	default:
+		// Fallback: check if effect ID contains category (for other cases)
+		return strings.Contains(strings.ToLower(effect.ID), category)
+	}
+}
+
+// HasActiveEffect checks if an effect is currently active
+func HasActiveEffect(state *types.SaveFile, effectID string) bool {
+	if state.ActiveEffects == nil {
+		return false
+	}
+
+	for _, ae := range state.ActiveEffects {
+		if ae.EffectID == effectID {
+			return true
+		}
+	}
+	return false
+}
+
+// RemoveEffect removes an effect from active effects
+func RemoveEffect(state *types.SaveFile, effectID string) {
+	if state.ActiveEffects == nil {
+		return
+	}
+
+	var remaining []types.ActiveEffect
+	for _, ae := range state.ActiveEffects {
+		if ae.EffectID != effectID {
+			remaining = append(remaining, ae)
+		}
+	}
+	state.ActiveEffects = remaining
 }
 
 // EnrichActiveEffects adds template data (name, category, stat_modifiers) to active effects
@@ -364,40 +476,19 @@ func EnrichActiveEffects(activeEffects []types.ActiveEffect) []types.EnrichedEff
 		// Load template data
 		effectData, err := LoadEffectData(ae.EffectID)
 		if err == nil {
-			// Get name
-			if name, ok := effectData["name"].(string); ok {
-				ee.Name = name
-			}
+			ee.Name = effectData.Name
+			ee.Description = effectData.Description
+			ee.Category = effectData.Category
 
-			// Get description
-			if desc, ok := effectData["description"].(string); ok {
-				ee.Description = desc
-			}
+			// Extract stat modifiers and tick interval from modifiers
+			for _, modifier := range effectData.Modifiers {
+				switch modifier.Stat {
+				case "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma":
+					ee.StatModifiers[modifier.Stat] = modifier.Value
+				}
 
-			// Get category
-			if category, ok := effectData["category"].(string); ok {
-				ee.Category = category
-			}
-
-			// Get effects array to extract stat modifiers and tick interval
-			if effects, ok := effectData["effects"].([]interface{}); ok {
-				for _, effectRaw := range effects {
-					if effect, ok := effectRaw.(map[string]interface{}); ok {
-						effectType, _ := effect["type"].(string)
-						value, _ := effect["value"].(float64)
-						tickInterval, _ := effect["tick_interval"].(float64)
-
-						// Check if this is a stat modifier
-						switch effectType {
-						case "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma":
-							ee.StatModifiers[effectType] = int(value)
-						}
-
-						// Get tick interval if present
-						if tickInterval > 0 {
-							ee.TickInterval = tickInterval
-						}
-					}
+				if modifier.Type == "periodic" && modifier.TickInterval > 0 {
+					ee.TickInterval = float64(modifier.TickInterval)
 				}
 			}
 		}
@@ -435,4 +526,242 @@ func MigrateOldEffectIDs(state *types.SaveFile) {
 			state.ActiveEffects[i].EffectID = newID
 		}
 	}
+}
+
+// EvaluateCondition evaluates a simple condition string against game state
+// Supports conditions like: "hunger < 2", "fatigue >= 6", "weight_percent != 50"
+// Returns true if condition is met, false otherwise
+func EvaluateCondition(condition string, state *types.SaveFile) bool {
+	if condition == "" {
+		return false
+	}
+
+	// Parse condition: "stat operator value"
+	var stat, operator string
+	var value int
+
+	// Try different operators
+	if n, _ := fmt.Sscanf(condition, "%s != %d", &stat, &value); n == 2 {
+		operator = "!="
+	} else if n, _ := fmt.Sscanf(condition, "%s == %d", &stat, &value); n == 2 {
+		operator = "=="
+	} else if n, _ := fmt.Sscanf(condition, "%s <= %d", &stat, &value); n == 2 {
+		operator = "<="
+	} else if n, _ := fmt.Sscanf(condition, "%s >= %d", &stat, &value); n == 2 {
+		operator = ">="
+	} else if n, _ := fmt.Sscanf(condition, "%s < %d", &stat, &value); n == 2 {
+		operator = "<"
+	} else if n, _ := fmt.Sscanf(condition, "%s > %d", &stat, &value); n == 2 {
+		operator = ">"
+	} else {
+		log.Printf("⚠️ Failed to parse condition: %s", condition)
+		return false
+	}
+
+	// Get actual value from game state
+	var actualValue int
+	switch stat {
+	case "hunger":
+		actualValue = state.Hunger
+	case "fatigue":
+		actualValue = state.Fatigue
+	case "hp_percent":
+		if state.MaxHP > 0 {
+			actualValue = (state.HP * 100) / state.MaxHP
+		}
+	case "mana_percent":
+		if state.MaxMana > 0 {
+			actualValue = (state.Mana * 100) / state.MaxMana
+		}
+	case "weight_percent":
+		totalWeight := calculateTotalWeight(state)
+		capacity := calculateWeightCapacity(state)
+		if capacity > 0 {
+			// Use ceiling to round up (100.1% = 101%, not 100%)
+			percentage := (totalWeight / capacity) * 100
+			actualValue = int(percentage)
+			if percentage > float64(actualValue) {
+				actualValue++ // Round up if there's any decimal
+			}
+		} else {
+			actualValue = 0
+		}
+	default:
+		log.Printf("⚠️ Unknown condition stat: %s", stat)
+		return false
+	}
+
+	// Evaluate operator
+	switch operator {
+	case "==":
+		return actualValue == value
+	case "!=":
+		return actualValue != value
+	case "<":
+		return actualValue < value
+	case "<=":
+		return actualValue <= value
+	case ">":
+		return actualValue > value
+	case ">=":
+		return actualValue >= value
+	default:
+		log.Printf("⚠️ Unknown operator '%s' in condition '%s'", operator, condition)
+		return false
+	}
+}
+
+// ShouldRemoveEffect checks if an effect should be removed based on its removal conditions
+func ShouldRemoveEffect(effectID string, state *types.SaveFile) bool {
+	effectData, err := LoadEffectData(effectID)
+	if err != nil {
+		return false
+	}
+
+	// Check removal type
+	switch effectData.Removal.Type {
+	case "permanent":
+		return false // Never remove
+
+	case "conditional":
+		// Remove if condition is met
+		return EvaluateCondition(effectData.Removal.Condition, state)
+
+	case "timed":
+		// Handled by duration system in TickEffects
+		return false
+
+	case "hybrid":
+		// Remove if condition OR timer expired (timer handled by TickEffects)
+		if effectData.Removal.Condition != "" {
+			return EvaluateCondition(effectData.Removal.Condition, state)
+		}
+		return false
+
+	case "action", "equipment":
+		// These are handled manually by action/equipment systems
+		return false
+
+	default:
+		return false
+	}
+}
+
+// calculateTotalWeight calculates the total weight of all items in inventory
+// Duplicated from status package to avoid circular dependency
+func calculateTotalWeight(state *types.SaveFile) float64 {
+	totalWeight := 0.0
+
+	if state.Inventory == nil {
+		return 0
+	}
+
+	gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	// Calculate weight from equipped items
+	for slotName, slotData := range gearSlots {
+		if slotName == "bag" {
+			// Handle bag contents separately
+			if bagData, ok := slotData.(map[string]interface{}); ok {
+				if contents, ok := bagData["contents"].([]interface{}); ok {
+					for _, contentItem := range contents {
+						if item, ok := contentItem.(map[string]interface{}); ok {
+							itemID, _ := item["item"].(string)
+							quantity, _ := item["quantity"].(float64)
+							if itemID != "" && quantity > 0 {
+								totalWeight += getItemWeight(itemID) * quantity
+							}
+						}
+					}
+				}
+				// Add the bag's own weight
+				if bagItemID, ok := bagData["item"].(string); ok && bagItemID != "" {
+					totalWeight += getItemWeight(bagItemID)
+				}
+			}
+		} else {
+			// Regular equipment slot
+			if slotData, ok := slotData.(map[string]interface{}); ok {
+				itemID, _ := slotData["item"].(string)
+				quantity, _ := slotData["quantity"].(float64)
+				if itemID != "" && quantity > 0 {
+					totalWeight += getItemWeight(itemID) * quantity
+				}
+			}
+		}
+	}
+
+	// Calculate weight from general slots
+	if generalSlots, ok := state.Inventory["general_slots"].([]interface{}); ok {
+		for _, slotData := range generalSlots {
+			if slot, ok := slotData.(map[string]interface{}); ok {
+				itemID, _ := slot["item"].(string)
+				quantity, _ := slot["quantity"].(float64)
+				if itemID != "" && quantity > 0 {
+					totalWeight += getItemWeight(itemID) * quantity
+				}
+			}
+		}
+	}
+
+	return totalWeight
+}
+
+// getItemWeight retrieves weight from an item's properties
+func getItemWeight(itemID string) float64 {
+	item, err := db.GetItemByID(itemID)
+	if err != nil {
+		return 0
+	}
+
+	// Parse properties JSON to get weight
+	var properties map[string]interface{}
+	if err := json.Unmarshal([]byte(item.Properties), &properties); err != nil {
+		return 0
+	}
+
+	if weight, ok := properties["weight"].(float64); ok {
+		return weight
+	}
+
+	return 0
+}
+
+// calculateWeightCapacity calculates max carrying capacity based on STR and equipment
+func calculateWeightCapacity(state *types.SaveFile) float64 {
+	// Base capacity = 5 * STR (as per encumbrance.json formula)
+	strength := 10.0 // Default
+	if state.Stats != nil {
+		if str, ok := state.Stats["Strength"].(float64); ok {
+			strength = str
+		} else if str, ok := state.Stats["strength"].(float64); ok {
+			strength = str
+		}
+	}
+
+	baseCapacity := 5.0 * strength
+
+	// Add weight_increase from equipped containers (like backpack)
+	if state.Inventory != nil {
+		if gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{}); ok {
+			if bagData, ok := gearSlots["bag"].(map[string]interface{}); ok {
+				if bagItemID, ok := bagData["item"].(string); ok && bagItemID != "" {
+					item, err := db.GetItemByID(bagItemID)
+					if err == nil {
+						var properties map[string]interface{}
+						if err := json.Unmarshal([]byte(item.Properties), &properties); err == nil {
+							if weightIncrease, ok := properties["weight_increase"].(float64); ok {
+								baseCapacity += weightIncrease
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return baseCapacity
 }

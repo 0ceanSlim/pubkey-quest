@@ -1,33 +1,21 @@
 package systemseditor
 
-// Effect Type Definition (systems/effects.json)
+import "pubkey-quest/types"
+
+// Use shared types from types package
+type Effect = types.EffectData
+type Modifier = types.Modifier
+type RemovalCondition = types.RemovalCondition
+
+// Effect Type Definition (systems/effects.json) - codex-specific
 type EffectTypeDefinition struct {
-	ID          string `json:"id"`
-	Property    string `json:"property"`
-	Description string `json:"description"`
+	ID             string `json:"id"`
+	Property       string `json:"property"`
+	Description    string `json:"description"`
+	Category       string `json:"category"`        // "stat", "resource", "capacity"
+	AllowsPeriodic bool   `json:"allows_periodic"` // Whether this type can have periodic modifiers
 }
 
 type EffectTypes struct {
 	EffectTypes map[string]EffectTypeDefinition `json:"effect_types"`
-}
-
-// Individual Effect (effects/*.json)
-type Effect struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Effects     []EffectDetail `json:"effects"`
-	Message     string         `json:"message,omitempty"`
-	Category    string         `json:"category,omitempty"` // "buff", "debuff", "system"
-	Silent      *bool          `json:"silent,omitempty"`   // Pointer to distinguish false from unset
-	Icon        string         `json:"icon,omitempty"`
-	Color       string         `json:"color,omitempty"`
-}
-
-type EffectDetail struct {
-	Type         string `json:"type"`                    // References EffectTypeDefinition.ID
-	Value        int    `json:"value"`
-	Duration     int    `json:"duration"`
-	Delay        int    `json:"delay"`
-	TickInterval int    `json:"tick_interval,omitempty"`
 }

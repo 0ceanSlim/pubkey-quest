@@ -33,12 +33,62 @@ func main() {
 	// Command-line flags
 	migrateFlag := flag.Bool("migrate", false, "Run database migration and exit")
 	validateFlag := flag.Bool("validate", false, "Run game data validation and exit")
+	cleanupEffectsFlag := flag.Bool("cleanup-effects", false, "Migrate effects to new schema and exit")
+	dryRunFlag := flag.Bool("dry-run", false, "When used with cleanup flags, preview changes without modifying files")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 	configFlag := flag.String("config", "", "Path to config file (default: ./codex-config.yml)")
 	flag.Parse()
 
 	if *versionFlag {
 		fmt.Printf("codex %s\n", Version)
+		os.Exit(0)
+	}
+
+	// Handle cleanup-effects flag (no config required)
+	if *cleanupEffectsFlag {
+		dryRun := *dryRunFlag
+		if dryRun {
+			fmt.Println("🔍 Running effects cleanup (DRY RUN - no files will be modified)...")
+		} else {
+			fmt.Println("🔧 Running effects cleanup...")
+		}
+
+		result, err := validation.CleanupEffects(dryRun)
+		if err != nil {
+			fmt.Printf("❌ Cleanup failed: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Print results
+		fmt.Printf("\n📊 Cleanup Results:\n")
+		fmt.Printf("   Files processed: %d\n", result.FilesProcessed)
+		fmt.Printf("   Files modified: %d\n", result.FilesModified)
+		fmt.Printf("   Total changes: %d\n", len(result.Changes))
+
+		if len(result.Changes) > 0 {
+			fmt.Printf("\n📋 Changes:\n")
+			for _, change := range result.Changes {
+				icon := "ℹ️"
+				switch change.Type {
+				case "added":
+					icon = "➕"
+				case "removed":
+					icon = "➖"
+				case "fixed":
+					icon = "🔧"
+				case "reordered":
+					icon = "📐"
+				}
+				fmt.Printf("   %s [%s] %s: %s\n", icon, change.File, change.Field, change.Message)
+			}
+		}
+
+		if dryRun {
+			fmt.Println("\n⚠️  This was a DRY RUN. No files were modified.")
+			fmt.Println("   Run without --dry-run to apply changes.")
+		} else {
+			fmt.Println("\n✅ Cleanup completed!")
+		}
 		os.Exit(0)
 	}
 

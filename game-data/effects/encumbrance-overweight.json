@@ -2,23 +2,29 @@
   "id": "encumbrance-overweight",
   "name": "Overweight",
   "description": "The extra weight slows you down and makes you more noticeable.",
-  "message": "You're carrying too much weight. Your movements are sluggish.",
+  "source_type": "system_status",
   "category": "debuff",
-  "silent": false,
-  "effects": [
+  "removal": {
+    "type": "conditional",
+    "condition": "weight_percent \u003c= 100"
+  },
+  "system_check": {
+    "stat": "weight_percent",
+    "operator": "\u003e",
+    "value": 100
+  },
+  "modifiers": [
     {
-      "type": "dexterity",
+      "stat": "dexterity",
       "value": -1,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "strength",
+      "stat": "strength",
       "value": -1,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "weight",
-  "color": "yellow"
+  "message": "You're carrying too much weight. Your movements are sluggish.",
+  "visible": true
 }

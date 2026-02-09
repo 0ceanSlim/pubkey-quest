@@ -2,46 +2,44 @@
   "id": "exhaustion",
   "name": "Exhaustion",
   "description": "Completely exhausted. Severe penalties to all physical and mental abilities. You need rest immediately.",
-  "message": "You are completely exhausted! Rest now or risk collapse!",
+  "source_type": "system_status",
   "category": "debuff",
-  "effects": [
+  "removal": {
+    "type": "conditional",
+    "condition": "fatigue != 10"
+  },
+  "system_check": {
+    "stat": "fatigue",
+    "operator": "\u003e=",
+    "value": 10
+  },
+  "modifiers": [
     {
-      "type": "strength",
+      "stat": "dexterity",
       "value": -4,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "dexterity",
-      "value": -4,
-      "duration": 0,
-      "delay": 0
-    },
-    {
-      "type": "constitution",
+      "stat": "strength",
       "value": -3,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "intelligence",
+      "stat": "intelligence",
       "value": -2,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "wisdom",
+      "stat": "wisdom",
       "value": -2,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     },
     {
-      "type": "charisma",
+      "stat": "charisma",
       "value": -2,
-      "duration": 0,
-      "delay": 0
+      "type": "constant"
     }
   ],
-  "icon": "exhausted",
-  "color": "darkred"
+  "message": "You are completely exhausted! Rest now or risk collapse!",
+  "visible": true
 }

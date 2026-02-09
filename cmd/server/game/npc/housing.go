@@ -253,22 +253,77 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 	}, nil
 }
 
-// HandleRestAction rests to restore HP/Mana (basic rest, not sleep)
+// HandleRestAction rests to restore HP/Mana (sleep in rented room)
 func HandleRestAction(state *types.SaveFile, _ map[string]interface{}) (*types.GameActionResponse, error) {
 	// Restore HP and Mana
 	state.HP = state.MaxHP
 	state.Mana = state.MaxMana
-	state.Fatigue = 0
-	status.RemoveFatiguePenaltyEffects(state)
 
-	// Advance time
-	state.TimeOfDay = (state.TimeOfDay + 8*60) % 1440 // Rest for 8 hours (in minutes)
-	if state.TimeOfDay < 8*60 {
-		state.CurrentDay++
+	// Calculate sleep duration
+	// If it's before 6 AM, sleep until 6 AM
+	// If it's after 6 AM, sleep until 6 AM the next day
+	sleepMinutes := 0
+	targetTime := 6 * 60 // 6:00 AM
+
+	if state.TimeOfDay < targetTime {
+		// Sleep until 6 AM today
+		sleepMinutes = targetTime - state.TimeOfDay
+	} else {
+		// Sleep until 6 AM tomorrow
+		sleepMinutes = (1440 - state.TimeOfDay) + targetTime
 	}
 
-	return &types.GameActionResponse{
+	// Clear fatigue and re-evaluate effects
+	state.Fatigue = 0
+	status.HandleFatigueChange(state)
+
+	// Advance time manually (can't call gametime.AdvanceTime due to circular dependency)
+	oldTime := state.TimeOfDay
+	state.TimeOfDay += sleepMinutes
+	if state.TimeOfDay >= 1440 {
+		daysAdvanced := state.TimeOfDay / 1440
+		state.CurrentDay += daysAdvanced
+		state.TimeOfDay = state.TimeOfDay % 1440
+	}
+
+	// Tick active effects (includes fatigue/hunger accumulation effects)
+	timeMessages := effects.TickEffects(state, sleepMinutes)
+
+	// Update penalty effects based on current fatigue/hunger levels
+	fatigueMsg, _ := status.UpdateFatiguePenaltyEffects(state)
+	hungerMsg, _ := status.UpdateHungerPenaltyEffects(state)
+
+	// Build response with time messages
+	response := &types.GameActionResponse{
 		Success: true,
-		Message: "Rested and restored HP/Mana",
-	}, nil
+		Message: fmt.Sprintf("You rest and sleep for %.1f hours. You wake up at 6:00 AM feeling refreshed.", float64(sleepMinutes)/60.0),
+		State:   state,
+	}
+
+	// Add effect messages to response data
+	effectMessages := []types.EffectMessage{}
+
+	// Append effect messages from time advancement
+	for _, msg := range timeMessages {
+		effectMessages = append(effectMessages, msg)
+	}
+
+	// Add any new penalty effect messages
+	if fatigueMsg != nil && !fatigueMsg.Silent {
+		effectMessages = append(effectMessages, *fatigueMsg)
+	}
+	if hungerMsg != nil && !hungerMsg.Silent {
+		effectMessages = append(effectMessages, *hungerMsg)
+	}
+
+	// Add to response data if we have messages
+	if len(effectMessages) > 0 {
+		response.Data = map[string]interface{}{
+			"effect_messages": effectMessages,
+		}
+	}
+
+	log.Printf("🛌 Player rested from %d to %d minutes (%.1f hours)", oldTime, state.TimeOfDay, float64(sleepMinutes)/60.0)
+
+	return response, nil
 }

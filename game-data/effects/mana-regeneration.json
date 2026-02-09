@@ -2,15 +2,20 @@
   "id": "mana-regeneration",
   "name": "Mana Regeneration",
   "description": "Restoring mana over time from meditation or potions",
-  "effects": [
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 300
+  },
+  "modifiers": [
     {
-      "type": "mana",
+      "stat": "mana",
       "value": 1,
-      "duration": 300,
-      "delay": 0,
+      "type": "periodic",
       "tick_interval": 30
     }
   ],
-  "icon": "sparkles",
-  "color": "blue"
+  "message": "Your magical energy is regenerating!",
+  "visible": true
 }

@@ -738,3 +738,345 @@ func CleanupStartingGear(dryRun bool) (*CleanupResult, error) {
 	log.Printf("Starting gear cleanup complete: 1 file processed, %d modified", result.FilesModified)
 	return result, nil
 }
+
+// CleanupEffects migrates effect files from old structure to new structure
+func CleanupEffects(dryRun bool) (*CleanupResult, error) {
+	result := &CleanupResult{
+		Changes: []Change{},
+	}
+
+	effectsPath := "game-data/effects"
+
+	err := filepath.WalkDir(effectsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !d.IsDir() && strings.HasSuffix(path, ".json") {
+			changes, modified := cleanupEffectFile(path, dryRun)
+			result.FilesProcessed++
+			if modified {
+				result.FilesModified++
+			}
+			result.Changes = append(result.Changes, changes...)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Effects cleanup complete: %d files processed, %d modified", result.FilesProcessed, result.FilesModified)
+	return result, nil
+}
+
+func cleanupEffectFile(filePath string, dryRun bool) ([]Change, bool) {
+	changes := []Change{}
+	filename := filepath.Base(filePath)
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Printf("Error reading %s: %v", filename, err)
+		return changes, false
+	}
+
+	var effect map[string]interface{}
+	if err := json.Unmarshal(data, &effect); err != nil {
+		log.Printf("Error parsing %s: %v", filename, err)
+		return changes, false
+	}
+
+	modified := false
+
+	// STEP 1: Rename 'effects' to 'modifiers'
+	if oldEffects, exists := effect["effects"]; exists {
+		effect["modifiers"] = oldEffects
+		delete(effect, "effects")
+		changes = append(changes, Change{
+			File:    filename,
+			Type:    "fixed",
+			Field:   "effects → modifiers",
+			Message: "Renamed 'effects' field to 'modifiers'",
+		})
+		modified = true
+	}
+
+	// STEP 2: Remove deprecated fields
+	deprecatedFields := []string{"icon", "color", "silent"}
+	for _, field := range deprecatedFields {
+		if _, exists := effect[field]; exists {
+			delete(effect, field)
+			changes = append(changes, Change{
+				File:    filename,
+				Type:    "removed",
+				Field:    field,
+				Message:  fmt.Sprintf("Removed deprecated field '%s'", field),
+			})
+			modified = true
+		}
+	}
+
+	// STEP 3: Infer and add source_type if missing
+	if _, exists := effect["source_type"]; !exists {
+		sourceType := inferSourceType(effect, filename)
+		effect["source_type"] = sourceType
+		changes = append(changes, Change{
+			File:    filename,
+			Type:    "added",
+			Field:   "source_type",
+			Message:  fmt.Sprintf("Added inferred source_type: '%s'", sourceType),
+		})
+		modified = true
+	}
+
+	// STEP 4: Add visible field based on source_type
+	if _, exists := effect["visible"]; !exists {
+		sourceType, _ := effect["source_type"].(string)
+		visible := sourceType != "system_ticker"
+		effect["visible"] = visible
+		changes = append(changes, Change{
+			File:    filename,
+			Type:    "added",
+			Field:   "visible",
+			Message:  fmt.Sprintf("Added visible: %v (based on source_type)", visible),
+		})
+		modified = true
+	}
+
+	// STEP 5: Ensure category field exists and is correct
+	if category, exists := effect["category"]; !exists || category == "system" {
+		sourceType, _ := effect["source_type"].(string)
+		newCategory := inferCategory(effect, sourceType)
+		effect["category"] = newCategory
+		if !exists {
+			changes = append(changes, Change{
+				File:    filename,
+				Type:    "added",
+				Field:   "category",
+				Message:  fmt.Sprintf("Added inferred category: '%s'", newCategory),
+			})
+		} else {
+			changes = append(changes, Change{
+				File:    filename,
+				Type:    "fixed",
+				Field:   "category",
+				Message:  fmt.Sprintf("Fixed category: 'system' → '%s'", newCategory),
+			})
+		}
+		modified = true
+	}
+
+	// STEP 6: Add removal field if missing
+	if _, exists := effect["removal"]; !exists {
+		removal := inferRemoval(effect)
+		effect["removal"] = removal
+		changes = append(changes, Change{
+			File:    filename,
+			Type:    "added",
+			Field:   "removal",
+			Message:  "Added inferred removal condition",
+		})
+		modified = true
+	}
+
+	// STEP 7: Convert modifiers to new structure
+	if modifiers, ok := effect["modifiers"].([]interface{}); ok {
+		newModifiers := []interface{}{}
+		for i, mod := range modifiers {
+			modMap, ok := mod.(map[string]interface{})
+			if !ok {
+				newModifiers = append(newModifiers, mod)
+				continue
+			}
+
+			newMod := make(map[string]interface{})
+
+			// Copy stat
+			if stat, ok := modMap["type"].(string); ok {
+				newMod["stat"] = stat
+			}
+
+			// Copy value
+			if value, ok := modMap["value"]; ok {
+				newMod["value"] = value
+			}
+
+			// Determine type (instant vs periodic)
+			if tickInterval, ok := modMap["tick_interval"]; ok && tickInterval != nil {
+				if ti, ok := tickInterval.(float64); ok && ti > 0 {
+					newMod["type"] = "periodic"
+					newMod["tick_interval"] = tickInterval
+				} else {
+					newMod["type"] = "instant"
+				}
+			} else {
+				newMod["type"] = "instant"
+			}
+
+			// Copy delay if present and non-zero
+			if delay, ok := modMap["delay"].(float64); ok && delay > 0 {
+				newMod["delay"] = delay
+			}
+
+			// Remove duration field (moved to removal)
+			if _, exists := modMap["duration"]; exists {
+				changes = append(changes, Change{
+					File:    filename,
+					Type:    "removed",
+					Field:   fmt.Sprintf("modifiers[%d].duration", i),
+					Message:  "Removed 'duration' from modifier (moved to removal.timer)",
+				})
+			}
+
+			newModifiers = append(newModifiers, newMod)
+		}
+
+		effect["modifiers"] = newModifiers
+		changes = append(changes, Change{
+			File:    filename,
+			Type:    "fixed",
+			Field:   "modifiers",
+			Message:  "Restructured modifiers to new format",
+		})
+		modified = true
+	}
+
+	// STEP 8: Reorder fields to standard order
+	orderedEffect := orderEffectProperties(effect)
+
+	// STEP 9: Write back to file (if not dry run and modified)
+	if modified && !dryRun {
+		output, err := json.MarshalIndent(orderedEffect, "", "  ")
+		if err != nil {
+			log.Printf("Error marshaling %s: %v", filename, err)
+			return changes, false
+		}
+
+		if err := os.WriteFile(filePath, output, 0644); err != nil {
+			log.Printf("Error writing %s: %v", filename, err)
+			return changes, false
+		}
+	}
+
+	return changes, modified
+}
+
+// inferSourceType infers the source_type from the old structure
+func inferSourceType(effect map[string]interface{}, filename string) string {
+	// Check if it's a system ticker (silent + system category + has tick_interval)
+	if category, ok := effect["category"].(string); ok && category == "system" {
+		if silent, ok := effect["silent"].(bool); ok && silent {
+			return "system_ticker"
+		}
+	}
+
+	// Check filenames for known patterns
+	if strings.Contains(filename, "accumulation") {
+		return "system_ticker"
+	}
+
+	if strings.Contains(filename, "encumbrance") || strings.Contains(filename, "hungry") ||
+		strings.Contains(filename, "stuffed") || strings.Contains(filename, "tired") ||
+		strings.Contains(filename, "exhausted") || strings.Contains(filename, "fatigued") ||
+		strings.Contains(filename, "starving") {
+		return "system_status"
+	}
+
+	// Default to applied
+	return "applied"
+}
+
+// inferCategory infers the category from the old structure
+func inferCategory(effect map[string]interface{}, sourceType string) string {
+	if sourceType == "system_ticker" || sourceType == "system_status" {
+		return "status"
+	}
+
+	// Check if it's a buff or debuff based on modifiers
+	if modifiers, ok := effect["modifiers"].([]interface{}); ok {
+		for _, mod := range modifiers {
+			if modMap, ok := mod.(map[string]interface{}); ok {
+				if value, ok := modMap["value"].(float64); ok {
+					if value > 0 {
+						return "buff"
+					} else if value < 0 {
+						return "debuff"
+					}
+				}
+			}
+		}
+	}
+
+	// Default to buff
+	return "buff"
+}
+
+// inferRemoval infers the removal condition from the old structure
+func inferRemoval(effect map[string]interface{}) map[string]interface{} {
+	removal := make(map[string]interface{})
+
+	// Check if effect has duration from modifiers
+	duration := 0
+	if modifiers, ok := effect["modifiers"].([]interface{}); ok {
+		for _, mod := range modifiers {
+			if modMap, ok := mod.(map[string]interface{}); ok {
+				if d, ok := modMap["duration"].(float64); ok {
+					duration = int(d)
+					break
+				}
+			}
+		}
+	}
+
+	sourceType, _ := effect["source_type"].(string)
+
+	if sourceType == "system_ticker" {
+		removal["type"] = "permanent"
+	} else if sourceType == "system_status" {
+		removal["type"] = "conditional"
+		removal["condition"] = "AUTO-INFERRED: Needs manual specification"
+	} else if duration > 0 {
+		removal["type"] = "timed"
+		removal["timer"] = duration
+	} else {
+		removal["type"] = "timed"
+		removal["timer"] = 0 // Will need manual fix
+	}
+
+	return removal
+}
+
+// orderEffectProperties returns a new map with properties in the standard order
+func orderEffectProperties(effect map[string]interface{}) map[string]interface{} {
+	ordered := make(map[string]interface{})
+
+	// Define the standard order
+	propertyOrder := []string{
+		"id",
+		"name",
+		"description",
+		"source_type",
+		"category",
+		"removal",
+		"modifiers",
+		"message",
+		"visible",
+	}
+
+	// Add properties in order if they exist
+	for _, key := range propertyOrder {
+		if val, exists := effect[key]; exists {
+			ordered[key] = val
+		}
+	}
+
+	// Add any remaining properties that aren't in the standard order
+	for key, val := range effect {
+		if _, exists := ordered[key]; !exists {
+			ordered[key] = val
+		}
+	}
+
+	return ordered
+}
