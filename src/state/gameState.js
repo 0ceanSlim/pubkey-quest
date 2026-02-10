@@ -184,7 +184,10 @@ export function transformSaveDataToUIState(saveData) {
             rented_rooms: saveData.rented_rooms || [],
             booked_shows: saveData.booked_shows || [],
             performed_shows: saveData.performed_shows || [],
-            active_effects: saveData.active_effects || []
+            active_effects: saveData.active_effects || [],
+            // Include pre-calculated values from backend (NOT persisted)
+            total_weight: saveData.total_weight,
+            weight_capacity: saveData.weight_capacity
         },
         location: {
             current: locationId,

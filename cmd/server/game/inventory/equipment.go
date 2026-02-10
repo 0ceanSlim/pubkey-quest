@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/types"
 )
 
@@ -410,6 +411,30 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 		log.Printf("✅ Equipped %s to %s (swapped %d items)", itemID, equipSlot, len(itemsToUnequip))
 	}
 
+	// Apply effects_when_worn
+	database := db.GetDB()
+	if database != nil {
+		var propertiesJSON string
+		err := database.QueryRow("SELECT properties FROM items WHERE id = ?", itemID).Scan(&propertiesJSON)
+		if err == nil {
+			var properties map[string]interface{}
+			if err := json.Unmarshal([]byte(propertiesJSON), &properties); err == nil {
+				if effectsWhenWorn, ok := properties["effects_when_worn"].([]interface{}); ok {
+					for _, effectID := range effectsWhenWorn {
+						if effectIDStr, ok := effectID.(string); ok {
+							// Apply effect silently (no message)
+							if err := effects.ApplyEffect(state, effectIDStr); err != nil {
+								log.Printf("⚠️ Failed to apply equipment effect '%s': %v", effectIDStr, err)
+							} else {
+								log.Printf("⚙️ Applied equipment effect: %s from %s", effectIDStr, itemID)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return &types.GameActionResponse{
 		Success: true,
 		Message: fmt.Sprintf("Equipped %s", itemID),
@@ -598,6 +623,27 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		generalSlots[emptySlotIndex] = newItem
 		state.Inventory["general_slots"] = generalSlots
 		log.Printf("✅ Moved to general slot %d", emptySlotIndex)
+	}
+
+	// Remove effects_when_worn before unequipping
+	database := db.GetDB()
+	if database != nil {
+		var propertiesJSON string
+		err := database.QueryRow("SELECT properties FROM items WHERE id = ?", itemID).Scan(&propertiesJSON)
+		if err == nil {
+			var properties map[string]interface{}
+			if err := json.Unmarshal([]byte(propertiesJSON), &properties); err == nil {
+				if effectsWhenWorn, ok := properties["effects_when_worn"].([]interface{}); ok {
+					for _, effectID := range effectsWhenWorn {
+						if effectIDStr, ok := effectID.(string); ok {
+							// Remove effect
+							effects.RemoveEffect(state, effectIDStr)
+							log.Printf("⚙️ Removed equipment effect: %s from %s", effectIDStr, itemID)
+						}
+					}
+				}
+			}
+		}
 	}
 
 	gearSlots[equipSlot] = map[string]interface{}{

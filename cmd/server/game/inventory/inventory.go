@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/types"
@@ -16,6 +18,35 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 	itemID, ok := params["item_id"].(string)
 	if !ok {
 		return nil, fmt.Errorf("missing or invalid item_id parameter")
+	}
+
+	// Validate item is consumable
+	database := db.GetDB()
+	if database == nil {
+		return nil, fmt.Errorf("database not available")
+	}
+
+	var propertiesJSON string
+	var tagsJSON string
+	err := database.QueryRow("SELECT properties, tags FROM items WHERE id = ?", itemID).Scan(&propertiesJSON, &tagsJSON)
+	if err != nil {
+		return nil, fmt.Errorf("item '%s' not found in database: %v", itemID, err)
+	}
+
+	// Check for "consumable" tag
+	isConsumable := false
+	var tags []interface{}
+	if err := json.Unmarshal([]byte(tagsJSON), &tags); err == nil {
+		for _, tag := range tags {
+			if tagStr, ok := tag.(string); ok && tagStr == "consumable" {
+				isConsumable = true
+				break
+			}
+		}
+	}
+
+	if !isConsumable {
+		return nil, fmt.Errorf("item '%s' is not consumable", itemID)
 	}
 
 	slot := -1
@@ -149,6 +180,34 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 			continue
 		}
 
+		// Check for named effect with chance (new format)
+		if applyEffectID, ok := effectMap["apply_effect"].(string); ok {
+			// Get chance (default 100%)
+			chance := 100
+			if chanceVal, ok := effectMap["chance"].(float64); ok {
+				chance = int(chanceVal)
+			}
+
+			// Roll random number (1-100)
+			roll := rand.Intn(100) + 1
+
+			if roll <= chance {
+				// Apply the named effect
+				msg, err := effects.ApplyEffectWithMessage(state, applyEffectID)
+				if err == nil && msg != nil {
+					effectMessages = append(effectMessages, msg.Message)
+					log.Printf("✅ Applied consumable effect '%s' (rolled %d <= %d)", applyEffectID, roll, chance)
+				} else {
+					log.Printf("⚠️ Failed to apply effect '%s': %v", applyEffectID, err)
+				}
+			} else {
+				log.Printf("❌ Effect '%s' did not apply (rolled %d > %d)", applyEffectID, roll, chance)
+			}
+
+			continue
+		}
+
+		// Inline effect handling (legacy format - type, value)
 		effectType, _ := effectMap["type"].(string)
 		effectValue, _ := effectMap["value"].(float64) // JSON numbers are float64
 

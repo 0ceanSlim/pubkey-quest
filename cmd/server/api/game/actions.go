@@ -133,11 +133,13 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	// Return updated state (and delta if available)
 	response.State = &session.SaveData
 
-	// Always include enriched effects in Data for frontend display
+	// Always include enriched effects and calculated values in Data for frontend display
 	if response.Data == nil {
 		response.Data = make(map[string]interface{})
 	}
 	response.Data["enriched_effects"] = effects.EnrichActiveEffects(session.SaveData.ActiveEffects)
+	response.Data["total_weight"] = status.CalculateTotalWeight(&session.SaveData)
+	response.Data["weight_capacity"] = status.CalculateWeightCapacity(&session.SaveData)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
@@ -520,6 +522,10 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Calculate weight and capacity (NOT stored in save file - calculated on-the-fly)
+	totalWeight := status.CalculateTotalWeight(&session.SaveData)
+	weightCapacity := status.CalculateWeightCapacity(&session.SaveData)
+
 	// Include session-specific data in the response
 	stateWithSession := map[string]any{
 		"success": true,
@@ -551,6 +557,10 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"locations_discovered":  session.SaveData.LocationsDiscovered,
 			"music_tracks_unlocked": session.SaveData.MusicTracksUnlocked,
 			"active_effects":        effects.EnrichActiveEffects(session.SaveData.ActiveEffects),
+
+			// Add calculated values (NOT persisted - calculated at runtime)
+			"total_weight":    totalWeight,
+			"weight_capacity": weightCapacity,
 
 			// Add session-specific data
 			"rented_rooms":    session.RentedRooms,

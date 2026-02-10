@@ -66,30 +66,14 @@ async function getItemByIdAsync(itemId) {
  * @returns {Promise<number>} Max capacity in lbs
  */
 export async function calculateMaxCapacity(character) {
-    const strength = character.stats?.strength || 10;
-    let baseCapacity = strength * 5;
-
-    // Add weight_increase from all equipped items
-    const items = await loadItemsFromDatabase();
-    let capacityBonus = 0;
-
-    if (character.inventory?.gear_slots) {
-        for (const slotName in character.inventory.gear_slots) {
-            const slot = character.inventory.gear_slots[slotName];
-            if (slot && slot.item) {
-                const itemData = items.find(i => i.id === slot.item);
-                if (itemData) {
-                    const weightIncrease = itemData.weight_increase || itemData.properties?.weight_increase || 0;
-                    if (weightIncrease > 0) {
-                        capacityBonus += weightIncrease;
-                    }
-                }
-            }
-        }
+    // Check if backend provided pre-calculated capacity
+    if (character.weight_capacity !== undefined) {
+        return character.weight_capacity;
     }
 
-    const totalCapacity = baseCapacity + capacityBonus;
-    return totalCapacity;
+    // Fallback to basic calculation (for old saves or if backend didn't provide)
+    const strength = character.stats?.strength || 10;
+    return strength * 5;
 }
 
 /**
@@ -98,73 +82,14 @@ export async function calculateMaxCapacity(character) {
  * @returns {Promise<number>} Total weight in lbs
  */
 export async function calculateAndDisplayWeight(character) {
-    if (!character.inventory) {
-        return 0;
+    // Check if backend provided pre-calculated weight
+    if (character.total_weight !== undefined) {
+        return character.total_weight;
     }
 
-    let totalWeight = 0;
-    const items = await loadItemsFromDatabase();
-
-    // Function to get item weight by ID
-    const getItemWeight = (itemId) => {
-        const item = items.find(i => i.id === itemId);
-        if (!item) {
-            return 0;
-        }
-        // Weight can be at top level or in properties object
-        const weight = item.weight || item.properties?.weight || 0;
-        return weight;
-    };
-
-    // Calculate gear slots weight
-    if (character.inventory.gear_slots) {
-        const gearSlots = character.inventory.gear_slots;
-
-        // All gear slots except bag contents
-        for (const slotName in gearSlots) {
-            if (slotName === 'bag') continue; // Handle bag separately
-
-            const slot = gearSlots[slotName];
-            if (slot && slot.item) {
-                const weight = getItemWeight(slot.item);
-                const itemWeight = weight * (slot.quantity || 1);
-                totalWeight += itemWeight;
-            }
-        }
-
-        // Bag itself and its contents
-        if (gearSlots.bag) {
-            // Add bag weight
-            if (gearSlots.bag.item) {
-                const bagWeight = getItemWeight(gearSlots.bag.item);
-                totalWeight += bagWeight;
-            }
-
-            // Add contents weight
-            if (gearSlots.bag.contents && Array.isArray(gearSlots.bag.contents)) {
-                gearSlots.bag.contents.forEach(slot => {
-                    if (slot && slot.item) {
-                        const weight = getItemWeight(slot.item);
-                        const itemWeight = weight * (slot.quantity || 1);
-                        totalWeight += itemWeight;
-                    }
-                });
-            }
-        }
-    }
-
-    // Calculate general slots weight
-    if (character.inventory.general_slots && Array.isArray(character.inventory.general_slots)) {
-        character.inventory.general_slots.forEach(slot => {
-            if (slot && slot.item) {
-                const weight = getItemWeight(slot.item);
-                const itemWeight = weight * (slot.quantity || 1);
-                totalWeight += itemWeight;
-            }
-        });
-    }
-
-    return totalWeight;
+    // Fallback: No calculation needed - backend should always provide this
+    // Return 0 if not available (shouldn't happen in normal operation)
+    return 0;
 }
 
 /**

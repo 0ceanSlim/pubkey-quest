@@ -11,7 +11,6 @@ import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { getItemById } from '../state/staticData.js';
-import { updateAllDisplays } from '../ui/displayCoordinator.js';
 import { updateCharacterDisplay } from '../ui/characterDisplay.js';
 import { showMessage } from '../ui/messaging.js';
 import { showVaultUI } from '../ui/locationDisplay.js';
@@ -855,9 +854,31 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
                 showActionText(result.message, result.color || 'green', 4000);
             }
 
-            // Refresh game state from Go memory
-            await refreshGameState();
-            await updateAllDisplays();
+            // Silent refresh FIRST to update cached state
+            await refreshGameState(true);
+
+            // Update character display to sync all inventory/equipment visuals
+            // This handles all DOM updates correctly (no need for delta in this case)
+            await updateCharacterDisplay();
+
+            // Update calculated values from response.data (weight/capacity)
+            // Do this AFTER updateCharacterDisplay so backend values take precedence
+            if (result.data) {
+                if (result.data.total_weight !== undefined) {
+                    const state = getGameStateSync();
+                    state.character.total_weight = result.data.total_weight;
+                    // Update weight display
+                    const weightEl = document.getElementById('char-weight');
+                    if (weightEl) weightEl.textContent = Math.round(result.data.total_weight);
+                }
+                if (result.data.weight_capacity !== undefined) {
+                    const state = getGameStateSync();
+                    state.character.weight_capacity = result.data.weight_capacity;
+                    // Update capacity display
+                    const maxWeightEl = document.getElementById('max-weight');
+                    if (maxWeightEl) maxWeightEl.textContent = Math.round(result.data.weight_capacity);
+                }
+            }
 
             // If this was a drop action, NOW add to ground (after successful API call)
             if (action === 'drop' && dropInfo && addItemToGround) {
@@ -1078,9 +1099,27 @@ async function handleSplitStack(itemId, fromSlot, fromSlotType, showMessage, sho
             quantity: splitQuantity
         });
 
-        // Refresh UI from Go memory
-        await refreshGameState();
-        await updateAllDisplays();
+        // Silent refresh FIRST to update cached state
+        await refreshGameState(true);
+
+        // Update character display to sync all inventory/equipment visuals
+        await updateCharacterDisplay();
+
+        // Update calculated values from response.data (weight/capacity)
+        if (result.data) {
+            if (result.data.total_weight !== undefined) {
+                const state = getGameStateSync();
+                state.character.total_weight = result.data.total_weight;
+                const weightEl = document.getElementById('char-weight');
+                if (weightEl) weightEl.textContent = Math.round(result.data.total_weight);
+            }
+            if (result.data.weight_capacity !== undefined) {
+                const state = getGameStateSync();
+                state.character.weight_capacity = result.data.weight_capacity;
+                const maxWeightEl = document.getElementById('max-weight');
+                if (maxWeightEl) maxWeightEl.textContent = Math.round(result.data.weight_capacity);
+            }
+        }
 
         if (showActionText) {
             showActionText(`Split ${splitQuantity} from stack of ${itemData?.name || itemId}`, 'green');

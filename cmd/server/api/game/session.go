@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"pubkey-quest/cmd/server/game/effects"
+	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
@@ -177,6 +178,10 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Calculate weight and capacity (NOT stored in save file - calculated on-the-fly)
+	totalWeight := status.CalculateTotalWeight(&sess.SaveData)
+	weightCapacity := status.CalculateWeightCapacity(&sess.SaveData)
+
 	// Create response with enriched active effects
 	response := map[string]interface{}{
 		"d":                     sess.SaveData.D,
@@ -205,6 +210,10 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"locations_discovered":  sess.SaveData.LocationsDiscovered,
 		"music_tracks_unlocked": sess.SaveData.MusicTracksUnlocked,
 		"active_effects":        effects.EnrichActiveEffects(sess.SaveData.ActiveEffects),
+
+		// Add calculated values (NOT persisted - calculated at runtime)
+		"total_weight":    totalWeight,
+		"weight_capacity": weightCapacity,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

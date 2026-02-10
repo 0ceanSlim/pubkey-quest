@@ -254,6 +254,13 @@ func createTables() error {
 			properties TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
+
+		// Systems table (system configurations)
+		`CREATE TABLE IF NOT EXISTS systems (
+			id TEXT PRIMARY KEY,
+			properties TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for _, table := range tables {
@@ -331,6 +338,15 @@ func migrateFromJSON(callback StatusCallback) error {
 	}
 	if err := migrateSystemData(); err != nil {
 		return fmt.Errorf("failed to migrate system data: %v", err)
+	}
+
+	// Migrate system config files (encumbrance, effects, etc.)
+	if callback != nil {
+		callback(Status{Step: "system_configs", Message: "Migrating system configs"})
+	}
+	if err := migrateSystemsFiles(); err != nil {
+		log.Printf("⚠️ Warning: failed to migrate system config files: %v", err)
+		// Don't fail - these are optional
 	}
 
 	log.Println("✅ Data migration completed successfully!")
@@ -952,5 +968,54 @@ func migrateSystemData() error {
 		log.Printf("Warning: failed to migrate shop-pricing.json: %v", err)
 	}
 
+	return nil
+}
+
+// migrateSystemsFiles migrates system configuration JSON files to the systems table
+func migrateSystemsFiles() error {
+	log.Println("Migrating system config files...")
+
+	// Clear existing systems
+	if _, err := database.Exec("DELETE FROM systems"); err != nil {
+		return fmt.Errorf("failed to clear systems table: %v", err)
+	}
+
+	systemFiles := []string{
+		"encumbrance.json",
+		"effects.json",
+		"inventory.json",
+		// Add others as needed
+	}
+
+	count := 0
+	for _, filename := range systemFiles {
+		filePath := filepath.Join("game-data", "systems", filename)
+
+		// Read JSON file
+		data, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Printf("⚠️ Could not read %s: %v", filePath, err)
+			continue
+		}
+
+		// System ID is filename without extension
+		systemID := strings.TrimSuffix(filename, ".json")
+
+		// Insert into systems table
+		_, err = database.Exec(`
+			INSERT OR REPLACE INTO systems (id, properties)
+			VALUES (?, ?)
+		`, systemID, string(data))
+
+		if err != nil {
+			log.Printf("❌ Failed to migrate %s: %v", filename, err)
+			continue
+		}
+
+		log.Printf("✅ Migrated system config: %s", systemID)
+		count++
+	}
+
+	log.Printf("Migrated %d system config files", count)
 	return nil
 }

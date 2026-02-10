@@ -2,10 +2,11 @@
   "encumbrance_system": {
     "description": "Weight-based encumbrance system affecting combat, stealth, fatigue, and travel",
     "weight_calculation": {
-      "base_capacity": "5 * strength_score",
-      "container_modifier": "Items with weight_increase field add to total capacity",
-      "formula": "base_capacity + sum(equipped_items.weight_increase)",
-      "example": "STR 14 character with backpack (+25) = (5 * 14) + 25 = 95 lbs capacity"
+      "base_weight_multiplier": 5.0,
+      "base_capacity": "base_weight_multiplier * strength_score",
+      "container_modifier": "Items with effects_when_worn can modify weight_capacity stat",
+      "formula": "base_capacity + sum(active_effects.weight_capacity)",
+      "example": "STR 14 character with backpack (+35 via effect) = (5 * 14) + 35 = 105 lbs capacity"
     },
     "encumbrance_categories": {
       "light": {

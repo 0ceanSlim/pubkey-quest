@@ -1,0 +1,19 @@
+{
+  "id": "backpack-capacity",
+  "name": "Backpack Capacity",
+  "description": "Increases carry weight capacity while wearing a backpack.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "equipment"
+  },
+  "modifiers": [
+    {
+      "stat": "weight_capacity",
+      "value": 35,
+      "type": "constant"
+    }
+  ],
+  "message": "Backpack equipped - capacity increased.",
+  "visible": false
+}
