@@ -1803,28 +1803,52 @@ func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) 
 				continue
 			}
 
-			if modType != "instant" && modType != "periodic" {
+			validModTypes := map[string]bool{
+				"instant":  true,
+				"constant": true,
+				"periodic": true,
+			}
+			if !validModTypes[modType] {
 				issues = append(issues, Issue{
 					Type:     "error",
 					Category: "effects",
 					File:     filename,
 					Field:    fmt.Sprintf("modifiers[%d].type", i),
-					Message:  fmt.Sprintf("Invalid modifier type '%s' (must be 'instant' or 'periodic')", modType),
+					Message:  fmt.Sprintf("Invalid modifier type '%s' (must be 'instant', 'constant', or 'periodic')", modType),
 				})
 			}
 
-			// Rule 7: Stats and capacities cannot be periodic
-			if modType == "periodic" && !effectType.AllowsPeriodic {
-				issues = append(issues, Issue{
-					Type:     "error",
-					Category: "effects",
-					File:     filename,
-					Field:    fmt.Sprintf("modifiers[%d]", i),
-					Message:  fmt.Sprintf("Stat type '%s' (category: %s) cannot have periodic modifiers", stat, effectType.Category),
-				})
+			// Rule 7: Validate modifier type based on category
+			switch effectType.Category {
+			case "stat", "capacity":
+				// Stats and capacities should ONLY use constant type
+				if modType != "constant" {
+					issues = append(issues, Issue{
+						Type:     "error",
+						Category: "effects",
+						File:     filename,
+						Field:    fmt.Sprintf("modifiers[%d].type", i),
+						Message:  fmt.Sprintf("Stat/capacity '%s' should use type 'constant' (not '%s')", stat, modType),
+					})
+				}
+			case "resource":
+				// Resources can use instant, constant, or periodic
+				// (already validated above that it's one of these three)
+
+				// Resources should NOT use constant for direct modifications
+				// (instant for one-time, periodic for repeating)
+				if modType == "constant" {
+					issues = append(issues, Issue{
+						Type:     "warning",
+						Category: "effects",
+						File:     filename,
+						Field:    fmt.Sprintf("modifiers[%d].type", i),
+						Message:  fmt.Sprintf("Resource '%s' using type 'constant' - are you sure? Usually resources use 'instant' or 'periodic'", stat),
+					})
+				}
 			}
 
-			// Periodic modifiers need tick_interval
+			// Rule 8: Periodic modifiers need tick_interval
 			if modType == "periodic" {
 				if tickInterval, ok := modMap["tick_interval"].(float64); !ok || tickInterval <= 0 {
 					issues = append(issues, Issue{
@@ -1833,6 +1857,19 @@ func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) 
 						File:     filename,
 						Field:    fmt.Sprintf("modifiers[%d].tick_interval", i),
 						Message:  "Periodic modifiers must have tick_interval > 0",
+					})
+				}
+			}
+
+			// Rule 9: Non-periodic modifiers should NOT have tick_interval
+			if modType != "periodic" {
+				if _, hasTick := modMap["tick_interval"]; hasTick {
+					issues = append(issues, Issue{
+						Type:     "warning",
+						Category: "effects",
+						File:     filename,
+						Field:    fmt.Sprintf("modifiers[%d].tick_interval", i),
+						Message:  fmt.Sprintf("Modifier type '%s' should not have tick_interval (only periodic modifiers need this)", modType),
 					})
 				}
 			}

@@ -5,9 +5,13 @@
     "Actual named effects (poison, drunk, performance-high, etc.) are in game-data/effects/",
     "Each effect type specifies what game property it modifies",
     "Category determines what kind of modifiers are allowed:",
-    "  - stat: Only instant modifiers (STR, DEX, CON, INT, WIS, CHA)",
-    "  - capacity: Only instant modifiers (max_hp, max_mana, weight_capacity)",
-    "  - resource: Both instant AND periodic modifiers (hp, mana, hunger, fatigue)"
+    "  - stat: Only CONSTANT modifiers (STR, DEX, CON, INT, WIS, CHA) - active while effect is active",
+    "  - capacity: Only CONSTANT modifiers (max_hp, max_mana, weight_capacity) - active while effect is active",
+    "  - resource: INSTANT (one-time change), CONSTANT (while active), or PERIODIC (repeating) modifiers (hp, mana, hunger, fatigue)",
+    "Modifier types:",
+    "  - instant: Apply once immediately (or after delay) to resources - not tracked unless delayed",
+    "  - constant: Stat/capacity modifiers active for full effect duration",
+    "  - periodic: Repeating effects using tick_interval (resources only)"
   ],
 
   "effect_types": {
