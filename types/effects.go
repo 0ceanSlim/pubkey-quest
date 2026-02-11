@@ -16,10 +16,9 @@ type EffectData struct {
 
 // RemovalCondition describes how an effect is removed
 type RemovalCondition struct {
-	Type      string `json:"type"`                // "permanent", "timed", "conditional", "action", "equipment", "hybrid"
-	Timer     int    `json:"timer,omitempty"`     // Duration in minutes (for timed/hybrid)
-	Condition string `json:"condition,omitempty"` // Condition string (for conditional)
-	Action    string `json:"action,omitempty"`    // Action ID (for action/hybrid)
+	Type   string `json:"type"`             // "permanent", "timed", "action", "equipment"
+	Timer  int    `json:"timer,omitempty"`  // Duration in minutes (for timed)
+	Action string `json:"action,omitempty"` // Action ID (for action)
 }
 
 // Modifier describes a single stat/resource modification

@@ -5,8 +5,7 @@
   "source_type": "system_status",
   "category": "debuff",
   "removal": {
-    "type": "conditional",
-    "condition": "fatigue != 6"
+    "type": "permanent"
   },
   "system_check": {
     "stat": "fatigue",

@@ -4,14 +4,13 @@
   "description": "Feeling hungry. Minor penalty to dexterity.",
   "source_type": "system_status",
   "category": "debuff",
+  "removal": {
+    "type": "permanent"
+  },
   "system_check": {
     "stat": "hunger",
     "operator": "==",
     "value": 1
-  },
-  "removal": {
-    "type": "conditional",
-    "condition": "hunger != 1"
   },
   "modifiers": [
     {

@@ -291,3 +291,56 @@ func (e *Editor) HandleSaveEffectTypes(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 }
+
+// Save encumbrance config (base_weight_multiplier etc.)
+func (e *Editor) HandleSaveEncumbrance(w http.ResponseWriter, r *http.Request) {
+	var newData json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&newData); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	mode := staging.DetectMode(r, e.Config)
+	sessionID := r.Header.Get("X-Session-ID")
+
+	filePath := "game-data/systems/encumbrance.json"
+	gitPath := strings.ReplaceAll(filePath, "\\", "/")
+	newContent, _ := json.MarshalIndent(newData, "", "  ")
+
+	if mode == staging.ModeDirect {
+		if err := os.WriteFile(filePath, newContent, 0644); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to save: %v", err), http.StatusInternalServerError)
+			return
+		}
+		json.Unmarshal(newData, &e.Encumbrance)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "saved",
+			"mode":   "direct",
+		})
+	} else {
+		session := staging.Manager.GetSession(sessionID)
+		if session == nil {
+			http.Error(w, "Invalid session", http.StatusBadRequest)
+			return
+		}
+
+		oldContent, _ := os.ReadFile(filePath)
+
+		session.AddChange(staging.Change{
+			Type:       staging.ChangeUpdate,
+			FilePath:   gitPath,
+			OldContent: oldContent,
+			NewContent: newContent,
+			Timestamp:  time.Now(),
+		})
+
+		json.Unmarshal(newData, &e.Encumbrance)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "staged",
+			"mode":    "staging",
+			"changes": len(session.Changes),
+		})
+	}
+}

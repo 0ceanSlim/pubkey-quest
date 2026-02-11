@@ -4,14 +4,13 @@
   "description": "Overly full from eating. Bonus to constitution but penalty to strength and dexterity.",
   "source_type": "system_status",
   "category": "buff",
+  "removal": {
+    "type": "permanent"
+  },
   "system_check": {
     "stat": "hunger",
     "operator": "==",
     "value": 3
-  },
-  "removal": {
-    "type": "conditional",
-    "condition": "hunger != 3"
   },
   "modifiers": [
     {

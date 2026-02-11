@@ -5,12 +5,11 @@
   "source_type": "system_status",
   "category": "debuff",
   "removal": {
-    "type": "conditional",
-    "condition": "fatigue != 10"
+    "type": "permanent"
   },
   "system_check": {
     "stat": "fatigue",
-    "operator": "\u003e=",
+    "operator": ">=",
     "value": 10
   },
   "modifiers": [

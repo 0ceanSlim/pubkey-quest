@@ -20,6 +20,7 @@ let allItemTypes = new Set();
 let spellComponents = [];
 let allItemIds = [];
 let currentEffects = [];
+let currentWornEffects = []; // from effects_when_worn (equipment passive effects)
 let effectTypesData = {};  // from /api/effect-types
 let namedEffectsData = {}; // from /api/effects
 
@@ -76,6 +77,7 @@ async function loadEffectsData() {
 
         populateEffectTypeDropdown();
         populateNamedEffectDropdown();
+        populateWornEffectsDropdown();
     } catch (error) {
         console.error('Error loading effects data:', error);
     }
@@ -98,6 +100,20 @@ function populateNamedEffectDropdown() {
     const select = document.getElementById('newNamedEffect');
     if (!select) return;
     select.innerHTML = '<option value="">Named effect...</option>';
+
+    Object.keys(namedEffectsData).sort().forEach(key => {
+        const effect = namedEffectsData[key];
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = effect.name || key;
+        select.appendChild(option);
+    });
+}
+
+function populateWornEffectsDropdown() {
+    const select = document.getElementById('newWornEffect');
+    if (!select) return;
+    select.innerHTML = '<option value="">Select effect when worn...</option>';
 
     Object.keys(namedEffectsData).sort().forEach(key => {
         const effect = namedEffectsData[key];
@@ -313,6 +329,10 @@ function populateForm(item) {
     }
     renderEffects();
 
+    // Worn effects (equipment passive)
+    currentWornEffects = Array.isArray(item.effects_when_worn) ? [...item.effects_when_worn] : [];
+    renderWornEffects();
+
     // Focus
     document.getElementById('itemProvides').value = item.provides || '';
 
@@ -377,6 +397,7 @@ function createNewItem() {
     document.getElementById('range').value = '';
     document.getElementById('rangeLong').value = '';
     currentEffects = [];
+    currentWornEffects = [];
     document.getElementById('itemProvides').value = '';
     document.getElementById('itemImage').value = '';
 
@@ -384,6 +405,7 @@ function createNewItem() {
     renderNotes();
     renderPackContents();
     renderEffects();
+    renderWornEffects();
     updateConditionalSections();
 
     // Clear selection
@@ -738,6 +760,55 @@ function removeEffect(index) {
     renderEffects();
 }
 
+// ===== WORN EFFECTS MANAGEMENT =====
+function renderWornEffects() {
+    const container = document.getElementById('wornEffectsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (currentWornEffects.length === 0) {
+        container.innerHTML = '<span style="color: #6272a4; font-size: 12px;">No worn effects defined</span>';
+        return;
+    }
+
+    currentWornEffects.forEach((effectId, index) => {
+        const effectData = namedEffectsData[effectId];
+        const name = effectData ? effectData.name : effectId;
+
+        const chip = document.createElement('div');
+        chip.className = 'tag';
+        chip.innerHTML = `
+            <span>${name}</span>
+            <button type="button" class="tag-remove" onclick="window.removeWornEffect(${index})">×</button>
+        `;
+        container.appendChild(chip);
+    });
+}
+
+function addWornEffect() {
+    const select = document.getElementById('newWornEffect');
+    const effectId = select.value;
+
+    if (!effectId) {
+        showStatus('Please select an effect to add', 'error');
+        return;
+    }
+
+    if (currentWornEffects.includes(effectId)) {
+        showStatus('This effect is already added', 'error');
+        return;
+    }
+
+    currentWornEffects.push(effectId);
+    renderWornEffects();
+    select.value = '';
+}
+
+function removeWornEffect(index) {
+    currentWornEffects.splice(index, 1);
+    renderWornEffects();
+}
+
 // ===== SAVE ITEM =====
 async function saveItem() {
     const itemId = document.getElementById('itemId').value.trim();
@@ -774,7 +845,10 @@ async function saveItem() {
 
     // Clean stale conditional fields inherited from existing item
     // Only keep fields relevant to current tags/type
-    if (!currentTags.includes('equipment')) delete item.gear_slot;
+    if (!currentTags.includes('equipment')) {
+        delete item.gear_slot;
+        delete item.effects_when_worn;
+    }
     if (!currentTags.includes('container')) {
         delete item.container_slots;
         delete item.allowed_types;
@@ -792,6 +866,12 @@ async function saveItem() {
             return;
         }
         item.gear_slot = gearSlot;
+
+        if (currentWornEffects.length > 0) {
+            item.effects_when_worn = currentWornEffects;
+        } else {
+            delete item.effects_when_worn;
+        }
     }
 
     if (currentTags.includes('container')) {
@@ -1329,6 +1409,8 @@ window.addInlineEffect = addInlineEffect;
 window.addNamedEffect = addNamedEffect;
 window.removeEffect = removeEffect;
 window.previewNamedEffect = previewNamedEffect;
+window.addWornEffect = addWornEffect;
+window.removeWornEffect = removeWornEffect;
 window.generateImage = generateImage;
 window.openImageGenerator = openImageGenerator;
 window.closeImageGenModal = closeImageGenModal;

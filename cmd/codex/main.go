@@ -228,6 +228,7 @@ func main() {
 	r.HandleFunc("/api/effects/{id}", sysEditor.HandleDeleteEffect).Methods("DELETE")
 	r.HandleFunc("/api/effect-types", sysEditor.HandleGetEffectTypes).Methods("GET")
 	r.HandleFunc("/api/effect-types", sysEditor.HandleSaveEffectTypes).Methods("PUT")
+	r.HandleFunc("/api/systems/encumbrance", sysEditor.HandleSaveEncumbrance).Methods("PUT")
 
 	// Item editor routes
 	r.HandleFunc("/tools/item-editor", editor.HandleItemEditor).Methods("GET")

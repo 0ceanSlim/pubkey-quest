@@ -4,12 +4,13 @@
 // State
 let allEffects = {};           // Map of effect ID -> Effect
 let effectTypes = {};          // EffectTypeDefinition map
+let encumbranceConfig = {};    // Encumbrance system config (encumbrance.json)
 let currentEffectID = null;    // Selected effect for editing
 let stagingSessionID = null;
 let stagingMode = null;
 let pendingSliderChanges = {}; // Track unsaved slider changes: { effectID: newValue }
 
-// Valid stats for conditions with their ranges
+// Valid stats for system_check conditions with their ranges
 const CONDITION_STATS = {
     'hunger': { min: 0, max: 3, description: 'Hunger level (0=Starving, 1=Hungry, 2=Well Fed, 3=Stuffed)' },
     'fatigue': { min: 0, max: 10, description: 'Fatigue level (0-5=Rested, 6=Tired, 8=Very Tired, 9=Fatigued, 10=Exhausted)' },
@@ -42,6 +43,7 @@ async function loadData() {
 
         allEffects = data.effects || {};
         effectTypes = data.effect_types || {};
+        encumbranceConfig = data.encumbrance || {};
 
         renderEffectList();
         await initStaging();
@@ -242,39 +244,12 @@ window.selectEffect = function(effectID) {
     populateEffectForm(effectID);
 };
 
-// Parse condition string into structured format
-function parseCondition(conditionStr) {
-    if (!conditionStr) return null;
-
-    // Try to parse: "stat operator value"
-    const match = conditionStr.match(/^(\w+)\s*(==|!=|<=|>=|<|>)\s*(\d+)$/);
-    if (match) {
-        return {
-            stat: match[1],
-            operator: match[2],
-            value: parseInt(match[3])
-        };
-    }
-    return null;
-}
-
-// Build condition string from structured format
-function buildCondition(stat, operator, value) {
-    if (!stat || !operator || value === '' || value === null || value === undefined) {
-        return '';
-    }
-    return `${stat} ${operator} ${value}`;
-}
-
 // Populate effect form
 function populateEffectForm(effectID) {
     const effect = allEffects[effectID];
     if (!effect) return;
 
     currentEffectID = effectID;
-
-    // Parse condition if exists
-    const parsedCondition = effect.removal?.condition ? parseCondition(effect.removal.condition) : null;
 
     let html = `
         <div class="codex-section win95-inset pixel-clip">
@@ -338,7 +313,7 @@ function populateEffectForm(effectID) {
 
             <h4 class="codex-subsection-title">REMOVAL CONDITION</h4>
             <div class="win95-inset pixel-clip mb-15" style="padding: 1rem;">
-                ${renderRemovalEditor(effect.removal || {}, parsedCondition)}
+                ${renderRemovalEditor(effect.removal || {})}
             </div>
 
             <h4 class="codex-subsection-title">MODIFIERS</h4>
@@ -358,21 +333,18 @@ function populateEffectForm(effectID) {
     document.getElementById('effect-form').innerHTML = html;
 }
 
-// Render removal condition editor with structured inputs
-function renderRemovalEditor(removal, parsedCondition) {
+// Render removal editor
+function renderRemovalEditor(removal) {
     const removalType = removal.type || 'permanent';
-    const showTimer = removalType === 'timed' || removalType === 'hybrid';
-    const showCondition = removalType === 'conditional' || removalType === 'hybrid';
+    const showTimer = removalType === 'timed';
 
     return `
         <div class="grid grid-cols-1 gap-4 mb-10">
             <div>
                 <label class="codex-label">REMOVAL TYPE</label>
                 <select class="codex-select" onchange="updateRemovalType(this.value)">
-                    <option value="permanent" ${removalType === 'permanent' ? 'selected' : ''}>Permanent (never expires)</option>
+                    <option value="permanent" ${removalType === 'permanent' ? 'selected' : ''}>Permanent (managed by system)</option>
                     <option value="timed" ${removalType === 'timed' ? 'selected' : ''}>Timed (duration only)</option>
-                    <option value="conditional" ${removalType === 'conditional' ? 'selected' : ''}>Conditional (stat-based only)</option>
-                    <option value="hybrid" ${removalType === 'hybrid' ? 'selected' : ''}>Hybrid (timer OR condition)</option>
                     <option value="action" ${removalType === 'action' ? 'selected' : ''}>Action (removed by specific action)</option>
                     <option value="equipment" ${removalType === 'equipment' ? 'selected' : ''}>Equipment (removed when unequipped)</option>
                 </select>
@@ -390,57 +362,6 @@ function renderRemovalEditor(removal, parsedCondition) {
                     <small style="color: var(--codex-text-muted);">How long the effect lasts</small>
                 </div>
             </div>
-        ` : ''}
-
-        ${showCondition ? `
-            <div class="grid grid-cols-4 gap-4">
-                <div>
-                    <label class="codex-label">STAT</label>
-                    <select id="condition-stat" class="codex-select" onchange="updateConditionFromInputs()">
-                        <option value="">-- Select stat --</option>
-                        ${Object.entries(CONDITION_STATS).map(([stat, info]) => `
-                            <option value="${stat}" ${parsedCondition?.stat === stat ? 'selected' : ''}>
-                                ${stat}
-                            </option>
-                        `).join('')}
-                    </select>
-                </div>
-                <div>
-                    <label class="codex-label">OPERATOR</label>
-                    <select id="condition-operator" class="codex-select" onchange="updateConditionFromInputs()">
-                        ${Object.entries(CONDITION_OPERATORS).map(([op, label]) => `
-                            <option value="${op}" ${parsedCondition?.operator === op ? 'selected' : ''}>
-                                ${op} (${label})
-                            </option>
-                        `).join('')}
-                    </select>
-                </div>
-                <div>
-                    <label class="codex-label">VALUE</label>
-                    <input id="condition-value" type="number" class="codex-input"
-                           value="${parsedCondition?.value ?? ''}"
-                           placeholder="0"
-                           onchange="updateConditionFromInputs()" />
-                </div>
-                <div style="display: flex; align-items: flex-end;">
-                    <button class="codex-btn codex-btn-sm pixel-clip-sm" onclick="clearCondition()">CLEAR</button>
-                </div>
-            </div>
-            ${parsedCondition?.stat ? `
-                <div style="margin-top: 0.5rem;">
-                    <small style="color: var(--codex-text-secondary);">
-                        ${CONDITION_STATS[parsedCondition.stat]?.description || ''}
-                        (Valid range: ${CONDITION_STATS[parsedCondition.stat]?.min}-${CONDITION_STATS[parsedCondition.stat]?.max})
-                    </small>
-                </div>
-            ` : ''}
-            ${parsedCondition?.stat ? `
-                <div style="margin-top: 0.5rem;">
-                    <small style="color: var(--codex-cyan);">
-                        Condition: <strong>${removal.condition}</strong>
-                    </small>
-                </div>
-            ` : ''}
         ` : ''}
 
         ${removalType === 'action' ? `
@@ -564,62 +485,15 @@ window.updateRemovalType = function(type) {
     effect.removal.type = type;
 
     // Clear fields that don't apply to this type
-    if (type === 'permanent') {
+    if (type === 'permanent' || type === 'equipment') {
         delete effect.removal.timer;
-        delete effect.removal.condition;
         delete effect.removal.action;
     } else if (type === 'timed') {
-        delete effect.removal.condition;
-        delete effect.removal.action;
-    } else if (type === 'conditional') {
-        delete effect.removal.timer;
         delete effect.removal.action;
     } else if (type === 'action') {
         delete effect.removal.timer;
-        delete effect.removal.condition;
-    } else if (type === 'equipment') {
-        delete effect.removal.timer;
-        delete effect.removal.condition;
-        delete effect.removal.action;
-    }
-    // hybrid keeps all fields
-
-    populateEffectForm(currentEffectID);
-};
-
-// Update condition from structured inputs
-window.updateConditionFromInputs = function() {
-    const stat = document.getElementById('condition-stat')?.value;
-    const operator = document.getElementById('condition-operator')?.value;
-    const value = document.getElementById('condition-value')?.value;
-
-    if (!currentEffectID) return;
-    const effect = allEffects[currentEffectID];
-    if (!effect || !effect.removal) return;
-
-    // Validate value is within range for selected stat
-    if (stat && value !== '') {
-        const statInfo = CONDITION_STATS[stat];
-        const numValue = parseInt(value);
-        if (statInfo && (numValue < statInfo.min || numValue > statInfo.max)) {
-            showStatus(`⚠️ Value ${numValue} is outside valid range for ${stat} (${statInfo.min}-${statInfo.max})`, 'warning');
-        }
     }
 
-    const condition = buildCondition(stat, operator, value);
-    effect.removal.condition = condition;
-
-    // Re-render to update the display
-    populateEffectForm(currentEffectID);
-};
-
-// Clear condition
-window.clearCondition = function() {
-    if (!currentEffectID) return;
-    const effect = allEffects[currentEffectID];
-    if (!effect || !effect.removal) return;
-
-    effect.removal.condition = '';
     populateEffectForm(currentEffectID);
 };
 
@@ -760,6 +634,9 @@ window.removeModifier = function(index) {
     effect.modifiers.splice(index, 1);
     populateEffectForm(currentEffectID);
 };
+
+window.saveEffect = saveEffect;
+window.deleteEffect = deleteEffect;
 
 // Create new effect
 function createNewEffect() {
@@ -1187,8 +1064,17 @@ function renderWeightSystem() {
 
             <div class="mb-20" style="background: var(--color-bgSecondary); padding: 1rem; border-radius: 4px;">
                 <strong style="color: #8ecae6;">Weight Capacity Formula:</strong>
-                <div style="margin-top: 0.5rem; color: var(--color-textSecondary);">
-                    5 × Strength + Container Bonus
+                <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <input type="number" id="weightMultiplierInput"
+                        value="${encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 5}"
+                        min="0.5" max="50" step="0.5"
+                        style="width: 70px; padding: 4px 6px; background: var(--color-bgPrimary); border: 1px solid #8ecae6; color: var(--color-textPrimary); font-family: inherit;"
+                        oninput="updateWeightFormulaPreview()" />
+                    <span style="color: var(--color-textSecondary);">× Strength + Effects Bonus</span>
+                    <button type="button" class="codex-btn codex-btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="saveWeightMultiplier()">Save</button>
+                </div>
+                <div id="weightFormulaPreview" style="margin-top: 0.5rem; color: var(--color-textSecondary); font-size: 12px;">
+                    Example: STR 14 × ${encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 5} = ${14 * (encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 5)} lbs base capacity
                 </div>
             </div>
 
@@ -1299,6 +1185,58 @@ function renderWeightSystem() {
 
     document.getElementById('weight-editor').innerHTML = html;
 }
+
+// Update the formula preview when multiplier input changes
+window.updateWeightFormulaPreview = function() {
+    const input = document.getElementById('weightMultiplierInput');
+    const preview = document.getElementById('weightFormulaPreview');
+    if (!input || !preview) return;
+    const mult = parseFloat(input.value) || 5;
+    preview.textContent = `Example: STR 14 × ${mult} = ${14 * mult} lbs base capacity`;
+};
+
+// Save the base weight multiplier to encumbrance.json
+window.saveWeightMultiplier = async function() {
+    const input = document.getElementById('weightMultiplierInput');
+    if (!input) return;
+    const newMultiplier = parseFloat(input.value);
+    if (isNaN(newMultiplier) || newMultiplier <= 0) {
+        showStatus('Invalid multiplier value', 'error');
+        return;
+    }
+
+    // Deep clone config and update the value
+    const updatedConfig = JSON.parse(JSON.stringify(encumbranceConfig));
+    if (!updatedConfig.encumbrance_system) updatedConfig.encumbrance_system = {};
+    if (!updatedConfig.encumbrance_system.weight_calculation) updatedConfig.encumbrance_system.weight_calculation = {};
+    updatedConfig.encumbrance_system.weight_calculation.base_weight_multiplier = newMultiplier;
+
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (stagingSessionID) headers['X-Session-ID'] = stagingSessionID;
+
+        const response = await fetch('/api/systems/encumbrance', {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(updatedConfig)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            encumbranceConfig = updatedConfig;
+            if (result.mode === 'staging') {
+                updateChangeCount(result.changes);
+                showStatus(`Weight multiplier staged (${result.changes} changes)`, 'success');
+            } else {
+                showStatus('✅ Weight multiplier saved', 'success');
+            }
+        } else {
+            showStatus('❌ Failed to save weight multiplier', 'error');
+        }
+    } catch (error) {
+        showStatus('❌ Error: ' + error.message, 'error');
+    }
+};
 
 // Helper: Format modifiers for display
 function formatModifiers(modifiers) {

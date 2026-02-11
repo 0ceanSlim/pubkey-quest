@@ -212,6 +212,22 @@
                                 <option value="bag">Bag</option>
                             </select>
                         </div>
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label>Effects When Worn <span class="field-hint">(passive effects active while this item is equipped)</span></label>
+                            <div class="tags-container" id="wornEffectsContainer">
+                                <span style="color: #6272a4; font-size: 12px;">No worn effects defined</span>
+                            </div>
+                            <div class="form-row" style="margin-top: 8px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <select id="newWornEffect">
+                                        <option value="">Select effect when worn...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button type="button" class="codex-btn codex-btn-secondary" onclick="addWornEffect()">+ Add</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- SECTION: Container Properties (conditional) -->

@@ -5,8 +5,7 @@
   "source_type": "system_status",
   "category": "debuff",
   "removal": {
-    "type": "conditional",
-    "condition": "hunger != 0"
+    "type": "permanent"
   },
   "system_check": {
     "stat": "hunger",

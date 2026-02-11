@@ -32,8 +32,9 @@ type Item struct {
 	Ammunition     string              `json:"ammunition,omitempty"`
 	Range          string              `json:"range,omitempty"`
 	RangeLong      string              `json:"range-long,omitempty"`
-	Effects        []interface{}       `json:"effects,omitempty"`
-	Tags           []string            `json:"tags,omitempty"`
+	Effects         []interface{}          `json:"effects,omitempty"`
+	EffectsWhenWorn []string               `json:"effects_when_worn,omitempty"`
+	Tags            []string               `json:"tags,omitempty"`
 	Notes          []string            `json:"notes,omitempty"`
 	Image          string              `json:"image,omitempty"`
 	Img            string              `json:"img,omitempty"`

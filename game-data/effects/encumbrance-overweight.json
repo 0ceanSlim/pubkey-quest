@@ -5,12 +5,11 @@
   "source_type": "system_status",
   "category": "debuff",
   "removal": {
-    "type": "conditional",
-    "condition": "weight_percent \u003c= 100"
+    "type": "permanent"
   },
   "system_check": {
     "stat": "weight_percent",
-    "operator": "\u003e",
+    "operator": ">",
     "value": 100
   },
   "modifiers": [

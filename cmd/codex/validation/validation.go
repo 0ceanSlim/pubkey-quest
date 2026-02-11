@@ -1696,6 +1696,7 @@ func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) 
 
 		// Rule 4 & 5: visible field validation
 		if visible, ok := effect["visible"].(bool); ok {
+			// system_ticker must always be hidden (they fire silently in the background)
 			if sourceType == "system_ticker" && visible {
 				issues = append(issues, Issue{
 					Type:     "error",
@@ -1705,15 +1706,26 @@ func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) 
 					Message:  "system_ticker effects must have visible=false",
 				})
 			}
-			if (sourceType == "system_status" || sourceType == "applied") && !visible {
+			// system_status must always be visible (players need to see encumbrance/hunger state)
+			if sourceType == "system_status" && !visible {
 				issues = append(issues, Issue{
 					Type:     "error",
 					Category: "effects",
 					File:     filename,
 					Field:    "visible",
-					Message:  fmt.Sprintf("%s effects must have visible=true", sourceType),
+					Message:  "system_status effects must have visible=true",
 				})
 			}
+			// applied effects: value can be true or false, no constraint
+		} else if _, exists := effect["visible"]; !exists {
+			// visible field is missing entirely — require it to be explicitly set
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "effects",
+				File:     filename,
+				Field:    "visible",
+				Message:  "Required field 'visible' is missing (must be true or false)",
+			})
 		}
 
 		// Rule 10: Applied effects should have message

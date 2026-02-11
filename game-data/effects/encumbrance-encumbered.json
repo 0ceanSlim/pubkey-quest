@@ -4,14 +4,13 @@
   "description": "You are heavily burdened. Every step is laborious and dangerous.",
   "source_type": "system_status",
   "category": "debuff",
+  "removal": {
+    "type": "permanent"
+  },
   "system_check": {
     "stat": "weight_percent",
     "operator": ">",
     "value": 150
-  },
-  "removal": {
-    "type": "conditional",
-    "condition": "weight_percent <= 150"
   },
   "modifiers": [
     {

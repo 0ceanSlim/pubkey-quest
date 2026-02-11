@@ -4,14 +4,13 @@
   "description": "You cannot carry any more weight. You must drop items to continue.",
   "source_type": "system_status",
   "category": "debuff",
+  "removal": {
+    "type": "permanent"
+  },
   "system_check": {
     "stat": "weight_percent",
     "operator": ">",
     "value": 200
-  },
-  "removal": {
-    "type": "conditional",
-    "condition": "weight_percent <= 200"
   },
   "modifiers": [
     {

@@ -10,10 +10,10 @@
   "modifiers": [
     {
       "stat": "weight_capacity",
-      "value": 35,
+      "value": 25,
       "type": "constant"
     }
   ],
   "message": "Backpack equipped - capacity increased.",
-  "visible": false
+  "visible": true
 }

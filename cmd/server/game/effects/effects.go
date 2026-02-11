@@ -199,20 +199,30 @@ func TickEffects(state *types.SaveFile, minutesElapsed int) []types.EffectMessag
 
 		// Process tick-based effects (damage/healing over time)
 		if tickInterval > 0 {
-			// For hunger accumulation, use dynamic tick interval based on current hunger level
+			// Hunger accumulation effects keep the same effect ID when hunger level changes
+			// (to preserve the tick accumulator). Look up the tick interval from the database
+			// for the effect that matches the current hunger level, so rates are configurable
+			// via the codex without code changes.
 			if activeEffect.EffectID == "hunger-accumulation-stuffed" ||
 				activeEffect.EffectID == "hunger-accumulation-wellfed" ||
 				activeEffect.EffectID == "hunger-accumulation-hungry" {
-				// Override tick interval based on current hunger level
+				var lookupID string
 				switch state.Hunger {
-				case 3: // Stuffed
-					tickInterval = 360 // 6 hours
-				case 2: // Well fed
-					tickInterval = 240 // 4 hours
-				case 1: // Hungry
-					tickInterval = 240 // 4 hours
-				case 0: // Starving - no accumulation (handled by starving penalty effect)
-					tickInterval = 0
+				case 3:
+					lookupID = "hunger-accumulation-stuffed"
+				case 2:
+					lookupID = "hunger-accumulation-wellfed"
+				case 1:
+					lookupID = "hunger-accumulation-hungry"
+				case 0:
+					tickInterval = 0 // starving — no decrease (handled by starving penalty effect)
+				}
+				if lookupID != "" {
+					if _, _, interval, _, err := GetEffectTemplate(lookupID, 0); err == nil {
+						tickInterval = interval
+					} else {
+						log.Printf("⚠️ Failed to load hunger tick interval for %s: %v", lookupID, err)
+					}
 				}
 			}
 
@@ -612,39 +622,4 @@ func EvaluateCondition(condition string, state *types.SaveFile) bool {
 	}
 }
 
-// ShouldRemoveEffect checks if an effect should be removed based on its removal conditions
-func ShouldRemoveEffect(effectID string, state *types.SaveFile) bool {
-	effectData, err := LoadEffectData(effectID)
-	if err != nil {
-		return false
-	}
-
-	// Check removal type
-	switch effectData.Removal.Type {
-	case "permanent":
-		return false // Never remove
-
-	case "conditional":
-		// Remove if condition is met
-		return EvaluateCondition(effectData.Removal.Condition, state)
-
-	case "timed":
-		// Handled by duration system in TickEffects
-		return false
-
-	case "hybrid":
-		// Remove if condition OR timer expired (timer handled by TickEffects)
-		if effectData.Removal.Condition != "" {
-			return EvaluateCondition(effectData.Removal.Condition, state)
-		}
-		return false
-
-	case "action", "equipment":
-		// These are handled manually by action/equipment systems
-		return false
-
-	default:
-		return false
-	}
-}
 

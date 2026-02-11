@@ -1,135 +1,138 @@
 {
   "encumbrance_system": {
     "description": "Weight-based encumbrance system affecting combat, stealth, fatigue, and travel",
-    "weight_calculation": {
-      "base_weight_multiplier": 5.0,
-      "base_capacity": "base_weight_multiplier * strength_score",
-      "container_modifier": "Items with effects_when_worn can modify weight_capacity stat",
-      "formula": "base_capacity + sum(active_effects.weight_capacity)",
-      "example": "STR 14 character with backpack (+35 via effect) = (5 * 14) + 35 = 105 lbs capacity"
-    },
     "encumbrance_categories": {
+      "encumbered": {
+        "combat_penalty": "-3 to attack rolls and AC",
+        "description": "You are heavily burdened, every step is laborious and dangerous",
+        "fatigue_modifier": -2,
+        "special_restrictions": {
+          "cannot_flee": "Cannot flee from combat at distances 0-3",
+          "climbing": "Cannot climb or traverse vertical obstacles",
+          "swimming": "Cannot swim or cross water obstacles"
+        },
+        "stealth_penalty": "-4 to stealth checks",
+        "travel_effects": {
+          "daily_fatigue_penalty": 2,
+          "encounter_rate_modifier": 0.2,
+          "forced_rest": "Must rest every 2 days of travel instead of choice",
+          "movement_penalty": "Travel 25% slower, +2 additional fatigue per day"
+        },
+        "weight_threshold": "151-200% of max capacity"
+      },
       "light": {
-        "weight_threshold": "0-50% of max capacity",
-        "fatigue_modifier": 0,
         "combat_bonus": "+1 to attack rolls and AC",
+        "description": "You feel nimble and quick, unencumbered by excess weight",
+        "fatigue_modifier": 0,
         "stealth_bonus": "+2 to stealth checks",
         "travel_effects": {
           "encounter_rate_modifier": -0.1,
           "movement_bonus": "Can travel +10% faster in environments"
         },
-        "description": "You feel nimble and quick, unencumbered by excess weight"
+        "weight_threshold": "0-50% of max capacity"
       },
       "normal": {
-        "weight_threshold": "51-100% of max capacity",
-        "fatigue_modifier": 0,
         "combat_bonus": 0,
+        "description": "You carry a reasonable load that doesn't hinder your performance",
+        "fatigue_modifier": 0,
         "stealth_bonus": 0,
         "travel_effects": {
           "encounter_rate_modifier": 0,
           "movement_bonus": "Normal travel speed"
         },
-        "description": "You carry a reasonable load that doesn't hinder your performance"
+        "weight_threshold": "51-100% of max capacity"
+      },
+      "overloaded": {
+        "description": "You cannot carry any more weight and must drop items to continue",
+        "forced_action": "Must reduce weight to encumbered level or below to take any actions",
+        "movement_restriction": "Cannot move or travel",
+        "weight_threshold": "201%+ of max capacity"
       },
       "overweight": {
-        "weight_threshold": "101-150% of max capacity",
-        "fatigue_modifier": -1,
         "combat_penalty": "-1 to attack rolls and AC",
+        "description": "The extra weight slows you down and makes you more noticeable",
+        "fatigue_modifier": -1,
         "stealth_penalty": "-2 to stealth checks",
         "travel_effects": {
           "daily_fatigue_penalty": 1,
           "encounter_rate_modifier": 0.1,
           "movement_penalty": "Travel 10% slower, +1 additional fatigue per day"
         },
-        "description": "The extra weight slows you down and makes you more noticeable"
-      },
-      "encumbered": {
-        "weight_threshold": "151-200% of max capacity",
-        "fatigue_modifier": -2,
-        "combat_penalty": "-3 to attack rolls and AC",
-        "stealth_penalty": "-4 to stealth checks",
-        "travel_effects": {
-          "daily_fatigue_penalty": 2,
-          "encounter_rate_modifier": 0.2,
-          "movement_penalty": "Travel 25% slower, +2 additional fatigue per day",
-          "forced_rest": "Must rest every 2 days of travel instead of choice"
-        },
-        "special_restrictions": {
-          "cannot_flee": "Cannot flee from combat at distances 0-3",
-          "swimming": "Cannot swim or cross water obstacles",
-          "climbing": "Cannot climb or traverse vertical obstacles"
-        },
-        "description": "You are heavily burdened, every step is laborious and dangerous"
-      },
-      "overloaded": {
-        "weight_threshold": "201%+ of max capacity",
-        "movement_restriction": "Cannot move or travel",
-        "description": "You cannot carry any more weight and must drop items to continue",
-        "forced_action": "Must reduce weight to encumbered level or below to take any actions"
+        "weight_threshold": "101-150% of max capacity"
       }
     },
     "integration_with_existing_systems": {
-      "fatigue_system_modifications": {
-        "description": "Weight category modifies daily fatigue accumulation",
-        "light_weight": "Normal fatigue rules (no change)",
-        "normal_weight": "Normal fatigue rules (no change)",
-        "overweight": "Daily travel fatigue increased from 1 to 2",
-        "encumbered": "Daily travel fatigue increased from 1 to 3"
-      },
       "combat_system_modifications": {
         "description": "Weight category affects combat performance",
-        "initiative_modifier": {
-          "light": "+1 to initiative rolls",
-          "normal": "No modifier",
-          "overweight": "-1 to initiative rolls",
-          "encumbered": "-2 to initiative rolls"
-        },
         "flee_attempt_modifier": {
+          "encumbered": "Cannot flee at close range (0-3 distance)",
           "light": "+1 bonus to flee attempts",
           "normal": "No modifier",
-          "overweight": "-1 penalty to flee attempts",
-          "encumbered": "Cannot flee at close range (0-3 distance)"
+          "overweight": "-1 penalty to flee attempts"
+        },
+        "initiative_modifier": {
+          "encumbered": "-2 to initiative rolls",
+          "light": "+1 to initiative rolls",
+          "normal": "No modifier",
+          "overweight": "-1 to initiative rolls"
         }
+      },
+      "fatigue_system_modifications": {
+        "description": "Weight category modifies daily fatigue accumulation",
+        "encumbered": "Daily travel fatigue increased from 1 to 3",
+        "light_weight": "Normal fatigue rules (no change)",
+        "normal_weight": "Normal fatigue rules (no change)",
+        "overweight": "Daily travel fatigue increased from 1 to 2"
       },
       "stealth_encounter_modifications": {
         "description": "Weight affects ability to avoid or approach encounters",
         "monster_detection_modifier": {
+          "encumbered": "+3 to monster awareness (much easier to detect and ambush)",
           "light": "-2 to monster awareness (harder for monsters to detect you)",
           "normal": "No modifier",
-          "overweight": "+1 to monster awareness (easier for monsters to detect you)",
-          "encumbered": "+3 to monster awareness (much easier to detect and ambush)"
+          "overweight": "+1 to monster awareness (easier for monsters to detect you)"
         }
-      }
-    },
-    "weight_management_strategies": {
-      "pack_animals": {
-        "description": "Future feature: hire pack animals to carry extra weight",
-        "cost": "Variable by location and animal type"
-      },
-      "storage_solutions": {
-        "description": "Leave items in safe locations like inn rooms or guild storage",
-        "cost": "Storage fees may apply"
-      },
-      "selective_gear": {
-        "description": "Choose lighter alternatives or leave non-essential items",
-        "examples": ["Leather armor instead of plate", "Shortsword instead of greatsword"]
       }
     },
     "ui_integration": {
+      "warnings": {
+        "approaching_encumbered": "Display warning at 145% capacity",
+        "approaching_overweight": "Display warning at 95% capacity",
+        "overloaded_prevention": "Prevent pickup when it would cause overloaded state"
+      },
       "weight_display": {
-        "format": "Current Weight: 85/120 lbs (Normal)",
         "color_coding": {
+          "encumbered": "orange",
           "light": "green",
           "normal": "white",
-          "overweight": "yellow",
-          "encumbered": "orange",
-          "overloaded": "red"
-        }
+          "overloaded": "red",
+          "overweight": "yellow"
+        },
+        "format": "Current Weight: 85/120 lbs (Normal)"
+      }
+    },
+    "weight_calculation": {
+      "base_capacity": "base_weight_multiplier * strength_score",
+      "base_weight_multiplier": 6,
+      "container_modifier": "Items with effects_when_worn can modify weight_capacity stat",
+      "example": "STR 14 character with backpack (+35 via effect) = (5 * 14) + 35 = 105 lbs capacity",
+      "formula": "base_capacity + sum(active_effects.weight_capacity)"
+    },
+    "weight_management_strategies": {
+      "pack_animals": {
+        "cost": "Variable by location and animal type",
+        "description": "Future feature: hire pack animals to carry extra weight"
       },
-      "warnings": {
-        "approaching_overweight": "Display warning at 95% capacity",
-        "approaching_encumbered": "Display warning at 145% capacity",
-        "overloaded_prevention": "Prevent pickup when it would cause overloaded state"
+      "selective_gear": {
+        "description": "Choose lighter alternatives or leave non-essential items",
+        "examples": [
+          "Leather armor instead of plate",
+          "Shortsword instead of greatsword"
+        ]
+      },
+      "storage_solutions": {
+        "cost": "Storage fees may apply",
+        "description": "Leave items in safe locations like inn rooms or guild storage"
       }
     }
   }
