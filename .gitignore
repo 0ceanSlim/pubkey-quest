@@ -13,8 +13,6 @@ game.db
 www/dist/
 
 # Binaries
-nostr-hero.exe
-nostr-hero
 codex.exe
 item-editor-gui.exe
 pixellab-gen.exe

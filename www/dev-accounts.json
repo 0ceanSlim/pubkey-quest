@@ -1,5 +1,5 @@
 {
-  "description": "Dev/test accounts for Nostr Hero. Public keys only - safe to commit.",
+  "description": "Dev/test accounts for Pubkey Quest. Public keys only - safe to commit.",
   "accounts": {
     "marshlight": [
       {

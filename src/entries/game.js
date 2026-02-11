@@ -37,7 +37,7 @@ import { initMusicDisplay } from '../ui/musicDisplay.js';
 import * as musicDisplay from '../ui/musicDisplay.js';
 
 // Page initialization
-import { nostrHeroStartup } from '../pages/startup.js';
+import { pubkeyQuestStartup } from '../pages/startup.js';
 
 // Logic
 import * as mechanics from '../logic/mechanics.js';
@@ -46,7 +46,7 @@ import { NostrCharacterGenerator } from '../logic/characterGenerator.js';
 // TEST: This should appear first in console
 console.log('🚀 BUNDLE LOADING - game.js entry point reached');
 console.log('📋 Document ready state:', document.readyState);
-console.log('📋 nostrHeroStartup exists:', typeof nostrHeroStartup);
+console.log('📋 pubkeyQuestStartup exists:', typeof pubkeyQuestStartup);
 
 // Make critical functions globally available for templates and inline scripts
 window.getGameState = getGameState;

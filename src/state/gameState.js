@@ -344,7 +344,7 @@ function cleanupOldGroundItems() {
  * This is the main entry point for game initialization
  */
 export async function initializeGame() {
-    logger.info('🎮 Initializing Nostr Hero...');
+    logger.info('🎮 Initializing Pubkey Quest...');
 
     // Wait for session manager to be ready
     if (!window.sessionManager) {

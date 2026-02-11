@@ -10,9 +10,9 @@ import (
 	"pubkey-quest/cmd/server/utils"
 )
 
-// InitializeGrainClient initializes grain client for Nostr Hero
+// InitializeGrainClient initializes grain client for Pubkey Quest
 func InitializeGrainClient(config *utils.Config) error {
-	log.Println("🎮 Initializing Grain client for Nostr Hero...")
+	log.Println("🎮 Initializing Grain client for Pubkey Quest...")
 
 	// Create minimal grain server config for session management only
 	grainConfig := &cfgType.ServerConfig{
@@ -68,7 +68,7 @@ func InitializeGrainClient(config *utils.Config) error {
 		return fmt.Errorf("failed to create session manager")
 	}
 
-	log.Println("✅ Grain client ready for Nostr Hero")
+	log.Println("✅ Grain client ready for Pubkey Quest")
 	return nil
 }
 

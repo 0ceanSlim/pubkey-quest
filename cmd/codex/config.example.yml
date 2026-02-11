@@ -11,7 +11,7 @@ github:
   # Generate at: https://github.com/settings/tokens
   token: ""
   repo_owner: "your-username"
-  repo_name: "nostr-hero"
+  repo_name: "pubkey-quest"
 
 pixellab:
   # PixelLab API key for image generation

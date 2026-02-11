@@ -26,7 +26,7 @@ class Logger {
     // In production (__PROD__ is true), only show errors
     // In development (__DEV__ is true), show all logs
     this.level = __PROD__ ? LogLevel.ERROR : LogLevel.DEBUG;
-    this.prefix = '[Nostr Hero]';
+    this.prefix = '[Pubkey Quest]';
   }
 
   /**

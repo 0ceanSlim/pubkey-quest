@@ -1,8 +1,8 @@
 # CODEX - Content Organization & Data Entry eXperience
 
-**The official all-in-one tool for managing Nostr Hero game data.**
+**The official all-in-one tool for managing Pubkey Quest game data.**
 
-CODEX is a comprehensive web-based GUI tool for editing, validating, and managing all game content for Nostr Hero. It provides a terminal-themed interface for developers and contributors to work with game data files.
+CODEX is a comprehensive web-based GUI tool for editing, validating, and managing all game content for Pubkey Quest. It provides a terminal-themed interface for developers and contributors to work with game data files.
 
 ## Features
 
@@ -53,7 +53,7 @@ CODEX is a comprehensive web-based GUI tool for editing, validating, and managin
 
 1. Install dependencies:
    ```bash
-   # From project root (nostr-hero/)
+   # From project root (pubkey-quest/)
    make -f game-data/CODEX/Makefile deps
    ```
 
@@ -79,7 +79,7 @@ CODEX is a comprehensive web-based GUI tool for editing, validating, and managin
 
 ### Running CODEX
 
-**⚠️ IMPORTANT**: The CODEX executable runs from the project root (`nostr-hero/`), but the Makefile should be run from the CODEX directory!
+**⚠️ IMPORTANT**: The CODEX executable runs from the project root (`pubkey-quest/`), but the Makefile should be run from the CODEX directory!
 
 **Build and run**:
 ```bash
@@ -216,7 +216,7 @@ CODEX operates directly on the JSON files in `game-data/`, which are the source 
 
 ### Path Resolution
 
-CODEX executable runs from project root (`nostr-hero/`), so paths are:
+CODEX executable runs from project root (`pubkey-quest/`), so paths are:
 - Items: `game-data/items/`
 - Starting Gear: `game-data/systems/new-character/starting-gear.json`
 - Images: `www/res/img/items/`
@@ -279,7 +279,7 @@ func (e *ItemEditor) handleValidate(w http.ResponseWriter, r *http.Request) {
 ## Troubleshooting
 
 ### Items not loading
-- Ensure you're running from project root (`nostr-hero/`)
+- Ensure you're running from project root (`pubkey-quest/`)
 - Check that `game-data/items/` directory exists
 - Check console for JSON parsing errors
 
@@ -316,7 +316,7 @@ func (e *ItemEditor) handleValidate(w http.ResponseWriter, r *http.Request) {
 
 ## Credits
 
-CODEX is part of the Nostr Hero project.
+CODEX is part of the Pubkey Quest project.
 
 - **Terminal Theme**: Dracula-inspired color scheme
 - **Image Generation**: PixelLab API
@@ -324,7 +324,7 @@ CODEX is part of the Nostr Hero project.
 
 ## License
 
-Same as Nostr Hero project.
+Same as Pubkey Quest project.
 
 ## Build System
 
@@ -349,4 +349,4 @@ make help       # Show all targets
 
 **Last Updated**: 2026-01-04
 **Version**: 2.0.0
-**Maintainer**: Nostr Hero Development Team
+**Maintainer**: Pubkey Quest Development Team

@@ -1,12 +1,12 @@
-# ⚔️ Nostr Hero
+# ⚔️ Pubkey Quest
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/0ceanslim/nostr-hero)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/0ceanslim/pubkey-quest)
 
 A web-based D&D-style RPG that generates your unique character from your Nostr identity and lets you adventure through a persistent world stored on Nostr relays.
 
 ## Overview
 
-Nostr Hero is a nostalgic RPG experience that derives a deterministic character from your Nostr public key. Your cryptographic identity becomes an adventurer with unique stats, equipment, and abilities. The game combines classic D&D 5e mechanics with Nostr's decentralized protocol to create a persistent, cross-client RPG experience.
+Pubkey Quest is a nostalgic RPG experience that derives a deterministic character from your Nostr public key. Your cryptographic identity becomes an adventurer with unique stats, equipment, and abilities. The game combines classic D&D 5e mechanics with Nostr's decentralized protocol to create a persistent, cross-client RPG experience.
 
 ## Current Development Status (Pre-Alpha)
 
@@ -185,7 +185,7 @@ Focus: **Content & Nostr Integration**
     - More creative integrations TBD
 
 - **Cross-client Gameplay**:
-  - Play on any Nostr Hero client with the same character
+  - Play on any Pubkey Quest client with the same character
   - Community-built clients and mods
   - Official validation against canonical ruleset
 
@@ -227,7 +227,7 @@ All game content is stored as JSON in `game-data/`:
 
 Contributions are welcome! Here's how you can help:
 
-1. **Report Bugs**: Use the [bug report template](https://github.com/0ceanSlim/nostr-hero/issues/new?template=bug_report.md)
+1. **Report Bugs**: Use the [bug report template](https://github.com/0ceanSlim/pubkey-quest/issues/new?template=bug_report.md)
 2. **Suggest Features**: Open an issue with your idea
 3. **Add Content**: Create new items, spells, monsters, or locations (JSON format)
 4. **Improve Code**: Submit PRs for bug fixes or enhancements

@@ -5,7 +5,7 @@
 import { logger } from '../lib/logger.js';
 import { GAME_VERSION } from '../config/constants.js';
 
-logger.info(`Nostr Hero v${GAME_VERSION} - Build System Test`);
+logger.info(`Pubkey Quest v${GAME_VERSION} - Build System Test`);
 logger.debug('This debug message should only appear in development');
 logger.warn('This warning should only appear in development');
 logger.error('This error should appear in both dev and production');

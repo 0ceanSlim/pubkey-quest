@@ -18,7 +18,7 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 	newGame := r.URL.Query().Get("new")
 
 	data := utils.PageData{
-		Title: "Nostr Hero - Game",
+		Title: "Pubkey Quest - Game",
 		Theme: "dark",
 		CustomData: map[string]interface{}{
 			"GameMode":  true,
@@ -34,7 +34,7 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 // NewGameHandler serves the character generation page
 func NewGameHandler(w http.ResponseWriter, r *http.Request) {
 	data := utils.PageData{
-		Title: "Nostr Hero - New Adventure",
+		Title: "Pubkey Quest - New Adventure",
 		Theme: "dark",
 		CustomData: map[string]interface{}{
 			"NewGameMode": true,
@@ -65,9 +65,9 @@ func LoadSave(w http.ResponseWriter, r *http.Request) {
 	// For now, create a basic profile from the session
 	// In the future, this could fetch from Nostr relays
 	content := map[string]interface{}{
-		"name":         "Nostr Hero Player",
+		"name":         "Pubkey Quest Player",
 		"display_name": "Player",
-		"about":        "A brave adventurer in the Nostr Hero realm",
+		"about":        "A brave adventurer in the Pubkey Quest realm",
 		"npub":         npub,
 	}
 
@@ -116,7 +116,7 @@ func LoadSave(w http.ResponseWriter, r *http.Request) {
 // SavesHandler serves the save selection interface
 func SavesHandler(w http.ResponseWriter, r *http.Request) {
 	data := utils.PageData{
-		Title: "Nostr Hero - Select Save",
+		Title: "Pubkey Quest - Select Save",
 		Theme: "dark",
 		CustomData: map[string]interface{}{
 			"SavesMode": true,

@@ -1,5 +1,5 @@
 /**
- * Session Manager for Nostr Hero
+ * Session Manager for Pubkey Quest
  *
  * Handles session initialization, persistence, and recovery.
  * Manages authentication via browser extensions, private keys, or Amber (mobile).
@@ -48,7 +48,7 @@ class SessionManager {
     }
 
     async _performInit() {
-        logger.info('Initializing Nostr Hero session...');
+        logger.info('Initializing Pubkey Quest session...');
 
         try {
             await this.checkExistingSession();
@@ -194,14 +194,14 @@ class SessionManager {
 
     async restoreSessionFromStorage() {
         try {
-            const storedSession = localStorage.getItem('nostr_hero_session_meta');
+            const storedSession = localStorage.getItem('pubkey_quest_session_meta');
             if (!storedSession) return false;
 
             const sessionMeta = JSON.parse(storedSession);
 
             // Validate the stored session is recent (within 1 hour)
             if (Date.now() - sessionMeta.timestamp > 3600000) {
-                localStorage.removeItem('nostr_hero_session_meta');
+                localStorage.removeItem('pubkey_quest_session_meta');
                 return false;
             }
 
@@ -506,7 +506,7 @@ class SessionManager {
                 signingMethod: this.sessionData.signingMethod,
                 timestamp: Date.now()
             };
-            localStorage.setItem('nostr_hero_session_meta', JSON.stringify(sessionMeta));
+            localStorage.setItem('pubkey_quest_session_meta', JSON.stringify(sessionMeta));
         } catch (error) {
             logger.warn('Failed to store session metadata:', error);
         }
@@ -533,7 +533,7 @@ class SessionManager {
             this.sessionCheckInterval = null;
         }
 
-        localStorage.removeItem('nostr_hero_session_meta');
+        localStorage.removeItem('pubkey_quest_session_meta');
 
         this.emit('loggedOut');
     }

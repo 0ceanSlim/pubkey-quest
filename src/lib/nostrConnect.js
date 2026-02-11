@@ -102,7 +102,7 @@ async function initiateNostrConnect() {
 
     // Create nostrconnect:// URI
     const metadata = encodeURIComponent(JSON.stringify({
-      name: 'Nostr Hero',
+      name: 'Pubkey Quest',
       url: window.location.origin,
       description: 'D&D-inspired RPG powered by Nostr'
     }));

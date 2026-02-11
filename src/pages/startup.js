@@ -1,5 +1,5 @@
 /**
- * Nostr Hero Startup Module
+ * Pubkey Quest Startup Module
  *
  * Comprehensive initialization sequence for the application.
  * Follows a step-by-step initialization pattern with error handling.
@@ -12,10 +12,10 @@ import { showActionText, showMessage } from '../ui/messaging.js';
 import { initializeAuthentication } from '../systems/auth.js';
 
 /**
- * Nostr Hero Startup Class
+ * Pubkey Quest Startup Class
  * Manages application initialization sequence
  */
-class NostrHeroStartup {
+class PubkeyQuestStartup {
     constructor() {
         this.initializationSteps = [
             { name: 'Session Manager', fn: this.initSessionManager },
@@ -36,7 +36,7 @@ class NostrHeroStartup {
         console.log('🔍 initializationSteps:', this.initializationSteps);
         console.log('🔍 initializationSteps length:', this.initializationSteps.length);
 
-        logger.info('Starting Nostr Hero initialization sequence...');
+        logger.info('Starting Pubkey Quest initialization sequence...');
         console.log('✅ logger.info completed');
 
         try {
@@ -66,7 +66,7 @@ class NostrHeroStartup {
             console.log('🔧 Setting isInitialized to true...');
             this.isInitialized = true;
             console.log('📢 Calling logger.info...');
-            logger.info('Nostr Hero initialization complete!');
+            logger.info('Pubkey Quest initialization complete!');
             console.log('🎊 About to call onInitializationComplete()...');
             this.onInitializationComplete();
             console.log('✅ onInitializationComplete() finished');
@@ -173,7 +173,7 @@ class NostrHeroStartup {
 
         // Session storage events
         window.addEventListener('storage', (event) => {
-            if (event.key === 'nostr_hero_session_meta') {
+            if (event.key === 'pubkey_quest_session_meta') {
                 logger.debug('Session storage changed, refreshing session');
                 if (window.sessionManager) {
                     window.sessionManager.checkExistingSession();
@@ -216,19 +216,19 @@ class NostrHeroStartup {
         console.log('✅ hideLoadingIndicator() done');
 
         // Emit initialization complete event
-        console.log('📡 Dispatching nostrHeroReady event...');
-        window.dispatchEvent(new CustomEvent('nostrHeroReady', {
+        console.log('📡 Dispatching pubkeyQuestReady event...');
+        window.dispatchEvent(new CustomEvent('pubkeyQuestReady', {
             detail: { timestamp: Date.now() }
         }));
         console.log('✅ Event dispatched');
 
         console.log('📢 Calling logger.info...');
-        logger.info('Nostr Hero is ready to play!');
+        logger.info('Pubkey Quest is ready to play!');
         console.log('✅ logger.info done');
 
         // Show welcome message in action text (purple)
         console.log('💬 Calling showActionText...');
-        showActionText('Welcome to Nostr Hero! Your adventure begins...', 'purple');
+        showActionText('Welcome to Pubkey Quest! Your adventure begins...', 'purple');
         console.log('✅ showActionText done');
 
         // Now initialize the actual game (load save data and render UI)
@@ -259,7 +259,7 @@ class NostrHeroStartup {
         modal.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.5)';
 
         modal.innerHTML = `
-            <h2 class="text-2xl font-bold text-yellow-400 mb-6 text-center">Welcome to Nostr Hero!</h2>
+            <h2 class="text-2xl font-bold text-yellow-400 mb-6 text-center">Welcome to Pubkey Quest!</h2>
 
             <div class="text-gray-300 space-y-4 text-sm leading-relaxed">
                 <p class="text-center text-lg text-yellow-300">
@@ -318,7 +318,7 @@ class NostrHeroStartup {
                     <div class="text-center max-w-md mx-auto p-6">
                         <div class="mb-6">
                             <h1 class="text-4xl font-bold text-red-400 mb-2">⚠️ Initialization Failed</h1>
-                            <p class="text-gray-400 mb-4">Failed to start Nostr Hero</p>
+                            <p class="text-gray-400 mb-4">Failed to start Pubkey Quest</p>
                         </div>
 
                         <div class="bg-red-900 bg-opacity-50 border border-red-600 rounded-lg p-4 mb-6">
@@ -343,7 +343,7 @@ class NostrHeroStartup {
             `;
         }
 
-        logger.error('Nostr Hero initialization failed:', error);
+        logger.error('Pubkey Quest initialization failed:', error);
     }
 
     /**
@@ -380,11 +380,11 @@ class NostrHeroStartup {
 }
 
 // Create and export global startup instance
-export const nostrHeroStartup = new NostrHeroStartup();
+export const pubkeyQuestStartup = new PubkeyQuestStartup();
 
 // Export public API functions
-export function isNostrHeroReady() {
-    return nostrHeroStartup.isReady();
+export function isPubkeyQuestReady() {
+    return pubkeyQuestStartup.isReady();
 }
 
 // Auto-initialize when DOM is ready
@@ -397,14 +397,14 @@ if (typeof document !== 'undefined') {
         console.log('⏳ Waiting for DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ DOMContentLoaded fired!');
-            logger.info('DOM loaded, starting Nostr Hero initialization...');
-            nostrHeroStartup.initialize();
+            logger.info('DOM loaded, starting Pubkey Quest initialization...');
+            pubkeyQuestStartup.initialize();
         });
     } else {
         // DOM is already loaded, initialize immediately
         console.log('✅ DOM already loaded, initializing immediately...');
-        logger.info('DOM already loaded, starting Nostr Hero initialization immediately...');
-        nostrHeroStartup.initialize();
+        logger.info('DOM already loaded, starting Pubkey Quest initialization immediately...');
+        pubkeyQuestStartup.initialize();
     }
 } else {
     console.error('❌ document is undefined!');
@@ -412,8 +412,8 @@ if (typeof document !== 'undefined') {
 
 // Make startup instance available globally for compatibility
 if (typeof window !== 'undefined') {
-    window.nostrHeroStartup = nostrHeroStartup;
-    window.isNostrHeroReady = isNostrHeroReady;
+    window.pubkeyQuestStartup = pubkeyQuestStartup;
+    window.isPubkeyQuestReady = isPubkeyQuestReady;
 }
 
-logger.debug('Nostr Hero startup system loaded');
+logger.debug('Pubkey Quest startup system loaded');

@@ -99,9 +99,9 @@ function showLoginInterface() {
         gameContainer.innerHTML = `
             <div class="text-center py-12">
                 <h2 class="text-3xl font-bold mb-6 text-yellow-400 flex items-center justify-center gap-2">
-                    <img src="/res/img/static/logo.png" alt="Nostr Hero" class="inline-block" style="height: 1.5em; width: auto; image-rendering: pixelated;">
-                    Nostr Hero
-                    <img src="/res/img/static/logo.png" alt="Nostr Hero" class="inline-block" style="height: 1.5em; width: auto; image-rendering: pixelated;">
+                    <img src="/res/img/static/logo.png" alt="Pubkey Quest" class="inline-block" style="height: 1.5em; width: auto; image-rendering: pixelated;">
+                    Pubkey Quest
+                    <img src="/res/img/static/logo.png" alt="Pubkey Quest" class="inline-block" style="height: 1.5em; width: auto; image-rendering: pixelated;">
                 </h2>
                 <p class="text-gray-300 mb-8">A text-based RPG powered by Nostr</p>
                 <div class="space-y-4 max-w-md mx-auto">
@@ -275,7 +275,7 @@ function loginWithAmber() {
     setupAmberCallbackListener();
 
     const callbackUrl = `${window.location.origin}/api/auth/amber-callback?event=`;
-    const amberUrl = `nostrsigner:?compressionType=none&returnType=signature&type=get_public_key&callbackUrl=${encodeURIComponent(callbackUrl)}&appName=${encodeURIComponent('Nostr Hero')}`;
+    const amberUrl = `nostrsigner:?compressionType=none&returnType=signature&type=get_public_key&callbackUrl=${encodeURIComponent(callbackUrl)}&appName=${encodeURIComponent('Pubkey Quest')}`;
 
     try {
         const anchor = document.createElement('a');

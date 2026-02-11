@@ -1,13 +1,13 @@
-// Package api provides HTTP API handlers for the Nostr Hero server.
+// Package api provides HTTP API handlers for the Pubkey Quest server.
 // This file contains route registration for all API endpoints.
 //
-// @title           Nostr Hero API
+// @title           Pubkey Quest API
 // @version         1.0
-// @description     REST API for the Nostr Hero D&D-inspired RPG game server.
+// @description     REST API for the Pubkey Quest D&D-inspired RPG game server.
 // @termsOfService  http://swagger.io/terms/
 //
-// @contact.name   Nostr Hero Support
-// @contact.url    https://github.com/your-repo/nostr-hero
+// @contact.name   Pubkey Quest Support
+// @contact.url    https://github.com/0ceanSlim/pubkey-quest
 //
 // @license.name  MIT
 // @license.url   https://opensource.org/licenses/MIT

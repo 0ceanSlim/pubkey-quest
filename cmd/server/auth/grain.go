@@ -25,7 +25,7 @@ func NewAuthHandler(cfg *utils.Config) *AuthHandler {
 	return &AuthHandler{config: cfg}
 }
 
-// LoginRequest represents a login request for Nostr Hero
+// LoginRequest represents a login request for Pubkey Quest
 type LoginRequest struct {
 	PublicKey     string                         `json:"public_key,omitempty"`
 	PrivateKey    string                         `json:"private_key,omitempty"`  // nsec format
@@ -174,7 +174,7 @@ func (auth *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// Generate npub for response
 	npub, _ := tools.EncodePubkey(userSession.PublicKey)
 
-	log.Printf("🎮 Nostr Hero user logged in: %s (%s mode)", userSession.PublicKey[:16]+"...", userSession.Mode)
+	log.Printf("🎮 Pubkey Quest user logged in: %s (%s mode)", userSession.PublicKey[:16]+"...", userSession.Mode)
 
 	response := LoginResponse{
 		Success:   true,
@@ -199,7 +199,7 @@ func (auth *AuthHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		session.SessionMgr.ClearSession(w, r)
 	}
 
-	log.Println("🎮 Nostr Hero user logged out")
+	log.Println("🎮 Pubkey Quest user logged out")
 
 	response := map[string]interface{}{
 		"success": true,
@@ -264,7 +264,7 @@ func (auth *AuthHandler) HandleGenerateKeys(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	log.Printf("🎮 Generated new key pair for Nostr Hero: %s", keyPair.Npub)
+	log.Printf("🎮 Generated new key pair for Pubkey Quest: %s", keyPair.Npub)
 
 	response := KeyPairResponse{
 		Success: true,
@@ -544,7 +544,7 @@ func (auth *AuthHandler) renderAmberSuccess(w http.ResponseWriter, publicKey str
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amber Login Success - Nostr Hero</title>
+    <title>Amber Login Success - Pubkey Quest</title>
     <style>
         body {
             font-family: 'Pixelify Sans', monospace;
@@ -561,7 +561,7 @@ func (auth *AuthHandler) renderAmberSuccess(w http.ResponseWriter, publicKey str
 <body>
     <div class="success">
         <h2>✅ Amber Login Successful!</h2>
-        <p>Connected successfully. Returning to Nostr Hero...</p>
+        <p>Connected successfully. Returning to Pubkey Quest...</p>
     </div>
     <div class="loading">
         <p>Please wait...</p>
@@ -621,7 +621,7 @@ func (auth *AuthHandler) renderAmberError(w http.ResponseWriter, errorMsg string
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amber Login Error - Nostr Hero</title>
+    <title>Amber Login Error - Pubkey Quest</title>
     <style>
         body {
             font-family: 'Pixelify Sans', monospace;
@@ -676,7 +676,7 @@ func (auth *AuthHandler) renderAmberWhitelistError(w http.ResponseWriter, whitel
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Access Denied - Nostr Hero</title>
+    <title>Access Denied - Pubkey Quest</title>
     <style>
         body {
             font-family: 'Pixelify Sans', monospace;
