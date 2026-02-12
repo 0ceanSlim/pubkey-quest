@@ -8,203 +8,83 @@
 
       <!-- Update Entries -->
       <div class="space-y-6">
-        <!-- Entry 1 - Database Migration Refactor -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🗄️</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Database Architecture Overhaul</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.4.0</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Complete separation of database migration and server code. Migration is now a standalone tool in game-data/
-                that creates and populates the database. Server only validates and queries existing database. Character creation
-                now pulls all data from database instead of reading JSON files directly. Gold is now stored as an inventory
-                item instead of a save file property, enabling better weight and encumbrance tracking.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">Just now</div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Entry 2 - ES6 Build System -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">⚡</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Modern ES6 Module System with Vite</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.3.5</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Migrated entire JavaScript codebase from legacy script tags to modern ES6 modules. Integrated Vite as the
-                build system providing hot module replacement, optimized bundling, and faster development iteration.
-                All frontend code now follows modern JavaScript practices with proper module imports/exports and
-                tree-shaking for smaller bundle sizes.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">1 week ago</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entry 3 - Spell Scroll Crafting System -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">📜</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Spell Scroll Crafting System</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">Design</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Designed comprehensive spell scroll crafting system allowing spellcasters to create consumable spell scrolls.
-                System includes intelligence-based success rates (base chance + scaling with INT, capped at 95%), component
-                requirements, gold costs, and class restrictions. Features 30+ scroll recipes across Wizard, Cleric, and Druid
-                spells. Any magic class can use scrolls, but only specific classes can craft them. Success chances improve as
-                player intelligence increases beyond minimum requirements.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">Just now</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entry 4 - Martial Class Abilities -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">⚔️</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Martial Class Abilities System</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">Design</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Designed unique ability systems for non-spellcasting classes (Fighter, Barbarian, Monk, Rogue) to balance
-                against magical classes. Each class gets 6 unique abilities with 4 power tiers that unlock and improve with
-                level progression (1-4, 5-9, 10-14, 15+). Classes have unique resource systems: Fighters use Stamina, Barbarians
-                use Rage, Monks use Ki Points, and Rogues use Cunning Points. Abilities include combat maneuvers, defensive
-                techniques, and special attacks that scale in power as characters level up.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">Just now</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entry 5 - Game Systems Design -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🗺️</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">World Systems & Exploration Design</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">Design</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Designed comprehensive NPC schedule system where NPCs move between locations throughout the day with
-                time-specific dialogue and behaviors. Drafted new time progression system for environment traversal,
-                handling travel time, random encounters, and resource consumption. Fleshed out exploration mechanics
-                for dungeons, wilderness areas, and environment-specific encounters. Systems integrate with existing
-                hunger/fatigue mechanics for realistic survival gameplay.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">1 week ago</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entry 6 - Container System -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🎒</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Container & Backpack System</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.3.2</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Implemented container functionality allowing items like backpacks and pouches to hold other items.
-                Players can now equip/unequip backpacks, open containers, and manage nested inventories.
-                Spell component pouches and other container items are fully functional.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">2 weeks ago</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entry 7 - Game UI -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🎮</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Game UI Enhancements</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.3.3</span>
-              </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Improved the game text log with better message formatting, enhanced scroll behavior, and more
-                consistent game event reporting. Time system updated to 24-hour format for clarity. Fatigue, hunger,
-                and weight displays redesigned to be more intuitive. Stats tab completely refactored to properly fit
-                text and show all relevant character data including new weight, fatigue, and hunger information.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">2 weeks ago</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Entry 8 - Frontend -->
+        <!-- February 2026 -->
         <div class="win95-inset p-4 rounded-lg">
           <div class="flex items-start gap-3">
             <div class="text-2xl">🎨</div>
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Website Frontend Overhaul</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.3.1</span>
+                <h3 class="font-bold" style="color: var(--color-textPrimary);">Project Rebrand & Effects Polish</h3>
+                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">February 2026</span>
               </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Major improvements to the website frontend including redesigned homepage, enhanced login flow with
-                better error handling, updated settings and discover pages, and added Amber mobile login support.
-                Better visual consistency throughout the site.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">2 weeks ago</div>
+              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
+                <li>• Complete rebrand from Nostr Hero to Pubkey Quest</li>
+                <li>• Worn item effects system (armor/weapons apply stat bonuses)</li>
+                <li>• Consumable items fixed (food, potions apply effects correctly)</li>
+                <li>• Effects system now fully data-driven via CODEX</li>
+                <li>• Weight system cleanup and optimization</li>
+                <li>• Inventory delta system fix (no more full re-renders)</li>
+              </ul>
             </div>
           </div>
         </div>
 
-        <!-- Entry 9 -->
+        <!-- January 2026 -->
         <div class="win95-inset p-4 rounded-lg">
           <div class="flex items-start gap-3">
-            <div class="text-2xl">🔧</div>
+            <div class="text-2xl">🛠️</div>
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Game Logic Refactor to Go</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.3.0</span>
+                <h3 class="font-bold" style="color: var(--color-textPrimary);">CODEX Expansion & Architecture</h3>
+                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">January 2026</span>
               </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Major refactor moving game logic from JavaScript to Go backend. This improves performance,
-                security, and makes the server authoritative for all game actions.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">3 weeks ago</div>
+              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
+                <li>• CODEX Starting Gear Editor (edit class equipment visually)</li>
+                <li>• CODEX Systems/Effects Editor (manage all 27+ game effects)</li>
+                <li>• Massive effects system refactor and CODEX integration</li>
+                <li>• Major repository restructure (clean game module organization)</li>
+                <li>• CI/CD pipeline (GitHub Actions, auto-deploy to test server)</li>
+                <li>• API documentation setup (Swagger)</li>
+                <li>• Item database improvements and validation</li>
+              </ul>
             </div>
           </div>
         </div>
 
-        <!-- Entry 10 -->
+        <!-- December 2025 -->
         <div class="win95-inset p-4 rounded-lg">
           <div class="flex items-start gap-3">
-            <div class="text-2xl">🍖</div>
+            <div class="text-2xl">⚔️</div>
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Hunger & Fatigue System</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">v0.2.0</span>
+                <h3 class="font-bold" style="color: var(--color-textPrimary);">Shops, NPCs & Game Systems</h3>
+                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">December 2025</span>
               </div>
-              <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
-                Implemented hunger and fatigue mechanics with counters and starvation effects.
-                Characters now need to eat food and rest to maintain their stats.
-              </p>
-              <div class="text-xs" style="color: var(--color-textMuted);">3 weeks ago</div>
+              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
+                <li>• Full merchant system (buy/sell, charisma scaling, gold tracking, restocks)</li>
+                <li>• NPC schedule system with time-aware dialogue</li>
+                <li>• Vault storage system (per-city secure storage)</li>
+                <li>• Wait/rest system with inn/tavern integration</li>
+                <li>• Music system with location-based tracks</li>
+                <li>• New time system with day/night cycle</li>
+                <li>• Delta architecture (surgical DOM updates, backend-authoritative)</li>
+                <li>• Effects system first implementation (hunger, fatigue, status conditions)</li>
+                <li>• Stats tab, abilities tab, equipment refactors</li>
+                <li>• Massive Go code reorganization (api → game modules)</li>
+                <li>• ES6 module migration with Vite build system</li>
+                <li>• CODEX initial implementation (item editor, migration, validation)</li>
+                <li>• Multiple frontend cleanup passes (dead code removal, JS consolidation)</li>
+              </ul>
             </div>
           </div>
         </div>
+
       </div>
+
+      <p class="mt-4 text-sm" style="color: var(--color-textMuted);">
+        <em>Earlier updates have been archived.</em>
+      </p>
 
       <div class="mt-8 text-center">
         <a href="https://github.com/0ceanSlim/pubkey-quest/commits/main" target="_blank" class="text-sm hover:opacity-80" style="color: var(--color-textHighlighted);">

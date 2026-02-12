@@ -60,9 +60,19 @@
 
           <div class="win95-inset p-4 rounded-lg">
             <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">5. Ability Scores</h4>
+            <p class="text-sm mb-2">
+              All six stats (STR, DEX, CON, INT, WIS, CHA) start at a base of 10. A weighted tier system determines
+              your total stat budget:
+            </p>
+            <ul class="text-sm ml-4 mb-2 space-y-1">
+              <li>• <strong>25% chance:</strong> 79-81 total points (slightly weaker)</li>
+              <li>• <strong>65% chance:</strong> 82-86 total points (average)</li>
+              <li>• <strong>10% chance:</strong> 87-89 total points (slightly stronger)</li>
+            </ul>
             <p class="text-sm">
-              Virtual dice rolls (seeded by your key) generate STR, DEX, CON, INT, WIS, CHA. Class enforces minimums
-              (Wizards need 12+ INT) and caps stats at 16, floor at 8.
+              Your class's two primary stats are set to a minimum of 15 (e.g., Wizards get INT 15 + WIS 15).
+              Remaining points are distributed across all stats, capped at 16 per stat. As you level up to 20,
+              you'll earn 11 additional stat points to distribute, giving the strongest characters a maximum total of 100.
             </p>
           </div>
 
@@ -83,7 +93,7 @@
           Pubkey Quest uses the Nostr protocol for authentication and future features:
         </p>
         <ul class="list-disc ml-6 space-y-2">
-          <li><strong>NIP-07:</strong> Browser extension login (Alby, nos2x)</li>
+          <li><strong>NIP-07:</strong> Nostr key signing for authentication</li>
           <li><strong>Amber:</strong> Android key signer support</li>
           <li><strong>Future:</strong> Save files as Nostr events for cross-client play</li>
           <li><strong>Future:</strong> Achievement badges (NIP-58)</li>

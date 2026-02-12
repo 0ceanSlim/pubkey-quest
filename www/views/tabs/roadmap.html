@@ -7,7 +7,7 @@
       </h2>
 
       <p class="mb-8" style="color: var(--color-textSecondary);">
-        Track the progress of Pubkey Quest from Early Alpha to Beta and beyond.
+        Track the progress of Pubkey Quest from Pre-Alpha to Beta and beyond.
       </p>
 
       <!-- Completed Section -->
@@ -21,35 +21,28 @@
           <div class="bg-gray-800 p-3 rounded-lg">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-green-500 font-bold">✓</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Nostr Authentication System</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Nostr Authentication</span>
             </div>
             <div class="text-sm pl-6" style="color: var(--color-textMuted);">
-              Multiple authentication methods including NIP-07 browser extensions, Amber mobile login with callback handling,
-              and new key generation for users. Full session management and profile integration.
+              NIP-07 browser extensions, Amber mobile login, new key generation. Full session management and profile integration.
             </div>
           </div>
 
-          <!-- Character Generation & Introduction -->
+          <!-- Character Generation -->
           <div class="bg-gray-800 p-3 rounded-lg">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-green-500 font-bold">✓</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Extensive Character Generation & Introduction System</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Deterministic Character Generation</span>
             </div>
-            <div class="text-sm pl-6 space-y-1" style="color: var(--color-textMuted);">
-              <div><strong>• Deterministic Generation:</strong> Complete D&D 5e character creation from Nostr npub seed (race, class, background, alignment, stats, HP, mana)</div>
-              <div><strong>• Cinematic Introduction:</strong> Multi-scene narrative with background images, animations, music playlist, and skip functionality</div>
-              <div><strong>• Personalized Story:</strong> 10 unique background intros (Acolyte, Criminal, Charlatan, Artisan, Noble, Sage, Soldier, Outlander, Sailor, Urchin) with custom narrative scenes and letters</div>
-              <div><strong>• Equipment Introduction:</strong> Class-based equipment scenes (Warrior, Arcane, Faithful, Wilderness, Clever) with narrative quotes</div>
-              <div><strong>• Spell Display:</strong> Visual spell cards for spellcasters showing school, level, damage, materials, with detailed tooltips</div>
-              <div><strong>• Equipment Selection:</strong> Interactive item selection with visual cards, info modals, complex weapon choices (martial/simple), bundle options, and pack selection</div>
-              <div><strong>• Automatic Inventory:</strong> Smart equipment placement system (weapons, armor, accessories) with pack unpacking into backpack</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Race, class, background, alignment, ability scores, starting equipment and spells from Nostr npub seed. Cinematic multi-scene introduction with personalized backstories.
             </div>
           </div>
 
           <!-- Core Systems -->
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
-            <span>Local Save File System (JSON-based, per-user directories)</span>
+            <span>Save System (local JSON, per-user directories)</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
@@ -57,114 +50,202 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
-            <span>Spell Database (D&D 5e spell list with components, effects)</span>
+            <span>Spell Database (full D&D 5e spell list with components, effects)</span>
+          </div>
+
+          <!-- Inventory -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Inventory System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Drag-and-drop, context menus, item stacking, ground items, 10 equipment slots, backpack grid.
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Container System (backpacks, pouches, nested inventory)</span>
+          </div>
+
+          <!-- Equipment -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Equipment System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              10 gear slots with validation, stat effects from worn items, equip/unequip with backend authority.
+            </div>
+          </div>
+
+          <!-- Locations & NPCs -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Location System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              9 cities, 9 environments, districts, and buildings.
+            </div>
+          </div>
+
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">NPC System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              22 NPCs across 6 cities with daily schedules and time-aware dialogue.
+            </div>
+          </div>
+
+          <!-- Shop & Vault -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Shop/Merchant System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Buy/sell with charisma price scaling, merchant gold and inventory tracking, restocking.
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Vault Storage (per-city secure storage)</span>
+          </div>
+
+          <!-- Time & Effects -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Time & Tick System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              24-hour day/night cycle with tick-based game loop.
+            </div>
+          </div>
+
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Effects System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Data-driven with 27+ effects. Buffs, debuffs, status conditions, worn item effects. Fully managed via CODEX.
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Hunger & Fatigue (accumulation over time, consequences, food/rest mechanics)</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
-            <span>Container System (Backpack, Pouches with nested inventory)</span>
+            <span>Encumbrance/Weight System (weight tracking, overweight/encumbered effects)</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
-            <span>Basic Hunger & Fatigue Mechanics</span>
+            <span>Music System (location-based tracks, in-game player)</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
-            <span>Time System (24-hour format with day/night tracking)</span>
+            <span>Abilities/Spells Stubs (UI framework for spell and martial class abilities)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Delta Architecture (surgical DOM updates, backend-authoritative state)</span>
+          </div>
+
+          <!-- Tooling -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">CODEX Tool Suite</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Item editor, starting gear editor, systems/effects editor, validation, and database migration.
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>CI/CD Pipeline (GitHub Actions, auto-deploy test server)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>ES6 Module System (Vite build, modern JS architecture)</span>
           </div>
         </div>
       </div>
 
-      <!-- Current Focus - Early Alpha -->
+      <!-- Current Focus - Road to Alpha -->
       <div class="mb-8">
         <h3 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: rgb(251, 146, 60);">
-          <span>🔥</span> Current Focus (Early Alpha)
+          <span>🔥</span> Current Focus: Road to Alpha
         </h3>
-        <div class="space-y-2 win95-inset p-4 rounded-lg">
-          <div class="flex items-center gap-2">
-            <span class="text-orange-500">⟳</span>
-            <span><strong>Inventory Systems</strong> - Complex drag-drop, stacking, containers, ground items</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-orange-500">⟳</span>
-            <span>Stats Tab - Active development, weight/fatigue/hunger display</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-orange-500">⟳</span>
-            <span>Spells Tab - Designed but not implemented, doesn't work in-game yet</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-orange-500">⟳</span>
-            <span>Music System - Only works in intro, needs location integration</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-orange-500">⟳</span>
-            <span>Time Passage, Fatigue, Hunger - Refinement and proper integration</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Next Up - Complete Alpha -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--color-textHighlighted);">
-          <span>🎯</span> Next Up (Complete Alpha)
-        </h3>
+        <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
+          The last remaining systems before alpha release:
+        </p>
         <div class="space-y-3 win95-inset p-4 rounded-lg">
           <div>
-            <div class="font-bold mb-1" style="color: var(--color-textHighlighted);">Phase 1: Finish Inventory</div>
-            <div class="text-sm pl-4" style="color: var(--color-textMuted);">Complete all inventory functionality, fix bugs, polish interactions</div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-orange-500">⟳</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Environmental Traversal</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Connect all locations so players can travel the world</div>
           </div>
           <div>
-            <div class="font-bold mb-1" style="color: var(--color-textHighlighted);">Phase 2: NPCs & Trading</div>
-            <div class="text-sm pl-4" style="color: var(--color-textMuted);">Implement NPC system, vault storage, trading mechanics</div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-orange-500">⟳</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Points of Interest</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Discoverable landmarks, dungeons, wilderness encounters</div>
           </div>
           <div>
-            <div class="font-bold mb-1" style="color: var(--color-textHighlighted);">Phase 3: Locations & Cities</div>
-            <div class="text-sm pl-4" style="color: var(--color-textMuted);">Make location/city systems work with NPCs offering basic utilities</div>
-          </div>
-          <div>
-            <div class="font-bold mb-1" style="color: var(--color-textHighlighted);">Phase 4: Travel System</div>
-            <div class="text-sm pl-4" style="color: var(--color-textMuted);">Implement environment traversal and movement between locations</div>
-          </div>
-          <div>
-            <div class="font-bold mb-1" style="color: var(--color-textHighlighted);">Phase 5: Combat System</div>
-            <div class="text-sm pl-4" style="color: var(--color-textMuted);">Full combat implementation (large system)</div>
-          </div>
-          <div>
-            <div class="font-bold mb-1" style="color: var(--color-textHighlighted);">Phase 6: All Tabs Working</div>
-            <div class="text-sm pl-4" style="color: var(--color-textMuted);">Complete all UI tabs with full functionality</div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-orange-500">⟳</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Combat System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Turn-based combat encounters with D&D mechanics</div>
           </div>
         </div>
       </div>
 
       <!-- Alpha to Beta -->
       <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--color-textMuted);">
-          <span>🔧</span> Post-Alpha (Before Beta)
+        <h3 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--color-textHighlighted);">
+          <span>🎯</span> Alpha to Beta
         </h3>
+        <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
+          Once traversal, combat, and points of interest are in, it's alpha. Road to beta:
+        </p>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Alpha Bug Squashing & Refinement</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Major bug cleanup and optimization</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Development Tools Refinement (Item Editor, etc.) for public contribution</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>UI polish, theming, redesign</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Build & Permissions System (Test, Modded, Real Servers)</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Game interaction hydration (more NPC dialogue, meaningful interactions)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Versioning Info & Auto Deployment</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>More content: music, art, sound effects, UI effects</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Dungeon Master npub Announcements (with build system)</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>CODEX expanded to cover all game data facets</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Contribution System Documentation & Tooling</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Content polish (improving existing content, no expansion)</span>
           </div>
         </div>
       </div>
@@ -174,83 +255,65 @@
         <h3 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--color-textMuted);">
           <span>🌐</span> Beta Phase (Nostr Integration)
         </h3>
+        <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
+          Beta begins when saves move to Nostr relays. No more local saves.
+        </p>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Nostr Relay Integration - Save files on relays</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Nostr Relay Integration (save files as Nostr events)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>World Design & Content Expansion</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Quest System design and implementation</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Quest System Design & Implementation</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Save file optimization (must be small for relay storage)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Quest Story Arcs</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Save structure finalized (no breaking changes after this)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Community Wiki (Nostr Auth)</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Additional Nostr integrations (badges, in-game notes, long-form articles)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>In-Game Nostr Integration (Notes, Long-Form)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Achievement Badges (NIP-58)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Additional Nostr Integrations</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Community Wiki</span>
           </div>
         </div>
         <div class="mt-2 text-sm" style="color: var(--color-textMuted);">
-          <em>Note: Game remains in Beta until extensive Nostr integrations are complete</em>
+          <em>Note: No character wipes during beta (only on full release)</em>
         </div>
       </div>
 
       <!-- Future Features -->
       <div class="mb-8">
         <h3 class="text-2xl font-bold mb-4 flex items-center gap-2" style="color: var(--color-textMuted);">
-          <span>🚀</span> Future Features (Post-Beta / Multiplayer)
+          <span>🚀</span> Future (Post-Beta)
         </h3>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
             <span>Cross-Client Play</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Party System (Multiplayer Groups)</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Multiplayer (party system, trading, PvP)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Player-to-Player Trading</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>PVP Combat</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
+            <span style="color: var(--color-textMuted);">&#9744;</span>
             <span>Leaderboards & Rankings</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">☐</span>
-            <span>Advanced Multiplayer Features</span>
           </div>
         </div>
       </div>
 
       <div class="win95-inset p-4 rounded-lg">
         <p class="text-sm" style="color: var(--color-textMuted);">
-          <strong>Current Phase:</strong> Early Alpha - Heavy Inventory Development<br>
-          <strong>Next Milestone:</strong> Alpha Build (All core gameplay, travel, combat, NPCs, trading working)<br>
-          <strong>Alpha Criteria:</strong> All tabs functional, all locations working, time/fatigue/hunger systems complete<br>
+          <strong>Current Phase:</strong> Pre-Alpha - Road to Alpha<br>
+          <strong>Next Milestone:</strong> Alpha release (environmental traversal + combat + points of interest)<br>
           <strong>Contributions Welcome!</strong> See the Contribute tab to help build Pubkey Quest.
         </p>
       </div>
