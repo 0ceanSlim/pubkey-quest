@@ -1,0 +1,234 @@
+[
+    {
+        "name": "Actor",
+        "prerequisite": null,
+        "effects": [
+            "+1 CHA",
+            "Advantage on Influence checks involving deception or performance"
+        ],
+        "skill_synergy": [
+            "Influence"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Alert",
+        "prerequisite": null,
+        "effects": [
+            "+5 initiative",
+            "Cannot be surprised",
+            "Hidden attackers do not gain advantage against you"
+        ],
+        "skill_synergy": [
+            "Perception",
+            "Resolve"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Athlete",
+        "prerequisite": null,
+        "effects": [
+            "+1 STR or DEX",
+            "Improved stand, climb, and jump mobility (mechanic TBD)"
+        ],
+        "skill_synergy": [
+            "Athletics"
+        ],
+        "notes": "Workshop stand and climb jump quicker"
+    },
+    {
+        "name": "Charger",
+        "prerequisite": null,
+        "effects": [
+            "Dash into melee for bonus attack with +5 if moved 10 ft prior"
+        ],
+        "skill_synergy": [
+            "Athletics"
+        ],
+        "notes": "Don\u2019t know combat yet."
+    },
+    {
+        "name": "Dungeon Delver",
+        "prerequisite": null,
+        "effects": [
+            "Advantage on trap detection",
+            "Advantage on saves vs traps",
+            "Search for traps at normal pace"
+        ],
+        "skill_synergy": [
+            "Perception",
+            "Thieving"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Durable",
+        "prerequisite": null,
+        "effects": [
+            "+1 CON",
+            "Minimum healing per Hit Die equals 2x CON modifier"
+        ],
+        "skill_synergy": [
+            "Resolve"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Elemental Adept",
+        "prerequisite": "Ability to cast at least one spell",
+        "effects": [
+            "Ignore resistance to chosen damage type",
+            "Treat 1 damage rolls as 2"
+        ],
+        "skill_synergy": [],
+        "notes": null
+    },
+    {
+        "name": "Healer",
+        "prerequisite": null,
+        "effects": [
+            "Stabilize creature to 1 HP",
+            "Restore 1d6+4+Hit Dice HP"
+        ],
+        "skill_synergy": [
+            "Medicine"
+        ],
+        "notes": "Don\u2019t know if this will apply\u2026 maybe could use on self or others when multiplayer hits"
+    },
+    {
+        "name": "Inspiring Leader",
+        "prerequisite": "CHA 13+",
+        "effects": [
+            "Grant temporary HP to allies equal to level + CHA modifier"
+        ],
+        "skill_synergy": [
+            "Influence"
+        ],
+        "notes": "Workshop to maybe get better buy/sell prices or +CHR when buying selling"
+    },
+    {
+        "name": "Keen Mind",
+        "prerequisite": null,
+        "effects": [
+            "+1 INT",
+            "Perfect orientation and memory recall"
+        ],
+        "skill_synergy": [
+            "Perception"
+        ],
+        "notes": "Prob just +1 INT"
+    },
+    {
+        "name": "Lucky",
+        "prerequisite": null,
+        "effects": [
+            "Reroll one d20 (3/long rest)",
+            "Force attacker reroll (3/long rest)"
+        ],
+        "skill_synergy": [],
+        "notes": null
+    },
+    {
+        "name": "Mage Slayer",
+        "prerequisite": null,
+        "effects": [
+            "Reaction melee attack vs spellcaster",
+            "Advantage on saves vs nearby spells"
+        ],
+        "skill_synergy": [
+            "Resolve"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Magic Initiate",
+        "prerequisite": null,
+        "effects": [
+            "Learn two cantrips and one 1st-level spell"
+        ],
+        "skill_synergy": [],
+        "notes": null
+    },
+    {
+        "name": "Mobile",
+        "prerequisite": null,
+        "effects": [
+            "+10 ft movement",
+            "Dash ignores difficult terrain",
+            "No opportunity attacks after melee strike"
+        ],
+        "skill_synergy": [
+            "Athletics",
+            "Thieving"
+        ],
+        "notes": "Probably implementable but combat TBD."
+    },
+    {
+        "name": "Observant",
+        "prerequisite": null,
+        "effects": [
+            "+1 INT or WIS",
+            "+5 passive Perception",
+            "Read lips"
+        ],
+        "skill_synergy": [
+            "Perception"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Resilient",
+        "prerequisite": null,
+        "effects": [
+            "+1 to one ability score",
+            "Gain proficiency in saving throws for that ability"
+        ],
+        "skill_synergy": [
+            "Resolve"
+        ],
+        "notes": null
+    },
+    {
+        "name": "Skilled",
+        "prerequisite": null,
+        "effects": [
+            "Gain proficiency with three skills or tools"
+        ],
+        "skill_synergy": [
+            "Any"
+        ],
+        "notes": "Skills have rough draft, tools TBD."
+    },
+    {
+        "name": "Tough",
+        "prerequisite": null,
+        "effects": [
+            "HP increases by 2 per level"
+        ],
+        "skill_synergy": [
+            "Resolve"
+        ],
+        "notes": null
+    },
+    {
+        "name": "War Caster",
+        "prerequisite": "Ability to cast at least one spell",
+        "effects": [
+            "Advantage on concentration checks",
+            "Cast certain spells as reaction"
+        ],
+        "skill_synergy": [
+            "Resolve"
+        ],
+        "notes": null
+    }
+]
+
+| Feat                    | Prerequisite                  | Effects                                                                           | Skill Synergy       | Notes                                          |
+| ----------------------- | ----------------------------- | --------------------------------------------------------------------------------- | ------------------- | ---------------------------------------------- |
+| **Lightly Armored**     | None                          | +1 STR or DEX, gain proficiency with light armor                                  | Athletics, Thieving | Helps non-heavy users get protection           |
+| **Moderately Armored**  | Proficiency with light armor  | +1 STR or DEX, gain proficiency with medium armor and shields                     | Athletics, Thieving | Upgrade progression from light to medium armor |
+| **Heavily Armored**     | Proficiency with medium armor | +1 STR, gain proficiency with heavy armor                                         | Athletics           | High protection for melee-focused characters   |
+| **Medium Armor Master** | Proficiency with medium armor | No Stealth disadvantage in medium armor, max Dex bonus +3                         | Thieving, Athletics | Reduces penalties for medium armor users       |
+| **Heavy Armor Master**  | Proficiency with heavy armor  | +1 STR, reduce bludgeoning/piercing/slashing damage by 3 when wearing heavy armor | Athletics, Resolve  | Tanky builds, reduces incoming damage          |
