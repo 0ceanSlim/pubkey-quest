@@ -175,64 +175,6 @@ class GameAPI {
         });
     }
 
-    /**
-     * Use a consumable item
-     * @param {string} itemId - Item ID
-     * @param {number} slot - Inventory slot (-1 for equipment)
-     */
-    async useItem(itemId, slot = -1) {
-        return await this.sendAction('use_item', {
-            item_id: itemId,
-            slot: slot
-        });
-    }
-
-    /**
-     * Equip an item
-     * @param {string} itemId - Item ID
-     * @param {string} equipmentSlot - Equipment slot name
-     * @param {number} fromSlot - Source inventory slot
-     */
-    async equipItem(itemId, equipmentSlot, fromSlot = -1) {
-        return await this.sendAction('equip_item', {
-            item_id: itemId,
-            equipment_slot: equipmentSlot,
-            from_slot: fromSlot
-        });
-    }
-
-    /**
-     * Unequip an item
-     * @param {string} equipmentSlot - Equipment slot name
-     */
-    async unequipItem(equipmentSlot) {
-        return await this.sendAction('unequip_item', {
-            equipment_slot: equipmentSlot
-        });
-    }
-
-    /**
-     * Drop an item
-     * @param {string} itemId - Item ID
-     * @param {number} slot - Inventory slot
-     */
-    async dropItem(itemId, slot = -1) {
-        return await this.sendAction('drop_item', {
-            item_id: itemId,
-            slot: slot
-        });
-    }
-
-    /**
-     * Pick up an item from ground
-     * @param {string} itemId - Item ID
-     */
-    async pickupItem(itemId) {
-        return await this.sendAction('pickup_item', {
-            item_id: itemId
-        });
-    }
-
 }
 
 // Export singleton instance

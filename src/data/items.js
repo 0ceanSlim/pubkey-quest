@@ -76,24 +76,6 @@ export async function getItemById(itemId) {
 }
 
 /**
- * Clear the items cache (useful for forcing a reload)
- */
-export function clearItemsCache() {
-    itemsDatabaseCache = null;
-    logger.debug('Items cache cleared');
-}
-
-/**
- * Convert item name to image filename
- * @param {string} itemName - The item name
- * @returns {string} Image filename (lowercase, no special chars, hyphens for spaces)
- * @example getItemImageName("Leather Armor") returns "leather-armor"
- */
-export function getItemImageName(itemName) {
-    return itemName.toLowerCase().replace(/[',]/g, "").replace(/\s+/g, "-");
-}
-
-/**
  * Get formatted HTML stats for an item
  * @param {string} itemName - The item name to fetch stats for
  * @returns {Promise<string>} HTML string with formatted item stats

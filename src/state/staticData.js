@@ -78,38 +78,6 @@ export function getLocationById(locationId) {
 }
 
 /**
- * Get monster by ID from cached data
- * @param {string} monsterId - Monster ID to look up
- * @returns {Object|undefined} Monster object or undefined if not found
- */
-export function getMonsterById(monsterId) {
-    const element = document.getElementById('all-monsters');
-    if (!element) {
-        logger.warn('all-monsters element not found in DOM');
-        return undefined;
-    }
-
-    const allMonsters = JSON.parse(element.textContent || '[]');
-    return allMonsters.find(monster => monster.id === monsterId);
-}
-
-/**
- * Get equipment pack by ID from cached data
- * @param {string} packId - Pack ID to look up
- * @returns {Object|undefined} Pack object or undefined if not found
- */
-export function getPackById(packId) {
-    const element = document.getElementById('all-packs');
-    if (!element) {
-        logger.warn('all-packs element not found in DOM');
-        return undefined;
-    }
-
-    const allPacks = JSON.parse(element.textContent || '[]');
-    return allPacks.find(pack => pack.id === packId);
-}
-
-/**
  * Get NPC by ID from cached data
  * @param {string} npcId - NPC ID to look up
  * @returns {Object|undefined} NPC object or undefined if not found

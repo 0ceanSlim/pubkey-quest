@@ -1362,7 +1362,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 // Export module state and functions
 export {
   startIntroSequence,
-  showEquipmentSelection,
   startAdventure
 };
 

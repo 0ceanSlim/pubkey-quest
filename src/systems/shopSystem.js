@@ -11,7 +11,6 @@ import { gameAPI } from '../lib/api.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { showMessage } from '../ui/messaging.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
-import { sessionManager } from '../lib/session.js';
 import { getItemById } from '../state/staticData.js';
 
 // Module state
@@ -20,8 +19,7 @@ let currentShopData = null;
 let currentTab = 'buy';
 let shopIsOpen = false;
 
-// Staging state
-let buyStaging = [];   // {itemID, quantity, price, name}
+// Sell staging state
 let sellStaging = [];  // {itemID, quantity, value, slotIndex, slotType}
 
 /**
@@ -85,7 +83,6 @@ export async function closeShop() {
     shopIsOpen = false;
     currentTab = 'buy';
     // Clear staging when closing
-    buyStaging = [];
     sellStaging = [];
 }
 
@@ -289,58 +286,39 @@ export function switchShopTab(tab) {
 function getPlayerGold(state) {
     let totalGold = 0;
 
-    // Debug: Log the entire state to see structure
-    console.log('🪙 DEBUG getPlayerGold - Full state:', state);
-
-    // State structure is: state.inventory = array (general slots), state.equipment = object (gear slots)
     const generalSlots = Array.isArray(state.inventory) ? state.inventory : [];
     const equipment = state.equipment || {};
 
-    console.log('🪙 DEBUG General slots (state.inventory):', generalSlots);
-    console.log('🪙 DEBUG Equipment (state.equipment):', equipment);
-
-    // Check general slots (state.inventory is the array directly)
+    // Check general slots
     for (const slot of generalSlots) {
-        console.log('🪙 Checking general slot:', slot);
         if (slot && slot.item === 'gold-piece' && slot.quantity) {
-            const amount = parseInt(slot.quantity) || 0;
-            console.log('🪙 Found gold in general slot:', amount);
-            totalGold += amount;
+            totalGold += parseInt(slot.quantity) || 0;
         }
     }
 
     // Check equipment/bag
     if (equipment.bag && equipment.bag.contents) {
         const contents = Array.isArray(equipment.bag.contents) ? equipment.bag.contents : [];
-        console.log('🪙 DEBUG Bag contents:', contents);
         for (const slot of contents) {
-            console.log('🪙 Checking bag slot:', slot);
             if (slot && slot.item === 'gold-piece' && slot.quantity) {
-                const amount = parseInt(slot.quantity) || 0;
-                console.log('🪙 Found gold in bag:', amount);
-                totalGold += amount;
+                totalGold += parseInt(slot.quantity) || 0;
             }
         }
     }
 
     // Check if gold is the bag item itself
     if (equipment.bag && equipment.bag.item === 'gold-piece' && equipment.bag.quantity) {
-        const amount = parseInt(equipment.bag.quantity) || 0;
-        console.log('🪙 Found gold as bag item:', amount);
-        totalGold += amount;
+        totalGold += parseInt(equipment.bag.quantity) || 0;
     }
 
     // Check all equipment slots in case gold is in one
     for (const slotName in equipment) {
         const slot = equipment[slotName];
         if (slot && typeof slot === 'object' && slot.item === 'gold-piece' && slot.quantity) {
-            const amount = parseInt(slot.quantity) || 0;
-            console.log('🪙 Found gold in equipment slot', slotName, ':', amount);
-            totalGold += amount;
+            totalGold += parseInt(slot.quantity) || 0;
         }
     }
 
-    console.log('🪙 FINAL Total gold calculated:', totalGold);
     return totalGold;
 }
 
@@ -504,8 +482,6 @@ function handleContextMenuClose() {
  * Buy item immediately (no staging)
  */
 async function buyItemNow(itemID, name, quantity, price, maxStock) {
-    console.log('💰 buyItemNow called:', { itemID, name, quantity, price, maxStock });
-
     // Validate stock
     if (quantity > maxStock) {
         showMessage('Not enough stock', 'error');
@@ -526,11 +502,9 @@ async function buyItemNow(itemID, name, quantity, price, maxStock) {
     const npub = gameAPI.npub;
     const saveID = gameAPI.saveID;
 
-    console.log('💰 Session info from gameAPI:', { npub, saveID });
-
     if (!npub || !saveID) {
         showMessage('Session error', 'error');
-        console.error('❌ GameAPI not initialized properly:', { npub, saveID });
+        logger.error('GameAPI not initialized properly:', { npub, saveID });
         return;
     }
 
@@ -549,7 +523,6 @@ async function buyItemNow(itemID, name, quantity, price, maxStock) {
         });
 
         const result = await response.json();
-        console.log('💰 Buy response:', result);
 
         if (!response.ok || !result.success) {
             showMessage(result.error || result.message || 'Purchase failed', 'error');
@@ -564,160 +537,8 @@ async function buyItemNow(itemID, name, quantity, price, maxStock) {
         updateAllDisplays();
     } catch (error) {
         logger.error('Buy transaction error:', error);
-        console.error('❌ Buy error:', error);
         showMessage('Failed to purchase items', 'error');
     }
-}
-
-/**
- * Render buy staging area
- */
-function renderBuyStaging() {
-    const container = document.getElementById('buy-staged-items');
-    container.innerHTML = '';
-
-    let totalCost = 0;
-    buyStaging.forEach((item, index) => {
-        totalCost += item.price * item.quantity;
-
-        // Create staged item badge
-        const badge = document.createElement('div');
-        badge.className = 'relative';
-        badge.style.cssText = `
-            width: 36px;
-            height: 36px;
-            background: #1a1a1a;
-            border: 1px solid #4a4a4a;
-        `;
-
-        const img = document.createElement('img');
-        img.src = `/res/img/items/${item.itemID}.png`;
-        img.className = 'w-full h-full object-contain';
-        img.style.imageRendering = 'pixelated';
-        img.onerror = function() {
-            if (!this.dataset.fallbackAttempted) {
-                this.dataset.fallbackAttempted = 'true';
-                this.src = '/res/img/items/unknown.png';
-            }
-        };
-        badge.appendChild(img);
-
-        // Quantity
-        const qty = document.createElement('div');
-        qty.className = 'absolute bottom-0 right-0 text-white font-bold';
-        qty.style.cssText = 'font-size: 8px; text-shadow: 1px 1px 2px #000;';
-        qty.textContent = item.quantity;
-        badge.appendChild(qty);
-
-        // Remove button
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'absolute -top-1 -right-1 text-white';
-        removeBtn.style.cssText = `
-            width: 14px;
-            height: 14px;
-            background: #dc2626;
-            font-size: 10px;
-            line-height: 1;
-        `;
-        removeBtn.textContent = '✕';
-        removeBtn.onclick = () => removeStagedBuy(index);
-        badge.appendChild(removeBtn);
-
-        container.appendChild(badge);
-    });
-
-    document.getElementById('buy-total-cost').textContent = totalCost;
-}
-
-/**
- * Show staging area
- */
-function showStagingArea(type) {
-    const buyStaging = document.getElementById('buy-staging');
-    const sellStaging = document.getElementById('sell-staging');
-
-    console.log('🛒 showStagingArea called for type:', type);
-    console.log('🛒 Staging elements:', { buyStaging, sellStaging });
-
-    if (type === 'buy') {
-        buyStaging.classList.remove('hidden');
-        console.log('🛒 Buy staging shown');
-    } else {
-        sellStaging.classList.remove('hidden');
-        console.log('🛒 Sell staging shown');
-    }
-}
-
-/**
- * Remove staged buy item
- */
-function removeStagedBuy(index) {
-    buyStaging.splice(index, 1);
-    renderBuyStaging();
-    if (buyStaging.length === 0) {
-        document.getElementById('buy-staging').classList.add('hidden');
-    }
-}
-
-/**
- * Clear buy staging
- */
-function clearBuyStaging() {
-    buyStaging = [];
-    document.getElementById('buy-staging').classList.add('hidden');
-}
-
-/**
- * Confirm buy transaction
- */
-async function confirmBuyTransaction() {
-    if (buyStaging.length === 0) return;
-
-    const state = getGameStateSync();
-    const saveID = state.save_id || state.character?.save_id;
-    const npub = sessionStorage.getItem('npub');
-
-    if (!saveID || !npub) {
-        showMessage('Session error', 'error');
-        return;
-    }
-
-    // Process each staged item
-    for (const item of buyStaging) {
-        try {
-            const response = await fetch('/api/shop/buy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    npub: npub,
-                    save_id: saveID,
-                    merchant_id: currentMerchantID,
-                    item_id: item.itemID,
-                    quantity: item.quantity,
-                    action: 'buy'
-                })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                showMessage(result.error || result.message || 'Purchase failed', 'error');
-                break;  // Stop on first error
-            }
-        } catch (error) {
-            logger.error('Buy transaction error:', error);
-            showMessage('Failed to purchase items', 'error');
-            break;
-        }
-    }
-
-    // Clear staging and refresh
-    buyStaging = [];
-    clearBuyStaging();
-    await refreshGameState();
-    await openShop(currentMerchantID);  // Refresh shop data
-    updateAllDisplays();
-    showMessage('Purchase complete!', 'success');
 }
 
 /**
@@ -753,13 +574,9 @@ function renderSellTab() {
  * Add item to sell staging
  */
 function addToSellStaging(itemID, name, quantity, value, slotIndex, slotType) {
-    console.log('🛒 addToSellStaging called:', { itemID, name, quantity, value, slotIndex, slotType });
-
     // Validate merchant has gold
     const totalValue = value * quantity;
     const merchantGold = currentShopData.current_gold || currentShopData.starting_gold || 0;
-
-    console.log('🛒 Merchant gold check:', merchantGold, 'vs needed:', totalValue);
 
     if (merchantGold < totalValue) {
         showMessage("Merchant doesn't have enough gold", 'error');
@@ -767,7 +584,6 @@ function addToSellStaging(itemID, name, quantity, value, slotIndex, slotType) {
     }
 
     sellStaging.push({ itemID, name, quantity, value, slotIndex, slotType });
-    console.log('🛒 Sell staging now has', sellStaging.length, 'items');
     renderSellStaging();
     // Note: sell-staging div is always visible now, no need to show/hide
 }
@@ -781,7 +597,6 @@ function renderSellStaging() {
 
     let totalValue = 0;
     sellStaging.forEach((item, index) => {
-        console.log('🛒 Staging item:', item);
         totalValue += item.value * item.quantity;
 
         // Create staged item badge (same as buy staging)
@@ -830,7 +645,6 @@ function renderSellStaging() {
         container.appendChild(badge);
     });
 
-    console.log('🛒 Total sell value:', totalValue);
     document.getElementById('sell-total-value').textContent = totalValue;
 }
 
@@ -997,7 +811,6 @@ export async function addItemToSell(itemId, slotIndex, slotType) {
 
     // Get item data
     const itemData = getItemById(itemId);
-    console.log('🔍 getItemById result:', itemData);
 
     if (!itemData) {
         logger.warn('Item not found:', itemId);
@@ -1022,8 +835,6 @@ export async function addItemToSell(itemId, slotIndex, slotType) {
         return;
     }
 
-    console.log('📦 Inventory slot:', inventorySlot);
-
     // Calculate sell value (what merchant pays player)
     // Price can be in itemData.price OR itemData.properties.price
     const basePrice = itemData.price || itemData.properties?.price || 0;
@@ -1046,19 +857,6 @@ export async function addItemToSell(itemId, slotIndex, slotType) {
     const charismaBonus = (playerCharisma - 10) * charismaRate;
     const finalMultiplier = baseMultiplier + charismaBonus;
     const sellValue = Math.floor(basePrice * finalMultiplier);
-
-    console.log('💰 Price calculation:', {
-        itemId,
-        itemName: itemData.name,
-        basePrice: basePrice,
-        playerCharisma: playerCharisma,
-        shopType: shopType,
-        baseMultiplier: baseMultiplier,
-        charismaRate: charismaRate,
-        charismaBonus: charismaBonus,
-        finalMultiplier: finalMultiplier,
-        sellValue: sellValue
-    });
 
     // Validate merchant has gold
     const merchantGold = currentShopData.current_gold || currentShopData.starting_gold || 0;
@@ -1098,7 +896,5 @@ export async function addItemToSell(itemId, slotIndex, slotType) {
 window.openShop = openShop;
 window.closeShop = closeShop;
 window.switchShopTab = switchShopTab;
-window.confirmBuyTransaction = confirmBuyTransaction;
-window.clearBuyStaging = clearBuyStaging;
 window.confirmSellTransaction = confirmSellTransaction;
 window.clearSellStaging = clearSellStaging;

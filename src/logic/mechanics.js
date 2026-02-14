@@ -10,7 +10,7 @@
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
-import { getLocationById, getItemById } from '../state/staticData.js';
+import { getLocationById } from '../state/staticData.js';
 import { showMessage } from '../ui/messaging.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
 
@@ -152,38 +152,6 @@ export function showTravelDisabledPopup(locationId, showMessage) {
             backdrop.remove();
         }
     };
-}
-
-/**
- * Use a consumable item
- * @param {string} itemId - Item ID to use
- * @param {number} slot - Inventory slot (-1 for equipment)
- * @param {Function} showMessage - UI message callback
- */
-export async function useItem(itemId, slot, showMessage) {
-    logger.info('Using item:', itemId, 'from slot:', slot);
-
-    // Check if Game API is initialized
-    if (!gameAPI.initialized) {
-        logger.error('Game API not initialized');
-        showMessage('Game not initialized', 'error');
-        return;
-    }
-
-    try {
-        // Send use item action to Go backend (handles all effects)
-        await gameAPI.useItem(itemId, slot);
-
-        // Refresh UI from Go memory
-        await refreshGameState();
-
-        const itemData = getItemById(itemId);
-        showMessage(`Used ${itemData?.name || itemId}!`, 'info');
-
-    } catch (error) {
-        logger.error('Failed to use item:', error);
-        showMessage('Failed to use item: ' + error.message, 'error');
-    }
 }
 
 logger.debug('Game mechanics module loaded');

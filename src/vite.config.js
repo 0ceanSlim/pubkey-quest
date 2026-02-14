@@ -6,14 +6,26 @@ import tailwindcss from '@tailwindcss/vite';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
 
+// Suppress Vite CSS warnings for font URLs that resolve at runtime (served by Go)
+const suppressFontWarnings = () => ({
+  name: 'suppress-font-warnings',
+  config() {
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes("didn't resolve at build time")) return;
+      originalWarn.apply(console, args);
+    };
+  }
+});
+
 export default defineConfig({
-  plugins: [tailwindcss()],
+  plugins: [suppressFontWarnings(), tailwindcss()],
 
   // Root directory for source files (project root)
   root: rootDir,
 
-  // Public directory for static assets
-  publicDir: resolve(rootDir, 'www/res'),
+  // Public directory disabled - Go server handles all static file serving
+  publicDir: false,
 
   // Build configuration
   build: {
@@ -31,6 +43,13 @@ export default defineConfig({
 
     // Multiple entry points
     rollupOptions: {
+      // Suppress warnings for modules that are both statically and dynamically imported
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+        if (warning.message?.includes('is dynamically imported by') &&
+            warning.message?.includes('but also statically imported by')) return;
+        warn(warning);
+      },
       input: {
         // JavaScript entries (first one will import CSS)
         index: resolve(rootDir, 'src/entries/index.js'),

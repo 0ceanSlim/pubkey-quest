@@ -72,16 +72,6 @@ export async function getClassResource(className) {
 }
 
 /**
- * Check if a class uses mana (is a caster)
- * @param {string} className - The character's class
- * @returns {Promise<boolean>} True if class uses mana
- */
-export async function isCasterClass(className) {
-    const config = await getClassResource(className);
-    return config.type === 'mana';
-}
-
-/**
  * Calculate max resource for a class based on character stats
  * @param {Object} config - Resource config from getClassResource
  * @param {Object} character - Character data with stats, level, etc.

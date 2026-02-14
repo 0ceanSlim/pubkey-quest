@@ -47,21 +47,4 @@ export async function saveGameToLocal(showMessage) {
     }
 }
 
-/**
- * Initialize save system hotkeys
- * Binds Ctrl+S to trigger save
- * @param {Function} showMessage - UI message callback (optional)
- */
-export function initializeSaveHotkeys(showMessage) {
-    // Quick save hotkey (Ctrl+S)
-    document.addEventListener('keydown', (event) => {
-        if (event.ctrlKey && event.key === 's') {
-            event.preventDefault();
-            saveGameToLocal(showMessage || window.showMessage);
-        }
-    });
-
-    logger.debug('Save hotkeys initialized (Ctrl+S)');
-}
-
 logger.debug('Save system module loaded');

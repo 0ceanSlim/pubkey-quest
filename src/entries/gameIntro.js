@@ -20,7 +20,6 @@ window.getDisplayNamesForLocation = getDisplayNamesForLocation;
 
 // Export intro functions globally
 window.startIntroSequence = gameIntro.startIntroSequence;
-window.showEquipmentSelection = gameIntro.showEquipmentSelection;
 window.startAdventure = gameIntro.startAdventure;
 
 logger.info('🎬 Game intro bundle loaded');

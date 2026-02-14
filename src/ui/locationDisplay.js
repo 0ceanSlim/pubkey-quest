@@ -374,21 +374,6 @@ export async function displayCurrentLocation() {
 }
 
 /**
- * Create an action button with custom styling
- * @param {string} text - Button text
- * @param {Function} onClick - Click handler
- * @param {string} classes - CSS classes for styling
- * @returns {HTMLButtonElement} Button element
- */
-export function createActionButton(text, onClick, classes = 'bg-gray-600 hover:bg-gray-700') {
-    const button = document.createElement('button');
-    button.className = `${classes} text-white px-4 py-2 rounded text-sm font-medium transition-colors`;
-    button.textContent = text;
-    button.addEventListener('click', onClick);
-    return button;
-}
-
-/**
  * Create a location button with consistent styling
  * @param {string} text - Button text
  * @param {Function} onClick - Click handler

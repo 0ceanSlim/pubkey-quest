@@ -1409,14 +1409,6 @@ function hideItemTooltip() {
 }
 
 /**
- * Get save ID from URL or session
- */
-export function getSaveId() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('save');
-}
-
-/**
  * Store item from inventory into vault (when vault is open)
  * Uses surgical updates to avoid rebuilding the scene
  */

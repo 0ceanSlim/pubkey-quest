@@ -608,11 +608,9 @@ async function startAdventure() {
             const result = await response.json();
             showMessage('✅ Adventure begins!', 'success');
 
-            // DEBUG: Comment out redirect to see console logs
-            // setTimeout(() => {
-            //   window.location.href = '/game?save=' + result.id;
-            // }, 1500);
-            logger.info('Save created successfully, redirect disabled for debugging');
+            setTimeout(() => {
+              window.location.href = '/game?save=' + result.id;
+            }, 1500);
         } else {
             throw new Error('Failed to create save file');
         }
