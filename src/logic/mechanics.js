@@ -29,9 +29,9 @@ export async function moveToLocation(locationId) {
         return;
     }
 
-    // Check if this is an environment (outside city) - block it
+    // Check if this is an environment - start travel
     if (locationData.location_type === 'environment') {
-        showTravelDisabledPopup(locationId, showMessage);
+        showTravelConfirmation(locationId, locationData);
         return;
     }
 
@@ -89,69 +89,110 @@ export function parseCityAndDistrict(locationId) {
 }
 
 /**
- * Show popup when trying to travel to disabled location
- * NOTE: This function creates DOM elements and should probably be in the UI layer
- * @param {string} locationId - Location ID
- * @param {Function} showMessage - UI message callback (optional)
+ * Show travel confirmation popup
+ * @param {string} environmentId - Environment location ID
+ * @param {Object} environmentData - Environment location data
  */
-export function showTravelDisabledPopup(locationId, showMessage) {
-    const locationData = getLocationById(locationId);
-    const locationName = locationData ? locationData.name : locationId;
+export function showTravelConfirmation(environmentId, environmentData) {
+    const envName = environmentData.name || environmentId;
+
+    // Get travel time from properties
+    const travelTime = environmentData.properties?.travel_time || 1440;
+    const days = Math.floor(travelTime / 1440);
+    const hours = Math.floor((travelTime % 1440) / 60);
+    let timeEstimate = '';
+    if (days > 0 && hours > 0) {
+        timeEstimate = `~${days} day${days > 1 ? 's' : ''} ${hours} hour${hours > 1 ? 's' : ''}`;
+    } else if (days > 0) {
+        timeEstimate = `~${days} day${days > 1 ? 's' : ''}`;
+    } else {
+        timeEstimate = `~${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+
+    const difficulty = environmentData.properties?.travel_difficulty || 'unknown';
+
+    // Determine destination city from connects[] and current location
+    const state = getGameStateSync();
+    const currentDistrict = `${state.location.current}-${state.location.district}`;
+    const connects = environmentData.properties?.connects || environmentData.connections || [];
+    const destConnectId = connects.find(c => c !== currentDistrict) || 'unknown';
+    const destCityId = destConnectId.includes('-') ? destConnectId.substring(0, destConnectId.lastIndexOf('-')) : destConnectId;
+    const destLocation = getLocationById(destCityId);
+    const destName = destLocation ? destLocation.name : destCityId;
 
     // Create modal backdrop
     const backdrop = document.createElement('div');
-    backdrop.id = 'travel-disabled-backdrop';
+    backdrop.id = 'travel-confirm-backdrop';
     backdrop.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]';
     backdrop.style.fontFamily = '"Dogica", monospace';
 
-    // Create modal content
     const modal = document.createElement('div');
     modal.className = 'bg-gray-800 rounded-lg p-6 max-w-md mx-4 relative';
-    modal.style.border = '3px solid #ef4444';
-    modal.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
+    modal.style.border = '3px solid #9e8b6b';
+    modal.style.boxShadow = '0 0 20px rgba(158, 139, 107, 0.5)';
+
+    const diffColors = { easy: '#22c55e', moderate: '#eab308', hard: '#ef4444', very_hard: '#dc2626' };
+    const diffColor = diffColors[difficulty] || '#9ca3af';
 
     modal.innerHTML = `
-        <h2 class="text-xl font-bold text-red-400 mb-4 text-center">🚧 Travel Not Available</h2>
-
-        <div class="text-gray-300 space-y-3 text-sm leading-relaxed">
-            <p>
-                You can't travel to <span class="text-yellow-400 font-bold">${locationName}</span> yet!
-            </p>
-
-            <div class="bg-gray-900 border border-red-600 rounded p-3 text-xs">
-                <p class="text-red-300 mb-2">⚠️ This feature is coming soon</p>
-                <p class="text-gray-400">The game UI is still in development. Travel and exploration mechanics will be added in future updates.</p>
+        <h2 class="text-lg font-bold text-yellow-400 mb-3 text-center">Travel to ${destName}?</h2>
+        <div class="text-gray-300 space-y-2 text-sm leading-relaxed">
+            <p class="text-center text-xs text-gray-400">${environmentData.description || ''}</p>
+            <div class="bg-gray-900 border border-gray-600 rounded p-3 text-xs space-y-1">
+                <div>Route: <span class="text-yellow-300">${envName}</span></div>
+                <div>Journey: <span class="text-white">${timeEstimate}</span></div>
+                <div>Difficulty: <span style="color: ${diffColor}">${difficulty.replace('_', ' ')}</span></div>
             </div>
-
-            <p class="text-center text-xs text-gray-500 mt-4">
-                For now, you can only view your character's stats and inventory from the intro.
-            </p>
+            <p class="text-center text-xs text-gray-500">Hunger and fatigue will tick during travel. You can stop and rest mid-journey.</p>
         </div>
-
-        <div class="mt-4 text-center">
-            <button
-                id="travel-close-btn"
-                class="px-6 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-colors"
-                style="font-size: 0.875rem;">
-                Okay
-            </button>
+        <div class="mt-4 flex justify-center gap-3">
+            <button id="travel-cancel-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-lg transition-colors" style="font-size: 0.75rem;">Cancel</button>
+            <button id="travel-confirm-btn" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-lg transition-colors" style="font-size: 0.75rem;">Begin Journey</button>
         </div>
     `;
 
     backdrop.appendChild(modal);
     document.body.appendChild(backdrop);
 
-    // Close button handler
-    document.getElementById('travel-close-btn').onclick = () => {
-        backdrop.remove();
-    };
+    document.getElementById('travel-cancel-btn').onclick = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
 
-    // Close on backdrop click
-    backdrop.onclick = (e) => {
-        if (e.target === backdrop) {
-            backdrop.remove();
-        }
+    document.getElementById('travel-confirm-btn').onclick = async () => {
+        backdrop.remove();
+        await startTravel(environmentId);
     };
+}
+
+/**
+ * Start travel through an environment
+ * @param {string} environmentId - Environment ID
+ */
+async function startTravel(environmentId) {
+    logger.info('Starting travel through:', environmentId);
+
+    try {
+        const result = await gameAPI.sendAction('start_travel', {
+            environment_id: environmentId
+        });
+
+        if (result.success) {
+            showMessage(result.message, 'info');
+
+            // Auto-play time when starting travel
+            if (window.timeClock && window.timeClock.play) {
+                window.timeClock.play();
+            }
+
+            // Refresh state and displays
+            await refreshGameState();
+            await updateAllDisplays();
+        } else {
+            showMessage(result.message || result.error || 'Failed to start travel', 'error');
+        }
+    } catch (error) {
+        logger.error('Failed to start travel:', error);
+        showMessage('Failed to start travel: ' + error.message, 'error');
+    }
 }
 
 logger.debug('Game mechanics module loaded');

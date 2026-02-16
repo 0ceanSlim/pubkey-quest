@@ -5,7 +5,7 @@
   "environment_type": "hill",
   "connects": ["kingdom-west", "millhaven-east"],
   "description": "Rolling green hills stretch as far as the eye can see, dotted with clusters of wildflowers and ancient standing stones. The wind carries the scent of wild grass and distant rain.",
-  "travel_time": 2,
+  "travel_time": 480,
   "travel_difficulty": "easy",
   "required_rations": 1,
   "resources": {
@@ -46,14 +46,23 @@
       "name": "Lost Shepherd",
       "description": "A young shepherd has lost his flock in the hills. His sheep have scattered, and wolves prowl nearby.",
       "probability": 0.18,
-      "actions": ["help_find_sheep", "offer_protection", "ignore", "ask_for_reward"],
+      "actions": [
+        "help_find_sheep",
+        "offer_protection",
+        "ignore",
+        "ask_for_reward"
+      ],
       "outcomes": {
         "help_find_sheep": {
-          "reward": {"gold": 5, "reputation": 3, "items": ["Blanket", "Rations (1 day)"]},
+          "reward": {
+            "gold": 5,
+            "reputation": 3,
+            "items": ["Blanket", "Rations (1 day)"]
+          },
           "description": "The grateful shepherd gives you provisions and his blessing."
         },
         "offer_protection": {
-          "reward": {"experience": 25},
+          "reward": { "experience": 25 },
           "description": "You escort the boy safely back to his village."
         }
       }
@@ -62,16 +71,21 @@
       "id": "standing_stones",
       "name": "Ancient Stone Circle",
       "description": "You discover a circle of ancient standing stones humming with mysterious energy. Runes are carved deep into their surfaces.",
-      "probability": 0.10,
-      "actions": ["study_runes", "touch_stones", "camp_inside_circle", "avoid_stones"],
+      "probability": 0.1,
+      "actions": [
+        "study_runes",
+        "touch_stones",
+        "camp_inside_circle",
+        "avoid_stones"
+      ],
       "outcomes": {
         "study_runes": {
-          "reward": {"experience": 75, "knowledge": "ancient_history"},
+          "reward": { "experience": 75, "knowledge": "ancient_history" },
           "description": "You decipher fragments of an ancient language, gaining insight into the past."
         },
         "touch_stones": {
-          "reward": {"temporary_blessing": "stone_strength"},
-          "risk": {"damage": 5},
+          "reward": { "temporary_blessing": "stone_strength" },
+          "risk": { "damage": 5 },
           "description": "Mystical energy courses through you - painful but empowering."
         }
       }
@@ -80,15 +94,15 @@
       "id": "hill_top_view",
       "name": "Scenic Vista",
       "description": "You reach the crest of a particularly tall hill and are rewarded with a breathtaking view of the surrounding countryside.",
-      "probability": 0.20,
+      "probability": 0.2,
       "actions": ["rest_and_admire", "scout_ahead", "mark_location"],
       "outcomes": {
         "rest_and_admire": {
-          "reward": {"morale_boost": 3, "fatigue_reduction": 1},
+          "reward": { "morale_boost": 3, "fatigue_reduction": 1 },
           "description": "The beautiful vista lifts your spirits and refreshes your body."
         },
         "scout_ahead": {
-          "reward": {"map_knowledge": "hill_routes"},
+          "reward": { "map_knowledge": "hill_routes" },
           "description": "You gain valuable knowledge of the paths ahead."
         }
       }

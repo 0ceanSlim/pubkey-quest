@@ -19,6 +19,7 @@ import { deltaApplier } from './deltaApplier.js';
 import { gameAPI } from '../lib/api.js';
 import { eventBus } from '../lib/events.js';
 import { effectsDisplay } from '../ui/effectsDisplay.js';
+import { refreshGameState } from '../state/gameState.js';
 
 // Constants
 const TICK_INTERVAL_MS = 417; // 1 in-game minute at 144x speed
@@ -68,6 +69,7 @@ class TickManager {
 
     /**
      * Main tick function - called every 417ms
+     * Always sends update_time. Backend handles travel progress automatically.
      */
     async tick() {
         // Skip if paused
@@ -97,7 +99,7 @@ class TickManager {
         try {
             this.isPendingRequest = true;
 
-            // Send time update to backend
+            // Always send update_time - backend advances travel progress automatically
             const response = await gameAPI.sendAction('update_time', {
                 time_of_day: currentTime.timeOfDay,
                 current_day: currentTime.currentDay
@@ -134,6 +136,51 @@ class TickManager {
                     logger.info('Show ready delta received:', response.delta.show_ready);
                 }
                 deltaApplier.applyDelta(response.delta);
+            }
+
+            // Handle travel data from response (backend includes travel_progress when in environment)
+            if (data && data.travel_progress !== undefined) {
+                try {
+                    const { updateTravelProgress } = await import('../ui/locationDisplay.js');
+                    updateTravelProgress(data.travel_progress);
+                } catch (e) {
+                    // locationDisplay not loaded yet
+                }
+            }
+
+            // Handle arrival at destination
+            if (data && data.arrived) {
+                logger.info('Arrived at destination:', data.dest_city_name);
+
+                // Sync clock after arrival
+                if (data.time_of_day !== undefined) {
+                    smoothClock.syncFromBackend(data.time_of_day, data.current_day || 1, true);
+                }
+
+                // Refresh full state and UI
+                await refreshGameState();
+                const { updateAllDisplays } = await import('../ui/displayCoordinator.js');
+                await updateAllDisplays();
+
+                // Show arrival message
+                if (response.message) {
+                    eventBus.emit('notification:show', {
+                        message: response.message,
+                        color: data.newly_discovered ? 'green' : 'yellow',
+                        duration: 5000
+                    });
+                }
+
+                // Handle music unlocks
+                if (data.music_unlocked && data.music_unlocked.length > 0) {
+                    for (const track of data.music_unlocked) {
+                        eventBus.emit('notification:show', {
+                            message: `Music unlocked: ${track}`,
+                            color: 'blue',
+                            duration: 3000
+                        });
+                    }
+                }
             }
 
             if (data) {

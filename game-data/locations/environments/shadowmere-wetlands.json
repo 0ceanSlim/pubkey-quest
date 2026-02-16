@@ -5,7 +5,7 @@
   "environment_type": "swamp",
   "connects": ["verdant-west", "marshlight-east"],
   "description": "These southern wetlands are darker and more mysterious than their northern cousins. Ancient willow trees droop their branches into black water, and phosphorescent fungi cast an eerie glow in the perpetual twilight.",
-  "travel_time": 3,
+  "travel_time": 672,
   "travel_difficulty": "hard",
   "required_rations": 2,
   "resources": {
@@ -49,8 +49,8 @@
       "actions": ["investigate_cabin", "avoid_cabin", "call_out"],
       "outcomes": {
         "investigate_cabin": {
-          "reward": {"treasure": "hidden_cache"},
-          "risk": {"encounter": "restless_spirit"},
+          "reward": { "treasure": "hidden_cache" },
+          "risk": { "encounter": "restless_spirit" },
           "description": "The cabin holds secrets, but disturbing them has consequences."
         }
       }

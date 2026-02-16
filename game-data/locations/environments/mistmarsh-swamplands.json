@@ -6,7 +6,7 @@
   "music": "Mysteries",
   "connects": ["kingdom-north", "frosthold-south"],
   "description": "Murky waters stretch between gnarled cypress trees draped in moss. The air is thick with humidity and the constant buzz of insects. Strange lights flicker in the distance, and the ground squelches underfoot.",
-  "travel_time": 4,
+  "travel_time": 720,
   "travel_difficulty": "hard",
   "required_rations": 2,
   "resources": {
@@ -50,12 +50,12 @@
       "actions": ["follow_lights", "ignore_lights", "investigate_cautiously"],
       "outcomes": {
         "follow_lights": {
-          "reward": {"treasure_chance": 0.3},
-          "risk": {"encounter": "will_o_wisp"},
+          "reward": { "treasure_chance": 0.3 },
+          "risk": { "encounter": "will_o_wisp" },
           "description": "You follow the mesmerizing lights deeper into the marsh."
         },
         "investigate_cautiously": {
-          "reward": {"experience": 50},
+          "reward": { "experience": 50 },
           "description": "Your careful approach reveals the lights' true nature."
         }
       }

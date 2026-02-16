@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/server/game/movement"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/status"
+	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
@@ -84,7 +85,7 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Track last action time for player actions (not update_time ticks)
+	// Track last action time for player actions (not tick-type actions)
 	if request.Action.Type != "update_time" {
 		session.LastActionTime = time.Now().Unix()
 		session.LastActionGameTime = session.SaveData.TimeOfDay
@@ -149,6 +150,45 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
 	state := &session.SaveData
 
+	// Snapshot time before action (for travel progress calculation)
+	oldTimeOfDay := state.TimeOfDay
+	oldCurrentDay := state.CurrentDay
+
+	response, err := processActionSwitch(session, state, action)
+
+	// After any action, advance travel progress if time changed and player is in environment
+	if err == nil && response != nil && response.Success {
+		var minutesElapsed int
+		if state.CurrentDay == oldCurrentDay {
+			minutesElapsed = state.TimeOfDay - oldTimeOfDay
+		} else if state.CurrentDay > oldCurrentDay {
+			minutesElapsed = (1440 - oldTimeOfDay) + state.TimeOfDay + ((state.CurrentDay - oldCurrentDay - 1) * 1440)
+		}
+
+		if minutesElapsed > 0 {
+			travelUpdate := travel.MaybeAdvanceTravelProgress(state, minutesElapsed)
+			if travelUpdate != nil {
+				if response.Data == nil {
+					response.Data = make(map[string]interface{})
+				}
+				response.Data["travel_progress"] = travelUpdate.TravelProgress
+				if travelUpdate.Arrived {
+					response.Data["arrived"] = true
+					response.Data["dest_city"] = travelUpdate.DestCity
+					response.Data["dest_city_name"] = travelUpdate.DestCityName
+					response.Data["dest_district"] = travelUpdate.DestDistrict
+					response.Data["newly_discovered"] = travelUpdate.NewlyDiscovered
+					response.Data["music_unlocked"] = travelUpdate.MusicUnlocked
+				}
+			}
+		}
+	}
+
+	return response, err
+}
+
+// processActionSwitch dispatches to specific action handlers
+func processActionSwitch(session *GameSession, state *SaveFile, action GameAction) (*GameActionResponse, error) {
 	switch action.Type {
 	case "move":
 		return handleMoveAction(state, action.Params)
@@ -210,6 +250,14 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 		return handleBookShowAction(session, action.Params)
 	case "play_show":
 		return handlePlayShowAction(session, action.Params)
+	case "start_travel":
+		return handleStartTravelAction(state, action.Params)
+	case "stop_travel":
+		return handleStopTravelAction(state, action.Params)
+	case "resume_travel":
+		return handleResumeTravelAction(state, action.Params)
+	case "turn_back":
+		return handleTurnBackAction(state, action.Params)
 	case "reset_idle_timer":
 		return handleResetIdleTimerAction(session)
 	default:
@@ -548,6 +596,8 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"location":              session.SaveData.Location,
 			"district":              session.SaveData.District,
 			"building":              session.SaveData.Building,
+			"travel_progress":       session.SaveData.TravelProgress,
+			"travel_stopped":        session.SaveData.TravelStopped,
 			"current_day":           session.SaveData.CurrentDay,
 			"time_of_day":           session.SaveData.TimeOfDay,
 			"inventory":             session.SaveData.Inventory,
@@ -755,6 +805,62 @@ func handleWaitAction(session *GameSession, params map[string]any) (*GameActionR
 			Delta:   resp.Delta,
 			Data:    resp.Data,
 		}, err
+	}
+	return nil, err
+}
+
+// ============================================================================
+// TRAVEL ACTIONS
+// ============================================================================
+
+// handleStartTravelAction begins travel through an environment
+func handleStartTravelAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	paramsIface := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		paramsIface[k] = v
+	}
+	resp, err := travel.HandleStartTravel(state, paramsIface)
+	if resp != nil {
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
+	}
+	return nil, err
+}
+
+// handleStopTravelAction stops movement in environment (time keeps flowing)
+func handleStopTravelAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	paramsIface := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		paramsIface[k] = v
+	}
+	resp, err := travel.HandleStopTravel(state, paramsIface)
+	if resp != nil {
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
+	}
+	return nil, err
+}
+
+// handleResumeTravelAction resumes movement in environment
+func handleResumeTravelAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	paramsIface := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		paramsIface[k] = v
+	}
+	resp, err := travel.HandleResumeTravel(state, paramsIface)
+	if resp != nil {
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
+	}
+	return nil, err
+}
+
+// handleTurnBackAction reverses travel direction
+func handleTurnBackAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	paramsIface := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		paramsIface[k] = v
+	}
+	resp, err := travel.HandleTurnBack(state, paramsIface)
+	if resp != nil {
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
 	}
 	return nil, err
 }

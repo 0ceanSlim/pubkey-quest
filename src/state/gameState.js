@@ -192,8 +192,11 @@ export function transformSaveDataToUIState(saveData) {
         location: {
             current: locationId,
             district: districtKey,
+            raw_district: saveData.district || 'center', // Unparsed district (needed for travel origin)
             building: saveData.building || null,
-            discovered: saveData.locations_discovered || []
+            discovered: saveData.locations_discovered || [],
+            travel_progress: saveData.travel_progress || 0,
+            travel_stopped: saveData.travel_stopped || false
         },
         inventory: saveData.inventory?.general_slots || [],
         equipment: saveData.inventory?.gear_slots || {},

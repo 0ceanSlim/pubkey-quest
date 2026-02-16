@@ -90,6 +90,16 @@ export async function displayCurrentLocation() {
 
         if (!cityId) return;
 
+        // Check if player is in an environment (traveling)
+        const currentLocData = getLocationById(cityId);
+        if (currentLocData && currentLocData.location_type === 'environment') {
+            displayTravelView(state, currentLocData);
+            return;
+        }
+
+        // Restore normal grid layout if coming back from travel view
+        restoreActionButtonsLayout();
+
         // Check if player is in a building that just closed and eject them
         await checkAndEjectFromClosedBuilding();
 
@@ -370,6 +380,298 @@ export async function displayCurrentLocation() {
     } finally {
         // Always reset rendering flag
         isRendering = false;
+    }
+}
+
+// ============================================================================
+// TRAVEL VIEW
+// ============================================================================
+
+/**
+ * Display travel view when player is in an environment
+ * Shows full-width progress bar, environment info, and travel controls
+ * @param {Object} state - Current game state
+ * @param {Object} envData - Environment location data
+ */
+function displayTravelView(state, envData) {
+    const envName = envData.name || state.location.current;
+    const envDescription = envData.description || '';
+    const travelProgress = state.location?.travel_progress || 0;
+    const travelTime = envData.properties?.travel_time || 1440;
+    const connects = envData.properties?.connects || envData.connections || [];
+
+    // Parse origin/destination from connects and district
+    const originDistrict = state.location?.raw_district || '';
+    let originCity = '', destCity = '', originName = '', destName = '';
+
+    for (const connectId of connects) {
+        const lastHyphen = connectId.lastIndexOf('-');
+        const city = lastHyphen > -1 ? connectId.substring(0, lastHyphen) : connectId;
+        const cityData = getLocationById(city);
+        const name = cityData ? cityData.name : city;
+
+        if (connectId === originDistrict) {
+            originCity = city;
+            originName = name;
+        } else {
+            destCity = city;
+            destName = name;
+        }
+    }
+
+    // Store travel metadata for updateTravelProgress to use
+    _travelViewMeta = { travelTime, originName, destName };
+
+    const progressPct = Math.min(Math.floor(travelProgress * 100), 100);
+    const timeRemainingStr = formatTravelTimeRemaining(travelTime, travelProgress);
+
+    // Update scene image (use environment type or generic)
+    const sceneImage = document.getElementById('scene-image');
+    if (sceneImage) {
+        sceneImage.src = envData.image || '/res/img/locations/travel.png';
+        sceneImage.alt = envName;
+    }
+
+    // Update city name to show environment
+    const cityNameEl = document.getElementById('city-name');
+    if (cityNameEl) {
+        cityNameEl.textContent = envName;
+    }
+
+    // Update district name to show progress
+    const districtNameEl = document.getElementById('district-name');
+    if (districtNameEl) {
+        districtNameEl.textContent = `${originName} → ${destName}`;
+    }
+
+    // Update time display
+    updateTimeDisplay();
+
+    // Show environment description
+    if (envDescription && lastDisplayedLocation !== state.location.current) {
+        showActionText(envDescription, 'white');
+        lastDisplayedLocation = state.location.current;
+    }
+
+    const isStopped = state.location?.travel_stopped || false;
+
+    // Replace the entire action-buttons grid with a travel-specific layout
+    const actionButtons = document.getElementById('action-buttons');
+    if (!actionButtons) return;
+
+    // Switch from 3-column grid to single-column travel layout
+    actionButtons.innerHTML = '';
+    actionButtons.style.display = 'flex';
+    actionButtons.style.flexDirection = 'column';
+    actionButtons.style.gap = '4px';
+    actionButtons.style.padding = '4px';
+
+    // -- Full-width progress bar section --
+    const progressSection = document.createElement('div');
+    progressSection.style.cssText = 'width: 100%; display: flex; flex-direction: column; gap: 2px;';
+
+    // Origin → Destination labels
+    const labels = document.createElement('div');
+    labels.style.cssText = 'display: flex; justify-content: space-between; width: 100%; font-size: 7px; color: #9ca3af;';
+    labels.innerHTML = `<span>${originName}</span><span>${destName}</span>`;
+    progressSection.appendChild(labels);
+
+    // Progress bar container
+    const barContainer = document.createElement('div');
+    barContainer.style.cssText = 'width: 100%; height: 10px; background: #1a1a1a; border: 1px solid #4a4a4a; position: relative;';
+
+    const barFill = document.createElement('div');
+    barFill.id = 'travel-progress-bar';
+    barFill.style.cssText = `width: ${progressPct}%; height: 100%; background: linear-gradient(90deg, #16a34a, #22c55e); transition: width 0.4s ease;`;
+    barContainer.appendChild(barFill);
+    progressSection.appendChild(barContainer);
+
+    // Progress text (percentage and time remaining)
+    const progressText = document.createElement('div');
+    progressText.id = 'travel-progress-text';
+    progressText.style.cssText = 'font-size: 8px; color: #fbbf24; text-align: center;';
+    progressText.textContent = `${progressPct}% — ${timeRemainingStr} remaining`;
+    progressSection.appendChild(progressText);
+
+    actionButtons.appendChild(progressSection);
+
+    // -- Full-width travel control buttons --
+    const controlsSection = document.createElement('div');
+    controlsSection.style.cssText = 'width: 100%; display: flex; gap: 4px; flex: 1;';
+
+    if (isStopped) {
+        const continueBtn = createLocationButton('Continue Journey', () => resumeTravel(), 'building');
+        continueBtn.style.flex = '1';
+        continueBtn.style.fontSize = '9px';
+        controlsSection.appendChild(continueBtn);
+        const turnBackBtn = createLocationButton('Turn Back', () => turnBack(), 'environment');
+        turnBackBtn.style.flex = '1';
+        turnBackBtn.style.fontSize = '9px';
+        controlsSection.appendChild(turnBackBtn);
+    } else {
+        const stopBtn = createLocationButton('Stop & Rest', () => stopTravel(), 'environment');
+        stopBtn.style.flex = '1';
+        stopBtn.style.fontSize = '9px';
+        controlsSection.appendChild(stopBtn);
+    }
+
+    actionButtons.appendChild(controlsSection);
+
+    // -- Status message --
+    const statusMsg = document.createElement('div');
+    statusMsg.style.cssText = 'text-align: center; color: #9ca3af; font-size: 8px; font-style: italic;';
+    statusMsg.textContent = isStopped ? 'Resting in the wilderness.' : 'Traveling...';
+    actionButtons.appendChild(statusMsg);
+}
+
+/**
+ * Format travel time remaining as a human-readable string
+ * @param {number} travelTime - Total travel time in minutes
+ * @param {number} progress - Current progress 0.0-1.0
+ * @returns {string} Formatted time string
+ */
+function formatTravelTimeRemaining(travelTime, progress) {
+    const minutesRemaining = Math.ceil(travelTime * (1.0 - progress));
+    const daysLeft = Math.floor(minutesRemaining / 1440);
+    const hoursLeft = Math.floor((minutesRemaining % 1440) / 60);
+    const minsLeft = minutesRemaining % 60;
+    let timeRemaining = '';
+    if (daysLeft > 0) timeRemaining += `${daysLeft}d `;
+    if (hoursLeft > 0 || daysLeft > 0) timeRemaining += `${hoursLeft}h `;
+    timeRemaining += `${minsLeft}m`;
+    return timeRemaining;
+}
+
+// Module-level metadata for travel view updates (set by displayTravelView, read by updateTravelProgress)
+let _travelViewMeta = null;
+
+/**
+ * Restore action-buttons to normal 3-column grid layout after leaving travel view.
+ * Travel view replaces the innerHTML and changes display to flex, so we need to
+ * rebuild the original structure when returning to a city.
+ */
+function restoreActionButtonsLayout() {
+    const actionButtons = document.getElementById('action-buttons');
+    if (!actionButtons) return;
+
+    // Check if we need to restore (travel view sets display to flex)
+    if (actionButtons.style.display === 'flex') {
+        // Reset to original grid layout
+        actionButtons.style.display = '';
+        actionButtons.style.flexDirection = '';
+        actionButtons.style.gap = '';
+        actionButtons.style.padding = '';
+        actionButtons.className = 'grid grid-cols-3 gap-1 h-full';
+
+        // Rebuild the original column structure
+        actionButtons.innerHTML = `
+            <div id="navigation-buttons" class="flex flex-col gap-0.5 min-w-0 overflow-hidden">
+                <h3 class="text-white text-[8px] font-bold uppercase mb-0.5 flex-shrink-0">Travel</h3>
+                <div class="grid grid-cols-3 grid-rows-3 gap-0.5 flex-1 min-h-0">
+                    <div></div>
+                    <div id="travel-n" class="flex items-center justify-center min-w-0 min-h-0"></div>
+                    <div></div>
+                    <div id="travel-w" class="flex items-center justify-center min-w-0 min-h-0"></div>
+                    <div id="travel-center" class="flex items-center justify-center min-w-0 min-h-0"></div>
+                    <div id="travel-e" class="flex items-center justify-center min-w-0 min-h-0"></div>
+                    <div></div>
+                    <div id="travel-s" class="flex items-center justify-center min-w-0 min-h-0"></div>
+                    <div></div>
+                </div>
+            </div>
+            <div id="building-buttons" class="flex flex-col gap-0.5">
+                <h3 class="text-white text-[8px] font-bold uppercase mb-0.5">Buildings</h3>
+                <div class="flex flex-col gap-0.5 overflow-y-auto"></div>
+            </div>
+            <div id="npc-buttons" class="flex flex-col gap-0.5">
+                <h3 class="text-white text-[8px] font-bold uppercase mb-0.5">People</h3>
+                <div class="flex flex-col gap-0.5 overflow-y-auto"></div>
+            </div>
+        `;
+
+        // Clear travel metadata
+        _travelViewMeta = null;
+        logger.debug('Restored action-buttons to normal grid layout');
+    }
+}
+
+/**
+ * Update travel progress bar and text (called from tick manager on each tick)
+ * @param {number} progress - 0.0 to 1.0
+ */
+export function updateTravelProgress(progress) {
+    const bar = document.getElementById('travel-progress-bar');
+    if (bar) {
+        const pct = Math.min(Math.floor(progress * 100), 100);
+        bar.style.width = `${pct}%`;
+    }
+
+    // Also update the progress text (percentage and time remaining)
+    const textEl = document.getElementById('travel-progress-text');
+    if (textEl && _travelViewMeta) {
+        const pct = Math.min(Math.floor(progress * 100), 100);
+        const timeStr = formatTravelTimeRemaining(_travelViewMeta.travelTime, progress);
+        textEl.textContent = `${pct}% — ${timeStr} remaining`;
+    }
+}
+
+/**
+ * Stop travel (player stops moving, time keeps flowing)
+ */
+async function stopTravel() {
+    logger.info('Stopping travel');
+
+    try {
+        const result = await gameAPI.sendAction('stop_travel', {});
+        if (result.success) {
+            showMessage(result.message, 'info');
+            await refreshGameState();
+            await displayCurrentLocation();
+        } else {
+            showMessage(result.message || 'Failed to stop', 'error');
+        }
+    } catch (error) {
+        logger.error('Failed to stop travel:', error);
+    }
+}
+
+/**
+ * Resume travel (player starts moving again)
+ */
+async function resumeTravel() {
+    logger.info('Resuming travel');
+
+    try {
+        const result = await gameAPI.sendAction('resume_travel', {});
+        if (result.success) {
+            showMessage(result.message, 'info');
+            await refreshGameState();
+            await displayCurrentLocation();
+        } else {
+            showMessage(result.message || 'Failed to resume travel', 'error');
+        }
+    } catch (error) {
+        logger.error('Failed to resume travel:', error);
+    }
+}
+
+/**
+ * Turn back during travel (reverse direction)
+ */
+async function turnBack() {
+    logger.info('Turning back during travel');
+
+    try {
+        const result = await gameAPI.sendAction('turn_back', {});
+        if (result.success) {
+            showMessage(result.message, 'info');
+            await refreshGameState();
+            await displayCurrentLocation();
+        } else {
+            showMessage(result.message || 'Failed to turn back', 'error');
+        }
+    } catch (error) {
+        logger.error('Failed to turn back:', error);
     }
 }
 

@@ -5,7 +5,7 @@
   "environment_type": "coastal",
   "connects": ["verdant-south", "saltwind-north"],
   "description": "Rocky cliffs and sandy beaches stretch along the azure sea. Seabirds wheel overhead while waves crash against weathered stone. Hidden coves and tide pools reveal treasures from the deep.",
-  "travel_time": 2,
+  "travel_time": 480,
   "travel_difficulty": "moderate",
   "required_rations": 1,
   "resources": {
@@ -51,12 +51,12 @@
       "id": "shipwreck",
       "name": "Washed Ashore",
       "description": "The tide has revealed the remains of an old shipwreck partially buried in the sand.",
-      "probability": 0.20,
+      "probability": 0.2,
       "actions": ["search_wreck", "ignore_wreck", "mark_location"],
       "outcomes": {
         "search_wreck": {
-          "reward": {"treasure": "salvaged_goods"},
-          "risk": {"encounter": "territorial_crabs"},
+          "reward": { "treasure": "salvaged_goods" },
+          "risk": { "encounter": "territorial_crabs" },
           "description": "You find valuable salvage, but disturb the local wildlife."
         }
       }
@@ -69,11 +69,11 @@
       "actions": ["examine_pools", "collect_specimens", "rest_by_pools"],
       "outcomes": {
         "examine_pools": {
-          "reward": {"knowledge": "marine_biology"},
+          "reward": { "knowledge": "marine_biology" },
           "description": "You learn about the fascinating ecosystem of the tidal zone."
         },
         "rest_by_pools": {
-          "reward": {"morale_boost": 2},
+          "reward": { "morale_boost": 2 },
           "description": "The peaceful beauty of the tide pools refreshes your spirit."
         }
       }

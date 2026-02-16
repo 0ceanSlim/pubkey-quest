@@ -5,7 +5,7 @@
   "environment_type": "desert",
   "connects": ["goldenhaven-east", "dusthaven-west"],
   "description": "Endless dunes of golden sand stretch to the horizon under a merciless sun. The air shimmers with heat waves, and only the hardiest creatures survive in this harsh wasteland. Ancient ruins occasionally emerge from the shifting sands.",
-  "travel_time": 4,
+  "travel_time": 960,
   "travel_difficulty": "very_hard",
   "required_rations": 3,
   "resources": {
@@ -55,11 +55,11 @@
       "actions": ["approach_carefully", "rush_to_water", "ignore_mirage"],
       "outcomes": {
         "approach_carefully": {
-          "reward": {"water": "refresh", "rest": "safe_spot"},
+          "reward": { "water": "refresh", "rest": "safe_spot" },
           "description": "Your caution reveals a true oasis - a blessed relief in the desert."
         },
         "rush_to_water": {
-          "risk": {"fatigue": 2},
+          "risk": { "fatigue": 2 },
           "description": "The mirage fades as you approach, leaving you more exhausted."
         }
       }
@@ -72,7 +72,7 @@
       "actions": ["seek_rocky_shelter", "dig_into_sand", "press_forward"],
       "outcomes": {
         "seek_rocky_shelter": {
-          "reward": {"storm_protection": "complete"},
+          "reward": { "storm_protection": "complete" },
           "description": "You weather the storm safely among the rocks."
         }
       }

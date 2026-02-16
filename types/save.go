@@ -37,9 +37,11 @@ type SaveFile struct {
 	Fatigue             int                      `json:"fatigue"`             // Fatigue level (0-10+), penalties applied via effects
 	Hunger              int                      `json:"hunger"`              // Hunger level (0-3: 0=Famished, 1=Hungry, 2=Satisfied, 3=Full), penalties applied via effects
 	Stats               map[string]interface{}   `json:"stats"`
-	Location            string                   `json:"location"`     // City ID (e.g., "kingdom", "village-west")
-	District            string                   `json:"district"`     // District key (e.g., "center", "north", "south")
-	Building            string                   `json:"building"`     // Building ID or empty for outdoors
+	Location            string                   `json:"location"`            // City ID or environment ID when traveling
+	District            string                   `json:"district"`            // District key, or origin district ID when traveling (e.g., "kingdom-east")
+	Building            string                   `json:"building"`            // Building ID or empty for outdoors
+	TravelProgress      float64                  `json:"travel_progress,omitempty"` // 0.0-1.0 percentage through environment when traveling
+	TravelStopped       bool                     `json:"travel_stopped,omitempty"`  // True when player has stopped moving in environment (time still flows)
 	CurrentDay          int                      `json:"current_day"`
 	TimeOfDay           int                      `json:"time_of_day"` // Minutes in current day (0-1439, where 720=noon, 0=midnight)
 	Inventory           map[string]interface{}   `json:"inventory"`

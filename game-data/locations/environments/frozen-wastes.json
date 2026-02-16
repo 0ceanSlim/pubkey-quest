@@ -5,7 +5,7 @@
   "environment_type": "arctic",
   "connects": ["frosthold-south", "ironpeak-south"],
   "description": "An endless expanse of snow and ice stretches to the horizon. The bitter wind cuts through even the warmest clothing, and the only sounds are the crunch of snow underfoot and the distant howl of arctic predators.",
-  "travel_time": 5,
+  "travel_time": 1440,
   "travel_difficulty": "very_hard",
   "required_rations": 3,
   "resources": {
@@ -45,16 +45,20 @@
       "id": "blizzard_shelter",
       "name": "Sudden Blizzard",
       "description": "A fierce blizzard suddenly engulfs the area. You spot what might be an ice cave in the distance.",
-      "probability": 0.20,
-      "actions": ["seek_cave_shelter", "push_through_storm", "dig_snow_shelter"],
+      "probability": 0.2,
+      "actions": [
+        "seek_cave_shelter",
+        "push_through_storm",
+        "dig_snow_shelter"
+      ],
       "outcomes": {
         "seek_cave_shelter": {
-          "reward": {"warmth": "temporary_shelter"},
-          "risk": {"encounter": "cave_bear"},
+          "reward": { "warmth": "temporary_shelter" },
+          "risk": { "encounter": "cave_bear" },
           "description": "The cave provides shelter, but you're not alone..."
         },
         "dig_snow_shelter": {
-          "reward": {"fatigue_reduction": 2},
+          "reward": { "fatigue_reduction": 2 },
           "description": "Your makeshift shelter protects you from the worst of the storm."
         }
       }

@@ -6,7 +6,7 @@
   "music": "Citadel in the Mountains",
   "connects": ["ironpeak-south", "goldenhaven-north"],
   "description": "Towering peaks pierce the clouds, their snow-capped summits gleaming in the sunlight. Rocky paths wind precariously along cliff faces, while the thin air makes every breath a struggle.",
-  "travel_time": 4,
+  "travel_time": 1200,
   "travel_difficulty": "very_hard",
   "required_rations": 2,
   "resources": {
@@ -56,11 +56,11 @@
       "actions": ["pray_at_shrine", "leave_offering", "investigate_shrine"],
       "outcomes": {
         "pray_at_shrine": {
-          "reward": {"blessing": "mountain_endurance", "duration": 48},
+          "reward": { "blessing": "mountain_endurance", "duration": 48 },
           "description": "The mountain spirits bless your journey with enhanced endurance."
         },
         "leave_offering": {
-          "reward": {"experience": 75},
+          "reward": { "experience": 75 },
           "description": "Your respectful gesture honors the ancient traditions."
         }
       }
@@ -73,7 +73,7 @@
       "actions": ["dig_for_survivors", "find_alternate_route", "call_out"],
       "outcomes": {
         "dig_for_survivors": {
-          "reward": {"gold": 25, "reputation": 5},
+          "reward": { "gold": 25, "reputation": 5 },
           "description": "You rescue trapped miners who reward your heroism."
         }
       }
