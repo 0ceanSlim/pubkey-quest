@@ -984,7 +984,8 @@ func migrateSystemsFiles() error {
 		"encumbrance.json",
 		"effects.json",
 		"inventory.json",
-		// Add others as needed
+		"skills.json",
+		"travel-config.json",
 	}
 
 	count := 0

@@ -6,6 +6,8 @@ let allEffects = {};           // Map of effect ID -> Effect
 let effectTypes = {};          // EffectTypeDefinition map
 let encumbranceConfig = {};    // Encumbrance system config (encumbrance.json)
 let currentEffectID = null;    // Selected effect for editing
+let skillsConfig = {};         // Skills system config (skills.json)
+let travelConfig = {};         // Travel system config (travel-config.json)
 let stagingSessionID = null;
 let stagingMode = null;
 let pendingSliderChanges = {}; // Track unsaved slider changes: { effectID: newValue }
@@ -44,6 +46,8 @@ async function loadData() {
         allEffects = data.effects || {};
         effectTypes = data.effect_types || {};
         encumbranceConfig = data.encumbrance || {};
+        skillsConfig = data.skills || {};
+        travelConfig = data.travel_config || {};
 
         renderEffectList();
         await initStaging();
@@ -126,6 +130,10 @@ function setupTabs() {
                 renderWeightSystem();
             } else if (tabName === 'effect-types') {
                 renderEffectTypesEditor();
+            } else if (tabName === 'skills') {
+                renderSkillsEditor();
+            } else if (tabName === 'travel') {
+                renderTravelSystem();
             }
         });
     });
@@ -183,9 +191,9 @@ function renderEffectList() {
 
     // Filter effects based on active tab
     // System tabs (fatigue, hunger, weight) don't show effects in sidebar - they're managed in the tab UI
-    if (activeTab === 'fatigue' || activeTab === 'hunger' || activeTab === 'weight') {
+    if (activeTab === 'fatigue' || activeTab === 'hunger' || activeTab === 'weight' || activeTab === 'skills') {
         html += '<div style="padding: 1rem; text-align: center; color: var(--color-textMuted); font-size: 12px;">';
-        html += `${activeTab.toUpperCase()} effects are managed in the tab view →`;
+        html += `${activeTab.toUpperCase()} settings are managed in the tab view →`;
         html += '</div>';
         document.getElementById('effect-list').innerHTML = html;
         return;
@@ -786,6 +794,68 @@ async function saveEffectToBackend(effectID, effectData) {
     return result;
 }
 
+// Render Skill Scaling section for an effect
+function renderSkillScalingSection(effect) {
+    if (!effect) return '';
+
+    const scaling = effect.skill_scaling || {};
+    const hasScaling = !!effect.skill_scaling;
+    const skillOptions = Object.entries(skillsConfig).sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+    return `
+        <div class="mb-20 win95-inset pixel-clip" style="padding: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                <h4 class="codex-subsection-title" style="margin: 0;">SKILL SCALING</h4>
+                <label style="color: var(--codex-text-muted); font-size: 12px; cursor: pointer;">
+                    <input type="checkbox" ${hasScaling ? 'checked' : ''}
+                           onchange="toggleSkillScaling('${effect.id}', this.checked)" />
+                    Enable
+                </label>
+            </div>
+            ${hasScaling ? `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="codex-label">SKILL</label>
+                        <select class="codex-input" onchange="updateSkillScaling('${effect.id}', 'skill', this.value)">
+                            ${skillOptions.map(([id, skill]) =>
+                                `<option value="${id}" ${id === scaling.skill ? 'selected' : ''}>${skill.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="codex-label">BASE LEVEL (no bonus at or below)</label>
+                        <input type="number" class="codex-input" value="${scaling.base_level || 10}"
+                               min="1" max="20" step="1"
+                               onchange="updateSkillScaling('${effect.id}', 'base_level', parseInt(this.value))" />
+                    </div>
+                    <div>
+                        <label class="codex-label">BONUS PER LEVEL (%)</label>
+                        <input type="number" class="codex-input" value="${((scaling.bonus_per_level || 0.05) * 100).toFixed(0)}"
+                               min="1" max="50" step="1"
+                               onchange="updateSkillScaling('${effect.id}', 'bonus_per_level', parseInt(this.value) / 100)" />
+                        <small style="color: var(--codex-text-muted); display: block; margin-top: 0.25rem; font-size: 10px;">
+                            % slower per skill level above base
+                        </small>
+                    </div>
+                    <div>
+                        <label class="codex-label">MAX BONUS LEVELS</label>
+                        <input type="number" class="codex-input" value="${scaling.max_bonus_levels || 10}"
+                               min="1" max="20" step="1"
+                               onchange="updateSkillScaling('${effect.id}', 'max_bonus_levels', parseInt(this.value))" />
+                        <small style="color: var(--codex-text-muted); display: block; margin-top: 0.25rem; font-size: 10px;">
+                            Cap: ${((scaling.bonus_per_level || 0.05) * (scaling.max_bonus_levels || 10) * 100).toFixed(0)}% max slowdown
+                        </small>
+                    </div>
+                </div>
+            ` : `
+                <small style="color: var(--codex-text-muted);">
+                    When enabled, a character skill can slow this effect's tick rate.
+                </small>
+            `}
+        </div>
+    `;
+}
+
 // Render Fatigue System Editor
 function renderFatigueSystem() {
     // Get all fatigue-related effects (INCLUDING accumulation, tired, very-tired, exhaustion)
@@ -814,6 +884,8 @@ function renderFatigueSystem() {
                     How often fatigue increases by 1 point
                 </small>
             </div>
+
+            ${renderSkillScalingSection(accumulationEffect)}
 
             <div class="mb-20">
                 <h4 class="codex-subsection-title">FATIGUE LEVELS (drag dots to adjust thresholds)</h4>
@@ -1328,6 +1400,47 @@ window.updateFatigueAccumulationRate = async function(rate) {
         showStatus('✅ Fatigue accumulation rate updated', 'success');
     } catch (error) {
         showStatus('❌ Failed to update rate', 'error');
+    }
+};
+
+// Toggle skill scaling on/off for an effect
+window.toggleSkillScaling = async function(effectID, enabled) {
+    const effect = allEffects[effectID];
+    if (!effect) return;
+
+    if (enabled) {
+        effect.skill_scaling = {
+            skill: 'athletics',
+            base_level: 10,
+            bonus_per_level: 0.05,
+            max_bonus_levels: 10
+        };
+    } else {
+        delete effect.skill_scaling;
+    }
+
+    try {
+        await saveEffectToBackend(effectID, effect);
+        showStatus(`✅ Skill scaling ${enabled ? 'enabled' : 'disabled'}`, 'success');
+        renderFatigueSystem();
+    } catch (error) {
+        showStatus('❌ Failed to update skill scaling', 'error');
+    }
+};
+
+// Update a skill scaling field for an effect
+window.updateSkillScaling = async function(effectID, field, value) {
+    const effect = allEffects[effectID];
+    if (!effect || !effect.skill_scaling) return;
+
+    effect.skill_scaling[field] = value;
+
+    try {
+        await saveEffectToBackend(effectID, effect);
+        showStatus('✅ Skill scaling updated', 'success');
+        renderFatigueSystem();
+    } catch (error) {
+        showStatus('❌ Failed to update skill scaling', 'error');
     }
 };
 
@@ -1896,4 +2009,364 @@ function showStatus(message, type = 'info') {
         statusDiv.classList.add('fade-out');
         setTimeout(() => statusDiv.remove(), 300);
     }, 3000);
+}
+
+// ============================================================================
+// Skills Editor
+// ============================================================================
+
+const ABILITY_SCORES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+const ABILITY_LABELS = { strength: 'STR', dexterity: 'DEX', constitution: 'CON', intelligence: 'INT', wisdom: 'WIS', charisma: 'CHA' };
+const ABILITY_COLORS = { strength: '#ef4444', dexterity: '#22c55e', constitution: '#f97316', intelligence: '#3b82f6', wisdom: '#a855f7', charisma: '#ec4899' };
+
+let currentSkillID = null;
+
+function renderSkillsEditor() {
+    const container = document.getElementById('skills-editor');
+    if (!container) return;
+
+    const skills = Object.entries(skillsConfig).sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+    let html = '<div class="codex-section win95-inset pixel-clip">';
+    html += '<h3 class="codex-section-title">SKILL DEFINITIONS</h3>';
+    html += '<p class="text-muted mb-10">Skills are calculated from weighted ability score ratios. Click a skill to edit its ratios.</p>';
+
+    // Skills grid - overview
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">';
+    for (const [id, skill] of skills) {
+        const isSelected = id === currentSkillID;
+        html += `<div class="skill-card ${isSelected ? 'selected' : ''}" data-skill-id="${id}"
+                      style="background: ${isSelected ? 'var(--codex-bg-highlight, #2a2a3a)' : 'var(--codex-bg-card, #1e1e2e)'};
+                             border: 1px solid ${isSelected ? 'var(--codex-yellow, #ffd700)' : '#333'};
+                             padding: 8px; cursor: pointer; border-radius: 2px;">`;
+        html += `<div style="font-weight: bold; color: var(--codex-yellow, #ffd700); font-size: 12px; margin-bottom: 4px;">${skill.name}</div>`;
+        html += `<div style="font-size: 10px; color: var(--codex-text-muted, #888); margin-bottom: 6px;">${skill.description}</div>`;
+
+        // Ratio bar visualization
+        html += renderRatioBar(skill.ratio);
+        html += '</div>';
+    }
+    html += '</div>';
+
+    // Detail editor (if skill selected)
+    if (currentSkillID && skillsConfig[currentSkillID]) {
+        html += renderSkillDetailEditor(currentSkillID, skillsConfig[currentSkillID]);
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Bind click events on skill cards
+    container.querySelectorAll('.skill-card').forEach(card => {
+        card.addEventListener('click', () => {
+            currentSkillID = card.dataset.skillId;
+            renderSkillsEditor();
+        });
+    });
+
+    // Bind ratio input events
+    container.querySelectorAll('.skill-ratio-input').forEach(input => {
+        input.addEventListener('change', handleSkillRatioChange);
+        input.addEventListener('input', handleSkillRatioPreview);
+    });
+
+    // Bind save button
+    const saveBtn = container.querySelector('#save-skills-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveSkills);
+    }
+}
+
+function renderRatioBar(ratio) {
+    let html = '<div style="display: flex; height: 6px; border-radius: 1px; overflow: hidden;">';
+    for (const stat of ABILITY_SCORES) {
+        const weight = ratio[stat] || 0;
+        if (weight > 0) {
+            const pct = (weight * 100).toFixed(0);
+            html += `<div style="width: ${pct}%; background: ${ABILITY_COLORS[stat]};" title="${ABILITY_LABELS[stat]}: ${pct}%"></div>`;
+        }
+    }
+    html += '</div>';
+
+    // Labels below bar
+    html += '<div style="display: flex; gap: 4px; margin-top: 2px; font-size: 9px;">';
+    for (const stat of ABILITY_SCORES) {
+        const weight = ratio[stat] || 0;
+        if (weight > 0) {
+            const pct = (weight * 100).toFixed(0);
+            html += `<span style="color: ${ABILITY_COLORS[stat]};">${ABILITY_LABELS[stat]} ${pct}%</span>`;
+        }
+    }
+    html += '</div>';
+    return html;
+}
+
+function renderSkillDetailEditor(id, skill) {
+    let html = '<div class="codex-section win95-inset pixel-clip" style="margin-top: 8px;">';
+    html += `<h3 class="codex-section-title">EDITING: ${skill.name.toUpperCase()}</h3>`;
+
+    // Ratio inputs
+    html += '<div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 12px;">';
+    for (const stat of ABILITY_SCORES) {
+        const weight = skill.ratio[stat] || 0;
+        const pct = Math.round(weight * 100);
+        html += `<div style="text-align: center;">`;
+        html += `<div style="color: ${ABILITY_COLORS[stat]}; font-weight: bold; font-size: 11px; margin-bottom: 2px;">${ABILITY_LABELS[stat]}</div>`;
+        html += `<input type="number" class="skill-ratio-input" data-skill="${id}" data-stat="${stat}"
+                        value="${pct}" min="0" max="100" step="5"
+                        style="width: 50px; text-align: center; background: #111; color: white; border: 1px solid #444; padding: 2px; font-size: 11px;">`;
+        html += `<div style="font-size: 9px; color: #666;">%</div>`;
+        html += '</div>';
+    }
+    html += '</div>';
+
+    // Total indicator
+    const total = ABILITY_SCORES.reduce((sum, stat) => sum + Math.round((skill.ratio[stat] || 0) * 100), 0);
+    const totalColor = total === 100 ? '#4ade80' : '#f87171';
+    html += `<div style="text-align: center; margin-bottom: 12px;">`;
+    html += `<span style="color: ${totalColor}; font-size: 12px; font-weight: bold;">Total: <span id="skill-ratio-total">${total}</span>%</span>`;
+    if (total !== 100) {
+        html += `<span style="color: #f87171; font-size: 10px; margin-left: 8px;">(must equal 100%)</span>`;
+    }
+    html += '</div>';
+
+    // Preview bar
+    html += '<div style="margin-bottom: 12px;">';
+    html += renderRatioBar(skill.ratio);
+    html += '</div>';
+
+    // Save button
+    html += '<div class="codex-btn-group">';
+    html += `<button id="save-skills-btn" class="codex-btn codex-btn-primary pixel-clip-sm" ${total !== 100 ? 'disabled style="opacity: 0.5;"' : ''}>SAVE SKILLS</button>`;
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+}
+
+function handleSkillRatioChange(e) {
+    const skillId = e.target.dataset.skill;
+    const stat = e.target.dataset.stat;
+    const pct = parseInt(e.target.value) || 0;
+
+    if (!skillsConfig[skillId]) return;
+
+    // Update the ratio
+    if (pct === 0) {
+        delete skillsConfig[skillId].ratio[stat];
+    } else {
+        skillsConfig[skillId].ratio[stat] = pct / 100;
+    }
+
+    // Re-render to update total and bar
+    renderSkillsEditor();
+}
+
+function handleSkillRatioPreview(e) {
+    // Live-update the total as user types
+    const skillId = e.target.dataset.skill;
+    if (!skillsConfig[skillId]) return;
+
+    let total = 0;
+    document.querySelectorAll(`.skill-ratio-input[data-skill="${skillId}"]`).forEach(input => {
+        total += parseInt(input.value) || 0;
+    });
+
+    const totalEl = document.getElementById('skill-ratio-total');
+    if (totalEl) {
+        totalEl.textContent = total;
+        totalEl.parentElement.style.color = total === 100 ? '#4ade80' : '#f87171';
+    }
+}
+
+async function saveSkills() {
+    // Validate all skills total to 100%
+    for (const [id, skill] of Object.entries(skillsConfig)) {
+        const total = Object.values(skill.ratio).reduce((sum, v) => sum + v, 0);
+        if (Math.abs(total - 1.0) > 0.01) {
+            showStatus(`${skill.name} ratios must sum to 100% (currently ${Math.round(total * 100)}%)`, 'error');
+            return;
+        }
+    }
+
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (stagingSessionID) {
+            headers['X-Session-ID'] = stagingSessionID;
+        }
+
+        const response = await fetch('/api/systems/skills', {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(skillsConfig)
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        const result = await response.json();
+
+        if (result.mode === 'staging') {
+            updateChangeCount(result.changes);
+            showStatus('Skills staged for review', 'success');
+        } else {
+            showStatus('Skills saved', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to save skills:', error);
+        showStatus('Failed to save skills: ' + error.message, 'error');
+    }
+}
+
+// ============================================================
+// TRAVEL SYSTEM
+// ============================================================
+
+function renderTravelSystem() {
+    const container = document.getElementById('travel-editor');
+    if (!container) return;
+
+    const scaling = travelConfig.skill_scaling || { skill: 'athletics', base_level: 10, bonus_per_level: 0.02, max_bonus_levels: 5 };
+
+    // Build skill options from skillsConfig
+    const skillOptions = Object.entries(skillsConfig)
+        .sort((a, b) => a[1].name.localeCompare(b[1].name))
+        .map(([id, s]) => `<option value="${id}" ${id === scaling.skill ? 'selected' : ''}>${s.name}</option>`)
+        .join('');
+
+    const maxBonus = (scaling.bonus_per_level * scaling.max_bonus_levels * 100).toFixed(0);
+
+    let html = '<div class="codex-section win95-inset pixel-clip">';
+    html += '<h3 class="codex-section-title">TRAVEL SPEED SCALING</h3>';
+    html += '<p class="text-muted mb-10">Configure how skills affect travel speed through environments. Higher skill = faster travel.</p>';
+
+    // Formula explanation
+    html += '<div style="background: #1a1a2e; border: 1px solid #333; padding: 12px; margin-bottom: 16px; border-radius: 2px;">';
+    html += '<div style="font-size: 11px; color: var(--codex-yellow, #ffd700); margin-bottom: 6px; font-weight: bold;">FORMULA</div>';
+    html += '<div style="font-size: 12px; color: #ccc; font-family: monospace;">';
+    html += `speed_multiplier = 1 + min(skill - base_level, max_bonus_levels) × bonus_per_level`;
+    html += '</div>';
+    html += `<div style="font-size: 10px; color: #888; margin-top: 6px;">Example: ${scaling.skill} ${scaling.base_level + scaling.max_bonus_levels} → ${(1 + scaling.max_bonus_levels * scaling.bonus_per_level).toFixed(2)}x speed (${maxBonus}% faster)</div>`;
+    html += '</div>';
+
+    // Settings grid
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">';
+
+    // Skill selector
+    html += '<div>';
+    html += '<label style="display: block; font-size: 11px; color: var(--codex-yellow, #ffd700); margin-bottom: 4px; font-weight: bold;">SKILL</label>';
+    html += `<select id="travel-skill" style="width: 100%; background: #111; color: white; border: 1px solid #444; padding: 4px; font-size: 12px;">`;
+    html += skillOptions;
+    html += '</select>';
+    html += '</div>';
+
+    // Base level
+    html += '<div>';
+    html += '<label style="display: block; font-size: 11px; color: var(--codex-yellow, #ffd700); margin-bottom: 4px; font-weight: bold;">BASE LEVEL (no bonus at or below)</label>';
+    html += `<input type="number" id="travel-base-level" value="${scaling.base_level}" min="1" max="30" style="width: 100%; background: #111; color: white; border: 1px solid #444; padding: 4px; font-size: 12px;">`;
+    html += '</div>';
+
+    // Bonus per level
+    html += '<div>';
+    html += '<label style="display: block; font-size: 11px; color: var(--codex-yellow, #ffd700); margin-bottom: 4px; font-weight: bold;">BONUS PER LEVEL (%)</label>';
+    html += `<input type="number" id="travel-bonus-per-level" value="${(scaling.bonus_per_level * 100).toFixed(0)}" min="1" max="50" step="1" style="width: 100%; background: #111; color: white; border: 1px solid #444; padding: 4px; font-size: 12px;">`;
+    html += '<div style="font-size: 9px; color: #666; margin-top: 2px;">Speed increase per skill level above base</div>';
+    html += '</div>';
+
+    // Max bonus levels
+    html += '<div>';
+    html += '<label style="display: block; font-size: 11px; color: var(--codex-yellow, #ffd700); margin-bottom: 4px; font-weight: bold;">MAX BONUS LEVELS</label>';
+    html += `<input type="number" id="travel-max-bonus-levels" value="${scaling.max_bonus_levels}" min="1" max="20" style="width: 100%; background: #111; color: white; border: 1px solid #444; padding: 4px; font-size: 12px;">`;
+    html += '<div style="font-size: 9px; color: #666; margin-top: 2px;">Caps how many levels above base count</div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    // Preview table
+    html += '<div style="margin-bottom: 16px;">';
+    html += '<div style="font-size: 11px; color: var(--codex-yellow, #ffd700); margin-bottom: 6px; font-weight: bold;">PREVIEW</div>';
+    html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 4px;">';
+    for (let lvl = scaling.base_level; lvl <= scaling.base_level + scaling.max_bonus_levels + 1; lvl++) {
+        const bonus = Math.min(lvl - scaling.base_level, scaling.max_bonus_levels);
+        const mult = bonus > 0 ? (1 + bonus * scaling.bonus_per_level) : 1.0;
+        const isCapped = lvl > scaling.base_level + scaling.max_bonus_levels;
+        const color = bonus <= 0 ? '#888' : isCapped ? '#f97316' : '#4ade80';
+        html += `<div style="background: #111; border: 1px solid #333; padding: 4px 8px; font-size: 11px; border-radius: 2px;">`;
+        html += `<span style="color: ${color};">Lvl ${lvl}</span>`;
+        html += `<span style="color: #ccc; float: right;">${mult.toFixed(2)}x</span>`;
+        if (isCapped) html += `<div style="font-size: 9px; color: #f97316;">capped</div>`;
+        html += '</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    // Save button
+    html += '<div class="codex-btn-group">';
+    html += '<button id="save-travel-config-btn" class="codex-btn codex-btn-primary pixel-clip-sm">SAVE TRAVEL CONFIG</button>';
+    html += '</div>';
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Bind input change events to live-update preview
+    const inputs = ['travel-skill', 'travel-base-level', 'travel-bonus-per-level', 'travel-max-bonus-levels'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', () => {
+                updateTravelConfigFromInputs();
+                renderTravelSystem();
+            });
+        }
+    });
+
+    // Bind save button
+    const saveBtn = document.getElementById('save-travel-config-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveTravelConfig);
+    }
+}
+
+function updateTravelConfigFromInputs() {
+    if (!travelConfig.skill_scaling) {
+        travelConfig.skill_scaling = {};
+    }
+    travelConfig.skill_scaling.skill = document.getElementById('travel-skill').value;
+    travelConfig.skill_scaling.base_level = parseInt(document.getElementById('travel-base-level').value) || 10;
+    travelConfig.skill_scaling.bonus_per_level = (parseInt(document.getElementById('travel-bonus-per-level').value) || 2) / 100;
+    travelConfig.skill_scaling.max_bonus_levels = parseInt(document.getElementById('travel-max-bonus-levels').value) || 5;
+}
+
+async function saveTravelConfig() {
+    updateTravelConfigFromInputs();
+
+    try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (stagingSessionID) {
+            headers['X-Session-ID'] = stagingSessionID;
+        }
+
+        const response = await fetch('/api/systems/travel-config', {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(travelConfig)
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+
+        const result = await response.json();
+
+        if (result.mode === 'staging') {
+            updateChangeCount(result.changes);
+            showStatus('Travel config staged for review', 'success');
+        } else {
+            showStatus('Travel config saved', 'success');
+        }
+    } catch (error) {
+        console.error('Failed to save travel config:', error);
+        showStatus('Failed to save travel config: ' + error.message, 'error');
+    }
 }

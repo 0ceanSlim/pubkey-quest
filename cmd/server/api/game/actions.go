@@ -138,7 +138,7 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	if response.Data == nil {
 		response.Data = make(map[string]interface{})
 	}
-	response.Data["enriched_effects"] = effects.EnrichActiveEffects(session.SaveData.ActiveEffects)
+	response.Data["enriched_effects"] = effects.EnrichActiveEffects(session.SaveData.ActiveEffects, session.SaveData.Stats)
 	response.Data["total_weight"] = status.CalculateTotalWeight(&session.SaveData)
 	response.Data["weight_capacity"] = status.CalculateWeightCapacity(&session.SaveData)
 
@@ -606,7 +606,7 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"spell_slots":           session.SaveData.SpellSlots,
 			"locations_discovered":  session.SaveData.LocationsDiscovered,
 			"music_tracks_unlocked": session.SaveData.MusicTracksUnlocked,
-			"active_effects":        effects.EnrichActiveEffects(session.SaveData.ActiveEffects),
+			"active_effects":        effects.EnrichActiveEffects(session.SaveData.ActiveEffects, session.SaveData.Stats),
 
 			// Add calculated values (NOT persisted - calculated at runtime)
 			"total_weight":    totalWeight,

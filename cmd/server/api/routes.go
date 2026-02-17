@@ -140,6 +140,9 @@ func registerGameDataRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} data.AbilitiesListResponse
 	// @Router /api/abilities [get]
 	mux.HandleFunc("/api/abilities", data.AbilitiesHandler)
+
+	mux.HandleFunc("/api/skills/definitions", data.SkillsDefinitionsHandler)
+	mux.HandleFunc("/api/skills", game.SkillsHandler)
 }
 
 // ============================================================================

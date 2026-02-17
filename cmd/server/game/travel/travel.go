@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"slices"
 	"strings"
 
@@ -54,6 +55,136 @@ type MusicTrack struct {
 	File       string  `json:"file"`
 	UnlocksAt  *string `json:"unlocks_at"`
 	AutoUnlock bool    `json:"auto_unlock"`
+}
+
+// TravelConfig holds travel system configuration loaded from game-data/systems/travel-config.json
+type TravelConfig struct {
+	SkillScaling *types.SkillScaling `json:"skill_scaling"`
+}
+
+// Cached travel config (loaded once on first use)
+var cachedTravelConfig *TravelConfig
+
+// loadTravelConfig loads travel configuration from the systems DB table
+func loadTravelConfig() *TravelConfig {
+	if cachedTravelConfig != nil {
+		return cachedTravelConfig
+	}
+
+	database := db.GetDB()
+	if database == nil {
+		return nil
+	}
+
+	var propsJSON string
+	err := database.QueryRow("SELECT properties FROM systems WHERE id = 'travel-config'").Scan(&propsJSON)
+	if err != nil {
+		log.Printf("⚠️ No travel-config in systems table: %v", err)
+		return nil
+	}
+
+	var config TravelConfig
+	if err := json.Unmarshal([]byte(propsJSON), &config); err != nil {
+		log.Printf("⚠️ Failed to parse travel config: %v", err)
+		return nil
+	}
+
+	cachedTravelConfig = &config
+	return cachedTravelConfig
+}
+
+// skillRatio holds a skill's stat weights (loaded from DB to avoid import cycle)
+type skillRatio struct {
+	Ratio map[string]float64 `json:"ratio"`
+}
+
+// Cached skill ratios for travel package
+var cachedSkillRatios map[string]skillRatio
+
+// getSkillRatio returns the stat ratio for a skill
+func getSkillRatio(skillID string) (map[string]float64, bool) {
+	if cachedSkillRatios == nil {
+		database := db.GetDB()
+		if database == nil {
+			return nil, false
+		}
+
+		var propsJSON string
+		err := database.QueryRow("SELECT properties FROM systems WHERE id = 'skills'").Scan(&propsJSON)
+		if err != nil {
+			return nil, false
+		}
+
+		var skills map[string]skillRatio
+		if err := json.Unmarshal([]byte(propsJSON), &skills); err != nil {
+			return nil, false
+		}
+		cachedSkillRatios = skills
+	}
+
+	skill, ok := cachedSkillRatios[skillID]
+	if !ok {
+		return nil, false
+	}
+	return skill.Ratio, true
+}
+
+// calculateSkillValue computes a skill value from character stats and ratios
+func calculateSkillValue(stats map[string]interface{}, ratio map[string]float64) int {
+	// Normalize stat keys to lowercase (save files use "Strength", ratios use "strength")
+	normalizedStats := make(map[string]interface{}, len(stats))
+	for k, v := range stats {
+		normalizedStats[strings.ToLower(k)] = v
+	}
+
+	var value float64
+	for stat, weight := range ratio {
+		statVal := 10.0
+		if v, ok := normalizedStats[strings.ToLower(stat)]; ok {
+			switch n := v.(type) {
+			case float64:
+				statVal = n
+			case int:
+				statVal = float64(n)
+			case json.Number:
+				if f, err := n.Float64(); err == nil {
+					statVal = f
+				}
+			}
+		}
+		value += statVal * weight
+	}
+	return int(math.Round(value))
+}
+
+// getTravelSpeedMultiplier calculates the travel speed multiplier based on Athletics skill
+func getTravelSpeedMultiplier(stats map[string]interface{}) float64 {
+	config := loadTravelConfig()
+	if config == nil || config.SkillScaling == nil {
+		return 1.0
+	}
+
+	scaling := config.SkillScaling
+	ratio, ok := getSkillRatio(scaling.Skill)
+	if !ok {
+		return 1.0
+	}
+
+	skillValue := calculateSkillValue(stats, ratio)
+
+	// No bonus at or below base level
+	if skillValue <= scaling.BaseLevel {
+		return 1.0
+	}
+
+	// Calculate bonus levels (capped)
+	bonusLevels := skillValue - scaling.BaseLevel
+	if bonusLevels > scaling.MaxBonusLevels {
+		bonusLevels = scaling.MaxBonusLevels
+	}
+
+	// Higher skill = faster travel (multiplier > 1.0)
+	return 1.0 + float64(bonusLevels)*scaling.BonusPerLevel
 }
 
 // GetEnvironmentData looks up location in DB and returns environment data if it's an environment
@@ -310,8 +441,10 @@ func MaybeAdvanceTravelProgress(state *types.SaveFile, minutesElapsed int) *Trav
 		}
 	}
 
-	// Advance progress proportionally
-	state.TravelProgress += float64(minutesElapsed) / float64(env.TravelTime)
+	// Advance progress proportionally (Athletics skill scaling applied)
+	progressIncrement := float64(minutesElapsed) / float64(env.TravelTime)
+	progressIncrement *= getTravelSpeedMultiplier(state.Stats)
+	state.TravelProgress += progressIncrement
 
 	// Check for arrival
 	if state.TravelProgress >= 1.0 {

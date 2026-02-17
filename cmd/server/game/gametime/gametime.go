@@ -177,7 +177,7 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 					"fatigue":        state.Fatigue,
 					"hunger":         state.Hunger,
 					"hp":             state.HP,
-					"active_effects": effects.EnrichActiveEffects(state.ActiveEffects),
+					"active_effects": effects.EnrichActiveEffects(state.ActiveEffects, state.Stats),
 					"auto_pause":     autoPause,
 				},
 			}, nil
@@ -194,7 +194,7 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 			"fatigue":        state.Fatigue,
 			"hunger":         state.Hunger,
 			"hp":             state.HP,
-			"active_effects": effects.EnrichActiveEffects(state.ActiveEffects),
+			"active_effects": effects.EnrichActiveEffects(state.ActiveEffects, state.Stats),
 			"auto_pause":     autoPause,
 		},
 	}, nil

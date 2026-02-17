@@ -1,122 +1,122 @@
 {
-    "Athletics": {
-        "ratio": {
-            "STR": 0.6,
-            "CON": 0.4
-        },
-        "description": "Physical power and endurance. Climbing, jumping, swimming, lifting, and brute-force tasks.",
-        "applies_to": [
-            "Climbing cliffs or ladders",
-            "Swimming across rivers",
-            "Breaking doors or objects",
-            "Jump distance checks",
-            "Physical environmental challenges",
-	    "Shorcuts",
-            "Could scale fatigue accumulation from Athletics",
-            "Mining, Woodcutting"
-        ]
+  "Athletics": {
+    "ratio": {
+      "STR": 0.6,
+      "CON": 0.4
     },
-    "Thieving": {
-        "ratio": {
-            "DEX": 0.7,
-            "WIS": 0.3
-        },
-        "description": "Stealth, sleight of hand, infiltration, lockpicking, trap handling.",
-        "applies_to": [
-            "Sneaking past enemies",
-            "Pickpocketing NPCs",
-            "Lockpicking chests or doors",
-            "Disarming traps",
-            "Planting or swapping items"
-        ]
+    "description": "Physical power and endurance. Climbing, jumping, swimming, lifting, and brute-force tasks.",
+    "applies_to": [
+      "Climbing cliffs or ladders",
+      "Swimming across rivers",
+      "Breaking doors or objects",
+      "Jump distance checks",
+      "Physical environmental challenges",
+      "Shorcuts",
+      "Could scale fatigue accumulation from Athletics",
+      "Mining, Woodcutting"
+    ]
+  },
+  "Thieving": {
+    "ratio": {
+      "DEX": 0.7,
+      "WIS": 0.3
     },
-    "Survival": {
-        "ratio": {
-            "WIS": 0.6,
-            "CON": 0.25,
-            "DEX": 0.15
-        },
-        "description": "Wilderness competence. Tracking, hunting, foraging, endurance travel.",
-        "applies_to": [
-            "Tracking creatures",
-            "Foraging for food",
-            "Navigating harsh environments",
-            "Avoiding natural hazards",
-            "Setting camps",
-            "Fishing"
-        ]
+    "description": "Stealth, sleight of hand, infiltration, lockpicking, trap handling.",
+    "applies_to": [
+      "Sneaking past enemies",
+      "Pickpocketing NPCs",
+      "Lockpicking chests or doors",
+      "Disarming traps",
+      "Planting or swapping items"
+    ]
+  },
+  "Survival": {
+    "ratio": {
+      "WIS": 0.6,
+      "CON": 0.25,
+      "DEX": 0.15
     },
-    "Crafting": {
-        "ratio": {
-            "INT": 0.5,
-            "DEX": 0.3,
-            "STR": 0.2
-        },
-        "description": "Building, repairing, forging, constructing gear and tools.",
-        "applies_to": [
-            "Forging weapons or armor",
-            "Repairing damaged equipment",
-            "Constructing tools",
-            "Crafting ammunition",
-            "Building structures or devices"
-            "Smithing, Fletching"
-        ]
+    "description": "Wilderness competence. Tracking, hunting, foraging, endurance travel.",
+    "applies_to": [
+      "Tracking creatures",
+      "Foraging for food",
+      "Navigating harsh environments",
+      "Avoiding natural hazards",
+      "Setting camps",
+      "Fishing"
+    ]
+  },
+  "Crafting": {
+    "ratio": {
+      "INT": 0.5,
+      "DEX": 0.3,
+      "STR": 0.2
     },
-    "Medicine": {
-        "ratio": {
-            "INT": 0.6,
-            "WIS": 0.4
-        },
-        "description": "Healing, herbal knowledge, treating wounds, creating remedies.",
-        "applies_to": [
-            "Stabilizing wounded allies",
-            "Creating potions or antidotes",
-            "Diagnosing illnesses",
-            "Treating poison or disease",
-            "Improving rest recovery"
-        ]
+    "description": "Building, repairing, forging, constructing gear and tools.",
+    "applies_to": [
+      "Forging weapons or armor",
+      "Repairing damaged equipment",
+      "Constructing tools",
+      "Crafting ammunition",
+      "Building structures or devices",
+      "Smithing, Fletching"
+    ]
+  },
+  "Medicine": {
+    "ratio": {
+      "INT": 0.6,
+      "WIS": 0.4
     },
-    "Perception": {
-        "ratio": {
-            "WIS": 0.65,
-            "DEX": 0.35
-        },
-        "description": "Awareness and environmental sensitivity. Spotting danger and hidden details.",
-        "applies_to": [
-            "Detecting hidden enemies",
-            "Spotting traps",
-            "Hearing distant sounds",
-            "Reading subtle environmental clues",
-            "Initiative or ambush resistance"
-        ]
+    "description": "Healing, herbal knowledge, treating wounds, creating remedies.",
+    "applies_to": [
+      "Stabilizing wounded allies",
+      "Creating potions or antidotes",
+      "Diagnosing illnesses",
+      "Treating poison or disease",
+      "Improving rest recovery"
+    ]
+  },
+  "Perception": {
+    "ratio": {
+      "WIS": 0.65,
+      "DEX": 0.35
     },
-    "Influence": {
-        "ratio": {
-            "CHA": 0.7,
-            "INT": 0.3
-        },
-        "description": "Social power. Persuasion, deception, intimidation, performance.",
-        "applies_to": [
-            "Negotiating prices",
-            "Convincing NPCs",
-            "Lying or misleading others",
-            "Intimidating opponents",
-            "Performing for morale or reputation"
-        ]
+    "description": "Awareness and environmental sensitivity. Spotting danger and hidden details.",
+    "applies_to": [
+      "Detecting hidden enemies",
+      "Spotting traps",
+      "Hearing distant sounds",
+      "Reading subtle environmental clues",
+      "Initiative or ambush resistance"
+    ]
+  },
+  "Influence": {
+    "ratio": {
+      "CHA": 0.7,
+      "INT": 0.3
     },
-    "Resolve": {
-        "ratio": {
-            "CON": 0.5,
-            "WIS": 0.3,
-            "INT": 0.2
-        },
-        "description": "Mental toughness and composure. Focus under pressure and resistance to fear.",
-        "applies_to": [
-            "Resisting fear effects",
-            "Maintaining spell concentration",
-            "Resisting charm or mental influence",
-            "Enduring long dungeons",
-            "Staying conscious at low health"
-        ]
-    }
+    "description": "Social power. Persuasion, deception, intimidation, performance.",
+    "applies_to": [
+      "Negotiating prices",
+      "Convincing NPCs",
+      "Lying or misleading others",
+      "Intimidating opponents",
+      "Performing for morale or reputation"
+    ]
+  },
+  "Resolve": {
+    "ratio": {
+      "CON": 0.5,
+      "WIS": 0.3,
+      "INT": 0.2
+    },
+    "description": "Mental toughness and composure. Focus under pressure and resistance to fear.",
+    "applies_to": [
+      "Resisting fear effects",
+      "Maintaining spell concentration",
+      "Resisting charm or mental influence",
+      "Enduring long dungeons",
+      "Staying conscious at low health"
+    ]
+  }
 }

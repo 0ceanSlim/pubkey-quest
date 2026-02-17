@@ -4,12 +4,117 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
 )
+
+// skillRatio holds a skill's stat weights (loaded from DB to avoid import cycle with data package)
+type skillRatio struct {
+	Ratio map[string]float64 `json:"ratio"`
+}
+
+// Cached skill ratios (loaded once on first use)
+var cachedSkillRatios map[string]skillRatio
+
+// getSkillRatio returns the stat ratio for a skill, loading from DB on first call
+func getSkillRatio(skillID string) (map[string]float64, bool) {
+	if cachedSkillRatios == nil {
+		database := db.GetDB()
+		if database == nil {
+			return nil, false
+		}
+
+		var propsJSON string
+		err := database.QueryRow("SELECT properties FROM systems WHERE id = 'skills'").Scan(&propsJSON)
+		if err != nil {
+			log.Printf("⚠️ Failed to load skill definitions for scaling: %v", err)
+			return nil, false
+		}
+
+		var skills map[string]skillRatio
+		if err := json.Unmarshal([]byte(propsJSON), &skills); err != nil {
+			log.Printf("⚠️ Failed to parse skill definitions: %v", err)
+			return nil, false
+		}
+		cachedSkillRatios = skills
+	}
+
+	skill, ok := cachedSkillRatios[skillID]
+	if !ok {
+		return nil, false
+	}
+	return skill.Ratio, true
+}
+
+// calculateSkillValue computes a skill value from character stats and ratios
+func calculateSkillValue(stats map[string]interface{}, ratio map[string]float64) int {
+	// Normalize stat keys to lowercase (save files use "Strength", ratios use "strength")
+	normalizedStats := make(map[string]interface{}, len(stats))
+	for k, v := range stats {
+		normalizedStats[strings.ToLower(k)] = v
+	}
+
+	var value float64
+	for stat, weight := range ratio {
+		statVal := 10.0 // default
+		if v, ok := normalizedStats[strings.ToLower(stat)]; ok {
+			switch n := v.(type) {
+			case float64:
+				statVal = n
+			case int:
+				statVal = float64(n)
+			case json.Number:
+				if f, err := n.Float64(); err == nil {
+					statVal = f
+				}
+			}
+		}
+		value += statVal * weight
+	}
+	return int(math.Round(value))
+}
+
+// GetEffectSkillScaling loads an effect's skill scaling config (or nil if none)
+func GetEffectSkillScaling(effectID string) *types.SkillScaling {
+	effectData, err := LoadEffectData(effectID)
+	if err != nil {
+		return nil
+	}
+	return effectData.SkillScaling
+}
+
+// applySkillScaling adjusts a tick interval based on skill scaling and character stats
+func applySkillScaling(tickInterval int, scaling *types.SkillScaling, stats map[string]interface{}) int {
+	if scaling == nil {
+		return tickInterval
+	}
+
+	ratio, ok := getSkillRatio(scaling.Skill)
+	if !ok {
+		return tickInterval
+	}
+
+	skillValue := calculateSkillValue(stats, ratio)
+
+	// No bonus at or below base level
+	if skillValue <= scaling.BaseLevel {
+		return tickInterval
+	}
+
+	// Calculate bonus levels (capped)
+	bonusLevels := skillValue - scaling.BaseLevel
+	if bonusLevels > scaling.MaxBonusLevels {
+		bonusLevels = scaling.MaxBonusLevels
+	}
+
+	// Apply multiplier: higher skill = longer interval = slower accumulation
+	multiplier := 1.0 + float64(bonusLevels)*scaling.BonusPerLevel
+	return int(math.Floor(float64(tickInterval) * multiplier))
+}
 
 // ApplyEffect applies an effect to the character (from game-data/effects/{effectID}.json)
 func ApplyEffect(state *types.SaveFile, effectID string) error {
@@ -224,6 +329,11 @@ func TickEffects(state *types.SaveFile, minutesElapsed int) []types.EffectMessag
 						log.Printf("⚠️ Failed to load hunger tick interval for %s: %v", lookupID, err)
 					}
 				}
+			}
+
+			// Apply skill scaling to tick interval (e.g., Athletics slows fatigue)
+			if scaling := GetEffectSkillScaling(activeEffect.EffectID); scaling != nil {
+				tickInterval = applySkillScaling(tickInterval, scaling, state.Stats)
 			}
 
 			if tickInterval > 0 {
@@ -470,8 +580,9 @@ func RemoveEffect(state *types.SaveFile, effectID string) {
 }
 
 // EnrichActiveEffects adds template data (name, category, stat_modifiers) to active effects
-// Used when sending active_effects to the frontend for display
-func EnrichActiveEffects(activeEffects []types.ActiveEffect) []types.EnrichedEffect {
+// Used when sending active_effects to the frontend for display.
+// Stats parameter is used to apply skill scaling to tick intervals for accurate UI display.
+func EnrichActiveEffects(activeEffects []types.ActiveEffect, stats map[string]interface{}) []types.EnrichedEffect {
 	enriched := make([]types.EnrichedEffect, 0, len(activeEffects))
 
 	for _, ae := range activeEffects {
@@ -499,7 +610,12 @@ func EnrichActiveEffects(activeEffects []types.ActiveEffect) []types.EnrichedEff
 				}
 
 				if modifier.Type == "periodic" && modifier.TickInterval > 0 {
-					ee.TickInterval = float64(modifier.TickInterval)
+					interval := modifier.TickInterval
+					// Apply skill scaling so the frontend circle matches the actual tick rate
+					if effectData.SkillScaling != nil {
+						interval = applySkillScaling(interval, effectData.SkillScaling, stats)
+					}
+					ee.TickInterval = float64(interval)
 				}
 			}
 		}

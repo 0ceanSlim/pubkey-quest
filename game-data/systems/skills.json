@@ -1,0 +1,71 @@
+{
+  "athletics": {
+    "description": "Physical power and endurance. Climbing, jumping, swimming, lifting, and brute-force tasks.",
+    "name": "Athletics",
+    "ratio": {
+      "constitution": 0.35,
+      "strength": 0.5,
+      "dexterity": 0.15
+    }
+  },
+  "crafting": {
+    "description": "Building, repairing, forging, constructing gear and tools.",
+    "name": "Crafting",
+    "ratio": {
+      "dexterity": 0.3,
+      "intelligence": 0.4,
+      "strength": 0.15,
+      "wisdom": 0.15
+    }
+  },
+  "influence": {
+    "description": "Social power. Persuasion, deception, intimidation, performance.",
+    "name": "Influence",
+    "ratio": {
+      "charisma": 0.7,
+      "intelligence": 0.3
+    }
+  },
+  "medicine": {
+    "description": "Healing, herbal knowledge, treating wounds, creating remedies.",
+    "name": "Medicine",
+    "ratio": {
+      "intelligence": 0.6,
+      "wisdom": 0.4
+    }
+  },
+  "perception": {
+    "description": "Awareness and environmental sensitivity. Spotting danger and hidden details.",
+    "name": "Perception",
+    "ratio": {
+      "dexterity": 0.35,
+      "wisdom": 0.65
+    }
+  },
+  "resolve": {
+    "description": "Mental toughness and composure. Focus under pressure and resistance to fear.",
+    "name": "Resolve",
+    "ratio": {
+      "constitution": 0.5,
+      "intelligence": 0.2,
+      "wisdom": 0.3
+    }
+  },
+  "survival": {
+    "description": "Wilderness competence. Tracking, hunting, foraging, endurance travel.",
+    "name": "Survival",
+    "ratio": {
+      "constitution": 0.25,
+      "dexterity": 0.15,
+      "wisdom": 0.6
+    }
+  },
+  "thieving": {
+    "description": "Stealth, sleight of hand, infiltration, lockpicking, trap handling.",
+    "name": "Thieving",
+    "ratio": {
+      "dexterity": 0.7,
+      "wisdom": 0.3
+    }
+  }
+}

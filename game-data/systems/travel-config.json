@@ -1,0 +1,8 @@
+{
+  "skill_scaling": {
+    "skill": "athletics",
+    "base_level": 10,
+    "bonus_per_level": 0.02,
+    "max_bonus_levels": 5
+  }
+}

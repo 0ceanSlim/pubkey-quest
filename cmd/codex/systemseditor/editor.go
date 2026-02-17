@@ -23,9 +23,11 @@ type Editor struct {
 	StartingLocations interface{} // starting-locations.json
 
 	// Other systems
-	Advancement interface{} // advancement.json
-	Combat      interface{} // combat.json
-	Encumbrance interface{} // encumbrance.json
+	Advancement  interface{} // advancement.json
+	Combat       interface{} // combat.json
+	Encumbrance  interface{} // encumbrance.json
+	Skills       interface{} // skills.json
+	TravelConfig interface{} // travel-config.json
 
 	Config *config.Config
 }
@@ -91,6 +93,12 @@ func (e *Editor) LoadAll() error {
 	}
 	if err := e.loadJSONFile("game-data/systems/encumbrance.json", &e.Encumbrance); err != nil {
 		fmt.Printf("⚠️  Warning: failed to load encumbrance.json: %v\n", err)
+	}
+	if err := e.loadJSONFile("game-data/systems/skills.json", &e.Skills); err != nil {
+		fmt.Printf("⚠️  Warning: failed to load skills.json: %v\n", err)
+	}
+	if err := e.loadJSONFile("game-data/systems/travel-config.json", &e.TravelConfig); err != nil {
+		fmt.Printf("⚠️  Warning: failed to load travel-config.json: %v\n", err)
 	}
 
 	return nil

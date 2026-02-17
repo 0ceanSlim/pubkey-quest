@@ -11,6 +11,7 @@ import { logger } from '../lib/logger.js';
 import { getGameStateSync } from '../state/gameState.js';
 import { loadItemsFromDatabase } from '../data/items.js';
 import { eventBus } from '../lib/events.js';
+import { gameAPI } from '../lib/api.js';
 import {
     getClassResource,
     calculateMaxResource,
@@ -562,8 +563,38 @@ async function updateStatsTab(character) {
         });
     }
 
+    // Fetch and display skills
+    fetchAndDisplaySkills();
+
     // Render detailed effects list
     renderStatsEffectsList(character.active_effects || []);
+}
+
+/**
+ * Fetch skill values from backend and update DOM
+ */
+async function fetchAndDisplaySkills() {
+    if (!gameAPI.initialized) return;
+
+    try {
+        const response = await fetch(
+            `/api/skills?npub=${encodeURIComponent(gameAPI.npub)}&save_id=${encodeURIComponent(gameAPI.saveID)}`
+        );
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const skills = data.skills || {};
+
+        const skillIds = ['athletics', 'thieving', 'survival', 'crafting', 'medicine', 'perception', 'influence', 'resolve'];
+        for (const id of skillIds) {
+            const el = document.getElementById(`skill-${id}`);
+            if (el && skills[id]) {
+                el.textContent = skills[id].value;
+            }
+        }
+    } catch (error) {
+        logger.debug('Failed to fetch skills:', error);
+    }
 }
 
 /**

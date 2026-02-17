@@ -443,7 +443,7 @@ class EffectsDisplay {
             // Calculate progress to next fatigue tick using circle circumference
             // Circle radius is 15, circumference = 2 * π * 15 ≈ 94.25
             const circumference = 94.25;
-            const progress = accumulator / tickInterval;
+            const progress = Math.min(accumulator / tickInterval, 1.0);
             const offset = circumference * (1 - progress);
             // console.log('Fatigue radial update:', { progress, offset, circumference });
             progressEl.setAttribute('stroke-dasharray', String(circumference));
@@ -481,7 +481,7 @@ class EffectsDisplay {
             // Calculate progress to next hunger tick using circle circumference
             // Circle radius is 15, circumference = 2 * π * 15 ≈ 94.25
             const circumference = 94.25;
-            const progress = accumulator / tickInterval;
+            const progress = Math.min(accumulator / tickInterval, 1.0);
             const offset = circumference * (1 - progress);
             // console.log('Hunger radial update:', { progress, offset, circumference, hungerLevel });
             progressEl.setAttribute('stroke-dasharray', String(circumference));
@@ -510,15 +510,17 @@ class EffectsDisplay {
         for (const effect of activeEffects) {
             if (effect.effect_id === 'fatigue-accumulation') {
                 fatigueAccumulator = effect.tick_accumulator || 0;
+                // Use skill-scaled tick_interval from backend if available
+                if (effect.tick_interval > 0) fatigueInterval = effect.tick_interval;
             } else if (effect.effect_id === 'hunger-accumulation-stuffed') {
                 hungerAccumulator = effect.tick_accumulator || 0;
-                hungerInterval = 360; // 6 hours
+                hungerInterval = effect.tick_interval > 0 ? effect.tick_interval : 360;
             } else if (effect.effect_id === 'hunger-accumulation-wellfed') {
                 hungerAccumulator = effect.tick_accumulator || 0;
-                hungerInterval = 240; // 4 hours
+                hungerInterval = effect.tick_interval > 0 ? effect.tick_interval : 240;
             } else if (effect.effect_id === 'hunger-accumulation-hungry') {
                 hungerAccumulator = effect.tick_accumulator || 0;
-                hungerInterval = 240; // 4 hours
+                hungerInterval = effect.tick_interval > 0 ? effect.tick_interval : 240;
             }
         }
 
