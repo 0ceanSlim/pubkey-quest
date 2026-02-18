@@ -581,8 +581,8 @@ func RemoveEffect(state *types.SaveFile, effectID string) {
 
 // EnrichActiveEffects adds template data (name, category, stat_modifiers) to active effects
 // Used when sending active_effects to the frontend for display.
-// Stats parameter is used to apply skill scaling to tick intervals for accurate UI display.
-func EnrichActiveEffects(activeEffects []types.ActiveEffect, stats map[string]interface{}) []types.EnrichedEffect {
+// State is used to apply skill scaling and hunger-level dynamic tick intervals for accurate UI display.
+func EnrichActiveEffects(activeEffects []types.ActiveEffect, state *types.SaveFile) []types.EnrichedEffect {
 	enriched := make([]types.EnrichedEffect, 0, len(activeEffects))
 
 	for _, ae := range activeEffects {
@@ -611,9 +611,33 @@ func EnrichActiveEffects(activeEffects []types.ActiveEffect, stats map[string]in
 
 				if modifier.Type == "periodic" && modifier.TickInterval > 0 {
 					interval := modifier.TickInterval
+
+					// Hunger accumulation: use the interval for the CURRENT hunger level
+					// (same logic as TickEffects — the active effect ID may not match current level)
+					if ae.EffectID == "hunger-accumulation-stuffed" ||
+						ae.EffectID == "hunger-accumulation-wellfed" ||
+						ae.EffectID == "hunger-accumulation-hungry" {
+						var lookupID string
+						switch state.Hunger {
+						case 3:
+							lookupID = "hunger-accumulation-stuffed"
+						case 2:
+							lookupID = "hunger-accumulation-wellfed"
+						case 1:
+							lookupID = "hunger-accumulation-hungry"
+						case 0:
+							interval = 0 // starving — no tick
+						}
+						if lookupID != "" {
+							if _, _, lvlInterval, _, err := GetEffectTemplate(lookupID, 0); err == nil {
+								interval = lvlInterval
+							}
+						}
+					}
+
 					// Apply skill scaling so the frontend circle matches the actual tick rate
 					if effectData.SkillScaling != nil {
-						interval = applySkillScaling(interval, effectData.SkillScaling, stats)
+						interval = applySkillScaling(interval, effectData.SkillScaling, state.Stats)
 					}
 					ee.TickInterval = float64(interval)
 				}

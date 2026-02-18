@@ -209,7 +209,7 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"spell_slots":           sess.SaveData.SpellSlots,
 		"locations_discovered":  sess.SaveData.LocationsDiscovered,
 		"music_tracks_unlocked": sess.SaveData.MusicTracksUnlocked,
-		"active_effects":        effects.EnrichActiveEffects(sess.SaveData.ActiveEffects, sess.SaveData.Stats),
+		"active_effects":        effects.EnrichActiveEffects(sess.SaveData.ActiveEffects, &sess.SaveData),
 
 		// Add calculated values (NOT persisted - calculated at runtime)
 		"total_weight":    totalWeight,
