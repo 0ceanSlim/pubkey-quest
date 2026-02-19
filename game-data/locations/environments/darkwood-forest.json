@@ -3,11 +3,11 @@
   "name": "Darkwood Forest",
   "type": "environment",
   "environment_type": "forest",
+  "music": "Home In The Forest",
   "connects": ["kingdom-south", "verdant-north"],
   "description": "Ancient oak and elm trees tower overhead, their thick canopy filtering sunlight into dancing patterns on the forest floor. The air is rich with the scent of moss and decay, while distant bird calls echo through the shadowy depths.",
   "travel_time": 1200,
   "travel_difficulty": "moderate",
-  "required_rations": 1,
   "resources": {
     "common": [
       {

@@ -183,9 +183,16 @@ async function startTravel(environmentId) {
                 window.timeClock.play();
             }
 
-            // Refresh state and displays
+            // Refresh state and displays (backend has already unlocked music in save data)
             await refreshGameState();
             await updateAllDisplays();
+
+            // Show music unlock notifications
+            if (result.data?.music_unlocked?.length > 0) {
+                for (const track of result.data.music_unlocked) {
+                    showMessage(`🎵 Music unlocked: ${track}`, 'info');
+                }
+            }
         } else {
             showMessage(result.message || result.error || 'Failed to start travel', 'error');
         }

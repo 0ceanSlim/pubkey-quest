@@ -3,11 +3,11 @@
   "name": "Sunscorch Desert",
   "type": "environment",
   "environment_type": "desert",
+  "music": "Eternal Sunset",
   "connects": ["goldenhaven-east", "dusthaven-west"],
   "description": "Endless dunes of golden sand stretch to the horizon under a merciless sun. The air shimmers with heat waves, and only the hardiest creatures survive in this harsh wasteland. Ancient ruins occasionally emerge from the shifting sands.",
   "travel_time": 960,
   "travel_difficulty": "very_hard",
-  "required_rations": 3,
   "resources": {
     "common": [
       {

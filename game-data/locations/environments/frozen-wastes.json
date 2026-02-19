@@ -3,11 +3,11 @@
   "name": "Frozen Wastes",
   "type": "environment",
   "environment_type": "arctic",
+  "music": "Pondering",
   "connects": ["frosthold-south", "ironpeak-south"],
   "description": "An endless expanse of snow and ice stretches to the horizon. The bitter wind cuts through even the warmest clothing, and the only sounds are the crunch of snow underfoot and the distant howl of arctic predators.",
   "travel_time": 1440,
   "travel_difficulty": "very_hard",
-  "required_rations": 3,
   "resources": {
     "common": [
       {

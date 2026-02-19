@@ -3,6 +3,7 @@
   "name": "Merchant's Highway",
   "type": "environment",
   "environment_type": "urban",
+  "music": "Celtic Rhythm",
   "connects": ["kingdom-east", "goldenhaven-west"],
   "description": "A well-maintained road connects the kingdom to the eastern trade city. Merchant caravans, travelers, and pilgrims share the wide stone-paved highway dotted with inns and way stations.",
   "travel_time": 480,

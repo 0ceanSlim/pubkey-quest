@@ -3,11 +3,11 @@
   "name": "Shadowmere Wetlands",
   "type": "environment",
   "environment_type": "swamp",
+  "music": "Calm Waters",
   "connects": ["verdant-west", "marshlight-east"],
   "description": "These southern wetlands are darker and more mysterious than their northern cousins. Ancient willow trees droop their branches into black water, and phosphorescent fungi cast an eerie glow in the perpetual twilight.",
   "travel_time": 672,
   "travel_difficulty": "hard",
-  "required_rations": 2,
   "resources": {
     "common": [
       {

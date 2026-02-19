@@ -3,11 +3,11 @@
   "name": "Windswept Hills",
   "type": "environment",
   "environment_type": "hill",
+  "music": "Endless Pastures",
   "connects": ["kingdom-west", "millhaven-east"],
   "description": "Rolling green hills stretch as far as the eye can see, dotted with clusters of wildflowers and ancient standing stones. The wind carries the scent of wild grass and distant rain.",
   "travel_time": 480,
   "travel_difficulty": "easy",
-  "required_rations": 1,
   "resources": {
     "common": [
       {

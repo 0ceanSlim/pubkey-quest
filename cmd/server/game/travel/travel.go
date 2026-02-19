@@ -303,6 +303,9 @@ func HandleStartTravel(state *types.SaveFile, params map[string]interface{}) (*t
 	state.TravelStopped = false
 	state.Building = ""
 
+	// Unlock music track for this environment (if not already unlocked)
+	musicUnlocked := checkMusicUnlocks(state, envID)
+
 	log.Printf("🚶 Started travel through %s: %s → %s (travel_time: %d min)",
 		env.Name, endpoints.OriginCity, endpoints.DestCity, env.TravelTime)
 
@@ -318,6 +321,7 @@ func HandleStartTravel(state *types.SaveFile, params map[string]interface{}) (*t
 			"dest_city_name":   destCityName,
 			"origin_city":      endpoints.OriginCity,
 			"travel_progress":  0.0,
+			"music_unlocked":   musicUnlocked,
 		},
 	}, nil
 }

@@ -425,11 +425,16 @@ function displayTravelView(state, envData) {
     const progressPct = Math.min(Math.floor(travelProgress * 100), 100);
     const timeRemainingStr = formatTravelTimeRemaining(travelTime, travelProgress);
 
-    // Update scene image (use environment type or generic)
+    // Update scene image - try environment-specific image, fall back to merchants-highway
     const sceneImage = document.getElementById('scene-image');
     if (sceneImage) {
-        sceneImage.src = envData.image || '/res/img/locations/travel.png';
+        const envId = envData.id || state.location.current;
+        sceneImage.src = `/res/img/environments/${envId}.png`;
         sceneImage.alt = envName;
+        sceneImage.onerror = function() {
+            this.onerror = null;
+            this.src = '/res/img/environments/merchants-highway.png';
+        };
     }
 
     // Update city name to show environment
@@ -447,10 +452,17 @@ function displayTravelView(state, envData) {
     // Update time display
     updateTimeDisplay();
 
-    // Show environment description
-    if (envDescription && lastDisplayedLocation !== state.location.current) {
-        showActionText(envDescription, 'white');
+    // Show environment description and unlock/play music on first entry
+    if (lastDisplayedLocation !== state.location.current) {
+        if (envDescription) {
+            showActionText(envDescription, 'white');
+        }
         lastDisplayedLocation = state.location.current;
+
+        // Play the environment's music track (unlocked by backend on start_travel)
+        if (window.musicSystem) {
+            window.musicSystem.playLocationMusic();
+        }
     }
 
     const isStopped = state.location?.travel_stopped || false;

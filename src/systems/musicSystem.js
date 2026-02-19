@@ -323,6 +323,7 @@ export function checkAndUnlockLocationMusic() {
 window.musicSystem = {
     playTrack,
     playLocationMusic,
+    checkAndUnlockLocationMusic,
     stopMusic,
     pauseMusic,
     resumeMusic,

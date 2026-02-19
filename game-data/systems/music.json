@@ -58,6 +58,41 @@
       "title": "Citadel in the Mountains",
       "file": "/res/aud/Citadel in the Mountains.mp3",
       "unlocks_at": "cragspire-mountains"
+    },
+    {
+      "title": "Home In The Forest",
+      "file": "/res/aud/Home In The Forest.mp3",
+      "unlocks_at": "darkwood-forest"
+    },
+    {
+      "title": "Pondering",
+      "file": "/res/aud/Pondering.mp3",
+      "unlocks_at": "frozen-wastes"
+    },
+    {
+      "title": "Celtic Rhythm",
+      "file": "/res/aud/Celtic Rhythm.mp3",
+      "unlocks_at": "merchants-highway"
+    },
+    {
+      "title": "Calm Waters",
+      "file": "/res/aud/Calm Waters.mp3",
+      "unlocks_at": "shadowmere-wetlands"
+    },
+    {
+      "title": "Medieval Jubilee",
+      "file": "/res/aud/Medieval Jubilee.mp3",
+      "unlocks_at": "suncrest-coastlands"
+    },
+    {
+      "title": "Eternal Sunset",
+      "file": "/res/aud/Eternal Sunset.mp3",
+      "unlocks_at": "sunscorch-desert"
+    },
+    {
+      "title": "Endless Pastures",
+      "file": "/res/aud/Endless Pastures.mp3",
+      "unlocks_at": "windswept-hills"
     }
   ]
 }

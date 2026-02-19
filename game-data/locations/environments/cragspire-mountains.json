@@ -8,7 +8,6 @@
   "description": "Towering peaks pierce the clouds, their snow-capped summits gleaming in the sunlight. Rocky paths wind precariously along cliff faces, while the thin air makes every breath a struggle.",
   "travel_time": 1200,
   "travel_difficulty": "very_hard",
-  "required_rations": 2,
   "resources": {
     "common": [
       {
