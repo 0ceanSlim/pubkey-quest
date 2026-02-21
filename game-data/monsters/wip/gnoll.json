@@ -1,0 +1,20 @@
+{
+  "id": 49,
+  "name": "Gnoll",
+  "challenge_rating": 0.5,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 15,
+  "hit_points": 22,
+  "alignment": "chaotic evil",
+  "tags": [
+    "Gnoll"
+  ],
+  "img": "/static/img/monster/gnoll.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "hill",
+    "urban"
+  ]
+}

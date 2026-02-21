@@ -1,16 +1,157 @@
 {
-  "id": 122,
+  "id": "wight",
   "name": "Wight",
-  "challenge_rating": 3.0,
+  "challenge_rating": 3,
+  "xp": 700,
+  "kill_bonus_xp": 175,
   "type": "Undead",
   "size": "Medium",
   "armor_class": 14,
   "hit_points": 45,
+  "hp_dice": "6d8+18",
   "alignment": "neutral evil",
+  "tags": ["Undead"],
   "img": "/static/img/monster/wight.svg",
-  "enviornment": [
-    "mountain",
-    "swamp",
-    "urban"
-  ]
+  "environment": ["dungeon", "cave", "graveyard"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 15,
+    "dexterity": 14,
+    "constitution": 16,
+    "intelligence": 10,
+    "wisdom": 13,
+    "charisma": 15
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 3,
+    "stealth": 4
+  },
+
+  "damage_resistances": ["necrotic", "bludgeoning", "piercing", "slashing"],
+  "damage_immunities": ["poison"],
+  "damage_vulnerabilities": [],
+  "condition_immunities": ["exhaustion", "poisoned"],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 13
+  },
+
+  "preferred_range": 1,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The wight makes two longsword attacks or two longbow attacks. It can use its Life Drain in place of one longsword attack.",
+      "attacks": 2
+    },
+    {
+      "name": "Longsword",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 2,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Longbow",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 4,
+      "range_long": 6,
+      "hit": {
+        "dice": "1d8",
+        "mod": 2,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Life Drain",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "necrotic",
+        "special": {
+          "type": "save",
+          "ability": "constitution",
+          "dc": 13,
+          "effect": "max_hp_reduction",
+          "description": "On a failed save, the target's hit point maximum is reduced by an amount equal to the damage taken. The reduction lasts until the target finishes a long rest."
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Sunlight Sensitivity",
+      "description": "While in sunlight, the wight has disadvantage on attack rolls and Wisdom (Perception) checks that rely on sight.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 20] }
+    ],
+    "rolls": 2,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 60,
+        "entries": [
+          { "item": "longsword",           "weight": 25, "quantity": [1, 1] },
+          { "item": "studded-leather-vest","weight": 15, "quantity": [1, 1] },
+          { "item": "nothing",             "weight": 60 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 30,
+        "entries": [
+          { "item": "healing", "weight": 60, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 10,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 1,
+    "target_priority": "lowest_hp",
+    "relentless": true
+  }
 }

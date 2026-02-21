@@ -1418,17 +1418,19 @@ These need to be tracked in the save file and tied to the rest system.
 
 **Goal**: Working combat for basic melee encounters
 
-- [ ] Add full stat blocks to 30 priority monsters (goblins, wolves, skeletons, zombies, bandits, orcs, trolls, etc.)
-- [ ] Add XP values and loot tables to these monsters
-- [ ] Combat state schema added to save file
-- [ ] Initiative calculation (player d20+DEX, monster DEX mod)
+- [ ] Add full stat blocks to priority monsters (see Section 27)
+- [ ] Add XP values and loot tables to those monsters
+- [ ] Combat session memory struct in Go (keyed by npub, never written to save file)
+- [ ] Initiative calculation (player d20+DEX, monster athletics-derived modifier)
 - [ ] Basic attack resolution: d20 + STR/DEX + prof vs AC
 - [ ] Basic damage: weapon dice + modifier
-- [ ] HP tracking for player and monster
-- [ ] Win condition (monster 0 HP), Lose condition (player 0 HP → death saves)
-- [ ] Combat log (text narrative of what happened)
-- [ ] XP award + level up check
-- [ ] Basic loot roll
+- [ ] HP tracking for player and monster in session memory
+- [ ] Win condition: monster reaches 0 HP → loot roll → loot pickup UI → return to world
+- [ ] Lose condition: player reaches 0 HP → death saving throws → on 3 failures apply death state to session memory, prompt player to save
+- [ ] Combat log (text narrative in left message box)
+- [ ] XP applied to session memory per hit; check advancement thresholds before and after each gain — if a level boundary is crossed, set `level_up_pending: true` in session memory and show level-up screen after combat ends
+- [ ] Save file only stores raw `experience` value; level is derived at runtime from `advancement.json`
+- [ ] Basic loot roll using tiered drop table format (Section 20)
 
 ### Phase 2: Weapon Properties
 

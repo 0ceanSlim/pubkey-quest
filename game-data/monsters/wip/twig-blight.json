@@ -1,0 +1,15 @@
+{
+  "id": 7,
+  "name": "Twig Blight",
+  "challenge_rating": 0.125,
+  "type": "Plant",
+  "size": "Small",
+  "armor_class": 13,
+  "hit_points": 4,
+  "alignment": "neutral evil",
+  "img": "/static/img/monster/twig-blight.svg",
+  "enviornment": [
+    "forest",
+    "swamp"
+  ]
+}

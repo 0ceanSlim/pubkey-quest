@@ -1,20 +1,148 @@
 {
-  "id": 50,
+  "id": "lizardfolk",
   "name": "Lizardfolk",
   "challenge_rating": 0.5,
+  "xp": 100,
   "type": "Humanoid",
   "size": "Medium",
   "armor_class": 15,
   "hit_points": 22,
+  "hp_dice": "4d8+4",
   "alignment": "neutral",
-  "tags": [
-    "Lizardfolk"
-  ],
+  "tags": ["Lizardfolk"],
   "img": "/static/img/monster/lizardfolk.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "swamp",
-    "urban"
-  ]
+  "environment": ["swamp", "coast"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 30,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 15,
+    "dexterity": 10,
+    "constitution": 13,
+    "intelligence": 7,
+    "wisdom": 12,
+    "charisma": 7
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 3,
+    "stealth": 2,
+    "survival": 5
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 13
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The lizardfolk makes two melee attacks, each one with a different weapon.",
+      "attacks": 2
+    },
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 2,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Javelin",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Hold Breath",
+      "description": "The lizardfolk can hold its breath for 15 minutes.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 70,
+        "entries": [
+          { "item": "javelin",  "weight": 30, "quantity": [1, 2] },
+          { "item": "shield",   "weight": 20, "quantity": [1, 1] },
+          { "item": "nothing",  "weight": 50 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 25,
+        "entries": [
+          { "item": "healing", "weight": 60, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

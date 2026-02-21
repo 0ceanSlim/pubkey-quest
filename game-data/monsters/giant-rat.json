@@ -1,0 +1,93 @@
+{
+  "id": "giant-rat",
+  "name": "Giant Rat",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Beast",
+  "size": "Small",
+  "armor_class": 12,
+  "hit_points": 7,
+  "hp_dice": "2d6",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/giant-rat.svg",
+  "environment": ["dungeon", "cave", "urban"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 30
+  },
+
+  "stats": {
+    "strength": 7,
+    "dexterity": 15,
+    "constitution": 11,
+    "intelligence": 2,
+    "wisdom": 10,
+    "charisma": 4
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 30,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "description": "The rat has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated.",
+      "type": "passive"
+    },
+    {
+      "name": "Keen Smell",
+      "description": "The rat has advantage on Wisdom (Perception) checks that rely on smell.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.50,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

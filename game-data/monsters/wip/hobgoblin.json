@@ -1,0 +1,20 @@
+{
+  "id": 36,
+  "name": "Hobgoblin",
+  "challenge_rating": 0.5,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 18,
+  "hit_points": 11,
+  "alignment": "lawful evil",
+  "tags": [
+    "Goblinoid"
+  ],
+  "img": "/static/img/monster/hobgoblin.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "mountain",
+    "urban"
+  ]
+}

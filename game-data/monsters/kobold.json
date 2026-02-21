@@ -1,20 +1,126 @@
 {
-  "id": 8,
+  "id": "kobold",
   "name": "Kobold",
   "challenge_rating": 0.125,
+  "xp": 25,
   "type": "Humanoid",
   "size": "Small",
   "armor_class": 12,
   "hit_points": 5,
+  "hp_dice": "2d6-2",
   "alignment": "lawful evil",
-  "tags": [
-    "Kobold"
-  ],
+  "tags": ["Kobold"],
   "img": "/static/img/monster/kobold.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "mountain",
-    "urban"
-  ]
+  "environment": ["mountain", "dungeon", "cave"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 7,
+    "dexterity": 15,
+    "constitution": 9,
+    "intelligence": 8,
+    "wisdom": 7,
+    "charisma": 8
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "stealth": 4
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 8
+  },
+
+  "preferred_range": 2,
+
+  "actions": [
+    {
+      "name": "Dagger",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Sling",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 3,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "bludgeoning"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "description": "The kobold has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated.",
+      "type": "passive"
+    },
+    {
+      "name": "Sunlight Sensitivity",
+      "description": "While in sunlight, the kobold has disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [1, 4] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 80,
+        "entries": [
+          { "item": "dagger",  "weight": 30, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 70 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "cowardly",
+    "flee_threshold": 0.50,
+    "preferred_range": 2,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
 }

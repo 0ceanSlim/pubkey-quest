@@ -1,0 +1,20 @@
+{
+  "id": 6,
+  "name": "Stirge",
+  "challenge_rating": 0.125,
+  "type": "Beast",
+  "size": "Tiny",
+  "armor_class": 14,
+  "hit_points": 2,
+  "alignment": "unaligned",
+  "tags": [
+    "fly"
+  ],
+  "img": "/static/img/monster/stirge.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "hill",
+    "mountain"
+  ]
+}

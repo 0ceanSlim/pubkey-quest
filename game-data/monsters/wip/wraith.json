@@ -1,0 +1,20 @@
+{
+  "id": 165,
+  "name": "Wraith",
+  "challenge_rating": 5.0,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 67,
+  "alignment": "neutral evil",
+  "tags": [
+    "fly"
+  ],
+  "img": "/static/img/monster/wraith.svg",
+  "enviornment": [
+    "hill",
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

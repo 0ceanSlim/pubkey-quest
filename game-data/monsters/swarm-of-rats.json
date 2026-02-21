@@ -1,0 +1,97 @@
+{
+  "id": "swarm-of-rats",
+  "name": "Swarm of Rats",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Beast",
+  "size": "Medium",
+  "armor_class": 10,
+  "hit_points": 24,
+  "hp_dice": "7d8-7",
+  "alignment": "unaligned",
+  "tags": ["Swarm"],
+  "img": "/static/img/monster/swarm-of-rats.svg",
+  "environment": ["dungeon", "cave", "urban"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 30
+  },
+
+  "stats": {
+    "strength": 9,
+    "dexterity": 11,
+    "constitution": 9,
+    "intelligence": 2,
+    "wisdom": 10,
+    "charisma": 3
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": ["bludgeoning", "piercing", "slashing"],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": ["charmed", "frightened", "grappled", "paralyzed", "petrified", "prone", "restrained", "stunned"],
+
+  "senses": {
+    "darkvision": 30,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Bites",
+      "type": "melee_attack",
+      "attack_bonus": 2,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 0,
+        "type": "piercing",
+        "special": {
+          "type": "half_hp_damage",
+          "below_half_dice": "1d6"
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Swarm",
+      "description": "The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny rat.",
+      "type": "passive"
+    },
+    {
+      "name": "Keen Smell",
+      "description": "The swarm has advantage on Wisdom (Perception) checks that rely on smell.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.30,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

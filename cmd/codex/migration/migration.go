@@ -589,6 +589,11 @@ func migrateMonsters(callback StatusCallback) error {
 			return err
 		}
 
+		// Skip subdirectories like wip/ and draft/
+		if d.IsDir() && path != monstersPath {
+			return filepath.SkipDir
+		}
+
 		if !d.IsDir() && strings.HasSuffix(path, ".json") {
 			if err := migrateMonsterFile(path); err != nil {
 				log.Printf("Warning: failed to migrate monster file %s: %v", path, err)
@@ -626,9 +631,13 @@ func migrateMonsterFile(filePath string) error {
 	name, _ := monster["name"].(string)
 	challengeRating, _ := monster["challenge_rating"].(float64)
 
-	// Serialize stats and actions as JSON
+	// Serialize full monster as stats; extract actions array separately
 	statsJSON, _ := json.Marshal(monster)
-	actionsJSON, _ := json.Marshal(map[string]interface{}{}) // Empty for now
+	actions := monster["actions"]
+	if actions == nil {
+		actions = []interface{}{}
+	}
+	actionsJSON, _ := json.Marshal(actions)
 
 	stmt := `INSERT INTO monsters (id, name, challenge_rating, stats, actions) VALUES (?, ?, ?, ?, ?)`
 	_, err = database.Exec(stmt, id, name, challengeRating, string(statsJSON), string(actionsJSON))

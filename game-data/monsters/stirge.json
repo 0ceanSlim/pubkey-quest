@@ -1,20 +1,85 @@
 {
-  "id": 6,
+  "id": "stirge",
   "name": "Stirge",
   "challenge_rating": 0.125,
+  "xp": 25,
   "type": "Beast",
   "size": "Tiny",
   "armor_class": 14,
   "hit_points": 2,
+  "hp_dice": "1d4",
   "alignment": "unaligned",
-  "tags": [
-    "fly"
-  ],
+  "tags": [],
   "img": "/static/img/monster/stirge.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "hill",
-    "mountain"
-  ]
+  "environment": ["swamp", "cave", "forest", "dungeon"],
+
+  "speed": {
+    "walk": 10,
+    "fly": 40,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 4,
+    "dexterity": 16,
+    "constitution": 11,
+    "intelligence": 2,
+    "wisdom": 8,
+    "charisma": 6
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 9
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Blood Drain",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 3,
+        "type": "piercing",
+        "special": {
+          "type": "attach",
+          "description": "The stirge attaches to the target. While attached it deals 1d4+3 piercing damage automatically at the start of each of its turns. The stirge can detach itself by spending 5 feet of its movement. A creature can use its action to detach the stirge."
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.10,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

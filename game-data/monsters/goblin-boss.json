@@ -1,20 +1,145 @@
 {
-  "id": 63,
+  "id": "goblin-boss",
   "name": "Goblin Boss",
-  "challenge_rating": 1.0,
+  "challenge_rating": 1,
+  "xp": 200,
   "type": "Humanoid",
   "size": "Small",
   "armor_class": 17,
   "hit_points": 21,
+  "hp_dice": "6d6",
   "alignment": "neutral evil",
-  "tags": [
-    "Goblinoid"
-  ],
+  "tags": ["Goblinoid"],
   "img": "/static/img/monster/goblin-boss.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "mountain",
-    "urban"
-  ]
+  "environment": ["forest", "mountain", "urban", "grassland"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 10,
+    "dexterity": 14,
+    "constitution": 10,
+    "intelligence": 10,
+    "wisdom": 8,
+    "charisma": 10
+  },
+
+  "saving_throws": {
+    "dexterity": 4
+  },
+
+  "skills": {
+    "stealth": 6
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 9
+  },
+
+  "preferred_range": 2,
+
+  "actions": [
+    {
+      "name": "Morningstar",
+      "type": "melee_attack",
+      "attack_bonus": 2,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 0,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Javelin",
+      "type": "ranged_attack",
+      "attack_bonus": 2,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 0,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Nimble Escape",
+      "description": "The goblin can take the Disengage or Hide action as a bonus action on each of its turns.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [
+    {
+      "name": "Redirect Attack",
+      "description": "When a creature makes an attack roll against the goblin boss, the boss can choose another goblin within 5 feet as a bonus action. The chosen goblin becomes the target of the attack instead.",
+      "type": "redirect_attack",
+      "mechanic": {
+        "type": "redirect_attack",
+        "target_tag": "Goblinoid",
+        "range": 0
+      }
+    }
+  ],
+
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 15] }
+    ],
+    "rolls": 2,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 60,
+        "entries": [
+          { "item": "morningstar", "weight": 20, "quantity": [1, 1] },
+          { "item": "chain-shirt", "weight": 15, "quantity": [1, 1] },
+          { "item": "shield",      "weight": 15, "quantity": [1, 1] },
+          { "item": "nothing",     "weight": 50 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 35,
+        "entries": [
+          { "item": "healing", "weight": 80, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 20 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "tactical",
+    "flee_threshold": 0.15,
+    "preferred_range": 2,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
 }

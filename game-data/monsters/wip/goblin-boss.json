@@ -1,0 +1,20 @@
+{
+  "id": 63,
+  "name": "Goblin Boss",
+  "challenge_rating": 1.0,
+  "type": "Humanoid",
+  "size": "Small",
+  "armor_class": 17,
+  "hit_points": 21,
+  "alignment": "neutral evil",
+  "tags": [
+    "Goblinoid"
+  ],
+  "img": "/static/img/monster/goblin-boss.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "mountain",
+    "urban"
+  ]
+}

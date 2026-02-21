@@ -1,0 +1,16 @@
+{
+  "id": 122,
+  "name": "Wight",
+  "challenge_rating": 3.0,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 14,
+  "hit_points": 45,
+  "alignment": "neutral evil",
+  "img": "/static/img/monster/wight.svg",
+  "enviornment": [
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

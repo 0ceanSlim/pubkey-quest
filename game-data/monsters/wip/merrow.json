@@ -1,0 +1,16 @@
+{
+  "id": 98,
+  "name": "Merrow",
+  "challenge_rating": 2.0,
+  "type": "Monstrosity",
+  "size": "Large",
+  "armor_class": 13,
+  "hit_points": 45,
+  "alignment": "chaotic evil",
+  "img": "/static/img/monster/merrow.svg",
+  "enviornment": [
+    "forest",
+    "mountain",
+    "swamp"
+  ]
+}

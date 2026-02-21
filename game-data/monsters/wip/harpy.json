@@ -1,0 +1,20 @@
+{
+  "id": 73,
+  "name": "Harpy",
+  "challenge_rating": 1.0,
+  "type": "Monstrosity",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 38,
+  "alignment": "chaotic evil",
+  "tags": [
+    "fly"
+  ],
+  "img": "/static/img/monster/harpy.svg",
+  "enviornment": [
+    "coastal",
+    "forest",
+    "mountain",
+    "swamp"
+  ]
+}

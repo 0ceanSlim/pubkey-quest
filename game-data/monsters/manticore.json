@@ -1,20 +1,142 @@
 {
-  "id": 139,
+  "id": "manticore",
   "name": "Manticore",
-  "challenge_rating": 3.0,
+  "challenge_rating": 3,
+  "xp": 700,
+  "kill_bonus_xp": 175,
   "type": "Monstrosity",
   "size": "Large",
   "armor_class": 14,
   "hit_points": 68,
+  "hp_dice": "8d10+24",
   "alignment": "lawful evil",
-  "tags": [
-    "fly"
-  ],
+  "tags": [],
   "img": "/static/img/monster/manticore.svg",
-  "enviornment": [
-    "forest",
-    "hill",
-    "mountain",
-    "swamp"
-  ]
+  "environment": ["mountain", "desert"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 50,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 17,
+    "dexterity": 16,
+    "constitution": 17,
+    "intelligence": 7,
+    "wisdom": 12,
+    "charisma": 8
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 11
+  },
+
+  "preferred_range": 3,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The manticore makes three attacks: one with its bite and two with its claws, or three with its tail spikes.",
+      "attacks": 3
+    },
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 3,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Claw",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 3,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Tail Spike",
+      "type": "ranged_attack",
+      "attack_bonus": 5,
+      "reach": null,
+      "range": 4,
+      "range_long": 5,
+      "hit": {
+        "dice": "1d8",
+        "mod": 3,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Tail Spike Regrowth",
+      "description": "The manticore has twenty-four tail spikes. Used spikes regrow when the manticore finishes a long rest.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 75,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "healing", "weight": 100, "quantity": [1, 1] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.20,
+    "preferred_range": 3,
+    "target_priority": "nearest",
+    "relentless": true
+  }
 }

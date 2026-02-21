@@ -1,15 +1,91 @@
 {
-  "id": 7,
+  "id": "twig-blight",
   "name": "Twig Blight",
   "challenge_rating": 0.125,
+  "xp": 25,
   "type": "Plant",
   "size": "Small",
   "armor_class": 13,
   "hit_points": 4,
+  "hp_dice": "1d6+1",
   "alignment": "neutral evil",
+  "tags": ["Blight", "Plant"],
   "img": "/static/img/monster/twig-blight.svg",
-  "enviornment": [
-    "forest",
-    "swamp"
-  ]
+  "environment": ["forest"],
+
+  "speed": {
+    "walk": 20,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 6,
+    "dexterity": 13,
+    "constitution": 12,
+    "intelligence": 4,
+    "wisdom": 8,
+    "charisma": 3
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "stealth": 3
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": ["fire"],
+  "condition_immunities": ["blinded", "deafened"],
+
+  "senses": {
+    "blindsight": 60,
+    "darkvision": 0,
+    "passive_perception": 9
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 1,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "False Appearance",
+      "description": "While the blight remains motionless, it is indistinguishable from a dead shrub.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

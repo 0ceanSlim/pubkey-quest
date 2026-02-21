@@ -1,20 +1,133 @@
 {
-  "id": 17,
+  "id": "goblin",
   "name": "Goblin",
   "challenge_rating": 0.25,
+  "xp": 50,
   "type": "Humanoid",
   "size": "Small",
   "armor_class": 15,
   "hit_points": 7,
+  "hp_dice": "2d6",
   "alignment": "neutral evil",
-  "tags": [
-    "Goblinoid"
-  ],
+  "tags": ["Goblinoid"],
   "img": "/static/img/monster/goblin.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "mountain",
-    "urban"
-  ]
+  "environment": ["forest", "mountain", "urban", "grassland"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 8,
+    "dexterity": 14,
+    "constitution": 10,
+    "intelligence": 10,
+    "wisdom": 8,
+    "charisma": 8
+  },
+
+  "saving_throws": {
+    "dexterity": 4
+  },
+
+  "skills": {
+    "stealth": 6
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 9
+  },
+
+  "preferred_range": 1,
+
+  "actions": [
+    {
+      "name": "Scimitar",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Shortbow",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 3,
+      "range_long": 5,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Nimble Escape",
+      "description": "The goblin can take the Disengage or Hide action as a bonus action on each of its turns.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [1, 6] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 70,
+        "entries": [
+          { "item": "scimitar",  "weight": 15, "quantity": [1, 1] },
+          { "item": "dagger",    "weight": 20, "quantity": [1, 1] },
+          { "item": "shortbow",  "weight": 10, "quantity": [1, 1] },
+          { "item": "nothing",   "weight": 55 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 25,
+        "entries": [
+          { "item": "healing",   "weight": 60, "quantity": [1, 1] },
+          { "item": "nothing",   "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing",   "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 1,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
 }

@@ -1,20 +1,138 @@
 {
-  "id": 73,
+  "id": "harpy",
   "name": "Harpy",
-  "challenge_rating": 1.0,
+  "challenge_rating": 1,
+  "xp": 200,
   "type": "Monstrosity",
   "size": "Medium",
   "armor_class": 11,
   "hit_points": 38,
+  "hp_dice": "7d8+7",
   "alignment": "chaotic evil",
-  "tags": [
-    "fly"
-  ],
+  "tags": [],
   "img": "/static/img/monster/harpy.svg",
-  "enviornment": [
-    "coastal",
-    "forest",
-    "mountain",
-    "swamp"
-  ]
+  "environment": ["mountain", "coast"],
+
+  "speed": {
+    "walk": 20,
+    "fly": 40,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 12,
+    "dexterity": 13,
+    "constitution": 12,
+    "intelligence": 7,
+    "wisdom": 10,
+    "charisma": 13
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The harpy makes two attacks: one with its claws and one with its club.",
+      "attacks": 2
+    },
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 1,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Club",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 1,
+        "type": "bludgeoning"
+      }
+    },
+    {
+      "name": "Luring Song",
+      "type": "special",
+      "recharge": "none",
+      "description": "The harpy sings a magical melody. Every humanoid within range (4) that can hear must succeed on a DC 11 Wisdom saving throw or be charmed. While charmed, the target is incapacitated and moves toward the harpy by the most direct route. It can repeat the saving throw at the end of each of its turns.",
+      "mechanic": {
+        "type": "area_save",
+        "ability": "wisdom",
+        "dc": 11,
+        "range": 4,
+        "targets": "humanoid",
+        "effect": "charmed_and_move_toward",
+        "duration": "concentration_or_save"
+      }
+    }
+  ],
+
+  "special_abilities": [],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 75,
+        "entries": [
+          { "item": "gold-piece", "weight": 40, "quantity": [1, 10] },
+          { "item": "nothing",    "weight": 60 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "healing", "weight": 60, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.20,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

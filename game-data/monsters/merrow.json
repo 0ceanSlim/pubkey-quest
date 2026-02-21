@@ -1,16 +1,137 @@
 {
-  "id": 98,
+  "id": "merrow",
   "name": "Merrow",
-  "challenge_rating": 2.0,
+  "challenge_rating": 2,
+  "xp": 450,
   "type": "Monstrosity",
   "size": "Large",
   "armor_class": 13,
   "hit_points": 45,
+  "hp_dice": "6d10+12",
   "alignment": "chaotic evil",
+  "tags": [],
   "img": "/static/img/monster/merrow.svg",
-  "enviornment": [
-    "forest",
-    "mountain",
-    "swamp"
-  ]
+  "environment": ["coast", "swamp"],
+
+  "speed": {
+    "walk": 10,
+    "fly": 0,
+    "swim": 40,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 18,
+    "dexterity": 10,
+    "constitution": 15,
+    "intelligence": 8,
+    "wisdom": 10,
+    "charisma": 9
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The merrow makes two attacks: one with its claws and one with its harpoon.",
+      "attacks": 2
+    },
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 6,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 4,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Harpoon",
+      "type": "ranged_attack",
+      "attack_bonus": 6,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "2d6",
+        "mod": 4,
+        "type": "piercing",
+        "special": {
+          "type": "pull",
+          "distance": 20,
+          "description": "The target must succeed on a DC 14 Strength saving throw or be pulled up to 20 feet toward the merrow."
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Amphibious",
+      "description": "The merrow can breathe air and water.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 15] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 65,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 30,
+        "entries": [
+          { "item": "healing", "weight": 60, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

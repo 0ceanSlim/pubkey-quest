@@ -1,0 +1,15 @@
+{
+  "id": 19,
+  "name": "Needle Blight",
+  "challenge_rating": 0.25,
+  "type": "Plant",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 11,
+  "alignment": "neutral evil",
+  "img": "/static/img/monster/needle-blight.svg",
+  "enviornment": [
+    "forest",
+    "swamp"
+  ]
+}

@@ -1,16 +1,124 @@
 {
-  "id": 65,
+  "id": "ghoul",
   "name": "Ghoul",
-  "challenge_rating": 1.0,
+  "challenge_rating": 1,
+  "xp": 200,
   "type": "Undead",
   "size": "Medium",
   "armor_class": 12,
   "hit_points": 22,
+  "hp_dice": "5d8",
   "alignment": "chaotic evil",
+  "tags": ["Undead"],
   "img": "/static/img/monster/ghoul.svg",
-  "enviornment": [
-    "mountain",
-    "swamp",
-    "urban"
-  ]
+  "environment": ["dungeon", "cave", "graveyard"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 13,
+    "dexterity": 15,
+    "constitution": 10,
+    "intelligence": 7,
+    "wisdom": 10,
+    "charisma": 6
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": ["poison"],
+  "damage_vulnerabilities": [],
+  "condition_immunities": ["charmed", "exhaustion", "poisoned"],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 2,
+        "type": "slashing",
+        "special": {
+          "type": "save",
+          "ability": "constitution",
+          "dc": 10,
+          "effect": "paralyzed",
+          "duration": "1_minute",
+          "targets": "non_undead_non_elf"
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 75,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "gold-piece", "weight": 60, "quantity": [1, 10] },
+          { "item": "nothing",    "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
 }

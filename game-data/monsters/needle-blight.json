@@ -1,15 +1,95 @@
 {
-  "id": 19,
+  "id": "needle-blight",
   "name": "Needle Blight",
   "challenge_rating": 0.25,
+  "xp": 50,
   "type": "Plant",
   "size": "Medium",
   "armor_class": 12,
   "hit_points": 11,
+  "hp_dice": "2d8+2",
   "alignment": "neutral evil",
+  "tags": ["Blight", "Plant"],
   "img": "/static/img/monster/needle-blight.svg",
-  "enviornment": [
-    "forest",
-    "swamp"
-  ]
+  "environment": ["forest"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 12,
+    "dexterity": 12,
+    "constitution": 12,
+    "intelligence": 4,
+    "wisdom": 8,
+    "charisma": 3
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": ["fire"],
+  "condition_immunities": ["blinded", "deafened"],
+
+  "senses": {
+    "blindsight": 60,
+    "darkvision": 0,
+    "passive_perception": 9
+  },
+
+  "preferred_range": 3,
+
+  "actions": [
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 1,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Needles",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 3,
+      "range_long": 4,
+      "hit": {
+        "dice": "2d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 3,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

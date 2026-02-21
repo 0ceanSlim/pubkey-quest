@@ -705,18 +705,32 @@ func ValidateOneItem(itemID string) ([]Issue, error) {
 	return issues, nil
 }
 
-// ValidateMonsters validates all monster files
+// ValidateMonsters validates all monster files (skips wip/ and draft/ subdirectories)
 func ValidateMonsters() ([]Issue, error) {
 	issues := []Issue{}
 	monstersPath := "game-data/monsters"
+
+	// Build valid item IDs for loot table reference checking
+	validItemIDs := make(map[string]bool)
+	filepath.WalkDir("game-data/items", func(path string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() && strings.HasSuffix(path, ".json") {
+			validItemIDs[strings.TrimSuffix(filepath.Base(path), ".json")] = true
+		}
+		return nil
+	})
 
 	err := filepath.WalkDir(monstersPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
+		// Skip subdirectories like wip/ and draft/
+		if d.IsDir() && path != monstersPath {
+			return filepath.SkipDir
+		}
+
 		if !d.IsDir() && strings.HasSuffix(path, ".json") {
-			monsterIssues := validateMonsterFile(path)
+			monsterIssues := validateMonsterFile(path, validItemIDs)
 			issues = append(issues, monsterIssues...)
 		}
 		return nil
@@ -725,7 +739,7 @@ func ValidateMonsters() ([]Issue, error) {
 	return issues, err
 }
 
-func validateMonsterFile(filePath string) []Issue {
+func validateMonsterFile(filePath string, validItemIDs map[string]bool) []Issue {
 	issues := []Issue{}
 	filename := filepath.Base(filePath)
 
@@ -751,10 +765,11 @@ func validateMonsterFile(filePath string) []Issue {
 		return issues
 	}
 
-	// Check required fields
-	requiredFields := []string{"id", "name"}
-	for _, field := range requiredFields {
-		if _, exists := monster[field]; !exists {
+	// --- Required top-level string fields ---
+	requiredStrings := []string{"id", "name", "type", "size", "alignment", "hp_dice"}
+	for _, field := range requiredStrings {
+		v, exists := monster[field]
+		if !exists || v == nil || v == "" {
 			issues = append(issues, Issue{
 				Type:     "error",
 				Category: "monsters",
@@ -762,6 +777,232 @@ func validateMonsterFile(filePath string) []Issue {
 				Field:    field,
 				Message:  fmt.Sprintf("Missing required field: %s", field),
 			})
+		}
+	}
+
+	// --- Required numeric fields ---
+	if cr, exists := monster["challenge_rating"]; !exists || cr == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "challenge_rating", Message: "Missing required field: challenge_rating"})
+	}
+	if xp, exists := monster["xp"]; !exists || xp == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "xp", Message: "Missing required field: xp"})
+	} else if xpNum, ok := xp.(float64); ok && xpNum < 0 {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "xp", Message: "xp must be >= 0"})
+	}
+	if ac, exists := monster["armor_class"]; !exists || ac == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "armor_class", Message: "Missing required field: armor_class"})
+	} else if acNum, ok := ac.(float64); ok && (acNum < 1 || acNum > 30) {
+		issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "armor_class", Message: fmt.Sprintf("armor_class %v is outside expected range 1-30", acNum)})
+	}
+	if hp, exists := monster["hit_points"]; !exists || hp == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "hit_points", Message: "Missing required field: hit_points"})
+	} else if hpNum, ok := hp.(float64); ok && hpNum <= 0 {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "hit_points", Message: "hit_points must be > 0"})
+	}
+
+	// --- kill_bonus_xp: required for CR >= 3 ---
+	if cr, ok := monster["challenge_rating"].(float64); ok && cr >= 3 {
+		if _, exists := monster["kill_bonus_xp"]; !exists {
+			issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "kill_bonus_xp", Message: fmt.Sprintf("CR %.4g monster should have kill_bonus_xp (~25%% of xp)", cr)})
+		}
+	}
+
+	// --- environment: required array ---
+	if env, exists := monster["environment"]; !exists || env == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "environment", Message: "Missing required field: environment (array)"})
+	} else if envArr, ok := env.([]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "environment", Message: "environment must be an array"})
+	} else if len(envArr) == 0 {
+		issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "environment", Message: "environment array is empty — monster won't appear in any zone"})
+	}
+
+	// --- speed object ---
+	if speedRaw, exists := monster["speed"]; !exists || speedRaw == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "speed", Message: "Missing required field: speed"})
+	} else if speed, ok := speedRaw.(map[string]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "speed", Message: "speed must be an object"})
+	} else {
+		for _, key := range []string{"walk", "fly", "swim", "climb"} {
+			if _, exists := speed[key]; !exists {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "speed." + key, Message: fmt.Sprintf("speed missing required key: %s", key)})
+			}
+		}
+	}
+
+	// --- stats object with all 6 ability scores ---
+	if statsRaw, exists := monster["stats"]; !exists || statsRaw == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "stats", Message: "Missing required field: stats"})
+	} else if stats, ok := statsRaw.(map[string]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "stats", Message: "stats must be an object"})
+	} else {
+		for _, ability := range []string{"strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"} {
+			if v, exists := stats[ability]; !exists || v == nil {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "stats." + ability, Message: fmt.Sprintf("stats missing ability score: %s", ability)})
+			} else if score, ok := v.(float64); ok && (score < 1 || score > 30) {
+				issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "stats." + ability, Message: fmt.Sprintf("stats.%s value %v is outside expected range 1-30", ability, score)})
+			}
+		}
+	}
+
+	// --- Required empty arrays (errors if missing) ---
+	for _, field := range []string{"damage_resistances", "damage_immunities", "damage_vulnerabilities", "condition_immunities", "special_abilities", "bonus_actions", "reactions", "legendary_actions"} {
+		if v, exists := monster[field]; !exists || v == nil {
+			issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: field, Message: fmt.Sprintf("Missing required field: %s (must be array, can be empty)", field)})
+		} else if _, ok := v.([]interface{}); !ok {
+			issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: field, Message: fmt.Sprintf("%s must be an array", field)})
+		}
+	}
+
+	// --- senses object with passive_perception ---
+	if sensesRaw, exists := monster["senses"]; !exists || sensesRaw == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "senses", Message: "Missing required field: senses"})
+	} else if senses, ok := sensesRaw.(map[string]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "senses", Message: "senses must be an object"})
+	} else if _, exists := senses["passive_perception"]; !exists {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "senses.passive_perception", Message: "senses missing required field: passive_perception"})
+	}
+
+	// --- preferred_range ---
+	if _, exists := monster["preferred_range"]; !exists {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "preferred_range", Message: "Missing required field: preferred_range"})
+	}
+
+	// --- actions array ---
+	if actionsRaw, exists := monster["actions"]; !exists || actionsRaw == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "actions", Message: "Missing required field: actions (must be array)"})
+	} else if actions, ok := actionsRaw.([]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "actions", Message: "actions must be an array"})
+	} else {
+		if len(actions) == 0 {
+			issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "actions", Message: "actions array is empty — monster cannot attack"})
+		}
+		// Validate each action
+		for i, actionRaw := range actions {
+			action, ok := actionRaw.(map[string]interface{})
+			if !ok {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d]", i), Message: "action must be an object"})
+				continue
+			}
+			if _, exists := action["name"]; !exists {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d].name", i), Message: "action missing required field: name"})
+			}
+			actionType, _ := action["type"].(string)
+			if actionType == "" {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d].type", i), Message: "action missing required field: type"})
+			}
+			if actionType == "melee_attack" || actionType == "ranged_attack" {
+				if _, exists := action["attack_bonus"]; !exists {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d].attack_bonus", i), Message: "attack action missing required field: attack_bonus"})
+				}
+				if hitRaw, exists := action["hit"]; !exists || hitRaw == nil {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d].hit", i), Message: "attack action missing required field: hit"})
+				} else if hit, ok := hitRaw.(map[string]interface{}); ok {
+					for _, hitField := range []string{"dice", "type"} {
+						if v, exists := hit[hitField]; !exists || v == nil || v == "" {
+							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d].hit.%s", i, hitField), Message: fmt.Sprintf("hit missing required field: %s", hitField)})
+						}
+					}
+				}
+			}
+			if actionType == "ranged_attack" {
+				if _, exists := action["range"]; !exists {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("actions[%d].range", i), Message: "ranged_attack missing required field: range"})
+				}
+			}
+		}
+	}
+
+	// --- behavior object ---
+	if behaviorRaw, exists := monster["behavior"]; !exists || behaviorRaw == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "behavior", Message: "Missing required field: behavior"})
+	} else if behavior, ok := behaviorRaw.(map[string]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "behavior", Message: "behavior must be an object"})
+	} else {
+		for _, key := range []string{"aggression", "flee_threshold", "preferred_range", "target_priority", "relentless"} {
+			if _, exists := behavior[key]; !exists {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "behavior." + key, Message: fmt.Sprintf("behavior missing required key: %s", key)})
+			}
+		}
+		// Warn if flee_threshold is 0 but relentless is false (undead/plants that never flee should be relentless)
+		if ft, ok := behavior["flee_threshold"].(float64); ok && ft == 0.0 {
+			if rel, ok := behavior["relentless"].(bool); ok && !rel {
+				issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "behavior.relentless", Message: "flee_threshold is 0.0 but relentless is false — consider setting relentless: true for monsters that never flee"})
+			}
+		}
+		// Warn if preferred_range in behavior doesn't match top-level preferred_range
+		if topRange, exists := monster["preferred_range"]; exists {
+			if behaviorRange, exists := behavior["preferred_range"]; exists {
+				if topRange != behaviorRange {
+					issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: "behavior.preferred_range", Message: fmt.Sprintf("behavior.preferred_range (%v) does not match top-level preferred_range (%v)", behaviorRange, topRange)})
+				}
+			}
+		}
+	}
+
+	// --- loot_table ---
+	if ltRaw, exists := monster["loot_table"]; !exists || ltRaw == nil {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "loot_table", Message: "Missing required field: loot_table"})
+	} else if lt, ok := ltRaw.(map[string]interface{}); !ok {
+		issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "loot_table", Message: "loot_table must be an object"})
+	} else {
+		if _, exists := lt["guaranteed"]; !exists {
+			issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "loot_table.guaranteed", Message: "loot_table missing required field: guaranteed"})
+		}
+		rolls, rollsExists := lt["rolls"]
+		if !rollsExists {
+			issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "loot_table.rolls", Message: "loot_table missing required field: rolls"})
+		}
+		if tiersRaw, exists := lt["tiers"]; !exists {
+			issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "loot_table.tiers", Message: "loot_table missing required field: tiers"})
+		} else if tiers, ok := tiersRaw.([]interface{}); ok {
+			// If rolls > 0, there must be tiers
+			if rollsNum, ok := rolls.(float64); ok && rollsNum > 0 && len(tiers) == 0 {
+				issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: "loot_table.tiers", Message: "loot_table.rolls > 0 but tiers array is empty"})
+			}
+			// Validate each tier
+			for i, tierRaw := range tiers {
+				tier, ok := tierRaw.(map[string]interface{})
+				if !ok {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d]", i), Message: "tier must be an object"})
+					continue
+				}
+				if _, exists := tier["name"]; !exists {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].name", i), Message: "tier missing required field: name"})
+				}
+				if _, exists := tier["weight"]; !exists {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].weight", i), Message: "tier missing required field: weight"})
+				}
+				if entriesRaw, exists := tier["entries"]; !exists {
+					issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries", i), Message: "tier missing required field: entries"})
+				} else if entries, ok := entriesRaw.([]interface{}); ok {
+					for j, entryRaw := range entries {
+						entry, ok := entryRaw.(map[string]interface{})
+						if !ok {
+							continue
+						}
+						itemID, _ := entry["item"].(string)
+						if itemID == "" {
+							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: "loot entry missing required field: item"})
+						} else if itemID != "nothing" && len(validItemIDs) > 0 && !validItemIDs[itemID] {
+							issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: fmt.Sprintf("loot item '%s' not found in game-data/items/", itemID)})
+						}
+						if _, exists := entry["weight"]; !exists {
+							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].weight", i, j), Message: "loot entry missing required field: weight"})
+						}
+					}
+				}
+			}
+		}
+		// Validate guaranteed drops reference valid items
+		if guaranteed, ok := lt["guaranteed"].([]interface{}); ok {
+			for i, dropRaw := range guaranteed {
+				if drop, ok := dropRaw.(map[string]interface{}); ok {
+					itemID, _ := drop["item"].(string)
+					if itemID != "" && itemID != "nothing" && len(validItemIDs) > 0 && !validItemIDs[itemID] {
+						issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.guaranteed[%d].item", i), Message: fmt.Sprintf("guaranteed loot item '%s' not found in game-data/items/", itemID)})
+					}
+				}
+			}
 		}
 	}
 

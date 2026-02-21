@@ -1,0 +1,16 @@
+{
+  "id": 24,
+  "name": "Skeleton",
+  "challenge_rating": 0.25,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 13,
+  "alignment": "lawful evil",
+  "img": "/static/img/monster/skeleton.svg",
+  "enviornment": [
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

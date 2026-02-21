@@ -1,0 +1,16 @@
+{
+  "id": 173,
+  "name": "Troll",
+  "challenge_rating": 5.0,
+  "type": "Giant",
+  "size": "Large",
+  "armor_class": 15,
+  "hit_points": 84,
+  "alignment": "chaotic evil",
+  "img": "/static/img/monster/troll.svg",
+  "enviornment": [
+    "hill",
+    "mountain",
+    "swamp"
+  ]
+}

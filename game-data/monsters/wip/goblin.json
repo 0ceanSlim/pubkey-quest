@@ -1,0 +1,20 @@
+{
+  "id": 17,
+  "name": "Goblin",
+  "challenge_rating": 0.25,
+  "type": "Humanoid",
+  "size": "Small",
+  "armor_class": 15,
+  "hit_points": 7,
+  "alignment": "neutral evil",
+  "tags": [
+    "Goblinoid"
+  ],
+  "img": "/static/img/monster/goblin.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "mountain",
+    "urban"
+  ]
+}

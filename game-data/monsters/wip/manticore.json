@@ -1,0 +1,20 @@
+{
+  "id": 139,
+  "name": "Manticore",
+  "challenge_rating": 3.0,
+  "type": "Monstrosity",
+  "size": "Large",
+  "armor_class": 14,
+  "hit_points": 68,
+  "alignment": "lawful evil",
+  "tags": [
+    "fly"
+  ],
+  "img": "/static/img/monster/manticore.svg",
+  "enviornment": [
+    "forest",
+    "hill",
+    "mountain",
+    "swamp"
+  ]
+}

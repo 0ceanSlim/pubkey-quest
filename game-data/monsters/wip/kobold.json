@@ -1,0 +1,20 @@
+{
+  "id": 8,
+  "name": "Kobold",
+  "challenge_rating": 0.125,
+  "type": "Humanoid",
+  "size": "Small",
+  "armor_class": 12,
+  "hit_points": 5,
+  "alignment": "lawful evil",
+  "tags": [
+    "Kobold"
+  ],
+  "img": "/static/img/monster/kobold.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "mountain",
+    "urban"
+  ]
+}

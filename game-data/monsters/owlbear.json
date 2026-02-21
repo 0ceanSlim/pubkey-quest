@@ -1,16 +1,131 @@
 {
-  "id": 134,
+  "id": "owlbear",
   "name": "Owlbear",
-  "challenge_rating": 3.0,
+  "challenge_rating": 3,
+  "xp": 700,
+  "kill_bonus_xp": 175,
   "type": "Monstrosity",
   "size": "Large",
   "armor_class": 13,
   "hit_points": 59,
+  "hp_dice": "7d10+21",
   "alignment": "unaligned",
+  "tags": [],
   "img": "/static/img/monster/owlbear.svg",
-  "enviornment": [
-    "forest",
-    "mountain",
-    "swamp"
-  ]
+  "environment": ["forest"],
+
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 20,
+    "dexterity": 12,
+    "constitution": 17,
+    "intelligence": 3,
+    "wisdom": 12,
+    "charisma": 7
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 3
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 13
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The owlbear makes two attacks: one with its beak and one with its claws.",
+      "attacks": 2
+    },
+    {
+      "name": "Beak",
+      "type": "melee_attack",
+      "attack_bonus": 7,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d10",
+        "mod": 5,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 7,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d8",
+        "mod": 5,
+        "type": "slashing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Keen Sight and Smell",
+      "description": "The owlbear has advantage on Wisdom (Perception) checks that rely on sight or smell.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 80,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 15,
+        "entries": [
+          { "item": "healing", "weight": 100, "quantity": [1, 1] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.10,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
 }

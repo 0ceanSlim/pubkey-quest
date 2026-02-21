@@ -1,0 +1,21 @@
+{
+  "id": 132,
+  "name": "Werewolf",
+  "challenge_rating": 3.0,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 58,
+  "alignment": "chaotic evil",
+  "tags": [
+    "Human",
+    "Shapechanger"
+  ],
+  "img": "/static/img/monster/werewolf.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "hill",
+    "urban"
+  ]
+}

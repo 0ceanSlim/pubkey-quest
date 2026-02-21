@@ -1,0 +1,95 @@
+{
+  "id": "blood-hawk",
+  "name": "Blood Hawk",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Beast",
+  "size": "Small",
+  "armor_class": 13,
+  "hit_points": 7,
+  "hp_dice": "2d6",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/blood-hawk.svg",
+  "environment": ["mountain", "coast", "grassland"],
+
+  "speed": {
+    "walk": 10,
+    "fly": 60,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 6,
+    "dexterity": 14,
+    "constitution": 10,
+    "intelligence": 3,
+    "wisdom": 14,
+    "charisma": 5
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 4
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 14
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Beak",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "description": "The hawk has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated.",
+      "type": "passive"
+    },
+    {
+      "name": "Keen Sight",
+      "description": "The hawk has advantage on Wisdom (Perception) checks that rely on sight.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.40,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

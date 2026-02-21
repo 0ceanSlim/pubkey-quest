@@ -1,20 +1,132 @@
 {
-  "id": 37,
+  "id": "orc",
   "name": "Orc",
   "challenge_rating": 0.5,
+  "xp": 100,
   "type": "Humanoid",
   "size": "Medium",
   "armor_class": 13,
   "hit_points": 15,
+  "hp_dice": "2d8+6",
   "alignment": "chaotic evil",
-  "tags": [
-    "Orc"
-  ],
+  "tags": ["Orc"],
   "img": "/static/img/monster/orc.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "mountain",
-    "urban"
-  ]
+  "environment": ["mountain", "forest", "grassland"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 16,
+    "dexterity": 12,
+    "constitution": 16,
+    "intelligence": 7,
+    "wisdom": 11,
+    "charisma": 10
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "intimidation": 2
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Greataxe",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d12",
+        "mod": 3,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Javelin",
+      "type": "ranged_attack",
+      "attack_bonus": 5,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 3,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [],
+
+  "bonus_actions": [
+    {
+      "name": "Aggressive",
+      "description": "The orc moves up to its speed toward a hostile creature it can see.",
+      "type": "move"
+    }
+  ],
+
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [1, 8] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 65,
+        "entries": [
+          { "item": "handaxe",     "weight": 25, "quantity": [1, 2] },
+          { "item": "javelin",     "weight": 20, "quantity": [1, 2] },
+          { "item": "hide-cuirass","weight": 15, "quantity": [1, 1] },
+          { "item": "nothing",     "weight": 40 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 30,
+        "entries": [
+          { "item": "healing",  "weight": 60, "quantity": [1, 1] },
+          { "item": "greataxe", "weight": 40, "quantity": [1, 1] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.20,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

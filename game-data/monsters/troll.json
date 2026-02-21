@@ -1,16 +1,144 @@
 {
-  "id": 173,
+  "id": "troll",
   "name": "Troll",
-  "challenge_rating": 5.0,
+  "challenge_rating": 5,
+  "xp": 1800,
+  "kill_bonus_xp": 450,
   "type": "Giant",
   "size": "Large",
   "armor_class": 15,
   "hit_points": 84,
+  "hp_dice": "8d10+40",
   "alignment": "chaotic evil",
+  "tags": ["Giant"],
   "img": "/static/img/monster/troll.svg",
-  "enviornment": [
-    "hill",
-    "mountain",
-    "swamp"
-  ]
+  "environment": ["mountain", "forest", "swamp"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 18,
+    "dexterity": 13,
+    "constitution": 20,
+    "intelligence": 7,
+    "wisdom": 9,
+    "charisma": 7
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 2
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": ["acid", "fire"],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 12
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The troll makes three attacks: one with its bite and two with its claws.",
+      "attacks": 3
+    },
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 7,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 4,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Claw",
+      "type": "melee_attack",
+      "attack_bonus": 7,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 4,
+        "type": "slashing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Regeneration",
+      "description": "The troll regains 10 hit points at the start of its turn. If the troll takes acid or fire damage, this trait doesn't function at the start of the troll's next turn. The troll dies only if it starts its turn with 0 hit points and doesn't regenerate.",
+      "type": "passive",
+      "mechanic": {
+        "type": "regeneration",
+        "hp_per_turn": 10,
+        "disabled_by": ["acid", "fire"]
+      }
+    },
+    {
+      "name": "Keen Smell",
+      "description": "The troll has advantage on Wisdom (Perception) checks that rely on smell.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 20] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 70,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 25,
+        "entries": [
+          { "item": "healing", "weight": 60, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 40 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.05,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
 }

@@ -1,0 +1,20 @@
+{
+  "id": 50,
+  "name": "Lizardfolk",
+  "challenge_rating": 0.5,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 15,
+  "hit_points": 22,
+  "alignment": "neutral",
+  "tags": [
+    "Lizardfolk"
+  ],
+  "img": "/static/img/monster/lizardfolk.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "swamp",
+    "urban"
+  ]
+}

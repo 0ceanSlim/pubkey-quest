@@ -1,0 +1,102 @@
+{
+  "id": "wolf",
+  "name": "Wolf",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Beast",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 11,
+  "hp_dice": "2d8+2",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/wolf.svg",
+  "environment": ["forest", "grassland", "mountain", "arctic"],
+
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 12,
+    "dexterity": 15,
+    "constitution": 12,
+    "intelligence": 3,
+    "wisdom": 12,
+    "charisma": 6
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 3,
+    "stealth": 4
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 13
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 2,
+        "type": "piercing",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 11,
+          "effect": "knocked_prone"
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "description": "The wolf has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated.",
+      "type": "passive"
+    },
+    {
+      "name": "Keen Hearing and Smell",
+      "description": "The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.10,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": true
+  }
+}

@@ -1,20 +1,150 @@
 {
-  "id": 148,
+  "id": "banshee",
   "name": "Banshee",
-  "challenge_rating": 4.0,
+  "challenge_rating": 4,
+  "xp": 1100,
+  "kill_bonus_xp": 275,
   "type": "Undead",
   "size": "Medium",
   "armor_class": 12,
   "hit_points": 58,
+  "hp_dice": "13d8",
   "alignment": "chaotic evil",
-  "tags": [
-    "fly"
-  ],
+  "tags": ["Undead"],
   "img": "/static/img/monster/banshee.svg",
-  "enviornment": [
-    "hill",
-    "mountain",
-    "swamp",
-    "urban"
-  ]
+  "environment": ["dungeon", "graveyard", "forest"],
+
+  "speed": {
+    "walk": 0,
+    "fly": 40,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 1,
+    "dexterity": 14,
+    "constitution": 10,
+    "intelligence": 12,
+    "wisdom": 11,
+    "charisma": 17
+  },
+
+  "saving_throws": {
+    "wisdom": 2,
+    "charisma": 5
+  },
+
+  "skills": {},
+
+  "damage_resistances": ["acid", "fire", "lightning", "thunder", "bludgeoning", "piercing", "slashing"],
+  "damage_immunities": ["cold", "necrotic", "poison"],
+  "damage_vulnerabilities": [],
+  "condition_immunities": ["charmed", "exhaustion", "frightened", "grappled", "paralyzed", "petrified", "poisoned", "prone", "restrained"],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Corrupting Touch",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "3d6",
+        "mod": 0,
+        "type": "necrotic"
+      }
+    },
+    {
+      "name": "Horrifying Visage",
+      "type": "special",
+      "recharge": "none",
+      "description": "Each non-undead creature within range (4) must succeed on a DC 13 Wisdom saving throw or be frightened for 1 minute. A frightened target can repeat the saving throw at the end of each of its turns.",
+      "mechanic": {
+        "type": "area_save",
+        "ability": "wisdom",
+        "dc": 13,
+        "range": 4,
+        "effect": "frightened",
+        "duration": "1_minute"
+      }
+    },
+    {
+      "name": "Wail",
+      "type": "special",
+      "recharge": "once_per_combat",
+      "description": "The banshee releases a mournful wail. Each non-undead creature within range (4) must make a DC 13 Constitution saving throw. On a failure, the creature drops to 0 hit points. On a success, the creature takes 3d6+3 psychic damage.",
+      "mechanic": {
+        "type": "area_save",
+        "ability": "constitution",
+        "dc": 13,
+        "range": 4,
+        "on_fail": "drop_to_zero",
+        "on_success_dice": "3d6",
+        "on_success_mod": 3,
+        "on_success_type": "psychic"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Detect Life",
+      "description": "The banshee can magically sense the presence of living creatures up to 5 miles away.",
+      "type": "passive"
+    },
+    {
+      "name": "Incorporeal Movement",
+      "description": "The banshee can move through other creatures and objects as if they were difficult terrain.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 75,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "healing",    "weight": 50, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 50, "quantity": [5, 20] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
 }

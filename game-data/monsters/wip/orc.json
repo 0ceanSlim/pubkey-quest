@@ -1,0 +1,20 @@
+{
+  "id": 37,
+  "name": "Orc",
+  "challenge_rating": 0.5,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 15,
+  "alignment": "chaotic evil",
+  "tags": [
+    "Orc"
+  ],
+  "img": "/static/img/monster/orc.svg",
+  "enviornment": [
+    "forest",
+    "grassland",
+    "mountain",
+    "urban"
+  ]
+}

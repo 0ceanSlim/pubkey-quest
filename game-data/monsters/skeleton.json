@@ -1,16 +1,119 @@
 {
-  "id": 24,
+  "id": "skeleton",
   "name": "Skeleton",
   "challenge_rating": 0.25,
+  "xp": 50,
   "type": "Undead",
   "size": "Medium",
   "armor_class": 13,
   "hit_points": 13,
+  "hp_dice": "2d8+4",
   "alignment": "lawful evil",
+  "tags": ["Undead"],
   "img": "/static/img/monster/skeleton.svg",
-  "enviornment": [
-    "mountain",
-    "swamp",
-    "urban"
-  ]
+  "environment": ["dungeon", "cave", "graveyard"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 10,
+    "dexterity": 14,
+    "constitution": 15,
+    "intelligence": 6,
+    "wisdom": 8,
+    "charisma": 5
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": ["poison"],
+  "damage_vulnerabilities": ["bludgeoning"],
+  "condition_immunities": ["exhaustion", "poisoned"],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 9
+  },
+
+  "preferred_range": 1,
+
+  "actions": [
+    {
+      "name": "Shortsword",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Shortbow",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 3,
+      "range_long": 5,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 70,
+        "entries": [
+          { "item": "shortsword", "weight": 25, "quantity": [1, 1] },
+          { "item": "arrows",     "weight": 30, "quantity": [5, 15] },
+          { "item": "nothing",    "weight": 45 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 25,
+        "entries": [
+          { "item": "shield",   "weight": 50, "quantity": [1, 1] },
+          { "item": "nothing",  "weight": 50 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 1,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }

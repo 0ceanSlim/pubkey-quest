@@ -1,0 +1,16 @@
+{
+  "id": 134,
+  "name": "Owlbear",
+  "challenge_rating": 3.0,
+  "type": "Monstrosity",
+  "size": "Large",
+  "armor_class": 13,
+  "hit_points": 59,
+  "alignment": "unaligned",
+  "img": "/static/img/monster/owlbear.svg",
+  "enviornment": [
+    "forest",
+    "mountain",
+    "swamp"
+  ]
+}

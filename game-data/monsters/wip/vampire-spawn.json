@@ -1,0 +1,16 @@
+{
+  "id": 171,
+  "name": "Vampire Spawn",
+  "challenge_rating": 5.0,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 15,
+  "hit_points": 82,
+  "alignment": "neutral evil",
+  "img": "/static/img/monster/vampire-spawn.svg",
+  "enviornment": [
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

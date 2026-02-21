@@ -1,0 +1,16 @@
+{
+  "id": 65,
+  "name": "Ghoul",
+  "challenge_rating": 1.0,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 22,
+  "alignment": "chaotic evil",
+  "img": "/static/img/monster/ghoul.svg",
+  "enviornment": [
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

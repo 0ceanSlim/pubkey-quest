@@ -1,0 +1,16 @@
+{
+  "id": 30,
+  "name": "Zombie",
+  "challenge_rating": 0.25,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 8,
+  "hit_points": 22,
+  "alignment": "neutral evil",
+  "img": "/static/img/monster/zombie.svg",
+  "enviornment": [
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

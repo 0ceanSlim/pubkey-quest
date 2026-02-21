@@ -1,0 +1,15 @@
+{
+  "id": 109,
+  "name": "Ogre",
+  "challenge_rating": 2.0,
+  "type": "Giant",
+  "size": "Large",
+  "armor_class": 11,
+  "hit_points": 59,
+  "alignment": "chaotic evil",
+  "img": "/static/img/monster/ogre.svg",
+  "enviornment": [
+    "hill",
+    "mountain"
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "id": "giant-spider",
+  "name": "Giant Spider",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Beast",
+  "size": "Large",
+  "armor_class": 14,
+  "hit_points": 26,
+  "hp_dice": "4d10+4",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/giant-spider.svg",
+  "environment": ["forest", "dungeon", "cave"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 30
+  },
+
+  "stats": {
+    "strength": 14,
+    "dexterity": 16,
+    "constitution": 12,
+    "intelligence": 2,
+    "wisdom": 11,
+    "charisma": 4
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "stealth": 7,
+    "perception": 2
+  },
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "blindsight": 10,
+    "darkvision": 60,
+    "passive_perception": 12
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 3,
+        "type": "piercing",
+        "special": {
+          "type": "poison_save",
+          "dc": 11,
+          "ability": "constitution",
+          "on_fail_dice": "2d8",
+          "on_fail_type": "poison",
+          "condition": "poisoned"
+        }
+      }
+    },
+    {
+      "name": "Web",
+      "type": "ranged_attack",
+      "attack_bonus": 5,
+      "reach": null,
+      "range": 3,
+      "range_long": 3,
+      "recharge": "5-6",
+      "hit": {
+        "dice": "0",
+        "mod": 0,
+        "type": "none",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 12,
+          "effect": "restrained",
+          "description": "The target is restrained by webbing. As an action, the target can make a DC 12 Strength check, bursting the webbing on a success."
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Spider Climb",
+      "description": "The spider can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check.",
+      "type": "passive"
+    },
+    {
+      "name": "Web Sense",
+      "description": "While in contact with a web, the spider knows the exact location of any other creature in contact with the same web.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 80,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 15,
+        "entries": [
+          { "item": "healing", "weight": 40, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 60 }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "ambush",
+    "flee_threshold": 0.20,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

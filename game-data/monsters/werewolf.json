@@ -1,21 +1,155 @@
 {
-  "id": 132,
+  "id": "werewolf",
   "name": "Werewolf",
-  "challenge_rating": 3.0,
+  "challenge_rating": 3,
+  "xp": 700,
+  "kill_bonus_xp": 175,
   "type": "Humanoid",
   "size": "Medium",
-  "armor_class": 11,
+  "armor_class": 12,
   "hit_points": 58,
+  "hp_dice": "9d8+18",
   "alignment": "chaotic evil",
-  "tags": [
-    "Human",
-    "Shapechanger"
-  ],
+  "tags": ["Shapechanger", "Human"],
   "img": "/static/img/monster/werewolf.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "hill",
-    "urban"
-  ]
+  "environment": ["forest", "urban"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 15,
+    "dexterity": 13,
+    "constitution": 14,
+    "intelligence": 10,
+    "wisdom": 11,
+    "charisma": 10
+  },
+
+  "saving_throws": {},
+
+  "skills": {
+    "perception": 4,
+    "stealth": 3
+  },
+
+  "damage_resistances": ["bludgeoning", "piercing", "slashing"],
+  "damage_resistance_qualifier": "nonmagical_nonsilvered",
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 14
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Multiattack",
+      "type": "multiattack",
+      "description": "The werewolf makes two attacks: two with its spear (humanoid form) or one with its bite and one with its claws (wolf form).",
+      "attacks": 2
+    },
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 2,
+        "type": "piercing",
+        "special": {
+          "type": "lycanthropy_curse",
+          "description": "A humanoid hit by this attack must succeed on a DC 12 Constitution saving throw or be cursed with lycanthropy."
+        }
+      }
+    },
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 2,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Shapechanger",
+      "description": "The werewolf can use its action to polymorph into a wolf-humanoid hybrid or a wolf, or back into its true human form.",
+      "type": "passive"
+    },
+    {
+      "name": "Pack Tactics",
+      "description": "The werewolf has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 70,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 25,
+        "entries": [
+          { "item": "healing",    "weight": 50, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 50, "quantity": [5, 20] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.15,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
 }

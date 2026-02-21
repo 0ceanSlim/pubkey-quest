@@ -1,0 +1,20 @@
+{
+  "id": 148,
+  "name": "Banshee",
+  "challenge_rating": 4.0,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 58,
+  "alignment": "chaotic evil",
+  "tags": [
+    "fly"
+  ],
+  "img": "/static/img/monster/banshee.svg",
+  "enviornment": [
+    "hill",
+    "mountain",
+    "swamp",
+    "urban"
+  ]
+}

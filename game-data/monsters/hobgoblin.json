@@ -1,20 +1,137 @@
 {
-  "id": 36,
+  "id": "hobgoblin",
   "name": "Hobgoblin",
   "challenge_rating": 0.5,
+  "xp": 100,
   "type": "Humanoid",
   "size": "Medium",
   "armor_class": 18,
   "hit_points": 11,
+  "hp_dice": "2d8+2",
   "alignment": "lawful evil",
-  "tags": [
-    "Goblinoid"
-  ],
+  "tags": ["Goblinoid"],
   "img": "/static/img/monster/hobgoblin.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "mountain",
-    "urban"
-  ]
+  "environment": ["forest", "mountain", "grassland"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 13,
+    "dexterity": 12,
+    "constitution": 12,
+    "intelligence": 10,
+    "wisdom": 10,
+    "charisma": 9
+  },
+
+  "saving_throws": {
+    "constitution": 3
+  },
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 2,
+
+  "actions": [
+    {
+      "name": "Longsword",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 1,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Longbow",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 4,
+      "range_long": 6,
+      "hit": {
+        "dice": "1d8",
+        "mod": 1,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Martial Advantage",
+      "description": "Once per turn, the hobgoblin can deal an extra 2d6 damage to a creature it hits with a weapon attack if that creature is within 5 feet of an ally of the hobgoblin that isn't incapacitated.",
+      "type": "passive",
+      "mechanic": {
+        "type": "extra_damage",
+        "dice": "2d6",
+        "condition": "ally_adjacent_to_target",
+        "once_per_turn": true
+      }
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [2, 8] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 60,
+        "entries": [
+          { "item": "longsword",      "weight": 20, "quantity": [1, 1] },
+          { "item": "shield",         "weight": 15, "quantity": [1, 1] },
+          { "item": "arrows",         "weight": 20, "quantity": [5, 15] },
+          { "item": "chain-shirt",    "weight": 10, "quantity": [1, 1] },
+          { "item": "nothing",        "weight": 35 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 35,
+        "entries": [
+          { "item": "healing", "weight": 100, "quantity": [1, 1] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "tactical",
+    "flee_threshold": 0.25,
+    "preferred_range": 2,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
 }

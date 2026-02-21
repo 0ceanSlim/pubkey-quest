@@ -1,20 +1,144 @@
 {
-  "id": 49,
+  "id": "gnoll",
   "name": "Gnoll",
   "challenge_rating": 0.5,
+  "xp": 100,
   "type": "Humanoid",
   "size": "Medium",
   "armor_class": 15,
   "hit_points": 22,
+  "hp_dice": "5d8",
   "alignment": "chaotic evil",
-  "tags": [
-    "Gnoll"
-  ],
+  "tags": ["Gnoll"],
   "img": "/static/img/monster/gnoll.svg",
-  "enviornment": [
-    "forest",
-    "grassland",
-    "hill",
-    "urban"
-  ]
+  "environment": ["grassland", "desert", "forest"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+
+  "stats": {
+    "strength": 14,
+    "dexterity": 12,
+    "constitution": 11,
+    "intelligence": 6,
+    "wisdom": 10,
+    "charisma": 7
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Spear (thrown)",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 2,
+      "range_long": 3,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Rampage",
+      "description": "When the gnoll reduces a creature to 0 hit points with a melee attack on its turn, the gnoll can take a bonus action to move up to half its speed and make a bite attack.",
+      "type": "passive",
+      "mechanic": {
+        "type": "bonus_attack_on_kill",
+        "attack": "Bite",
+        "movement_allowed": true
+      }
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [0, 5] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 70,
+        "entries": [
+          { "item": "spear",       "weight": 25, "quantity": [1, 1] },
+          { "item": "shield",      "weight": 15, "quantity": [1, 1] },
+          { "item": "nothing",     "weight": 60 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 25,
+        "entries": [
+          { "item": "healing", "weight": 100, "quantity": [1, 1] }
+        ]
+      },
+      {
+        "name": "very_rare",
+        "weight": 5,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.15,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
 }
