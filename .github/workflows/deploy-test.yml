@@ -95,11 +95,13 @@ jobs:
             git -C "${SERVICE_DIR}" fetch origin
             git -C "${SERVICE_DIR}" checkout "${COMMIT}"
 
-            # Overlay build artifacts (binaries + built JS/CSS)
+            # Overlay build artifacts (binaries + built JS/CSS + migrated DB)
             cp -v ./codex "${SERVICE_DIR}/codex"
             cp -v ./pubkey-quest "${SERVICE_DIR}/pubkey-quest"
             mkdir -p "${SERVICE_DIR}/www/dist"
             cp -rv ./www/dist/* "${SERVICE_DIR}/www/dist/"
+            mkdir -p "${SERVICE_DIR}/www"
+            cp -v ./www/game.db "${SERVICE_DIR}/www/game.db"
           fi
 
           echo "codex at service path: $(${SERVICE_DIR}/codex -version)"
