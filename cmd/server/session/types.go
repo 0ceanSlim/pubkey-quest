@@ -17,6 +17,10 @@ type GameSession struct {
 	PerformedShows []string                 `json:"performed_shows,omitempty"` // Shows performed today (to prevent re-booking)
 	RentedRooms    []map[string]interface{} `json:"rented_rooms,omitempty"`    // Current room rentals
 
+	// Combat state — lives in server memory only, never written to save files.
+	// Nil when no combat is in progress.
+	ActiveCombat *types.CombatSession `json:"-"`
+
 	// Auto-pause tracking: tracks time since last player action
 	LastActionTime     int64 `json:"-"` // Real-time timestamp of last player action
 	LastActionGameTime int   `json:"-"` // In-game time (TimeOfDay) of last player action

@@ -559,6 +559,26 @@ func LoadAllNPCs(database *sql.DB) ([]NPC, error) {
 	return npcs, nil
 }
 
+// LoadItemByID loads the full item data for a single item by ID.
+// The properties column stores the entire item JSON.
+func LoadItemByID(database *sql.DB, id string) (map[string]interface{}, error) {
+	var propertiesJSON string
+	err := database.QueryRow("SELECT properties FROM items WHERE id = ?", id).Scan(&propertiesJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("item not found: %s", id)
+		}
+		return nil, fmt.Errorf("failed to query item %s: %v", id, err)
+	}
+
+	var item map[string]interface{}
+	if err := json.Unmarshal([]byte(propertiesJSON), &item); err != nil {
+		return nil, fmt.Errorf("failed to parse item %s: %v", id, err)
+	}
+
+	return item, nil
+}
+
 func LoadAllMusicTracks(database *sql.DB) ([]MusicTrack, error) {
 	var dataJSON string
 	err := database.QueryRow("SELECT data FROM music_tracks WHERE id = 'music'").Scan(&dataJSON)

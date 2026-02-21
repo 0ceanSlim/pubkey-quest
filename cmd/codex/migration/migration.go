@@ -977,6 +977,12 @@ func migrateSystemData() error {
 		log.Printf("Warning: failed to migrate shop-pricing.json: %v", err)
 	}
 
+	// Migrate advancement.json
+	advancementPath := filepath.Join(systemDataPath, "advancement.json")
+	if err := migrateGenericJSON(advancementPath, "advancement"); err != nil {
+		log.Printf("Warning: failed to migrate advancement.json: %v", err)
+	}
+
 	return nil
 }
 

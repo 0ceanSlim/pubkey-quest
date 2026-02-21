@@ -185,6 +185,19 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 
 // Create or update a save
 func handleCreateSave(w http.ResponseWriter, r *http.Request, npub string) {
+	// Block saves during active combat
+	for _, sess := range session.GetSessionManager().GetAllSessions() {
+		if sess.Npub == npub && sess.ActiveCombat != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]any{
+				"success": false,
+				"error":   "Cannot save during active combat",
+			})
+			return
+		}
+	}
+
 	// First decode into a flexible map to handle any structure
 	var rawData map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&rawData); err != nil {

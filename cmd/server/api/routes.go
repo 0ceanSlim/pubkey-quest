@@ -351,6 +351,84 @@ func registerGameRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/game/state [get]
 	mux.HandleFunc("/api/game/state", game.GetGameStateHandler)
+
+	registerCombatRoutes(mux)
+}
+
+// ============================================================================
+// Combat Routes - Turn-based combat encounters
+// ============================================================================
+
+func registerCombatRoutes(mux *http.ServeMux) {
+	// @Summary      Start a combat encounter
+	// @Description  Initialises a new combat session for the given monster and environment.
+	//               Combat state lives in server memory only and is never saved to disk.
+	//               Returns the full initial state including initiative order.
+	// @Tags         Combat
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.CombatStartRequest  true  "Encounter parameters"
+	// @Success      200      {object}  game.CombatStateResponse
+	// @Failure      400      {string}  string  "Invalid request or already in combat"
+	// @Failure      404      {string}  string  "Session not found"
+	// @Failure      500      {string}  string  "Internal error"
+	// @Router       /api/combat/start [post]
+	mux.HandleFunc("/api/combat/start", game.StartCombatHandler)
+
+	// @Summary      Get current combat state
+	// @Description  Returns the live combat state. Use this to re-sync after a page refresh.
+	// @Tags         Combat
+	// @Produce      json
+	// @Param        npub     query     string  true  "Nostr public key"
+	// @Param        save_id  query     string  true  "Save ID"
+	// @Success      200      {object}  game.CombatStateResponse
+	// @Failure      404      {string}  string  "Session or combat not found"
+	// @Router       /api/combat/state [get]
+	mux.HandleFunc("/api/combat/state", game.GetCombatStateHandler)
+
+	// @Summary      Execute a player attack action
+	// @Description  Resolves one full combat round: player movement, attack roll, damage,
+	//               XP award, and the monster's response turn. weapon_slot: "mainHand",
+	//               "offHand", or "unarmed". move_dir: -1 closer, 0 stay, +1 back.
+	// @Tags         Combat
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.CombatActionRequest  true  "Attack action"
+	// @Success      200      {object}  game.CombatStateResponse
+	// @Failure      400      {string}  string  "Wrong phase or invalid request"
+	// @Failure      404      {string}  string  "Session or combat not found"
+	// @Failure      500      {string}  string  "Combat error"
+	// @Router       /api/combat/action [post]
+	mux.HandleFunc("/api/combat/action", game.CombatActionHandler)
+
+	// @Summary      Roll a death saving throw
+	// @Description  Rolls one death saving throw for the unconscious player and runs the
+	//               monster's response. Requires phase "death_saves". Natural 20 revives;
+	//               natural 1 counts as two failures; 3 successes stabilise; 3 failures = defeat.
+	// @Tags         Combat
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.CombatBaseRequest  true  "Session identifiers"
+	// @Success      200      {object}  game.CombatStateResponse
+	// @Failure      400      {string}  string  "Wrong phase or bad request"
+	// @Failure      404      {string}  string  "Session or combat not found"
+	// @Router       /api/combat/death-save [post]
+	mux.HandleFunc("/api/combat/death-save", game.CombatDeathSaveHandler)
+
+	// @Summary      End combat and apply results
+	// @Description  Resolves the outcome and applies changes to session memory. Must be called
+	//               after a terminal phase ("loot", "victory", or "defeat"). Victory: applies XP,
+	//               adds loot, updates HP. Defeat: keeps top 3 items by cost, restores HP/mana,
+	//               returns player to starting location. Clears active combat on success.
+	// @Tags         Combat
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.CombatBaseRequest  true  "Session identifiers"
+	// @Success      200      {object}  game.CombatEndResponse
+	// @Failure      400      {string}  string  "Combat not in terminal phase"
+	// @Failure      404      {string}  string  "Session or combat not found"
+	// @Router       /api/combat/end [post]
+	mux.HandleFunc("/api/combat/end", game.CombatEndHandler)
 }
 
 // ============================================================================

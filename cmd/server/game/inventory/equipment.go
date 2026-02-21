@@ -10,6 +10,25 @@ import (
 	"pubkey-quest/types"
 )
 
+// GetEquippedItemID returns the item ID in a named gear slot, or "" if empty.
+// slot is the key used in gear_slots (e.g. "mainhand", "chest", "offhand").
+func GetEquippedItemID(inventory map[string]interface{}, slot string) string {
+	gearSlots, ok := inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	slotData, exists := gearSlots[slot]
+	if !exists || slotData == nil {
+		return ""
+	}
+	slotMap, ok := slotData.(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	itemID, _ := slotMap["item"].(string)
+	return itemID
+}
+
 // HandleEquipItemAction equips an item from inventory to an equipment slot
 func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
 	itemID, ok := params["item_id"].(string)

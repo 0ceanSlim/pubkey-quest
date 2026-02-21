@@ -1,7 +1,8 @@
 # Combat & Encounters System — Master Planning Document
 
-**Status**: Draft
+**Status**: Phase 1 Backend ✅ Complete — Phase 1 Data Entry pending
 **Created**: 2026-02-20
+**Updated**: 2026-02-21
 **Priority**: Major System
 **Related**: environment-poi-system.md, draft_enviornment.txt
 
@@ -1414,23 +1415,51 @@ These need to be tracked in the save file and tied to the rest system.
 
 ## 25. Implementation Phases
 
-### Phase 1: Core Combat Engine (Foundation)
+### Phase 1: Core Combat Engine (Foundation) ✅ COMPLETE (2026-02-21)
 
 **Goal**: Working combat for basic melee encounters
 
-- [ ] Add full stat blocks to priority monsters (see Section 27)
-- [ ] Add XP values and loot tables to those monsters
-- [ ] Combat session memory struct in Go (keyed by npub, never written to save file)
-- [ ] Initiative calculation (player d20+DEX, monster athletics-derived modifier)
-- [ ] Basic attack resolution: d20 + STR/DEX + prof vs AC
-- [ ] Basic damage: weapon dice + modifier
-- [ ] HP tracking for player and monster in session memory
-- [ ] Win condition: monster reaches 0 HP → loot roll → loot pickup UI → return to world
-- [ ] Lose condition: player reaches 0 HP → death saving throws → on 3 failures apply death state to session memory, prompt player to save
-- [ ] Combat log (text narrative in left message box)
-- [ ] XP applied to session memory per hit; check advancement thresholds before and after each gain — if a level boundary is crossed, set `level_up_pending: true` in session memory and show level-up screen after combat ends
-- [ ] Save file only stores raw `experience` value; level is derived at runtime from `advancement.json`
-- [ ] Basic loot roll using tiered drop table format (Section 20)
+- [x] Add full stat blocks to priority monsters (see Section 27)
+- [x] Add XP values and loot tables to those monsters
+- [x] Combat session memory struct in Go (keyed by npub, never written to save file)
+      → `types/combat.go`: CombatSession, PartyCombatant, MonsterInstance, InitiativeEntry, PlayerCombatState
+      → `session/types.go`: `ActiveCombat *types.CombatSession` with `json:"-"`
+- [x] Initiative calculation (player d20+DEX, monster DEX-mod tiebreaker)
+      → `cmd/server/game/combat/combat.go`: `rollInitiatives`, `buildInitiativeOrder`
+- [x] Basic attack resolution: d20 + STR/DEX + prof vs AC; finesse; crits; critical misses
+      → `cmd/server/game/combat/attack.go`
+- [x] Basic damage: weapon dice + modifier; resistances/immunities/vulnerabilities; crits double dice
+      → `cmd/server/game/combat/damage.go`
+- [x] HP tracking for player and monster in session memory
+- [x] Win condition: monster → 0 HP → loot roll → `phase="loot"` → `POST /api/combat/end` applies XP + loot
+      → `handleMonsterKill`, `applyVictoryOutcome`, `addLootToInventory`
+- [x] Lose condition: player → 0 HP → `phase="death_saves"` → 3 failures → `phase="defeat"` → strips inventory
+      → `ProcessDeathSave`, `applyDefeatOutcome`, `stripInventoryForDeath`
+- [x] Combat log returned per round (`new_log`) and cumulative (`log`)
+- [x] XP applied per hit to session memory; `level_up_pending` set when threshold crossed
+- [x] Save file stores raw `experience`; level derived at runtime from `advancement.json`
+- [x] Basic loot roll using tiered drop table (Section 20) → `cmd/server/game/combat/loot.go`
+- [x] Save blocking during active combat → `cmd/server/api/saves.go` returns 409 Conflict
+
+**Endpoints delivered (5 total — one more than originally planned):**
+- `POST /api/combat/start` — init encounter, roll initiative, optional monster-first-turn
+- `GET  /api/combat/state` — re-sync state after page refresh
+- `POST /api/combat/action` — player attack round (move + attack + monster response)
+- `POST /api/combat/death-save` — one death save + monster response
+- `POST /api/combat/end` — apply victory/defeat outcome, clear combat
+
+**Files created/modified:**
+- `types/combat.go`, `session/types.go`
+- `cmd/server/game/combat/`: dice.go, loader.go, attack.go, damage.go, ai.go, loot.go, xp.go, combat.go
+- `cmd/server/api/game/combat.go` (handlers + Swagger docs)
+- `cmd/server/api/routes.go`, `cmd/server/api/saves.go`
+
+**Known Phase 1 simplifications (intentional):**
+- 3 death save successes → `phase="victory"` (stabilise = combat ends; monster still technically present but walks away)
+- Unconscious player AC = `10 + DEX mod` (simplified; `resolveDeathSaveAttack` has no DB access)
+- Monster AI selects first usable action, not highest-threat action
+- Ranged disadvantage: only ranged-weapon-at-range-0; melee-vs-ranged-monster not yet handled
+- `KillBonusXP` always returns 0 until `kill_bonus_xp` field is added to MonsterData JSON schema
 
 ### Phase 2: Weapon Properties
 
@@ -1733,4 +1762,5 @@ During Phase 1 implementation, treat `party[0]` exactly as the current single-pl
 ---
 
 **Document Status**: Living document — will expand as implementation progresses.
-**Next Step**: Phase 1 data entry (30 priority monster stat blocks) + Phase 1 code implementation.
+**Phase 1**: ✅ Complete (2026-02-21) — backend engine + monster data + HTTP handlers
+**Next Step**: Phase 2 (weapon properties) or Phase 9 (combat UI frontend) depending on priority.

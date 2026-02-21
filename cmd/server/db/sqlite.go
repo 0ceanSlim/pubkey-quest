@@ -80,6 +80,7 @@ func validateDatabase() error {
 		"spell_slots_progression",
 		"music_tracks",
 		"shop_pricing",
+		"advancement",
 	}
 
 	for _, table := range requiredTables {
