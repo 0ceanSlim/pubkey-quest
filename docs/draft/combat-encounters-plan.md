@@ -95,14 +95,15 @@ Athletics = (STR × 0.5) + (CON × 0.35) + (DEX × 0.15)
 | ≤ 13            | +1 step   | 2 steps            |
 | 14+             | +2 steps  | 3 steps            |
 
-### Monster Speed → Combat Score
+### Monster Speed → Athletics Score
 
-Monster JSON has `speed.walk` in feet. Normalize for flee calculations:
+Monster speed is derived from its stats using the same formula as the player, so the comparison in flee calculations is apples-to-apples:
 
 ```
-monster_speed_score = monster.speed.walk / 3
-// 30ft walk → score 10,  45ft → 15,  60ft → 20
+monster_athletics = (STR × 0.5) + (CON × 0.35) + (DEX × 0.15)
 ```
+
+`speed.walk` in the monster JSON is kept for reference/display but is not used in flee math. The athletics score is computed at runtime from the monster's stat block.
 
 ---
 
@@ -132,18 +133,26 @@ Encounters happen during environment traversal based on in-game minutes elapsed.
 
 ### Encounter Check Trigger
 
-Every **30 game minutes** of travel elapsed, run one encounter check:
+Rather than a static interval with modified odds, the trigger is **dynamic** — the `rate_mult` and environment base rate together determine how often a check fires, not just the probability when it does.
 
 ```
-intervals_completed = floor(travel_progress × travel_time_minutes / check_interval)
+effective_interval = base_interval_minutes / (base_encounter_chance × schedule.rate_mult)
+// Example: base 30 min, day rate 1.0, chance 0.25 → check every 120 min
+// Example: base 30 min, night rate 1.8, chance 0.25 → check every ~67 min
 ```
 
-When this number increments, run the check. Prevents per-frame polling.
+Checks fire more frequently at night and in dangerous environments — the world feels more alive rather than just rolling harder dice at the same clock ticks.
 
-**Actual encounter chance per check**:
+**Each check has a fixed roll-to-trigger**:
 
 ```
-chance = base_encounter_chance × schedule.rate_mult × weather.encounter_modifier × difficulty_modifier
+roll d100 — if roll ≤ (base_encounter_chance × 100): encounter triggers
+```
+
+The rate multiplier is absorbed into how often the check runs, not into the per-check probability. Weather and difficulty can still modify the per-check probability on top of that:
+
+```
+per_check_chance = base_encounter_chance × weather.encounter_modifier × difficulty_modifier
 ```
 
 ### Pre-Encounter Stealth Phase (Automatic)
@@ -168,7 +177,9 @@ roll += environment.stealth_modifier (from encounter_settings JSON)
 
 Defined in dungeon JSON — specific monster(s) at specific steps. See environment-poi-system.md.
 
-### Encounter Types (future expansion)
+### Dungeon Encounter Types (future expansion)
+
+These apply to static dungeon encounters only, not random environment encounters:
 
 - **Ambush**: Monsters surprise player (advantage on first round attacks)
 - **Patrol**: Player can choose to avoid (Stealth check)
@@ -361,7 +372,7 @@ This means:
 On **combat victory**: session memory is updated with final HP, mana, XP, and loot. The player is returned to the world and can save whenever they choose.
 On **disconnect during combat**: session memory is lost. Player reconnects at their last manual save, before the encounter.
 
-**Death is the only forced disk write** — when the player dies, the stripped save state is immediately written to disk as the new baseline (see Section 16). This prevents the death-reload exploit that exists for combat disconnects.
+**No forced disk writes exist** — in the full game, saves are signed Nostr events published to relays. The player must sign with their private key; the server cannot force a save on their behalf. The "disk save" in the test server and alpha is a local convenience only. Death strips session memory to the post-death state, but the player still chooses when to publish/save that state.
 
 ### Save File Has No Combat Fields
 
@@ -881,7 +892,7 @@ Spell slots in this game **do NOT get consumed on casting**. They define how man
 
 ### Cantrips
 
-Cantrips are always prepared automatically (no slot choice needed). They cost low mana and typically have no component cost. The `cantrips` array in `spell_slots` shows which cantrips the caster knows.
+Cantrips work the same as leveled spells — spellcasters have a fixed number of cantrip slots and choose which cantrips to fill them with, just as they choose leveled spells. The number of slots comes from `spell-slots.json` like everything else. Cantrips have no component cost and typically cost 1 mana. They are not free or infinite — they are just the cheapest tier.
 
 ### Class Feature Adjustments for Mana System
 
@@ -980,10 +991,11 @@ On actual death (3 failures):
 
 1. **Show death screen** with the final combat log
 2. **Determine the 3 most valuable items** the player had on them:
-   - Pool = all equipped gear slots (mainHand, offHand, armor, helmet, boots, gloves, ring1, ring2, necklace, cloak) + all general inventory slots + all backpack contents
-   - Sort the entire pool by each item's `cost` value from the items data (gold piece value)
-   - Take the top 3 by value. If there are ties at the boundary, pick arbitrarily.
-   - Stackable items (arrows, rations, etc.) count as a single stack with `cost × quantity` as their value
+   - Flatten all inventory into individual items: expand every stack into its constituent units (a stack of 20 arrows becomes 20 individual arrows), then add all equipped gear as single items
+   - Sort every individual item by its `cost` value from the items data
+   - Keep the top 3 individual items. If the same item type appears multiple times in the top 3, those units merge into a stack of that count in the kept slot
+   - Example: 3 arrows (0.05gp each), 3 gold-piece (1gp each), 2 torches (say 0.1gp each) → sorted: gold-piece, gold-piece, gold-piece, torch, torch, arrow... but only 3 kept → player keeps 3 gold-piece
+   - A stack of 500 gold-piece still only contributes individual units at 1gp each — it cannot dominate all 3 slots beyond what 3 units of gold-piece would be worth
 3. **Strip the save file**:
    - All gear slots → empty
    - All general slots → empty
@@ -993,7 +1005,7 @@ On actual death (3 failures):
 5. **Return player to starting city** — set `location` to the player's racial starting city (from `starting-locations.json`, same value used at character creation)
 6. **Restore HP and mana to full** — player wakes up recovered, just stripped of gear
 7. **Persist XP and level** — death does not roll back experience or level gains
-8. **Save immediately** — write the stripped state to the save file as the new baseline
+8. **Session memory reflects the stripped state** — the player is prompted to save. No forced write: in the full game saves are signed Nostr events the player must publish themselves. The test server local save behaves the same way for consistency.
 
 **Death screen message**: Something flavourful — _"You wake in [Starting City], stripped of your belongings by whoever dragged you back from the brink."_
 
@@ -1055,9 +1067,9 @@ The **Flee** action only appears as a combat option when **current range ≥ 3**
 ### Flee Chance Formula
 
 ```
-// Speed comparison (Athletics already implemented, monster score normalized from speed.walk)
-monster_speed_score  = monster.speed.walk / 3     // 30ft → 10, 45ft → 15, 60ft → 20
-speed_advantage      = player_athletics - monster_speed_score
+// Speed comparison — both sides use the same athletics formula
+monster_athletics    = (monster.STR × 0.5) + (monster.CON × 0.35) + (monster.DEX × 0.15)
+speed_advantage      = player_athletics - monster_athletics
 speed_modifier       = speed_advantage × 0.03     // e.g. athletics 14 vs score 10 → +0.12
 
 // Range provides the base chance
@@ -1100,63 +1112,44 @@ Relentless monsters impose −20% to flee chance and always pursue on failed fle
 
 ### Layout
 
-The combat UI replaces the location view while combat is active. Clean text-based interface:
+Combat reuses the existing game UI — no separate full-screen combat view. Each region of the UI takes on a combat-specific role:
 
-```
-┌─────────────────────────────────────────────────────┐
-│  ⚔️  COMBAT — Round 3                              │
-│  vs. Goblin (Goblinoid, Small)                      │
-│                                                     │
-│  GOBLIN                                             │
-│  HP: ██████░░░░░░  5 / 7                           │
-│  AC: 15   Range: 2 (Short)                         │
-│  [Poisoned] [No status]                             │
-│                                                     │
-│  YOUR TURN                                          │
-│                                                     │
-│  Combat Log:                                        │
-│  > You attack with Longsword: 14 vs AC 15 — MISS   │
-│  > Goblin attacks with Scimitar: 11 vs AC 14 — Miss │
-│  > You attack with Longsword: 19 vs AC 15 — HIT!   │
-│  > Damage: 1d8(6) + 3 = 9 slashing. Goblin: 5 HP  │
-│                                                     │
-│  ─── ACTIONS ───────────────────────────────────   │
-│  [ Attack ] [ Cast Spell ] [ Use Item ] [ Flee ]   │
-│  ─── MOVEMENT ──────────────────────────────────   │
-│  [ Move Closer ] [ Move Away ]   Range: ●●○○○○○   │
-│  ─────────────────────────────────────────────────  │
-│  HP: 14/22  AC: 14  Mana: 6/8                      │
-└─────────────────────────────────────────────────────┘
-```
+**Scene image area (top/center)**
+- Environment background stays as-is
+- Monster image overlaid on top of the scene
+- Overlay elements on the scene image (not replacing it):
+  - Monster name
+  - Monster HP bar
+  - Round counter
+  - Range indicator
+  - Flair popups: damage numbers, status effects applied, crits — appear and fade over the scene
+  - Active conditions on the monster shown as badges
 
-### Action Submenu: Attack
+**Left message box (combat log)**
+- Replaces the normal location/event text during combat
+- Scrolling text log of everything that happened this combat
+- Each line: `> You attack with Longsword: 19 vs AC 15 — HIT! 9 slashing damage.`
 
-When player clicks Attack:
+**Bottom button area (actions)**
+- Replaces travel/NPC buttons while in combat
+- Primary action buttons: `[ Attack ]  [ Abilities ]  [ Use Item ]  [ Move ]  [ Flee ]`
+- Clicking a button opens its submenu inline (weapon list, ability list, item list, etc.)
 
-- Shows equipped weapons as options
-- Shows off-hand if applicable
-- Shows thrown options if thrown weapons in inventory
-- Grayed out if out of range
+**Right panel (player stats)**
+- HP, mana/class resource already displayed here in normal UI — unchanged during combat
+- No duplication needed
 
-### Action Submenu: Cast Spell
+### Action Submenus (Bottom Area)
 
-- List of known spells (cantrips always, leveled if mana available)
-- Grayed out if out of range or insufficient mana
-- Concentration spells show current active concentration
+**Attack**: Equipped weapons as options; off-hand if applicable; thrown weapons if in inventory. Grayed out if out of range.
 
-### Action Submenu: Use Item
+**Abilities**: The existing spells/abilities tab content surfaced inline — prepared spells and class abilities, filtered to what's currently usable (enough resource, correct range, action type available).
 
-- List of combat-usable items from inventory
-- Potions, thrown items, etc.
+**Use Item**: Combat-usable items from inventory — potions, thrown items, etc.
 
-### Status Display
+**Move**: `[ Closer ]  [ Away ]  [ Dash ]` — shows current range and what each step would do.
 
-- Player HP bar (color shifts: green > yellow > red)
-- Monster HP bar
-- Range indicator (visual dots or description)
-- Active conditions as colored badges
-- Round counter
-- Turn order indicator (player vs monsters)
+**Flee**: Only active when range ≥ 3. Shows estimated flee chance. Grayed with tooltip at range 0–2.
 
 ---
 
@@ -1230,15 +1223,56 @@ On level up:
 
 ### Loot
 
-After combat, roll loot from `loot_table`:
+After combat a **loot UI** appears showing what the monster dropped. The player clicks items to pick up; anything not taken is left on the ground (discarded — no persistent ground state needed yet). Nothing is auto-added to inventory.
 
-```
-For each entry:
-  roll d100
-  if roll ≤ (chance × 100): grant item/gold in quantity range
+#### Drop Table Format (OSRS-inspired)
+
+Tables support tiers and guaranteed drops, not just a flat chance-per-item list:
+
+```json
+"loot_table": {
+  "guaranteed": [
+    { "item": "gold-piece", "quantity": [2, 6] }
+  ],
+  "rolls": 2,
+  "tiers": [
+    {
+      "name": "common",
+      "weight": 70,
+      "entries": [
+        { "item": "shortsword",  "weight": 30, "quantity": [1, 1] },
+        { "item": "leather-cap", "weight": 20, "quantity": [1, 1] },
+        { "item": "nothing",     "weight": 50 }
+      ]
+    },
+    {
+      "name": "rare",
+      "weight": 25,
+      "entries": [
+        { "item": "potion-of-healing", "weight": 60, "quantity": [1, 1] },
+        { "item": "gold-piece",        "weight": 40, "quantity": [10, 25] }
+      ]
+    },
+    {
+      "name": "very_rare",
+      "weight": 5,
+      "entries": [
+        { "item": "goblin-ear", "weight": 100, "quantity": [1, 1] }
+      ]
+    }
+  ]
+}
 ```
 
-All loot — including `gold-piece` — is added to inventory as items (if space available, else notification). Gold is not a separate field; it stacks like any other stackable item.
+**`rolls`**: How many times to roll the tier table. Each roll picks a tier by weight, then picks an entry within that tier by weight. `"nothing"` entries are valid empty rolls. Guaranteed drops always appear.
+
+#### Loot Pickup UI
+
+- Appears after combat ends
+- Shows each dropped item with icon and quantity
+- Player clicks items to take them (go into general slots / backpack)
+- "Take All" button for convenience when inventory has space
+- Untaken items are discarded
 
 ---
 
@@ -1282,12 +1316,7 @@ Add to each environment JSON:
         "rate_mult": 1.8,
         "diff_mult": 1.5
       }
-    ],
-    "encounter_types": {
-      "monster": 0.7,
-      "event": 0.2,
-      "discovery": 0.1
-    }
+    ]
   }
 }
 ```
@@ -1297,6 +1326,8 @@ Add to each environment JSON:
 **Schedule time windows** use `TimeOfDay` minutes (0–1439). Night wraps midnight: `start: 1200, end: 299` means `time >= 1200 || time < 300`.
 
 Monster selection uses existing `environment[]` arrays on monster JSONs — filter monsters whose environment list includes this terrain type, then apply CR ceiling (Section 22).
+
+Random encounters are **monster-only** for now. Discoveries and random events will be defined in their own Point of Interest JSONs when that system is implemented — each POI carries its own discovery mechanics (class, time of day, level, ability score conditions, etc.). No `encounter_types` split in this schema.
 
 ---
 
@@ -1518,7 +1549,7 @@ Priority abilities (implement these on targeted monsters first):
 
 2. **Flee distance**: How far must player go to escape? Propose: range > 5 OR 2 consecutive turns at max range.
 
-3. **Death persistence**: ✅ Resolved — Player wakes at racial starting city with their 3 most valuable items (by `cost` in item data); all other inventory and gold is lost. XP and level are kept. Save is immediately overwritten with the stripped state. No load-last-save, no resurrection.
+3. **Death persistence**: ✅ Resolved — Player wakes at racial starting city keeping the 3 most valuable **individual items**: all stacks are flattened into units, sorted by unit `cost`, top 3 kept (if 2 of those are the same item they merge back into a stack of 2). Everything else lost. XP and level kept. Session memory updated; player prompted to save. No forced write. No load-last-save, no resurrection.
 
 4. **Monster loot quantity**: Some monsters (goblins) should drop small `gold-piece` stacks, rare monsters more. Gold is an item like any other — quantity in `loot_table` determines the stack size dropped. Balance TBD.
 
