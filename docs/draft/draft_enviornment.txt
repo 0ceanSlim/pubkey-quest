@@ -1,0 +1,882 @@
+  "resources": {
+    "common": [
+      {
+        "name": "roadside_flowers",
+        "description": "Common flowers that grow along the well-traveled highway.",
+        "gather_difficulty": "easy",
+        "value": 1
+      },
+      {
+        "name": "lost_coins",
+        "description": "Coins dropped by travelers over the years.",
+        "gather_difficulty": "easy",
+        "value": 2
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "trade_goods",
+        "description": "Goods that have fallen from merchant wagons.",
+        "gather_difficulty": "moderate",
+        "value": 5
+      }
+    ],
+    "rare": [
+      {
+        "name": "message_scroll",
+        "description": "An important message that could fetch a reward.",
+        "gather_difficulty": "moderate",
+        "value": 15
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "broken_caravan",
+      "name": "Broken Wagon",
+      "description": "A merchant's wagon has broken down. The wheel is damaged and valuable goods are scattered on the road.",
+      "probability": 0.25,
+      "actions": ["help_repair", "buy_goods", "offer_escort", "ignore"],
+      "outcomes": {
+        "help_repair": {
+          "reward": { "gold": 10, "reputation": 2 },
+          "description": "The grateful merchant pays you for your assistance."
+        },
+        "buy_goods": {
+          "reward": { "items": ["Clothes Fine", "Perfume (vial)"] },
+          "description": "You purchase goods at a discount."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 0.8,
+      "visibility": "excellent",
+      "encounter_modifier": 1.1
+    },
+    "rain": {
+      "travel_modifier": 1.0,
+      "visibility": "good",
+      "encounter_modifier": 0.9
+    }
+  },
+  "rest_spots": [
+    {
+      "name": "Halfway Inn",
+      "description": "A well-maintained roadside inn serving travelers.",
+      "safety_level": "safe",
+      "shelter": true,
+      "services": ["food", "lodging", "stable"]
+    }
+  ]
+
+    "resources": {
+    "common": [
+      {
+        "name": "mountain_herbs",
+        "description": "Hardy alpine plants with medicinal properties.",
+        "gather_difficulty": "moderate",
+        "value": 3
+      },
+      {
+        "name": "loose_stones",
+        "description": "Rocks suitable for simple tools or ammunition.",
+        "gather_difficulty": "easy",
+        "value": 1
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "iron_ore",
+        "description": "Raw iron deposits exposed by weathering.",
+        "gather_difficulty": "hard",
+        "value": 8
+      },
+      {
+        "name": "crystal_formations",
+        "description": "Natural crystal clusters with minor magical properties.",
+        "gather_difficulty": "hard",
+        "value": 12
+      }
+    ],
+    "rare": [
+      {
+        "name": "mithril_vein",
+        "description": "A rare deposit of the legendary light metal.",
+        "gather_difficulty": "very_hard",
+        "value": 100
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "mountain_shrine",
+      "name": "Mountain Shrine",
+      "description": "High on a peak, you discover an ancient shrine dedicated to the mountain spirits. Prayer flags flutter in the wind.",
+      "probability": 0.12,
+      "actions": ["pray_at_shrine", "leave_offering", "investigate_shrine"],
+      "outcomes": {
+        "pray_at_shrine": {
+          "reward": { "blessing": "mountain_endurance", "duration": 48 },
+          "description": "The mountain spirits bless your journey with enhanced endurance."
+        },
+        "leave_offering": {
+          "reward": { "experience": 75 },
+          "description": "Your respectful gesture honors the ancient traditions."
+        }
+      }
+    },
+    {
+      "id": "rockslide",
+      "name": "Rockslide",
+      "description": "The path ahead is blocked by a recent rockslide. You hear voices calling for help from beneath the rubble.",
+      "probability": 0.15,
+      "actions": ["dig_for_survivors", "find_alternate_route", "call_out"],
+      "outcomes": {
+        "dig_for_survivors": {
+          "reward": { "gold": 25, "reputation": 5 },
+          "description": "You rescue trapped miners who reward your heroism."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 1.2,
+      "visibility": "excellent",
+      "encounter_modifier": 1.1,
+      "altitude_effects": true
+    },
+    "cloudy": {
+      "travel_modifier": 1.4,
+      "visibility": "reduced",
+      "encounter_modifier": 0.9,
+      "altitude_effects": true
+    },
+    "storm": {
+      "travel_modifier": 2.5,
+      "visibility": "very_poor",
+      "encounter_modifier": 0.4,
+      "lightning_risk": true,
+      "altitude_effects": true
+    }
+  }
+
+    "resources": {
+    "common": [
+      {
+        "name": "medicinal_herbs",
+        "description": "Useful herbs that can be brewed into healing potions.",
+        "gather_difficulty": "easy",
+        "value": 2
+      },
+      {
+        "name": "sturdy_wood",
+        "description": "Strong branches suitable for crafting or repairs.",
+        "gather_difficulty": "easy",
+        "value": 1
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "rare_mushrooms",
+        "description": "Exotic fungi prized by alchemists and healers.",
+        "gather_difficulty": "moderate",
+        "value": 8
+      }
+    ],
+    "rare": [
+      {
+        "name": "ancient_bark",
+        "description": "Bark from trees that have stood for centuries, imbued with natural magic.",
+        "gather_difficulty": "hard",
+        "value": 25
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "lost_traveler",
+      "name": "Lost Merchant",
+      "description": "You encounter a merchant who has lost his way. His cart is stuck in the mud, and wolves circle nearby.",
+      "probability": 0.15,
+      "actions": ["help_merchant", "take_goods", "ignore"],
+      "outcomes": {
+        "help_merchant": {
+          "reward": { "gold": 20, "reputation": 5 },
+          "description": "The grateful merchant rewards you for your kindness."
+        },
+        "take_goods": {
+          "reward": { "items": ["Clothes Fine", "Perfume (vial)"] },
+          "penalty": { "reputation": -3 },
+          "description": "You take what you can carry, leaving the merchant to his fate."
+        }
+      }
+    },
+    {
+      "id": "ancient_shrine",
+      "name": "Forgotten Shrine",
+      "description": "Hidden among the roots of a massive oak stands an ancient shrine to a forgotten god. Moss-covered offerings lie scattered about.",
+      "probability": 0.08,
+      "actions": ["pray", "leave_offering", "investigate", "take_offerings"],
+      "outcomes": {
+        "pray": {
+          "reward": { "blessing": "forest_protection", "duration": 24 },
+          "description": "You feel the blessing of the old gods upon you."
+        },
+        "leave_offering": {
+          "reward": { "experience": 50 },
+          "description": "Your respectful gesture is noted by unseen powers."
+        }
+      }
+    },
+    {
+      "id": "hidden_cache",
+      "name": "Bandit Cache",
+      "description": "You discover a concealed cache of supplies hidden beneath a fallen log. It appears to be a bandit stash.",
+      "probability": 0.12,
+      "actions": ["search_cache", "set_trap", "leave_alone"],
+      "outcomes": {
+        "search_cache": {
+          "reward": { "gold": 15, "items": ["Healing", "Rations (1 day)"] },
+          "risk": { "encounter": "bandit_patrol" },
+          "description": "You find useful supplies, but hear voices approaching..."
+        }
+      }
+    }
+  ],
+  "special_locations": [
+    {
+      "id": "druid_grove",
+      "name": "Sacred Grove",
+      "description": "A circular clearing where ancient druids once held their ceremonies.",
+      "discovery_chance": 0.05,
+      "actions": ["meditate", "study_runes", "gather_reagents"],
+      "requirements": ["wisdom >= 14"]
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 1.0,
+      "visibility": "good",
+      "encounter_modifier": 1.0
+    },
+    "light_rain": {
+      "travel_modifier": 1.2,
+      "visibility": "reduced",
+      "encounter_modifier": 0.8
+    },
+    "heavy_rain": {
+      "travel_modifier": 1.5,
+      "visibility": "poor",
+      "encounter_modifier": 0.6
+    },
+    "fog": {
+      "travel_modifier": 1.3,
+      "visibility": "very_poor",
+      "encounter_modifier": 1.3
+    }
+  },
+  "rest_spots": [
+    {
+      "name": "Travelers' Clearing",
+      "description": "A well-used clearing with the remains of old campfires.",
+      "safety_level": "safe",
+      "shelter": false
+    },
+    {
+      "name": "Hollow Tree",
+      "description": "A massive hollow tree trunk provides shelter from the elements.",
+      "safety_level": "moderate",
+      "shelter": true
+    }
+  ],
+  "encounter_table": {
+    "daily_encounter_chance": 0.35,
+    "encounter_types": {
+      "monster": 0.7,
+      "event": 0.2,
+      "discovery": 0.1
+    },
+    "monster_tiers": {
+      "common": {
+        "weight": 60,
+        "monsters": ["goblin", "winter-wolf", "owlbear", "bugbear"]
+      },
+      "uncommon": {
+        "weight": 30,
+        "monsters": ["dryad", "displacer-beast", "treant"]
+      },
+      "rare": {
+        "weight": 10,
+        "monsters": ["green-dragon-wyrmling", "unicorn"]
+      }
+    }
+  }
+    "resources": {
+    "common": [
+      {
+        "name": "ice_chunks",
+        "description": "Pure ice that can be melted for drinking water.",
+        "gather_difficulty": "easy",
+        "value": 1
+      },
+      {
+        "name": "arctic_lichen",
+        "description": "Hardy plants that grow in the harshest conditions.",
+        "gather_difficulty": "moderate",
+        "value": 2
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "frozen_amber",
+        "description": "Ancient tree resin preserved in the perpetual cold.",
+        "gather_difficulty": "hard",
+        "value": 15
+      }
+    ],
+    "rare": [
+      {
+        "name": "ice_crystal",
+        "description": "Magically charged ice that never melts, prized by frost mages.",
+        "gather_difficulty": "very_hard",
+        "value": 75
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "blizzard_shelter",
+      "name": "Sudden Blizzard",
+      "description": "A fierce blizzard suddenly engulfs the area. You spot what might be an ice cave in the distance.",
+      "probability": 0.2,
+      "actions": [
+        "seek_cave_shelter",
+        "push_through_storm",
+        "dig_snow_shelter"
+      ],
+      "outcomes": {
+        "seek_cave_shelter": {
+          "reward": { "warmth": "temporary_shelter" },
+          "risk": { "encounter": "cave_bear" },
+          "description": "The cave provides shelter, but you're not alone..."
+        },
+        "dig_snow_shelter": {
+          "reward": { "fatigue_reduction": 2 },
+          "description": "Your makeshift shelter protects you from the worst of the storm."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 1.3,
+      "visibility": "excellent",
+      "encounter_modifier": 1.2,
+      "cold_damage_risk": true
+    },
+    "snow": {
+      "travel_modifier": 1.8,
+      "visibility": "poor",
+      "encounter_modifier": 0.7,
+      "cold_damage_risk": true
+    },
+    "blizzard": {
+      "travel_modifier": 3.0,
+      "visibility": "none",
+      "encounter_modifier": 0.3,
+      "requires_shelter": true,
+      "cold_damage_risk": true
+    }
+  }
+    "resources": {
+    "common": [
+      {
+        "name": "swamp_moss",
+        "description": "Spongy moss that can be used for bedding or water filtration.",
+        "gather_difficulty": "easy",
+        "value": 1
+      },
+      {
+        "name": "bog_iron",
+        "description": "Iron deposits formed in the acidic swamp waters.",
+        "gather_difficulty": "moderate",
+        "value": 3
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "witch_herbs",
+        "description": "Rare plants used in magical potions and dark rituals.",
+        "gather_difficulty": "hard",
+        "value": 12
+      }
+    ],
+    "rare": [
+      {
+        "name": "black_pearl",
+        "description": "A rare pearl formed in the toxic waters, prized by wizards.",
+        "gather_difficulty": "very_hard",
+        "value": 50
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "will_o_wisp",
+      "name": "Dancing Lights",
+      "description": "Strange lights dance in the distance, leading deeper into the swamp. Local legends speak of both treasure and doom.",
+      "probability": 0.15,
+      "actions": ["follow_lights", "ignore_lights", "investigate_cautiously"],
+      "outcomes": {
+        "follow_lights": {
+          "reward": { "treasure_chance": 0.3 },
+          "risk": { "encounter": "will_o_wisp" },
+          "description": "You follow the mesmerizing lights deeper into the marsh."
+        },
+        "investigate_cautiously": {
+          "reward": { "experience": 50 },
+          "description": "Your careful approach reveals the lights' true nature."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 1.2,
+      "visibility": "poor",
+      "encounter_modifier": 1.0
+    },
+    "fog": {
+      "travel_modifier": 1.8,
+      "visibility": "very_poor",
+      "encounter_modifier": 1.4
+    },
+    "rain": {
+      "travel_modifier": 1.5,
+      "visibility": "poor",
+      "encounter_modifier": 0.8
+    }
+  }
+    "resources": {
+    "common": [
+      {
+        "name": "phosphor_moss",
+        "description": "Glowing moss that can provide light in darkness.",
+        "gather_difficulty": "easy",
+        "value": 2
+      },
+      {
+        "name": "swamp_mud",
+        "description": "Medicinal mud with healing properties.",
+        "gather_difficulty": "easy",
+        "value": 1
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "ghost_orchid",
+        "description": "A rare flower that blooms only in haunted marshes.",
+        "gather_difficulty": "hard",
+        "value": 20
+      }
+    ],
+    "rare": [
+      {
+        "name": "spirit_essence",
+        "description": "Crystallized essence of departed souls, valued by necromancers.",
+        "gather_difficulty": "very_hard",
+        "value": 60
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "haunted_cabin",
+      "name": "Abandoned Cabin",
+      "description": "Through the mist, you spot a ramshackle cabin on stilts. Strange lights flicker in the windows.",
+      "probability": 0.12,
+      "actions": ["investigate_cabin", "avoid_cabin", "call_out"],
+      "outcomes": {
+        "investigate_cabin": {
+          "reward": { "treasure": "hidden_cache" },
+          "risk": { "encounter": "restless_spirit" },
+          "description": "The cabin holds secrets, but disturbing them has consequences."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "mist": {
+      "travel_modifier": 1.6,
+      "visibility": "very_poor",
+      "encounter_modifier": 1.5
+    },
+    "clear": {
+      "travel_modifier": 1.2,
+      "visibility": "poor",
+      "encounter_modifier": 1.0
+    }
+  }
+    "resources": {
+    "common": [
+      {
+        "name": "driftwood",
+        "description": "Sun-bleached wood suitable for crafting or fuel.",
+        "gather_difficulty": "easy",
+        "value": 1
+      },
+      {
+        "name": "seashells",
+        "description": "Beautiful shells prized by collectors and crafters.",
+        "gather_difficulty": "easy",
+        "value": 2
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "sea_glass",
+        "description": "Smooth glass pieces polished by the waves.",
+        "gather_difficulty": "moderate",
+        "value": 5
+      },
+      {
+        "name": "kelp_strands",
+        "description": "Long strands of kelp useful for rope and remedies.",
+        "gather_difficulty": "moderate",
+        "value": 3
+      }
+    ],
+    "rare": [
+      {
+        "name": "ocean_pearl",
+        "description": "A perfect pearl from the depths of the sea.",
+        "gather_difficulty": "very_hard",
+        "value": 40
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "shipwreck",
+      "name": "Washed Ashore",
+      "description": "The tide has revealed the remains of an old shipwreck partially buried in the sand.",
+      "probability": 0.2,
+      "actions": ["search_wreck", "ignore_wreck", "mark_location"],
+      "outcomes": {
+        "search_wreck": {
+          "reward": { "treasure": "salvaged_goods" },
+          "risk": { "encounter": "territorial_crabs" },
+          "description": "You find valuable salvage, but disturb the local wildlife."
+        }
+      }
+    },
+    {
+      "id": "tide_pools",
+      "name": "Tide Pools",
+      "description": "Low tide has revealed a series of tide pools teeming with colorful sea life.",
+      "probability": 0.18,
+      "actions": ["examine_pools", "collect_specimens", "rest_by_pools"],
+      "outcomes": {
+        "examine_pools": {
+          "reward": { "knowledge": "marine_biology" },
+          "description": "You learn about the fascinating ecosystem of the tidal zone."
+        },
+        "rest_by_pools": {
+          "reward": { "morale_boost": 2 },
+          "description": "The peaceful beauty of the tide pools refreshes your spirit."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 0.9,
+      "visibility": "excellent",
+      "encounter_modifier": 1.1
+    },
+    "storm": {
+      "travel_modifier": 2.0,
+      "visibility": "poor",
+      "encounter_modifier": 0.5,
+      "requires_shelter": true
+    },
+    "fog": {
+      "travel_modifier": 1.4,
+      "visibility": "very_poor",
+      "encounter_modifier": 0.8
+    }
+  },
+  "rest_spots": [
+    {
+      "name": "Sheltered Cove",
+      "description": "A protected cove that offers shelter from storms and wind.",
+      "safety_level": "safe",
+      "shelter": true
+    },
+    {
+      "name": "Lighthouse Ruins",
+      "description": "The remains of an old lighthouse provide some shelter.",
+      "safety_level": "moderate",
+      "shelter": true
+    }
+  ]
+    "resources": {
+    "common": [
+      {
+        "name": "desert_glass",
+        "description": "Glass formed by lightning strikes in the sand.",
+        "gather_difficulty": "moderate",
+        "value": 3
+      },
+      {
+        "name": "cactus_water",
+        "description": "Water extracted from desert cacti.",
+        "gather_difficulty": "easy",
+        "value": 2
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "ancient_pottery",
+        "description": "Ceramic fragments from lost civilizations.",
+        "gather_difficulty": "moderate",
+        "value": 8
+      },
+      {
+        "name": "desert_gems",
+        "description": "Semi-precious stones exposed by sandstorms.",
+        "gather_difficulty": "hard",
+        "value": 15
+      }
+    ],
+    "rare": [
+      {
+        "name": "sun_crystal",
+        "description": "A magical crystal that stores the power of the desert sun.",
+        "gather_difficulty": "very_hard",
+        "value": 80
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "oasis_mirage",
+      "name": "Desert Oasis",
+      "description": "Through the heat haze, you spot what appears to be an oasis with palm trees and clear water. But is it real or a mirage?",
+      "probability": 0.18,
+      "actions": ["approach_carefully", "rush_to_water", "ignore_mirage"],
+      "outcomes": {
+        "approach_carefully": {
+          "reward": { "water": "refresh", "rest": "safe_spot" },
+          "description": "Your caution reveals a true oasis - a blessed relief in the desert."
+        },
+        "rush_to_water": {
+          "risk": { "fatigue": 2 },
+          "description": "The mirage fades as you approach, leaving you more exhausted."
+        }
+      }
+    },
+    {
+      "id": "sandstorm",
+      "name": "Sandstorm",
+      "description": "A massive wall of sand approaches from the horizon. You need to find shelter immediately.",
+      "probability": 0.15,
+      "actions": ["seek_rocky_shelter", "dig_into_sand", "press_forward"],
+      "outcomes": {
+        "seek_rocky_shelter": {
+          "reward": { "storm_protection": "complete" },
+          "description": "You weather the storm safely among the rocks."
+        }
+      }
+    }
+  ],
+  "weather_effects": {
+    "scorching": {
+      "travel_modifier": 1.8,
+      "visibility": "excellent",
+      "encounter_modifier": 0.8,
+      "heat_damage_risk": true,
+      "water_consumption": "double"
+    },
+    "sandstorm": {
+      "travel_modifier": 3.0,
+      "visibility": "none",
+      "encounter_modifier": 0.2,
+      "requires_shelter": true
+    },
+    "night": {
+      "travel_modifier": 1.0,
+      "visibility": "poor",
+      "encounter_modifier": 1.3,
+      "cold_risk": true
+    }
+  }
+
+    "resources": {
+    "common": [
+      {
+        "name": "wild_berries",
+        "description": "Sweet berries that can substitute for rations in a pinch.",
+        "gather_difficulty": "easy",
+        "value": 1
+      },
+      {
+        "name": "granite_chips",
+        "description": "Small pieces of granite useful for basic tool maintenance.",
+        "gather_difficulty": "easy",
+        "value": 1
+      }
+    ],
+    "uncommon": [
+      {
+        "name": "hill_flowers",
+        "description": "Rare wildflowers prized by herbalists for their healing properties.",
+        "gather_difficulty": "moderate",
+        "value": 5
+      }
+    ],
+    "rare": [
+      {
+        "name": "windstone",
+        "description": "A mystical stone that hums with the power of endless wind.",
+        "gather_difficulty": "hard",
+        "value": 30
+      }
+    ]
+  },
+  "random_events": [
+    {
+      "id": "shepherd_boy",
+      "name": "Lost Shepherd",
+      "description": "A young shepherd has lost his flock in the hills. His sheep have scattered, and wolves prowl nearby.",
+      "probability": 0.18,
+      "actions": [
+        "help_find_sheep",
+        "offer_protection",
+        "ignore",
+        "ask_for_reward"
+      ],
+      "outcomes": {
+        "help_find_sheep": {
+          "reward": {
+            "gold": 5,
+            "reputation": 3,
+            "items": ["Blanket", "Rations (1 day)"]
+          },
+          "description": "The grateful shepherd gives you provisions and his blessing."
+        },
+        "offer_protection": {
+          "reward": { "experience": 25 },
+          "description": "You escort the boy safely back to his village."
+        }
+      }
+    },
+    {
+      "id": "standing_stones",
+      "name": "Ancient Stone Circle",
+      "description": "You discover a circle of ancient standing stones humming with mysterious energy. Runes are carved deep into their surfaces.",
+      "probability": 0.1,
+      "actions": [
+        "study_runes",
+        "touch_stones",
+        "camp_inside_circle",
+        "avoid_stones"
+      ],
+      "outcomes": {
+        "study_runes": {
+          "reward": { "experience": 75, "knowledge": "ancient_history" },
+          "description": "You decipher fragments of an ancient language, gaining insight into the past."
+        },
+        "touch_stones": {
+          "reward": { "temporary_blessing": "stone_strength" },
+          "risk": { "damage": 5 },
+          "description": "Mystical energy courses through you - painful but empowering."
+        }
+      }
+    },
+    {
+      "id": "hill_top_view",
+      "name": "Scenic Vista",
+      "description": "You reach the crest of a particularly tall hill and are rewarded with a breathtaking view of the surrounding countryside.",
+      "probability": 0.2,
+      "actions": ["rest_and_admire", "scout_ahead", "mark_location"],
+      "outcomes": {
+        "rest_and_admire": {
+          "reward": { "morale_boost": 3, "fatigue_reduction": 1 },
+          "description": "The beautiful vista lifts your spirits and refreshes your body."
+        },
+        "scout_ahead": {
+          "reward": { "map_knowledge": "hill_routes" },
+          "description": "You gain valuable knowledge of the paths ahead."
+        }
+      }
+    }
+  ],
+  "special_locations": [
+    {
+      "id": "hermit_cave",
+      "name": "Hermit's Cave",
+      "description": "A wise hermit lives in a cave decorated with painted symbols and hanging chimes.",
+      "discovery_chance": 0.08,
+      "actions": ["seek_wisdom", "trade_goods", "share_meal"],
+      "requirements": ["charisma >= 12"]
+    }
+  ],
+  "weather_effects": {
+    "clear": {
+      "travel_modifier": 0.9,
+      "visibility": "excellent",
+      "encounter_modifier": 1.1
+    },
+    "windy": {
+      "travel_modifier": 1.1,
+      "visibility": "good",
+      "encounter_modifier": 0.9
+    },
+    "storm": {
+      "travel_modifier": 1.8,
+      "visibility": "poor",
+      "encounter_modifier": 0.5,
+      "requires_shelter": true
+    }
+  },
+  "rest_spots": [
+    {
+      "name": "Shepherd's Hut",
+      "description": "An abandoned stone hut that once sheltered shepherds during storms.",
+      "safety_level": "safe",
+      "shelter": true
+    },
+    {
+      "name": "Hilltop Grove",
+      "description": "A small grove of trees provides some protection from wind.",
+      "safety_level": "moderate",
+      "shelter": false
+    }
+  ],
+  "encounter_table": {
+    "daily_encounter_chance": 0.25,
+    "encounter_types": {
+      "monster": 0.6,
+      "event": 0.3,
+      "discovery": 0.1
+    },
+    "monster_tiers": {
+      "common": {
+        "weight": 70,
+        "monsters": ["goblin", "wolf", "centaur"]
+      },
+      "uncommon": {
+        "weight": 25,
+        "monsters": ["ogre", "griffon", "manticore"]
+      },
+      "rare": {
+        "weight": 5,
+        "monsters": ["stone-giant", "hill-giant"]
+      }
+    }
+  }
+  
