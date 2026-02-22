@@ -1,6 +1,6 @@
 # Combat & Encounters System — Master Planning Document
 
-**Status**: Phase 1 Backend ✅ Complete — Phase 1 Data Entry pending
+**Status**: Phase 1 ✅ Complete — Phase 2 ✅ Complete — Phase 9 (Combat UI) next
 **Created**: 2026-02-20
 **Updated**: 2026-02-21
 **Priority**: Major System
@@ -757,26 +757,27 @@ The ability system is **already data-driven and already partially built**. Class
 
 Each class has its own resource type defined in `game-data/systems/class-resources.json`. These are **not** D&D 5e slots — they are adapted to fit the game's real-time feel.
 
-| Class | Resource | Label | Regeneration | Starts At |
-|-------|----------|-------|--------------|-----------|
-| Fighter | Stamina | ST | +2/turn | Max |
-| Barbarian | Rage | RG | +10 per hit taken | 0 |
-| Monk | Ki | KI | +1/turn | Max |
-| Rogue | Cunning | CN | +2/turn, +1 per crit | Max |
-| Wizard | Mana | — | — | Per save |
-| Sorcerer | Mana | — | — | Per save |
-| Warlock | Mana | — | — | Per save |
-| Bard | Mana | — | — | Per save |
-| Cleric | Mana | — | — | Per save |
-| Druid | Mana | — | — | Per save |
-| Paladin | Mana | — | — | Per save |
-| Ranger | Mana | — | — | Per save |
+| Class     | Resource | Label | Regeneration         | Starts At |
+| --------- | -------- | ----- | -------------------- | --------- |
+| Fighter   | Stamina  | ST    | +2/turn              | Max       |
+| Barbarian | Rage     | RG    | +10 per hit taken    | 0         |
+| Monk      | Ki       | KI    | +1/turn              | Max       |
+| Rogue     | Cunning  | CN    | +2/turn, +1 per crit | Max       |
+| Wizard    | Mana     | —     | —                    | Per save  |
+| Sorcerer  | Mana     | —     | —                    | Per save  |
+| Warlock   | Mana     | —     | —                    | Per save  |
+| Bard      | Mana     | —     | —                    | Per save  |
+| Cleric    | Mana     | —     | —                    | Per save  |
+| Druid     | Mana     | —     | —                    | Per save  |
+| Paladin   | Mana     | —     | —                    | Per save  |
+| Ranger    | Mana     | —     | —                    | Per save  |
 
 Note: Barbarian Rage builds up as the barbarian takes hits rather than starting full — they get angrier as the fight goes on. Fighter Stamina and Monk Ki start at max and drain down.
 
 ### Ability Data Schema
 
 Each ability JSON has:
+
 ```json
 {
   "id": "second-wind",
@@ -1116,6 +1117,7 @@ Relentless monsters impose −20% to flee chance and always pursue on failed fle
 Combat reuses the existing game UI — no separate full-screen combat view. Each region of the UI takes on a combat-specific role:
 
 **Scene image area (top/center)**
+
 - Environment background stays as-is
 - Monster image overlaid on top of the scene
 - Overlay elements on the scene image (not replacing it):
@@ -1127,16 +1129,19 @@ Combat reuses the existing game UI — no separate full-screen combat view. Each
   - Active conditions on the monster shown as badges
 
 **Left message box (combat log)**
+
 - Replaces the normal location/event text during combat
 - Scrolling text log of everything that happened this combat
 - Each line: `> You attack with Longsword: 19 vs AC 15 — HIT! 9 slashing damage.`
 
 **Bottom button area (actions)**
+
 - Replaces travel/NPC buttons while in combat
 - Primary action buttons: `[ Attack ]  [ Abilities ]  [ Use Item ]  [ Move ]  [ Flee ]`
 - Clicking a button opens its submenu inline (weapon list, ability list, item list, etc.)
 
 **Right panel (player stats)**
+
 - HP, mana/class resource already displayed here in normal UI — unchanged during combat
 - No duplication needed
 
@@ -1442,6 +1447,7 @@ These need to be tracked in the save file and tied to the rest system.
 - [x] Save blocking during active combat → `cmd/server/api/saves.go` returns 409 Conflict
 
 **Endpoints delivered (5 total — one more than originally planned):**
+
 - `POST /api/combat/start` — init encounter, roll initiative, optional monster-first-turn
 - `GET  /api/combat/state` — re-sync state after page refresh
 - `POST /api/combat/action` — player attack round (move + attack + monster response)
@@ -1449,32 +1455,64 @@ These need to be tracked in the save file and tied to the rest system.
 - `POST /api/combat/end` — apply victory/defeat outcome, clear combat
 
 **Files created/modified:**
+
 - `types/combat.go`, `session/types.go`
 - `cmd/server/game/combat/`: dice.go, loader.go, attack.go, damage.go, ai.go, loot.go, xp.go, combat.go
 - `cmd/server/api/game/combat.go` (handlers + Swagger docs)
 - `cmd/server/api/routes.go`, `cmd/server/api/saves.go`
 
 **Known Phase 1 simplifications (intentional):**
+
 - 3 death save successes → `phase="victory"` (stabilise = combat ends; monster still technically present but walks away)
 - Unconscious player AC = `10 + DEX mod` (simplified; `resolveDeathSaveAttack` has no DB access)
 - Monster AI selects first usable action, not highest-threat action
 - Ranged disadvantage: only ranged-weapon-at-range-0; melee-vs-ranged-monster not yet handled
 - `KillBonusXP` always returns 0 until `kill_bonus_xp` field is added to MonsterData JSON schema
 
-### Phase 2: Weapon Properties
+### Phase 2: Weapon Properties ✅ COMPLETE (2026-02-21)
 
 **Goal**: All weapon tags work correctly
 
-- [ ] Finesse: Choose best of STR/DEX
-- [ ] Versatile: 1H vs 2H damage choice
-- [ ] Two-handed: Validation and blocking of offhand
-- [ ] Heavy: Disadvantage for Small races
-- [ ] Light: Enable two-weapon fighting bonus action
-- [ ] Thrown: Ranged attack option for eligible weapons, consume from stack
-- [ ] Ammunition: Consume ammo on ranged attack, disable if empty
-- [ ] Loading: Limit to 1 attack per turn
-- [ ] Reach: Melee at range 0 or 1
-- [ ] Range system working in combat (disadvantage at long range, disadvantage with ranged at range 0)
+- [x] Finesse: Choose best of STR/DEX _(was already done in Phase 1)_
+- [x] Versatile: 1H vs 2H damage choice _(was already done in Phase 1)_
+- [x] Two-handed: Validation and blocking of offhand _(was already done in Phase 1)_
+- [x] Heavy: Disadvantage for Small races (halfling, gnome)
+      → `resolveAttackAdvantage()` checks `save.Race` against "halfling"/"gnome"
+- [x] Light + two-weapon fighting: bonus action off-hand attack; no ability mod on damage
+      → `hand="off"` in request; `validateTwoWeaponFighting()`; `resolvePlayerDamageNoMod()`
+- [x] Thrown: Ranged attack with DEX, consumes item from gear slot
+      → `thrown=true` in request; `consumeFromGearSlot()`; checks `thrown` tag
+- [x] Ammunition: Consume from `gear_slots["ammunition"]` per ranged attack; blocked if empty
+      → `consumeAmmo()`; `AmmoUsedThisCombat` counter on `CombatSession`
+- [x] Ammunition recovery: 50% of ammo used recovered on victory
+      → `addAmmoToSlot()` called in `applyVictoryOutcome()`
+- [x] Loading: Bonus action blocked when main hand has `loading` tag
+      → checked in `validateTwoWeaponFighting()`
+- [x] Reach: Weapons with `reach` tag can attack at range 0 or 1
+      → `getMeleeReach()` reads `range` field on reach weapons
+- [x] Melee range gate: Attack blocked if enemy is beyond weapon reach
+      → `validateAttackRange()` returns error with clear message
+- [x] Long-range disadvantage: ranged attacks beyond normal range get disadvantage
+      → `resolveAttackAdvantage()` uses `getRangedReach()` to compare `cs.Range`
+- [x] Out-of-max-range block: ranged attack beyond long range returns error
+      → `validateAttackRange()` computes `maxRange` from `range-long` (fallback: `range`)
+- [x] `bonus_attack_available` added to `CombatStateResponse`
+      → `checkBonusAttackAvailable()` runs after every action
+- [x] `ammo_remaining` added to `CombatStateResponse`
+      → `getAmmoRemaining()` reads from ammo gear slot
+
+**Files created/modified:**
+
+- `types/combat.go` — added `AmmoUsedThisCombat int` to `CombatSession`
+- `cmd/server/game/combat/attack.go` — added `parseRangeInt`, `getMeleeReach`, `getRangedReach`; updated `resolveAttackBonus` and `resolveAttackAdvantage`
+- `cmd/server/game/combat/combat.go` — updated `ProcessPlayerAttack` (new `hand`/`thrown` params); added `validateAttackRange`, `validateTwoWeaponFighting`, `consumeAmmo`, `consumeFromGearSlot`, `slotQty`, `resolvePlayerDamageNoMod`; updated `resolvePlayerDamage`
+- `cmd/server/api/game/combat.go` — added `Hand`/`Thrown` to request; `BonusAttackAvailable`/`AmmoRemaining` to response; added helper functions; ammo recovery in `applyVictoryOutcome`
+
+**Intentional simplifications / known gaps:**
+
+- Thrown attacks always use DEX (plan spec); D&D 5e uses STR unless finesse — this is a deliberate simplification
+- Loading only blocks bonus actions (two-weapon fighting); it does not prevent a second main-hand attack if the player calls the action endpoint twice in one "round"
+- `BonusActionUsed` resets when the player makes a new main-hand attack — no strict per-round turn enforcement yet
 
 ### Phase 3: Unified Ability System (Class Features + Magic)
 
@@ -1670,7 +1708,6 @@ These 30 monsters should have full stat blocks added first (most likely to be en
 
 - No `active_combat` field — combat lives in session memory only (see Section 5)
 - Save file is written to disk on manual save only; session memory holds live state between saves
-- Death is the only forced disk write (strips inventory, warps to starting city — see Section 16)
 - Add `level_up_pending: bool` to session memory for when XP threshold crossed mid-combat
 - Add `short_rest_features_used` tracking per rest cycle
 
@@ -1763,4 +1800,5 @@ During Phase 1 implementation, treat `party[0]` exactly as the current single-pl
 
 **Document Status**: Living document — will expand as implementation progresses.
 **Phase 1**: ✅ Complete (2026-02-21) — backend engine + monster data + HTTP handlers
-**Next Step**: Phase 2 (weapon properties) or Phase 9 (combat UI frontend) depending on priority.
+**Phase 2**: ✅ Complete (2026-02-21) — all weapon properties implemented
+**Next Step**: Phase 9 (Combat UI frontend) — backend is ready to wire up

@@ -6,11 +6,13 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
+	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
@@ -29,12 +31,16 @@ type CombatStartRequest struct {
 // CombatActionRequest is the body sent to POST /combat/action.
 // weapon_slot must be "mainHand", "offHand", or "unarmed".
 // move_dir: -1 = step closer, 0 = hold position, +1 = step back.
+// hand: "main" (default) or "off" to use the off-hand weapon as a bonus action.
+// thrown: true to throw a melee weapon with the "thrown" tag as a ranged attack.
 // swagger:model CombatActionRequest
 type CombatActionRequest struct {
 	Npub       string `json:"npub"        example:"npub1..."`
 	SaveID     string `json:"save_id"     example:"save_1234567890"`
 	WeaponSlot string `json:"weapon_slot" example:"mainHand"`
 	MoveDir    int    `json:"move_dir"    example:"0"`
+	Hand       string `json:"hand"        example:"main"`
+	Thrown     bool   `json:"thrown"      example:"false"`
 }
 
 // CombatBaseRequest is reused by death-save and end-combat.
@@ -70,18 +76,20 @@ type CombatMonsterView struct {
 // CombatStateResponse is returned by all combat action endpoints.
 // swagger:model CombatStateResponse
 type CombatStateResponse struct {
-	Success        bool                    `json:"success"                  example:"true"`
-	Phase          string                  `json:"phase"                    example:"active"`
-	Round          int                     `json:"round"                    example:"1"`
-	Range          int                     `json:"range"                    example:"2"`
-	Player         CombatPlayerView        `json:"player"`
-	Monsters       []CombatMonsterView     `json:"monsters"`
-	Initiative     []types.InitiativeEntry `json:"initiative"`
-	Log            []string                `json:"log"`
-	NewLog         []string                `json:"new_log,omitempty"`
-	XPEarned       int                     `json:"xp_earned"               example:"12"`
-	LootRolled     []types.LootDrop        `json:"loot_rolled,omitempty"`
-	LevelUpPending bool                    `json:"level_up_pending"         example:"false"`
+	Success              bool                    `json:"success"                   example:"true"`
+	Phase                string                  `json:"phase"                     example:"active"`
+	Round                int                     `json:"round"                     example:"1"`
+	Range                int                     `json:"range"                     example:"2"`
+	Player               CombatPlayerView        `json:"player"`
+	Monsters             []CombatMonsterView     `json:"monsters"`
+	Initiative           []types.InitiativeEntry `json:"initiative"`
+	Log                  []string                `json:"log"`
+	NewLog               []string                `json:"new_log,omitempty"`
+	XPEarned             int                     `json:"xp_earned"                example:"12"`
+	LootRolled           []types.LootDrop        `json:"loot_rolled,omitempty"`
+	LevelUpPending       bool                    `json:"level_up_pending"          example:"false"`
+	BonusAttackAvailable bool                    `json:"bonus_attack_available"    example:"false"`
+	AmmoRemaining        int                     `json:"ammo_remaining"            example:"19"`
 }
 
 // CombatEndResponse is returned when the player calls POST /combat/end.
@@ -115,7 +123,7 @@ func loadAdvancement() ([]types.AdvancementEntry, error) {
 }
 
 // buildStateResponse converts in-memory CombatSession into the API response shape.
-func buildStateResponse(cs *types.CombatSession, newLog []string) CombatStateResponse {
+func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []string) CombatStateResponse {
 	player := CombatPlayerView{}
 	if len(cs.Party) > 0 {
 		state := cs.Party[0].CombatState
@@ -141,20 +149,148 @@ func buildStateResponse(cs *types.CombatSession, newLog []string) CombatStateRes
 		})
 	}
 
-	return CombatStateResponse{
-		Success:        true,
-		Phase:          cs.Phase,
-		Round:          cs.Round,
-		Range:          cs.Range,
-		Player:         player,
-		Monsters:       monsters,
-		Initiative:     cs.Initiative,
-		Log:            cs.Log,
-		NewLog:         newLog,
-		XPEarned:       cs.XPEarnedThisFight,
-		LootRolled:     cs.LootRolled,
-		LevelUpPending: cs.LevelUpPending,
+	bonusAvail := false
+	ammoLeft := 0
+	if save != nil {
+		bonusAvail = checkBonusAttackAvailable(cs, save)
+		ammoLeft = getAmmoRemaining(save.Inventory)
 	}
+
+	return CombatStateResponse{
+		Success:              true,
+		Phase:                cs.Phase,
+		Round:                cs.Round,
+		Range:                cs.Range,
+		Player:               player,
+		Monsters:             monsters,
+		Initiative:           cs.Initiative,
+		Log:                  cs.Log,
+		NewLog:               newLog,
+		XPEarned:             cs.XPEarnedThisFight,
+		LootRolled:           cs.LootRolled,
+		LevelUpPending:       cs.LevelUpPending,
+		BonusAttackAvailable: bonusAvail,
+		AmmoRemaining:        ammoLeft,
+	}
+}
+
+// checkBonusAttackAvailable returns true when the player currently meets the
+// conditions for a two-weapon fighting bonus action: both hands hold light
+// weapons, and the bonus action has not yet been used this turn.
+func checkBonusAttackAvailable(cs *types.CombatSession, save *types.SaveFile) bool {
+	if len(cs.Party) == 0 || cs.Party[0].CombatState.BonusActionUsed {
+		return false
+	}
+	db := serverdb.GetDB()
+	if db == nil {
+		return false
+	}
+
+	mainHandID := getEquippedIDMulti(save.Inventory, "mainhand", "mainHand")
+	offHandID := getEquippedIDMulti(save.Inventory, "offhand", "offHand")
+	if mainHandID == "" || offHandID == "" {
+		return false
+	}
+
+	mainItem, err := gamedata.LoadItemByID(db, mainHandID)
+	if err != nil {
+		return false
+	}
+	offItem, err := gamedata.LoadItemByID(db, offHandID)
+	if err != nil {
+		return false
+	}
+
+	return itemHasTag(mainItem["tags"], "light") &&
+		itemHasTag(offItem["tags"], "light") &&
+		!itemHasTag(mainItem["tags"], "loading")
+}
+
+// getAmmoRemaining reads the current quantity in the ammo gear slot.
+func getAmmoRemaining(inventory map[string]interface{}) int {
+	gearSlots, ok := inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return 0
+	}
+	for _, key := range []string{"ammunition", "ammo"} {
+		if slotData, exists := gearSlots[key]; exists && slotData != nil {
+			if slotMap, ok := slotData.(map[string]interface{}); ok {
+				return int(slotFloat(slotMap, "quantity"))
+			}
+		}
+	}
+	return 0
+}
+
+// addAmmoToSlot restores recovered ammunition to the ammo gear slot after victory.
+// If the slot is empty (ammo type unknown), no ammo is restored.
+func addAmmoToSlot(save *types.SaveFile, qty int) {
+	if qty <= 0 {
+		return
+	}
+	gearSlots, ok := save.Inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	var ammoMap map[string]interface{}
+	var ammoKey string
+	for _, key := range []string{"ammunition", "ammo"} {
+		if slotData, exists := gearSlots[key]; exists && slotData != nil {
+			if slotMap, ok := slotData.(map[string]interface{}); ok {
+				if itemID, _ := slotMap["item"].(string); itemID != "" {
+					ammoMap = slotMap
+					ammoKey = key
+					break
+				}
+			}
+		}
+	}
+
+	if ammoMap == nil {
+		return // Cannot restore ammo when slot has no item type
+	}
+
+	itemID, _ := ammoMap["item"].(string)
+	existing := int(slotFloat(ammoMap, "quantity"))
+	newQty := existing + qty
+
+	// Cap at the item's stack limit
+	item, err := gamedata.LoadItemByID(serverdb.GetDB(), itemID)
+	if err == nil {
+		if stackLimit, ok := item["stack"].(float64); ok && stackLimit > 0 {
+			if newQty > int(stackLimit) {
+				newQty = int(stackLimit)
+			}
+		}
+	}
+
+	ammoMap["quantity"] = newQty
+	gearSlots[ammoKey] = ammoMap
+}
+
+// itemHasTag checks whether a raw tag list ([]interface{}) contains a tag string.
+func itemHasTag(tags interface{}, tag string) bool {
+	list, ok := tags.([]interface{})
+	if !ok {
+		return false
+	}
+	for _, t := range list {
+		if s, ok := t.(string); ok && strings.EqualFold(s, tag) {
+			return true
+		}
+	}
+	return false
+}
+
+// getEquippedIDMulti tries multiple slot key variants and returns the first non-empty item ID.
+func getEquippedIDMulti(inventory map[string]interface{}, keys ...string) string {
+	for _, key := range keys {
+		if id := gaminventory.GetEquippedItemID(inventory, key); id != "" {
+			return id
+		}
+	}
+	return ""
 }
 
 // decodeBaseRequest decodes npub + save_id from the request body.
@@ -244,7 +380,7 @@ func StartCombatHandler(w http.ResponseWriter, r *http.Request) {
 	sess.ActiveCombat = cs
 	log.Printf("⚔️  Combat started: npub=%s monster=%s env=%s", req.Npub, req.MonsterID, req.EnvironmentID)
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, cs.Log))
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, cs.Log))
 }
 
 // ─── GetCombatStateHandler ────────────────────────────────────────────────────
@@ -283,7 +419,7 @@ func GetCombatStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(sess.ActiveCombat, nil))
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(sess.ActiveCombat, &sess.SaveData, nil))
 }
 
 // ─── CombatActionHandler ──────────────────────────────────────────────────────
@@ -325,6 +461,9 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 	if req.WeaponSlot == "" {
 		req.WeaponSlot = "mainHand" // Default to mainhand
 	}
+	if req.Hand == "" {
+		req.Hand = "main" // Default to main-hand action
+	}
 
 	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
 	if err != nil {
@@ -348,18 +487,18 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 
 	roundLog, err := combat.ProcessPlayerAttack(
 		serverdb.GetDB(), cs, &sess.SaveData,
-		req.WeaponSlot, req.MoveDir, advancement,
+		req.WeaponSlot, req.MoveDir, req.Hand, req.Thrown, advancement,
 	)
 	if err != nil {
 		log.Printf("❌ CombatAction: %v", err)
-		writeCombatError(w, http.StatusInternalServerError, fmt.Sprintf("Combat error: %v", err))
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
 	cs.Round++
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, roundLog))
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
 
 // ─── CombatDeathSaveHandler ───────────────────────────────────────────────────
@@ -410,7 +549,7 @@ func CombatDeathSaveHandler(w http.ResponseWriter, r *http.Request) {
 	cs.Log = append(cs.Log, roundLog...)
 	cs.Round++
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, roundLog))
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
 
 // ─── CombatEndHandler ─────────────────────────────────────────────────────────
@@ -498,6 +637,14 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 
 	// Apply XP
 	save.Experience += cs.XPEarnedThisFight
+
+	// Recover 50% of ammo used this combat (floor)
+	if cs.AmmoUsedThisCombat > 0 {
+		recovered := cs.AmmoUsedThisCombat / 2
+		if recovered > 0 {
+			addAmmoToSlot(save, recovered)
+		}
+	}
 
 	// Add loot to inventory
 	placed, overflow := addLootToInventory(save.Inventory, cs.LootRolled)

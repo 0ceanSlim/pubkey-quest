@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sort"
+	"strings"
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
@@ -146,9 +147,32 @@ func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 
 // ProcessPlayerAttack resolves one full attack round: player movement, attack roll,
 // damage, XP, and the monster's response turn.
+//
+// hand: "main" (default) or "off" for two-weapon bonus attack.
+// thrown: true to treat a melee weapon with the "thrown" tag as a ranged attack.
+//
 // Returns log entries for this round. Caller appends them to cs.Log.
-func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot string, moveDir int, advancement []types.AdvancementEntry) ([]string, error) {
+func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot string, moveDir int, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
 	var log []string
+
+	if len(cs.Party) == 0 {
+		return nil, fmt.Errorf("no player in combat")
+	}
+	state := &cs.Party[0].CombatState
+	isOffHand := hand == "off"
+
+	if isOffHand {
+		// Validate two-weapon fighting conditions before doing anything
+		if err := validateTwoWeaponFighting(db, save, cs); err != nil {
+			return nil, err
+		}
+		// Bonus attack always uses the off-hand slot
+		weaponSlot = "offhand"
+	} else {
+		// New main action: reset per-turn flags
+		state.ActionUsed = false
+		state.BonusActionUsed = false
+	}
 
 	log = append(log, applyPlayerMove(cs, moveDir)...)
 
@@ -157,21 +181,56 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		return nil, err
 	}
 
+	// Validate that the attack can reach the target at this range
+	if err := validateAttackRange(cs, item, isUnarmed, thrown); err != nil {
+		return nil, err
+	}
+
+	// Ammo consumption — ranged weapons with the "ammunition" tag require ammo
+	if !isUnarmed && item != nil && !thrown {
+		if hasTag(item["tags"], "ammunition") {
+			if err := consumeAmmo(save, cs); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Thrown weapon — consume one instance of the thrown item from its gear slot
+	if thrown && !isUnarmed && item != nil {
+		if !hasTag(item["tags"], "thrown") {
+			return nil, fmt.Errorf("this weapon cannot be thrown")
+		}
+		if err := consumeFromGearSlot(save.Inventory, weaponSlot); err != nil {
+			return nil, fmt.Errorf("could not consume thrown weapon: %w", err)
+		}
+	}
+
 	monster := &cs.Monsters[0]
 	level := character.GetLevelFromXP(save.Experience, advancement)
 
-	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed)
-	advantage := resolveAttackAdvantage(cs, item, isUnarmed)
+	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, thrown)
+	advantage := resolveAttackAdvantage(cs, item, isUnarmed, save.Race, thrown)
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, advantage)
 
 	log = append(log, formatAttackRoll(save.D, item, isUnarmed, result))
 
 	if !result.IsHit {
+		if isOffHand {
+			state.BonusActionUsed = true
+		} else {
+			state.ActionUsed = true
+		}
 		return append(log, runMonsterResponseTurn(db, cs, save)...), nil
 	}
 
 	offhandEmpty := isOffhandEmpty(save.Inventory)
-	dmg := resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit)
+	var dmg int
+	if isOffHand {
+		// Two-weapon fighting bonus attack: no ability score modifier to damage
+		dmg = resolvePlayerDamageNoMod(item, monster, offhandEmpty, result.IsCrit)
+	} else {
+		dmg = resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit, thrown)
+	}
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
 
 	applyDamageToMonster(monster, dmg)
@@ -179,6 +238,12 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
 	if xp > 0 {
 		log = append(log, fmt.Sprintf("  +%d XP", xp))
+	}
+
+	if isOffHand {
+		state.BonusActionUsed = true
+	} else {
+		state.ActionUsed = true
 	}
 
 	if !monster.IsAlive {
@@ -222,22 +287,210 @@ func loadWeaponItem(db *sql.DB, inventory map[string]interface{}, weaponSlot str
 }
 
 // resolveAttackBonus computes the player's total attack roll modifier.
-func resolveAttackBonus(item map[string]interface{}, stats map[string]interface{}, class string, level int, isUnarmed bool) int {
+// When thrown is true the weapon is used as a ranged throw and always uses DEX.
+func resolveAttackBonus(item map[string]interface{}, stats map[string]interface{}, class string, level int, isUnarmed, thrown bool) int {
 	if isUnarmed {
 		return UnarmedAttackBonus(stats, class, level)
+	}
+	if thrown {
+		dexMod := StatMod(GetStatFromMap(stats, "dexterity"))
+		weaponType, _ := item["type"].(string)
+		weaponID, _ := item["id"].(string)
+		prof := 0
+		if IsProficientWith(class, weaponType, weaponID) {
+			prof = proficiencyBonus(level)
+		}
+		return dexMod + prof
 	}
 	return WeaponAttackBonus(item, stats, class, level)
 }
 
 // resolveAttackAdvantage returns >0 (advantage), <0 (disadvantage), or 0 (normal).
-// Phase 1: handles ranged-at-melee-range only.
-func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}, isUnarmed bool) int {
+// Phase 2: ranged-at-melee-range, long-range, heavy weapon + small race.
+func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}, isUnarmed bool, race string, thrown bool) int {
 	if isUnarmed || item == nil {
 		return 0
 	}
+
+	advantage := 0
 	weaponType, _ := item["type"].(string)
-	if IsRangedAction(weaponType) && cs.Range == 0 {
-		return -1
+	actingAsRanged := IsRangedAction(weaponType) || thrown
+
+	if actingAsRanged {
+		// Disadvantage when firing at melee range
+		if cs.Range == 0 {
+			advantage--
+		}
+		// Disadvantage when beyond normal range (but still within long range)
+		normalRange, _ := getRangedReach(item)
+		if cs.Range > normalRange {
+			advantage--
+		}
+	}
+
+	// Heavy weapons impose disadvantage for small races
+	if hasTag(item["tags"], "heavy") {
+		if strings.EqualFold(race, "halfling") || strings.EqualFold(race, "gnome") {
+			advantage--
+		}
+	}
+
+	return advantage
+}
+
+// validateAttackRange returns an error if the current combat range prevents this attack.
+func validateAttackRange(cs *types.CombatSession, item map[string]interface{}, isUnarmed, thrown bool) error {
+	if isUnarmed || item == nil {
+		if cs.Range > 0 {
+			return fmt.Errorf("enemy is out of melee range — move closer or use a ranged weapon")
+		}
+		return nil
+	}
+
+	weaponType, _ := item["type"].(string)
+	isRanged := IsRangedAction(weaponType)
+
+	if isRanged || thrown {
+		normalRange, longRange := getRangedReach(item)
+		maxRange := longRange
+		if maxRange == 0 {
+			maxRange = normalRange
+		}
+		if cs.Range > maxRange {
+			return fmt.Errorf("target is beyond maximum range (%d)", maxRange)
+		}
+		return nil
+	}
+
+	// Melee range gate
+	reach := getMeleeReach(item)
+	if cs.Range > reach {
+		return fmt.Errorf("enemy is out of melee range (weapon reach: %d, current range: %d) — move closer", reach, cs.Range)
+	}
+	return nil
+}
+
+// validateTwoWeaponFighting checks conditions for a bonus action off-hand attack.
+func validateTwoWeaponFighting(db *sql.DB, save *types.SaveFile, cs *types.CombatSession) error {
+	if len(cs.Party) == 0 {
+		return fmt.Errorf("no player in combat")
+	}
+	if cs.Party[0].CombatState.BonusActionUsed {
+		return fmt.Errorf("bonus action already used this turn")
+	}
+
+	// Load main-hand item (try lowercase then camelCase slot names)
+	mainItem, mainUnarmed, _ := loadWeaponItem(db, save.Inventory, "mainhand")
+	if mainUnarmed || mainItem == nil {
+		mainItem, mainUnarmed, _ = loadWeaponItem(db, save.Inventory, "mainHand")
+	}
+	if mainUnarmed || mainItem == nil {
+		return fmt.Errorf("no weapon in main hand for two-weapon fighting")
+	}
+
+	// Load off-hand item
+	offItem, offUnarmed, _ := loadWeaponItem(db, save.Inventory, "offhand")
+	if offUnarmed || offItem == nil {
+		return fmt.Errorf("no weapon in off hand for two-weapon fighting")
+	}
+
+	if !hasTag(mainItem["tags"], "light") {
+		return fmt.Errorf("main hand weapon must be light for two-weapon fighting")
+	}
+	if !hasTag(offItem["tags"], "light") {
+		return fmt.Errorf("off hand weapon must be light for two-weapon fighting")
+	}
+	if hasTag(mainItem["tags"], "loading") {
+		return fmt.Errorf("cannot use two-weapon fighting with a loading weapon")
+	}
+	return nil
+}
+
+// consumeAmmo removes one unit of ammo from the ammo gear slot and increments
+// the session's ammo-used counter. Returns an error if no ammo is equipped.
+func consumeAmmo(save *types.SaveFile, cs *types.CombatSession) error {
+	gearSlots, ok := save.Inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("no ammunition equipped — equip arrows or bolts in the ammo slot")
+	}
+
+	var ammoMap map[string]interface{}
+	var ammoKey string
+	for _, key := range []string{"ammunition", "ammo"} {
+		if slotData, exists := gearSlots[key]; exists && slotData != nil {
+			if slotMap, ok := slotData.(map[string]interface{}); ok {
+				if itemID, _ := slotMap["item"].(string); itemID != "" {
+					ammoMap = slotMap
+					ammoKey = key
+					break
+				}
+			}
+		}
+	}
+
+	if ammoMap == nil {
+		return fmt.Errorf("no ammunition equipped — equip arrows or bolts in the ammo slot")
+	}
+
+	qty := slotQty(ammoMap, "quantity")
+	if qty <= 0 {
+		qty = 1
+	}
+	if qty <= 1 {
+		gearSlots[ammoKey] = map[string]interface{}{"item": nil, "quantity": 0}
+	} else {
+		ammoMap["quantity"] = qty - 1
+		gearSlots[ammoKey] = ammoMap
+	}
+
+	cs.AmmoUsedThisCombat++
+	return nil
+}
+
+// consumeFromGearSlot decrements a gear slot item by 1, clearing the slot when
+// quantity reaches zero. Tries both the exact slot name and its lowercase form.
+func consumeFromGearSlot(inventory map[string]interface{}, slot string) error {
+	gearSlots, ok := inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("invalid gear_slots structure")
+	}
+
+	var slotData interface{}
+	var slotKey string
+	for _, key := range []string{slot, strings.ToLower(slot)} {
+		if sd, exists := gearSlots[key]; exists && sd != nil {
+			slotData = sd
+			slotKey = key
+			break
+		}
+	}
+
+	if slotData == nil {
+		return fmt.Errorf("no item in slot %s to consume", slot)
+	}
+
+	slotMap, ok := slotData.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("invalid slot data for %s", slot)
+	}
+
+	qty := slotQty(slotMap, "quantity")
+	if qty <= 1 {
+		gearSlots[slotKey] = map[string]interface{}{"item": nil, "quantity": 0}
+	} else {
+		slotMap["quantity"] = qty - 1
+		gearSlots[slotKey] = slotMap
+	}
+	return nil
+}
+
+// slotQty safely reads an integer quantity from an inventory slot map.
+func slotQty(m map[string]interface{}, key string) int {
+	switch v := m[key].(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
 	}
 	return 0
 }
@@ -255,13 +508,32 @@ func formatAttackRoll(playerName string, item map[string]interface{}, isUnarmed 
 }
 
 // resolvePlayerDamage rolls damage and applies monster resistances/immunities/vulnerabilities.
-func resolvePlayerDamage(item map[string]interface{}, stats map[string]interface{}, monster *types.MonsterInstance, isUnarmed, offhandEmpty, isCrit bool) int {
+// When thrown is true the weapon uses DEX modifier for damage instead of the normal ability.
+func resolvePlayerDamage(item map[string]interface{}, stats map[string]interface{}, monster *types.MonsterInstance, isUnarmed, offhandEmpty, isCrit, thrown bool) int {
 	if isUnarmed {
 		return ResolveDamageToMonster("1d4", StatMod(GetStatFromMap(stats, "strength")), "bludgeoning", isCrit, monster)
 	}
+	abilityMod := WeaponDamageBonus(item, stats)
+	if thrown {
+		abilityMod = StatMod(GetStatFromMap(stats, "dexterity"))
+	}
 	return ResolveDamageToMonster(
 		WeaponDamageDice(item, offhandEmpty),
-		WeaponDamageBonus(item, stats),
+		abilityMod,
+		WeaponDamageType(item),
+		isCrit, monster,
+	)
+}
+
+// resolvePlayerDamageNoMod rolls weapon damage without any ability score modifier.
+// Used for two-weapon fighting off-hand attacks.
+func resolvePlayerDamageNoMod(item map[string]interface{}, monster *types.MonsterInstance, offhandEmpty, isCrit bool) int {
+	if item == nil {
+		return ResolveDamageToMonster("1d4", 0, "bludgeoning", isCrit, monster)
+	}
+	return ResolveDamageToMonster(
+		WeaponDamageDice(item, offhandEmpty),
+		0,
 		WeaponDamageType(item),
 		isCrit, monster,
 	)

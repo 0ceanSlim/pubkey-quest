@@ -1,8 +1,47 @@
 package combat
 
 import (
+	"strconv"
 	"strings"
 )
+
+// parseRangeInt converts a JSON range value (string or number) to int.
+func parseRangeInt(val interface{}) int {
+	switch v := val.(type) {
+	case string:
+		n, _ := strconv.Atoi(v)
+		return n
+	case float64:
+		return int(v)
+	case int:
+		return v
+	}
+	return 0
+}
+
+// getMeleeReach returns the maximum combat Range this melee weapon can hit at.
+// Weapons with the "reach" tag can attack at Range 1; standard melee only at Range 0.
+func getMeleeReach(item map[string]interface{}) int {
+	if hasTag(item["tags"], "reach") {
+		r := parseRangeInt(item["range"])
+		if r > 0 {
+			return r
+		}
+		return 1
+	}
+	return 0
+}
+
+// getRangedReach returns the normal and long range of a ranged or thrown weapon.
+// If normalRange parses as 0, a fallback of 3 is used.
+func getRangedReach(item map[string]interface{}) (normalRange, longRange int) {
+	normalRange = parseRangeInt(item["range"])
+	longRange = parseRangeInt(item["range-long"])
+	if normalRange == 0 {
+		normalRange = 3 // fallback for weapons without explicit range
+	}
+	return
+}
 
 // proficiencyBonus returns the D&D proficiency bonus for a given character level.
 func proficiencyBonus(level int) int {

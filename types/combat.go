@@ -198,6 +198,7 @@ type CombatSession struct {
 	IsSurprised       bool              `json:"is_surprised"`   // Player was surprised (monster acts first)
 	Phase             string            `json:"phase"`          // "active", "loot", "victory", "defeat"
 	LootRolled        []LootDrop        `json:"loot_rolled,omitempty"`
-	LevelUpPending    bool              `json:"level_up_pending"`
-	XPEarnedThisFight int               `json:"xp_earned_this_fight"`
+	LevelUpPending     bool              `json:"level_up_pending"`
+	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`
+	AmmoUsedThisCombat int               `json:"ammo_used_this_combat"`
 }

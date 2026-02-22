@@ -116,6 +116,28 @@ The game is currently in **very early pre-alpha development**. Most systems are 
   - Location-based NPC availability
   - Time-aware interactions
 
+- **Combat System (Backend — Phase 1 & 2 complete)**:
+  - Turn-based combat encounters driven by a server-authoritative Go engine
+  - D&D 5e dice rolling (d20 attack rolls, advantage/disadvantage, critical hits)
+  - Initiative order, combat range (0–6 scale), player movement per turn
+  - Monster AI: preferred range, flee threshold, action selection by range
+  - Damage with resistances, immunities, and vulnerabilities applied
+  - Death saving throws (stabilise at 3 successes, die at 3 failures, nat-20 revive)
+  - Loot drops (weighted tier tables) and XP awards (with level multipliers)
+  - **Weapon property mechanics** (Phase 2):
+    - Reach weapons (glaive, halberd) attack at Range 0 and Range 1
+    - Melee range gate — attacks blocked if enemy is out of weapon reach
+    - Long-range disadvantage for ranged weapons beyond normal range
+    - Out-of-max-range attacks blocked with clear error message
+    - Ammunition system — ranged weapons consume from ammo slot per shot; 50% recovered on victory
+    - Heavy weapons impose disadvantage for halflings and gnomes
+    - Thrown weapons use DEX for attack and damage, consume the thrown item
+    - Two-weapon fighting bonus action: light + light, no ability mod on off-hand damage
+  - Victory outcome: XP applied, loot added to inventory
+  - Defeat outcome: top 3 items kept by value, HP/mana restored, returned to starting city
+  - 5 REST endpoints: `/combat/start`, `/combat/state`, `/combat/action`, `/combat/death-save`, `/combat/end`
+  - **Combat UI not yet connected** — backend is ready, frontend integration is the next step
+
 ### 🚧 Not Yet Implemented (Alpha Goals)
 
 - **Exploration System**:
@@ -126,11 +148,10 @@ The game is currently in **very early pre-alpha development**. Most systems are 
   - Static and random dungeon encounters
   - Discovered POIs can be revisited
 
-- **Combat System**:
-  - Turn-based combat encounters
-  - D&D 5e dice rolling mechanics
-  - Enemy AI and tactics
-  - Loot drops and rewards
+- **Combat UI**:
+  - Frontend interface connecting to the combat backend
+  - Attack buttons, move controls, combat log display
+  - Spell casting in combat
 
 - **Active Spell Casting**:
   - Spell use in combat
@@ -156,8 +177,10 @@ Focus: **Combat System**
 - ✅ Effects system
 - ✅ Hunger & fatigue
 - ✅ NPC schedules
+- ✅ Combat engine (Phase 1 — core mechanics)
+- ✅ Combat engine (Phase 2 — weapon properties)
 - 🚧 Exploration & POI discovery
-- 🚧 Turn-based combat
+- 🚧 Combat UI (frontend integration)
 - 🚧 Spell casting / Abilities in combat
 - ⬚ Playtesting and balance
 
