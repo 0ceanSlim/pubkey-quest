@@ -2,9 +2,46 @@
 
 **Status**: Phase 1 ✅ Complete — Phase 2 ✅ Complete — Phase 9 (Combat UI) next
 **Created**: 2026-02-20
-**Updated**: 2026-02-21
+**Updated**: 2026-02-22
 **Priority**: Major System
 **Related**: environment-poi-system.md, draft_enviornment.txt
+
+---
+
+## Table of Contents
+
+| # | Section | Status |
+|---|---------|--------|
+| 1 | [Overview & Design Philosophy](#1-overview--design-philosophy) | ✅ Designed |
+| 2 | [Range System (0–6 Scale)](#2-range-system-06-scale) | ✅ Implemented |
+| 3 | [Encounter Triggering](#3-encounter-triggering) | ❌ Not started |
+| 4 | [Monster Data Schema Expansion](#4-monster-data-schema-expansion) | 🚧 Partial (priority monsters done, rest stubbed) |
+| 5 | [Combat State (Session Memory)](#5-combat-state-session-memory-only--not-saved-to-file) | ✅ Implemented |
+| 6 | [Initiative](#6-initiative) | ✅ Implemented |
+| 7 | [Turn Structure](#7-turn-structure) | 🚧 Partial (attack + bonus action; Dash/Dodge/Hide/Flee not wired) |
+| 8 | [Attack Resolution](#8-attack-resolution) | ✅ Implemented |
+| 9 | [Damage Resolution](#9-damage-resolution) | ✅ Implemented |
+| 10 | [Weapon Properties](#10-weapon-properties--full-implementation-spec) | ✅ Implemented |
+| 11 | [Armor & AC Calculation](#11-armor--ac-calculation) | 🚧 Partial (base AC done; per-piece additive / set bonus not fully wired) |
+| 12 | [Class Combat Features & Abilities](#12-class-combat-features--abilities) | ❌ Not started |
+| 13 | [Magic in Combat](#13-magic-in-combat) | ❌ Not started — **next priority** |
+| 14 | [Consumables in Combat](#14-consumables-in-combat) | ❌ Not started |
+| 15 | [Conditions](#15-conditions--full-implementation) | ❌ Not started |
+| 16 | [Death System](#16-death-system) | ✅ Implemented |
+| 17 | [Monster AI](#17-monster-ai) | ✅ Implemented (basic — flee, preferred range, action selection) |
+| 18 | [Flee Mechanic](#18-flee-mechanic) | ❌ Not started |
+| 19 | [Combat UI Design](#19-combat-ui-design) | ❌ Not started — **next after magic** |
+| 20 | [XP & Loot](#20-xp--loot) | ✅ Implemented |
+| 21 | [Environment → Encounter Schema](#21-environment--encounter-schema) | ❌ Not started |
+| 22 | [Monster Difficulty Scaling](#22-monster-difficulty-scaling) | ❌ Not started |
+| 23 | [Saving Throws in Combat](#23-saving-throws-in-combat) | ❌ Not started |
+| 24 | [Short Rest & Long Rest](#24-short-rest--long-rest-combat-relevance) | ❌ Not started |
+| 25 | [Implementation Phases](#25-implementation-phases) | 🚧 Phase 1 ✅, Phase 2 ✅, rest pending |
+| 26 | [Open Questions](#26-open-questions) | 🚧 Some resolved |
+| 27 | [Priority Monster List](#27-priority-monster-list-for-phase-1-data-entry) | 🚧 Partial (data entry ongoing) |
+| 28 | [Technical Architecture Notes](#28-technical-architecture-notes) | ✅ Reference only |
+| 29 | [Stealth & Surprise](#29-stealth--surprise) | ❌ Not started |
+| 30 | [Party & Companion Architecture](#30-party--companion-architecture-note) | ❌ Not started (low priority) |
 
 ---
 
