@@ -7,6 +7,7 @@
   "range": "24",
   "range_long": "24",
   "duration": "1 round",
+  "concentration": false,
   "damage": "4d6",
   "damage_type": "radiant",
   "type": "Spell",
@@ -23,9 +24,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [
-    "Level 1 spell - costs 1 mana to cast"
-  ],
+  "notes": [],
   "material_component": {
     "required": [
       {

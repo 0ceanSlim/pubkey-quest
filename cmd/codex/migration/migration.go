@@ -156,6 +156,31 @@ func migrateEffectsSchema() error {
 	return nil
 }
 
+// migrateSpellsSchema adds concentration and tags columns to spells table if they don't exist
+func migrateSpellsSchema() error {
+	for _, col := range []struct{ name, def string }{
+		{"concentration", "INTEGER DEFAULT 0"},
+		{"tags", "TEXT"},
+	} {
+		var exists bool
+		err := database.QueryRow(`
+			SELECT COUNT(*) > 0
+			FROM pragma_table_info('spells')
+			WHERE name = ?
+		`, col.name).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("failed to check for %s column: %v", col.name, err)
+		}
+		if !exists {
+			if _, err := database.Exec(`ALTER TABLE spells ADD COLUMN ` + col.name + ` ` + col.def); err != nil {
+				return fmt.Errorf("failed to add %s column: %v", col.name, err)
+			}
+			log.Printf("🔧 Added %s column to spells table", col.name)
+		}
+	}
+	return nil
+}
+
 // createTables creates all the necessary database tables
 func createTables() error {
 	log.Println("📋 Creating database tables...")
@@ -183,6 +208,8 @@ func createTables() error {
 			damage TEXT,
 			mana_cost INTEGER,
 			classes TEXT,
+			concentration INTEGER DEFAULT 0,
+			tags TEXT,
 			properties TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
@@ -274,6 +301,12 @@ func createTables() error {
 	if err := migrateEffectsSchema(); err != nil {
 		log.Printf("⚠️ Warning: failed to migrate effects schema: %v", err)
 		// Don't fail - the table might already have the column
+	}
+
+	// Migrate existing spells table to add concentration and tags columns
+	if err := migrateSpellsSchema(); err != nil {
+		log.Printf("⚠️ Warning: failed to migrate spells schema: %v", err)
+		// Don't fail - the table might already have the columns
 	}
 
 	log.Println("✅ Database tables created successfully")
@@ -540,15 +573,22 @@ func migrateSpellFile(filePath string) error {
 	manaCostFloat, _ := spell["mana_cost"].(float64)
 	manaCost := int(manaCostFloat)
 
-	// Extract classes as JSON
+	// Extract concentration as INTEGER (0/1)
+	concentrationVal := 0
+	if c, ok := spell["concentration"].(bool); ok && c {
+		concentrationVal = 1
+	}
+
+	// Extract classes and tags as JSON
 	classesJSON, _ := json.Marshal(spell["classes"])
+	tagsJSON, _ := json.Marshal(spell["tags"])
 
 	// Serialize all properties as JSON for the properties field
 	propertiesJSON, _ := json.Marshal(spell)
 
-	stmt := `INSERT INTO spells (id, name, description, level, school, damage, mana_cost, classes, properties)
-	         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err = database.Exec(stmt, id, name, description, int(level), school, damage, manaCost, string(classesJSON), string(propertiesJSON))
+	stmt := `INSERT INTO spells (id, name, description, level, school, damage, mana_cost, classes, concentration, tags, properties)
+	         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	_, err = database.Exec(stmt, id, name, description, int(level), school, damage, manaCost, string(classesJSON), concentrationVal, string(tagsJSON), string(propertiesJSON))
 	return err
 }
 

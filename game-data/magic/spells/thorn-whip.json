@@ -7,6 +7,7 @@
   "range": "6",
   "range_long": "6",
   "duration": "instantaneous",
+  "concentration": false,
   "damage": "1d6",
   "damage_type": "piercing",
   "type": "Spell",

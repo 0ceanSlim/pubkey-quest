@@ -7,6 +7,7 @@
   "range": "4",
   "range_long": "6",
   "duration": "instantaneous",
+  "concentration": false,
   "damage": "1d10",
   "damage_type": "fire",
   "type": "Spell",

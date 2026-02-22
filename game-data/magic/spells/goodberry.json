@@ -7,6 +7,7 @@
   "range": "0",
   "range_long": "0",
   "duration": "1 hour",
+  "concentration": false,
   "damage": "1d4+1",
   "damage_type": "healing",
   "type": "Spell",
@@ -24,9 +25,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [
-    "Level 1 spell - costs 1 mana to cast"
-  ],
+  "notes": [],
   "material_component": {
     "required": [
       {

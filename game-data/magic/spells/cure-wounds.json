@@ -7,6 +7,7 @@
   "range": "0",
   "range_long": "0",
   "duration": "instantaneous",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": "1d8 + 3",
@@ -14,6 +15,7 @@
   "spell_attack": null,
   "save_type": null,
   "tags": [
+    "combat",
     "healing",
     "touch"
   ],

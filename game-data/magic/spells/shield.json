@@ -6,7 +6,8 @@
   "casting_time": "reaction",
   "range": "self",
   "range_long": "self",
-  "duration": "1_turn",
+  "duration": "1 turn",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
@@ -15,6 +16,7 @@
   "spell_attack": null,
   "save_type": null,
   "tags": [
+    "combat",
     "defense",
     "reaction",
     "ac_bonus"

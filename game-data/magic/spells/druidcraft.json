@@ -7,13 +7,13 @@
   "range": "6",
   "range_long": "6",
   "duration": "1 round",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
   "tags": [
-    "combat",
     "cantrip",
     "control",
     "terrain"

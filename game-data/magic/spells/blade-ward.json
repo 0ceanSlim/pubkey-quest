@@ -7,12 +7,14 @@
   "range": "self",
   "range_long": "self",
   "duration": "1 round",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
+    "combat",
     "utility",
     "cantrip",
     "protection"

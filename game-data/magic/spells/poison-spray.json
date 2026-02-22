@@ -7,6 +7,7 @@
   "range": "2",
   "range_long": "2",
   "duration": "instantaneous",
+  "concentration": false,
   "damage": "1d12",
   "damage_type": "poison",
   "type": "Spell",

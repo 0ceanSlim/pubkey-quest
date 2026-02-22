@@ -6,7 +6,8 @@
   "casting_time": "action",
   "range": "1",
   "range_long": "2",
-  "duration": "concentration_1_minute",
+  "duration": "1 minute",
+  "concentration": true,
   "damage": null,
   "damage_type": null,
   "heal": null,
@@ -15,6 +16,7 @@
   "spell_attack": null,
   "save_type": null,
   "tags": [
+    "combat",
     "buff",
     "concentration",
     "support"

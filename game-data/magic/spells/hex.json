@@ -7,6 +7,7 @@
   "range": "18",
   "range_long": "18",
   "duration": "1 hour",
+  "concentration": true,
   "damage": "1d6",
   "damage_type": "necrotic",
   "type": "Spell",
@@ -24,9 +25,7 @@
   "rarity": "common",
   "action_cost": "bonus action",
   "mana_cost": 2,
-  "notes": [
-    "Level 1 spell - costs 1 mana to cast"
-  ],
+  "notes": [],
   "material_component": {
     "required": [
       {

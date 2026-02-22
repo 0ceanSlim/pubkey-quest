@@ -21,6 +21,10 @@ type GameSession struct {
 	// Nil when no combat is in progress.
 	ActiveCombat *types.CombatSession `json:"-"`
 
+	// Spell preparation queue — lives in server memory only, cleared on session unload.
+	// Each entry tracks a spell being prepared for a specific slot.
+	PrepQueue []types.SpellPrepTask `json:"-"`
+
 	// Auto-pause tracking: tracks time since last player action
 	LastActionTime     int64 `json:"-"` // Real-time timestamp of last player action
 	LastActionGameTime int   `json:"-"` // In-game time (TimeOfDay) of last player action

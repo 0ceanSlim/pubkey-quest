@@ -80,6 +80,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, effectIssues...)
 	}
 
+	// Validate spells
+	if spellIssues, err := ValidateSpells(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, spellIssues...)
+	}
+
 	// Calculate stats
 	for _, issue := range result.Issues {
 		result.Stats.TotalFiles++
@@ -2198,6 +2205,302 @@ func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) 
 			File:     filename,
 			Field:    "effects",
 			Message:  "Deprecated field 'effects' found (use 'modifiers' instead)",
+		})
+	}
+
+	return issues
+}
+
+// ============================================================================
+// Spell Validation
+// ============================================================================
+
+// ValidateSpells validates all spell JSON files
+func ValidateSpells() ([]Issue, error) {
+	issues := []Issue{}
+	spellsPath := "game-data/magic/spells"
+
+	err := filepath.WalkDir(spellsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, ".json") {
+			issues = append(issues, validateSpellFile(path)...)
+		}
+		return nil
+	})
+
+	return issues, err
+}
+
+func validateSpellFile(filePath string) []Issue {
+	issues := []Issue{}
+	filename := filepath.Base(filePath)
+	idFromFilename := strings.TrimSuffix(filename, ".json")
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename,
+			Message: fmt.Sprintf("Failed to read file: %v", err),
+		})
+		return issues
+	}
+
+	var spell map[string]interface{}
+	if err := json.Unmarshal(data, &spell); err != nil {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename,
+			Message: fmt.Sprintf("Invalid JSON: %v", err),
+		})
+		return issues
+	}
+
+	// --- Required string fields ---
+	for _, field := range []string{"name", "description", "school", "duration", "casting_time", "action_cost"} {
+		val, exists := spell[field]
+		if !exists {
+			issues = append(issues, Issue{
+				Type: "error", Category: "spells", File: filename, Field: field,
+				Message: fmt.Sprintf("Missing required field: %s", field),
+			})
+		} else if s, ok := val.(string); !ok || s == "" {
+			issues = append(issues, Issue{
+				Type: "error", Category: "spells", File: filename, Field: field,
+				Message: fmt.Sprintf("Required field '%s' must be a non-empty string", field),
+			})
+		}
+	}
+
+	// --- level: required, integer 0–9 ---
+	if rawLevel, exists := spell["level"]; !exists {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "level",
+			Message: "Missing required field: level",
+		})
+	} else if lvl, ok := rawLevel.(float64); !ok {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "level",
+			Message: "Field 'level' must be an integer",
+		})
+	} else if lvl != float64(int(lvl)) || lvl < 0 || lvl > 9 {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "level",
+			Message: fmt.Sprintf("Field 'level' must be an integer 0–9 (got %v)", lvl),
+		})
+	}
+
+	// --- mana_cost: required, non-negative integer ---
+	if rawMana, exists := spell["mana_cost"]; !exists {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "mana_cost",
+			Message: "Missing required field: mana_cost",
+		})
+	} else if mc, ok := rawMana.(float64); !ok {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "mana_cost",
+			Message: "Field 'mana_cost' must be a number",
+		})
+	} else if mc < 0 {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "mana_cost",
+			Message: "Field 'mana_cost' cannot be negative",
+		})
+	}
+
+	// --- concentration: required bool ---
+	if rawConc, exists := spell["concentration"]; !exists {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "concentration",
+			Message: "Missing required field: concentration",
+		})
+	} else if _, ok := rawConc.(bool); !ok {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "concentration",
+			Message: "Field 'concentration' must be a boolean (true/false)",
+		})
+	}
+
+	// --- classes: required non-empty array ---
+	if rawClasses, exists := spell["classes"]; !exists {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "classes",
+			Message: "Missing required field: classes",
+		})
+	} else if arr, ok := rawClasses.([]interface{}); !ok {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "classes",
+			Message: "Field 'classes' must be an array",
+		})
+	} else if len(arr) == 0 {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "classes",
+			Message: "Field 'classes' must not be empty",
+		})
+	}
+
+	// --- tags: required non-empty array ---
+	var tags []string
+	if rawTags, exists := spell["tags"]; !exists {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "tags",
+			Message: "Missing required field: tags",
+		})
+	} else if arr, ok := rawTags.([]interface{}); !ok {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "tags",
+			Message: "Field 'tags' must be an array",
+		})
+	} else if len(arr) == 0 {
+		issues = append(issues, Issue{
+			Type: "warning", Category: "spells", File: filename, Field: "tags",
+			Message: "Field 'tags' is empty (add relevant tags like 'combat', 'utility', 'cantrip')",
+		})
+	} else {
+		for _, t := range arr {
+			if s, ok := t.(string); ok {
+				tags = append(tags, s)
+			}
+		}
+	}
+
+	// --- school: must be a recognised D&D school ---
+	validSchools := map[string]bool{
+		"abjuration": true, "conjuration": true, "divination": true,
+		"enchantment": true, "evocation": true, "illusion": true,
+		"necromancy": true, "transmutation": true,
+	}
+	if school, ok := spell["school"].(string); ok && school != "" {
+		if !validSchools[strings.ToLower(school)] {
+			issues = append(issues, Issue{
+				Type: "warning", Category: "spells", File: filename, Field: "school",
+				Message: fmt.Sprintf("Non-standard school '%s' (expected one of: abjuration, conjuration, divination, enchantment, evocation, illusion, necromancy, transmutation)", school),
+			})
+		}
+	}
+
+	// --- duration: no underscores ---
+	if dur, ok := spell["duration"].(string); ok && strings.Contains(dur, "_") {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "duration",
+			Message: fmt.Sprintf("Duration '%s' contains underscores — use spaces (e.g. '1 minute' not '1_minute')", dur),
+		})
+	}
+
+	// --- level-based tag checks ---
+	level := 0
+	if lvl, ok := spell["level"].(float64); ok {
+		level = int(lvl)
+	}
+
+	if level == 0 && !contains(tags, "cantrip") {
+		issues = append(issues, Issue{
+			Type: "warning", Category: "spells", File: filename, Field: "tags",
+			Message: "Level-0 spell is missing the 'cantrip' tag",
+		})
+	}
+	if level > 0 && contains(tags, "cantrip") {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "tags",
+			Message: fmt.Sprintf("Spell has 'cantrip' tag but level is %d (cantrips are level 0 only)", level),
+		})
+	}
+
+	// --- concentration + instantaneous = warning ---
+	if conc, ok := spell["concentration"].(bool); ok && conc {
+		if dur, ok := spell["duration"].(string); ok && dur == "instantaneous" {
+			issues = append(issues, Issue{
+				Type: "warning", Category: "spells", File: filename, Field: "concentration",
+				Message: "Spell is marked concentration but duration is 'instantaneous' — concentration spells need a duration",
+			})
+		}
+	}
+
+	// --- spell_attack: if present must be "ranged", "melee", or null ---
+	if rawSA, exists := spell["spell_attack"]; exists && rawSA != nil {
+		if sa, ok := rawSA.(string); ok {
+			validSA := map[string]bool{"ranged": true, "melee": true}
+			if !validSA[strings.ToLower(sa)] {
+				issues = append(issues, Issue{
+					Type: "warning", Category: "spells", File: filename, Field: "spell_attack",
+					Message: fmt.Sprintf("Non-standard spell_attack value '%s' (expected 'ranged', 'melee', or null)", sa),
+				})
+			}
+		}
+	}
+
+	// --- save_type: if present must be a valid ability score or null ---
+	if rawSave, exists := spell["save_type"]; exists && rawSave != nil {
+		if st, ok := rawSave.(string); ok {
+			validStats := map[string]bool{
+				"strength": true, "dexterity": true, "constitution": true,
+				"intelligence": true, "wisdom": true, "charisma": true,
+			}
+			if !validStats[strings.ToLower(st)] {
+				issues = append(issues, Issue{
+					Type: "warning", Category: "spells", File: filename, Field: "save_type",
+					Message: fmt.Sprintf("Non-standard save_type '%s' (expected a D&D ability score or null)", st),
+				})
+			}
+		}
+	}
+
+	// --- material_component: validate structure if present ---
+	if rawMC, exists := spell["material_component"]; exists && rawMC != nil {
+		mc, ok := rawMC.(map[string]interface{})
+		if !ok {
+			issues = append(issues, Issue{
+				Type: "error", Category: "spells", File: filename, Field: "material_component",
+				Message: "Field 'material_component' must be an object",
+			})
+		} else {
+			// required[] must be an array
+			if rawReq, exists := mc["required"]; !exists {
+				issues = append(issues, Issue{
+					Type: "error", Category: "spells", File: filename, Field: "material_component.required",
+					Message: "material_component must have a 'required' array",
+				})
+			} else if reqArr, ok := rawReq.([]interface{}); ok {
+				for i, entry := range reqArr {
+					entryMap, ok := entry.(map[string]interface{})
+					if !ok {
+						issues = append(issues, Issue{
+							Type: "error", Category: "spells", File: filename, Field: fmt.Sprintf("material_component.required[%d]", i),
+							Message: "Each required entry must be an object",
+						})
+						continue
+					}
+					if comp, ok := entryMap["component"].(string); !ok || comp == "" {
+						issues = append(issues, Issue{
+							Type: "error", Category: "spells", File: filename, Field: fmt.Sprintf("material_component.required[%d].component", i),
+							Message: "Required component entry must have a non-empty 'component' string",
+						})
+					}
+					if qty, ok := entryMap["quantity"].(float64); !ok || qty < 1 {
+						issues = append(issues, Issue{
+							Type: "error", Category: "spells", File: filename, Field: fmt.Sprintf("material_component.required[%d].quantity", i),
+							Message: "Required component entry must have 'quantity' >= 1",
+						})
+					}
+				}
+			}
+			// focus_provided should be a string
+			if fp, exists := mc["focus_provided"]; exists {
+				if _, ok := fp.(string); !ok {
+					issues = append(issues, Issue{
+						Type: "error", Category: "spells", File: filename, Field: "material_component.focus_provided",
+						Message: "Field 'focus_provided' must be a string",
+					})
+				}
+			}
+		}
+	}
+
+	// --- ID must match filename ---
+	if id, ok := spell["id"].(string); ok && id != idFromFilename {
+		issues = append(issues, Issue{
+			Type: "error", Category: "spells", File: filename, Field: "id",
+			Message: fmt.Sprintf("Spell 'id' field '%s' doesn't match filename '%s'", id, idFromFilename),
 		})
 	}
 

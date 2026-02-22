@@ -54,6 +54,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	registerGameRoutes(mux)
 	registerShopRoutes(mux)
 	registerProfileRoutes(mux)
+	registerSpellRoutes(mux)
 
 	if utils.AppConfig.Server.DebugMode {
 		registerDebugRoutes(mux)
@@ -461,6 +462,52 @@ func registerProfileRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/profile [get]
 	mux.HandleFunc("/api/profile", ProfileHandler)
+}
+
+// ============================================================================
+// Spell Routes - Spell preparation and slot management
+// ============================================================================
+
+func registerSpellRoutes(mux *http.ServeMux) {
+	// @Summary      Prepare a spell
+	// @Description  Queues a leveled spell for preparation or instantly places a cantrip
+	// @Tags         Spells
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.SpellPrepRequest   true  "Preparation request"
+	// @Success      200      {object}  game.SpellPrepResponse
+	// @Router       /api/spells/prepare [post]
+	mux.HandleFunc("/api/spells/prepare", game.PrepareSpellHandler)
+
+	// @Summary      Get prep queue
+	// @Description  Returns all in-progress prep tasks, resolving any that are ready
+	// @Tags         Spells
+	// @Produce      json
+	// @Param        npub     query  string  true  "Nostr public key"
+	// @Param        save_id  query  string  true  "Save ID"
+	// @Success      200      {object}  game.PrepQueueResponse
+	// @Router       /api/spells/prep-queue [get]
+	mux.HandleFunc("/api/spells/prep-queue", game.GetPrepQueueHandler)
+
+	// @Summary      Cancel spell prep
+	// @Description  Removes a prep task from the queue without changing the slot
+	// @Tags         Spells
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.SpellSlotRequest  true  "Slot to cancel"
+	// @Success      200      {object}  map[string]interface{}
+	// @Router       /api/spells/cancel-prep [post]
+	mux.HandleFunc("/api/spells/cancel-prep", game.CancelPrepHandler)
+
+	// @Summary      Unslot a spell
+	// @Description  Clears a spell from a slot and cancels any in-progress prep for that slot
+	// @Tags         Spells
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.SpellSlotRequest  true  "Slot to clear"
+	// @Success      200      {object}  map[string]interface{}
+	// @Router       /api/spells/unslot [post]
+	mux.HandleFunc("/api/spells/unslot", game.UnslotSpellHandler)
 }
 
 // ============================================================================

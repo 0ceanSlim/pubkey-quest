@@ -7,12 +7,14 @@
   "range": "0",
   "range_long": "0",
   "duration": "1 minute",
+  "concentration": true,
   "damage": null,
   "damage_type": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
+    "combat",
     "protection",
     "buff"
   ],
@@ -22,8 +24,6 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [
-    "Level 1 spell - costs 1 mana to cast"
-  ],
+  "notes": [],
   "material_component": null
 }

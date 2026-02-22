@@ -7,6 +7,7 @@
   "range": "self",
   "range_long": "self",
   "duration": "1 minute",
+  "concentration": true,
   "damage": "2d6",
   "damage_type": "thunder",
   "type": "Spell",
@@ -23,9 +24,7 @@
   "rarity": "common",
   "action_cost": "bonus action",
   "mana_cost": 2,
-  "notes": [
-    "Level 1 spell - costs 1 mana to cast"
-  ],
+  "notes": [],
   "material_component": {
     "required": [
       {

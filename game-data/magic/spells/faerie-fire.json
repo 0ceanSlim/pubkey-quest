@@ -7,12 +7,14 @@
   "range": "12",
   "range_long": "12",
   "duration": "1 minute",
+  "concentration": true,
   "damage": null,
   "damage_type": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
   "tags": [
+    "combat",
     "utility",
     "debuff"
   ],
@@ -23,9 +25,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [
-    "Level 1 spell - costs 1 mana to cast"
-  ],
+  "notes": [],
   "material_component": {
     "required": [
       {

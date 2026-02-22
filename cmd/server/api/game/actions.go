@@ -14,6 +14,7 @@ import (
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/movement"
 	"pubkey-quest/cmd/server/game/npc"
+	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/game/vault"
@@ -447,6 +448,12 @@ func handleUpdateTimeAction(state *SaveFile, params map[string]any) (*GameAction
 	}
 
 	resp, err := gametime.HandleUpdateTimeAction(state, paramsIface, session, data.GetNPCIDsAtLocation)
+
+	// Resolve any spell prep tasks that finished during this time tick
+	if session != nil {
+		spells.ResolvePrepTimers(session)
+	}
+
 	if resp != nil {
 		return &GameActionResponse{
 			Success: resp.Success,
@@ -797,10 +804,18 @@ func handleWaitAction(session *GameSession, params map[string]any) (*GameActionR
 		paramsIface[k] = v
 	}
 	resp, err := gametime.HandleWaitAction(&session.SaveData, paramsIface, session, data.GetNPCIDsAtLocation)
+
+	// Resolve any spell prep tasks that finished during the wait
+	prepMsgs := spells.ResolvePrepTimers(session)
+
 	if resp != nil {
+		msg := resp.Message
+		for _, pm := range prepMsgs {
+			msg += "\n\n🔮 " + pm
+		}
 		return &GameActionResponse{
 			Success: resp.Success,
-			Message: resp.Message,
+			Message: msg,
 			Color:   resp.Color,
 			Delta:   resp.Delta,
 			Data:    resp.Data,

@@ -7,6 +7,7 @@
   "range": "0",
   "range_long": "0",
   "duration": "1 minute",
+  "concentration": true,
   "damage": "1d8",
   "damage_type": "bludgeoning",
   "type": "Spell",
