@@ -17,6 +17,16 @@
             <button onclick="console.log(getGameState())" class="w-full py-2 px-3 font-bold text-white mb-2" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
                 📋 Log Game State
             </button>
+            {{if .CustomData.DebugMode}}
+            <div class="mt-2">
+                <p class="text-xs text-gray-400 mb-1">Combat Testing</p>
+                <button onclick="window.debugStartCombat()"
+                        class="w-full py-2 px-3 font-bold text-white"
+                        style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
+                    ⚔ Start Test Combat
+                </button>
+            </div>
+            {{end}}
         </div>
     </div>
 </div>

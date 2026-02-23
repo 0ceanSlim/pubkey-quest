@@ -64,8 +64,8 @@ func selectBestAction(actions []types.MonsterAction, currentRange int) int {
 	for i, action := range actions {
 		switch action.Type {
 		case "melee_attack":
-			reach := 0
-			if action.Reach != nil {
+			reach := 1 // Default melee = adjacent (Range 0–1)
+			if action.Reach != nil && *action.Reach > 0 {
 				reach = *action.Reach
 			}
 			if currentRange <= reach {
@@ -86,28 +86,30 @@ func selectBestAction(actions []types.MonsterAction, currentRange int) int {
 	return -1
 }
 
-// ExecuteMonsterTurn runs the monster's full turn and appends entries to the combat log.
-// Returns the new combat range and any damage dealt to the player.
-func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int) (damageDealt int, logEntries []string) {
-	decision := DecideMonsterAction(cs, monster)
-
-	// Apply movement
-	if decision.Move != 0 {
-		cs.Range += decision.Move
-		if cs.Range < 0 {
-			cs.Range = 0
-		}
-		dir := "closer"
-		if decision.Move > 0 {
-			dir = "farther away"
-		}
-		logEntries = append(logEntries, fmt.Sprintf("  %s moves %s (range: %d).", monster.Name, dir, cs.Range))
+// ApplyMonsterMove applies the monster's movement decision and returns log entries.
+// Call this before ApplyMonsterAction when you need to interleave other logic between them.
+func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision) []string {
+	if decision.Move == 0 {
+		return nil
 	}
+	cs.Range += decision.Move
+	if cs.Range < 0 {
+		cs.Range = 0
+	}
+	dir := "closer"
+	if decision.Move > 0 {
+		dir = "farther away"
+	}
+	return []string{fmt.Sprintf("  %s moves %s (range: %d).", monster.Name, dir, cs.Range)}
+}
 
+// ApplyMonsterAction executes the monster's chosen action (attack/flee/none).
+// Movement must already have been applied. Returns damage dealt and log entries.
+func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int) (damageDealt int, logEntries []string) {
 	switch decision.Action {
 	case "flee":
 		logEntries = append(logEntries, fmt.Sprintf("  %s turns and flees!", monster.Name))
-		cs.Phase = "victory" // Monster fled — treat as player victory for Phase 1
+		cs.Phase = "victory"
 
 	case "none":
 		logEntries = append(logEntries, fmt.Sprintf("  %s has no action available.", monster.Name))
@@ -116,11 +118,10 @@ func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance,
 		action := monster.Data.Actions[decision.ActionIndex]
 		result := ResolveAttackRoll(action.AttackBonus, playerAC, 0)
 
-		qualifier := attackQualifier(result)
 		logEntries = append(logEntries, fmt.Sprintf(
 			"  %s attacks with %s: rolled %d%s — %s",
 			monster.Name, action.Name,
-			result.Roll, formatModifier(action.AttackBonus), qualifier,
+			result.Roll, formatModifier(action.AttackBonus), attackQualifier(result),
 		))
 
 		if result.IsHit {
@@ -136,8 +137,16 @@ func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance,
 			))
 		}
 	}
-
 	return damageDealt, logEntries
+}
+
+// ExecuteMonsterTurn runs the monster's full turn (move + action).
+// Returns damage dealt and all log entries.
+func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int) (damageDealt int, logEntries []string) {
+	decision := DecideMonsterAction(cs, monster)
+	logEntries = append(logEntries, ApplyMonsterMove(cs, monster, decision)...)
+	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC)
+	return dmg, append(logEntries, actionLog...)
 }
 
 // attackQualifier returns a short string describing the attack roll outcome.

@@ -147,6 +147,7 @@ type PlayerCombatState struct {
 	ActionUsed         bool              `json:"action_used"`
 	BonusActionUsed    bool              `json:"bonus_action_used"`
 	MovementUsed       bool              `json:"movement_used"`
+	HeldPosition       bool              `json:"held_position"` // True when player held still this turn (readied attack)
 	DeathSaveSuccesses int               `json:"death_save_successes"`
 	DeathSaveFailures  int               `json:"death_save_failures"`
 	IsUnconscious      bool              `json:"is_unconscious"`
@@ -196,7 +197,8 @@ type CombatSession struct {
 	Log               []string          `json:"log"`
 	EnvironmentID     string            `json:"environment_id"`
 	IsSurprised       bool              `json:"is_surprised"`   // Player was surprised (monster acts first)
-	Phase             string            `json:"phase"`          // "active", "loot", "victory", "defeat"
+	Phase             string            `json:"phase"`          // "active", "loot", "victory", "defeat", "death_saves"
+	TurnPhase         string            `json:"turn_phase"`     // "move" or "action" — player's sub-turn step
 	LootRolled        []LootDrop        `json:"loot_rolled,omitempty"`
 	LevelUpPending     bool              `json:"level_up_pending"`
 	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`

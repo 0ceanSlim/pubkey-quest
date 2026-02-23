@@ -20,16 +20,17 @@ func parseRangeInt(val interface{}) int {
 }
 
 // getMeleeReach returns the maximum combat Range this melee weapon can hit at.
-// Weapons with the "reach" tag can attack at Range 1; standard melee only at Range 0.
+// Standard melee = Range 1 (adjacent, 5 feet in D&D 5e).
+// Weapons with the "reach" tag extend to Range 2 (10 feet).
 func getMeleeReach(item map[string]interface{}) int {
 	if hasTag(item["tags"], "reach") {
 		r := parseRangeInt(item["range"])
 		if r > 0 {
 			return r
 		}
-		return 1
+		return 2 // Reach weapons cover Range 0–2
 	}
-	return 0
+	return 1 // Standard melee covers Range 0–1
 }
 
 // getRangedReach returns the normal and long range of a ranged or thrown weapon.

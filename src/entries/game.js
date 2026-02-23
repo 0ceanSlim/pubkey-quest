@@ -24,6 +24,7 @@ import { initMusicSystem } from '../systems/musicSystem.js';
 import '../systems/shopSystem.js'; // Auto-initializes shop functions on window
 import '../systems/waitModal.js'; // Auto-initializes wait modal functions on window
 import '../ui/spellAbilityModal.js'; // Auto-initializes spell/ability modal functions on window
+import * as combatSystem from '../systems/combatSystem.js';
 
 // UI modules
 import { updateTimeDisplay } from '../ui/timeDisplay.js';
@@ -74,6 +75,14 @@ window.moveToLocation = mechanics.moveToLocation;
 window.characterGenerator = new NostrCharacterGenerator();
 window.openContainer = openContainer;
 window.closeContainer = closeContainer;
+
+// Combat system
+window.debugStartCombat = combatSystem.debugStartCombat;
+window.doAttack         = combatSystem.doAttack;
+window.doMove           = combatSystem.doMove;
+window.passTurn         = combatSystem.passTurn;
+window.rollDeathSave    = combatSystem.rollDeathSave;
+window.endCombat        = combatSystem.endCombat;
 
 // Initialize inventory interactions on DOM ready
 if (document.readyState === 'loading') {

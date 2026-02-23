@@ -28,9 +28,17 @@ type CombatStartRequest struct {
 	EnvironmentID string `json:"environment_id" example:"forest"`
 }
 
+// CombatMoveRequest is the body sent to POST /combat/move.
+// move_dir: -1 = advance, 0 = hold position, +1 = retreat.
+// swagger:model CombatMoveRequest
+type CombatMoveRequest struct {
+	Npub    string `json:"npub"     example:"npub1..."`
+	SaveID  string `json:"save_id"  example:"save_1234567890"`
+	MoveDir int    `json:"move_dir" example:"0"`
+}
+
 // CombatActionRequest is the body sent to POST /combat/action.
 // weapon_slot must be "mainHand", "offHand", or "unarmed".
-// move_dir: -1 = step closer, 0 = hold position, +1 = step back.
 // hand: "main" (default) or "off" to use the off-hand weapon as a bonus action.
 // thrown: true to throw a melee weapon with the "thrown" tag as a ranged attack.
 // swagger:model CombatActionRequest
@@ -38,7 +46,6 @@ type CombatActionRequest struct {
 	Npub       string `json:"npub"        example:"npub1..."`
 	SaveID     string `json:"save_id"     example:"save_1234567890"`
 	WeaponSlot string `json:"weapon_slot" example:"mainHand"`
-	MoveDir    int    `json:"move_dir"    example:"0"`
 	Hand       string `json:"hand"        example:"main"`
 	Thrown     bool   `json:"thrown"      example:"false"`
 }
@@ -78,6 +85,7 @@ type CombatMonsterView struct {
 type CombatStateResponse struct {
 	Success              bool                    `json:"success"                   example:"true"`
 	Phase                string                  `json:"phase"                     example:"active"`
+	TurnPhase            string                  `json:"turn_phase"                example:"move"`
 	Round                int                     `json:"round"                     example:"1"`
 	Range                int                     `json:"range"                     example:"2"`
 	Player               CombatPlayerView        `json:"player"`
@@ -159,6 +167,7 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 	return CombatStateResponse{
 		Success:              true,
 		Phase:                cs.Phase,
+		TurnPhase:            cs.TurnPhase,
 		Round:                cs.Round,
 		Range:                cs.Range,
 		Player:               player,
@@ -459,22 +468,15 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if req.WeaponSlot == "" {
-		req.WeaponSlot = "mainHand" // Default to mainhand
+		req.WeaponSlot = "mainHand"
 	}
 	if req.Hand == "" {
-		req.Hand = "main" // Default to main-hand action
+		req.Hand = "main"
 	}
 
 	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
 	if err != nil {
 		writeCombatError(w, http.StatusNotFound, err.Error())
-		return
-	}
-
-	cs := sess.ActiveCombat
-	if cs.Phase != "active" {
-		writeCombatError(w, http.StatusBadRequest,
-			fmt.Sprintf("Cannot attack: combat phase is %q (must be \"active\")", cs.Phase))
 		return
 	}
 
@@ -485,12 +487,91 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerAttack(
 		serverdb.GetDB(), cs, &sess.SaveData,
-		req.WeaponSlot, req.MoveDir, req.Hand, req.Thrown, advancement,
+		req.WeaponSlot, req.Hand, req.Thrown, advancement,
 	)
 	if err != nil {
 		log.Printf("❌ CombatAction: %v", err)
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatMoveHandler ────────────────────────────────────────────────────────
+
+// CombatMoveHandler handles the player's movement sub-phase.
+// The range updates and turn_phase transitions to "action" but the monster
+// does NOT respond — it waits for the player to take an action first.
+func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req CombatMoveRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub or save_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	moveLog, err := combat.ProcessPlayerMove(cs, req.MoveDir)
+	if err != nil {
+		log.Printf("❌ CombatMove: %v", err)
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, moveLog...)
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, moveLog))
+}
+
+// ─── CombatPassHandler ───────────────────────────────────────────────────────
+
+// CombatPassHandler forfeits the player's action for this turn.
+// The monster still acts; the round increments and turn_phase resets to "move".
+func CombatPassHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req CombatBaseRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub or save_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerPass(serverdb.GetDB(), cs, &sess.SaveData)
+	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
 	}

@@ -1,0 +1,167 @@
+{{define "game/combat-overlay.html"}}
+<style>
+@keyframes combatFlairAnim {
+    0%   { opacity: 1; transform: translateY(0) scale(1.0); }
+    50%  { opacity: 1; transform: translateY(-18px) scale(1.15); }
+    100% { opacity: 0; transform: translateY(-34px) scale(0.9); }
+}
+.combat-flair {
+    position: absolute;
+    font-weight: bold;
+    pointer-events: none;
+    white-space: nowrap;
+    text-shadow: 1px 1px 3px #000, 0 0 8px rgba(0,0,0,0.9);
+    animation: combatFlairAnim 1.6s ease-out forwards;
+}
+</style>
+
+<!-- Combat Overlay — transparent/semi-transparent over the scene; hidden when not in combat.
+     The scene background image stays visible beneath. Monster image is overlaid here. -->
+<div id="combat-overlay"
+     class="hidden absolute inset-0"
+     style="z-index: 10; pointer-events: none;">
+
+    <!-- Monster image (centered, bottom-half of scene) -->
+    <div class="absolute inset-0 flex items-end justify-center"
+         style="padding-bottom: 30px; pointer-events: none;">
+        <img id="combat-monster-img"
+             src="/res/img/monsters/unknown.png"
+             alt="Monster"
+             class="object-contain"
+             style="max-height: 54%; max-width: 52%; image-rendering: pixelated;
+                    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.9));"
+             onerror="this.src='/res/img/monsters/unknown.png'" />
+    </div>
+
+    <!-- Top bar: name / AC / round + HP bar -->
+    <div class="absolute top-0 left-0 right-0 px-1 pt-1 pb-1"
+         style="background: rgba(0,0,0,0.78); pointer-events: auto;">
+
+        <!-- Row 1: name, AC badge, round badge -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
+            <span id="combat-monster-name"
+                  style="font-size:10px; font-weight:bold; color:#fca5a5;
+                         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">
+                Monster
+            </span>
+            <div style="display:flex; gap:3px; flex-shrink:0; margin-left:4px;">
+                <span id="combat-monster-ac-badge"
+                      style="font-size:8px; font-weight:bold; color:#fde047;
+                             border:1px solid #4a4a4a; background:rgba(0,0,0,0.85); padding:0 3px;">
+                    AC 10
+                </span>
+                <span id="combat-round-display"
+                      style="font-size:8px; color:#d1d5db;
+                             border:1px solid #3a3a3a; background:rgba(0,0,0,0.85); padding:0 3px;">
+                    Round 1
+                </span>
+            </div>
+        </div>
+
+        <!-- HP bar -->
+        <div style="position:relative; width:100%; height:7px;
+                    background:#1a1a1a; border:1px solid #3a3a3a;">
+            <div id="combat-monster-hp-bar"
+                 style="height:100%; width:100%; background:#991b1b;
+                        transition: width 0.3s ease;"></div>
+            <span id="combat-monster-hp-text"
+                  style="position:absolute; inset:0; display:flex; align-items:center;
+                         justify-content:center; font-size:7px; font-weight:bold;
+                         color:#fff; text-shadow:1px 1px 1px #000;">
+            </span>
+        </div>
+    </div>
+
+    <!-- Range indicator (sits just below the top bar) -->
+    <div style="position:absolute; left:0; right:0; top:42px;
+                display:flex; justify-content:center; pointer-events:none;">
+        <span id="combat-range-display"
+              style="font-size:8px; font-weight:bold; color:#93c5fd;
+                     background:rgba(0,0,0,0.65); padding:1px 7px;
+                     border:1px solid #1e3a5a;">
+            Range 2 — Short range
+        </span>
+    </div>
+
+    <!-- Condition badges (below range bar) -->
+    <div id="combat-conditions"
+         style="position:absolute; left:0; right:0; top:58px;
+                display:flex; flex-wrap:wrap; gap:2px; justify-content:center; padding:0 4px;
+                pointer-events:none;">
+        <!-- chips injected by JS -->
+    </div>
+
+    <!-- Flair popup zone -->
+    <div id="combat-flair-zone"
+         style="position:absolute; inset:0; pointer-events:none; overflow:hidden;">
+    </div>
+
+    <!-- ── Death saves panel ──────────────────────────────── -->
+    <div id="death-saves-panel"
+         class="hidden"
+         style="position:absolute; bottom:0; left:0; right:0; padding:6px 8px;
+                background:rgba(26,0,0,0.93); border-top:2px solid #7f1d1d;
+                pointer-events:auto;">
+        <p style="font-size:10px; font-weight:bold; color:#fca5a5; margin:0 0 4px;">
+            Death Saving Throws
+        </p>
+        <div style="display:flex; align-items:center; gap:5px; margin-bottom:5px; font-size:9px;">
+            <span style="color:#9ca3af;">Successes:</span>
+            <span id="ds-success-1" style="width:11px;height:11px;border:1px solid #374151;background:#111827;display:inline-block;"></span>
+            <span id="ds-success-2" style="width:11px;height:11px;border:1px solid #374151;background:#111827;display:inline-block;"></span>
+            <span id="ds-success-3" style="width:11px;height:11px;border:1px solid #374151;background:#111827;display:inline-block;"></span>
+            <span style="color:#9ca3af; margin-left:3px;">Failures:</span>
+            <span id="ds-fail-1" style="width:11px;height:11px;border:1px solid #374151;background:#111827;display:inline-block;"></span>
+            <span id="ds-fail-2" style="width:11px;height:11px;border:1px solid #374151;background:#111827;display:inline-block;"></span>
+            <span id="ds-fail-3" style="width:11px;height:11px;border:1px solid #374151;background:#111827;display:inline-block;"></span>
+        </div>
+        <button onclick="window.rollDeathSave()"
+                style="width:100%; padding:3px; font-weight:bold; color:#fff; font-size:9px;
+                       cursor:pointer; background:#7f1d1d;
+                       border-top:2px solid #dc2626; border-left:2px solid #dc2626;
+                       border-right:2px solid #450a0a; border-bottom:2px solid #450a0a;">
+            🎲 Roll Death Save
+        </button>
+    </div>
+
+    <!-- ── Loot / Victory panel ───────────────────────────── -->
+    <div id="loot-panel"
+         class="hidden"
+         style="position:absolute; bottom:0; left:0; right:0; padding:6px 8px;
+                background:rgba(5,46,22,0.93); border-top:2px solid #14532d;
+                pointer-events:auto;">
+        <p style="font-size:10px; font-weight:bold; color:#86efac; margin:0 0 1px;">Victory!</p>
+        <div id="combat-xp-earned" style="font-size:8px; color:#fde047; margin-bottom:3px;"></div>
+        <div id="loot-list"
+             style="font-size:9px; color:#d1d5db; max-height:48px;
+                    overflow-y:auto; margin-bottom:4px;">
+        </div>
+        <button onclick="window.endCombat()"
+                style="width:100%; padding:3px; font-weight:bold; color:#fff; font-size:9px;
+                       cursor:pointer; background:#14532d;
+                       border-top:2px solid #22c55e; border-left:2px solid #22c55e;
+                       border-right:2px solid #052e16; border-bottom:2px solid #052e16;">
+            ✔ Take All &amp; Done
+        </button>
+    </div>
+
+    <!-- ── Defeat panel ───────────────────────────────────── -->
+    <div id="defeat-panel"
+         class="hidden"
+         style="position:absolute; bottom:0; left:0; right:0; padding:6px 8px;
+                background:rgba(26,0,0,0.93); border-top:2px solid #7f1d1d;
+                pointer-events:auto;">
+        <p style="font-size:10px; font-weight:bold; color:#fca5a5; margin:0 0 2px;">Defeated</p>
+        <p id="defeat-message" style="font-size:8px; color:#d1d5db; margin:0 0 2px;"></p>
+        <div id="defeat-kept-items" style="font-size:8px; color:#9ca3af; margin-bottom:4px;"></div>
+        <button onclick="window.endCombat()"
+                style="width:100%; padding:3px; font-weight:bold; color:#fff; font-size:9px;
+                       cursor:pointer; background:#7f1d1d;
+                       border-top:2px solid #dc2626; border-left:2px solid #dc2626;
+                       border-right:2px solid #450a0a; border-bottom:2px solid #450a0a;">
+            Continue
+        </button>
+    </div>
+
+</div>
+{{end}}

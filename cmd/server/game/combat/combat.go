@@ -35,8 +35,18 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 		fmt.Sprintf("⚔️  Combat begins! %s appears. Starting range: %d.", cs.Monsters[0].Name, cs.Range),
 	)
 
+	// Log initiative roll results so the player always knows who acts first.
 	if monsterHasFirstTurn(cs) {
+		cs.Log = append(cs.Log, fmt.Sprintf(
+			"⚡ Initiative: %s rolled %d, you rolled %d. %s goes first!",
+			cs.Monsters[0].Name, monsterInit, playerInit, cs.Monsters[0].Name,
+		))
 		cs.Log = append(cs.Log, execMonsterOpeningTurn(db, cs, save)...)
+	} else {
+		cs.Log = append(cs.Log, fmt.Sprintf(
+			"⚡ Initiative: you rolled %d, %s rolled %d. You go first!",
+			playerInit, cs.Monsters[0].Name, monsterInit,
+		))
 	}
 
 	return cs, nil
@@ -51,6 +61,7 @@ func initCombatSession(npub string, save *types.SaveFile, monster *types.Monster
 		Range:         startingRange(environmentID),
 		EnvironmentID: environmentID,
 		Phase:         "active",
+		TurnPhase:     "move", // Player always starts on the move phase
 	}
 }
 
@@ -143,21 +154,76 @@ func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	return log
 }
 
+// ─── ProcessPlayerMove ───────────────────────────────────────────────────────
+
+// ProcessPlayerMove handles the player's movement sub-phase.
+// It adjusts the combat range and transitions turn_phase to "action" so the
+// player can then choose an action. The monster does NOT respond here.
+// moveDir: -1 = advance, 0 = hold position, +1 = retreat.
+func ProcessPlayerMove(cs *types.CombatSession, moveDir int) ([]string, error) {
+	if cs.Phase != "active" {
+		return nil, fmt.Errorf("cannot move: combat phase is %q", cs.Phase)
+	}
+	if cs.TurnPhase != "move" {
+		return nil, fmt.Errorf("movement already used this turn — choose an action")
+	}
+	if len(cs.Party) == 0 {
+		return nil, fmt.Errorf("no player in combat")
+	}
+
+	state := &cs.Party[0].CombatState
+	// Reset per-turn action flags when a new turn begins
+	state.ActionUsed = false
+	state.BonusActionUsed = false
+	state.MovementUsed = true
+	state.HeldPosition = (moveDir == 0) // Holding still readies a counter-attack
+
+	log := applyPlayerMove(cs, moveDir)
+	if moveDir == 0 {
+		log = []string{"  You hold your position, readying for the enemy to advance."}
+	}
+
+	cs.TurnPhase = "action"
+	return log, nil
+}
+
+// ─── ProcessPlayerPass ───────────────────────────────────────────────────────
+
+// ProcessPlayerPass forfeits the player's action for this turn.
+// The monster still gets its response turn (the round is not free).
+// Used when no valid action is available (e.g. out of range after holding position).
+func ProcessPlayerPass(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
+	if cs.Phase != "active" {
+		return nil, fmt.Errorf("cannot pass: combat phase is %q", cs.Phase)
+	}
+	if cs.TurnPhase != "action" {
+		return nil, fmt.Errorf("cannot pass: not in action phase")
+	}
+	log := []string{"  You take no action."}
+	return append(log, runMonsterResponseTurn(db, cs, save)...), nil
+}
+
 // ─── ProcessPlayerAttack ─────────────────────────────────────────────────────
 
-// ProcessPlayerAttack resolves one full attack round: player movement, attack roll,
-// damage, XP, and the monster's response turn.
+// ProcessPlayerAttack resolves the player's attack action and the monster's
+// response turn. Movement is handled separately by ProcessPlayerMove.
 //
 // hand: "main" (default) or "off" for two-weapon bonus attack.
 // thrown: true to treat a melee weapon with the "thrown" tag as a ranged attack.
 //
-// Returns log entries for this round. Caller appends them to cs.Log.
-func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot string, moveDir int, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
-	var log []string
-
+// Returns log entries for this round. Caller appends them to cs.Log and increments Round.
+func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot string, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
+	if cs.Phase != "active" {
+		return nil, fmt.Errorf("cannot attack: combat phase is %q", cs.Phase)
+	}
+	if cs.TurnPhase != "action" {
+		return nil, fmt.Errorf("choose your movement first before attacking")
+	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
+
+	var log []string
 	state := &cs.Party[0].CombatState
 	isOffHand := hand == "off"
 
@@ -168,20 +234,14 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		}
 		// Bonus attack always uses the off-hand slot
 		weaponSlot = "offhand"
-	} else {
-		// New main action: reset per-turn flags
-		state.ActionUsed = false
-		state.BonusActionUsed = false
 	}
-
-	log = append(log, applyPlayerMove(cs, moveDir)...)
 
 	item, isUnarmed, err := loadWeaponItem(db, save.Inventory, weaponSlot)
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate that the attack can reach the target at this range
+	// Validate that the attack can reach the target at the current range
 	if err := validateAttackRange(cs, item, isUnarmed, thrown); err != nil {
 		return nil, err
 	}
@@ -591,16 +651,110 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 }
 
 // runMonsterResponseTurn runs the monster's turn after a player action.
+// If the player held position this turn and the monster advances into melee reach,
+// the player's readied counter-attack fires before the monster can swing.
+// Resets TurnPhase to "move" so the next round starts correctly.
 func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) []string {
 	if cs.Phase != "active" || len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
+		if cs.Phase == "active" {
+			cs.TurnPhase = "move"
+		}
 		return nil
 	}
+
+	monster := &cs.Monsters[0]
+	decision := DecideMonsterAction(cs, monster)
 	playerAC := computePlayerAC(db, save)
-	dmg, log := ExecuteMonsterTurn(cs, &cs.Monsters[0], playerAC)
+
+	var log []string
+
+	// Apply monster movement
+	log = append(log, ApplyMonsterMove(cs, monster, decision)...)
+
+	// If player held position and monster just stepped into melee reach,
+	// the readied counter-attack fires before the monster strikes.
+	if len(cs.Party) > 0 && cs.Party[0].CombatState.HeldPosition && decision.Move == -1 {
+		playerReach := getPlayerMeleeReach(db, save)
+		if cs.Range <= playerReach {
+			log = append(log, fmt.Sprintf("  Your readied stance pays off — you strike as %s steps in!", monster.Name))
+			counterLog, killed := executeReadiedAttack(db, cs, save, monster)
+			log = append(log, counterLog...)
+			cs.Party[0].CombatState.HeldPosition = false
+			if killed {
+				if cs.Phase == "active" {
+					cs.TurnPhase = "move"
+				}
+				return log
+			}
+		}
+	}
+	if len(cs.Party) > 0 {
+		cs.Party[0].CombatState.HeldPosition = false // Clear regardless of trigger
+	}
+
+	// Monster takes its action
+	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC)
+	log = append(log, actionLog...)
 	if dmg > 0 {
 		log = append(log, applyDamageToPlayer(cs, dmg)...)
 	}
+
+	if cs.Phase == "active" {
+		cs.TurnPhase = "move"
+	}
 	return log
+}
+
+// getPlayerMeleeReach returns the melee reach of the player's main-hand weapon.
+func getPlayerMeleeReach(db *sql.DB, save *types.SaveFile) int {
+	item, isUnarmed, _ := loadWeaponItem(db, save.Inventory, "mainHand")
+	if item == nil {
+		item, isUnarmed, _ = loadWeaponItem(db, save.Inventory, "mainhand")
+	}
+	if isUnarmed || item == nil {
+		return 1 // Unarmed melee reach
+	}
+	return getMeleeReach(item)
+}
+
+// executeReadiedAttack fires the player's counter-attack when their readied stance triggers.
+// The attack is made with advantage (they were braced and waiting).
+// Returns log entries and true if the monster was killed.
+func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, monster *types.MonsterInstance) ([]string, bool) {
+	advancement, err := character.LoadAdvancement(db)
+	if err != nil {
+		return []string{"  (Readied attack failed — could not load data.)"}, false
+	}
+
+	item, isUnarmed, _ := loadWeaponItem(db, save.Inventory, "mainHand")
+	if item == nil && !isUnarmed {
+		item, isUnarmed, _ = loadWeaponItem(db, save.Inventory, "mainhand")
+	}
+
+	level := character.GetLevelFromXP(save.Experience, advancement)
+	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, false)
+	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, 1) // Advantage: player was ready
+
+	log := []string{formatAttackRoll(save.D, item, isUnarmed, result)}
+	if !result.IsHit {
+		return log, false
+	}
+
+	offhandEmpty := isOffhandEmpty(save.Inventory)
+	dmg := resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit, false)
+	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
+	applyDamageToMonster(monster, dmg)
+
+	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
+	if xp > 0 {
+		log = append(log, fmt.Sprintf("  +%d XP", xp))
+	}
+
+	if !monster.IsAlive {
+		log = append(log, handleMonsterKill(cs, monster, save.Experience, advancement)...)
+		return log, true
+	}
+	return log, false
 }
 
 // computePlayerAC queries the player's current AC from equipped items.

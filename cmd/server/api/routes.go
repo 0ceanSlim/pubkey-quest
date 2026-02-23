@@ -399,8 +399,12 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Failure      400      {string}  string  "Wrong phase or invalid request"
 	// @Failure      404      {string}  string  "Session or combat not found"
 	// @Failure      500      {string}  string  "Combat error"
+	// @Router       /api/combat/move [post]
+	mux.HandleFunc("/api/combat/move", game.CombatMoveHandler)
 	// @Router       /api/combat/action [post]
 	mux.HandleFunc("/api/combat/action", game.CombatActionHandler)
+	// @Router       /api/combat/pass [post]
+	mux.HandleFunc("/api/combat/pass", game.CombatPassHandler)
 
 	// @Summary      Roll a death saving throw
 	// @Description  Rolls one death saving throw for the unconscious player and runs the
@@ -538,4 +542,13 @@ func registerDebugRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/debug/state", func(w http.ResponseWriter, r *http.Request) {
 		game.DebugStateHandler(w, r, true)
 	})
+
+	// @Summary Start a random debug combat encounter
+	// @Description Picks a random monster from a curated list and starts a combat session (debug only)
+	// @Tags Debug
+	// @Accept json
+	// @Produce json
+	// @Success 200 {object} game.CombatStateResponse
+	// @Router /api/combat/debug/start [post]
+	mux.HandleFunc("/api/combat/debug/start", game.DebugCombatStartHandler)
 }

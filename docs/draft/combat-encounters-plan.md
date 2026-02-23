@@ -1,8 +1,8 @@
 # Combat & Encounters System — Master Planning Document
 
-**Status**: Phase 1 ✅ Complete — Phase 2 ✅ Complete — Phase 9 (Combat UI) next
+**Status**: Phase 1 ✅ — Phase 2 ✅ — Phase 2b (Spell Prep) ✅ — Phase 3 (Combat UI) 🚧 Core Complete
 **Created**: 2026-02-20
-**Updated**: 2026-02-22
+**Updated**: 2026-02-23
 **Priority**: Major System
 **Related**: environment-poi-system.md, draft_enviornment.txt
 
@@ -18,25 +18,25 @@
 | 4 | [Monster Data Schema Expansion](#4-monster-data-schema-expansion) | 🚧 Partial (priority monsters done, rest stubbed) |
 | 5 | [Combat State (Session Memory)](#5-combat-state-session-memory-only--not-saved-to-file) | ✅ Implemented |
 | 6 | [Initiative](#6-initiative) | ✅ Implemented |
-| 7 | [Turn Structure](#7-turn-structure) | 🚧 Partial (attack + bonus action; Dash/Dodge/Hide/Flee not wired) |
+| 7 | [Turn Structure](#7-turn-structure) | 🚧 Partial (two-phase move+action implemented; Dash/Dodge/Hide/Flee not wired) |
 | 8 | [Attack Resolution](#8-attack-resolution) | ✅ Implemented |
 | 9 | [Damage Resolution](#9-damage-resolution) | ✅ Implemented |
 | 10 | [Weapon Properties](#10-weapon-properties--full-implementation-spec) | ✅ Implemented |
 | 11 | [Armor & AC Calculation](#11-armor--ac-calculation) | 🚧 Partial (base AC done; per-piece additive / set bonus not fully wired) |
 | 12 | [Class Combat Features & Abilities](#12-class-combat-features--abilities) | ❌ Not started |
-| 13 | [Magic in Combat](#13-magic-in-combat) | ❌ Not started — **next priority** |
+| 13 | [Magic in Combat](#13-magic-in-combat) | 🚧 Prereqs done (spell prep API ✅, `concentration` field ✅) |
 | 14 | [Consumables in Combat](#14-consumables-in-combat) | ❌ Not started |
 | 15 | [Conditions](#15-conditions--full-implementation) | ❌ Not started |
 | 16 | [Death System](#16-death-system) | ✅ Implemented |
 | 17 | [Monster AI](#17-monster-ai) | ✅ Implemented (basic — flee, preferred range, action selection) |
 | 18 | [Flee Mechanic](#18-flee-mechanic) | ❌ Not started |
-| 19 | [Combat UI Design](#19-combat-ui-design) | ❌ Not started — **next after magic** |
+| 19 | [Combat UI Design](#19-combat-ui-design) | 🚧 Core loop playable — debug button, overlay, two-phase turns, death saves, loot, defeat done |
 | 20 | [XP & Loot](#20-xp--loot) | ✅ Implemented |
 | 21 | [Environment → Encounter Schema](#21-environment--encounter-schema) | ❌ Not started |
 | 22 | [Monster Difficulty Scaling](#22-monster-difficulty-scaling) | ❌ Not started |
 | 23 | [Saving Throws in Combat](#23-saving-throws-in-combat) | ❌ Not started |
 | 24 | [Short Rest & Long Rest](#24-short-rest--long-rest-combat-relevance) | ❌ Not started |
-| 25 | [Implementation Phases](#25-implementation-phases) | 🚧 Phase 1 ✅, Phase 2 ✅, rest pending |
+| 25 | [Implementation Phases](#25-implementation-phases) | 🚧 Phase 1 ✅, Phase 2 ✅, Phase 2b ✅; Phase 3 (UI) next |
 | 26 | [Open Questions](#26-open-questions) | 🚧 Some resolved |
 | 27 | [Priority Monster List](#27-priority-monster-list-for-phase-1-data-entry) | 🚧 Partial (data entry ongoing) |
 | 28 | [Technical Architecture Notes](#28-technical-architecture-notes) | ✅ Reference only |
@@ -873,6 +873,13 @@ Spellcaster classes use the spell system (Section 13) as their primary combat me
 ## 13. Magic in Combat
 
 > **Note**: The spell activation model, resource costs, and UI must be designed jointly with class combat features (Section 12) before implementation. The mechanics below describe the spell data that already exists and the rules that will apply — but the _how_ of tying them into the unified ability system is unresolved.
+>
+> **Prerequisite status (✅ done)**:
+> - `concentration: bool` field added to all 84 spell JSONs
+> - Spell preparation API implemented (`POST /api/spells/prepare`, `GET /api/spells/prep-queue`, `POST /api/spells/cancel-prep`, `POST /api/spells/unslot`)
+> - `PrepQueue []types.SpellPrepTask` on `GameSession` (session memory only, never saved to file)
+> - `ResolvePrepTimers` wired into time-advance and wait actions
+> - Codex: `ValidateSpells()` and spell migration updated (concentration + tags columns in spells table)
 
 ### Spell Attack Types
 
@@ -898,7 +905,7 @@ Passed save → half damage or no effect
 
 ### Concentration
 
-Spells with `duration != "instantaneous"` often require concentration (need to add `concentration: true/false` to spell JSON).
+Spells with `duration != "instantaneous"` often require concentration. The `concentration: bool` field is already present on all spell JSONs.
 
 - Only one concentration spell at a time
 - Taking damage: CON save DC = max(10, half damage taken)
@@ -1551,11 +1558,192 @@ These need to be tracked in the save file and tied to the rest system.
 - Loading only blocks bonus actions (two-weapon fighting); it does not prevent a second main-hand attack if the player calls the action endpoint twice in one "round"
 - `BonusActionUsed` resets when the player makes a new main-hand attack — no strict per-round turn enforcement yet
 
-### Phase 3: Unified Ability System (Class Features + Magic)
+### Phase 2b: Spell Preparation System ✅ COMPLETE (2026-02-22)
+
+**Goal**: Players can prepare spells into slots over in-game time; combat casting has a resource model
+
+- [x] `types/spells.go` — `SpellPrepTask` struct (SpellID, SlotLevel, SlotIndex, ReadyAtAbsolute)
+- [x] `cmd/server/session/types.go` — `PrepQueue []types.SpellPrepTask \`json:"-"\`` on `GameSession`
+- [x] `cmd/server/game/spells/prep.go` — `PrepMinutes`, `AbsoluteMinutes`, `SetSpellInSlot`, `ClearSpellInSlot`, `HasSlot`, `FindPrepTask`, `RemovePrepTask`, `ResolvePrepTimers`, `MinutesRemaining`
+- [x] `ResolvePrepTimers` called from `handleWaitAction` and `handleUpdateTimeAction`
+- [x] `cmd/server/api/game/spells.go` — 4 HTTP handlers with full Swagger docs
+  - `POST /api/spells/prepare` — queue prep task (cantrips instant; leveled = level×60 min)
+  - `GET  /api/spells/prep-queue` — list in-progress tasks with minutes remaining; lazy-resolves any ready
+  - `POST /api/spells/cancel-prep` — remove task from queue; slot unchanged
+  - `POST /api/spells/unslot` — clear a slot + cancel any in-progress prep for it
+- [x] Routes registered in `cmd/server/api/routes.go`
+- [x] Spell data: `concentration: bool` confirmed on all 84 spell JSONs
+- [x] Codex migration: `concentration INTEGER` and `tags TEXT` columns added to spells table
+- [x] Codex validation: `ValidateSpells()` + `validateSpellFile()` wired into `ValidateAll()`
+
+**Key design decisions:**
+- Prep state is session-memory only — cleared if player disconnects (same as combat state)
+- Slot format: `{"slot": 0, "spell": "fire-bolt", "quantity": 0}` in `save.SpellSlots[slotLevel][]`
+- Cantrips (level 0) place instantly; leveled spells require `level × 60` in-game minutes
+- Component/focus check is NOT done at prep time — only at cast time (future Phase 4/5)
+
+---
+
+### Phase 3: Combat UI Frontend 🚧 Core Complete (2026-02-23)
+
+**Goal**: Player can fight monsters end-to-end through the browser; all backend work (Phases 1, 2, 2b) becomes testable
+
+> **Implementation status**: Core loop is fully playable. Debug start button in Settings (dev mode only), combat overlay, two-phase turn system, staggered log entries, flair popups, death saves, loot panel, defeat panel. Several plan items deferred to Phase 8 (Flee, Dodge, Dash). The turn structure **significantly diverges** from the original flat action-bar design — see notes below.
+
+#### 3a — Combat State Wiring ✅ Complete
+
+- [x] On `POST /api/combat/start` response → enter combat mode (`enterCombatMode(cs)`, sets `window.inCombat = true`)
+- [x] On every action response → update stored `combatState` and re-render via `renderCombatState(cs)`
+- [x] Poll `/api/combat/state` on page load (handles refresh mid-combat) — called in `combatSystem.js` DOMContentLoaded
+- [x] Clear combat mode on `POST /api/combat/end` response → `exitCombatMode()`
+
+#### 3b — Scene Overlay (Monster Display) ✅ Complete
+
+- [x] `<div id="combat-overlay">` positioned over scene area (`www/views/game/combat-overlay.html`)
+- [x] Monster name badge
+- [x] Monster HP bar: colored fill + text `"7 / 14 HP"`
+- [x] Round counter (`"Round 3"`)
+- [x] Range indicator with label from Section 2 range table
+- [x] Condition badges (`<div id="combat-conditions">`)
+- [x] Flair popups: damage numbers, CRITICAL HIT!, MISS — CSS keyframe fade-out ~1.5s; initiative flair ("⚡ YOU GO FIRST!" / "⚡ ENEMY FIRST!")
+
+#### 3c — Combat Log ✅ Complete
+
+- [x] Replace left message area with `<div id="combat-log">` during combat (injected into `#game-text`)
+- [x] Line format: `> You attack with Longsword: 19 vs AC 15 — HIT! 9 slashing damage.`
+- [x] **Staggered display**: entries appear one-at-a-time via `setTimeout` (80ms initial, 420ms per round entry) — no simultaneous log dump
+- [x] Auto-scroll to bottom on new entries
+- [x] Flair fires per-entry as it appears, not all at once
+- [x] Initiative log announces both rolls and winner at combat start
+
+#### 3d — Action Buttons ✅ Complete (Two-Phase System — Diverges from Original Plan)
+
+> ⚠️ **DESIGN CHANGE**: The original plan described a flat action bar: `[ Attack ] [ Abilities ] [ Move ] [ Flee ]`. Testing revealed that compound actions ("Advance & Attack" in a single click) confused movement-then-attack flow and caused range desync bugs. The implemented system splits each turn into two **explicit phases**.
+
+**Move Phase** (blue phase header):
+
+- [x] `[ Advance ]` — move closer (range -1), grayed if already at 0
+- [x] `[ Hold & Ready ]` — hold position; readies a counter-attack with advantage if monster advances into reach (see Hold & Ready section below)
+- [x] `[ Retreat ]` — move away (range +1), grayed if at 6
+- [ ] `[ Dash ]` — ±2 range steps — **deferred to Phase 8**
+
+**Action Phase** (yellow phase header):
+
+- [x] `[ Attack ]` submenu — equipped weapons; grayed if out of range; ranged shows `(ammo: N)` suffix; off-hand if `bonus_attack_available`
+- [x] `[ Abilities ]` — placeholder, grayed "Coming Soon" (Phase 4/5)
+- [x] `[ Use Item ]` — placeholder, grayed "Coming Soon" (Phase 6)
+- [x] `[ ⏭ End Turn ]` — forfeits action; monster still responds; prevents "stuck in action phase" deadlock when no weapon can reach
+- [x] `[ Flee ]` — button present but flee mechanic not yet wired (Phase 8)
+- [x] Restore normal buttons when combat exits
+
+#### 3d-extra — New Endpoints Added During Phase 3
+
+The two-phase system required endpoints not in the original plan:
+
+- [x] `POST /api/combat/move` — player movement only; monster does NOT respond; transitions `turn_phase` to "action"
+- [x] `POST /api/combat/pass` — forfeit action; monster responds; `turn_phase` resets to "move"; round increments
+- [x] `POST /api/combat/debug/start` — picks random starter monster; registered inside `DebugMode` guard in `routes.go`
+- [x] `TurnPhase string` added to `CombatStateResponse` and `CombatSession`
+
+#### 3e — Death Saves UI ✅ Complete
+
+- [x] When `phase == "death_saves"`: hide action buttons, show death saves panel
+- [x] Success/failure pip track: 3 circles for each (filled as rolls arrive)
+- [x] `[ Roll Death Save ]` → calls `POST /api/combat/death-save`
+- [x] Shows roll result, "Stabilized" on 3 successes
+- [x] 3 successes → `phase="victory"` → loot panel auto-shown
+
+#### 3f — Victory / Loot UI ✅ Complete (Simplified)
+
+- [x] When `phase == "loot"`: show loot panel
+- [x] Lists each dropped item name + quantity
+- [x] `[ Take All ]` → calls `POST /api/combat/end` with `take_all: true`
+- [x] `[ Done ]` → calls `POST /api/combat/end`, exits combat
+- [x] XP earned shown; `level_up_pending` flag displayed
+- [ ] Per-item `[ Take ]` button — deferred to Phase 10
+- [ ] Item icons in loot panel — deferred to Phase 10
+- [ ] Inventory overflow handling (backpack) — deferred to Phase 10
+
+#### 3g — Defeat UI ✅ Complete
+
+- [x] When `phase == "defeat"`: show defeat panel
+- [x] Flavour message with starting city
+- [x] Shows 3 items kept (top by unit cost)
+- [x] `[ Continue ]` → calls `POST /api/combat/end`, exits combat
+- [x] Inventory/location/HP rendered from response
+
+#### 3h — Level Up Notification ⬜ Not Yet Implemented
+
+- [ ] Level up banner/modal after combat (deferred to Phase 10)
+- [ ] HP roll shown to player, new class features listed
+- [ ] Currently: server applies HP automatically; player just sees new values in character panel
+
+---
+
+#### Hold & Ready Mechanic (New — Not in Original Plan)
+
+When the player chooses **Hold & Ready** during the move phase:
+
+- Sets `HeldPosition = true` on `PlayerCombatState`
+- Logs: _"You hold your position, readying for the enemy to advance."_
+- If monster AI decides to move **closer** AND the resulting range ≤ player's melee reach:
+  - Player **fires a readied counter-attack first** (with advantage) before the monster swings
+  - Resolved via `executeReadiedAttack()` — loads mainHand weapon, calls attack resolution with `advantage = 1`
+  - If counter-attack kills the monster, monster's attack does NOT fire
+  - Requires splitting `ExecuteMonsterTurn` → `ApplyMonsterMove` + `ApplyMonsterAction` in `ai.go`
+- `HeldPosition` clears when move phase begins next turn (reset in `ProcessPlayerMove`)
+
+This implements the D&D 5e Ready Action for the most common early-combat scenario.
+
+---
+
+#### Files Created/Modified in Phase 3
+
+| File | Action | Notes |
+|------|--------|-------|
+| `cmd/server/api/game/combat_debug.go` | CREATED | `DebugCombatStartHandler` |
+| `cmd/server/api/game/combat.go` | MODIFIED | Added `CombatMoveHandler`, `CombatPassHandler`; `TurnPhase` in response; removed `MoveDir` from action request |
+| `cmd/server/api/routes.go` | MODIFIED | Added `/api/combat/move`, `/api/combat/pass`, `/api/combat/debug/start` |
+| `cmd/server/game/combat/combat.go` | MODIFIED | `ProcessPlayerMove`, `ProcessPlayerPass`; refactored `runMonsterResponseTurn` with readied attack; `executeReadiedAttack`, `getPlayerMeleeReach` |
+| `cmd/server/game/combat/ai.go` | MODIFIED | Split `ExecuteMonsterTurn` → `ApplyMonsterMove` + `ApplyMonsterAction`; fixed monster melee default reach 0→1 |
+| `cmd/server/game/combat/attack.go` | MODIFIED | Fixed `getMeleeReach`: normal melee 0→1 (was 0), reach weapons 1→2 |
+| `types/combat.go` | MODIFIED | `TurnPhase string` on `CombatSession`; `HeldPosition bool` on `PlayerCombatState` |
+| `www/views/game/combat-overlay.html` | CREATED | Full combat UI overlay |
+| `www/views/game/scene.html` | MODIFIED | Added `{{template "game/combat-overlay.html"}}` |
+| `www/views/game/game.html` | MODIFIED | Pass `.` to settings template |
+| `www/views/game/tabs/settings.html` | MODIFIED | `{{if .CustomData.DebugMode}}` dev combat button |
+| `src/systems/combatSystem.js` | CREATED | All combat JS: `enterCombatMode`, `exitCombatMode`, `renderCombatState`, `doAttack`, `doMove`, `passTurn`, `rollDeathSave`, `endCombat`, `debugStartCombat` |
+| `src/entries/game.js` | MODIFIED | Import combatSystem; expose all combat functions on `window` |
+
+#### Backend Bugs Fixed During Phase 3
+
+- **Melee reach was 0**: `getMeleeReach` returned 0 for normal weapons, making attacks at range 1 impossible. D&D 5e melee is 5ft = adjacent = range 0 **or** 1. Fixed: `return 1` for normal, `return 2` for reach weapons. Same fix in `ai.go` monster `selectBestAction`.
+- **Range desync on retreat**: Moving away called `doAttack(1,...)` which mutated backend range then returned 400 (range invalid for attack), leaving UI with stale range. Resolved by full two-phase redesign.
+- **Simultaneous log+flair**: All entries fired in the same frame. Fixed with `_appendLogEntriesStaggered` + per-entry `_spawnFlair`.
+- **Stuck in action phase**: Holding position at range > weapon reach left player with no valid action and no escape. Fixed with `ProcessPlayerPass` + End Turn button.
+- **Initiative log**: No announcement of who went first. Fixed: `StartCombat` appends both roll values and winner name.
+
+#### Deferred Items (Originally in Phase 3 Scope)
+
+| Item | Deferred To |
+|------|-------------|
+| Dash action (±2 range) | Phase 8 |
+| Flee mechanic (formula + chance) | Phase 8 |
+| Dodge action (disadvantage on incoming) | Phase 8 |
+| Opportunity attacks (flee from melee) | Phase 8 |
+| Per-item loot `[ Take ]` button | Phase 10 |
+| Item icons in loot panel | Phase 10 |
+| Level up banner/modal | Phase 10 |
+| Class abilities / spell casting in combat | Phase 4/5 |
+| Consumables (potions) in combat | Phase 6 |
+
+---
+
+### Phase 4: Unified Ability System (Class Features + Magic)
 
 **Goal**: One pipeline for all active combat abilities — class features and spells both flow through it
 
-> This phase requires design work first (see Section 12). Do not begin implementation until the resource model, data schema, and UI approach are settled.
+> This phase requires design work first (see Section 12). Do not begin implementation until the resource model, data schema, and UI approach are settled. Combat UI (Phase 3) must be done first — you need a working UI to design the ability panel against.
 
 - [ ] Design unified ability schema (data-driven vs hardcoded handlers decision)
 - [ ] Design resource model (one pool vs per-class pools vs hybrid)
@@ -1565,32 +1753,34 @@ These need to be tracked in the save file and tied to the rest system.
 - [ ] Implement hybrid features (Divine Smite, Hunter's Mark, Channel Divinity)
 - [ ] Integrate with magic system (Section 13) through the same activation pipeline
 
-### Phase 4: Magic in Combat
+### Phase 5: Magic in Combat
 
-**Goal**: Full spell integration
+**Goal**: Full spell integration (requires Phase 3 UI + Phase 4 ability pipeline)
 
-- [ ] Spell selection UI in combat
-- [ ] Ranged/melee spell attacks (d20 + spellcasting mod + prof)
-- [ ] Auto-hit spells (Magic Missile)
-- [ ] Saving throw spells (DC calculation, monster roll)
-- [ ] Area effect spells (hit all monsters)
-- [ ] Concentration tracking and breaking on damage
-- [ ] Mana deduction
-- [ ] Healing spells in combat
-- [ ] Metamagic (Sorcerer — Quickened, Twinned, Empowered)
+- [ ] Spell selection surfaced in Phase 3 Abilities submenu
+- [ ] Ranged/melee spell attacks (d20 + spellcasting mod + prof vs monster AC)
+- [ ] Auto-hit spells (Magic Missile — `spell_attack: "automatic"`)
+- [ ] Saving throw spells (DC = 8 + prof + casting mod; monster rolls save vs DC)
+- [ ] Area effect spells (hit all monsters — single-target until Phase 11)
+- [ ] Concentration tracking: one active concentration spell; CON save DC = max(10, half damage) on hit
+- [ ] Mana deduction on cast; block if insufficient mana
+- [ ] Healing spells in combat (Cure Wounds, Healing Word as bonus action)
+- [ ] Material component check: verify components in inventory or focus provides them
+- [ ] Metamagic (Sorcerer — Quickened, Twinned, Empowered) — lowest priority
 
-### Phase 5: Conditions
+### Phase 6: Conditions
 
 **Goal**: All 15 conditions function correctly
 
-- [ ] Condition application and tracking
-- [ ] Condition expiration (duration-based, save-based)
-- [ ] Advantage/Disadvantage from conditions
-- [ ] Speed effects (Grappled, Restrained = speed 0)
-- [ ] Auto-crit conditions (Paralyzed, Unconscious in melee)
-- [ ] Concentration breaking on damage
+- [ ] Condition application and tracking on both player and monster
+- [ ] Condition expiration (duration-based, save-based, action-based)
+- [ ] Advantage/Disadvantage flags from conditions fed into attack resolution
+- [ ] Speed effects (Grappled, Restrained = speed 0; cannot move submenu options)
+- [ ] Auto-crit conditions (Paralyzed, Unconscious in melee — range 0)
+- [ ] Concentration breaking on damage (CON save)
+- [ ] Frightened: can't willingly move closer; dis on attacks while source visible
 
-### Phase 6: Monster Special Abilities
+### Phase 7: Monster Special Abilities
 
 **Goal**: Monsters have unique mechanics
 
@@ -1604,17 +1794,17 @@ Priority abilities (implement these on targeted monsters first):
 - [ ] Multi-attack: Some monsters attack 2+ times per turn
 - [ ] Regeneration (Troll): Regain HP each turn unless acid/fire damage
 
-### Phase 7: Flee & Tactical Depth
+### Phase 8: Flee & Tactical Depth
 
 **Goal**: Combat has strategic options beyond just attacking
 
-- [ ] Flee mechanic (Disengage + move away checks)
-- [ ] Dodge action (disadvantage on incoming attacks)
-- [ ] Hide attempt (Stealth vs Perception)
-- [ ] Shove action (range change)
-- [ ] Opportunity attacks (when monster moves away)
+- [ ] Flee mechanic (formula from Section 18; Flee button in Phase 3 UI)
+- [ ] Dodge action (disadvantage on incoming attacks until start of next turn)
+- [ ] Hide attempt (Stealth vs Perception; advantage on next attack if hidden)
+- [ ] Shove action (range change; STR vs STR/DEX contest)
+- [ ] Opportunity attacks (monster gets free attack when player flees from melee)
 
-### Phase 8: Encounter System Integration
+### Phase 9: Encounter System Integration
 
 **Goal**: Encounters trigger properly during travel
 
@@ -1625,18 +1815,16 @@ Priority abilities (implement these on targeted monsters first):
 - [ ] Environment encounter data added to all environment JSONs
 - [ ] Random event encounters (non-combat) — connect to event system
 
-### Phase 9: Death & Rewards Polish
+### Phase 10: Death & Rewards Polish
 
-**Goal**: Complete game-loop closure
+**Goal**: Complete game-loop closure (most UI work done in Phase 3)
 
-- [ ] Death saving throws UI
-- [ ] Stabilization (healer's kit)
-- [ ] Death game-over screen with options
-- [ ] Full loot UI (items added to inventory with overflow handling)
-- [ ] XP display and level up notification
-- [ ] Level up stat allocation UI (HP roll shown to player)
+- [ ] Stabilization (healer's kit as combat Use Item)
+- [ ] Full loot UI overflow handling (backpack when general slots are full)
+- [ ] Level up stat allocation UI (HP roll shown to player, ability score improvements)
+- [ ] Kill bonus XP: add `kill_bonus_xp` field to notable monster JSONs
 
-### Phase 10: Multi-Monster Encounters (Future)
+### Phase 11: Multi-Monster Encounters (Future)
 
 **Goal**: Fight groups of monsters
 
@@ -1650,7 +1838,7 @@ Priority abilities (implement these on targeted monsters first):
 
 ## 26. Open Questions
 
-1. **Multi-monster encounters**: Start with 1 monster for simplicity, add groups in Phase 10?
+1. **Multi-monster encounters**: Start with 1 monster for simplicity, add groups in Phase 11?
    - Proposed: Yes, single monster initially. Group encounters when system is stable.
 
 2. **Flee distance**: How far must player go to escape? Propose: range > 5 OR 2 consecutive turns at max range.
@@ -1836,6 +2024,8 @@ During Phase 1 implementation, treat `party[0]` exactly as the current single-pl
 ---
 
 **Document Status**: Living document — will expand as implementation progresses.
-**Phase 1**: ✅ Complete (2026-02-21) — backend engine + monster data + HTTP handlers
-**Phase 2**: ✅ Complete (2026-02-21) — all weapon properties implemented
-**Next Step**: Phase 9 (Combat UI frontend) — backend is ready to wire up
+**Phase 1**: ✅ Complete (2026-02-21) — backend combat engine + monster data + 5 HTTP handlers
+**Phase 2**: ✅ Complete (2026-02-21) — all weapon properties (finesse, thrown, reach, ammo, loading, heavy, light, versatile, two-weapon)
+**Phase 2b**: ✅ Complete (2026-02-22) — spell preparation system (PrepQueue, 4 API endpoints, timer resolution, codex validation/migration)
+**Phase 3**: 🚧 Core Complete (2026-02-23) — combat UI overlay, two-phase turn system (move+action), Hold & Ready mechanic, staggered combat log, death saves, loot, defeat; Flee/Dodge/Dash deferred to Phase 8
+**Next Step**: Phase 8 items (Flee, Dodge, Dash) OR Phase 4 (Abilities design) — see Section 25
