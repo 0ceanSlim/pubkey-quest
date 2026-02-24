@@ -1,6 +1,7 @@
 package game
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -15,6 +16,13 @@ import (
 var debugMonsterPool = []string{
 	"goblin", "wolf", "skeleton", "zombie", "orc",
 	"kobold", "bandit", "giant-rat", "blood-hawk",
+}
+
+// debugCombatRequest extends the base request with an optional monster selector.
+type debugCombatRequest struct {
+	Npub      string `json:"npub"`
+	SaveID    string `json:"save_id"`
+	MonsterID string `json:"monster_id"` // optional; empty = random pick
 }
 
 // DebugCombatStartHandler godoc
@@ -40,11 +48,12 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	npub, saveID, err := decodeBaseRequest(r)
-	if err != nil {
-		writeCombatError(w, http.StatusBadRequest, err.Error())
+	var req debugCombatRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "missing npub or save_id")
 		return
 	}
+	npub, saveID := req.Npub, req.SaveID
 
 	sess, err := session.GetSessionManager().GetSession(npub, saveID)
 	if err != nil {
@@ -57,7 +66,17 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	monsterID := debugMonsterPool[rand.Intn(len(debugMonsterPool))]
+	// Use the caller's monster choice if it's in the allowed pool; else pick random.
+	monsterID := ""
+	for _, id := range debugMonsterPool {
+		if id == req.MonsterID {
+			monsterID = id
+			break
+		}
+	}
+	if monsterID == "" {
+		monsterID = debugMonsterPool[rand.Intn(len(debugMonsterPool))]
+	}
 
 	advancement, err := loadAdvancement()
 	if err != nil {

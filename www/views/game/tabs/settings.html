@@ -20,6 +20,20 @@
             {{if .CustomData.DebugMode}}
             <div class="mt-2">
                 <p class="text-xs text-gray-400 mb-1">Combat Testing</p>
+                <select id="debug-monster-select"
+                        class="w-full mb-2 px-2 py-1 text-white text-xs"
+                        style="background: #1a1a1a; border: 1px solid #4a4a4a;">
+                    <option value="">— Random —</option>
+                    <option value="goblin">Goblin</option>
+                    <option value="wolf">Wolf</option>
+                    <option value="skeleton">Skeleton</option>
+                    <option value="zombie">Zombie</option>
+                    <option value="orc">Orc</option>
+                    <option value="kobold">Kobold</option>
+                    <option value="bandit">Bandit</option>
+                    <option value="giant-rat">Giant Rat</option>
+                    <option value="blood-hawk">Blood Hawk</option>
+                </select>
                 <button onclick="window.debugStartCombat()"
                         class="w-full py-2 px-3 font-bold text-white"
                         style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">

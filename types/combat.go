@@ -148,6 +148,7 @@ type PlayerCombatState struct {
 	BonusActionUsed    bool              `json:"bonus_action_used"`
 	MovementUsed       bool              `json:"movement_used"`
 	HeldPosition       bool              `json:"held_position"` // True when player held still this turn (readied attack)
+	Dodging            bool              `json:"dodging"`       // True until start of next turn — monster attacks at disadvantage
 	DeathSaveSuccesses int               `json:"death_save_successes"`
 	DeathSaveFailures  int               `json:"death_save_failures"`
 	IsUnconscious      bool              `json:"is_unconscious"`

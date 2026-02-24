@@ -4,21 +4,29 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"strconv"
 	"strings"
 
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
 )
 
-// acSlots are the gear slots that can contribute to AC.
-// mainhand (weapon), ammo, and bag are excluded.
+// acSlots are the gear slots checked for AC contributions.
+// Weapon, ammo, and bag slots are excluded.
 var acSlots = []string{
-	"chest", "head", "offhand", "legs", "boots", "gloves", "neck", "ring1", "ring2",
+	"chest", "head", "offhand", "legs", "boots", "gloves", "necklace", "ring1", "ring2", "cloak",
 }
 
 // CalculatePlayerAC computes the player's total AC from equipped gear.
-// Chest pieces with ac_base:true set the base formula (replacing 10+DEX).
-// All other equipped items add their flat ac value on top.
+//
+// Item "ac" field formats supported:
+//
+//	"7 + Dex"           → light armor base: 7 + full DEX mod  (isBase=true)
+//	"11 + Dex (max 2)"  → medium armor base: 11 + DEX capped at 2  (isBase=true)
+//	"16"                → heavy armor base when gear_slot=="chest": flat 16  (isBase=true)
+//	"+2"                → additive bonus (shield, ring, etc.)  (isBase=false)
+//	"4"                 → additive flat value for non-chest slots  (isBase=false)
+//	7  (number)         → legacy numeric; uses "ac_base" bool if present
 func CalculatePlayerAC(db *sql.DB, inventory map[string]interface{}, stats map[string]interface{}) int {
 	dexMod := StatMod(GetStatFromMap(stats, "dexterity"))
 
@@ -38,43 +46,99 @@ func CalculatePlayerAC(db *sql.DB, inventory map[string]interface{}, stats map[s
 			continue
 		}
 
-		acVal := getIntProp(item, "ac")
-		if acVal == 0 {
-			continue // Item contributes no AC
+		contrib, isBase := parseItemAC(item, dexMod)
+		if contrib == 0 {
+			continue
 		}
 
-		isBase, _ := item["ac_base"].(bool)
 		if isBase && !baseSet {
-			// This piece sets the base formula — replaces the 10+DEX default.
-			armorType, _ := item["armor_type"].(string)
-			baseAC = acVal + calcDexContrib(armorType, item, dexMod)
+			baseAC = contrib // Already includes DEX contribution
 			baseSet = true
 		} else {
-			// Additive piece (helmet, shield, ring, boots, etc.)
-			additiveAC += acVal
+			additiveAC += contrib
 		}
 	}
 
 	return baseAC + additiveAC
 }
 
-// calcDexContrib returns the DEX modifier contribution based on armor type and dex_cap.
-func calcDexContrib(armorType string, item map[string]interface{}, dexMod int) int {
-	switch strings.ToLower(armorType) {
-	case "heavy":
-		return 0
-	case "medium":
-		cap := 2 // D&D 5e default medium cap
-		if v, ok := item["dex_cap"].(float64); ok {
-			cap = int(v)
-		}
-		if dexMod > cap {
-			return cap
-		}
-		return dexMod
-	default: // "light", "clothing", unset — full DEX
-		return dexMod
+// parseItemAC reads the "ac" field from a fully-deserialised item properties map
+// and returns (contribution, isBase).
+// isBase=true  → this piece replaces the default 10+DEX base.
+// isBase=false → this piece is an additive bonus stacked on top.
+func parseItemAC(item map[string]interface{}, dexMod int) (contribution int, isBase bool) {
+	acRaw, ok := item["ac"]
+	if !ok {
+		return 0, false
 	}
+	switch v := acRaw.(type) {
+	case float64:
+		base, _ := item["ac_base"].(bool)
+		return int(v), base
+	case int:
+		base, _ := item["ac_base"].(bool)
+		return v, base
+	case string:
+		return parseACString(v, item, dexMod)
+	}
+	return 0, false
+}
+
+// parseACString decodes the human-readable AC strings used in item JSON files.
+func parseACString(s string, item map[string]interface{}, dexMod int) (int, bool) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, false
+	}
+	lower := strings.ToLower(s)
+
+	// "+N" → explicit additive (shield, ring, etc.)
+	if strings.HasPrefix(s, "+") {
+		n, err := strconv.Atoi(strings.TrimSpace(s[1:]))
+		if err != nil {
+			return 0, false
+		}
+		return n, false
+	}
+
+	// "N + Dex..." → base formula, light or medium armor
+	if strings.Contains(lower, "dex") {
+		plusIdx := strings.Index(s, "+")
+		if plusIdx < 0 {
+			return 0, false
+		}
+		base, err := strconv.Atoi(strings.TrimSpace(s[:plusIdx]))
+		if err != nil {
+			return 0, false
+		}
+		// Check for medium armor DEX cap: "max N"
+		dexContrib := dexMod
+		if strings.Contains(lower, "max") {
+			cap := 2
+			words := strings.Fields(lower)
+			for i, w := range words {
+				if w == "max" && i+1 < len(words) {
+					if n, err := strconv.Atoi(strings.Trim(words[i+1], "(),")); err == nil {
+						cap = n
+					}
+				}
+			}
+			if dexContrib > cap {
+				dexContrib = cap
+			}
+		}
+		return base + dexContrib, true
+	}
+
+	// Plain number: "16", "4", etc.
+	// A chest-slot item with a plain number = heavy armor base (no DEX).
+	// Everything else (legs, boots, etc.) = additive.
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, false
+	}
+	gearSlot, _ := item["gear_slot"].(string)
+	return n, strings.ToLower(gearSlot) == "chest"
 }
 
 // loadItemProps loads a single item's properties JSON from the database.
@@ -91,20 +155,6 @@ func loadItemProps(db *sql.DB, itemID string) (map[string]interface{}, error) {
 	return props, nil
 }
 
-// getIntProp reads an integer property from a map, handling JSON float64.
-func getIntProp(m map[string]interface{}, key string) int {
-	v, ok := m[key]
-	if !ok {
-		return 0
-	}
-	switch val := v.(type) {
-	case float64:
-		return int(val)
-	case int:
-		return val
-	}
-	return 0
-}
 
 // ResolveDamageToMonster rolls damage dice and applies the monster's resistances,
 // immunities, and vulnerabilities. Returns final damage dealt (minimum 1 on a hit).

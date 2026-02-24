@@ -66,6 +66,7 @@ type CombatPlayerView struct {
 	DeathSaveFailures  int  `json:"death_save_failures"  example:"0"`
 	IsUnconscious      bool `json:"is_unconscious"       example:"false"`
 	IsStable           bool `json:"is_stable"            example:"false"`
+	Dodging            bool `json:"dodging"              example:"false"`
 }
 
 // CombatMonsterView is the visible monster state returned in responses.
@@ -142,6 +143,7 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 			DeathSaveFailures:  state.DeathSaveFailures,
 			IsUnconscious:      state.IsUnconscious,
 			IsStable:           state.IsStable,
+			Dodging:            state.Dodging,
 		}
 	}
 
@@ -579,6 +581,174 @@ func CombatPassHandler(w http.ResponseWriter, r *http.Request) {
 	cs.Log = append(cs.Log, roundLog...)
 	cs.Round++
 
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatDodgeHandler ───────────────────────────────────────────────────────
+
+// CombatDodgeHandler uses the player's action to take the Dodge stance.
+// Until the start of the player's next turn, the monster attacks with disadvantage.
+// The monster still gets its response turn this round.
+func CombatDodgeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req CombatBaseRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub or save_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerDodge(serverdb.GetDB(), cs, &sess.SaveData)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatFleeHandler ────────────────────────────────────────────────────────
+
+// CombatFleeHandler attempts a flee roll using the formula from §18 of the combat plan.
+// Requires range ≥ 3. On success the combat ends (phase → "loot", empty loot).
+// On failure the monster still responds and combat continues.
+func CombatFleeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req CombatBaseRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub or save_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerFlee(serverdb.GetDB(), cs, &sess.SaveData)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	// Only increment the round counter if combat is still active (flee failure).
+	// On flee success, phase changes to "loot" — round number no longer matters.
+	if cs.Phase == "active" {
+		cs.Round++
+	}
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatDashHandler ────────────────────────────────────────────────────────
+
+// CombatDashHandler sprints the player 2 steps in the chosen direction.
+// Unlike a normal move, the dash uses both movement and action — no attack follows.
+// The monster responds immediately and the turn ends.
+// dir: -1 = dash toward monster, +1 = dash away.
+func CombatDashHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req struct {
+		Npub   string `json:"npub"`
+		SaveID string `json:"save_id"`
+		Dir    int    `json:"dir"` // -1 = toward, +1 = away
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "missing npub, save_id, or dir")
+		return
+	}
+	if req.Dir != -1 && req.Dir != 1 {
+		writeCombatError(w, http.StatusBadRequest, "dir must be -1 (toward) or 1 (away)")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerDash(serverdb.GetDB(), cs, &sess.SaveData, req.Dir)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatChargeHandler ──────────────────────────────────────────────────────
+
+// CombatChargeHandler rushes the player 2 steps toward the monster and immediately attacks.
+// Requires range ≥ 2 and a move phase. Uses both movement and action in one committed rush.
+// The monster responds after the attack, the same as a normal attack.
+func CombatChargeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req CombatActionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "missing npub or save_id")
+		return
+	}
+	if req.WeaponSlot == "" {
+		req.WeaponSlot = "mainHand"
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	advancement, err := loadAdvancement()
+	if err != nil {
+		writeCombatError(w, http.StatusInternalServerError, "Failed to load advancement data")
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerCharge(serverdb.GetDB(), cs, &sess.SaveData, req.WeaponSlot, req.Hand, req.Thrown, advancement)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
 

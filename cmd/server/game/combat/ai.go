@@ -105,7 +105,10 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 
 // ApplyMonsterAction executes the monster's chosen action (attack/flee/none).
 // Movement must already have been applied. Returns damage dealt and log entries.
-func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int) (damageDealt int, logEntries []string) {
+//
+// useReflex: when true, the player makes a reflex save (d20+reflexDEXMod vs DC 12)
+// before damage resolves — on success the attack misses entirely. Pass false normally.
+func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
 	switch decision.Action {
 	case "flee":
 		logEntries = append(logEntries, fmt.Sprintf("  %s turns and flees!", monster.Name))
@@ -116,7 +119,13 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 
 	case "attack":
 		action := monster.Data.Actions[decision.ActionIndex]
-		result := ResolveAttackRoll(action.AttackBonus, playerAC, 0)
+
+		// If the player is dodging this turn, the monster attacks at disadvantage.
+		monsterAdvantage := 0
+		if len(cs.Party) > 0 && cs.Party[0].CombatState.Dodging {
+			monsterAdvantage = -1
+		}
+		result := ResolveAttackRoll(action.AttackBonus, playerAC, monsterAdvantage)
 
 		logEntries = append(logEntries, fmt.Sprintf(
 			"  %s attacks with %s: rolled %d%s — %s",
@@ -125,6 +134,19 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 		))
 
 		if result.IsHit {
+			// Reflex save: player hasn't chosen their stance, so they may dodge on instinct.
+			if useReflex {
+				reflexRoll := RollD20() + reflexDEXMod
+				logEntries = append(logEntries, fmt.Sprintf(
+					"  You react on instinct — reflex save: rolled %d (DC 12).", reflexRoll,
+				))
+				if reflexRoll >= 12 {
+					logEntries = append(logEntries, "  You twist away just in time — the attack misses!")
+					break // attack negated
+				}
+				logEntries = append(logEntries, "  Not quick enough to fully evade!")
+			}
+
 			dmg := ResolveDamageToPlayer(action.Hit.Dice, action.Hit.Mod, result.IsCrit)
 			damageDealt = dmg
 			critStr := ""
@@ -142,10 +164,10 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 
 // ExecuteMonsterTurn runs the monster's full turn (move + action).
 // Returns damage dealt and all log entries.
-func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int) (damageDealt int, logEntries []string) {
+func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
 	decision := DecideMonsterAction(cs, monster)
 	logEntries = append(logEntries, ApplyMonsterMove(cs, monster, decision)...)
-	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC)
+	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, useReflex, reflexDEXMod)
 	return dmg, append(logEntries, actionLog...)
 }
 

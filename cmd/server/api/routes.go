@@ -405,6 +405,14 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/combat/action", game.CombatActionHandler)
 	// @Router       /api/combat/pass [post]
 	mux.HandleFunc("/api/combat/pass", game.CombatPassHandler)
+	// @Router       /api/combat/dodge [post]
+	mux.HandleFunc("/api/combat/dodge", game.CombatDodgeHandler)
+	// @Router       /api/combat/flee [post]
+	mux.HandleFunc("/api/combat/flee", game.CombatFleeHandler)
+	// @Router       /api/combat/dash [post]
+	mux.HandleFunc("/api/combat/dash", game.CombatDashHandler)
+	// @Router       /api/combat/charge [post]
+	mux.HandleFunc("/api/combat/charge", game.CombatChargeHandler)
 
 	// @Summary      Roll a death saving throw
 	// @Description  Rolls one death saving throw for the unconscious player and runs the

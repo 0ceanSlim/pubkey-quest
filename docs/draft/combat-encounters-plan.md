@@ -1,6 +1,6 @@
 # Combat & Encounters System — Master Planning Document
 
-**Status**: Phase 1 ✅ — Phase 2 ✅ — Phase 2b (Spell Prep) ✅ — Phase 3 (Combat UI) 🚧 Core Complete
+**Status**: Phase 1 ✅ — Phase 2 ✅ — Phase 2b (Spell Prep) ✅ — Phase 3 (Combat UI) 🚧 Session 2 Complete
 **Created**: 2026-02-20
 **Updated**: 2026-02-23
 **Priority**: Major System
@@ -18,19 +18,19 @@
 | 4 | [Monster Data Schema Expansion](#4-monster-data-schema-expansion) | 🚧 Partial (priority monsters done, rest stubbed) |
 | 5 | [Combat State (Session Memory)](#5-combat-state-session-memory-only--not-saved-to-file) | ✅ Implemented |
 | 6 | [Initiative](#6-initiative) | ✅ Implemented |
-| 7 | [Turn Structure](#7-turn-structure) | 🚧 Partial (two-phase move+action implemented; Dash/Dodge/Hide/Flee not wired) |
+| 7 | [Turn Structure](#7-turn-structure) | ✅ Implemented (Dash ✅, Charge ✅, Flee ✅, Hold & Ready + Dodge unified ✅) |
 | 8 | [Attack Resolution](#8-attack-resolution) | ✅ Implemented |
 | 9 | [Damage Resolution](#9-damage-resolution) | ✅ Implemented |
 | 10 | [Weapon Properties](#10-weapon-properties--full-implementation-spec) | ✅ Implemented |
-| 11 | [Armor & AC Calculation](#11-armor--ac-calculation) | 🚧 Partial (base AC done; per-piece additive / set bonus not fully wired) |
+| 11 | [Armor & AC Calculation](#11-armor--ac-calculation) | ✅ Implemented (string-format AC parsing complete; light/medium/heavy/additive all handled) |
 | 12 | [Class Combat Features & Abilities](#12-class-combat-features--abilities) | ❌ Not started |
 | 13 | [Magic in Combat](#13-magic-in-combat) | 🚧 Prereqs done (spell prep API ✅, `concentration` field ✅) |
 | 14 | [Consumables in Combat](#14-consumables-in-combat) | ❌ Not started |
 | 15 | [Conditions](#15-conditions--full-implementation) | ❌ Not started |
 | 16 | [Death System](#16-death-system) | ✅ Implemented |
 | 17 | [Monster AI](#17-monster-ai) | ✅ Implemented (basic — flee, preferred range, action selection) |
-| 18 | [Flee Mechanic](#18-flee-mechanic) | ❌ Not started |
-| 19 | [Combat UI Design](#19-combat-ui-design) | 🚧 Core loop playable — debug button, overlay, two-phase turns, death saves, loot, defeat done |
+| 18 | [Flee Mechanic](#18-flee-mechanic) | ✅ Implemented |
+| 19 | [Combat UI Design](#19-combat-ui-design) | 🚧 Session 2 complete — monster picker, Dash/Charge, Hold&Ready+Dodge unified, reflex save, AC calc fix |
 | 20 | [XP & Loot](#20-xp--loot) | ✅ Implemented |
 | 21 | [Environment → Encounter Schema](#21-environment--encounter-schema) | ❌ Not started |
 | 22 | [Monster Difficulty Scaling](#22-monster-difficulty-scaling) | ❌ Not started |
@@ -1584,11 +1584,13 @@ These need to be tracked in the save file and tied to the rest system.
 
 ---
 
-### Phase 3: Combat UI Frontend 🚧 Core Complete (2026-02-23)
+### Phase 3: Combat UI Frontend 🚧 Session 2 Complete (2026-02-23)
 
 **Goal**: Player can fight monsters end-to-end through the browser; all backend work (Phases 1, 2, 2b) becomes testable
 
-> **Implementation status**: Core loop is fully playable. Debug start button in Settings (dev mode only), combat overlay, two-phase turn system, staggered log entries, flair popups, death saves, loot panel, defeat panel. Several plan items deferred to Phase 8 (Flee, Dodge, Dash). The turn structure **significantly diverges** from the original flat action-bar design — see notes below.
+> **Session 1 status**: Core loop is fully playable. Debug start button in Settings (dev mode only), combat overlay, two-phase turn system, staggered log entries, flair popups, death saves, loot panel, defeat panel. The turn structure **significantly diverges** from the original flat action-bar design — see notes below.
+>
+> **Session 2 additions (2026-02-23)**: Monster picker in debug button, Hold & Ready unified with Dodge, Dash redesigned as full-action (no attack after), Charge mechanic (rush + attack), Flee fully implemented, reflex save when monster has initiative, melee slot-case bug fix, full AC string-parsing rewrite.
 
 #### 3a — Combat State Wiring ✅ Complete
 
@@ -1620,30 +1622,37 @@ These need to be tracked in the save file and tied to the rest system.
 
 > ⚠️ **DESIGN CHANGE**: The original plan described a flat action bar: `[ Attack ] [ Abilities ] [ Move ] [ Flee ]`. Testing revealed that compound actions ("Advance & Attack" in a single click) confused movement-then-attack flow and caused range desync bugs. The implemented system splits each turn into two **explicit phases**.
 
-**Move Phase** (blue phase header):
+**Move Phase** (blue phase header) — two columns: "Move (then act)" and "Full Action (no attack after)":
 
 - [x] `[ Advance ]` — move closer (range -1), grayed if already at 0
-- [x] `[ Hold & Ready ]` — hold position; readies a counter-attack with advantage if monster advances into reach (see Hold & Ready section below)
+- [x] `[ Hold & Ready ]` — hold position; sets **both** `HeldPosition = true` and `Dodging = true`; readies counter-attack with advantage if monster moves into reach; also gives monster disadvantage for the entire round (unified with Dodge — see section below)
 - [x] `[ Retreat ]` — move away (range +1), grayed if at 6
-- [ ] `[ Dash ]` — ±2 range steps — **deferred to Phase 8**
+- [x] `[ Charge ]` (Full Action) — rush forward 2 + attack in one committed action; available only at range ≥ 2 with a melee weapon; triggers monster response immediately
+- [x] `[ Dash Away ]` (Full Action) — move 2 steps back; no attack; triggers monster response immediately; available when range < 6
 
 **Action Phase** (yellow phase header):
 
-- [x] `[ Attack ]` submenu — equipped weapons; grayed if out of range; ranged shows `(ammo: N)` suffix; off-hand if `bonus_attack_available`
+- [x] `[ Attack ]` submenu — equipped weapons; grayed if out of range; ranged shows `(ammo: N)` suffix; off-hand if `bonus_attack_available`; reach shown as `⚔` in range bar when in reach, `(advance to attack)` when out
 - [x] `[ Abilities ]` — placeholder, grayed "Coming Soon" (Phase 4/5)
 - [x] `[ Use Item ]` — placeholder, grayed "Coming Soon" (Phase 6)
 - [x] `[ ⏭ End Turn ]` — forfeits action; monster still responds; prevents "stuck in action phase" deadlock when no weapon can reach
-- [x] `[ Flee ]` — button present but flee mechanic not yet wired (Phase 8)
+- [x] `[ Flee ]` — requires range ≥ 3; monster gets free attack first; on success transitions out of combat; on failure (monster kills player) normal defeat flow
 - [x] Restore normal buttons when combat exits
+- [x] Tip column shows current defensive status (Dodging / readied)
 
 #### 3d-extra — New Endpoints Added During Phase 3
 
 The two-phase system required endpoints not in the original plan:
 
+**Session 1:**
 - [x] `POST /api/combat/move` — player movement only; monster does NOT respond; transitions `turn_phase` to "action"
 - [x] `POST /api/combat/pass` — forfeit action; monster responds; `turn_phase` resets to "move"; round increments
-- [x] `POST /api/combat/debug/start` — picks random starter monster; registered inside `DebugMode` guard in `routes.go`
+- [x] `POST /api/combat/debug/start` — optional `monster_id` field; validates against pool; falls back to random; registered inside `DebugMode` guard in `routes.go`
 - [x] `TurnPhase string` added to `CombatStateResponse` and `CombatSession`
+
+**Session 2:**
+- [x] `POST /api/combat/dash` — moves ±2 (`dir` field), triggers full monster response, no action phase; sets `turn_phase` back to "move"
+- [x] `POST /api/combat/charge` — moves -2 then immediately processes an attack; one combined API call; triggers monster response
 
 #### 3e — Death Saves UI ✅ Complete
 
@@ -1680,24 +1689,42 @@ The two-phase system required endpoints not in the original plan:
 
 ---
 
-#### Hold & Ready Mechanic (New — Not in Original Plan)
+#### Hold & Ready + Dodge — Unified Mechanic (New — Not in Original Plan)
+
+> **Session 2 design change**: Dodge was removed as a standalone action-phase button. It is now automatically active whenever the player chooses **Hold & Ready** during move phase. Rationale: a player holding position should always be in a defensive stance; splitting them was confusing.
 
 When the player chooses **Hold & Ready** during the move phase:
 
-- Sets `HeldPosition = true` on `PlayerCombatState`
+- Sets **both** `HeldPosition = true` AND `Dodging = true` on `PlayerCombatState`
 - Logs: _"You hold your position, readying for the enemy to advance."_
-- If monster AI decides to move **closer** AND the resulting range ≤ player's melee reach:
+- **Dodge effect**: Monster attacks at **disadvantage** for the entire round (checked in `ApplyMonsterAction`)
+- **Ready effect**: If monster AI decides to move **closer** AND the resulting range ≤ player's melee reach:
   - Player **fires a readied counter-attack first** (with advantage) before the monster swings
   - Resolved via `executeReadiedAttack()` — loads mainHand weapon, calls attack resolution with `advantage = 1`
   - If counter-attack kills the monster, monster's attack does NOT fire
   - Requires splitting `ExecuteMonsterTurn` → `ApplyMonsterMove` + `ApplyMonsterAction` in `ai.go`
-- `HeldPosition` clears when move phase begins next turn (reset in `ProcessPlayerMove`)
+- Both flags clear when move phase begins next turn (reset in `ProcessPlayerMove`)
 
-This implements the D&D 5e Ready Action for the most common early-combat scenario.
+This unifies the D&D 5e Ready Action and Dodge Action into a single "defensive stance" choice.
+
+#### Reflex Save — Monster Initiative (New — Session 2)
+
+When the monster wins initiative and attacks on the very first round (before the player has taken any action), the player gets an automatic reflex save:
+
+- `d20 + DEX modifier` vs **DC 12**
+- On success: attack misses entirely ("You twist away just in time!")
+- On failure: normal damage resolution
+- Only fires in `execMonsterOpeningTurn` (first turn, monster won initiative)
+- Does **not** fire on regular `runMonsterResponseTurn` (player has already chosen their stance)
+- Implemented via `useReflex bool` parameter on `ApplyMonsterAction` / `ExecuteMonsterTurn`
+
+**Bug that was fixed**: Original guard was `if reflexDEXMod != 0` — this silently skipped reflex saves for any character with DEX 10 (modifier = 0). Fixed by adding a separate `useReflex bool` flag.
 
 ---
 
 #### Files Created/Modified in Phase 3
+
+**Session 1:**
 
 | File | Action | Notes |
 |------|--------|-------|
@@ -1715,27 +1742,50 @@ This implements the D&D 5e Ready Action for the most common early-combat scenari
 | `src/systems/combatSystem.js` | CREATED | All combat JS: `enterCombatMode`, `exitCombatMode`, `renderCombatState`, `doAttack`, `doMove`, `passTurn`, `rollDeathSave`, `endCombat`, `debugStartCombat` |
 | `src/entries/game.js` | MODIFIED | Import combatSystem; expose all combat functions on `window` |
 
+**Session 2:**
+
+| File | Action | Notes |
+|------|--------|-------|
+| `cmd/server/api/game/combat_debug.go` | MODIFIED | Added `debugCombatRequest` struct with optional `monster_id`; validates against `debugMonsterPool`; random fallback |
+| `cmd/server/api/game/combat.go` | MODIFIED | Added `CombatDashHandler`, `CombatChargeHandler` |
+| `cmd/server/api/routes.go` | MODIFIED | Added `/api/combat/dash`, `/api/combat/charge` |
+| `cmd/server/game/combat/combat.go` | MODIFIED | `ProcessPlayerMove` sets both `HeldPosition` and `Dodging`; added `ProcessPlayerDash`, `ProcessPlayerCharge`; fixed `loadWeaponItem` slot case (`strings.ToLower`) |
+| `cmd/server/game/combat/ai.go` | MODIFIED | Added `useReflex bool, reflexDEXMod int` params to `ApplyMonsterAction` / `ExecuteMonsterTurn`; reflex save logic inside hit block |
+| `cmd/server/game/combat/damage.go` | MODIFIED | Full AC rewrite: `parseItemAC`, `parseACString`; handles `"7 + Dex"`, `"11 + Dex (max 2)"`, `"+2"`, `"4"`, `"16"` on chest; fixed `acSlots` (added `"cloak"`, `"necklace"` not `"neck"`) |
+| `www/views/game/tabs/settings.html` | MODIFIED | Added `<select id="debug-monster-select">` with all 9 monsters + "— Random —" |
+| `src/systems/combatSystem.js` | MODIFIED | `debugStartCombat` reads monster picker; range bar shows `⚔` / `(advance to attack)`; Hold&Ready note; move phase redesigned with Charge + Dash Away columns; removed standalone Dodge button; added `doDash(dir)`, `doCharge()`; flair for `⚡ COUNTER!`, `⚡ CHARGE!`, `⚡ EVADED!`, `🛡 DODGE!` |
+| `src/entries/game.js` | MODIFIED | Exposed `doDash`, `doCharge` on `window` |
+
 #### Backend Bugs Fixed During Phase 3
 
+**Session 1:**
 - **Melee reach was 0**: `getMeleeReach` returned 0 for normal weapons, making attacks at range 1 impossible. D&D 5e melee is 5ft = adjacent = range 0 **or** 1. Fixed: `return 1` for normal, `return 2` for reach weapons. Same fix in `ai.go` monster `selectBestAction`.
 - **Range desync on retreat**: Moving away called `doAttack(1,...)` which mutated backend range then returned 400 (range invalid for attack), leaving UI with stale range. Resolved by full two-phase redesign.
 - **Simultaneous log+flair**: All entries fired in the same frame. Fixed with `_appendLogEntriesStaggered` + per-entry `_spawnFlair`.
 - **Stuck in action phase**: Holding position at range > weapon reach left player with no valid action and no escape. Fixed with `ProcessPlayerPass` + End Turn button.
 - **Initiative log**: No announcement of who went first. Fixed: `StartCombat` appends both roll values and winner name.
 
+**Session 2:**
+- **Melee attack blocked at range 1** (regression): `loadWeaponItem` passed camelCase `"mainHand"` to `GetEquippedItemID`, but `gear_slots` map keys are lowercase `"mainhand"`. Returns empty → no weapon found → invalid melee error. Fix: `strings.ToLower(weaponSlot)` in `loadWeaponItem`.
+- **Reflex save never fires for DEX 10 characters**: Guard was `if reflexDEXMod != 0` — silently skipped all characters with DEX modifier = 0. Fix: separated `useReflex bool` parameter from the modifier value.
+- **AC always 10+DEX regardless of equipment**: `getIntProp` type-switched on `float64`/`int` but every item `ac` field is a JSON string (`"7 + Dex"`, `"+2"`, `"4"`). Returned 0 → items skipped entirely. Fix: full rewrite with `parseItemAC` / `parseACString` handling all string formats.
+- **`acSlots` used `"neck"`**: Equipment system stores slot as `"necklace"` (from `equipSlot` in `equipment.go`). Fix: updated `acSlots` slice to use `"necklace"`.
+- **`canFlee` reference after variable moved**: When Flee button was relocated to `bldEl` column, `canFlee` was declared after the reference. Fix: inlined `range >= 3` expression.
+
 #### Deferred Items (Originally in Phase 3 Scope)
 
-| Item | Deferred To |
-|------|-------------|
-| Dash action (±2 range) | Phase 8 |
-| Flee mechanic (formula + chance) | Phase 8 |
-| Dodge action (disadvantage on incoming) | Phase 8 |
-| Opportunity attacks (flee from melee) | Phase 8 |
-| Per-item loot `[ Take ]` button | Phase 10 |
-| Item icons in loot panel | Phase 10 |
-| Level up banner/modal | Phase 10 |
-| Class abilities / spell casting in combat | Phase 4/5 |
-| Consumables (potions) in combat | Phase 6 |
+| Item | Deferred To | Status |
+|------|-------------|--------|
+| Dash action (±2 range) | Phase 8 | ✅ Done (Session 2) |
+| Charge mechanic (rush + attack) | Phase 8 | ✅ Done (Session 2) |
+| Flee mechanic (formula + chance) | Phase 8 | ✅ Done (Session 2) |
+| Dodge action (disadvantage on incoming) | Phase 8 | ✅ Unified with Hold & Ready (Session 2) |
+| Opportunity attacks (flee from melee) | Phase 8 | ❌ Still deferred |
+| Per-item loot `[ Take ]` button | Phase 10 | ❌ Still deferred |
+| Item icons in loot panel | Phase 10 | ❌ Still deferred |
+| Level up banner/modal | Phase 10 | ❌ Still deferred |
+| Class abilities / spell casting in combat | Phase 4/5 | ❌ Still deferred |
+| Consumables (potions) in combat | Phase 6 | ❌ Still deferred |
 
 ---
 

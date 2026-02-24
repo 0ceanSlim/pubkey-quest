@@ -34,6 +34,7 @@ let _cachedNpc       = null;
 let _cachedGameText  = null;   // innerHTML cache for left text box
 let _lastState       = null;   // last successful CombatStateResponse
 let _checkedOnLoad   = false;  // page-load resume guard
+let _baseExperience  = 0;      // player's XP at combat start (so bar reflects in-fight gains)
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const getNpub   = () => gameAPI.npub   ?? null;
@@ -60,8 +61,9 @@ export async function debugStartCombat() {
         window.showMessage?.('Session not ready. Try again in a moment.', 'error');
         return;
     }
+    const monsterID = document.getElementById('debug-monster-select')?.value ?? '';
     try {
-        const resp = await combatPost('/api/combat/debug/start', { npub, save_id: saveID });
+        const resp = await combatPost('/api/combat/debug/start', { npub, save_id: saveID, monster_id: monsterID });
         const cs   = await resp.json();
         if (!resp.ok || !cs.success) {
             window.showMessage?.(cs.error ?? `HTTP ${resp.status}`, 'error');
@@ -76,6 +78,7 @@ export async function debugStartCombat() {
 
 export function enterCombatMode(cs) {
     logger.info('⚔️  Entering combat mode');
+    _baseExperience = window.getGameStateSync?.()?.character?.experience ?? 0;
     _replaceGameText();
     _replaceActionButtons(cs);
     _show('combat-overlay');
@@ -125,7 +128,16 @@ export function renderCombatState(cs) {
     // ── Scene overlay: round + range ─────────────────────────────────────────
     _setText('combat-round-display', `Round ${cs.round ?? 1}`);
     const range = cs.range ?? 0;
-    _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? 'Unknown'}`);
+    {
+        const wID    = _equippedWeaponID('mainHand');
+        const wRange = wID ? _isRangedWeapon(wID) : false;
+        const reach  = wID ? _meleeReach(wID) : 1;
+        let reachTag = '';
+        if (!wRange) {
+            reachTag = range <= reach ? ' ⚔' : ' (advance to attack)';
+        }
+        _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? 'Unknown'}${reachTag}`);
+    }
 
     // ── Left text box: combat log (staggered) ────────────────────────────────
     const logEl = $id('combat-log');
@@ -149,6 +161,11 @@ export function renderCombatState(cs) {
 
     // ── Phase panels ─────────────────────────────────────────────────────────
     _showPhasePanel(cs);
+
+    // ── Side-panel sync (HP + XP) ─────────────────────────────────────────────
+    // Patch the cached game state so the normal character display reflects
+    // in-combat HP damage and XP gains, then trigger a re-render.
+    _syncSidePanelFromCombat(cs);
 }
 
 export async function doAttack(hand = 'main', thrown = false) {
@@ -193,6 +210,81 @@ export async function doMove(dir) {
     } catch (err) {
         logger.error('doMove error:', err);
         _logError('Network error — could not process movement.');
+    }
+}
+
+export async function doDash(dir) {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const resp = await combatPost('/api/combat/dash', { npub, save_id: saveID, dir });
+        const cs   = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doDash error:', err);
+        _logError('Network error — could not process dash.');
+    }
+}
+
+export async function doCharge() {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const resp = await combatPost('/api/combat/charge', {
+            npub, save_id: saveID,
+            weapon_slot: 'mainHand', hand: 'main', thrown: false,
+        });
+        const cs = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doCharge error:', err);
+        _logError('Network error — could not process charge.');
+    }
+}
+
+export async function doDodge() {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const resp = await combatPost('/api/combat/dodge', { npub, save_id: saveID });
+        const cs   = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doDodge error:', err);
+        _logError('Network error — could not process dodge.');
+    }
+}
+
+export async function doFlee() {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const resp = await combatPost('/api/combat/flee', { npub, save_id: saveID });
+        const cs   = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doFlee error:', err);
+        _logError('Network error — could not process flee attempt.');
     }
 }
 
@@ -348,6 +440,12 @@ const FLAIR_CFG = [
     { re: /you deal (\d+)/i, text: null, color: '#f87171', size: '13px' },  // player hits monster
     { re: /deals (\d+)/i,    text: null, color: '#ef4444', size: '12px' },  // monster hits player
     { re: /\+(\d+) XP/i,     text: null, color: '#4ade80', size: '11px' },
+    { re: /readied stance pays off/i,        text: '⚡ COUNTER!',  color: '#fbbf24', size: '13px' },
+    { re: /You charge forward/i,             text: '⚡ CHARGE!',   color: '#f97316', size: '13px' },
+    { re: /twist away just in time/i,        text: '⚡ EVADED!',   color: '#4ade80', size: '13px' },
+    { re: /take the dodge action/i,   text: '🛡 DODGE!',   color: '#60a5fa', size: '12px' },
+    { re: /manage to put enough distance/i, text: '🏃 ESCAPED!', color: '#4ade80', size: '13px' },
+    { re: /cuts off your escape/i, text: 'CAUGHT!', color: '#f87171', size: '12px' },
     { re: /stabilised|revived/i, text: '💚 Stable', color: '#4ade80', size: '11px' },
     { re: /level up!/i,      text: '⬆ LEVEL UP!', color: '#fde047', size: '13px' },
 ];
@@ -492,33 +590,54 @@ function _renderCombatButtons(cs) {
 
     const phaseColor = turnPhase === 'move' ? '#93c5fd' : '#fbbf24';
 
+    const dodging = cs.player?.dodging ?? false;
+
     if (turnPhase === 'move') {
         // ── MOVE PHASE ───────────────────────────────────────────────────────
-        const canAdvance = range > 0;
-        const canRetreat = range < 6;
+        const canAdvance  = range > 0;
+        const canRetreat  = range < 6;
+        const canCharge   = range >= 2 && !isRanged;  // rush 2 + attack
+        const canDashAway = range < 6;
 
         if (navEl) navEl.innerHTML = `
             <h3 style="color:${phaseColor};font-size:8px;font-weight:bold;text-transform:uppercase;
-                       margin-bottom:2px;">🏃 Move</h3>
+                       margin-bottom:2px;">🏃 Move  <span style="color:#4b5563;font-weight:normal;">(then act)</span></h3>
             <div style="display:flex;flex-direction:column;gap:2px;">
                 ${canAdvance
-                    ? `<button style="${_B('color:#4ade80;')}" onclick="window.doMove(-1)">▼ Advance</button>`
+                    ? `<button style="${_B('color:#4ade80;')}" onclick="window.doMove(-1)"
+                        title="Move one step closer, then choose an action">▼ Advance</button>`
                     : _B_GRAYED('▼ Advance (at contact)', 'Already at contact range')}
                 <button style="${_B()}" onclick="window.doMove(0)"
-                    title="Brace — if the enemy advances into reach, you counter-attack first with advantage">— Hold &amp; Ready</button>
+                    title="Brace — you enter a defensive stance (enemy attacks at disadvantage) AND counter-attack automatically if they advance into your weapon range.">🛡⚡ Hold &amp; Ready</button>
                 ${canRetreat
-                    ? `<button style="${_B('color:#fb923c;')}" onclick="window.doMove(1)">▲ Retreat</button>`
+                    ? `<button style="${_B('color:#fb923c;')}" onclick="window.doMove(1)"
+                        title="Move one step back, then choose an action">▲ Retreat</button>`
                     : _B_GRAYED('▲ Retreat (max range)', 'Already at max range')}
             </div>`;
 
         if (bldEl) bldEl.innerHTML = `
             <h3 style="color:#4b5563;font-size:8px;font-weight:bold;text-transform:uppercase;
-                       margin-bottom:2px;">Action</h3>
-            <p style="font-size:8px;color:#4b5563;margin:0;">Move first, then choose your action.</p>`;
+                       margin-bottom:2px;">Full Action <span style="color:#4b5563;font-weight:normal;">(no attack after)</span></h3>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+                ${canCharge
+                    ? `<button style="${_B('color:#f97316;')}" onclick="window.doCharge()"
+                        title="Rush 2 steps in and attack immediately — uses your whole turn">⚡ Charge</button>`
+                    : _B_GRAYED('⚡ Charge (need range ≥ 2)', 'Move closer first, or already in melee')}
+                ${canDashAway
+                    ? `<button style="${_B('color:#fb923c;opacity:0.75;')}" onclick="window.doDash(1)"
+                        title="Sprint 2 steps away — uses your whole turn, no attack">▲▲ Dash Away</button>`
+                    : _B_GRAYED('▲▲ Dash Away (max range)', 'Already at max range')}
+            </div>`;
 
         if (npcEl) npcEl.innerHTML = `
             <h3 style="color:#4b5563;font-size:8px;font-weight:bold;text-transform:uppercase;
-                       margin-bottom:2px;">Other</h3>`;
+                       margin-bottom:2px;">How it works</h3>
+            <p style="font-size:8px;color:#6b7280;margin:0;line-height:1.5;">
+                <b style="color:#9ca3af;">Move</b> = step, then act<br>
+                <b style="color:#93c5fd;">Hold &amp; Ready</b> = defend + counter<br>
+                <b style="color:#f97316;">Charge</b> = rush + attack, done<br>
+                <b style="color:#fb923c;">Dash Away</b> = sprint back, done
+            </p>`;
 
     } else {
         // ── ACTION PHASE ─────────────────────────────────────────────────────
@@ -535,7 +654,7 @@ function _renderCombatButtons(cs) {
         let attackBtn;
         if (attackBlocked) {
             const reason = meleeBlocked
-                ? `out of melee range (${range} > ${maxMelee}) — should have advanced`
+                ? `out of melee range (${range} > ${maxMelee})`
                 : 'no ammo';
             attackBtn = _B_GRAYED(mainLabel, reason);
         } else {
@@ -548,9 +667,14 @@ function _renderCombatButtons(cs) {
                 onclick="window.doAttack('off',false)">⚔ Bonus: ${offName}</button>`;
         }
 
+        const dodgeIndicator = dodging
+            ? `<p style="font-size:7px;color:#60a5fa;margin:0;padding:1px 0;">🛡 Defensive stance</p>`
+            : '';
+
         if (navEl) navEl.innerHTML = `
             <h3 style="color:${phaseColor};font-size:8px;font-weight:bold;text-transform:uppercase;
                        margin-bottom:2px;">⚔ Action</h3>
+            ${dodgeIndicator}
             <div style="display:flex;flex-direction:column;gap:2px;overflow:hidden;">
                 ${attackBtn}
                 ${bonusBtn}
@@ -560,20 +684,24 @@ function _renderCombatButtons(cs) {
 
         if (bldEl) bldEl.innerHTML = `
             <h3 style="color:#4b5563;font-size:8px;font-weight:bold;text-transform:uppercase;
-                       margin-bottom:2px;">Move</h3>
-            <p style="font-size:8px;color:#4b5563;margin:0;">Movement used.</p>`;
-
-        const canFlee = range >= 2;
-        if (npcEl) npcEl.innerHTML = `
-            <h3 style="color:#4b5563;font-size:8px;font-weight:bold;text-transform:uppercase;
                        margin-bottom:2px;">Other</h3>
             <div style="display:flex;flex-direction:column;gap:2px;">
-                ${canFlee
-                    ? `<button style="${_B('color:#fbbf24;')}" onclick="window.endCombat()">🏃 Flee</button>`
-                    : _B_GRAYED('🏃 Flee (retreat first)', 'Move back to range ≥ 2 then flee')}
+                ${range >= 3
+                    ? `<button style="${_B('color:#fbbf24;')}" onclick="window.doFlee()"
+                        title="Attempt to escape — chance based on range and speed">🏃 Flee</button>`
+                    : _B_GRAYED('🏃 Flee (need range ≥ 3)', 'Retreat to range 3 or more first')}
                 <button style="${_B('color:#6b7280;')}" onclick="window.passTurn()"
                     title="Forfeit your action — monster still acts">⏭ End Turn</button>
             </div>`;
+
+        if (npcEl) npcEl.innerHTML = `
+            <h3 style="color:#4b5563;font-size:8px;font-weight:bold;text-transform:uppercase;
+                       margin-bottom:2px;">Tip</h3>
+            <p style="font-size:8px;color:#6b7280;margin:0;line-height:1.5;">
+                ${dodging
+                    ? '<span style="color:#93c5fd;">🛡 You held last move — enemy attacks at disadvantage.</span>'
+                    : 'Hold &amp; Ready in the move phase to enter a defensive stance next action.'}
+            </p>`;
     }
 }
 
@@ -613,6 +741,29 @@ function _meleeReach(itemID) {
         const tags = item.tags ?? [];
         return tags.some(t => String(t).toLowerCase() === 'reach') ? 2 : 1;
     } catch (_) { return 1; }
+}
+
+// ─── Side-panel sync ──────────────────────────────────────────────────────────
+
+// _syncSidePanelFromCombat patches the in-memory game state with live combat
+// values (HP and XP), then calls updateCharacterDisplay() so the normal display
+// code handles the bar widths, colours, and number formatting.
+function _syncSidePanelFromCombat(cs) {
+    const state = window.getGameStateSync?.();
+    if (!state?.character) return;
+
+    // HP — use combat session values (may differ from save file during fight)
+    if (cs.player) {
+        state.character.hp     = cs.player.current_hp;
+        state.character.max_hp = cs.player.max_hp;
+    }
+
+    // XP — base at combat start + cumulative XP earned this fight
+    const xpEarned = cs.xp_earned ?? 0;
+    state.character.experience = _baseExperience + xpEarned;
+
+    // Trigger the normal character display re-render (async, no need to await)
+    window.updateCharacterDisplay?.();
 }
 
 function _restoreActionButtons() {
