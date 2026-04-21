@@ -12,6 +12,47 @@ import (
 	"pubkey-quest/types"
 )
 
+const combatGridWidth  = 9
+const combatGridHeight = 7
+
+// chebyshev returns the Chebyshev distance between two grid positions.
+// This maps directly to D&D range: 0 = contact, 1 = adjacent, 2+ = ranged.
+func chebyshev(a, b types.Position) int {
+	dx := a.X - b.X
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := a.Y - b.Y
+	if dy < 0 {
+		dy = -dy
+	}
+	if dx > dy {
+		return dx
+	}
+	return dy
+}
+
+// currentRange returns the current combat range (Chebyshev distance between player and monster).
+func currentRange(cs *types.CombatSession) int {
+	return chebyshev(cs.PlayerPos, cs.MonsterPos)
+}
+
+// ChebyshevExported is the exported version of chebyshev for use by the API layer.
+func ChebyshevExported(a, b types.Position) int {
+	return chebyshev(a, b)
+}
+
+// playerMovementBudget returns the number of grid cells the player can move per turn.
+// Based on race speed (30ft default = 6 cells; slower races = 5 cells).
+func playerMovementBudget(race string) int {
+	switch strings.ToLower(race) {
+	case "halfling", "gnome", "dwarf":
+		return 5
+	default:
+		return 6
+	}
+}
+
 // ─── StartCombat ─────────────────────────────────────────────────────────────
 
 // StartCombat initialises a new CombatSession for a single-monster encounter.
@@ -32,7 +73,7 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 	cs.Initiative = buildInitiativeOrder(npub, playerDEX, playerInit, monsterData.Stats.Dexterity, monsterInit, cs.Monsters[0])
 
 	cs.Log = append(cs.Log,
-		fmt.Sprintf("⚔️  Combat begins! %s appears. Starting range: %d.", cs.Monsters[0].Name, cs.Range),
+		fmt.Sprintf("⚔️  Combat begins! %s appears at range %d.", cs.Monsters[0].Name, currentRange(cs)),
 	)
 
 	// Log initiative roll results so the player always knows who acts first.
@@ -54,14 +95,21 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 
 // initCombatSession constructs the initial CombatSession with one player and one monster.
 func initCombatSession(npub string, save *types.SaveFile, monster *types.MonsterData, environmentID string) *types.CombatSession {
+	sr := startingRange(environmentID)
+	monsterX := 1 + sr
+	if monsterX > combatGridWidth-2 {
+		monsterX = combatGridWidth - 2
+	}
 	return &types.CombatSession{
 		Party:         []types.PartyCombatant{newPlayerCombatant(npub, save)},
 		Monsters:      []types.MonsterInstance{newMonsterInstance(monster)},
 		Round:         1,
-		Range:         startingRange(environmentID),
+		GridWidth:     combatGridWidth,
+		GridHeight:    combatGridHeight,
+		PlayerPos:     types.Position{X: 1, Y: combatGridHeight / 2},
+		MonsterPos:    types.Position{X: monsterX, Y: combatGridHeight / 2},
 		EnvironmentID: environmentID,
 		Phase:         "active",
-		TurnPhase:     "move", // Player always starts on the move phase
 	}
 }
 
@@ -72,8 +120,9 @@ func newPlayerCombatant(npub string, save *types.SaveFile) types.PartyCombatant 
 		ID:                 npub,
 		IsPlayerControlled: true,
 		CombatState: types.PlayerCombatState{
-			CurrentHP: save.HP,
-			MaxHP:     save.MaxHP,
+			CurrentHP:      save.HP,
+			MaxHP:          save.MaxHP,
+			MovementBudget: playerMovementBudget(save.Race),
 		},
 	}
 }
@@ -158,140 +207,79 @@ func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 
 // ─── ProcessPlayerMove ───────────────────────────────────────────────────────
 
-// ProcessPlayerMove handles the player's movement sub-phase.
-// It adjusts the combat range and transitions turn_phase to "action" so the
-// player can then choose an action. The monster does NOT respond here.
-// moveDir: -1 = advance, 0 = hold position, +1 = retreat.
-func ProcessPlayerMove(cs *types.CombatSession, moveDir int) ([]string, error) {
+// ProcessPlayerMove moves the player to the target grid cell.
+// Can be called any time during the player's turn while movement budget remains.
+// Does NOT trigger the monster's response — the player must call ProcessEndTurn.
+func ProcessPlayerMove(cs *types.CombatSession, targetX, targetY int) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot move: combat phase is %q", cs.Phase)
-	}
-	if cs.TurnPhase != "move" {
-		return nil, fmt.Errorf("movement already used this turn — choose an action")
 	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
 
-	state := &cs.Party[0].CombatState
-	// Reset per-turn action flags when a new turn begins
-	state.ActionUsed = false
-	state.BonusActionUsed = false
-	state.MovementUsed = true
-	state.Dodging = false             // Reset; re-applied below if holding
-	state.HeldPosition = (moveDir == 0) // Holding still readies a counter-attack
-	state.Dodging = (moveDir == 0)      // Holding = defensive stance; monster attacks at disadvantage
-
-	log := applyPlayerMove(cs, moveDir)
-	if moveDir == 0 {
-		log = []string{"  You hold your position in a defensive stance, ready to counter if they advance."}
+	if targetX < 0 || targetX >= cs.GridWidth || targetY < 0 || targetY >= cs.GridHeight {
+		return nil, fmt.Errorf("target (%d,%d) is outside the grid", targetX, targetY)
 	}
-
-	cs.TurnPhase = "action"
-	return log, nil
-}
-
-// ─── ProcessPlayerDash ───────────────────────────────────────────────────────
-
-// ProcessPlayerDash moves the player 2 steps in the given direction and immediately
-// triggers the monster's response. No action phase follows — the dash uses both
-// the player's movement and action in one committed sprint.
-// dir: -1 = dash toward monster, +1 = dash away.
-func ProcessPlayerDash(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, dir int) ([]string, error) {
-	if cs.Phase != "active" {
-		return nil, fmt.Errorf("cannot dash: combat phase is %q", cs.Phase)
-	}
-	if cs.TurnPhase != "move" {
-		return nil, fmt.Errorf("movement already used this turn")
+	target := types.Position{X: targetX, Y: targetY}
+	if target == cs.MonsterPos {
+		return nil, fmt.Errorf("cannot move into the monster's space")
 	}
 
 	state := &cs.Party[0].CombatState
-	state.ActionUsed = true
-	state.Dodging = false
-	state.HeldPosition = false
+	dist := chebyshev(cs.PlayerPos, target)
+	if dist == 0 {
+		return nil, fmt.Errorf("already at that position")
+	}
+	remaining := state.MovementBudget - state.MovementSpent
+	if dist > remaining {
+		return nil, fmt.Errorf("not enough movement — need %d cells, have %d remaining", dist, remaining)
+	}
 
-	var log []string
-	cs.Range += dir * 2
-	if cs.Range < 0 {
-		cs.Range = 0
-	}
-	if cs.Range > 6 {
-		cs.Range = 6
-	}
-	dashDir := "forward"
-	if dir > 0 {
-		dashDir = "away"
-	}
-	log = append(log, fmt.Sprintf("  You sprint %s (range: %d) — no time to attack!", dashDir, cs.Range))
+	prevRange := currentRange(cs)
+	cs.PlayerPos = target
+	state.MovementSpent += dist
+	newRange := currentRange(cs)
 
-	// Monster responds immediately; no action phase for the player this round.
-	log = append(log, runMonsterResponseTurn(db, cs, save)...)
-	return log, nil
+	var dir string
+	switch {
+	case newRange < prevRange:
+		dir = "forward"
+	case newRange > prevRange:
+		dir = "back"
+	default:
+		dir = "sideways"
+	}
+	return []string{fmt.Sprintf("  You move %s. (range: %d, movement: %d/%d)",
+		dir, newRange, state.MovementSpent, state.MovementBudget)}, nil
 }
 
-// ─── ProcessPlayerCharge ─────────────────────────────────────────────────────
+// ─── ProcessEndTurn ──────────────────────────────────────────────────────────
 
-// ProcessPlayerCharge rushes the player 2 steps closer and immediately attacks.
-// It combines the move and action phases in one committed action.
-// The monster responds after the attack (same as normal attack flow).
-func ProcessPlayerCharge(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
+// ProcessEndTurn finalises the player's turn and runs the monster's response.
+// Call this when the player clicks "End Turn". Resets player turn state afterward
+// so the next round starts fresh.
+func ProcessEndTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
 	if cs.Phase != "active" {
-		return nil, fmt.Errorf("cannot charge: combat phase is %q", cs.Phase)
+		return nil, fmt.Errorf("cannot end turn: combat phase is %q", cs.Phase)
 	}
-	if cs.TurnPhase != "move" {
-		return nil, fmt.Errorf("movement already used this turn")
+	if len(cs.Party) == 0 {
+		return nil, fmt.Errorf("no player in combat")
 	}
-	if cs.Range < 2 {
-		return nil, fmt.Errorf("not enough distance to charge — you're already in range")
-	}
-
-	// Commit the move.
-	cs.Range -= 2
-	if cs.Range < 0 {
-		cs.Range = 0
-	}
-	log := []string{fmt.Sprintf("  You charge forward! (range: %d)", cs.Range)}
-
-	// Transition to action phase so ProcessPlayerAttack accepts the call.
-	cs.TurnPhase = "action"
-
-	// Attack (includes monster response and sets TurnPhase back to "move").
-	attackLog, err := ProcessPlayerAttack(db, cs, save, weaponSlot, hand, thrown, advancement)
-	if err != nil {
-		// Move already happened; return to move phase and surface the error.
-		cs.TurnPhase = "move"
-		return log, err
-	}
-	return append(log, attackLog...), nil
-}
-
-// ─── ProcessPlayerPass ───────────────────────────────────────────────────────
-
-// ProcessPlayerPass forfeits the player's action for this turn.
-// The monster still gets its response turn (the round is not free).
-// Used when no valid action is available (e.g. out of range after holding position).
-func ProcessPlayerPass(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
-	if cs.Phase != "active" {
-		return nil, fmt.Errorf("cannot pass: combat phase is %q", cs.Phase)
-	}
-	if cs.TurnPhase != "action" {
-		return nil, fmt.Errorf("cannot pass: not in action phase")
-	}
-	log := []string{"  You take no action."}
-	return append(log, runMonsterResponseTurn(db, cs, save)...), nil
+	state := &cs.Party[0].CombatState
+	// Player held position if they didn't spend any movement this turn.
+	state.HeldPosition = (state.MovementSpent == 0)
+	return runMonsterResponseTurn(db, cs, save), nil
 }
 
 // ─── ProcessPlayerDodge ──────────────────────────────────────────────────────
 
 // ProcessPlayerDodge uses the player's action to take a defensive stance.
 // Until the start of the player's next turn, the monster attacks with disadvantage.
-// The monster still gets its response turn this round.
-func ProcessPlayerDodge(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
+// The monster responds when the player calls ProcessEndTurn.
+func ProcessPlayerDodge(cs *types.CombatSession) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot dodge: combat phase is %q", cs.Phase)
-	}
-	if cs.TurnPhase != "action" {
-		return nil, fmt.Errorf("cannot dodge: not in action phase")
 	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
@@ -302,24 +290,20 @@ func ProcessPlayerDodge(db *sql.DB, cs *types.CombatSession, save *types.SaveFil
 	}
 	state.ActionUsed = true
 	state.Dodging = true
-	log := []string{"  You take the Dodge action, bracing against the incoming attack."}
-	return append(log, runMonsterResponseTurn(db, cs, save)...), nil
+	return []string{"  You take the Dodge action, bracing against the incoming attack."}, nil
 }
 
 // ─── ProcessPlayerFlee ───────────────────────────────────────────────────────
 
-// ProcessPlayerFlee attempts to escape combat using the flee formula from the plan (§18).
+// ProcessPlayerFlee attempts to escape combat.
 // Requires range ≥ 3. Uses the player's full action.
 // On success: phase → "loot" (empty loot — XP already accumulated). Combat ends.
-// On failure: monster responds, combat continues.
-func ProcessPlayerFlee(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
+// On failure: returns log, caller should prompt player to End Turn.
+func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot flee: combat phase is %q", cs.Phase)
 	}
-	if cs.TurnPhase != "action" {
-		return nil, fmt.Errorf("cannot flee: choose your movement first")
-	}
-	if cs.Range < 3 {
+	if currentRange(cs) < 3 {
 		return nil, fmt.Errorf("too close to flee — retreat to range 3 or more first")
 	}
 	if len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
@@ -345,7 +329,7 @@ func ProcessPlayerFlee(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	speedAdv := playerAth - monsterAth
 	speedMod := speedAdv * 0.03
 
-	baseChance := float64(cs.Range-2) * 0.25 // range 3=25%, 4=50%, 5=75%, 6→capped
+	baseChance := float64(currentRange(cs)-2) * 0.25 // range 3=25%, 4=50%, 5=75%, 6→capped
 	if baseChance > 0.90 {
 		baseChance = 0.90
 	}
@@ -378,9 +362,11 @@ func ProcessPlayerFlee(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		return log, nil
 	}
 
-	// Escape failed — monster responds
+	// Escape failed — player's action is spent; monster responds when player ends turn
+	state := &cs.Party[0].CombatState
+	state.ActionUsed = true
 	log = append(log, fmt.Sprintf("  %s cuts off your escape! You're still in combat.", monster.Name))
-	return append(log, runMonsterResponseTurn(db, cs, save)...), nil
+	return log, nil
 }
 
 // athleticsScore computes the athletics speed value from three raw ability scores.
@@ -391,19 +377,15 @@ func athleticsScore(str, con, dex int) float64 {
 
 // ─── ProcessPlayerAttack ─────────────────────────────────────────────────────
 
-// ProcessPlayerAttack resolves the player's attack action and the monster's
-// response turn. Movement is handled separately by ProcessPlayerMove.
+// ProcessPlayerAttack resolves the player's attack action.
+// Can be called any time during the player's turn while action is available.
+// Does NOT trigger the monster's response — the player must call ProcessEndTurn.
 //
 // hand: "main" (default) or "off" for two-weapon bonus attack.
 // thrown: true to treat a melee weapon with the "thrown" tag as a ranged attack.
-//
-// Returns log entries for this round. Caller appends them to cs.Log and increments Round.
 func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot string, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot attack: combat phase is %q", cs.Phase)
-	}
-	if cs.TurnPhase != "action" {
-		return nil, fmt.Errorf("choose your movement first before attacking")
 	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
@@ -466,7 +448,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		} else {
 			state.ActionUsed = true
 		}
-		return append(log, runMonsterResponseTurn(db, cs, save)...), nil
+		return log, nil
 	}
 
 	offhandEmpty := isOffhandEmpty(save.Inventory)
@@ -496,23 +478,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		return append(log, handleMonsterKill(cs, monster, save.Experience, advancement)...), nil
 	}
 
-	return append(log, runMonsterResponseTurn(db, cs, save)...), nil
-}
-
-// applyPlayerMove adjusts range and returns a log line when the player moves.
-func applyPlayerMove(cs *types.CombatSession, dir int) []string {
-	if dir == 0 {
-		return nil
-	}
-	cs.Range += dir
-	if cs.Range < 0 {
-		cs.Range = 0
-	}
-	direction := "closer"
-	if dir > 0 {
-		direction = "back"
-	}
-	return []string{fmt.Sprintf("  You move %s (range: %d).", direction, cs.Range)}
+	return log, nil
 }
 
 // loadWeaponItem fetches item properties for the chosen weapon slot.
@@ -564,13 +530,14 @@ func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}
 	actingAsRanged := IsRangedAction(weaponType) || thrown
 
 	if actingAsRanged {
+		r := currentRange(cs)
 		// Disadvantage when firing at melee range
-		if cs.Range == 0 {
+		if r == 0 {
 			advantage--
 		}
 		// Disadvantage when beyond normal range (but still within long range)
 		normalRange, _ := getRangedReach(item)
-		if cs.Range > normalRange {
+		if r > normalRange {
 			advantage--
 		}
 	}
@@ -587,8 +554,9 @@ func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}
 
 // validateAttackRange returns an error if the current combat range prevents this attack.
 func validateAttackRange(cs *types.CombatSession, item map[string]interface{}, isUnarmed, thrown bool) error {
+	r := currentRange(cs)
 	if isUnarmed || item == nil {
-		if cs.Range > 0 {
+		if r > 0 {
 			return fmt.Errorf("enemy is out of melee range — move closer or use a ranged weapon")
 		}
 		return nil
@@ -603,7 +571,7 @@ func validateAttackRange(cs *types.CombatSession, item map[string]interface{}, i
 		if maxRange == 0 {
 			maxRange = normalRange
 		}
-		if cs.Range > maxRange {
+		if r > maxRange {
 			return fmt.Errorf("target is beyond maximum range (%d)", maxRange)
 		}
 		return nil
@@ -611,8 +579,8 @@ func validateAttackRange(cs *types.CombatSession, item map[string]interface{}, i
 
 	// Melee range gate
 	reach := getMeleeReach(item)
-	if cs.Range > reach {
-		return fmt.Errorf("enemy is out of melee range (weapon reach: %d, current range: %d) — move closer", reach, cs.Range)
+	if r > reach {
+		return fmt.Errorf("enemy is out of melee range (weapon reach: %d, current range: %d) — move closer", reach, r)
 	}
 	return nil
 }
@@ -837,15 +805,13 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 	return log
 }
 
-// runMonsterResponseTurn runs the monster's turn after a player action.
+// runMonsterResponseTurn runs the monster's turn (called by ProcessEndTurn).
 // If the player held position this turn and the monster advances into melee reach,
 // the player's readied counter-attack fires before the monster can swing.
-// Resets TurnPhase to "move" so the next round starts correctly.
+// Resets player turn state so the next round starts fresh.
 func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) []string {
 	if cs.Phase != "active" || len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
-		if cs.Phase == "active" {
-			cs.TurnPhase = "move"
-		}
+		resetPlayerTurnState(cs, save)
 		return nil
 	}
 
@@ -862,21 +828,19 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	// the readied counter-attack fires before the monster strikes.
 	if len(cs.Party) > 0 && cs.Party[0].CombatState.HeldPosition && decision.Move == -1 {
 		playerReach := getPlayerMeleeReach(db, save)
-		if cs.Range <= playerReach {
+		if currentRange(cs) <= playerReach {
 			log = append(log, fmt.Sprintf("  Your readied stance pays off — you strike as %s steps in!", monster.Name))
 			counterLog, killed := executeReadiedAttack(db, cs, save, monster)
 			log = append(log, counterLog...)
 			cs.Party[0].CombatState.HeldPosition = false
 			if killed {
-				if cs.Phase == "active" {
-					cs.TurnPhase = "move"
-				}
+				resetPlayerTurnState(cs, save)
 				return log
 			}
 		}
 	}
 	if len(cs.Party) > 0 {
-		cs.Party[0].CombatState.HeldPosition = false // Clear regardless of trigger
+		cs.Party[0].CombatState.HeldPosition = false
 	}
 
 	// Monster takes its action (no reflex save — player already chose their stance)
@@ -886,10 +850,22 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 		log = append(log, applyDamageToPlayer(cs, dmg)...)
 	}
 
-	if cs.Phase == "active" {
-		cs.TurnPhase = "move"
-	}
+	resetPlayerTurnState(cs, save)
 	return log
+}
+
+// resetPlayerTurnState resets per-turn flags so the next round starts fresh.
+func resetPlayerTurnState(cs *types.CombatSession, save *types.SaveFile) {
+	if len(cs.Party) == 0 {
+		return
+	}
+	state := &cs.Party[0].CombatState
+	state.ActionUsed = false
+	state.BonusActionUsed = false
+	state.MovementSpent = 0
+	state.MovementBudget = playerMovementBudget(save.Race)
+	state.Dodging = false
+	state.HeldPosition = false
 }
 
 // getPlayerMeleeReach returns the melee reach of the player's main-hand weapon.
@@ -1065,7 +1041,7 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile) []st
 	}
 
 	action := monster.Data.Actions[decision.ActionIndex]
-	isMeleeAtContact := action.Type == "melee_attack" && cs.Range == 0
+	isMeleeAtContact := action.Type == "melee_attack" && currentRange(cs) == 0
 	playerAC := 10 + StatMod(GetStatFromMap(save.Stats, "dexterity"))
 	result := resolveDeathSaveAttack(action, playerAC, isMeleeAtContact)
 

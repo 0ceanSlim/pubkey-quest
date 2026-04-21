@@ -29,12 +29,13 @@ type CombatStartRequest struct {
 }
 
 // CombatMoveRequest is the body sent to POST /combat/move.
-// move_dir: -1 = advance, 0 = hold position, +1 = retreat.
+// x, y: target grid cell coordinates (0-indexed, must be within grid bounds).
 // swagger:model CombatMoveRequest
 type CombatMoveRequest struct {
-	Npub    string `json:"npub"     example:"npub1..."`
-	SaveID  string `json:"save_id"  example:"save_1234567890"`
-	MoveDir int    `json:"move_dir" example:"0"`
+	Npub   string `json:"npub"    example:"npub1..."`
+	SaveID string `json:"save_id" example:"save_1234567890"`
+	X      int    `json:"x"       example:"3"`
+	Y      int    `json:"y"       example:"3"`
 }
 
 // CombatActionRequest is the body sent to POST /combat/action.
@@ -81,24 +82,37 @@ type CombatMonsterView struct {
 	IsAlive    bool   `json:"is_alive"    example:"true"`
 }
 
+// CombatGridView describes the 2D combat grid dimensions.
+// swagger:model CombatGridView
+type CombatGridView struct {
+	Width  int `json:"width"  example:"9"`
+	Height int `json:"height" example:"7"`
+}
+
 // CombatStateResponse is returned by all combat action endpoints.
 // swagger:model CombatStateResponse
 type CombatStateResponse struct {
-	Success              bool                    `json:"success"                   example:"true"`
-	Phase                string                  `json:"phase"                     example:"active"`
-	TurnPhase            string                  `json:"turn_phase"                example:"move"`
-	Round                int                     `json:"round"                     example:"1"`
-	Range                int                     `json:"range"                     example:"2"`
+	Success              bool                    `json:"success"                example:"true"`
+	Phase                string                  `json:"phase"                  example:"active"`
+	Round                int                     `json:"round"                  example:"1"`
+	Range                int                     `json:"range"                  example:"2"`
+	Grid                 CombatGridView          `json:"grid"`
+	PlayerPos            types.Position          `json:"player_pos"`
+	MonsterPos           types.Position          `json:"monster_pos"`
+	MovementBudget       int                     `json:"movement_budget"        example:"6"`
+	MovementSpent        int                     `json:"movement_spent"         example:"0"`
+	ActionUsed           bool                    `json:"action_used"            example:"false"`
+	BonusActionUsed      bool                    `json:"bonus_action_used"      example:"false"`
 	Player               CombatPlayerView        `json:"player"`
 	Monsters             []CombatMonsterView     `json:"monsters"`
 	Initiative           []types.InitiativeEntry `json:"initiative"`
 	Log                  []string                `json:"log"`
 	NewLog               []string                `json:"new_log,omitempty"`
-	XPEarned             int                     `json:"xp_earned"                example:"12"`
+	XPEarned             int                     `json:"xp_earned"              example:"12"`
 	LootRolled           []types.LootDrop        `json:"loot_rolled,omitempty"`
-	LevelUpPending       bool                    `json:"level_up_pending"          example:"false"`
-	BonusAttackAvailable bool                    `json:"bonus_attack_available"    example:"false"`
-	AmmoRemaining        int                     `json:"ammo_remaining"            example:"19"`
+	LevelUpPending       bool                    `json:"level_up_pending"       example:"false"`
+	BonusAttackAvailable bool                    `json:"bonus_attack_available" example:"false"`
+	AmmoRemaining        int                     `json:"ammo_remaining"         example:"19"`
 }
 
 // CombatEndResponse is returned when the player calls POST /combat/end.
@@ -166,12 +180,27 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		ammoLeft = getAmmoRemaining(save.Inventory)
 	}
 
+	movBudget, movSpent, actionUsed, bonusUsed := 0, 0, false, false
+	if len(cs.Party) > 0 {
+		s := cs.Party[0].CombatState
+		movBudget = s.MovementBudget
+		movSpent = s.MovementSpent
+		actionUsed = s.ActionUsed
+		bonusUsed = s.BonusActionUsed
+	}
+
 	return CombatStateResponse{
 		Success:              true,
 		Phase:                cs.Phase,
-		TurnPhase:            cs.TurnPhase,
 		Round:                cs.Round,
-		Range:                cs.Range,
+		Range:                combat.ChebyshevExported(cs.PlayerPos, cs.MonsterPos),
+		Grid:                 CombatGridView{Width: cs.GridWidth, Height: cs.GridHeight},
+		PlayerPos:            cs.PlayerPos,
+		MonsterPos:           cs.MonsterPos,
+		MovementBudget:       movBudget,
+		MovementSpent:        movSpent,
+		ActionUsed:           actionUsed,
+		BonusActionUsed:      bonusUsed,
 		Player:               player,
 		Monsters:             monsters,
 		Initiative:           cs.Initiative,
@@ -534,7 +563,7 @@ func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	moveLog, err := combat.ProcessPlayerMove(cs, req.MoveDir)
+	moveLog, err := combat.ProcessPlayerMove(cs, req.X, req.Y)
 	if err != nil {
 		log.Printf("❌ CombatMove: %v", err)
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
@@ -546,11 +575,12 @@ func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, moveLog))
 }
 
-// ─── CombatPassHandler ───────────────────────────────────────────────────────
+// ─── CombatEndTurnHandler ────────────────────────────────────────────────────
 
-// CombatPassHandler forfeits the player's action for this turn.
-// The monster still acts; the round increments and turn_phase resets to "move".
-func CombatPassHandler(w http.ResponseWriter, r *http.Request) {
+// CombatEndTurnHandler finalises the player's turn and runs the monster's response.
+// The player can move and act freely before calling this. Resets player turn state
+// for the next round and increments the round counter.
+func CombatEndTurnHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
@@ -572,7 +602,7 @@ func CombatPassHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerPass(serverdb.GetDB(), cs, &sess.SaveData)
+	roundLog, err := combat.ProcessEndTurn(serverdb.GetDB(), cs, &sess.SaveData)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
@@ -611,14 +641,13 @@ func CombatDodgeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerDodge(serverdb.GetDB(), cs, &sess.SaveData)
+	roundLog, err := combat.ProcessPlayerDodge(cs)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
@@ -650,105 +679,14 @@ func CombatFleeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerFlee(serverdb.GetDB(), cs, &sess.SaveData)
+	roundLog, err := combat.ProcessPlayerFlee(cs, &sess.SaveData)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	// Only increment the round counter if combat is still active (flee failure).
-	// On flee success, phase changes to "loot" — round number no longer matters.
-	if cs.Phase == "active" {
-		cs.Round++
-	}
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
-}
-
-// ─── CombatDashHandler ────────────────────────────────────────────────────────
-
-// CombatDashHandler sprints the player 2 steps in the chosen direction.
-// Unlike a normal move, the dash uses both movement and action — no attack follows.
-// The monster responds immediately and the turn ends.
-// dir: -1 = dash toward monster, +1 = dash away.
-func CombatDashHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-	var req struct {
-		Npub   string `json:"npub"`
-		SaveID string `json:"save_id"`
-		Dir    int    `json:"dir"` // -1 = toward, +1 = away
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Npub == "" || req.SaveID == "" {
-		writeCombatError(w, http.StatusBadRequest, "missing npub, save_id, or dir")
-		return
-	}
-	if req.Dir != -1 && req.Dir != 1 {
-		writeCombatError(w, http.StatusBadRequest, "dir must be -1 (toward) or 1 (away)")
-		return
-	}
-
-	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
-	if err != nil {
-		writeCombatError(w, http.StatusNotFound, err.Error())
-		return
-	}
-
-	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerDash(serverdb.GetDB(), cs, &sess.SaveData, req.Dir)
-	if err != nil {
-		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
-		return
-	}
-
-	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
-}
-
-// ─── CombatChargeHandler ──────────────────────────────────────────────────────
-
-// CombatChargeHandler rushes the player 2 steps toward the monster and immediately attacks.
-// Requires range ≥ 2 and a move phase. Uses both movement and action in one committed rush.
-// The monster responds after the attack, the same as a normal attack.
-func CombatChargeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-	var req CombatActionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Npub == "" || req.SaveID == "" {
-		writeCombatError(w, http.StatusBadRequest, "missing npub or save_id")
-		return
-	}
-	if req.WeaponSlot == "" {
-		req.WeaponSlot = "mainHand"
-	}
-
-	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
-	if err != nil {
-		writeCombatError(w, http.StatusNotFound, err.Error())
-		return
-	}
-
-	advancement, err := loadAdvancement()
-	if err != nil {
-		writeCombatError(w, http.StatusInternalServerError, "Failed to load advancement data")
-		return
-	}
-
-	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerCharge(serverdb.GetDB(), cs, &sess.SaveData, req.WeaponSlot, req.Hand, req.Thrown, advancement)
-	if err != nil {
-		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
-		return
-	}
-
-	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
 

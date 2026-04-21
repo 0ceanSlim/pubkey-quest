@@ -79,12 +79,10 @@ window.closeContainer = closeContainer;
 // Combat system
 window.debugStartCombat = combatSystem.debugStartCombat;
 window.doAttack         = combatSystem.doAttack;
-window.doMove           = combatSystem.doMove;
-window.doDash           = combatSystem.doDash;
-window.doCharge         = combatSystem.doCharge;
+window.doMoveToCell     = combatSystem.doMoveToCell;
 window.doDodge          = combatSystem.doDodge;
 window.doFlee           = combatSystem.doFlee;
-window.passTurn         = combatSystem.passTurn;
+window.doEndTurn        = combatSystem.doEndTurn;
 window.rollDeathSave    = combatSystem.rollDeathSave;
 window.endCombat        = combatSystem.endCombat;
 

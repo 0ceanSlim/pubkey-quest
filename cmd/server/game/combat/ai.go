@@ -9,9 +9,9 @@ import (
 
 // MonsterDecision describes what a monster will do on its turn.
 type MonsterDecision struct {
-	Move   int    // Range change: -1 = closer, 0 = stay, +1 = farther
-	Action string // "attack", "flee", "none"
-	ActionIndex int // Index into monster.Data.Actions to use
+	Move        int    // Intent: -1 = move closer, 0 = stay, +1 = move farther
+	Action      string // "attack", "flee", "none"
+	ActionIndex int    // Index into monster.Data.Actions to use
 }
 
 // DecideMonsterAction runs the monster AI decision tree and returns its chosen turn.
@@ -26,21 +26,21 @@ func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance
 	if preferred == 0 {
 		preferred = monster.Data.PreferredRange
 	}
-	currentRange := cs.Range
+	r := currentRange(cs)
 
-	// 2. Decide movement toward preferred range
+	// 2. Decide movement direction toward preferred range
 	var move int
 	switch {
-	case currentRange > preferred:
+	case r > preferred:
 		move = -1 // Move closer
-	case currentRange < preferred:
+	case r < preferred:
 		move = 1 // Move farther
 	default:
 		move = 0 // Already at preferred range
 	}
 
-	// 3. Select best available attack for current (post-move) range
-	projectedRange := currentRange + move
+	// 3. Select best available attack for projected (post-move) range
+	projectedRange := r + move
 	if projectedRange < 0 {
 		projectedRange = 0
 	}
@@ -48,7 +48,7 @@ func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance
 	actionIdx := selectBestAction(monster.Data.Actions, projectedRange)
 	if actionIdx < 0 {
 		// No attack available at projected range — try staying put
-		actionIdx = selectBestAction(monster.Data.Actions, currentRange)
+		actionIdx = selectBestAction(monster.Data.Actions, r)
 		if actionIdx < 0 {
 			return MonsterDecision{Move: 0, Action: "none"}
 		}
@@ -86,21 +86,92 @@ func selectBestAction(actions []types.MonsterAction, currentRange int) int {
 	return -1
 }
 
-// ApplyMonsterMove applies the monster's movement decision and returns log entries.
-// Call this before ApplyMonsterAction when you need to interleave other logic between them.
+// ApplyMonsterMove moves the monster on the grid toward or away from the player.
+// Uses greedy pathfinding (one Chebyshev step per movement point).
+// Call this before ApplyMonsterAction when you need to interleave other logic.
 func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision) []string {
 	if decision.Move == 0 {
 		return nil
 	}
-	cs.Range += decision.Move
-	if cs.Range < 0 {
-		cs.Range = 0
+
+	speed := monster.Data.Speed.Walk
+	if speed <= 0 {
+		speed = 30
 	}
-	dir := "closer"
+	maxSteps := speed / 5
+
+	preferred := monster.Data.Behavior.PreferredRange
+	if preferred == 0 {
+		preferred = monster.Data.PreferredRange
+	}
+
+	moved := 0
+	for i := 0; i < maxSteps; i++ {
+		r := chebyshev(cs.PlayerPos, cs.MonsterPos)
+		if decision.Move == -1 && r <= preferred {
+			break // Already at or closer than preferred range
+		}
+		if decision.Move == 1 && r >= preferred {
+			break // Already at or farther than preferred range
+		}
+
+		newPos := stepMonster(cs.MonsterPos, cs.PlayerPos, decision.Move, cs.GridWidth, cs.GridHeight)
+		if newPos == cs.MonsterPos {
+			break // Stuck (edge of grid)
+		}
+		if newPos == cs.PlayerPos {
+			break // Can't enter player's cell
+		}
+		cs.MonsterPos = newPos
+		moved++
+	}
+
+	if moved == 0 {
+		return nil
+	}
+	dir := "toward you"
 	if decision.Move > 0 {
-		dir = "farther away"
+		dir = "away from you"
 	}
-	return []string{fmt.Sprintf("  %s moves %s (range: %d).", monster.Name, dir, cs.Range)}
+	return []string{fmt.Sprintf("  %s moves %s. (range: %d)", monster.Name, dir, currentRange(cs))}
+}
+
+// stepMonster returns the next grid position one Chebyshev step in the given direction.
+// moveDir: -1 = toward player, +1 = away from player.
+func stepMonster(from, player types.Position, moveDir, gridW, gridH int) types.Position {
+	var dx, dy int
+	if moveDir == -1 {
+		dx = clampInt(player.X-from.X, -1, 1)
+		dy = clampInt(player.Y-from.Y, -1, 1)
+	} else {
+		dx = clampInt(from.X-player.X, -1, 1)
+		dy = clampInt(from.Y-player.Y, -1, 1)
+	}
+	next := types.Position{X: from.X + dx, Y: from.Y + dy}
+	// Clamp to grid bounds
+	if next.X < 0 {
+		next.X = 0
+	}
+	if next.X >= gridW {
+		next.X = gridW - 1
+	}
+	if next.Y < 0 {
+		next.Y = 0
+	}
+	if next.Y >= gridH {
+		next.Y = gridH - 1
+	}
+	return next
+}
+
+func clampInt(v, min, max int) int {
+	if v < min {
+		return min
+	}
+	if v > max {
+		return max
+	}
+	return v
 }
 
 // ApplyMonsterAction executes the monster's chosen action (attack/flee/none).
@@ -179,9 +250,9 @@ func attackQualifier(r AttackResult) string {
 	case r.IsCritMiss:
 		return " — critical miss!"
 	case r.IsHit:
-		return fmt.Sprintf(" vs AC %d — HIT!", r.Total) // simplified
+		return fmt.Sprintf(" vs AC %d — HIT!", r.Total)
 	default:
-		return fmt.Sprintf(" vs AC — MISS")
+		return " vs AC — MISS"
 	}
 }
 

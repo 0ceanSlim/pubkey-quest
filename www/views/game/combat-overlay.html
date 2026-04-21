@@ -13,37 +13,63 @@
     text-shadow: 1px 1px 3px #000, 0 0 8px rgba(0,0,0,0.9);
     animation: combatFlairAnim 1.6s ease-out forwards;
 }
+.combat-cell {
+    aspect-ratio: 1;
+    background: rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.06);
+    cursor: default;
+    transition: background 0.12s;
+    box-sizing: border-box;
+}
+.combat-cell.reachable {
+    background: rgba(59,130,246,0.22);
+    cursor: pointer;
+    border-color: rgba(59,130,246,0.38);
+}
+.combat-cell.reachable:hover {
+    background: rgba(59,130,246,0.42);
+}
+.combat-cell.in-reach {
+    background: rgba(239,68,68,0.14);
+    border-color: rgba(239,68,68,0.28);
+}
+.combat-token {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+    transition: left 0.28s ease-out, top 0.28s ease-out;
+    font-size: 13px;
+    line-height: 1;
+}
 </style>
 
-<!-- Combat Overlay — transparent/semi-transparent over the scene; hidden when not in combat.
-     The scene background image stays visible beneath. Monster image is overlaid here. -->
+<!-- Combat Overlay — transparent/semi-transparent over the scene; hidden when not in combat. -->
 <div id="combat-overlay"
      class="hidden absolute inset-0"
      style="z-index: 10; pointer-events: none;">
 
-    <!-- Monster image (centered, bottom-half of scene) -->
-    <div class="absolute inset-0 flex items-end justify-center"
-         style="padding-bottom: 30px; pointer-events: none;">
-        <img id="combat-monster-img"
-             src="/res/img/monsters/unknown.png"
-             alt="Monster"
-             class="object-contain"
-             style="max-height: 54%; max-width: 52%; image-rendering: pixelated;
-                    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.9));"
-             onerror="this.src='/res/img/monsters/unknown.png'" />
-    </div>
-
-    <!-- Top bar: name / AC / round + HP bar -->
+    <!-- Top bar: monster avatar + name / AC / round + HP bar -->
     <div class="absolute top-0 left-0 right-0 px-1 pt-1 pb-1"
-         style="background: rgba(0,0,0,0.78); pointer-events: auto;">
+         style="background: rgba(0,0,0,0.82); pointer-events: auto;">
 
-        <!-- Row 1: name, AC badge, round badge -->
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
-            <span id="combat-monster-name"
-                  style="font-size:10px; font-weight:bold; color:#fca5a5;
-                         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">
-                Monster
-            </span>
+            <div style="display:flex; align-items:center; gap:4px; min-width:0; overflow:hidden;">
+                <img id="combat-monster-img"
+                     src="/res/img/monsters/unknown.png"
+                     alt="Monster"
+                     style="width:28px; height:28px; object-fit:contain; flex-shrink:0;
+                            image-rendering:pixelated;
+                            filter:drop-shadow(0 2px 4px rgba(0,0,0,0.9));"
+                     onerror="this.src='/res/img/monsters/unknown.png'" />
+                <span id="combat-monster-name"
+                      style="font-size:10px; font-weight:bold; color:#fca5a5;
+                             white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    Monster
+                </span>
+            </div>
             <div style="display:flex; gap:3px; flex-shrink:0; margin-left:4px;">
                 <span id="combat-monster-ac-badge"
                       style="font-size:8px; font-weight:bold; color:#fde047;
@@ -72,23 +98,40 @@
         </div>
     </div>
 
-    <!-- Range indicator (sits just below the top bar) -->
-    <div style="position:absolute; left:0; right:0; top:42px;
-                display:flex; justify-content:center; pointer-events:none;">
-        <span id="combat-range-display"
-              style="font-size:8px; font-weight:bold; color:#93c5fd;
-                     background:rgba(0,0,0,0.65); padding:1px 7px;
-                     border:1px solid #1e3a5a;">
-            Range 2 — Short range
-        </span>
-    </div>
-
-    <!-- Condition badges (below range bar) -->
+    <!-- Condition badges -->
     <div id="combat-conditions"
-         style="position:absolute; left:0; right:0; top:58px;
+         style="position:absolute; left:0; right:0; top:52px;
                 display:flex; flex-wrap:wrap; gap:2px; justify-content:center; padding:0 4px;
                 pointer-events:none;">
         <!-- chips injected by JS -->
+    </div>
+
+    <!-- Grid area (below top bar) -->
+    <div style="position:absolute; left:0; right:0; top:56px; bottom:0;
+                display:flex; flex-direction:column; align-items:center; justify-content:center;
+                padding:2px 4px 4px; pointer-events:none;">
+
+        <!-- Range + movement budget indicators -->
+        <div style="display:flex; gap:4px; margin-bottom:3px; justify-content:center;">
+            <span id="combat-range-display"
+                  style="font-size:8px; font-weight:bold; color:#93c5fd;
+                         background:rgba(0,0,0,0.65); padding:1px 6px;
+                         border:1px solid #1e3a5a;">
+                Range 2
+            </span>
+            <span id="combat-move-budget"
+                  style="font-size:8px; color:#4ade80;
+                         background:rgba(0,0,0,0.65); padding:1px 6px;
+                         border:1px solid #14532d;">
+                Move 6/6
+            </span>
+        </div>
+
+        <!-- 9×7 combat grid — cells and tokens injected by JS -->
+        <div id="combat-grid"
+             style="position:relative; display:grid; grid-template-columns:repeat(9,1fr);
+                    width:100%; max-width:234px; pointer-events:auto;">
+        </div>
     </div>
 
     <!-- Flair popup zone -->

@@ -140,15 +140,22 @@ type CombatCondition struct {
 	SaveStat       string `json:"save_stat,omitempty"`
 }
 
+// Position is an X,Y coordinate on the combat grid.
+type Position struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
 // PlayerCombatState tracks per-turn resource usage and status for the player
 type PlayerCombatState struct {
 	CurrentHP          int               `json:"current_hp"`
 	MaxHP              int               `json:"max_hp"`
 	ActionUsed         bool              `json:"action_used"`
 	BonusActionUsed    bool              `json:"bonus_action_used"`
-	MovementUsed       bool              `json:"movement_used"`
-	HeldPosition       bool              `json:"held_position"` // True when player held still this turn (readied attack)
-	Dodging            bool              `json:"dodging"`       // True until start of next turn — monster attacks at disadvantage
+	MovementBudget     int               `json:"movement_budget"` // Max cells per turn (Speed / 5)
+	MovementSpent      int               `json:"movement_spent"`  // Cells used this turn
+	HeldPosition       bool              `json:"held_position"`   // True when player didn't move this turn (readied attack)
+	Dodging            bool              `json:"dodging"`         // True until start of next turn — monster attacks at disadvantage
 	DeathSaveSuccesses int               `json:"death_save_successes"`
 	DeathSaveFailures  int               `json:"death_save_failures"`
 	IsUnconscious      bool              `json:"is_unconscious"`
@@ -189,18 +196,20 @@ type InitiativeEntry struct {
 // CombatSession holds all in-memory state for an active combat encounter.
 // This is NEVER written to the save file — it lives only in GameSession memory.
 type CombatSession struct {
-	Party             []PartyCombatant  `json:"party"`
-	Monsters          []MonsterInstance `json:"monsters"`
-	Initiative        []InitiativeEntry `json:"initiative"`
-	CurrentTurnIndex  int               `json:"current_turn_index"`
-	Round             int               `json:"round"`
-	Range             int               `json:"range"`
-	Log               []string          `json:"log"`
-	EnvironmentID     string            `json:"environment_id"`
-	IsSurprised       bool              `json:"is_surprised"`   // Player was surprised (monster acts first)
-	Phase             string            `json:"phase"`          // "active", "loot", "victory", "defeat", "death_saves"
-	TurnPhase         string            `json:"turn_phase"`     // "move" or "action" — player's sub-turn step
-	LootRolled        []LootDrop        `json:"loot_rolled,omitempty"`
+	Party              []PartyCombatant  `json:"party"`
+	Monsters           []MonsterInstance `json:"monsters"`
+	Initiative         []InitiativeEntry `json:"initiative"`
+	CurrentTurnIndex   int               `json:"current_turn_index"`
+	Round              int               `json:"round"`
+	GridWidth          int               `json:"grid_width"`   // Always 9
+	GridHeight         int               `json:"grid_height"`  // Always 7
+	PlayerPos          Position          `json:"player_pos"`
+	MonsterPos         Position          `json:"monster_pos"`
+	Log                []string          `json:"log"`
+	EnvironmentID      string            `json:"environment_id"`
+	IsSurprised        bool              `json:"is_surprised"`  // Player was surprised (monster acts first)
+	Phase              string            `json:"phase"`         // "active", "loot", "victory", "defeat", "death_saves"
+	LootRolled         []LootDrop        `json:"loot_rolled,omitempty"`
 	LevelUpPending     bool              `json:"level_up_pending"`
 	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`
 	AmmoUsedThisCombat int               `json:"ammo_used_this_combat"`
