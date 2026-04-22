@@ -266,20 +266,20 @@ func ProcessEndTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) (
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	state := &cs.Party[0].CombatState
-	// Player held position if they didn't spend any movement this turn.
-	state.HeldPosition = (state.MovementSpent == 0)
+	// HeldPosition is set explicitly by ProcessPlayerHold, never inferred here.
 	return runMonsterResponseTurn(db, cs, save), nil
 }
 
-// ─── ProcessPlayerDodge ──────────────────────────────────────────────────────
+// ─── ProcessPlayerHold ───────────────────────────────────────────────────────
 
-// ProcessPlayerDodge uses the player's action to take a defensive stance.
-// Until the start of the player's next turn, the monster attacks with disadvantage.
-// The monster responds when the player calls ProcessEndTurn.
-func ProcessPlayerDodge(cs *types.CombatSession) ([]string, error) {
+// ProcessPlayerHold uses the player's action to brace into a readied stance.
+// Consumes all remaining movement (footwork burned into the brace) and sets
+// HeldPosition=true so the readied counter-attack fires if the monster closes
+// into melee reach on its next turn. Requires the action to be unused AND at
+// least one point of movement remaining (you can't brace if you've already run).
+func ProcessPlayerHold(cs *types.CombatSession) ([]string, error) {
 	if cs.Phase != "active" {
-		return nil, fmt.Errorf("cannot dodge: combat phase is %q", cs.Phase)
+		return nil, fmt.Errorf("cannot hold: combat phase is %q", cs.Phase)
 	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
@@ -288,10 +288,15 @@ func ProcessPlayerDodge(cs *types.CombatSession) ([]string, error) {
 	if state.ActionUsed {
 		return nil, fmt.Errorf("action already used this turn")
 	}
+	if state.MovementSpent >= state.MovementBudget {
+		return nil, fmt.Errorf("need at least one movement point to brace")
+	}
 	state.ActionUsed = true
-	state.Dodging = true
-	return []string{"  You take the Dodge action, bracing against the incoming attack."}, nil
+	state.MovementSpent = state.MovementBudget
+	state.HeldPosition = true
+	return []string{"  You brace yourself, readying a counter-strike."}, nil
 }
+
 
 // ─── ProcessPlayerFlee ───────────────────────────────────────────────────────
 
@@ -843,6 +848,10 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 		cs.Party[0].CombatState.HeldPosition = false
 	}
 
+	// Re-pick the attack based on the actual post-move range (the monster may have
+	// closed enough to make a reach check succeed, or moved out of its original band).
+	decision = RefreshAttackDecision(cs, monster, decision)
+
 	// Monster takes its action (no reflex save — player already chose their stance)
 	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, false, 0)
 	log = append(log, actionLog...)
@@ -1032,9 +1041,10 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile) []st
 	monster := &cs.Monsters[0]
 	decision := DecideMonsterAction(cs, monster)
 
-	if decision.Action == "flee" {
-		cs.Phase = "victory"
-		return []string{fmt.Sprintf("  %s flees! You are safe.", monster.Name)}
+	if decision.Action == "retreat" || decision.Action == "escape" {
+		cs.Phase = "loot"
+		cs.LootRolled = nil
+		return []string{fmt.Sprintf("  %s disengages and slips away. You are safe.", monster.Name)}
 	}
 	if decision.Action != "attack" {
 		return nil

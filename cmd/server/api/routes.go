@@ -403,8 +403,8 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/combat/move", game.CombatMoveHandler)
 	// @Router       /api/combat/action [post]
 	mux.HandleFunc("/api/combat/action", game.CombatActionHandler)
-	// @Router       /api/combat/dodge [post]
-	mux.HandleFunc("/api/combat/dodge", game.CombatDodgeHandler)
+	// @Router       /api/combat/hold [post]
+	mux.HandleFunc("/api/combat/hold", game.CombatHoldHandler)
 	// @Router       /api/combat/flee [post]
 	mux.HandleFunc("/api/combat/flee", game.CombatFleeHandler)
 	// @Router       /api/combat/end-turn [post]

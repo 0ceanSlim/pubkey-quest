@@ -531,6 +531,7 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 
 	cs.Log = append(cs.Log, roundLog...)
 	cs.Round++
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
@@ -571,6 +572,7 @@ func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs.Log = append(cs.Log, moveLog...)
+	moveLog = append(moveLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, moveLog))
 }
@@ -614,12 +616,13 @@ func CombatEndTurnHandler(w http.ResponseWriter, r *http.Request) {
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
 
-// ─── CombatDodgeHandler ───────────────────────────────────────────────────────
+// ─── CombatHoldHandler ────────────────────────────────────────────────────────
 
-// CombatDodgeHandler uses the player's action to take the Dodge stance.
-// Until the start of the player's next turn, the monster attacks with disadvantage.
-// The monster still gets its response turn this round.
-func CombatDodgeHandler(w http.ResponseWriter, r *http.Request) {
+// CombatHoldHandler uses the player's action to brace into a readied stance.
+// Consumes all remaining movement and sets HeldPosition=true so the readied
+// counter-attack fires if the monster closes to melee reach next turn. Auto-
+// ends the turn (Hold always fills both Action and Movement).
+func CombatHoldHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
@@ -641,15 +644,53 @@ func CombatDodgeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerDodge(cs)
+	roundLog, err := combat.ProcessPlayerHold(cs)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// shouldAutoEndTurn reports whether the player has no meaningful moves left.
+// True when: action used AND movement fully spent AND (bonus already used OR
+// bonus attack not available). The end-turn handler callers use this to decide
+// whether to run ProcessEndTurn before serialising the response.
+func shouldAutoEndTurn(cs *types.CombatSession, save *types.SaveFile) bool {
+	if cs.Phase != "active" || len(cs.Party) == 0 {
+		return false
+	}
+	state := &cs.Party[0].CombatState
+	if !state.ActionUsed {
+		return false
+	}
+	if state.MovementSpent < state.MovementBudget {
+		return false
+	}
+	if state.BonusActionUsed {
+		return true
+	}
+	return !checkBonusAttackAvailable(cs, save)
+}
+
+// maybeAutoEndTurn runs the monster response if the player is out of meaningful
+// options. Returns the generated log entries (empty slice if no auto-end fired).
+// The cs.Log is updated with those entries so persisted state stays consistent.
+func maybeAutoEndTurn(cs *types.CombatSession, save *types.SaveFile) []string {
+	if !shouldAutoEndTurn(cs, save) {
+		return nil
+	}
+	autoLog, err := combat.ProcessEndTurn(serverdb.GetDB(), cs, save)
+	if err != nil {
+		log.Printf("⚠️ auto end-turn failed: %v", err)
+		return nil
+	}
+	cs.Log = append(cs.Log, autoLog...)
+	return autoLog
 }
 
 // ─── CombatFleeHandler ────────────────────────────────────────────────────────
@@ -686,6 +727,7 @@ func CombatFleeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }

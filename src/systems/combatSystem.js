@@ -97,6 +97,7 @@ export function exitCombatMode() {
 /** Single re-render function — reads cs and updates every DOM region. */
 export function renderCombatState(cs) {
     if (!cs) return;
+    const prevMonsterPos = _lastState?.monster_pos ?? null;
     _lastState = cs;
 
     const monster = cs.monsters?.[0];
@@ -151,8 +152,8 @@ export function renderCombatState(cs) {
         }
     }
 
-    // ── Grid ─────────────────────────────────────────────────────────────────
-    _renderGrid(cs);
+    // ── Grid (animate monster path if it moved) ──────────────────────────────
+    _renderGridAnimated(cs, prevMonsterPos);
 
     // ── Action buttons ────────────────────────────────────────────────────────
     if (_cachedNav !== null) _renderCombatButtons(cs);
@@ -206,11 +207,12 @@ export async function doMoveToCell(x, y) {
     }
 }
 
-export async function doDodge() {
+/** Brace into a readied stance — costs Action, consumes remaining movement. */
+export async function doHoldPosition() {
     const npub = getNpub(), saveID = getSaveID();
     if (!npub || !saveID) return;
     try {
-        const resp = await combatPost('/api/combat/dodge', { npub, save_id: saveID });
+        const resp = await combatPost('/api/combat/hold', { npub, save_id: saveID });
         const cs   = await resp.json();
         if (!resp.ok || !cs.success) {
             _logError(cs.error ?? `HTTP ${resp.status}`);
@@ -219,9 +221,22 @@ export async function doDodge() {
         }
         renderCombatState(cs);
     } catch (err) {
-        logger.error('doDodge error:', err);
-        _logError('Network error — could not process dodge.');
+        logger.error('doHoldPosition error:', err);
+        _logError('Network error — could not process hold.');
     }
+}
+
+/** Move the player one cell in the given direction (D-pad press). */
+export async function doStep(dx, dy) {
+    if (!_lastState?.player_pos) return;
+    const x = _lastState.player_pos.x + dx;
+    const y = _lastState.player_pos.y + dy;
+    await doMoveToCell(x, y);
+}
+
+/** Placeholder for Spell / Use Item / Ability buttons until those systems ship. */
+export function doStubAction(name) {
+    _logInfo(`🚧 ${name} — coming soon.`);
 }
 
 export async function doFlee() {
@@ -367,6 +382,14 @@ function _logError(msg) {
     }
 }
 
+function _logInfo(msg) {
+    const logEl = $id('combat-log');
+    if (logEl) {
+        _appendSingleEntry(logEl, msg, false);
+        _scrollLogToBottom();
+    }
+}
+
 function _scrollLogToBottom() {
     const gameText = $id('game-text');
     if (!gameText) return;
@@ -376,7 +399,7 @@ function _scrollLogToBottom() {
 
 // ─── Combat grid ──────────────────────────────────────────────────────────────
 
-/** Build the 63 cell divs and two token divs once. */
+/** Build the 63 cell divs once. Cells are passive — movement is driven by the D-pad. */
 function _ensureGrid() {
     const container = $id('combat-grid');
     if (!container || container.dataset.built) return;
@@ -389,101 +412,93 @@ function _ensureGrid() {
             cell.className = 'combat-cell';
             cell.dataset.x = c;
             cell.dataset.y = r;
-            cell.addEventListener('click', _onCellClick);
             container.appendChild(cell);
         }
     }
-
-    const pToken = document.createElement('div');
-    pToken.id = 'token-player';
-    pToken.className = 'combat-token';
-    pToken.textContent = '⚔';
-    container.appendChild(pToken);
-
-    const mToken = document.createElement('div');
-    mToken.id = 'token-monster';
-    mToken.className = 'combat-token';
-    mToken.textContent = '👹';
-    container.appendChild(mToken);
 }
 
-/** Position a token absolutely over a grid cell. */
-function _positionToken(tokenId, x, y) {
-    const grid  = $id('combat-grid');
-    const token = $id(tokenId);
-    if (!grid || !token) return;
-    const cell = $id(`gc-${x}-${y}`);
-    if (!cell) return;
-    const gr = grid.getBoundingClientRect();
-    const cr = cell.getBoundingClientRect();
-    token.style.left   = (cr.left - gr.left) + 'px';
-    token.style.top    = (cr.top  - gr.top)  + 'px';
-    token.style.width  = cr.width  + 'px';
-    token.style.height = cr.height + 'px';
-}
-
-/** Update cell highlight classes based on movement budget and weapon reach. */
+/** Redraw the grid: only the player and monster cells carry colour + emoji. */
 function _updateGridHighlights(cs) {
     const playerPos  = cs.player_pos;
     const monsterPos = cs.monster_pos;
     if (!playerPos || !monsterPos) return;
-
-    const budget    = (cs.movement_budget ?? 6) - (cs.movement_spent ?? 0);
-    const wID       = _equippedWeaponID('mainHand');
-    const isRanged  = wID ? _isRangedWeapon(wID) : false;
-    const maxMelee  = wID ? _meleeReach(wID) : 1;
-    const actionUsed = cs.action_used ?? false;
 
     for (let r = 0; r < GRID_ROWS; r++) {
         for (let c = 0; c < GRID_COLS; c++) {
             const cell = $id(`gc-${c}-${r}`);
             if (!cell) continue;
 
-            const isMonster = (c === monsterPos.x && r === monsterPos.y);
-            const isPlayer  = (c === playerPos.x  && r === playerPos.y);
-            const dist = Math.max(Math.abs(c - playerPos.x), Math.abs(r - playerPos.y));
-
-            cell.classList.remove('reachable', 'in-reach');
             cell.style.background = '';
+            cell.textContent = '';
 
-            if (isPlayer) {
-                cell.style.background = 'rgba(74,222,128,0.18)';
-            } else if (isMonster) {
-                cell.style.background = 'rgba(239,68,68,0.2)';
-            } else if (budget > 0 && dist <= budget && !isMonster) {
-                cell.classList.add('reachable');
-                // Also flag cells that would put player in weapon reach
-                if (!isRanged && !actionUsed) {
-                    const distToMonster = Math.max(
-                        Math.abs(c - monsterPos.x),
-                        Math.abs(r - monsterPos.y)
-                    );
-                    if (distToMonster <= maxMelee) {
-                        cell.classList.remove('reachable');
-                        cell.classList.add('in-reach', 'reachable');
-                        cell.style.background = 'rgba(251,191,36,0.2)';
-                    }
-                }
+            if (c === playerPos.x && r === playerPos.y) {
+                cell.style.background = 'rgba(74,222,128,0.28)';
+                cell.textContent = '⚔';
+            } else if (c === monsterPos.x && r === monsterPos.y) {
+                cell.style.background = 'rgba(239,68,68,0.28)';
+                cell.textContent = '👹';
             }
         }
     }
 }
 
-function _onCellClick(e) {
-    if (!e.currentTarget.classList.contains('reachable')) return;
-    const x = parseInt(e.currentTarget.dataset.x);
-    const y = parseInt(e.currentTarget.dataset.y);
-    doMoveToCell(x, y);
-}
-
-/** Full grid update: ensure built, position tokens, update highlights. */
+/** Full grid update: ensure built, redraw cells. */
 function _renderGrid(cs) {
     _ensureGrid();
-    const playerPos  = cs.player_pos;
-    const monsterPos = cs.monster_pos;
-    if (playerPos)  _positionToken('token-player',  playerPos.x,  playerPos.y);
-    if (monsterPos) _positionToken('token-monster', monsterPos.x, monsterPos.y);
     _updateGridHighlights(cs);
+}
+
+/** Redraw grid but with the monster at a custom position (for step animation). */
+function _updateGridHighlightsAt(cs, mPos) {
+    const playerPos = cs.player_pos;
+    if (!playerPos || !mPos) return;
+    for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+            const cell = $id(`gc-${c}-${r}`);
+            if (!cell) continue;
+            cell.style.background = '';
+            cell.textContent = '';
+            if (c === playerPos.x && r === playerPos.y) {
+                cell.style.background = 'rgba(74,222,128,0.28)';
+                cell.textContent = '⚔';
+            } else if (c === mPos.x && r === mPos.y) {
+                cell.style.background = 'rgba(239,68,68,0.28)';
+                cell.textContent = '👹';
+            }
+        }
+    }
+}
+
+/** Greedy Chebyshev path from → to, excluding the start cell. */
+function _chebyshevPath(from, to) {
+    const path = [];
+    let x = from.x, y = from.y;
+    let guard = 0;
+    while ((x !== to.x || y !== to.y) && guard++ < 32) {
+        x += Math.sign(to.x - x);
+        y += Math.sign(to.y - y);
+        path.push({ x, y });
+    }
+    return path;
+}
+
+/** Render the grid, animating the monster step-by-step from prevMonsterPos. */
+function _renderGridAnimated(cs, prevMonsterPos) {
+    _ensureGrid();
+    const newPos = cs.monster_pos;
+    if (!prevMonsterPos || !newPos ||
+        (prevMonsterPos.x === newPos.x && prevMonsterPos.y === newPos.y)) {
+        _updateGridHighlights(cs);
+        return;
+    }
+    _updateGridHighlightsAt(cs, prevMonsterPos);
+    const path = _chebyshevPath(prevMonsterPos, newPos);
+    path.forEach((p, i) => {
+        setTimeout(() => {
+            if (_lastState !== cs) return; // newer render superseded us
+            _updateGridHighlightsAt(cs, p);
+        }, (i + 1) * LOG_MS_ROUND);
+    });
 }
 
 // ─── Flair popups ─────────────────────────────────────────────────────────────
@@ -624,6 +639,19 @@ function _replaceActionButtons(cs) {
     _renderCombatButtons(cs);
 }
 
+// D-pad button styles — fixed height so all 3 rows fit the column
+const _DPAD_SIZE = 22;
+const _DPAD_BTN = `
+    width:100%;height:${_DPAD_SIZE}px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:bold;color:#fff;cursor:pointer;background:#2a2a2a;
+    border-top:2px solid #4a4a4a;border-left:2px solid #4a4a4a;
+    border-right:2px solid #1a1a1a;border-bottom:2px solid #1a1a1a;padding:0;line-height:1;`;
+const _DPAD_BTN_DISABLED = `
+    width:100%;height:${_DPAD_SIZE}px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:bold;color:#4b5563;cursor:not-allowed;background:#1a1a1a;
+    border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;
+    border-right:2px solid #111;border-bottom:2px solid #111;padding:0;line-height:1;`;
+
 function _renderCombatButtons(cs) {
     const navEl = $id('navigation-buttons');
     const bldEl = $id('building-buttons');
@@ -632,21 +660,58 @@ function _renderCombatButtons(cs) {
     const phase = cs.phase ?? 'active';
     if (phase !== 'active' && phase !== 'death_saves') return;
 
-    const actionUsed = cs.action_used ?? false;
-    const range      = cs.range ?? 0;
-    const bonus      = cs.bonus_attack_available ?? false;
-    const ammo       = cs.ammo_remaining ?? 0;
-    const dodging    = cs.player?.dodging ?? false;
+    const actionUsed   = cs.action_used ?? false;
+    const bonusUsed    = cs.bonus_action_used ?? false;
+    const range        = cs.range ?? 0;
+    const bonusAvail   = cs.bonus_attack_available ?? false;
+    const ammo         = cs.ammo_remaining ?? 0;
 
-    const budget    = cs.movement_budget ?? 6;
+    const budget    = cs.movement_budget ?? 0;
     const spent     = cs.movement_spent  ?? 0;
-    const remaining = budget - spent;
+    const remaining = Math.max(0, budget - spent);
 
+    const pPos = cs.player_pos ?? { x: -1, y: -1 };
+    const mPos = cs.monster_pos ?? { x: -1, y: -1 };
+
+    // ── Nav column: 3×3 D-pad ────────────────────────────────────────────────
+    const dirs = [
+        { dx: -1, dy: -1, label: '↖' }, { dx:  0, dy: -1, label: '↑' }, { dx:  1, dy: -1, label: '↗' },
+        { dx: -1, dy:  0, label: '←' }, { dx:  0, dy:  0, label: null }, { dx:  1, dy:  0, label: '→' },
+        { dx: -1, dy:  1, label: '↙' }, { dx:  0, dy:  1, label: '↓' }, { dx:  1, dy:  1, label: '↘' },
+    ];
+    const padCells = dirs.map(d => {
+        if (d.label === null) {
+            const color = remaining > 0 ? '#4ade80' : '#6b7280';
+            return `<div style="display:flex;align-items:center;justify-content:center;
+                        font-size:9px;font-weight:bold;color:${color};
+                        background:rgba(0,0,0,0.4);height:${_DPAD_SIZE}px;line-height:1;text-align:center;">
+                        ${remaining}/${budget}
+                    </div>`;
+        }
+        const tx = pPos.x + d.dx, ty = pPos.y + d.dy;
+        const oob        = tx < 0 || tx >= GRID_COLS || ty < 0 || ty >= GRID_ROWS;
+        const intoMon    = tx === mPos.x && ty === mPos.y;
+        const noBudget   = remaining <= 0;
+        const disabled   = oob || intoMon || noBudget;
+        const title = disabled
+            ? (noBudget ? 'No movement left' : intoMon ? 'Blocked by enemy' : 'Out of bounds')
+            : `Move ${d.label}`;
+        return disabled
+            ? `<button style="${_DPAD_BTN_DISABLED}" disabled title="${title}">${d.label}</button>`
+            : `<button style="${_DPAD_BTN}" onclick="window.doStep(${d.dx},${d.dy})" title="${title}">${d.label}</button>`;
+    }).join('');
+
+    if (navEl) navEl.innerHTML = `
+        <h3 style="color:#fbbf24;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Move</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;">
+            ${padCells}
+        </div>`;
+
+    // ── Building column: Attack main / off, Spell / Item / Ability stubs ─────
     const mainID    = _equippedWeaponID('mainHand');
     const isRanged  = mainID ? _isRangedWeapon(mainID) : false;
     const maxMelee  = mainID ? _meleeReach(mainID) : 1;
     const mainName  = _equippedWeaponName('mainHand') || 'Unarmed';
-
     const meleeBlocked  = !isRanged && range > maxMelee;
     const rangedBlocked = isRanged && ammo <= 0;
 
@@ -654,62 +719,81 @@ function _renderCombatButtons(cs) {
     if (isRanged && ammo > 0) mainLabel += ` (${ammo})`;
 
     let attackBtn;
-    if (actionUsed) {
-        attackBtn = _B_GRAYED(mainLabel, 'Action used this turn');
-    } else if (meleeBlocked) {
-        attackBtn = _B_GRAYED(mainLabel, `Out of melee range — move closer`);
-    } else if (rangedBlocked) {
-        attackBtn = _B_GRAYED(mainLabel, 'No ammo');
-    } else {
-        attackBtn = `<button style="${_B()}" onclick="window.doAttack('main',false)">${mainLabel}</button>`;
-    }
+    if (actionUsed)         attackBtn = _B_GRAYED(mainLabel, 'Action used this turn');
+    else if (meleeBlocked)  attackBtn = _B_GRAYED(mainLabel, 'Out of melee range — step closer');
+    else if (rangedBlocked) attackBtn = _B_GRAYED(mainLabel, 'No ammo');
+    else attackBtn = `<button style="${_B()}" onclick="window.doAttack('main',false)">${mainLabel}</button>`;
 
     let bonusBtn = '';
-    if (bonus) {
+    if (bonusAvail) {
         const offName = _equippedWeaponName('offHand') || 'Off Hand';
-        bonusBtn = actionUsed
-            ? _B_GRAYED(`⚔ ${offName} (bonus)`, 'Action used')
+        bonusBtn = bonusUsed
+            ? _B_GRAYED(`⚔ ${offName} (bonus)`, 'Bonus action used')
             : `<button style="${_B('background:#162716;')}" onclick="window.doAttack('off',false)">⚔ ${offName} (bonus)</button>`;
     }
 
-    const dodgeIndicator = dodging
-        ? `<p style="font-size:7px;color:#60a5fa;margin:0 0 2px;">🛡 Dodging — enemies at disadvantage</p>`
-        : '';
-
-    const moveInfo = remaining > 0
-        ? `<p style="font-size:7px;color:#4ade80;margin:0 0 2px;">Click grid to move (${remaining} left)</p>`
-        : `<p style="font-size:7px;color:#4b5563;margin:0 0 2px;">No movement remaining</p>`;
-
-    if (navEl) navEl.innerHTML = `
-        <h3 style="color:#fbbf24;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">⚔ Attack</h3>
-        ${dodgeIndicator}
+    if (bldEl) bldEl.innerHTML = `
+        <h3 style="color:#fbbf24;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Action</h3>
         <div style="display:flex;flex-direction:column;gap:2px;overflow:hidden;">
             ${attackBtn}
             ${bonusBtn}
-            ${_B_GRAYED('Abilities (coming soon)', 'Not yet implemented')}
+            <button style="${_B('color:#c4b5fd;')}" onclick="window.doStubAction('Cast Spell')"
+                    title="Coming soon">✨ Cast Spell</button>
+            <button style="${_B('color:#fca5a5;')}" onclick="window.doStubAction('Use Item')"
+                    title="Coming soon">🧪 Use Item</button>
+            <button style="${_B('color:#fde047;')}" onclick="window.doStubAction('Ability')"
+                    title="Coming soon">⚡ Ability</button>
         </div>`;
 
-    if (bldEl) bldEl.innerHTML = `
-        <h3 style="color:#9ca3af;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Other</h3>
-        <div style="display:flex;flex-direction:column;gap:2px;">
-            ${!actionUsed
-                ? `<button style="${_B('color:#60a5fa;')}" onclick="window.doDodge()"
-                    title="Take the Dodge action — enemies attack you at disadvantage until your next turn">🛡 Dodge</button>`
-                : _B_GRAYED('🛡 Dodge', 'Action already used')}
-            ${range >= 3
-                ? `<button style="${_B('color:#fbbf24;')}" onclick="window.doFlee()"
-                    title="Attempt to escape — success chance based on range and speed">🏃 Flee</button>`
-                : _B_GRAYED('🏃 Flee (need range ≥ 3)', 'Move away on the grid first')}
-        </div>`;
+    // ── NPC column: Hold / Flee / End Turn ───────────────────────────────────
+    const holdBtn = actionUsed
+        ? _B_GRAYED('🛡 Hold Position', 'Action already used')
+        : remaining <= 0
+            ? _B_GRAYED('🛡 Hold Position', 'Need movement left to brace')
+            : `<button style="${_B('color:#60a5fa;')}" onclick="window.doHoldPosition()"
+                    title="Spend remaining movement to ready a counter-strike">🛡 Hold Position</button>`;
+
+    const fleeBtn = actionUsed
+        ? _B_GRAYED('🏃 Flee', 'Action already used')
+        : range < 3
+            ? _B_GRAYED('🏃 Flee (need range ≥ 3)', 'Move away on the grid first')
+            : `<button style="${_B('color:#fbbf24;')}" onclick="window.doFlee()"
+                    title="Attempt to escape — success chance based on range and speed">🏃 Flee</button>`;
 
     if (npcEl) npcEl.innerHTML = `
         <h3 style="color:#9ca3af;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Turn</h3>
-        ${moveInfo}
         <div style="display:flex;flex-direction:column;gap:2px;">
-            <button style="${_B('color:#f87171;')}"
-                    onclick="window.doEndTurn()"
+            ${holdBtn}
+            ${fleeBtn}
+            <button style="${_B('color:#f87171;')}" onclick="window.doEndTurn()"
                     title="End your turn and let the monster act">⏭ End Turn</button>
         </div>`;
+
+    // ── A/B resource badges ──────────────────────────────────────────────────
+    _updateResourceBadges(actionUsed, bonusAvail, bonusUsed);
+}
+
+function _updateResourceBadges(actionUsed, bonusAvail, bonusUsed) {
+    const aEl = $id('combat-action-badge');
+    if (aEl) {
+        if (actionUsed) {
+            aEl.style.color = '#4b5563';
+            aEl.style.borderColor = '#2a2a2a';
+        } else {
+            aEl.style.color = '#4ade80';
+            aEl.style.borderColor = '#14532d';
+        }
+    }
+    const bEl = $id('combat-bonus-badge');
+    if (bEl) {
+        if (!bonusAvail || bonusUsed) {
+            bEl.style.color = '#4b5563';
+            bEl.style.borderColor = '#2a2a2a';
+        } else {
+            bEl.style.color = '#60a5fa';
+            bEl.style.borderColor = '#1e3a5a';
+        }
+    }
 }
 
 // ─── Weapon helpers ───────────────────────────────────────────────────────────

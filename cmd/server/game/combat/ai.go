@@ -9,53 +9,126 @@ import (
 
 // MonsterDecision describes what a monster will do on its turn.
 type MonsterDecision struct {
-	Move        int    // Intent: -1 = move closer, 0 = stay, +1 = move farther
-	Action      string // "attack", "flee", "none"
+	Move        int    // Intent: -1 = move closer, 0 = stay, +1 = move farther (away)
+	TargetRange int    // Range the monster is trying to reach during movement
+	Action      string // "attack", "retreat", "escape", "none"
 	ActionIndex int    // Index into monster.Data.Actions to use
 }
 
-// DecideMonsterAction runs the monster AI decision tree and returns its chosen turn.
-func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance) MonsterDecision {
-	// 1. Check flee threshold
-	hpFraction := float64(monster.CurrentHP) / float64(monster.MaxHP)
-	if hpFraction <= monster.Data.Behavior.FleeThreshold && monster.Data.Behavior.Aggression != "berserker" {
-		return MonsterDecision{Move: 1, Action: "flee"}
-	}
+// fleeMinPlayerRange is the minimum Chebyshev distance to the player required
+// before a wounded monster will try to flee. If the player is adjacent/nearby,
+// the monster is cornered and fights instead.
+const fleeMinPlayerRange = 3
 
+// atGridEdge reports whether the position lies on any outer edge of the grid.
+// Wounded monsters escape combat once they reach an edge with the player still far.
+func atGridEdge(pos types.Position, gridW, gridH int) bool {
+	return pos.X == 0 || pos.Y == 0 || pos.X == gridW-1 || pos.Y == gridH-1
+}
+
+// adjustPreferredRange shifts a monster's preferred range based on aggression + HP.
+// Aggressive monsters press in at full health; cautious ones back off when wounded.
+func adjustPreferredRange(preferred int, aggression string, hpFraction float64) int {
+	switch aggression {
+	case "berserker":
+		// Always crash into melee, regardless of JSON preference.
+		return 0
+	case "aggressive":
+		// At healthy HP, push one step closer than configured preference.
+		if hpFraction >= 0.75 && preferred > 0 {
+			return preferred - 1
+		}
+	case "cautious":
+		// When wounded (but not fleeing), open up more distance.
+		if hpFraction < 0.75 && preferred < 6 {
+			return preferred + 1
+		}
+	}
+	return preferred
+}
+
+// effectivePreferredRange returns the aggression/HP-adjusted range the monster wants to hold.
+func effectivePreferredRange(monster *types.MonsterInstance) int {
 	preferred := monster.Data.Behavior.PreferredRange
-	if preferred == 0 {
+	if preferred == 0 && monster.Data.PreferredRange != 0 {
 		preferred = monster.Data.PreferredRange
 	}
-	r := currentRange(cs)
+	aggression := monster.Data.Behavior.Aggression
+	if aggression == "" {
+		aggression = "aggressive"
+	}
+	hpFraction := float64(monster.CurrentHP) / float64(monster.MaxHP)
+	return adjustPreferredRange(preferred, aggression, hpFraction)
+}
 
-	// 2. Decide movement direction toward preferred range
-	var move int
+// DecideMonsterAction runs the monster AI decision tree and returns its chosen turn.
+// Movement is chosen here; the final attack is resolved *after* ApplyMonsterMove runs
+// via RefreshAttackDecision, so monsters that can cover multiple cells this turn still
+// pick a valid attack at their actual post-move range.
+func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance) MonsterDecision {
+	// Flee when badly wounded (berserkers never flee, cornered monsters can't).
+	hpFraction := float64(monster.CurrentHP) / float64(monster.MaxHP)
+	aggression := monster.Data.Behavior.Aggression
+	if aggression == "" {
+		aggression = "aggressive"
+	}
+	r := currentRange(cs)
+	wantsToFlee := hpFraction <= monster.Data.Behavior.FleeThreshold && aggression != "berserker"
+	if wantsToFlee && r >= fleeMinPlayerRange {
+		// Already at an edge → escape this turn.
+		if atGridEdge(cs.MonsterPos, cs.GridWidth, cs.GridHeight) {
+			return MonsterDecision{Move: 0, Action: "escape"}
+		}
+		// Otherwise break toward the edge (away from the player). TargetRange=6 lets
+		// ApplyMonsterMove run the monster the full length of its speed until it
+		// bumps the grid boundary.
+		return MonsterDecision{Move: 1, TargetRange: 6, Action: "retreat"}
+	}
+
+	preferred := effectivePreferredRange(monster)
+
+	move := 0
 	switch {
 	case r > preferred:
-		move = -1 // Move closer
+		move = -1
 	case r < preferred:
-		move = 1 // Move farther
-	default:
-		move = 0 // Already at preferred range
+		move = 1
 	}
 
-	// 3. Select best available attack for projected (post-move) range
-	projectedRange := r + move
-	if projectedRange < 0 {
-		projectedRange = 0
-	}
-
-	actionIdx := selectBestAction(monster.Data.Actions, projectedRange)
-	if actionIdx < 0 {
-		// No attack available at projected range — try staying put
-		actionIdx = selectBestAction(monster.Data.Actions, r)
-		if actionIdx < 0 {
-			return MonsterDecision{Move: 0, Action: "none"}
+	// If already at preferred range and an attack is usable, take it without moving.
+	if move == 0 {
+		if idx := selectBestAction(monster.Data.Actions, r); idx >= 0 {
+			return MonsterDecision{Move: 0, TargetRange: preferred, Action: "attack", ActionIndex: idx}
 		}
-		move = 0
 	}
 
-	return MonsterDecision{Move: move, Action: "attack", ActionIndex: actionIdx}
+	// Commit to movement; the attack is resolved post-move once the actual range is known.
+	return MonsterDecision{Move: move, TargetRange: preferred, Action: "none"}
+}
+
+// RefreshAttackDecision picks the best attack for the actual range after movement.
+// Upgrades a "none" decision to "attack" when an action is now usable at the post-move range.
+// Upgrades a "retreat" decision to "escape" when the monster reached an edge with the
+// player still at least fleeMinPlayerRange cells away.
+func RefreshAttackDecision(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision) MonsterDecision {
+	switch decision.Action {
+	case "escape":
+		return decision
+	case "retreat":
+		if currentRange(cs) >= fleeMinPlayerRange &&
+			atGridEdge(cs.MonsterPos, cs.GridWidth, cs.GridHeight) {
+			decision.Action = "escape"
+		}
+		return decision
+	}
+	idx := selectBestAction(monster.Data.Actions, currentRange(cs))
+	if idx >= 0 {
+		decision.Action = "attack"
+		decision.ActionIndex = idx
+	} else {
+		decision.Action = "none"
+	}
+	return decision
 }
 
 // selectBestAction returns the index of the first action usable at the given range.
@@ -100,10 +173,7 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 	}
 	maxSteps := speed / 5
 
-	preferred := monster.Data.Behavior.PreferredRange
-	if preferred == 0 {
-		preferred = monster.Data.PreferredRange
-	}
+	preferred := decision.TargetRange
 
 	moved := 0
 	for i := 0; i < maxSteps; i++ {
@@ -181,9 +251,15 @@ func clampInt(v, min, max int) int {
 // before damage resolves — on success the attack misses entirely. Pass false normally.
 func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
 	switch decision.Action {
-	case "flee":
-		logEntries = append(logEntries, fmt.Sprintf("  %s turns and flees!", monster.Name))
-		cs.Phase = "victory"
+	case "retreat":
+		// Monster is wounded and scrambling for the grid edge; attack skipped this turn.
+		logEntries = append(logEntries, fmt.Sprintf("  %s is wounded and tries to flee!", monster.Name))
+
+	case "escape":
+		// Monster reached the edge with the player too far to stop it — combat ends with no kill.
+		logEntries = append(logEntries, fmt.Sprintf("  %s escapes off the edge of the battlefield!", monster.Name))
+		cs.Phase = "loot"
+		cs.LootRolled = nil
 
 	case "none":
 		logEntries = append(logEntries, fmt.Sprintf("  %s has no action available.", monster.Name))
@@ -238,6 +314,7 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
 	decision := DecideMonsterAction(cs, monster)
 	logEntries = append(logEntries, ApplyMonsterMove(cs, monster, decision)...)
+	decision = RefreshAttackDecision(cs, monster, decision)
 	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, useReflex, reflexDEXMod)
 	return dmg, append(logEntries, actionLog...)
 }
