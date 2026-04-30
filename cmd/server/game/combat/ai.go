@@ -159,10 +159,34 @@ func selectBestAction(actions []types.MonsterAction, currentRange int) int {
 	return -1
 }
 
+// MonsterMeleeReach returns the max reach among the monster's melee actions.
+// Returns 0 if the monster has no melee actions.
+func MonsterMeleeReach(monster *types.MonsterInstance) int {
+	max := 0
+	for _, a := range monster.Data.Actions {
+		if a.Type != "melee_attack" {
+			continue
+		}
+		reach := 1
+		if a.Reach != nil && *a.Reach > 0 {
+			reach = *a.Reach
+		}
+		if reach > max {
+			max = reach
+		}
+	}
+	return max
+}
+
 // ApplyMonsterMove moves the monster on the grid toward or away from the player.
 // Uses greedy pathfinding (one Chebyshev step per movement point).
-// Call this before ApplyMonsterAction when you need to interleave other logic.
-func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision) []string {
+// Movement budget is monster.Data.Speed.Walk / 5 (falls back to 6 if unset).
+//
+// oaTrigger, if non-nil, is called at most once — on the first step that takes
+// the monster from within the player's melee reach to outside it. The callback
+// receives the step's distance (always 1) and must itself enforce reaction/
+// disengage rules; its returned log entries are appended to the move log.
+func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerMeleeReach int, oaTrigger func() []string) []string {
 	if decision.Move == 0 {
 		return nil
 	}
@@ -174,36 +198,55 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 	maxSteps := speed / 5
 
 	preferred := decision.TargetRange
+	var oaLog []string
+	oaFired := false
 
 	moved := 0
 	for i := 0; i < maxSteps; i++ {
 		r := chebyshev(cs.PlayerPos, cs.MonsterPos)
 		if decision.Move == -1 && r <= preferred {
-			break // Already at or closer than preferred range
+			break
 		}
 		if decision.Move == 1 && r >= preferred {
-			break // Already at or farther than preferred range
+			break
 		}
 
 		newPos := stepMonster(cs.MonsterPos, cs.PlayerPos, decision.Move, cs.GridWidth, cs.GridHeight)
 		if newPos == cs.MonsterPos {
-			break // Stuck (edge of grid)
+			break
 		}
 		if newPos == cs.PlayerPos {
-			break // Can't enter player's cell
+			break
 		}
+		prevR := r
 		cs.MonsterPos = newPos
 		moved++
+
+		newR := chebyshev(cs.PlayerPos, cs.MonsterPos)
+
+		// Opportunity attack check: monster left the player's melee reach.
+		if !oaFired && oaTrigger != nil && playerMeleeReach > 0 &&
+			prevR <= playerMeleeReach && newR > playerMeleeReach {
+			if entries := oaTrigger(); entries != nil {
+				oaLog = append(oaLog, entries...)
+			}
+			oaFired = true
+			// If the OA killed the monster, stop moving.
+			if !monster.IsAlive {
+				break
+			}
+		}
 	}
 
 	if moved == 0 {
-		return nil
+		return oaLog
 	}
 	dir := "toward you"
 	if decision.Move > 0 {
 		dir = "away from you"
 	}
-	return []string{fmt.Sprintf("  %s moves %s. (range: %d)", monster.Name, dir, currentRange(cs))}
+	out := []string{fmt.Sprintf("  %s moves %s. (range: %d)", monster.Name, dir, currentRange(cs))}
+	return append(out, oaLog...)
 }
 
 // stepMonster returns the next grid position one Chebyshev step in the given direction.
@@ -274,11 +317,14 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 		}
 		result := ResolveAttackRoll(action.AttackBonus, playerAC, monsterAdvantage)
 
-		logEntries = append(logEntries, fmt.Sprintf(
-			"  %s attacks with %s: rolled %d%s — %s",
-			monster.Name, action.Name,
-			result.Roll, formatModifier(action.AttackBonus), attackQualifier(result),
-		))
+		logEntries = append(logEntries,
+			fmt.Sprintf(
+				"  %s attacks with %s: rolled %d%s",
+				monster.Name, action.Name,
+				result.Roll, formatModifier(action.AttackBonus),
+			),
+			outcomeLine(result),
+		)
 
 		if result.IsHit {
 			// Reflex save: player hasn't chosen their stance, so they may dodge on instinct.
@@ -310,27 +356,14 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 }
 
 // ExecuteMonsterTurn runs the monster's full turn (move + action).
-// Returns damage dealt and all log entries.
+// Returns damage dealt and all log entries. No opportunity attacks are resolved
+// here (opening/death-save turns — player either hasn't started or is down).
 func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
 	decision := DecideMonsterAction(cs, monster)
-	logEntries = append(logEntries, ApplyMonsterMove(cs, monster, decision)...)
+	logEntries = append(logEntries, ApplyMonsterMove(cs, monster, decision, 0, nil)...)
 	decision = RefreshAttackDecision(cs, monster, decision)
 	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, useReflex, reflexDEXMod)
 	return dmg, append(logEntries, actionLog...)
-}
-
-// attackQualifier returns a short string describing the attack roll outcome.
-func attackQualifier(r AttackResult) string {
-	switch {
-	case r.IsCrit:
-		return " — CRITICAL HIT!"
-	case r.IsCritMiss:
-		return " — critical miss!"
-	case r.IsHit:
-		return fmt.Sprintf(" vs AC %d — HIT!", r.Total)
-	default:
-		return " vs AC — MISS"
-	}
 }
 
 // formatModifier turns an integer into "+N" or "-N" string.

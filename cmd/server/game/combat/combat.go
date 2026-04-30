@@ -42,15 +42,21 @@ func ChebyshevExported(a, b types.Position) int {
 	return chebyshev(a, b)
 }
 
-// playerMovementBudget returns the number of grid cells the player can move per turn.
-// Based on race speed (30ft default = 6 cells; slower races = 5 cells).
-func playerMovementBudget(race string) int {
+// raceSpeed returns the base movement speed (in feet) for a D&D race.
+// 5e canonical values: 25 ft for Small/stout races, 30 ft for Medium.
+func raceSpeed(race string) int {
 	switch strings.ToLower(race) {
 	case "halfling", "gnome", "dwarf":
-		return 5
+		return 25
 	default:
-		return 6
+		return 30
 	}
+}
+
+// playerMovementBudget returns the number of grid cells the player can move per turn.
+// Each cell = 5 ft. Budget = speed / 5 (floor).
+func playerMovementBudget(race string) int {
+	return raceSpeed(race) / 5
 }
 
 // ─── StartCombat ─────────────────────────────────────────────────────────────
@@ -67,27 +73,28 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 
 	playerDEXMod := StatMod(GetStatFromMap(save.Stats, "dexterity"))
 	monsterDEXMod := StatMod(monsterData.Stats.Dexterity)
-	playerInit, monsterInit := rollInitiatives(playerDEXMod, monsterDEXMod)
+	playerInit := rollInitiative(playerDEXMod)
+	monsterInit := rollInitiative(monsterDEXMod)
 
 	playerDEX := GetStatFromMap(save.Stats, "dexterity")
-	cs.Initiative = buildInitiativeOrder(npub, playerDEX, playerInit, monsterData.Stats.Dexterity, monsterInit, cs.Monsters[0])
+	cs.Initiative = buildInitiativeOrder(npub, playerDEX, playerInit.Total, monsterData.Stats.Dexterity, monsterInit.Total, cs.Monsters[0])
 
 	cs.Log = append(cs.Log,
 		fmt.Sprintf("⚔️  Combat begins! %s appears at range %d.", cs.Monsters[0].Name, currentRange(cs)),
+		"⚡ Rolling initiative…",
+		fmt.Sprintf("  You rolled %d%s", playerInit.Face, formatModifier(playerInit.Mod)),
+		fmt.Sprintf("  %s rolled %d%s", cs.Monsters[0].Name, monsterInit.Face, formatModifier(monsterInit.Mod)),
 	)
 
-	// Log initiative roll results so the player always knows who acts first.
 	if monsterHasFirstTurn(cs) {
-		cs.Log = append(cs.Log, fmt.Sprintf(
-			"⚡ Initiative: %s rolled %d, you rolled %d. %s goes first!",
-			cs.Monsters[0].Name, monsterInit, playerInit, cs.Monsters[0].Name,
-		))
+		cs.Log = append(cs.Log, fmt.Sprintf("⚡ %s goes first!", cs.Monsters[0].Name))
+		// Capture the spawn position so the frontend can animate the opening
+		// step from where the monster appeared, not from where it ended up.
+		spawnPos := cs.MonsterPos
+		cs.MonsterSpawnPos = &spawnPos
 		cs.Log = append(cs.Log, execMonsterOpeningTurn(db, cs, save)...)
 	} else {
-		cs.Log = append(cs.Log, fmt.Sprintf(
-			"⚡ Initiative: you rolled %d, %s rolled %d. You go first!",
-			playerInit, cs.Monsters[0].Name, monsterInit,
-		))
+		cs.Log = append(cs.Log, "⚡ You go first!")
 	}
 
 	return cs, nil
@@ -154,9 +161,17 @@ func rollMonsterHP(hpDice string, fixedHP int) int {
 	return hp
 }
 
-// rollInitiatives returns d20+DEX for the player and monster.
-func rollInitiatives(playerDEXMod, monsterDEXMod int) (int, int) {
-	return RollD20() + playerDEXMod, RollD20() + monsterDEXMod
+// initRoll holds a single initiative roll: the d20 face, the modifier, and the total.
+type initRoll struct {
+	Face  int // d20 face value (1–20) — what the dice animation shows
+	Mod   int // ability modifier added to the roll
+	Total int // Face + Mod — what feeds into initiative ordering
+}
+
+// rollInitiative makes one initiative throw and returns face / mod / total.
+func rollInitiative(mod int) initRoll {
+	f := RollD20()
+	return initRoll{Face: f, Mod: mod, Total: f + mod}
 }
 
 // buildInitiativeOrder returns combatants sorted by initiative, with DEX as the tiebreaker.
@@ -210,7 +225,10 @@ func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 // ProcessPlayerMove moves the player to the target grid cell.
 // Can be called any time during the player's turn while movement budget remains.
 // Does NOT trigger the monster's response — the player must call ProcessEndTurn.
-func ProcessPlayerMove(cs *types.CombatSession, targetX, targetY int) ([]string, error) {
+//
+// If the player leaves the monster's melee reach without having used Disengage,
+// the monster's reaction fires as an opportunity attack.
+func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, targetX, targetY int) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot move: combat phase is %q", cs.Phase)
 	}
@@ -250,8 +268,79 @@ func ProcessPlayerMove(cs *types.CombatSession, targetX, targetY int) ([]string,
 	default:
 		dir = "sideways"
 	}
-	return []string{fmt.Sprintf("  You move %s. (range: %d, movement: %d/%d)",
-		dir, newRange, state.MovementSpent, state.MovementBudget)}, nil
+	log := []string{fmt.Sprintf("  You move %s. (range: %d, movement: %d/%d)",
+		dir, newRange, state.MovementSpent, state.MovementBudget)}
+
+	// Opportunity attack: player left the monster's melee reach
+	if len(cs.Monsters) > 0 {
+		monster := &cs.Monsters[0]
+		monsterReach := MonsterMeleeReach(monster)
+		if monsterReach > 0 && prevRange <= monsterReach && newRange > monsterReach &&
+			!state.Disengaged && !monster.ReactionUsed && monster.IsAlive {
+			log = append(log, executeMonsterOA(cs, monster, save, db)...)
+		}
+	}
+
+	return log, nil
+}
+
+// executeMonsterOA resolves an opportunity attack from the monster against the fleeing player.
+// Uses the first available melee action. Marks monster.ReactionUsed.
+func executeMonsterOA(cs *types.CombatSession, monster *types.MonsterInstance, save *types.SaveFile, db *sql.DB) []string {
+	actionIdx := -1
+	for i, a := range monster.Data.Actions {
+		if a.Type == "melee_attack" {
+			actionIdx = i
+			break
+		}
+	}
+	if actionIdx < 0 {
+		return nil
+	}
+	monster.ReactionUsed = true
+	action := monster.Data.Actions[actionIdx]
+	playerAC := computePlayerAC(db, save)
+
+	result := ResolveAttackRoll(action.AttackBonus, playerAC, 0)
+	log := []string{
+		fmt.Sprintf(
+			"  ⚡ %s takes an opportunity attack with %s: rolled %d%s",
+			monster.Name, action.Name, result.Roll,
+			formatModifier(action.AttackBonus),
+		),
+		outcomeLine(result),
+	}
+	if !result.IsHit {
+		return log
+	}
+	dmg := ResolveDamageToPlayer(action.Hit.Dice, action.Hit.Mod, result.IsCrit)
+	crit := ""
+	if result.IsCrit {
+		crit = " CRITICAL HIT!"
+	}
+	log = append(log, fmt.Sprintf("  %s deals %d %s damage.%s", monster.Name, dmg, action.Hit.Type, crit))
+	log = append(log, applyDamageToPlayer(cs, dmg)...)
+	return log
+}
+
+// ─── ProcessPlayerDisengage ──────────────────────────────────────────────────
+
+// ProcessPlayerDisengage spends the player's action to disengage — no opportunity
+// attacks will be provoked by movement for the rest of this turn.
+func ProcessPlayerDisengage(cs *types.CombatSession) ([]string, error) {
+	if cs.Phase != "active" {
+		return nil, fmt.Errorf("cannot disengage: combat phase is %q", cs.Phase)
+	}
+	if len(cs.Party) == 0 {
+		return nil, fmt.Errorf("no player in combat")
+	}
+	state := &cs.Party[0].CombatState
+	if state.ActionUsed {
+		return nil, fmt.Errorf("action already used this turn")
+	}
+	state.ActionUsed = true
+	state.Disengaged = true
+	return []string{"  You disengage — your movement no longer provokes opportunity attacks."}, nil
 }
 
 // ─── ProcessEndTurn ──────────────────────────────────────────────────────────
@@ -445,7 +534,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	advantage := resolveAttackAdvantage(cs, item, isUnarmed, save.Race, thrown)
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, advantage)
 
-	log = append(log, formatAttackRoll(save.D, item, isUnarmed, result))
+	log = append(log, formatAttackRoll(save.D, item, isUnarmed, result), outcomeLine(result))
 
 	if !result.IsHit {
 		if isOffHand {
@@ -715,7 +804,10 @@ func slotQty(m map[string]interface{}, key string) int {
 	return 0
 }
 
-// formatAttackRoll returns a narrative log line describing the attack roll.
+// formatAttackRoll returns the roll-only line — "X attacks with Y: rolled N+M".
+// Callers should append outcomeLine(result) immediately after to surface the
+// hit/miss/crit verdict as a separate beat (drives the dice animation pacing
+// on the frontend).
 func formatAttackRoll(playerName string, item map[string]interface{}, isUnarmed bool, result AttackResult) string {
 	weapon := "Unarmed Strike"
 	if !isUnarmed && item != nil {
@@ -723,8 +815,22 @@ func formatAttackRoll(playerName string, item map[string]interface{}, isUnarmed 
 			weapon = n
 		}
 	}
-	return fmt.Sprintf("  %s attacks with %s: rolled %d%s%s",
-		playerName, weapon, result.Roll, formatModifier(result.Modifier), attackQualifier(result))
+	return fmt.Sprintf("  %s attacks with %s: rolled %d%s",
+		playerName, weapon, result.Roll, formatModifier(result.Modifier))
+}
+
+// outcomeLine renders the hit/miss/crit verdict as its own log entry.
+func outcomeLine(r AttackResult) string {
+	switch {
+	case r.IsCrit:
+		return "  💥 CRITICAL HIT!"
+	case r.IsCritMiss:
+		return "  ✘ Critical miss!"
+	case r.IsHit:
+		return fmt.Sprintf("  ⚔ HIT! (vs AC %d)", r.Total)
+	default:
+		return "  ✘ MISS"
+	}
 }
 
 // resolvePlayerDamage rolls damage and applies monster resistances/immunities/vulnerabilities.
@@ -826,8 +932,25 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 
 	var log []string
 
+	// Monster starting adjacent and trying to retreat? Use Disengage (consumes
+	// its action, but avoids the player's OA).
+	if decision.Action == "retreat" && currentRange(cs) <= getPlayerMeleeReach(db, save) {
+		monster.Disengaged = true
+		log = append(log, fmt.Sprintf("  %s disengages and breaks off.", monster.Name))
+	}
+
+	playerReach := getPlayerMeleeReach(db, save)
+	oaTrigger := func() []string {
+		return executePlayerOA(cs, save, db, monster)
+	}
+	// No OA if monster disengaged, player has no reach, or already reacted.
+	if monster.Disengaged || playerReach <= 0 ||
+		len(cs.Party) == 0 || cs.Party[0].CombatState.ReactionUsed {
+		oaTrigger = nil
+	}
+
 	// Apply monster movement
-	log = append(log, ApplyMonsterMove(cs, monster, decision)...)
+	log = append(log, ApplyMonsterMove(cs, monster, decision, playerReach, oaTrigger)...)
 
 	// If player held position and monster just stepped into melee reach,
 	// the readied counter-attack fires before the monster strikes.
@@ -863,8 +986,79 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	return log
 }
 
+// executePlayerOA resolves the player's opportunity attack against the monster
+// as it leaves their reach. Uses the main-hand weapon at normal attack bonus,
+// no advantage (unlike the readied counter-attack). Marks ReactionUsed.
+func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, monster *types.MonsterInstance) []string {
+	if len(cs.Party) == 0 {
+		return nil
+	}
+	state := &cs.Party[0].CombatState
+	if state.ReactionUsed {
+		return nil
+	}
+	state.ReactionUsed = true
+
+	advancement, err := character.LoadAdvancement(db)
+	if err != nil {
+		return []string{"  (Opportunity attack failed — could not load data.)"}
+	}
+
+	item, isUnarmed, _ := loadWeaponItem(db, save.Inventory, "mainHand")
+	if item == nil && !isUnarmed {
+		item, isUnarmed, _ = loadWeaponItem(db, save.Inventory, "mainhand")
+	}
+	// Ranged weapons don't get OAs (must be melee)
+	if !isUnarmed && item != nil {
+		weaponType, _ := item["type"].(string)
+		if IsRangedAction(weaponType) {
+			return []string{"  (You swing wide as it retreats — can't make an opportunity attack with a ranged weapon.)"}
+		}
+	}
+
+	level := character.GetLevelFromXP(save.Experience, advancement)
+	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, false)
+	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, 0)
+
+	weaponName := "Unarmed Strike"
+	if !isUnarmed && item != nil {
+		if n, ok := item["name"].(string); ok {
+			weaponName = n
+		}
+	}
+	log := []string{
+		fmt.Sprintf(
+			"  ⚡ Opportunity attack! You strike with %s: rolled %d%s",
+			weaponName, result.Roll, formatModifier(result.Modifier),
+		),
+		outcomeLine(result),
+	}
+	if !result.IsHit {
+		return log
+	}
+	offhandEmpty := isOffhandEmpty(save.Inventory)
+	dmg := resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit, false)
+	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
+	applyDamageToMonster(monster, dmg)
+
+	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
+	if xp > 0 {
+		log = append(log, fmt.Sprintf("  +%d XP", xp))
+	}
+
+	if !monster.IsAlive {
+		log = append(log, handleMonsterKill(cs, monster, save.Experience, advancement)...)
+	}
+	return log
+}
+
 // resetPlayerTurnState resets per-turn flags so the next round starts fresh.
+// Also resets the monster's per-turn reaction/disengage so both sides start clean.
 func resetPlayerTurnState(cs *types.CombatSession, save *types.SaveFile) {
+	if len(cs.Monsters) > 0 {
+		cs.Monsters[0].ReactionUsed = false
+		cs.Monsters[0].Disengaged = false
+	}
 	if len(cs.Party) == 0 {
 		return
 	}
@@ -875,6 +1069,14 @@ func resetPlayerTurnState(cs *types.CombatSession, save *types.SaveFile) {
 	state.MovementBudget = playerMovementBudget(save.Race)
 	state.Dodging = false
 	state.HeldPosition = false
+	state.ReactionUsed = false
+	state.Disengaged = false
+}
+
+// PlayerMeleeReachForSave is an exported helper for the API layer to report the
+// player's current melee reach in state responses.
+func PlayerMeleeReachForSave(db *sql.DB, save *types.SaveFile) int {
+	return getPlayerMeleeReach(db, save)
 }
 
 // getPlayerMeleeReach returns the melee reach of the player's main-hand weapon.
@@ -907,7 +1109,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, false)
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, 1) // Advantage: player was ready
 
-	log := []string{formatAttackRoll(save.D, item, isUnarmed, result)}
+	log := []string{formatAttackRoll(save.D, item, isUnarmed, result), outcomeLine(result)}
 	if !result.IsHit {
 		return log, false
 	}
@@ -1055,8 +1257,11 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile) []st
 	playerAC := 10 + StatMod(GetStatFromMap(save.Stats, "dexterity"))
 	result := resolveDeathSaveAttack(action, playerAC, isMeleeAtContact)
 
-	log := []string{fmt.Sprintf("  %s attacks: rolled %d%s%s",
-		monster.Name, result.Roll, formatModifier(action.AttackBonus), attackQualifier(result))}
+	log := []string{
+		fmt.Sprintf("  %s attacks: rolled %d%s",
+			monster.Name, result.Roll, formatModifier(action.AttackBonus)),
+		outcomeLine(result),
+	}
 
 	if result.IsHit {
 		log = append(log, applyDeathSaveHit(cs, result.IsCrit || isMeleeAtContact))

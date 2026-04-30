@@ -103,6 +103,11 @@ type CombatStateResponse struct {
 	MovementSpent        int                     `json:"movement_spent"         example:"0"`
 	ActionUsed           bool                    `json:"action_used"            example:"false"`
 	BonusActionUsed      bool                    `json:"bonus_action_used"      example:"false"`
+	Disengaged           bool                    `json:"disengaged"             example:"false"`
+	ReactionUsed         bool                    `json:"reaction_used"          example:"false"`
+	MonsterMeleeReach    int                     `json:"monster_melee_reach"    example:"1"`
+	PlayerMeleeReach     int                     `json:"player_melee_reach"     example:"1"`
+	MonsterPosBefore     *types.Position         `json:"monster_pos_before,omitempty"`
 	Player               CombatPlayerView        `json:"player"`
 	Monsters             []CombatMonsterView     `json:"monsters"`
 	Initiative           []types.InitiativeEntry `json:"initiative"`
@@ -180,13 +185,24 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		ammoLeft = getAmmoRemaining(save.Inventory)
 	}
 
-	movBudget, movSpent, actionUsed, bonusUsed := 0, 0, false, false
+	movBudget, movSpent, actionUsed, bonusUsed, disengaged, reactionUsed := 0, 0, false, false, false, false
 	if len(cs.Party) > 0 {
 		s := cs.Party[0].CombatState
 		movBudget = s.MovementBudget
 		movSpent = s.MovementSpent
 		actionUsed = s.ActionUsed
 		bonusUsed = s.BonusActionUsed
+		disengaged = s.Disengaged
+		reactionUsed = s.ReactionUsed
+	}
+
+	monsterReach := 0
+	if len(cs.Monsters) > 0 {
+		monsterReach = combat.MonsterMeleeReach(&cs.Monsters[0])
+	}
+	playerReach := 0
+	if save != nil {
+		playerReach = combat.PlayerMeleeReachForSave(serverdb.GetDB(), save)
 	}
 
 	return CombatStateResponse{
@@ -201,6 +217,11 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		MovementSpent:        movSpent,
 		ActionUsed:           actionUsed,
 		BonusActionUsed:      bonusUsed,
+		Disengaged:           disengaged,
+		ReactionUsed:         reactionUsed,
+		MonsterMeleeReach:    monsterReach,
+		PlayerMeleeReach:     playerReach,
+		MonsterPosBefore:     cs.MonsterSpawnPos,
 		Player:               player,
 		Monsters:             monsters,
 		Initiative:           cs.Initiative,
@@ -420,7 +441,11 @@ func StartCombatHandler(w http.ResponseWriter, r *http.Request) {
 	sess.ActiveCombat = cs
 	log.Printf("⚔️  Combat started: npub=%s monster=%s env=%s", req.Npub, req.MonsterID, req.EnvironmentID)
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, cs.Log))
+	resp := buildStateResponse(cs, &sess.SaveData, cs.Log)
+	// Spawn position is only meaningful on the very first response — clear it
+	// so subsequent state queries / rounds don't re-trigger the opening animation.
+	cs.MonsterSpawnPos = nil
+	writeCombatJSON(w, http.StatusOK, resp)
 }
 
 // ─── GetCombatStateHandler ────────────────────────────────────────────────────
@@ -564,7 +589,7 @@ func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	moveLog, err := combat.ProcessPlayerMove(cs, req.X, req.Y)
+	moveLog, err := combat.ProcessPlayerMove(serverdb.GetDB(), cs, &sess.SaveData, req.X, req.Y)
 	if err != nil {
 		log.Printf("❌ CombatMove: %v", err)
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
@@ -645,6 +670,42 @@ func CombatHoldHandler(w http.ResponseWriter, r *http.Request) {
 
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerHold(cs)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// CombatDisengageHandler spends the player's action to disengage — no
+// opportunity attacks will be provoked by player movement this turn.
+func CombatDisengageHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	var req CombatBaseRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub or save_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerDisengage(cs)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
 		return
@@ -945,58 +1006,158 @@ func deathReturnLocation(save *types.SaveFile) string {
 
 // ─── Inventory helpers ────────────────────────────────────────────────────────
 
-// addLootToInventory tries to place loot into general_slots (stacking where possible).
-// Returns (placed, overflow) — overflow items had no space and were lost.
+// addLootToInventory places each drop into the first slot it fits, in order:
+//   1. Stack onto a matching general_slots entry
+//   2. Stack onto a matching gear_slots.bag.contents entry
+//   3. Take an empty general_slots entry
+//   4. Take an empty gear_slots.bag.contents entry
+//
+// Stack limits are read from the items DB (item["stack"]). If absent or 1, the
+// item is treated as unstackable — extras spill into a fresh slot rather than
+// piling onto the same entry. Anything that still doesn't fit ends up in overflow.
 func addLootToInventory(inventory map[string]interface{}, loot []types.LootDrop) (placed, overflow []types.LootDrop) {
-	generalSlots, ok := inventory["general_slots"].([]interface{})
-	if !ok {
-		return nil, loot
-	}
+	generalSlots, _ := inventory["general_slots"].([]interface{})
+	bagSlots := getBagContents(inventory)
 
 	for _, drop := range loot {
+		stackLimit := lookupItemStackLimit(drop.Item)
 		remaining := drop.Quantity
 
-		// Stack onto matching slot
-		for i, slot := range generalSlots {
-			if slot == nil {
-				continue
-			}
-			slotMap, ok := slot.(map[string]interface{})
-			if !ok {
-				continue
-			}
-			if slotMap["item"] == drop.Item {
-				existing := int(slotFloat(slotMap, "quantity"))
-				slotMap["quantity"] = existing + remaining
-				generalSlots[i] = slotMap
-				remaining = 0
-				break
-			}
+		// 1) Stack onto matching general_slots entries
+		if remaining > 0 && generalSlots != nil {
+			remaining = stackOntoMatching(generalSlots, drop.Item, remaining, stackLimit)
+		}
+		// 2) Stack onto matching bag entries
+		if remaining > 0 && bagSlots != nil {
+			remaining = stackOntoMatching(bagSlots, drop.Item, remaining, stackLimit)
+		}
+		// 3) Empty general_slots entries
+		if remaining > 0 && generalSlots != nil {
+			remaining = placeInEmpty(generalSlots, drop.Item, remaining, stackLimit)
+		}
+		// 4) Empty bag entries
+		if remaining > 0 && bagSlots != nil {
+			remaining = placeInEmpty(bagSlots, drop.Item, remaining, stackLimit)
 		}
 
-		// Place in an empty slot
+		placedQty := drop.Quantity - remaining
+		if placedQty > 0 {
+			placed = append(placed, types.LootDrop{Item: drop.Item, Quantity: placedQty})
+		}
 		if remaining > 0 {
-			for i, slot := range generalSlots {
-				if slot == nil {
-					generalSlots[i] = map[string]interface{}{
-						"item":     drop.Item,
-						"quantity": remaining,
-					}
-					remaining = 0
-					break
+			overflow = append(overflow, types.LootDrop{Item: drop.Item, Quantity: remaining})
+		}
+	}
+
+	if generalSlots != nil {
+		inventory["general_slots"] = generalSlots
+	}
+	if bagSlots != nil {
+		writeBagContents(inventory, bagSlots)
+	}
+	return placed, overflow
+}
+
+// getBagContents returns the backpack's contents slice, or nil if no bag is equipped.
+func getBagContents(inventory map[string]interface{}) []interface{} {
+	gearSlots, ok := inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	bag, ok := gearSlots["bag"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	contents, _ := bag["contents"].([]interface{})
+	return contents
+}
+
+// writeBagContents writes the bag contents slice back into the inventory.
+func writeBagContents(inventory map[string]interface{}, contents []interface{}) {
+	gearSlots, ok := inventory["gear_slots"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	bag, ok := gearSlots["bag"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	bag["contents"] = contents
+	gearSlots["bag"] = bag
+	inventory["gear_slots"] = gearSlots
+}
+
+// lookupItemStackLimit returns the item's stack limit; defaults to 1 (unstackable)
+// when the field is missing or invalid.
+func lookupItemStackLimit(itemID string) int {
+	item, err := gamedata.LoadItemByID(serverdb.GetDB(), itemID)
+	if err != nil {
+		return 1
+	}
+	if v, ok := item["stack"].(float64); ok && v > 0 {
+		return int(v)
+	}
+	return 1
+}
+
+// stackOntoMatching tops up existing stacks of itemID up to stackLimit.
+// Returns the quantity that still needs to be placed.
+func stackOntoMatching(slots []interface{}, itemID string, qty, stackLimit int) int {
+	if stackLimit <= 1 {
+		return qty // unstackable — never merge onto an existing entry
+	}
+	for i, slot := range slots {
+		if qty == 0 {
+			break
+		}
+		slotMap, ok := slot.(map[string]interface{})
+		if !ok || slotMap == nil {
+			continue
+		}
+		if id, _ := slotMap["item"].(string); id != itemID {
+			continue
+		}
+		existing := int(slotFloat(slotMap, "quantity"))
+		room := stackLimit - existing
+		if room <= 0 {
+			continue
+		}
+		add := qty
+		if add > room {
+			add = room
+		}
+		slotMap["quantity"] = existing + add
+		slots[i] = slotMap
+		qty -= add
+	}
+	return qty
+}
+
+// placeInEmpty drops the remaining quantity into empty slots, respecting stack
+// limits. Returns the leftover quantity that didn't fit.
+func placeInEmpty(slots []interface{}, itemID string, qty, stackLimit int) int {
+	for i, slot := range slots {
+		if qty == 0 {
+			break
+		}
+		if slot != nil {
+			if slotMap, ok := slot.(map[string]interface{}); ok {
+				if id, _ := slotMap["item"].(string); id != "" {
+					continue
 				}
 			}
 		}
-
-		if remaining > 0 {
-			overflow = append(overflow, types.LootDrop{Item: drop.Item, Quantity: remaining})
-		} else {
-			placed = append(placed, drop)
+		take := qty
+		if stackLimit > 0 && take > stackLimit {
+			take = stackLimit
 		}
+		slots[i] = map[string]interface{}{
+			"item":     itemID,
+			"quantity": take,
+		}
+		qty -= take
 	}
-
-	inventory["general_slots"] = generalSlots
-	return placed, overflow
+	return qty
 }
 
 // stripInventoryForDeath flattens all inventory into individual units, keeps the

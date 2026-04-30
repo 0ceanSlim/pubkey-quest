@@ -77,6 +77,9 @@ export async function debugStartCombat() {
 export function enterCombatMode(cs) {
     logger.info('⚔️  Entering combat mode');
     _baseExperience = window.getGameStateSync?.()?.character?.experience ?? 0;
+    // Clear any stale pacing timers from a prior combat that ended mid-flush.
+    _logQueueTailAt = 0;
+    _animationEndsAt = 0;
     _replaceGameText();
     _replaceActionButtons(cs);
     _show('combat-overlay');
@@ -92,27 +95,28 @@ export function exitCombatMode() {
     _hide('loot-panel');
     _hide('defeat-panel');
     _lastState = null;
+    _logQueueTailAt = 0;
+    _animationEndsAt = 0;
 }
 
 /** Single re-render function — reads cs and updates every DOM region. */
 export function renderCombatState(cs) {
     if (!cs) return;
-    const prevMonsterPos = _lastState?.monster_pos ?? null;
+    // On combat start with monster-first initiative the backend sends
+    // `monster_pos_before` (the spawn cell, before the opening turn move).
+    // Use it as the animation seed so the sprite enters from where it
+    // appeared instead of teleporting to its post-move position.
+    const prevMonsterPos = _lastState?.monster_pos
+        ?? cs.monster_pos_before
+        ?? null;
     _lastState = cs;
 
     const monster = cs.monsters?.[0];
 
-    // ── Monster panel ────────────────────────────────────────────────────────
+    // ── Monster panel (HP drain deferred — see below) ───────────────────────
     if (monster) {
         _setText('combat-monster-name', monster.name ?? 'Unknown');
         _setText('combat-monster-ac-badge', `AC ${monster.armor_class ?? '?'}`);
-
-        const pct = monster.max_hp > 0
-            ? Math.max(0, Math.min(100, (monster.current_hp / monster.max_hp) * 100))
-            : 0;
-        const bar = $id('combat-monster-hp-bar');
-        if (bar) bar.style.width = `${pct}%`;
-        _setText('combat-monster-hp-text', `${monster.current_hp} / ${monster.max_hp} HP`);
 
         const img = $id('combat-monster-img');
         if (img && monster.instance_id) {
@@ -139,21 +143,43 @@ export function renderCombatState(cs) {
     _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? ''}${reachTag}`);
     _setText('combat-move-budget', `Move ${remaining}/${budget}`);
 
-    // ── Combat log (staggered) ───────────────────────────────────────────────
-    const logEl = $id('combat-log');
-    if (logEl) {
-        const isFirstRender = logEl.childElementCount === 0;
-        const entries = isFirstRender
-            ? (cs.log ?? [])
-            : (cs.new_log?.length ? cs.new_log : []);
-        if (entries.length) {
-            const interval = isFirstRender ? LOG_MS_INITIAL : LOG_MS_ROUND;
-            _appendLogEntriesStaggered(logEl, entries, false, interval);
-        }
+    // ── Grid baseline + movement context ────────────────────────────────────
+    _ensureGrid();
+    const newMonsterPos = cs.monster_pos;
+    const movedThisFrame = prevMonsterPos && newMonsterPos &&
+        (prevMonsterPos.x !== newMonsterPos.x || prevMonsterPos.y !== newMonsterPos.y);
+    const movePath = movedThisFrame ? _chebyshevPath(prevMonsterPos, newMonsterPos) : [];
+    if (!movedThisFrame) {
+        // No monster movement — paint statically (player may have stepped).
+        _updateGridHighlights(cs);
     }
 
-    // ── Grid (animate monster path if it moved) ──────────────────────────────
-    _renderGridAnimated(cs, prevMonsterPos);
+    // ── Combat log (staggered) ───────────────────────────────────────────────
+    // Pacing model:
+    //   • If the response carries `new_log`, those are the fresh beats from
+    //     this round / combat start — pace them with the full classified-delay
+    //     pipeline (dice animations, grid sync, etc.).
+    //   • If `new_log` is missing, this is a state-resume (page reload) —
+    //     instant-dump cs.log so the player isn't held up replaying history.
+    //   • Otherwise (subsequent renders with no new content), emit nothing.
+    const logEl = $id('combat-log');
+    if (logEl) {
+        const hasNew = Array.isArray(cs.new_log) && cs.new_log.length > 0;
+        const isResume = !hasNew && logEl.childElementCount === 0;
+        const entries = hasNew ? cs.new_log : (isResume ? (cs.log ?? []) : []);
+
+        if (entries.length) {
+            const fixed = isResume ? LOG_MS_INITIAL : null;
+            _appendLogEntriesStaggered(logEl, entries, false, fixed, {
+                cs, prevMonsterPos, movePath,
+            });
+        } else if (movedThisFrame) {
+            // No new log entries but monster moved (rare) — still animate.
+            _scheduleGridSteps(cs, prevMonsterPos, movePath, performance.now());
+        }
+    } else if (movedThisFrame) {
+        _scheduleGridSteps(cs, prevMonsterPos, movePath, performance.now());
+    }
 
     // ── Action buttons ────────────────────────────────────────────────────────
     if (_cachedNav !== null) _renderCombatButtons(cs);
@@ -161,8 +187,19 @@ export function renderCombatState(cs) {
     // ── Phase panels ─────────────────────────────────────────────────────────
     _showPhasePanel(cs);
 
-    // ── Side-panel sync ───────────────────────────────────────────────────────
-    _syncSidePanelFromCombat(cs);
+    // ── HP / XP sync ─────────────────────────────────────────────────────────
+    // When the new log contains damage or XP events the stager schedules HP
+    // drains and XP ticks at the matching line emit times — see below in
+    // _appendLogEntriesStaggered. When there are none (resume, pure-narrative
+    // round, action with no damage), update synchronously so initial bars are
+    // populated.
+    const newLines = Array.isArray(cs.new_log) ? cs.new_log : [];
+    const hasTimedHP = newLines.some(l => _diceDamageNumber(l) !== null)
+                    || newLines.some(l => /^\s*\+\d+\s*XP/i.test(l));
+    if (!hasTimedHP) {
+        _renderMonsterHP(cs);
+        _syncSidePanelFromCombat(cs);
+    }
 }
 
 export async function doAttack(hand = 'main', thrown = false) {
@@ -204,6 +241,25 @@ export async function doMoveToCell(x, y) {
     } catch (err) {
         logger.error('doMoveToCell error:', err);
         _logError('Network error — could not process movement.');
+    }
+}
+
+/** Disengage — costs Action, prevents OAs triggered by player movement this turn. */
+export async function doDisengage() {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const resp = await combatPost('/api/combat/disengage', { npub, save_id: saveID });
+        const cs   = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doDisengage error:', err);
+        _logError('Network error — could not process disengage.');
     }
 }
 
@@ -349,8 +405,44 @@ function _restoreGameText() {
 
 // ─── Combat log helpers ───────────────────────────────────────────────────────
 
-const LOG_MS_INITIAL = 80;
-const LOG_MS_ROUND   = 420;
+// Pause AFTER this kind of entry, before the next one appears. Classification
+// drives combat's reading pace — dice rolls pause longest so the reader can see
+// the roll before the outcome line arrives.
+const LOG_MS_INITIAL     = 80;   // Initial log dump (state resume) — fast
+const DELAY_ROLL         = 1400; // any "rolled N" line (attack, initiative, death save)
+const DELAY_CRIT         = 1800; // CRITICAL HIT or critical miss — dwell longer
+const DELAY_DAMAGE       = 1100; // "deals N damage" / "You deal N damage"
+const DELAY_KILL         = 1600; // "is defeated", "Victory", "falls unconscious"
+const DELAY_OA           = 1100; // opportunity attack announcements
+const DELAY_INITIATIVE   = 1500; // "Initiative: ... goes first!"
+const DELAY_XP           = 600;  // XP / stat deltas
+const DELAY_NARRATIVE    = 800;  // movement, disengage, brace, standard flavor
+const DELAY_DEFAULT      = 800;
+
+// classifyDelay picks how long to pause AFTER `line` displays.
+// Returning the post-line delay lets us chain cumulative timings correctly.
+function _classifyDelay(line) {
+    const L = line;
+    // The standalone outcome line (just emitted right after a roll) is the
+    // verdict reveal — give it more weight than a normal narrative beat so
+    // the player can see what happened before damage rolls in.
+    if (/^\s*💥/.test(L))                                               return DELAY_CRIT;
+    if (/^\s*✘\s+(MISS|Critical miss)/i.test(L))                        return DELAY_OA;
+    if (/^\s*⚔\s+HIT/i.test(L))                                         return DELAY_OA;
+    if (/CRITICAL HIT|Natural 20|Natural 1\b/i.test(L))                 return DELAY_CRIT;
+    if (/Initiative:/i.test(L))                                          return DELAY_INITIATIVE;
+    if (/opportunity attack|readied stance pays off/i.test(L))           return DELAY_OA;
+    // Roll lines must hold long enough for the d20 animation (1400ms total)
+    // to finish tumbling, settling, and fading before the outcome line runs.
+    if (/\brolled\s+\d/i.test(L))                                        return DELAY_ROLL;
+    if (/is defeated|Victory!|fall unconscious|have died|stabilised|regains consciousness|escape/i.test(L))
+                                                                         return DELAY_KILL;
+    if (/deals\s+\d+\s+\w+\s+damage|You deal\s+\d+/i.test(L))            return DELAY_DAMAGE;
+    if (/^\s*\+\d+\s*XP/i.test(L))                                       return DELAY_XP;
+    if (/moves\s+(toward|away)|You move|disengage|braces? yourself|readying/i.test(L))
+                                                                         return DELAY_NARRATIVE;
+    return DELAY_DEFAULT;
+}
 
 function _appendSingleEntry(logEl, line, isError = false) {
     const p = document.createElement('p');
@@ -360,18 +452,176 @@ function _appendSingleEntry(logEl, line, isError = false) {
          color:${isError ? '#f87171' : '#e5e7eb'};`;
     p.textContent = `> ${line}`;
     logEl.appendChild(p);
-    if (!isError) setTimeout(() => { p.style.color = '#9ca3af'; }, 4000);
+    if (!isError) setTimeout(() => { p.style.color = '#9ca3af'; }, 6000);
 }
 
-function _appendLogEntriesStaggered(logEl, lines, isError = false, intervalMs = LOG_MS_ROUND) {
+// Queue of deferred log flushes shared across multiple renderCombatState calls.
+// A new round's entries wait for the previous round's pacing to finish, so
+// rapid-fire server responses never collapse on top of each other.
+let _logQueueTailAt  = 0;
+// Absolute time (performance.now scale) when the active grid animation will
+// finish. The log stager holds back entries that would otherwise appear while
+// the monster is still gliding across the board.
+let _animationEndsAt = 0;
+
+// _diceRollNumber extracts the d20 face from a roll line. Returns null when
+// the line isn't an actionable single-die roll. Initiative is now emitted as
+// two separate per-side rolls so each one fires its own animation.
+function _diceRollNumber(line) {
+    const m = line.match(/rolled\s+(\d+)/i);
+    if (!m) return null;
+    const n = parseInt(m[1], 10);
+    if (!Number.isFinite(n) || n < 1 || n > 20) return null;
+    return n;
+}
+
+// _playDiceAnimation spawns a die sprite that tumbles, settles on `result`,
+// then fades. Scheduled at `atMs` (performance.now scale) so multiple rolls
+// don't stack on screen even when triggered from the same response batch.
+//
+// kind:
+//   'd20'    — yellow/blue d20 polygon for attack/initiative/death-save rolls
+//   'damage' — red cube for weapon damage; faces during tumble can exceed 20
+const DICE_TUMBLE_MS  = 600;
+const DICE_SETTLE_MS  = 500;
+const DICE_FADE_MS    = 300;
+
+function _playDiceAnimation(result, atMs, kind = 'd20') {
+    const now = performance.now();
+    const startIn = Math.max(0, atMs - now);
+
+    setTimeout(() => {
+        const zone = $id('combat-dice-zone');
+        if (!zone) return;
+
+        const die = document.createElement('div');
+        die.className = 'combat-die tumbling';
+        if (kind === 'damage') {
+            die.classList.add('damage');
+        } else {
+            if (result === 20) die.classList.add('crit');
+            if (result === 1)  die.classList.add('fail');
+        }
+        // Initial tumble face — random within a believable range.
+        const tumbleMax = kind === 'damage'
+            ? Math.max(20, result * 2)  // ensure tumble values look plausible up to result
+            : 20;
+        die.textContent = String(1 + Math.floor(Math.random() * tumbleMax));
+        zone.appendChild(die);
+
+        const cycler = setInterval(() => {
+            die.textContent = String(1 + Math.floor(Math.random() * tumbleMax));
+        }, 70);
+
+        setTimeout(() => {
+            clearInterval(cycler);
+            die.textContent = String(result);
+            die.classList.remove('tumbling');
+            die.classList.add('settling');
+        }, DICE_TUMBLE_MS);
+
+        setTimeout(() => {
+            die.classList.remove('settling');
+            die.classList.add('fading');
+        }, DICE_TUMBLE_MS + DICE_SETTLE_MS);
+
+        setTimeout(() => {
+            die.remove();
+        }, DICE_TUMBLE_MS + DICE_SETTLE_MS + DICE_FADE_MS);
+    }, startIn);
+}
+
+// _diceDamageNumber extracts the rolled damage from a damage line. Returns
+// null when the line isn't a damage announcement.
+function _diceDamageNumber(line) {
+    const m = line.match(/(?:You deal|deals)\s+(\d+)\s+\w+\s+damage/i);
+    if (!m) return null;
+    const n = parseInt(m[1], 10);
+    if (!Number.isFinite(n) || n < 0) return null;
+    return n;
+}
+
+// _isOutcomeLine identifies the outcome verdict line emitted right after a
+// roll (HIT/MISS/CRIT). Flair fires on the outcome, not on the roll.
+function _isOutcomeLine(line) {
+    return /^\s*(💥|⚔|✘)/.test(line);
+}
+
+// _appendLogEntriesStaggered emits each line on a classified delay schedule.
+// When `gridCtx` is provided and contains a non-empty movePath, the monster's
+// grid animation is launched at the exact moment the matching "moves toward/
+// away" log line emits — keeping sprite motion in lock-step with the narration.
+function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval = null, gridCtx = null) {
     const filtered = lines.map(r => r.trim()).filter(Boolean);
+    if (!filtered.length) return;
+
+    const now = performance.now();
+    let t = Math.max(now, _logQueueTailAt);
+    let sawMove = false;
+    let scheduledGrid = false;
+
     filtered.forEach((line, i) => {
+        const atAbsolute = t;
+        const isMoveLine = /moves\s+(toward|away)/i.test(line);
+        const rollN = _diceRollNumber(line);
+        const dmgN  = rollN === null ? _diceDamageNumber(line) : null;
+
+        // Schedule the monster grid animation at the move-line's emit time.
+        // Doing it here (rather than on render) guarantees the sprite never
+        // starts gliding before the player sees the announcement.
+        if (isMoveLine && !scheduledGrid && gridCtx && gridCtx.movePath && gridCtx.movePath.length) {
+            _scheduleGridSteps(gridCtx.cs, gridCtx.prevMonsterPos, gridCtx.movePath, atAbsolute);
+            scheduledGrid = true;
+        }
+
+        if (!isError && fixedInterval === null) {
+            if (rollN !== null) {
+                _playDiceAnimation(rollN, atAbsolute, 'd20');
+            } else if (dmgN !== null) {
+                _playDiceAnimation(dmgN, atAbsolute, 'damage');
+
+                // Drain the matching HP bar mid-die-animation (during the
+                // settle phase) so the visual lands as the user reads the
+                // damage number. Guard against stale renders.
+                const drainAt = atAbsolute + DICE_TUMBLE_MS;
+                const isPlayerAttack = /^\s*You deal/i.test(line);
+                const ctxCs = gridCtx?.cs ?? null;
+                setTimeout(() => {
+                    if (ctxCs && _lastState !== ctxCs) return;
+                    if (isPlayerAttack) _renderMonsterHP(ctxCs);
+                    else                _renderPlayerHP(ctxCs);
+                }, Math.max(0, drainAt - now));
+            }
+
+            // XP tick lands as the line emits.
+            if (/^\s*\+\d+\s*XP/i.test(line)) {
+                const ctxCs = gridCtx?.cs ?? null;
+                setTimeout(() => {
+                    if (ctxCs && _lastState !== ctxCs) return;
+                    _renderXP(ctxCs);
+                }, Math.max(0, atAbsolute - now));
+            }
+        }
+
         setTimeout(() => {
             _appendSingleEntry(logEl, line, isError);
             _scrollLogToBottom();
-            if (!isError) _spawnFlair([line]);
-        }, i * intervalMs);
+            // Flair on outcome lines (HIT!/MISS/CRIT) and non-roll narrative;
+            // skip on roll/damage lines — the die sprite is the visual.
+            if (!isError && rollN === null && dmgN === null) _spawnFlair([line]);
+        }, Math.max(0, atAbsolute - now));
+
+        if (isMoveLine) sawMove = true;
+
+        if (i < filtered.length - 1) {
+            t += fixedInterval ?? _classifyDelay(line);
+            // Once a movement line has fired, the log is fully gated on the
+            // grid animation: nothing emits until the sprite has come to rest.
+            if (sawMove && t < _animationEndsAt) t = _animationEndsAt;
+        }
     });
+
+    _logQueueTailAt = t;
 }
 
 function _logError(msg) {
@@ -482,22 +732,24 @@ function _chebyshevPath(from, to) {
     return path;
 }
 
-/** Render the grid, animating the monster step-by-step from prevMonsterPos. */
-function _renderGridAnimated(cs, prevMonsterPos) {
-    _ensureGrid();
-    const newPos = cs.monster_pos;
-    if (!prevMonsterPos || !newPos ||
-        (prevMonsterPos.x === newPos.x && prevMonsterPos.y === newPos.y)) {
-        _updateGridHighlights(cs);
-        return;
-    }
+// _GRID_STEP_MS — wall time between monster grid steps.
+const _GRID_STEP_MS = 450;
+
+// _scheduleGridSteps animates the monster sprite one Chebyshev cell at a time
+// starting at `startAt` (performance.now scale). The previous position is
+// painted immediately; subsequent steps fire on a fixed cadence. Updates
+// `_animationEndsAt` so the log stager can hold subsequent entries until the
+// monster has come to rest.
+function _scheduleGridSteps(cs, prevMonsterPos, path, startAt) {
+    if (!path || !path.length) return;
     _updateGridHighlightsAt(cs, prevMonsterPos);
-    const path = _chebyshevPath(prevMonsterPos, newPos);
+    _animationEndsAt = startAt + path.length * _GRID_STEP_MS;
     path.forEach((p, i) => {
+        const fireAt = startAt + (i + 1) * _GRID_STEP_MS;
         setTimeout(() => {
-            if (_lastState !== cs) return; // newer render superseded us
+            if (_lastState !== cs) return;
             _updateGridHighlightsAt(cs, p);
-        }, (i + 1) * LOG_MS_ROUND);
+        }, Math.max(0, fireAt - performance.now()));
     });
 }
 
@@ -549,10 +801,22 @@ function _showPhasePanel(cs) {
     _hide('loot-panel');
     _hide('defeat-panel');
 
-    switch (cs.phase) {
+    if (cs.phase === 'active') return;
+
+    // Hold the terminal/death-save UI until the killing-blow dice + log have
+    // finished playing out. _logQueueTailAt is the absolute time of the last
+    // scheduled emit; show the panel right after it.
+    const showAt = Math.max(performance.now(), _logQueueTailAt);
+    const delay  = Math.max(0, showAt - performance.now());
+
+    setTimeout(() => {
+        // Bail if a newer render has superseded this one or combat exited.
+        if (_lastState !== cs) return;
+
+        switch (cs.phase) {
         case 'death_saves':
-            _show('death-saves-panel');
-            _renderDeathSavePips(cs.player);
+            // Death-save UI hijacks the action bar, not the in-scene panel.
+            _renderDeathSaveBar(cs);
             break;
         case 'loot':
         case 'victory':
@@ -563,7 +827,8 @@ function _showPhasePanel(cs) {
             _show('defeat-panel');
             _renderDefeatPanel();
             break;
-    }
+        }
+    }, delay);
 }
 
 function _renderDeathSavePips(player) {
@@ -576,6 +841,58 @@ function _renderDeathSavePips(player) {
         const fe = $id(`ds-fail-${i}`);
         if (fe) fe.style.background = i <= f ? '#7f1d1d' : '#111827';
     }
+}
+
+// _renderDeathSaveBar hijacks the three action-bar columns during death_saves
+// phase: pip grid, flavor + counts, and a big roll button.
+function _renderDeathSaveBar(cs) {
+    _claimActionBar('combat');
+    const navEl = $id('navigation-buttons');
+    const bldEl = $id('building-buttons');
+    const npcEl = $id('npc-buttons');
+    if (!navEl || !bldEl || !npcEl) return;
+
+    const player = cs.player ?? {};
+    const s = player.death_save_successes ?? 0;
+    const f = player.death_save_failures  ?? 0;
+
+    const pipGrid = (filled, max, fillColor) => {
+        let out = '';
+        for (let i = 1; i <= max; i++) {
+            const bg = i <= filled ? fillColor : '#111827';
+            out += `<span style="width:14px;height:14px;border:1px solid #374151;background:${bg};display:inline-block;"></span>`;
+        }
+        return out;
+    };
+
+    navEl.innerHTML = `
+        <h3 style="color:#86efac;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Successes</h3>
+        <div style="display:flex;gap:3px;margin-bottom:6px;">${pipGrid(s, 3, '#166534')}</div>
+        <h3 style="color:#fca5a5;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Failures</h3>
+        <div style="display:flex;gap:3px;">${pipGrid(f, 3, '#7f1d1d')}</div>
+    `;
+
+    bldEl.innerHTML = `
+        <h3 style="color:#fca5a5;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Dying</h3>
+        <p style="font-size:9px;color:#d1d5db;line-height:1.3;margin:0 0 4px;">
+            You lie bleeding. Three successes stabilise you; three failures and you're gone.
+        </p>
+        <p style="font-size:8px;color:#9ca3af;margin:0;">
+            ${s}/3 successes, ${f}/3 failures
+        </p>
+    `;
+
+    const rollBtnStyle = `
+        width:100%;padding:8px 4px;font-weight:bold;color:#fff;font-size:11px;
+        cursor:pointer;background:#7f1d1d;
+        border-top:2px solid #dc2626;border-left:2px solid #dc2626;
+        border-right:2px solid #450a0a;border-bottom:2px solid #450a0a;`;
+    npcEl.innerHTML = `
+        <h3 style="color:#9ca3af;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Action</h3>
+        <button style="${rollBtnStyle}" onclick="window.rollDeathSave()" title="Roll a d20 — 10+ is a success, nat 20 revives, nat 1 = two failures">
+            🎲 Roll Death Save
+        </button>
+    `;
 }
 
 function _renderLootPanel(cs) {
@@ -629,13 +946,39 @@ const _B_DISABLED =
 const _B_GRAYED = (label, title = '') =>
     `<button style="${_B_DISABLED}" disabled title="${title}">${label}</button>`;
 
-function _replaceActionButtons(cs) {
+// ─── Action-bar ownership ─────────────────────────────────────────────────────
+// The three button columns (navigation/building/npc) are touched by combat,
+// location display, and NPC dialog. To avoid stale buttons after phase
+// transitions, all combat-side mutation goes through claim/release.
+
+let _actionBarOwner = null;
+
+function _claimActionBar(ownerKey) {
+    if (_actionBarOwner === ownerKey) return; // already ours
+    if (_actionBarOwner !== null && _actionBarOwner !== ownerKey) {
+        // Re-claim within combat — don't re-cache (would capture our own markup).
+        _actionBarOwner = ownerKey;
+        return;
+    }
     const navEl = $id('navigation-buttons');
     const bldEl = $id('building-buttons');
     const npcEl = $id('npc-buttons');
     if (navEl) _cachedNav = navEl.innerHTML;
     if (bldEl) _cachedBld = bldEl.innerHTML;
     if (npcEl) _cachedNpc = npcEl.innerHTML;
+    _actionBarOwner = ownerKey;
+}
+
+function _releaseActionBar() {
+    if (_actionBarOwner === null) return;
+    if (_cachedNav !== null) { const e = $id('navigation-buttons'); if (e) e.innerHTML = _cachedNav; _cachedNav = null; }
+    if (_cachedBld !== null) { const e = $id('building-buttons');   if (e) e.innerHTML = _cachedBld; _cachedBld = null; }
+    if (_cachedNpc !== null) { const e = $id('npc-buttons');        if (e) e.innerHTML = _cachedNpc; _cachedNpc = null; }
+    _actionBarOwner = null;
+}
+
+function _replaceActionButtons(cs) {
+    _claimActionBar('combat');
     _renderCombatButtons(cs);
 }
 
@@ -658,7 +1001,8 @@ function _renderCombatButtons(cs) {
     const npcEl = $id('npc-buttons');
 
     const phase = cs.phase ?? 'active';
-    if (phase !== 'active' && phase !== 'death_saves') return;
+    // Death saves get their own bar renderer; non-active phases skip altogether.
+    if (phase !== 'active') return;
 
     const actionUsed   = cs.action_used ?? false;
     const bonusUsed    = cs.bonus_action_used ?? false;
@@ -672,6 +1016,9 @@ function _renderCombatButtons(cs) {
 
     const pPos = cs.player_pos ?? { x: -1, y: -1 };
     const mPos = cs.monster_pos ?? { x: -1, y: -1 };
+    const mReach      = cs.monster_melee_reach ?? 0;
+    const disengaged  = cs.disengaged ?? false;
+    const reactionUsed = cs.reaction_used ?? false;
 
     // ── Nav column: 3×3 D-pad ────────────────────────────────────────────────
     const dirs = [
@@ -693,12 +1040,21 @@ function _renderCombatButtons(cs) {
         const intoMon    = tx === mPos.x && ty === mPos.y;
         const noBudget   = remaining <= 0;
         const disabled   = oob || intoMon || noBudget;
+
+        // OA warning: moving this direction would leave monster's reach
+        const prevR = Math.max(Math.abs(pPos.x - mPos.x), Math.abs(pPos.y - mPos.y));
+        const newR  = Math.max(Math.abs(tx     - mPos.x), Math.abs(ty     - mPos.y));
+        const provokesOA = !disabled && !disengaged && mReach > 0 &&
+                           prevR <= mReach && newR > mReach;
+        const label = provokesOA ? `⚠${d.label}` : d.label;
         const title = disabled
             ? (noBudget ? 'No movement left' : intoMon ? 'Blocked by enemy' : 'Out of bounds')
-            : `Move ${d.label}`;
+            : provokesOA
+                ? `Move ${d.label} — will provoke opportunity attack! Disengage first.`
+                : `Move ${d.label}`;
         return disabled
             ? `<button style="${_DPAD_BTN_DISABLED}" disabled title="${title}">${d.label}</button>`
-            : `<button style="${_DPAD_BTN}" onclick="window.doStep(${d.dx},${d.dy})" title="${title}">${d.label}</button>`;
+            : `<button style="${_DPAD_BTN}${provokesOA ? 'color:#fbbf24;' : ''}" onclick="window.doStep(${d.dx},${d.dy})" title="${title}">${label}</button>`;
     }).join('');
 
     if (navEl) navEl.innerHTML = `
@@ -745,7 +1101,20 @@ function _renderCombatButtons(cs) {
                     title="Coming soon">⚡ Ability</button>
         </div>`;
 
-    // ── NPC column: Hold / Flee / End Turn ───────────────────────────────────
+    // ── NPC column: Disengage / Hold / Flee / End Turn ───────────────────────
+    const inMonsterReach = range <= mReach && mReach > 0;
+    let disengageBtn;
+    if (disengaged) {
+        disengageBtn = _B_GRAYED('🕊 Disengaged', 'Already disengaged — movement safe');
+    } else if (actionUsed) {
+        disengageBtn = _B_GRAYED('🕊 Disengage', 'Action already used');
+    } else if (!inMonsterReach) {
+        disengageBtn = _B_GRAYED('🕊 Disengage', 'Not in enemy reach');
+    } else {
+        disengageBtn = `<button style="${_B('color:#a3e635;')}" onclick="window.doDisengage()"
+                    title="Spend your action to move without provoking opportunity attacks">🕊 Disengage</button>`;
+    }
+
     const holdBtn = actionUsed
         ? _B_GRAYED('🛡 Hold Position', 'Action already used')
         : remaining <= 0
@@ -763,6 +1132,7 @@ function _renderCombatButtons(cs) {
     if (npcEl) npcEl.innerHTML = `
         <h3 style="color:#9ca3af;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Turn</h3>
         <div style="display:flex;flex-direction:column;gap:2px;">
+            ${disengageBtn}
             ${holdBtn}
             ${fleeBtn}
             <button style="${_B('color:#f87171;')}" onclick="window.doEndTurn()"
@@ -835,24 +1205,47 @@ function _meleeReach(itemID) {
 
 // ─── Side-panel sync ──────────────────────────────────────────────────────────
 
-function _syncSidePanelFromCombat(cs) {
+// _renderMonsterHP drains the monster HP bar to the cs values.
+function _renderMonsterHP(cs) {
+    const monster = cs.monsters?.[0];
+    if (!monster) return;
+    const pct = monster.max_hp > 0
+        ? Math.max(0, Math.min(100, (monster.current_hp / monster.max_hp) * 100))
+        : 0;
+    const bar = $id('combat-monster-hp-bar');
+    if (bar) bar.style.width = `${pct}%`;
+    _setText('combat-monster-hp-text', `${monster.current_hp} / ${monster.max_hp} HP`);
+}
+
+// _renderPlayerHP writes player HP from combat state into the side panel.
+function _renderPlayerHP(cs) {
     const state = window.getGameStateSync?.();
     if (!state?.character) return;
-
     if (cs.player) {
         state.character.hp     = cs.player.current_hp;
         state.character.max_hp = cs.player.max_hp;
     }
-
-    const xpEarned = cs.xp_earned ?? 0;
-    state.character.experience = _baseExperience + xpEarned;
-
     window.updateCharacterDisplay?.();
 }
 
+// _renderXP writes the cumulative XP so the side panel ticks up alongside
+// the +N XP log line.
+function _renderXP(cs) {
+    const state = window.getGameStateSync?.();
+    if (!state?.character) return;
+    const xpEarned = cs.xp_earned ?? 0;
+    state.character.experience = _baseExperience + xpEarned;
+    window.updateCharacterDisplay?.();
+}
+
+// _syncSidePanelFromCombat is used when there are no damage/XP lines to drive
+// timing — falls back to a synchronous full update.
+function _syncSidePanelFromCombat(cs) {
+    _renderPlayerHP(cs);
+    _renderXP(cs);
+}
+
 function _restoreActionButtons() {
-    if (_cachedNav !== null) { const e = $id('navigation-buttons'); if (e) e.innerHTML = _cachedNav; _cachedNav = null; }
-    if (_cachedBld !== null) { const e = $id('building-buttons');   if (e) e.innerHTML = _cachedBld; _cachedBld = null; }
-    if (_cachedNpc !== null) { const e = $id('npc-buttons');        if (e) e.innerHTML = _cachedNpc; _cachedNpc = null; }
+    _releaseActionBar();
     window.displayCurrentLocation?.().catch(() => {});
 }

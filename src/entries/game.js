@@ -82,6 +82,7 @@ window.doAttack         = combatSystem.doAttack;
 window.doMoveToCell     = combatSystem.doMoveToCell;
 window.doStep           = combatSystem.doStep;
 window.doHoldPosition   = combatSystem.doHoldPosition;
+window.doDisengage      = combatSystem.doDisengage;
 window.doStubAction     = combatSystem.doStubAction;
 window.doFlee           = combatSystem.doFlee;
 window.doEndTurn        = combatSystem.doEndTurn;

@@ -160,6 +160,8 @@ type PlayerCombatState struct {
 	DeathSaveFailures  int               `json:"death_save_failures"`
 	IsUnconscious      bool              `json:"is_unconscious"`
 	IsStable           bool              `json:"is_stable"`
+	ReactionUsed       bool              `json:"reaction_used"` // Reaction consumed this round (OA)
+	Disengaged         bool              `json:"disengaged"`    // Used Disengage action this turn — no OAs provoked
 	Conditions         []CombatCondition `json:"conditions"`
 }
 
@@ -174,6 +176,8 @@ type MonsterInstance struct {
 	Initiative int              `json:"initiative"`
 	Conditions []CombatCondition `json:"conditions"`
 	IsAlive    bool             `json:"is_alive"`
+	ReactionUsed bool           `json:"reaction_used"` // Reaction consumed this round (OA)
+	Disengaged   bool           `json:"disengaged"`    // Monster used Disengage this turn
 	Data       MonsterData      `json:"data"` // Full stat block
 }
 
@@ -213,4 +217,12 @@ type CombatSession struct {
 	LevelUpPending     bool              `json:"level_up_pending"`
 	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`
 	AmmoUsedThisCombat int               `json:"ammo_used_this_combat"`
+
+	// MonsterSpawnPos is set only on the very first response for an encounter
+	// (combat start). When the monster wins initiative and runs an opening
+	// turn before the player ever sees the board, the post-move MonsterPos
+	// would otherwise teleport the sprite into position. Surfacing the spawn
+	// lets the frontend animate the opening step in lock-step with the
+	// "moves toward you" log line. Cleared after the start response is sent.
+	MonsterSpawnPos *Position `json:"-"`
 }

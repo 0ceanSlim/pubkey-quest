@@ -26,6 +26,58 @@
     user-select: none;
     pointer-events: none;
 }
+
+/* d20 dice popup — appears when an attack roll is being narrated. */
+@keyframes diceTumble {
+    0%   { transform: scale(0.4) rotate(0deg);   opacity: 0; }
+    15%  { transform: scale(1.15) rotate(180deg); opacity: 1; }
+    100% { transform: scale(1.0) rotate(360deg);  opacity: 1; }
+}
+@keyframes diceSettle {
+    0%   { transform: scale(1.0); }
+    30%  { transform: scale(1.4); }
+    100% { transform: scale(1.0); }
+}
+@keyframes diceFade {
+    0%   { opacity: 1; transform: scale(1.0); }
+    100% { opacity: 0; transform: scale(0.7) translateY(-8px); }
+}
+.combat-die {
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(145deg, #1f2937, #0f172a);
+    border: 2px solid #fbbf24;
+    box-shadow: 0 0 8px rgba(251,191,36,0.6), inset 0 0 4px rgba(255,255,255,0.15);
+    text-shadow: 1px 1px 2px #000;
+    pointer-events: none;
+    user-select: none;
+    /* Diamond/octagon-ish d20 silhouette */
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.combat-die.tumbling { animation: diceTumble 600ms ease-out forwards; }
+.combat-die.settling { animation: diceSettle 280ms ease-out; }
+.combat-die.fading   { animation: diceFade 300ms ease-in forwards; }
+.combat-die.crit  { border-color: #fde047; box-shadow: 0 0 14px #fde047, inset 0 0 4px rgba(255,255,255,0.3); }
+.combat-die.fail  { border-color: #6b7280; box-shadow: 0 0 6px #6b7280; color: #d1d5db; }
+/* Damage die — red/blood styling to differentiate from the d20 roll. */
+.combat-die.damage {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    border-color: #ef4444;
+    background: linear-gradient(145deg, #2a0a0a, #5a0e0e);
+    box-shadow: 0 0 10px rgba(239,68,68,0.7), inset 0 0 4px rgba(255,255,255,0.1);
+    color: #fecaca;
+    /* Cube/d6-ish silhouette to read as a damage die, not a d20. */
+    clip-path: polygon(15% 0, 85% 0, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0 85%, 0 15%);
+}
 </style>
 
 <!-- Combat Overlay — transparent/semi-transparent over the scene; hidden when not in combat. -->
@@ -133,6 +185,12 @@
     <!-- Flair popup zone -->
     <div id="combat-flair-zone"
          style="position:absolute; inset:0; pointer-events:none; overflow:hidden;">
+    </div>
+
+    <!-- Dice animation zone — d20 spawns here on attack rolls -->
+    <div id="combat-dice-zone"
+         style="position:absolute; inset:0; pointer-events:none; overflow:hidden;
+                display:flex; align-items:center; justify-content:center;">
     </div>
 
     <!-- ── Death saves panel ──────────────────────────────── -->
