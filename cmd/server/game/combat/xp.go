@@ -24,6 +24,17 @@ func XPForDamage(monster *types.MonsterInstance, damageDealt int, nightMultiplie
 	return int(raw)
 }
 
+// KillBonusXP returns the flat kill-bonus XP defined on a monster, scaled by
+// xpMultiplier. Most monsters have none (field 0); tougher monsters — and POI/
+// dungeon steps via the node walker (M3) — set it as a reward for the kill
+// itself, on top of the proportional damage XP.
+func KillBonusXP(monster *types.MonsterData, xpMultiplier float64) int {
+	if monster == nil || monster.KillBonusXP <= 0 {
+		return 0
+	}
+	return int(float64(monster.KillBonusXP) * xpMultiplier)
+}
+
 // IsNight returns true if the current in-game time falls in the night window (23:00–05:00).
 // timeOfDay is minutes since midnight (0–1439).
 func IsNight(timeOfDay int) bool {

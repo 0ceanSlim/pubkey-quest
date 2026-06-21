@@ -907,6 +907,15 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 	cs.LootRolled = RollLoot(monster.Data.LootTable)
 	cs.Phase = "loot"
 
+	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on
+	// POI/dungeon steps via the node walker in M3), on top of the proportional
+	// damage XP accrued during the fight.
+	xpMult := character.GetXPMultiplierForLevel(character.GetLevelFromXP(playerXP, advancement), advancement)
+	if bonus := KillBonusXP(&monster.Data, xpMult); bonus > 0 {
+		cs.XPEarnedThisFight += bonus
+		log = append(log, fmt.Sprintf("  +%d bonus XP for slaying %s!", bonus, monster.Name))
+	}
+
 	if character.WillLevelUp(playerXP, cs.XPEarnedThisFight, advancement) {
 		cs.LevelUpPending = true
 		log = append(log, "  Level up!")

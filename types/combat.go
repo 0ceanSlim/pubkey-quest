@@ -91,6 +91,7 @@ type MonsterData struct {
 	Name                  string                  `json:"name"`
 	ChallengeRating       float64                 `json:"challenge_rating"`
 	XP                    int                     `json:"xp"`
+	KillBonusXP           int                     `json:"kill_bonus_xp,omitempty"` // Flat bonus XP for the kill itself (tougher monsters / set by a POI step); 0 = none
 	Type                  string                  `json:"type"`
 	Size                  string                  `json:"size"`
 	ArmorClass            int                     `json:"armor_class"`
