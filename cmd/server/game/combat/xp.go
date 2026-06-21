@@ -24,14 +24,6 @@ func XPForDamage(monster *types.MonsterInstance, damageDealt int, nightMultiplie
 	return int(raw)
 }
 
-// KillBonusXP returns any kill bonus defined on the monster, scaled by xpMultiplier.
-func KillBonusXP(monster *types.MonsterData, xpMultiplier float64) int {
-	// Kill bonus is defined on standard MonsterData — parsed from the JSON.
-	// For Phase 1, not all monsters have kill_bonus_xp; it's optional.
-	// If the field is zero, no bonus is awarded.
-	return 0 // Will be wired up once kill_bonus_xp is added to MonsterData struct
-}
-
 // IsNight returns true if the current in-game time falls in the night window (23:00–05:00).
 // timeOfDay is minutes since midnight (0–1439).
 func IsNight(timeOfDay int) bool {
