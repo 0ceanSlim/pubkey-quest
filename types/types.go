@@ -64,6 +64,17 @@ type NPCData struct {
 	ShopConfig    map[string]interface{} `json:"shop_config,omitempty"`
 	StorageConfig map[string]interface{} `json:"storage_config,omitempty"`
 	InnConfig     map[string]interface{} `json:"inn_config,omitempty"`
+
+	// PrimaryHome is the canonical "home" location ID for an external NPC
+	// (a city, environment, or POI ID). Required for NPCs in game-data/npcs/;
+	// omitted for NPCs embedded inline in encounters. The on-disk filename
+	// for an external NPC must be <PrimaryHome>/<ID>.json.
+	PrimaryHome string `json:"primary_home,omitempty"`
+	// SecondaryHomes are additional location IDs where this NPC may appear
+	// (e.g. a city merchant who visits a POI on certain days). Schedule
+	// entries remain the runtime authority — this field is informational
+	// metadata for Codex grouping/UX.
+	SecondaryHomes []string `json:"secondary_homes,omitempty"`
 }
 
 // NPCScheduleInfo represents the resolved schedule state for an NPC at a given time
