@@ -33,6 +33,9 @@ func main() {
 	// Command-line flags
 	migrateFlag := flag.Bool("migrate", false, "Run database migration and exit")
 	validateFlag := flag.Bool("validate", false, "Run game data validation and exit")
+	checkSchemaFlag := flag.Bool("check-schema", false, "Run POI/encounter/quest draft schema check and exit")
+	formatSchemaFlag := flag.Bool("format-schema", false, "Pretty-print POI/encounter/quest draft JSON files and exit")
+	fixSchemaFlag := flag.Bool("fix-schema", false, "Apply legacy one-shot transforms to draft JSON (deprecated) and exit")
 	cleanupEffectsFlag := flag.Bool("cleanup-effects", false, "Migrate effects to new schema and exit")
 	dryRunFlag := flag.Bool("dry-run", false, "When used with cleanup flags, preview changes without modifying files")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
@@ -41,6 +44,85 @@ func main() {
 
 	if *versionFlag {
 		fmt.Printf("codex %s\n", Version)
+		os.Exit(0)
+	}
+
+	if *checkSchemaFlag {
+		fmt.Println("🔍 Running schema check on POI/encounter/quest drafts...")
+		res, err := validation.ValidateSchema(validation.SchemaDirs{})
+		if err != nil {
+			fmt.Printf("❌ Schema check failed to run: %v\n", err)
+			os.Exit(1)
+		}
+		for _, line := range res.OKFiles {
+			fmt.Println(line)
+		}
+		if len(res.ShapeErrors) > 0 {
+			fmt.Println()
+			for _, e := range res.ShapeErrors {
+				fmt.Println(e)
+			}
+			fmt.Printf("\n%d file(s) failed strict shape check\n", len(res.ShapeErrors))
+			os.Exit(1)
+		}
+		fmt.Println("\nshape check passed; running reference + skill check...")
+		for _, block := range res.RefErrors {
+			fmt.Println()
+			fmt.Println(block)
+		}
+		for _, block := range res.RefWarnings {
+			fmt.Println()
+			fmt.Println(block)
+		}
+		if len(res.RefErrors) > 0 || len(res.RefWarnings) > 0 {
+			fmt.Printf("\n%d reference/skill error block(s); %d NPC-needs-creating warning block(s)\n",
+				len(res.RefErrors), len(res.RefWarnings))
+		}
+		if len(res.RefErrors) > 0 {
+			os.Exit(1)
+		}
+		if len(res.RefWarnings) > 0 {
+			fmt.Println("⚠️  schema check passed with NPC TODO warnings")
+			os.Exit(0)
+		}
+		fmt.Println("✅ all reference and skill checks passed")
+		os.Exit(0)
+	}
+
+	if *formatSchemaFlag {
+		fmt.Println("🔧 Formatting POI/encounter/quest draft JSON...")
+		res, err := validation.FormatSchemaDirs()
+		if err != nil {
+			fmt.Printf("❌ Format failed: %v\n", err)
+			os.Exit(1)
+		}
+		for _, f := range res.Failures {
+			fmt.Println(f)
+		}
+		fmt.Printf("formatted %d file(s)\n", len(res.Formatted))
+		if len(res.Failures) > 0 {
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
+	if *fixSchemaFlag {
+		fmt.Println("⚠️  Running one-shot schema fix (deprecated)...")
+		res, err := validation.FixSchemaDirs()
+		if err != nil {
+			fmt.Printf("❌ Fix failed: %v\n", err)
+			os.Exit(1)
+		}
+		for _, p := range res.Fixed {
+			fmt.Printf("fixed %s\n", p)
+		}
+		for _, f := range res.Failures {
+			fmt.Println(f)
+		}
+		fmt.Printf("fixed %d file(s); %d failure(s)\n", len(res.Fixed), len(res.Failures))
+		if len(res.Failures) > 0 {
+			os.Exit(1)
+		}
 		os.Exit(0)
 	}
 
@@ -258,6 +340,7 @@ func main() {
 	r.HandleFunc("/api/validation/run", handleValidationRun).Methods("POST")
 	r.HandleFunc("/api/validation/cleanup", handleCleanupRun).Methods("POST")
 	r.HandleFunc("/api/validation/item/{itemId}", handleValidateOneItem).Methods("GET")
+	r.HandleFunc("/api/validation/schema", handleValidationSchema).Methods("POST")
 
 	// Staging routes
 	r.HandleFunc("/api/staging/init", staging.HandleStagingInit).Methods("POST")
@@ -395,6 +478,16 @@ func handleValidateOneItem(w http.ResponseWriter, r *http.Request) {
 		"warning_count": warningCount,
 		"valid":         errorCount == 0,
 	})
+}
+
+func handleValidationSchema(w http.ResponseWriter, r *http.Request) {
+	res, err := validation.ValidateSchema(validation.SchemaDirs{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
 }
 
 func handleCleanupRun(w http.ResponseWriter, r *http.Request) {

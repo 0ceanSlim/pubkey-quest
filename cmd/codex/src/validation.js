@@ -144,8 +144,66 @@ async function runCleanup(dryRun) {
     }
 }
 
+async function runSchemaCheck() {
+    const results = document.getElementById('results');
+    results.style.display = 'block';
+
+    document.getElementById('issues').innerHTML = '';
+    document.getElementById('cleanup-results').innerHTML = '';
+    const out = document.getElementById('schema-results');
+    out.innerHTML = '<div style="text-align: center; padding: 20px;">Running schema check...</div>';
+
+    try {
+        const response = await fetch('/api/validation/schema', { method: 'POST' });
+        const data = await response.json();
+
+        const okCount = (data.ok_files || []).length;
+        const shapeErrs = data.shape_errors || [];
+        const refErrs = data.ref_errors || [];
+        const refWarns = data.ref_warnings || [];
+
+        document.getElementById('totalFiles').textContent = okCount;
+        document.getElementById('errors').textContent = shapeErrs.length + refErrs.length;
+        document.getElementById('warnings').textContent = refWarns.length;
+        document.getElementById('info').textContent = '0';
+
+        out.innerHTML = '';
+
+        if (shapeErrs.length === 0 && refErrs.length === 0 && refWarns.length === 0) {
+            out.innerHTML = '<div class="codex-section win95-inset pixel-clip" style="text-align: center; color: #50fa7b; padding: 20px;">✓ SCHEMA CHECK PASSED (' + okCount + ' files)</div>';
+            return;
+        }
+
+        const renderBlock = (lines, color, label) => {
+            if (lines.length === 0) return;
+            const div = document.createElement('div');
+            div.className = 'codex-section win95-inset pixel-clip mb-10';
+            div.style.padding = '12px';
+            div.style.borderLeft = '4px solid ' + color;
+            const header = document.createElement('div');
+            header.style = 'font-weight: bold; margin-bottom: 8px; color: ' + color + ';';
+            header.textContent = label + ' (' + lines.length + ')';
+            div.appendChild(header);
+            lines.forEach(line => {
+                const pre = document.createElement('pre');
+                pre.style = 'white-space: pre-wrap; font-size: 12px; margin: 4px 0; color: #f8f8f2;';
+                pre.textContent = line;
+                div.appendChild(pre);
+            });
+            out.appendChild(div);
+        };
+
+        renderBlock(shapeErrs, '#ff5555', '❌ SHAPE ERRORS');
+        renderBlock(refErrs, '#ff5555', '❌ REFERENCE ERRORS');
+        renderBlock(refWarns, '#f1fa8c', '⚠️ MISSING NPCs (need to be created)');
+    } catch (error) {
+        out.innerHTML = '<div style="color: #ff5555; padding: 20px;">Error running schema check: ' + error.message + '</div>';
+    }
+}
+
 // Expose functions to window for onclick handlers
 window.runValidation = runValidation;
 window.runCleanup = runCleanup;
+window.runSchemaCheck = runSchemaCheck;
 
 console.log('🎯 CODEX Validation loaded');
