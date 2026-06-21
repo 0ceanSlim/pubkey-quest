@@ -123,12 +123,13 @@ type CombatStateResponse struct {
 // CombatEndResponse is returned when the player calls POST /combat/end.
 // swagger:model CombatEndResponse
 type CombatEndResponse struct {
-	Success     bool             `json:"success"               example:"true"`
-	Outcome     string           `json:"outcome"               example:"victory"`
-	XPApplied   int              `json:"xp_applied"            example:"47"`
-	LootAdded   []types.LootDrop `json:"loot_added,omitempty"`
-	LootDropped []types.LootDrop `json:"loot_dropped,omitempty"`
-	Message     string           `json:"message"               example:"You defeated the Goblin and gained 47 XP."`
+	Success     bool                 `json:"success"               example:"true"`
+	Outcome     string               `json:"outcome"               example:"victory"`
+	XPApplied   int                  `json:"xp_applied"            example:"47"`
+	LootAdded   []types.LootDrop     `json:"loot_added,omitempty"`
+	LootDropped []types.LootDrop     `json:"loot_dropped,omitempty"`
+	Message     string               `json:"message"               example:"You defeated the Goblin and gained 47 XP."`
+	LevelUp     *types.LevelUpResult `json:"level_up,omitempty"`
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -927,8 +928,15 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 		}
 	}
 
-	// Apply XP
-	save.Experience += cs.XPEarnedThisFight
+	// Apply XP through the single grant path so any level-up is applied and
+	// surfaced — XP comes from many sources, not just combat.
+	var levelUp types.LevelUpResult
+	if adv, err := character.LoadAdvancement(serverdb.GetDB()); err == nil {
+		levelUp = character.GrantXP(save, cs.XPEarnedThisFight, adv)
+	} else {
+		log.Printf("⚠️ advancement load failed; XP applied without level-up check: %v", err)
+		save.Experience += cs.XPEarnedThisFight
+	}
 
 	// Recover 50% of ammo used this combat (floor)
 	if cs.AmmoUsedThisCombat > 0 {
@@ -949,7 +957,7 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 		msg += fmt.Sprintf(" %d item type(s) had no space and were lost.", len(overflow))
 	}
 
-	return CombatEndResponse{
+	resp := CombatEndResponse{
 		Success:     true,
 		Outcome:     "victory",
 		XPApplied:   cs.XPEarnedThisFight,
@@ -957,6 +965,11 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 		LootDropped: overflow,
 		Message:     msg,
 	}
+	if levelUp.Leveled {
+		resp.LevelUp = &levelUp
+		resp.Message += fmt.Sprintf(" You reached level %d!", levelUp.NewLevel)
+	}
+	return resp
 }
 
 // applyDefeatOutcome strips inventory, restores vitals, and returns the player

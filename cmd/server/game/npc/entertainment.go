@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
@@ -297,8 +298,14 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 	// Only award XP on successful performance
 	var resultMessage string
 	var resultColor string
+	var levelUp types.LevelUpResult
 	if performanceSuccess {
-		state.Experience += baseXP
+		if adv, advErr := character.LoadAdvancement(db.GetDB()); advErr == nil {
+			levelUp = character.GrantXP(state, baseXP, adv)
+		} else {
+			log.Printf("⚠️ advancement load failed; XP applied without level-up check: %v", advErr)
+			state.Experience += baseXP
+		}
 		// Apply performance-high effect (+2 charisma for 12 hours)
 		if err := effects.ApplyEffect(state, "performance-high"); err != nil {
 			log.Printf("⚠️ Failed to apply performance-high effect: %v", err)
@@ -348,11 +355,16 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 	performedShows = append(performedShows, performedKey)
 	session.SetPerformedShows(performedShows)
 
-	return &types.GameActionResponse{
+	resp := &types.GameActionResponse{
 		Success: true,
 		Message: resultMessage,
 		Color:   resultColor,
-	}, nil
+	}
+	if levelUp.Leveled {
+		resp.Data = map[string]interface{}{"level_up": levelUp}
+		resp.Message += fmt.Sprintf("\n\nYou reached level %d!", levelUp.NewLevel)
+	}
+	return resp, nil
 }
 
 // CheckMissedShows checks for any booked shows that the player missed and applies a penalty

@@ -10,6 +10,7 @@ import (
 	"pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
+	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/types"
 )
@@ -38,7 +39,7 @@ func (sm *SessionManagerWrapper) LoadSession(npub, saveID string) (*GameSession,
 	return sm.SessionManager.LoadSession(
 		npub,
 		saveID,
-		LoadSaveByID,
+		loadAndHydrateSave,
 		status.InitializeFatigueHungerEffects,
 		data.GetNPCIDsAtLocation,
 		getBuildingStatesWrapper,
@@ -50,7 +51,7 @@ func (sm *SessionManagerWrapper) ReloadSession(npub, saveID string) (*GameSessio
 	return sm.SessionManager.ReloadSession(
 		npub,
 		saveID,
-		LoadSaveByID,
+		loadAndHydrateSave,
 		status.InitializeFatigueHungerEffects,
 		data.GetNPCIDsAtLocation,
 		getBuildingStatesWrapper,
@@ -64,6 +65,25 @@ func getBuildingStatesWrapper(location, district string, timeOfDay int) (map[str
 		return nil, fmt.Errorf("database not available")
 	}
 	return building.GetAllBuildingStatesForDistrict(database, location, district, timeOfDay)
+}
+
+// loadAndHydrateSave loads a save from disk and recomputes its derived fields
+// (MaxHP/MaxMana from class + level + stats) so leveling is reflected on every
+// load. Advancement comes from the DB; if it's unavailable the raw save is
+// returned and derived fields keep their last-persisted values.
+func loadAndHydrateSave(npub, saveID string) (*types.SaveFile, error) {
+	save, err := LoadSaveByID(npub, saveID)
+	if err != nil {
+		return nil, err
+	}
+	if database := db.GetDB(); database != nil {
+		if adv, advErr := character.LoadAdvancement(database); advErr == nil {
+			character.Hydrate(save, adv)
+		} else {
+			log.Printf("⚠️ Hydrate skipped — advancement load failed: %v", advErr)
+		}
+	}
+	return save, nil
 }
 
 // ============================================================================
