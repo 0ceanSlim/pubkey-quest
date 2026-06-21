@@ -1,0 +1,92 @@
+{
+  "id": "sentinels-perch",
+  "name": "The Sentinel's Perch",
+  "category": "landmark",
+  "parent_environment": "windswept-hills",
+  "position": 0.5,
+  "description": "A natural stone arch juts out from a high ridge, offering an unobstructed view of the rolling hills for leagues in every direction.",
+  "discovery": {
+    "chance": 0.5,
+    "skill": "perception",
+    "dc": 14,
+    "message": "You notice a high, flat outcropping that would make an excellent vantage point."
+  },
+  "start_node": "perch-menu",
+  "nodes": {
+    "perch-menu": {
+      "type": "choice",
+      "text": "From the top of the arch, the wind whips at your cloak and the land stretches out for miles. The stone is worn smooth by centuries of sentinels before you.",
+      "choices": [
+        {
+          "label": "Scout the horizon and chart the terrain.",
+          "next": "scout-horizon"
+        },
+        {
+          "label": "Search the perch for forgotten gear.",
+          "next": "search-perch"
+        },
+        {
+          "label": "Climb back down.",
+          "next": "perch-leave"
+        }
+      ]
+    },
+    "scout-horizon": {
+      "type": "check",
+      "text": "You spend an hour studying the ridges and valleys, fixing the path ahead in your mind.",
+      "skill": "perception",
+      "dc": 12,
+      "success_text": "You carefully chart the ridges and valleys. Your knowledge of the path ahead will make the rest of this journey easier.",
+      "success_next": "scout-success",
+      "failure_text": "The shifting mists and repetitive hills make it difficult to get a clear sense of the geography.",
+      "failure_next": "perch-leave"
+    },
+    "scout-success": {
+      "type": "reward",
+      "text": "You commit the lay of the land to memory.",
+      "reward": {
+        "xp": 75,
+        "effect": {
+          "id": "mapped-terrain",
+          "duration_minutes": 480
+        }
+      },
+      "is_terminal": true
+    },
+    "search-perch": {
+      "type": "check",
+      "text": "You comb the crevices and weather-worn nooks of the arch.",
+      "skill": "perception",
+      "dc": 15,
+      "success_text": "In a small crevice, you find a forgotten spyglass and a few dried rations.",
+      "success_next": "search-loot",
+      "failure_text": "You find nothing but bird nests and weathered stone.",
+      "failure_next": "perch-leave"
+    },
+    "search-loot": {
+      "type": "loot",
+      "text": "An old leather pouch sits wedged in the rock.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "spyglass",
+            "quantity": 1
+          },
+          {
+            "item": "rations",
+            "quantity": 2
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "perch-leave": {
+      "type": "narrative",
+      "text": "You climb back down from the perch.",
+      "is_terminal": true
+    }
+  }
+}
+
+
+

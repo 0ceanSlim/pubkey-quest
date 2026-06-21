@@ -1,0 +1,127 @@
+{
+  "id": "shadow-alley-den",
+  "name": "The Shadow Alley Den",
+  "category": "settlement",
+  "parent_environment": "goldenhaven-east",
+  "position": 0.15,
+  "description": "Hidden behind a stack of rotting crates in a dead-end alley, a narrow stone staircase leads down into a damp, dimly lit basement. The air smells of cheap ale and stale smoke.",
+  "discovery": {
+    "chance": 0.2,
+    "message": "You notice a set of subtle scuff marks on a wall that seem to indicate a hidden entrance."
+  },
+  "start_node": "entrance",
+  "nodes": {
+    "entrance": {
+      "text": "A narrow stone staircase leads down into the darkness. You can hear faint music and the clinking of glasses below.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Descend the stairs cautiously.",
+          "next": "gauntlet-pressure-plate"
+        },
+        {
+          "label": "[Rogue] Use your knowledge of guild markers to find the safe path.",
+          "next": "guild-entrance",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Rogue"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "gauntlet-pressure-plate": {
+      "text": "The stairs are uneven. You feel a slight give under one of your boots.",
+      "type": "passive_check",
+      "skill": "perception",
+      "dc": 14,
+      "success_text": "You stop mid-step, noticing a loose stone. You carefully step over it.",
+      "success_next": "gauntlet-tripwire",
+      "failure_text": "You step on a loose stone, and a hidden dart hisses out from the wall!",
+      "failure_next": "trap-dart-damage"
+    },
+    "trap-dart-damage": {
+      "text": "The dart grazes your arm. (Took 3 Poison Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "poison",
+        "amount": 3
+      },
+      "next": "gauntlet-tripwire"
+    },
+    "gauntlet-tripwire": {
+      "text": "The passage turns sharply. It's very dark here.",
+      "type": "passive_check",
+      "skill": "perception",
+      "dc": 15,
+      "success_text": "Your eyes catch the faint glint of a thin wire stretched across the floor. You step over it.",
+      "success_next": "gauntlet-false-door",
+      "failure_text": "A thin wire catches your boot, triggering a heavy bell that echoes through the tunnel!",
+      "failure_next": "trap-bell-alert"
+    },
+    "trap-bell-alert": {
+      "text": "The sound is deafening in the confined space. You've alerted the inhabitants.",
+      "type": "narrative",
+      "next": "gauntlet-false-door"
+    },
+    "gauntlet-false-door": {
+      "text": "At the end of the tunnel, you see a wooden door with a brass handle.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Open the door.",
+          "next": "false-door-fail"
+        },
+        {
+          "label": "[Perception 13] Examine the door closely.",
+          "next": "false-door-success",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "perception",
+              "min": 13
+            }
+          ]
+        }
+      ]
+    },
+    "false-door-fail": {
+      "text": "The handle doesn't turn. As you tug on it, you realize it's a painted mural. A bucket of filth drops from the ceiling!",
+      "type": "damage",
+      "damage": {
+        "type": "filth",
+        "amount": 1
+      },
+      "next": "den-main-hall"
+    },
+    "false-door-success": {
+      "text": "You realize the door is fake. A small, hidden latch nearby opens a secret panel in the wall.",
+      "type": "narrative",
+      "next": "den-main-hall"
+    },
+    "guild-entrance": {
+      "text": "Following the scratch marks on the masonry, you navigate the traps with ease and arrive at the main hall.",
+      "type": "narrative",
+      "next": "den-main-hall"
+    },
+    "den-main-hall": {
+      "text": "You enter a bustling underground den. Shadows dance on the walls as thieves and cutthroats trade stories and coin.",
+      "type": "npc_interaction",
+      "npc_ids": [
+        "whispering-jack",
+        "viper"
+      ],
+      "is_terminal": true
+    }
+  },
+  "npc_ids": [
+    "whispering-jack",
+    "viper"
+  ]
+}
+
+
+

@@ -1,0 +1,123 @@
+{
+  "id": "old-hunters-shack",
+  "name": "Old Hunter's Shack",
+  "category": "utility",
+  "parent_environment": "darkwood-forest",
+  "position": 0.2,
+  "description": "A small, sturdy cabin built from thick logs. Smoke drifts from the chimney, and the smell of roasting meat wafts through the air.",
+  "discovery": {
+    "chance": 0.6,
+    "message": "You find a narrow trail that leads to a small, well-hidden cabin in a clearing."
+  },
+  "start_node": "shack-interior",
+  "nodes": {
+    "shack-interior": {
+      "text": "The shack is warm and relatively clean. A heavy iron-bound trapdoor is tucked under a rug in the corner.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Take a short rest by the fire.",
+          "next": "rest-node"
+        },
+        {
+          "label": "[Perception 10] Search the cupboards for supplies.",
+          "next": "search-supplies"
+        },
+        {
+          "label": "Open the heavy iron-bound trapdoor.",
+          "next": "trapdoor-locked",
+          "requirements": []
+        }
+      ]
+    },
+    "rest-node": {
+      "text": "You spend some time resting. The warmth of the fire restores your spirit.",
+      "type": "reward",
+      "reward": {
+        "xp": 10
+      },
+      "is_terminal": true
+    },
+    "search-supplies": {
+      "text": "You rummage through the hunter's belongings.",
+      "type": "check",
+      "skill": "perception",
+      "dc": 10,
+      "success_text": "You find a bundle of arrows and some dried meat.",
+      "success_next": "search-success",
+      "failure_text": "You find nothing but old furs and rusted traps.",
+      "failure_next": "shack-interior"
+    },
+    "search-success": {
+      "text": "The supplies will be useful on the road.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "arrows",
+            "quantity": [
+              5,
+              10
+            ]
+          },
+          {
+            "item": "rations",
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "next": "shack-interior"
+    },
+    "trapdoor-locked": {
+      "text": "The trapdoor is secured with a massive iron padlock. It matches the 'Heavy Iron Key' perfectly.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Use the Heavy Iron Key.",
+          "next": "cellar-entry",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "heavy-iron-key",
+              "consumed": false
+            }
+          ]
+        },
+        {
+          "label": "[Athletics 22] Attempt to wrench the padlock off.",
+          "next": "cellar-entry",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "athletics",
+              "min": 22
+            }
+          ]
+        },
+        {
+          "label": "Leave it alone for now.",
+          "next": "shack-interior"
+        }
+      ]
+    },
+    "cellar-entry": {
+      "text": "The trapdoor creaks open, revealing a stone staircase leading down into a hidden cellar. Inside, you find the hunter's true treasure.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "hunters-secret-cache",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

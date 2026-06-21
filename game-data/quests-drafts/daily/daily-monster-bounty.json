@@ -1,0 +1,58 @@
+{
+  "id": "daily-monster-bounty",
+  "name": "Daily Bounty: Forest Pests",
+  "category": "daily",
+  "step_count": 2,
+  "difficulty": "Novice",
+  "total_qp": 0,
+  "is_randomized": true,
+  "description": "A bounty posted on the town board for the removal of local pests.",
+  "start_condition": {
+    "type": "bulletin_board",
+    "target": "town-square-board",
+    "start_hint": "Check the Bulletin Board in any town square."
+  },
+  "requirements": [],
+  "stages": [
+    {
+      "id": "bounty-hunt",
+      "description": "Cull the giant rat population in the nearby forest.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "giant-rat",
+          "count": 10,
+          "description": "Exterminate giant rats."
+        }
+      ]
+    },
+    {
+      "id": "collect-reward",
+      "description": "Return to any town square board to claim your bounty.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "town-square-board",
+          "description": "Log your kill count on the board."
+        }
+      ],
+      "rewards": {
+        "xp": 200,
+        "gold": 50,
+        "items": [
+          {
+            "id": "rations",
+            "quantity": 1
+          },
+          {
+            "id": "potion-of-healing",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

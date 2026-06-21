@@ -1,0 +1,125 @@
+{
+  "id": "flooded-mine",
+  "name": "The Flooded Mine",
+  "category": "dungeon",
+  "parent_environment": "mountain-pass",
+  "position": 0.65,
+  "description": "An old iron mine that has partially filled with groundwater. The entrance is a vertical shaft disappearing into the dark.",
+  "discovery": {
+    "chance": 0.2,
+    "skill": "perception",
+    "dc": 14,
+    "message": "You find a rusted pulley system and a vertical shaft hidden by mountain scrub."
+  },
+  "requirements": [
+    {
+      "type": "item",
+      "id": "rope-hempen-50-feet",
+      "consumed": false,
+      "description": "The shaft is too deep to climb. You need a rope to descend."
+    }
+  ],
+  "start_node": "mine-shaft-bottom",
+  "nodes": {
+    "mine-shaft-bottom": {
+      "text": "You descend into the cool, damp air. The bottom is flooded with knee-high water. Two tunnels lead away from the shaft.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Follow the tunnel with the rusted rail tracks.",
+          "next": "track-tunnel"
+        },
+        {
+          "label": "Wade into the deeper water in the side passage.",
+          "next": "water-passage"
+        }
+      ]
+    },
+    "track-tunnel": {
+      "text": "The tracks lead to a collapsed chamber. A skeletal miner lies under some rubble, a pickaxe still in hand.",
+      "type": "monster",
+      "monster_id": "zombie",
+      "count": 2,
+      "next": "miner-loot"
+    },
+    "miner-loot": {
+      "text": "Among the rubble, you see a patch of loose, sandy soil that looks out of place.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Use a Shovel to dig into the sandy soil.",
+          "next": "hidden-ore-stash",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "shovel",
+              "consumed": false
+            }
+          ]
+        },
+        {
+          "label": "Go back to the shaft bottom.",
+          "next": "mine-shaft-bottom"
+        }
+      ]
+    },
+    "hidden-ore-stash": {
+      "text": "You dig up a small wooden crate containing high-grade iron ore and some old coins.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "iron-ore",
+            "quantity": [
+              2,
+              4
+            ]
+          },
+          {
+            "item": "gold-piece",
+            "quantity": [
+              10,
+              25
+            ]
+          }
+        ]
+      },
+      "next": "mine-shaft-bottom"
+    },
+    "water-passage": {
+      "text": "The water reaches your chest. You see something glinting at the bottom.",
+      "type": "check",
+      "skill": "athletics",
+      "dc": 16,
+      "success_text": "You dive down and retrieve a heavy iron key from the muck.",
+      "success_next": "key-find-success",
+      "failure_text": "The water is too cold and you struggle to stay afloat, losing your breath.",
+      "failure_next": "water-struggle"
+    },
+    "water-struggle": {
+      "text": "You gasp for air as you pull yourself back to the dry tracks. (Gained 1 Fatigue)",
+      "type": "effect",
+      "effect": {
+        "id": "fatigued",
+        "duration_minutes": 60
+      },
+      "next": "mine-shaft-bottom"
+    },
+    "key-find-success": {
+      "text": "You've found a Heavy Iron Key. It might open something elsewhere.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "heavy-iron-key",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "mine-shaft-bottom"
+    }
+  }
+}
+
+
+

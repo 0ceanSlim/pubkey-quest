@@ -1,0 +1,184 @@
+{
+  "id": "suspicious-peddler",
+  "name": "The Suspicious Peddler",
+  "chance": 0.15,
+  "repeatable": false,
+  "valid_locations": [
+    "merchants-highway",
+    "windswept-hills"
+  ],
+  "description": "You encounter a nervous-looking man leading a mule laden with clinking bags. He hails you with a forced smile.",
+  "start_node": "initial",
+  "nodes": {
+    "initial": {
+      "text": "'Greetings, noble traveler! Would you be interested in a 'Ring of Invisibility'? A steal at only 50 gold!'",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Rogue] (Recognize the street-con immediately)",
+          "next": "confront-scam",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Rogue"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Intelligence 14] Sense for a magical aura on the ring.",
+          "next": "sense-magic-check",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "intelligence",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "[Perception 15] Examine the ring's craftsmanship.",
+          "next": "examine-ring-check"
+        },
+        {
+          "label": "Buy the ring (50 gold).",
+          "next": "buy-fake",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "gold-piece"
+            }
+          ]
+        },
+        {
+          "label": "[Evil] Just take what he has. (Attack)",
+          "next": "combat-bandit",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "evil"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Decline and walk away.",
+          "next": "exit"
+        }
+      ]
+    },
+    "sense-magic-check": {
+      "type": "check",
+      "skill": "medicine",
+      "dc": 14,
+      "success_text": "You focus your senses, but the object lacks even a flicker of arcane resonance. It's a common trinket.",
+      "success_next": "confront-scam",
+      "failure_text": "The ring shimmers with a convincing—if faint—light. It seems genuine enough.",
+      "failure_next": "initial"
+    },
+    "examine-ring-check": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 15,
+      "success_text": "The 'ring' is clearly just a painted washer. This man is a fraud.",
+      "success_next": "fraud-exposed-choices",
+      "failure_text": "It looks like a fine piece of jewelry. You don't see any obvious signs of a scam.",
+      "failure_next": "initial"
+    },
+    "fraud-exposed-choices": {
+      "text": "How do you wish to handle this charlatan?",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Call out his scam loudly.",
+          "next": "confront-scam"
+        },
+        {
+          "label": "[Lawful] Demand he hand over his fraudulent gains.",
+          "next": "lawful-justice",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "lawful"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "confront-scam": {
+      "text": "The man pales. 'Now now, let's not be hasty! I was just... testing your keen eyes! Take this and we'll say no more?'",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": 10
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "lawful-justice": {
+      "text": "He stammers, 'Now, let's not involve the law!' He drops a small pouch of gold and flees into the woods.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": 25
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "buy-fake": {
+      "text": "You hand over the gold. He vanishes into the brush suspiciously fast. You later realize the ring is worthless.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "worthless-trinket",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true,
+      "cost": {
+        "gold": 50
+      }
+    },
+    "combat-bandit": {
+      "text": "The peddler lets out a whistle, and two of his associates emerge from the bushes!",
+      "type": "monster",
+      "monster_id": "bandit",
+      "count": 3,
+      "next": "bandit-loot"
+    },
+    "bandit-loot": {
+      "text": "You search the fallen crooks.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "bandit-stash",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "You continue your travel, keeping a wary eye on the road.",
+      "is_terminal": true
+    }
+  },
+  "trigger": "travel"
+}
+
+
+

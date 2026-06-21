@@ -1,0 +1,78 @@
+{
+  "id": "shrine-of-the-four-winds",
+  "name": "Shrine of the Four Winds",
+  "category": "utility",
+  "parent_environment": "windswept-hills",
+  "position": 0.7,
+  "description": "An ancient stone altar sits atop the highest hill in the area. Four weathered pillars surround it, each carved with symbols of the wind.",
+  "discovery": {
+    "chance": 0.3,
+    "message": "On a distant ridge, you see a group of ancient standing stones silhouetted against the sky."
+  },
+  "start_node": "shrine-menu",
+  "nodes": {
+    "shrine-menu": {
+      "type": "choice",
+      "text": "The wind howls steadily across the altar, carrying a faint musical resonance. The four pillars stand silent witness.",
+      "choices": [
+        {
+          "label": "Pray at the altar.",
+          "next": "pray-shrine"
+        },
+        {
+          "label": "Leave an offering (5 gold).",
+          "next": "leave-offering",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "gold-piece",
+              "min": 5
+            }
+          ]
+        },
+        {
+          "label": "Continue on your way.",
+          "next": "shrine-leave"
+        }
+      ]
+    },
+    "pray-shrine": {
+      "type": "check",
+      "text": "You kneel before the altar and offer a prayer to the wind spirits.",
+      "skill": "resolve",
+      "dc": 12,
+      "success_text": "A sudden gust of wind swirls around you. You feel lighter and more energetic.",
+      "success_next": "pray-success",
+      "failure_text": "The wind remains a steady, indifferent howl.",
+      "failure_next": "shrine-leave"
+    },
+    "pray-success": {
+      "type": "effect",
+      "text": "The wind spirits acknowledge your devotion.",
+      "effect": {
+        "id": "wind-walker",
+        "duration_minutes": 1440
+      },
+      "is_terminal": true
+    },
+    "leave-offering": {
+      "type": "transaction",
+      "text": "You place five gold pieces on the altar. They glint briefly, then are gone.",
+      "cost": {
+        "gold": 5
+      },
+      "reward": {
+        "xp": 50
+      },
+      "is_terminal": true
+    },
+    "shrine-leave": {
+      "type": "narrative",
+      "text": "You leave the shrine to the wind.",
+      "is_terminal": true
+    }
+  }
+}
+
+
+

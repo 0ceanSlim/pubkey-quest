@@ -1,0 +1,196 @@
+{
+  "id": "the-rising-shadow",
+  "name": "The Rising Shadow",
+  "category": "main",
+  "step_count": 20,
+  "difficulty": "Intermediate",
+  "total_qp": 3,
+  "description": "Strange omens have been appearing across the kingdom. The Oracle of Goldenhaven seeks a champion to investigate the source of this darkness.",
+  "start_condition": {
+    "type": "talk",
+    "target": "oracle-seraphina",
+    "location": "goldenhaven-temple",
+    "start_hint": "Seek out Oracle Seraphina in the Goldenhaven Temple after your first day of adventuring."
+  },
+  "requirements": [],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Resolve 12",
+      "Perception 12"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "consult-oracle",
+      "description": "Oracle Seraphina has been having visions of a dark cloud moving from the mountains.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "oracle-seraphina",
+          "description": "Speak with the Oracle about her visions."
+        }
+      ]
+    },
+    {
+      "id": "gather-ritual-components",
+      "description": "The Oracle needs rare components to perform a ritual of revealing.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "incense-of-sight",
+          "count": 1,
+          "description": "Obtain Ritual Incense from Thistle Goldworthy."
+        },
+        {
+          "type": "fetch",
+          "target": "vial-of-pure-water",
+          "count": 1,
+          "description": "Obtain Pure Water from the Merchant District fountain."
+        }
+      ]
+    },
+    {
+      "id": "oracle-translation",
+      "description": "The Oracle needs time to prepare the ritual and translate the ancient texts.",
+      "wait_minutes": 1440,
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "oracle-seraphina",
+          "description": "Check back with Seraphina tomorrow."
+        }
+      ]
+    },
+    {
+      "id": "thistle-negotiation",
+      "description": "Thistle won't give up the incense for free. He needs Ghost Lilies from the wetlands.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "thistle-goldworthy",
+          "description": "Negotiate with Thistle."
+        },
+        {
+          "type": "explore",
+          "target": "shadowmere-wetlands",
+          "description": "Travel to the wetlands."
+        },
+        {
+          "type": "fetch",
+          "target": "ghost-lily",
+          "count": 3,
+          "description": "Gather Ghost Lilies."
+        }
+      ]
+    },
+    {
+      "id": "perform-ritual",
+      "description": "Return the components to Seraphina and assist in the ritual.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "oracle-seraphina",
+          "description": "Hand over the components."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 12,
+          "description": "Maintain the ritual's mental focus."
+        }
+      ]
+    },
+    {
+      "id": "ritual-cooldown",
+      "description": "The ritual was taxing. Seraphina needs to recover before she can interpret the vision.",
+      "wait_minutes": 720,
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "oracle-seraphina",
+          "description": "Wait for Seraphina to recover."
+        }
+      ]
+    },
+    {
+      "id": "scout-watchtower",
+      "description": "The ritual points to the Abandoned Watchtower. Investigate the ruins.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "abandoned-watchtower",
+          "description": "Reach the Watchtower."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 14,
+          "description": "Find the entrance to the tower basement."
+        }
+      ]
+    },
+    {
+      "id": "bandit-camp",
+      "description": "The tower is occupied by bandits who seem to be worshipping the shadow.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "bandit",
+          "count": 8,
+          "description": "Neutralize the bandit presence."
+        },
+        {
+          "type": "fetch",
+          "target": "cult-manifesto",
+          "count": 1,
+          "description": "Find the cult's plans in the leader's desk."
+        }
+      ]
+    },
+    {
+      "id": "purge-shadow",
+      "description": "A Shadow Stalker is anchoring the darkness here. Destroy it.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "shadow-stalker",
+          "count": 1,
+          "description": "Defeat the Shadow Stalker."
+        },
+        {
+          "type": "fetch",
+          "target": "shadow-fragment",
+          "count": 1,
+          "description": "Collect the fragment left behind."
+        }
+      ]
+    },
+    {
+      "id": "return-to-oracle",
+      "description": "The immediate threat is neutralized. Return to the Oracle with your findings.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "oracle-seraphina",
+          "description": "Deliver the Shadow Fragment and cult plans."
+        }
+      ],
+      "rewards": {
+        "xp": 1500,
+        "gold": 600,
+        "quest_points": 3,
+        "items": [
+          {
+            "id": "amulet-of-light",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

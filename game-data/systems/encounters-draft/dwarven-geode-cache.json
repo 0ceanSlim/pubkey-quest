@@ -1,0 +1,135 @@
+{
+  "id": "dwarven-geode-cache",
+  "name": "The Earth's Heart",
+  "description": "A recent rockslide has exposed a cluster of massive, crystalline geodes embedded in the cliffside. They shimmer with an internal, multifaceted light.",
+  "trigger": "travel",
+  "valid_locations": [
+    "cragspire-mountains",
+    "windswept-hills"
+  ],
+  "chance": 0.015,
+  "repeatable": true,
+  "start_node": "geode-initial",
+  "nodes": {
+    "geode-initial": {
+      "text": "The stones are beautiful, but their shells are incredibly hard. They seem to contain rare gems within.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Dwarf] Use your knowledge of stone to find the weak points.",
+          "next": "dwarf-stonework-success",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Dwarf"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Barbarian/Fighter] Sunder the geodes with raw power.",
+          "next": "sunder-check",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Barbarian",
+                "Fighter"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Use a Hammer to carefully crack one open.",
+          "next": "hammer-success",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "hammer",
+              "consumed": false
+            }
+          ]
+        },
+        {
+          "label": "Admire the beauty and continue on.",
+          "next": "exit"
+        }
+      ]
+    },
+    "dwarf-stonework-success": {
+      "text": "With a single, expertly placed tap, the geode shatters along its natural fault lines, revealing a bounty of perfect gems.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "rare-gems",
+            "quantity": 3
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 150
+      }
+    },
+    "sunder-check": {
+      "type": "check",
+      "skill": "athletics",
+      "dc": 18,
+      "success_text": "A mighty blow shatters the outer shell. You manage to recover several large gemstone fragments from the debris.",
+      "success_next": "sunder-loot",
+      "failure_text": "The stone is harder than it looks. Your weapon bounces off, sending a painful jar through your arms.",
+      "failure_next": "sunder-fail"
+    },
+    "sunder-loot": {
+      "text": "You collect the scattered gems.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "rare-gems",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 50
+      }
+    },
+    "sunder-fail": {
+      "text": "The impact leaves your hands numb. (Took 2 Bludgeoning Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 2
+      },
+      "is_terminal": true
+    },
+    "hammer-success": {
+      "text": "It takes time and patience, but you manage to chip away enough of the shell to retrieve a few modest crystals.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "rare-gems",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 50
+      }
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "The crystals catch the sun's light as you walk away.",
+      "is_terminal": true
+    }
+  }
+}
+
+
+

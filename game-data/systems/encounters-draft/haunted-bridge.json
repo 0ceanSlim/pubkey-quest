@@ -1,0 +1,138 @@
+{
+  "id": "haunted-bridge",
+  "name": "The Ghostly Toll",
+  "chance": 0.02,
+  "repeatable": true,
+  "valid_locations": [
+    "shadowmere-wetlands",
+    "darkwood-forest"
+  ],
+  "description": "As you prepare to cross a narrow stone bridge, a pale, translucent figure in rusted plate armor shimmer into existence, blocking your path with a spectral polearm.",
+  "start_node": "toll-initial",
+  "nodes": {
+    "toll-initial": {
+      "text": "'None pass without paying the toll of memory,' the spirit rasps. 'Speak a truth that weighs on your soul, or face the cold steel of the past.'",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Paladin/Cleric] Offer a prayer for the spirit's rest.",
+          "next": "holy-rest",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Paladin",
+                "Cleric"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Bard] Recite a lament for fallen heroes.",
+          "next": "bard-lament",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Bard"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Resolve 15] Stare down the spirit with unshakable will.",
+          "next": "resolve-check",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "resolve",
+              "min": 15
+            }
+          ]
+        },
+        {
+          "label": "Pay the toll (25 Gold).",
+          "next": "pay-toll",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "gold-piece",
+              "min": 25
+            }
+          ]
+        },
+        {
+          "label": "Draw your weapon and charge.",
+          "next": "combat-ghost"
+        }
+      ]
+    },
+    "holy-rest": {
+      "text": "Your words carry divine weight. The spirit's armor begins to glow with a soft light. 'Finally... silence,' it whispers, and fades into the mist.",
+      "type": "reward",
+      "reward": {
+        "xp": 200,
+        "effect": {
+          "id": "divine-grace"
+        }
+      },
+      "is_terminal": true
+    },
+    "bard-lament": {
+      "text": "The melody is hauntingly beautiful. The spirit bows its head, its translucent form shimmering with appreciation. It steps aside, pointing to a hidden pouch beneath a loose stone.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": 40
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 150
+      }
+    },
+    "resolve-check": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 15,
+      "success_text": "You meet the spirit's hollow gaze with your own. It recognizes a will stronger than its own and slowly fades away.",
+      "success_next": "exit",
+      "failure_text": "The spirit's gaze pierces your mind. You are filled with a crushing sense of dread.",
+      "failure_next": "resolve-fail"
+    },
+    "resolve-fail": {
+      "text": "You are forced to retreat as the spirit's polearm sweeps through your chest with a numbing chill.",
+      "type": "damage",
+      "damage": {
+        "type": "cold",
+        "amount": 10
+      },
+      "is_terminal": true
+    },
+    "pay-toll": {
+      "text": "The coins pass through the spirit's hand and vanish. It nods solemnly and disappears.",
+      "type": "narrative",
+      "text": "You cross the bridge safely.",
+      "is_terminal": true
+    },
+    "combat-ghost": {
+      "text": "Your blade passes through the mist! The spirit lets out a mournful howl and strikes back.",
+      "type": "monster",
+      "monster_id": "wraith",
+      "count": 1,
+      "is_terminal": true
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "You cross the bridge, the air feeling slightly warmer on the other side.",
+      "is_terminal": true
+    }
+  },
+  "trigger": "travel"
+}
+
+
+

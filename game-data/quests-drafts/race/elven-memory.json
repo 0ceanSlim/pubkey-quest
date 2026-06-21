@@ -1,0 +1,206 @@
+{
+  "id": "elven-heritage",
+  "name": "Elven Heritage",
+  "category": "race",
+  "step_count": 22,
+  "difficulty": "Master",
+  "total_qp": 5,
+  "description": "The ancient waystones of the forest are fading. As an Elf, you have a duty to restore their light, but a corruption from the Shadowmere Wetlands seeks to extinguish them forever.",
+  "start_condition": {
+    "type": "explore",
+    "target": "ancient-elven-waystone",
+    "location": "darkwood-forest",
+    "start_hint": "Find an ancient elven waystone in the Darkwood Forest."
+  },
+  "requirements": [
+    {
+      "type": "race",
+      "values": [
+        "Elf"
+      ],
+      "description": "Only those of elven blood can hear the stones' song."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Perception 18",
+      "Intelligence 16",
+      "Resolve 16"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "attune-to-stone",
+      "description": "Attune your spirit to the waystone's melody.",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 18,
+          "description": "Listen to the discordant notes in the stone's song."
+        },
+        {
+          "type": "talk",
+          "target": "ancient-elven-waystone",
+          "description": "Consult the spirit of the stone."
+        }
+      ]
+    },
+    {
+      "id": "search-the-elders",
+      "description": "Seek out the Shadowmere Hermit for guidance on the 'Stolen Moonlight'.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "shadowmere-hermit",
+          "description": "Locate Mother Muriel's hut."
+        },
+        {
+          "type": "talk",
+          "target": "shadowmere-hermit",
+          "description": "Ask about the ritual components."
+        }
+      ]
+    },
+    {
+      "id": "gather-herbs",
+      "description": "Gather rare swamp herbs to protect your mind during the ritual.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "marsh-willow-bark",
+          "count": 5,
+          "description": "Gather Willow Bark."
+        },
+        {
+          "type": "fetch",
+          "target": "silver-moss",
+          "count": 3,
+          "description": "Harvest Silver Moss from the temple exterior."
+        }
+      ]
+    },
+    {
+      "id": "the-trials-of-water",
+      "description": "Pass the trials of the Sunken Temple to reach the Mirror Pool.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "sunken-temple",
+          "description": "Enter the Sunken Temple."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 14,
+          "description": "Resist the temple's crushing atmosphere."
+        },
+        {
+          "type": "slay",
+          "target": "will-o-wisp",
+          "count": 3,
+          "description": "Clear the path of spectral lights."
+        }
+      ]
+    },
+    {
+      "id": "mirror-pool-ritual",
+      "description": "Capture the moonlight essence at the Mirror Pool during a clear night.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "shadowmere-mirror-pool",
+          "description": "Reach the Mirror Pool."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 16,
+          "description": "Wait for the perfect reflection."
+        },
+        {
+          "type": "fetch",
+          "target": "moon-essence-shard",
+          "count": 1,
+          "description": "Capture the essence."
+        }
+      ]
+    },
+    {
+      "id": "defend-the-light",
+      "description": "The corruption sends its minions to claim the moonlight essence. Defend yourself.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "shadow-tentacle",
+          "count": 5,
+          "description": "Defeat the rising shadows."
+        },
+        {
+          "type": "slay",
+          "target": "corrupted-dryad",
+          "count": 1,
+          "description": "Banish the dryad's ghost."
+        }
+      ]
+    },
+    {
+      "id": "cleansing-the-altar",
+      "description": "Travel to the Raven Shrine to purify the moon essence before it can be used.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "raven-shrine",
+          "description": "Reach the Raven Shrine."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 18,
+          "description": "Pray for the Raven Queen's blessing."
+        }
+      ]
+    },
+    {
+      "id": "restore-the-stone",
+      "description": "Return to the waystone and perform the Ritual of Eternal Song.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "ancient-elven-waystone",
+          "description": "Return to the Darkwood stone."
+        },
+        {
+          "type": "check",
+          "skill": "intelligence",
+          "value": 15,
+          "description": "Chant the verses of the first dawn."
+        },
+        {
+          "type": "talk",
+          "target": "ancient-elven-waystone",
+          "description": "Offer the purified moon essence."
+        }
+      ],
+      "rewards": {
+        "xp": 3000,
+        "quest_points": 5,
+        "items": [
+          {
+            "id": "waystone-fragment",
+            "quantity": 1
+          }
+        ],
+        "effect": {
+          "id": "wind-walker",
+          "duration_minutes": 1440
+        }
+      }
+    }
+  ]
+}
+
+
+

@@ -1,0 +1,133 @@
+{
+  "id": "ethereal-caravan",
+  "name": "The Ethereal Caravan",
+  "chance": 0.01,
+  "repeatable": true,
+  "valid_locations": [
+    "merchants-highway",
+    "goldenhaven-east"
+  ],
+  "description": "The road ahead shimmer as if with heat, but the air is cold. A line of translucent wagons and figures slowly plods across the highway, heading toward the horizon.",
+  "start_node": "caravan-initial",
+  "nodes": {
+    "caravan-initial": {
+      "text": "The figures are dressed in ancient silks. They don't seem to see you. As they pass, you feel a pull on your very soul.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Resolve 16] Try to touch one of the wagons.",
+          "next": "touch-wagon-check",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "resolve",
+              "min": 16
+            }
+          ]
+        },
+        {
+          "label": "[Intelligence 15] Study the caravan's path and symbols.",
+          "next": "study-symbols-check",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "intelligence",
+              "min": 15
+            }
+          ]
+        },
+        {
+          "label": "Sprinkle Holy Water on the path.",
+          "next": "holy-water-blessing",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "holy-water",
+              "consumed": true
+            }
+          ]
+        },
+        {
+          "label": "Stand back and let them pass.",
+          "next": "exit"
+        }
+      ]
+    },
+    "touch-wagon-check": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 16,
+      "success_text": "You reach out and your hand makes contact with solid, cold wood. For a moment, you see through the eyes of the ancient travelers.",
+      "success_next": "vision-reward",
+      "failure_text": "Your hand passes through the wagon as if it were smoke. A freezing chill numbs your arm and rattles your mind.",
+      "failure_next": "vision-fail"
+    },
+    "vision-reward": {
+      "text": "You gain a glimpse of a forgotten trade route. Your map fills with new details.",
+      "type": "reward",
+      "reward": {
+        "xp": 300,
+        "effect": {
+          "id": "divine-grace"
+        }
+      },
+      "is_terminal": true
+    },
+    "vision-fail": {
+      "text": "The chill is bone-deep. (Took 6 Cold Damage and 4 Psychic Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "mixed",
+        "amount": 10
+      },
+      "next": "exit"
+    },
+    "study-symbols-check": {
+      "type": "check",
+      "skill": "medicine",
+      "dc": 14,
+      "success_text": "You recognize the markings of a long-dead kingdom's royal treasury. You notice one of the spectral guards has dropped a physical item.",
+      "success_next": "find-token",
+      "failure_text": "The symbols are too faded and alien to comprehend.",
+      "failure_next": "caravan-initial"
+    },
+    "find-token": {
+      "text": "On the ground lies a heavy gold coin, warm to the touch and very real.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": 50
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "holy-water-blessing": {
+      "text": "The holy water sparkles in the air. The spectral travelers pause and bow their heads. The lead figure hands you a translucent gem that slowly turns solid in your hand.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "soul-gem-fragment",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 500
+      }
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "The caravan fades into the distance, leaving only a lingering scent of lavender and ozone.",
+      "is_terminal": true
+    }
+  },
+  "trigger": "travel"
+}
+
+
+

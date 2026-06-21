@@ -1,0 +1,196 @@
+{
+  "id": "wounded-owlbear",
+  "name": "The Wounded Owlbear",
+  "chance": 0.03,
+  "repeatable": false,
+  "valid_locations": [
+    "darkwood-forest"
+  ],
+  "description": "You hear a pained screeching ahead. In a small clearing, a massive owlbear is pinned beneath a fallen tree, its leg bleeding heavily.",
+  "start_node": "initial",
+  "nodes": {
+    "initial": {
+      "text": "The creature snaps its beak at you weakly. It's dangerous, but clearly suffering.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Druid/Ranger] (Calm the beast with ancient speech)",
+          "next": "calm-owlbear",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Druid",
+                "Ranger"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Athletics 15] Brute force the trunk off the leg.",
+          "next": "free-owlbear-check",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "athletics",
+              "min": 15
+            }
+          ]
+        },
+        {
+          "label": "Use a Crowbar to lever the tree up.",
+          "next": "free-owlbear",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "crowbar",
+              "consumed": false
+            }
+          ]
+        },
+        {
+          "label": "[Evil] Put it out of its misery and take the pelt.",
+          "next": "combat-mercy-kill",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "evil"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Stealth 10] Sneak past while it's distracted.",
+          "next": "sneak-past-check"
+        }
+      ]
+    },
+    "free-owlbear-check": {
+      "type": "check",
+      "skill": "athletics",
+      "dc": 15,
+      "success_text": "With a massive heave, you lift the trunk just enough for the creature to slide its leg out.",
+      "success_next": "free-owlbear",
+      "failure_text": "The tree is too heavy. The movement only further panics the beast!",
+      "failure_next": "anger-owlbear"
+    },
+    "free-owlbear": {
+      "text": "The owlbear drags itself free and limps into the deep forest, leaving behind a tuft of enchanted fur as it disappears into the brush.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "owlbear-fur",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 250
+      }
+    },
+    "calm-owlbear": {
+      "text": "You speak in low, soothing tones. The creature's feathers settle, and it allows you to approach safely.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Medicine 12] Bind the wound and free it.",
+          "next": "free-owlbear",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "medicine",
+              "min": 12
+            }
+          ]
+        },
+        {
+          "label": "Use a Potion of Healing on its wound.",
+          "next": "free-owlbear-blessed",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "potion-of-healing",
+              "consumed": true
+            }
+          ]
+        }
+      ]
+    },
+    "free-owlbear-blessed": {
+      "text": "The magic of the potion knits the bone and flesh together instantly. The owlbear stands, nuzzles your hand briefly, and leaves you a glowing feather before vanishing.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "owlbear-feather-enchanted",
+            "quantity": 1
+          },
+          {
+            "item": "owlbear-fur",
+            "quantity": 2
+          }
+        ]
+      },
+      "is_terminal": true,
+      "reward": {
+        "xp": 400
+      }
+    },
+    "combat-mercy-kill": {
+      "text": "You prepare to strike the finishing blow, but the creature finds a last burst of adrenaline!",
+      "type": "monster",
+      "monster_id": "owlbear",
+      "count": 1,
+      "next": "mercy-kill-loot"
+    },
+    "mercy-kill-loot": {
+      "text": "The creature lies still. You skin it for its valuable fur.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "owlbear-fur",
+            "quantity": 2
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "sneak-past-check": {
+      "type": "check",
+      "skill": "thieving",
+      "dc": 10,
+      "success_text": "You move silently past the clearing, leaving the beast to its fate.",
+      "success_next": "exit",
+      "failure_text": "You snap a dry twig! The owlbear's head whips around, its eyes bloodshot with pain and rage.",
+      "failure_next": "anger-owlbear"
+    },
+    "anger-owlbear": {
+      "text": "The creature's panic flares and it lashes out with a powerful claw!",
+      "type": "damage",
+      "damage": {
+        "type": "slashing",
+        "amount": 8
+      },
+      "next": "combat-forced"
+    },
+    "combat-forced": {
+      "type": "monster",
+      "monster_id": "owlbear",
+      "count": 1,
+      "is_terminal": true
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "You continue on your journey.",
+      "is_terminal": true
+    }
+  },
+  "trigger": "travel"
+}
+
+
+

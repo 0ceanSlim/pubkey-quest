@@ -1,0 +1,76 @@
+{
+  "id": "quest-id-here",
+  "name": "Display Name of the Quest",
+  "category": "main",
+  "difficulty": "Novice",
+  "step_count": 0,
+  "total_qp": 1,
+  "description": "Short summary of the quest story.",
+  "start_condition": {
+    "type": "talk",
+    "target": "npc-id",
+    "location": "location-id",
+    "start_hint": "Speak with [NPC Name] in [Location Name] to begin."
+  },
+  "requirements": [
+    {
+      "type": "class",
+      "values": [
+        "Fighter"
+      ],
+      "description": "Only a true warrior can undertake this task."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Strength 14"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "stage-1-id",
+      "description": "What the player needs to do first.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "npc-id-here",
+          "description": "Speak with the contact."
+        }
+      ]
+    },
+    {
+      "id": "stage-2-id",
+      "description": "The final stage that grants the reward.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "monster-id",
+          "count": 3,
+          "description": "Defeat three of them."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 12,
+          "description": "Spot the hidden detail."
+        }
+      ],
+      "rewards": {
+        "xp": 200,
+        "gold": 50,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "item-id",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

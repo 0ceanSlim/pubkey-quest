@@ -1,0 +1,123 @@
+{
+  "id": "shadowmere-hermit",
+  "name": "The Shadowmere Hermit",
+  "category": "utility",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.25,
+  "description": "A rickety hut built on stilts above the black swamp water. A strange, pungent incense smoke drifts from the windows.",
+  "discovery": {
+    "chance": 0.3,
+    "message": "You find a series of wooden poles marked with bone charms leading toward a secluded hut."
+  },
+  "start_node": "hut-exterior",
+  "nodes": {
+    "hut-exterior": {
+      "text": "The wooden stairs are slippery with swamp moss. An old, blind woman sits on the porch, brewing a bubbling cauldron.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Speak with the Hermit.",
+          "next": "hermit-dialogue"
+        },
+        {
+          "label": "[Perception 15] Discreetly search the crates on the porch.",
+          "next": "porch-search",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "perception",
+              "min": 15
+            }
+          ]
+        },
+        {
+          "label": "Offer a Flask of Oil to help her fire.",
+          "next": "oil-offering",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "flask-of-oil",
+              "consumed": true
+            }
+          ]
+        }
+      ]
+    },
+    "hermit-dialogue": {
+      "text": "'I smell the dust of the road on you, traveler,' the woman rasps. 'The swamp takes many, but perhaps you have something to trade for my wisdom?'",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Charisma 14] I seek knowledge of the Sunken Temple.",
+          "next": "temple-lore",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "charisma",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "What do you have for trade?",
+          "next": "hermit-shop"
+        },
+        {
+          "label": "I'll be on my way.",
+          "next": "leave"
+        }
+      ]
+    },
+    "temple-lore": {
+      "text": "'Ah, the temple... it hungers. Take this. It might help you breathe where the water is thick.'",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "potion-of-water-breathing",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "hermit-dialogue"
+    },
+    "hermit-shop": {
+      "text": "She reveals a collection of strange herbs and concoctions.",
+      "type": "npc_interaction",
+      "npc_ids": [
+        "shadowmere-hermit"
+      ],
+      "is_terminal": true
+    },
+    "porch-search": {
+      "text": "You find a hidden compartment containing rare swamp herbs and a curious glass vial.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "hermit-stash",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "hut-exterior"
+    },
+    "oil-offering": {
+      "text": "She nods in appreciation as the cauldron flares bright blue. 'You have a kind heart for a stranger. Take this charm.'",
+      "type": "reward",
+      "reward": {
+        "xp": 100,
+        "effect": {
+          "id": "divine-grace"
+        }
+      },
+      "is_terminal": true
+    }
+  },
+  "npc_ids": [
+    "shadowmere-hermit"
+  ]
+}
+
+
+

@@ -1,0 +1,138 @@
+{
+  "id": "raven-shrine",
+  "name": "The Shrine of the Raven Queen",
+  "category": "landmark",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.5,
+  "description": "A circle of black stones surrounds a weeping willow. Ravens perch on the branches, watching you with unnerving intelligence.",
+  "discovery": {
+    "chance": 0.5,
+    "message": "Through the swamp mist, you spot a circle of ancient black stones."
+  },
+  "start_node": "approach",
+  "nodes": {
+    "approach": {
+      "text": "The air is cold and still. The ravens track your every move. A large stone altar sits at the center of the circle.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Good] Pray for the lost souls of the swamp.",
+          "next": "pray-good",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "good"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Evil] Offer blood to the ancient stones.",
+          "next": "offer-blood",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "evil"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Intelligence 14] Study the weathered runes on the stones.",
+          "next": "study-runes",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "intelligence",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "[Resolve 14] Meditate in the center of the circle.",
+          "next": "meditate",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "resolve",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "Leave the shrine.",
+          "next": "leave"
+        }
+      ]
+    },
+    "pray-good": {
+      "text": "The ravens caw in unison. You feel a sense of clarity and protection.",
+      "type": "effect",
+      "effect": {
+        "id": "divine-grace",
+        "duration_minutes": 720
+      },
+      "is_terminal": true
+    },
+    "offer-blood": {
+      "text": "The stones pulse with a dark light as your blood hits the altar. Power flows through you, but it feels hungry.",
+      "type": "damage",
+      "damage": {
+        "type": "necrotic",
+        "amount": 5
+      },
+      "next": "offer-blood-result"
+    },
+    "offer-blood-result": {
+      "text": "The dark power settles in your bones.",
+      "type": "effect",
+      "effect": {
+        "id": "blood-lust",
+        "duration_minutes": 720
+      },
+      "is_terminal": true
+    },
+    "study-runes": {
+      "text": "You trace the carvings with your fingers.",
+      "type": "check",
+      "skill": "medicine",
+      "dc": 15,
+      "success_text": "The runes speak of the cycle of life and death. You gain a deeper understanding of the world's hidden mechanics.",
+      "success_next": "study-success",
+      "failure_text": "The carvings are too weathered to read.",
+      "failure_next": "approach"
+    },
+    "study-success": {
+      "text": "Your mind expands with new knowledge.",
+      "type": "reward",
+      "reward": {
+        "xp": 150
+      },
+      "is_terminal": true
+    },
+    "meditate": {
+      "text": "You sit cross-legged and close your eyes, ignoring the whispers of the ravens.",
+      "type": "check",
+      "skill": "resolve",
+      "dc": 16,
+      "success_text": "You find a moment of perfect stillness. Your mental fatigue vanishes.",
+      "success_next": "meditate-success",
+      "failure_text": "The whispers become screams in your mind. You can't maintain your focus.",
+      "failure_next": "approach"
+    },
+    "meditate-success": {
+      "text": "You feel refreshed and focused.",
+      "type": "effect",
+      "effect": {
+        "id": "performance-high",
+        "duration_minutes": 360
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

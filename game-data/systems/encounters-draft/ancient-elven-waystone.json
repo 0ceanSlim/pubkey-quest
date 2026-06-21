@@ -1,0 +1,110 @@
+{
+  "id": "ancient-elven-waystone",
+  "name": "The Elven Waystone",
+  "description": "A slender pillar of white stone stands in a clearing, covered in flowing, vine-like carvings. It hums with a faint, melodic resonance.",
+  "trigger": "travel",
+  "valid_locations": [
+    "darkwood-forest",
+    "shadowmere-wetlands"
+  ],
+  "chance": 0.015,
+  "repeatable": true,
+  "start_node": "waystone-initial",
+  "nodes": {
+    "waystone-initial": {
+      "text": "The magic here is old and deep. A small basin at the base of the stone is filled with crystal-clear rainwater.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Elf/Half-Elf] Recite the ancient greeting of the woods.",
+          "next": "elven-blessing",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Elf",
+                "Half-Elf"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Druid/Wizard] Attempt to attune to the stone's resonance.",
+          "next": "arcane-attunement-check",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Druid",
+                "Wizard"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Drink the water from the basin.",
+          "next": "drink-water"
+        },
+        {
+          "label": "Leave the stone alone.",
+          "next": "exit"
+        }
+      ]
+    },
+    "elven-blessing": {
+      "text": "The carvings glow with a soft green light as you speak. The forest seems to breathe with you, and your path ahead becomes clear.",
+      "type": "reward",
+      "reward": {
+        "xp": 100,
+        "effect": {
+          "id": "wind-walker"
+        }
+      },
+      "is_terminal": true
+    },
+    "arcane-attunement-check": {
+      "type": "check",
+      "skill": "medicine",
+      "dc": 14,
+      "success_text": "You sync your own energy with the waystone. The resonance restores your magical focus.",
+      "success_next": "mana-restore",
+      "failure_text": "The resonance is too complex to grasp. The hum becomes a jarring discord.",
+      "failure_next": "arcane-fail"
+    },
+    "mana-restore": {
+      "text": "Your mind feels sharp and energized.",
+      "type": "effect",
+      "effect": {
+        "id": "mana-regeneration",
+        "duration_minutes": 240
+      },
+      "is_terminal": true
+    },
+    "arcane-fail": {
+      "text": "The magical backlash rattles your focus.",
+      "type": "effect",
+      "effect": {
+        "id": "stage-fright",
+        "duration_minutes": 120
+      },
+      "is_terminal": true
+    },
+    "drink-water": {
+      "text": "The water is sweet and refreshing. You feel your fatigue melting away.",
+      "type": "effect",
+      "effect": {
+        "id": "performance-high",
+        "duration_minutes": 180
+      },
+      "is_terminal": true
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "The waystone continues its lonely hum as you depart.",
+      "is_terminal": true
+    }
+  }
+}
+
+
+

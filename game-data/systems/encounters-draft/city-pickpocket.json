@@ -1,0 +1,168 @@
+{
+  "id": "city-pickpocket",
+  "name": "The Nimble Thief",
+  "description": "As you navigate the crowded street, a small figure in a tattered cloak bumps into you and tries to disappear into the crowd.",
+  "trigger": "location",
+  "valid_locations": [
+    "goldenhaven-center",
+    "goldenhaven-east",
+    "kingdom-center"
+  ],
+  "chance": 0.05,
+  "repeatable": true,
+  "cooldown_minutes": 720,
+  "start_node": "detection-passive",
+  "nodes": {
+    "detection-passive": {
+      "type": "passive_check",
+      "skill": "perception",
+      "dc": 14,
+      "success_next": "catch-thief",
+      "failure_next": "rogue-intuition"
+    },
+    "rogue-intuition": {
+      "type": "choice",
+      "text": "Something feels off, but you can't place what.",
+      "choices": [
+        {
+          "label": "[Rogue] Your street-smarts tingle. You grab for your purse.",
+          "next": "catch-thief",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Rogue"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Shrug it off and keep walking.",
+          "next": "lose-gold"
+        }
+      ]
+    },
+    "catch-thief": {
+      "type": "choice",
+      "text": "You grab the wrist of a young boy just as his hand leaves your purse. He freezes, looking up at you with wide, terrified eyes.",
+      "choices": [
+        {
+          "label": "[Good] Let him go with a warning.",
+          "next": "good-warning",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "good",
+                "neutral_good",
+                "lawful_good",
+                "chaotic_good"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Influence 14] 'You shouldn't have to steal to eat.' (Offer Charity)",
+          "next": "charity",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "influence",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "[Lawful] Hand him over to the city watch.",
+          "next": "lawful-watch",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "lawful_good",
+                "lawful_neutral",
+                "lawful_evil"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Resolve 12] Scare him into giving up his other loot.",
+          "next": "scare-check",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "resolve",
+              "min": 12
+            }
+          ]
+        }
+      ]
+    },
+    "good-warning": {
+      "type": "reward",
+      "text": "He looks relieved and vanishes into the alleyways before you can change your mind.",
+      "reward": {
+        "xp": 25
+      },
+      "is_terminal": true
+    },
+    "charity": {
+      "type": "transaction",
+      "text": "You hand the boy 10 gold pieces. He is stunned, whispers 'Thank you, Saint' before vanishing.",
+      "cost": {
+        "gold": 10
+      },
+      "reward": {
+        "xp": 150
+      },
+      "is_terminal": true
+    },
+    "lawful-watch": {
+      "type": "loot",
+      "text": "You drag him to the nearest guard post. Order must be maintained. The guard hands you a small finder's fee.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": 5
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "scare-check": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 12,
+      "success_text": "The boy trembles and hands over a silver ring he pinched earlier. He then bolts away.",
+      "success_next": "scare-loot",
+      "failure_text": "He kicks your shin and wiggles free, disappearing into the crowd.",
+      "failure_next": "lose-gold"
+    },
+    "scare-loot": {
+      "type": "loot",
+      "text": "The ring looks valuable.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "silver-ring",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "lose-gold": {
+      "type": "transaction",
+      "text": "The figure is gone before you even realize your coin purse feels lighter.",
+      "cost": {
+        "gold": 10
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

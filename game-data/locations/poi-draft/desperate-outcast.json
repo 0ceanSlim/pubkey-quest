@@ -1,0 +1,29 @@
+{
+  "id": "desperate-outcast",
+  "name": "The Desperate Outcast",
+  "category": "settlement",
+  "parent_environment": "cragspire-mountains",
+  "position": 0.6,
+  "description": "An orc with a broken tusk and ragged armor sits by a dying fire. He grips a jagged blade as you approach, but his eyes show more exhaustion than malice.",
+  "discovery": {
+    "chance": 0.8,
+    "message": "You see a small plume of smoke rising from a sheltered rocky cleft."
+  },
+  "start_node": "approach",
+  "nodes": {
+    "approach": {
+      "type": "npc_interaction",
+      "text": "An exiled orc warrior watches you warily from his fire.",
+      "npc_ids": [
+        "exiled-orc"
+      ],
+      "is_terminal": true
+    }
+  },
+  "npc_ids": [
+    "exiled-orc"
+  ]
+}
+
+
+

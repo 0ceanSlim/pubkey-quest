@@ -1,0 +1,153 @@
+{
+  "id": "rogues-shadow-trial",
+  "name": "The Rogue's Shadow Trial",
+  "category": "class",
+  "difficulty": "Experienced",
+  "step_count": 6,
+  "total_qp": 3,
+  "description": "The Master of Shadows has a task to test your stealth and guile. Success means entry into the inner circle.",
+  "start_condition": {
+    "type": "talk",
+    "target": "whispering-jack",
+    "location": "shadow-alley-den",
+    "start_hint": "Find Whispering Jack in the Shadow Alley Den."
+  },
+  "requirements": [
+    {
+      "type": "class",
+      "values": [
+        "Rogue"
+      ],
+      "description": "Only those who walk in shadows may apply."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Dexterity 16",
+      "Perception 14",
+      "Intelligence 12"
+    ],
+    "combat_danger": "Low"
+  },
+  "stages": [
+    {
+      "id": "find-the-den",
+      "description": "Locate the secret entrance to the Shadow Alley Den and convince Whispering Jack you're worth his time.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "shadow-alley-den",
+          "description": "Locate the hidden basement entrance."
+        },
+        {
+          "type": "talk",
+          "target": "whispering-jack",
+          "description": "Use the secret guild sign to speak with Jack."
+        }
+      ]
+    },
+    {
+      "id": "casing-the-joint",
+      "description": "Jack needs you to scout the 'Viper's' merchant contact in Goldenhaven to ensure he's not a spy.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "goldenhaven-east",
+          "description": "Travel to the merchant district."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 15,
+          "description": "Tail the merchant to his meeting spot."
+        }
+      ]
+    },
+    {
+      "id": "the-dead-drop",
+      "description": "The merchant left a message in a dead drop. Retrieve it without being seen.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "guild-dead-drop-letter",
+          "count": 1,
+          "description": "Retrieve the letter from the loose brick."
+        },
+        {
+          "type": "check",
+          "skill": "thieving",
+          "value": 14,
+          "description": "Pick the lock on the dead drop container."
+        }
+      ]
+    },
+    {
+      "id": "prove-your-worth",
+      "description": "Jack is satisfied, but the Master needs a real demonstration. Infiltrate the Den's gauntlet and steal the Golden Viper.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "shadow-alley-den",
+          "description": "Re-enter the Den's gauntlet."
+        },
+        {
+          "type": "check",
+          "skill": "thieving",
+          "value": 18,
+          "description": "Disarm the heavy vault lock."
+        }
+      ]
+    },
+    {
+      "id": "steal-the-mark",
+      "description": "Retrieve the 'Golden Viper' statuette from the vault. Watch out for the pressure plates.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "golden-viper-statue",
+          "count": 1,
+          "description": "Steal the mark."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 12,
+          "description": "Avoid the poison gas trap."
+        }
+      ]
+    },
+    {
+      "id": "return-to-master",
+      "description": "Bring the statuette back to Viper herself.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "viper",
+          "description": "Hand over the Golden Viper to the Master."
+        }
+      ],
+      "rewards": {
+        "xp": 800,
+        "gold": 200,
+        "items": [
+          {
+            "id": "thieves-kit",
+            "quantity": 1
+          },
+          {
+            "id": "poison-vial",
+            "quantity": 3
+          },
+          {
+            "id": "guild-signet-ring",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

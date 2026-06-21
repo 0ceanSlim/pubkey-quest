@@ -1,0 +1,124 @@
+{
+  "id": "tavern-brawler",
+  "name": "The Drunken Brawler",
+  "description": "A massive, soot-stained laborer slams his tankard onto the table and glares at you. 'You! You're the one who was lookin' at my brother funny, ain't ya?'",
+  "trigger": "building_type",
+  "building_types": [
+    "tavern",
+    "inn"
+  ],
+  "chance": 0.08,
+  "repeatable": true,
+  "cooldown_minutes": 720,
+  "start_node": "initial",
+  "nodes": {
+    "initial": {
+      "type": "choice",
+      "text": "He's drunk, angry, and looking for a reason to swing.",
+      "choices": [
+        {
+          "label": "[Monk] (Non-lethal pressure point strike)",
+          "next": "monk-knockout",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Monk"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Half-Orc] (Intimidate with a guttural snarl)",
+          "next": "scare-off",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Half-Orc"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Influence 14] 'You've had one too many, friend. Let me buy the next round.'",
+          "next": "calm-down",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "influence",
+              "min": 14
+            },
+            {
+              "type": "item",
+              "id": "gold-piece",
+              "min": 2
+            }
+          ]
+        },
+        {
+          "label": "[Resolve] Sit down before I sit you down.",
+          "next": "intimidate-check"
+        },
+        {
+          "label": "Stand up and square off.",
+          "next": "start-fight"
+        }
+      ]
+    },
+    "intimidate-check": {
+      "type": "check",
+      "text": "You hold his gaze and let your hand drift toward your weapon.",
+      "skill": "resolve",
+      "dc": 15,
+      "success_next": "scare-off",
+      "failure_text": "He grins through broken teeth. 'You think you scare me, stranger?'",
+      "failure_next": "start-fight"
+    },
+    "monk-knockout": {
+      "type": "reward",
+      "text": "In a blur of movement, you tap a point on his neck. He collapses instantly and silently. The tavern barely notices.",
+      "reward": {
+        "xp": 100
+      },
+      "is_terminal": true
+    },
+    "calm-down": {
+      "type": "transaction",
+      "text": "He blinks, his anger fading into a bleary grin as you slide him a fresh tankard. 'Aye... maybe I did. You're a good sort!'",
+      "cost": {
+        "gold": 2
+      },
+      "reward": {
+        "xp": 25
+      },
+      "is_terminal": true
+    },
+    "scare-off": {
+      "type": "reward",
+      "text": "He looks at your steady hand and cold eyes, then mutters an apology and stumbles back to his seat.",
+      "reward": {
+        "xp": 50
+      },
+      "is_terminal": true
+    },
+    "start-fight": {
+      "type": "monster",
+      "text": "'That's it!' he roars, swinging a wild haymaker.",
+      "monster_id": "bandit",
+      "count": 1,
+      "next": "fight-aftermath"
+    },
+    "fight-aftermath": {
+      "type": "reward",
+      "text": "The brawler crashes to the floor. The other patrons give you a wide berth.",
+      "reward": {
+        "xp": 75
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

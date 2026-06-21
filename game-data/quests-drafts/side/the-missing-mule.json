@@ -1,0 +1,83 @@
+{
+  "id": "the-missing-mule",
+  "name": "The Missing Mule",
+  "category": "side",
+  "difficulty": "Moderate",
+  "step_count": 4,
+  "total_qp": 1,
+  "description": "A traveling merchant has lost his mule and cargo in the mountain pass.",
+  "start_condition": {
+    "type": "explore",
+    "target": "wayward-wagon",
+    "location": "merchants-highway",
+    "start_hint": "Find Barnaby the Merchant at the Wayward Wagon on the Merchant's Highway."
+  },
+  "requirements": [],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Strength 12"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "talk-to-merchant",
+      "description": "Speak with Barnaby at the Wayward Wagon.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "barnaby-merchant",
+          "description": "Ask about his lost mule, 'Buttercup'."
+        }
+      ]
+    },
+    {
+      "id": "find-buttercup",
+      "description": "Search the mountain pass for signs of the mule.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "mountain-pass-overlook",
+          "description": "Find the clearing where Buttercup was last seen."
+        }
+      ]
+    },
+    {
+      "id": "rescue-mule",
+      "description": "Buttercup is cornered by wolves!",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "dire-wolf",
+          "count": 3,
+          "description": "Defeat the wolves threatening the mule."
+        }
+      ]
+    },
+    {
+      "id": "return-to-barnaby",
+      "description": "Bring Buttercup (or at least her cargo) back to Barnaby.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "barnaby-merchant",
+          "description": "Inform Barnaby of the rescue."
+        }
+      ],
+      "rewards": {
+        "xp": 300,
+        "gold": 150,
+        "items": [
+          {
+            "id": "spices",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

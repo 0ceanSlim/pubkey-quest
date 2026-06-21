@@ -1,0 +1,96 @@
+{
+  "id": "the-missing-heirloom",
+  "name": "The Missing Heirloom",
+  "category": "side",
+  "step_count": 8,
+  "difficulty": "Novice",
+  "total_qp": 1,
+  "description": "The Mayor's family ring has been stolen by bandits. It must be recovered.",
+  "start_condition": {
+    "type": "talk",
+    "target": "mayor-thomas",
+    "location": "goldenhaven-center",
+    "start_hint": "Speak with Mayor Thomas in the center of Goldenhaven."
+  },
+  "requirements": [],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Perception 10"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "talk-to-mayor",
+      "description": "Speak with Mayor Thomas about the theft.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "mayor-thomas",
+          "description": "Ask about the family ring."
+        }
+      ]
+    },
+    {
+      "id": "locate-bandit-den",
+      "description": "Search the Darkwood Forest for the bandit camp.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "abandoned-watchtower",
+          "description": "Reach the Abandoned Watchtower."
+        }
+      ]
+    },
+    {
+      "id": "recover-ring",
+      "description": "Retrieve the Silver Signet Ring from the bandit leader.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "bandit",
+          "count": 3,
+          "description": "Defeat the bandits guarding the tower."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 12,
+          "description": "Find the hidden compartment in the tower's upper floor."
+        },
+        {
+          "type": "fetch",
+          "target": "silver-signet-ring",
+          "count": 1,
+          "description": "Recover the ring."
+        }
+      ]
+    },
+    {
+      "id": "return-to-mayor",
+      "description": "Return the ring to Mayor Thomas.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "mayor-thomas",
+          "description": "Hand over the signet ring."
+        }
+      ],
+      "rewards": {
+        "xp": 300,
+        "gold": 200,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "cloak-of-protection",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

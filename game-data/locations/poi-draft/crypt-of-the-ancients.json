@@ -1,0 +1,188 @@
+{
+  "id": "crypt-of-the-ancients",
+  "name": "Crypt of the Ancients",
+  "category": "dungeon",
+  "parent_environment": "merchants-highway",
+  "position": 0.85,
+  "description": "An imposing stone archway carved into the side of a hill. Faint, bluish light flickers from within.",
+  "discovery": {
+    "chance": 0.1,
+    "skill": "perception",
+    "dc": 18,
+    "message": "You notice a curious alignment of standing stones that points toward a hidden entrance in the hillside."
+  },
+  "start_node": "entrance",
+  "nodes": {
+    "entrance": {
+      "text": "The air inside is cold and heavy with the scent of incense. The main hall leads straight ahead, but a dusty side-passage is partially hidden by a fallen tapestry.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Walk down the main hall.",
+          "next": "main-hall-skeletons"
+        },
+        {
+          "label": "[Perception 15] Search the side-passage.",
+          "next": "side-passage-find",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "perception",
+              "min": 15
+            }
+          ]
+        },
+        {
+          "label": "Use Holy Water on the threshold to ward off evil.",
+          "next": "holy-threshold",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "holy-water",
+              "consumed": true
+            }
+          ]
+        }
+      ]
+    },
+    "main-hall-skeletons": {
+      "text": "As you walk down the hall, skeletal remains on the floor begin to rattle and knit themselves together!",
+      "type": "monster",
+      "monster_id": "skeleton",
+      "count": 4,
+      "next": "grand-chamber"
+    },
+    "side-passage-find": {
+      "text": "The passage is narrow and filled with cobwebs. You spot a tripwire connected to a heavy swinging blade.",
+      "type": "check",
+      "skill": "thieving",
+      "dc": 14,
+      "success_text": "You nimbly disarm the trap and bypass the main hall entirely.",
+      "success_next": "grand-chamber",
+      "failure_text": "You trigger the trap! The blade swings down with a whistle.",
+      "failure_next": "trap-blade-damage"
+    },
+    "trap-blade-damage": {
+      "text": "The blade slashes your side. (Took 8 Slashing Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "slashing",
+        "amount": 8
+      },
+      "next": "grand-chamber"
+    },
+    "holy-threshold": {
+      "text": "The Holy Water sizzles on the stone. A protective barrier forms, and the restless spirits in the hall remain dormant as you pass.",
+      "type": "narrative",
+      "next": "grand-chamber"
+    },
+    "grand-chamber": {
+      "text": "You arrive at a grand chamber with a massive stone sarcophagus. To the left is a small shrine, and to the right is a staircase leading deeper into the dark.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Resolve 16] Meditate at the shrine.",
+          "next": "shrine-meditation",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "resolve",
+              "min": 16
+            }
+          ]
+        },
+        {
+          "label": "Loot the ancient sarcophagus.",
+          "next": "sarcophagus-loot"
+        },
+        {
+          "label": "Venture deeper into the dark.",
+          "next": "hall-of-whispers"
+        }
+      ]
+    },
+    "hall-of-whispers": {
+      "text": "The staircase leads into a narrow tunnel where the air vibrates with psychic energy. Whispers of your past failures echo in your mind, threatening to overwhelm your will.",
+      "type": "check",
+      "skill": "resolve",
+      "dc": 15,
+      "success_text": "You steel your mind against the voices. Their power fades as you press forward.",
+      "success_next": "crypt-shortcut",
+      "failure_text": "The whispers become a deafening roar of despair. You find yourself fleeing back to the grand chamber, trembling.",
+      "failure_next": "hall-of-whispers-fail"
+    },
+    "hall-of-whispers-fail": {
+      "text": "The mental strain has taken a toll. (Took 4 Psychic Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "psychic",
+        "amount": 4
+      },
+      "next": "grand-chamber"
+    },
+    "shrine-meditation": {
+      "text": "You feel a profound sense of peace. The spirits of the ancients bless your journey.",
+      "type": "reward",
+      "reward": {
+        "xp": 250,
+        "effect": {
+          "id": "divine-grace",
+          "duration_minutes": 720
+        }
+      },
+      "is_terminal": true
+    },
+    "sarcophagus-loot": {
+      "text": "As you heave the lid open, a powerful Wight rises from the grave!",
+      "type": "monster",
+      "monster_id": "wight",
+      "count": 1,
+      "next": "sarcophagus-success"
+    },
+    "sarcophagus-success": {
+      "text": "Inside the sarcophagus, you find the treasures of a forgotten king.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              200,
+              500
+            ]
+          }
+        ],
+        "rolls": 1,
+        "tiers": [
+          {
+            "name": "rare",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "longsword",
+                "quantity": 1
+              },
+              {
+                "item": "amulet",
+                "quantity": 1
+              },
+              {
+                "item": "ring",
+                "quantity": 1
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "crypt-shortcut": {
+      "text": "Past the Hall of Whispers, you find a series of well-maintained tunnels that eventually emerge far to the north.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}
+
+
+

@@ -1,0 +1,117 @@
+{
+  "id": "forgotten-battlefield",
+  "name": "The Forgotten Battlefield",
+  "category": "landmark",
+  "parent_environment": "merchants-highway",
+  "position": 0.7,
+  "description": "The grass here is unnaturally long, hiding the rusted remains of spears and shields. This was the site of a great battle long ago.",
+  "discovery": {
+    "chance": 0.7,
+    "message": "The road passes through a wide, silent plain littered with the rusted metal of a past age."
+  },
+  "start_node": "the-field",
+  "nodes": {
+    "the-field": {
+      "text": "The wind whistles through the rusted relics of war. You can see a partially collapsed war monument in the distance.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Intelligence 14] Search for the Commander's remains.",
+          "next": "search-remains",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "intelligence",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "[Charisma 12] Offer a moment of silence for the fallen.",
+          "next": "honor-fallen",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "charisma",
+              "min": 12
+            }
+          ]
+        },
+        {
+          "label": "Scavenge the field for anything useful.",
+          "next": "scavenge-field"
+        },
+        {
+          "label": "Leave the battlefield.",
+          "next": "leave"
+        }
+      ]
+    },
+    "leave": {
+      "type": "exit",
+      "text": "You leave the battlefield to the silence of the dead.",
+      "is_terminal": true
+    },
+    "search-remains": {
+      "text": "You use your knowledge of military history to identify where the high-ranking officers might have fallen.",
+      "type": "check",
+      "skill": "medicine",
+      "dc": 12,
+      "success_text": "You find a half-buried helm with the markings of the Royal Vanguard. Beneath it lies a fine blade.",
+      "success_next": "commander-loot",
+      "failure_text": "You find only rusted scrap and bone fragments.",
+      "failure_next": "the-field"
+    },
+    "commander-loot": {
+      "text": "The longsword is still in remarkably good condition.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "longsword",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "honor-fallen": {
+      "text": "A brief sense of peace settles over the field. You feel more connected to the history of these lands.",
+      "type": "reward",
+      "reward": {
+        "xp": 75
+      },
+      "is_terminal": true
+    },
+    "scavenge-field": {
+      "text": "As you pick through the debris, the ground begins to churn. A restless spirit rises from the earth!",
+      "type": "monster",
+      "monster_id": "skeleton",
+      "count": 2,
+      "next": "scavenge-success"
+    },
+    "scavenge-success": {
+      "text": "With the spirits laid to rest, you find a few loose coins and a dented shield.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              5,
+              10
+            ]
+          },
+          {
+            "item": "shield",
+            "quantity": 1
+          }
+        ]
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

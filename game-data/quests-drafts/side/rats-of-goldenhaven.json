@@ -1,0 +1,128 @@
+{
+  "id": "rats-of-goldenhaven",
+  "name": "The Rats of Goldenhaven",
+  "category": "side",
+  "difficulty": "Novice",
+  "step_count": 12,
+  "total_qp": 1,
+  "description": "The local tavern's cellar is overrun with oversized rats. The owner is desperate for help, but there may be more to this infestation than meets the eye.",
+  "start_condition": {
+    "type": "talk",
+    "target": "tavern-owner-bob",
+    "location": "goldenhaven-east",
+    "start_hint": "Speak with the tavern owner in Goldenhaven East."
+  },
+  "recommended": {
+    "recommended_stats": [
+      "Strength 10",
+      "Perception 10"
+    ],
+    "combat_danger": "Low"
+  },
+  "stages": [
+    {
+      "id": "clear-cellar",
+      "description": "Defeat the giant rats in the tavern's cellar.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "giant-rat",
+          "count": 5,
+          "description": "Exterminate the rats."
+        }
+      ]
+    },
+    {
+      "id": "the-hole-in-the-wall",
+      "description": "Investigate the breach in the cellar wall.",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 12,
+          "description": "Examine the breach."
+        },
+        {
+          "type": "explore",
+          "target": "sewer-tunnels-entry",
+          "description": "Enter the sewers."
+        }
+      ]
+    },
+    {
+      "id": "sewer-navigation",
+      "description": "Navigate the labyrinthine sewer tunnels to find the rat nest.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "sewer-junction-a",
+          "description": "Reach the main junction."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 10,
+          "description": "Track the rats through the muck."
+        },
+        {
+          "type": "slay",
+          "target": "giant-rat",
+          "count": 3,
+          "description": "Clear the junction."
+        }
+      ]
+    },
+    {
+      "id": "the-rat-king",
+      "description": "A 'Rat King' - a cluster of rats joined by magic - is nesting in the drainage chamber.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "sewer-drainage-chamber",
+          "description": "Locate the source."
+        },
+        {
+          "type": "check",
+          "skill": "medicine",
+          "value": 10,
+          "description": "Identify the strange blue residue."
+        },
+        {
+          "type": "slay",
+          "target": "rat-king-boss",
+          "count": 1,
+          "description": "Defeat the Rat King."
+        }
+      ]
+    },
+    {
+      "id": "bob-confrontation",
+      "description": "Return to Bob and confront him about his 'Special Brew' spill.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "tavern-owner-bob",
+          "description": "Collect reward and explain the Rat King."
+        }
+      ],
+      "rewards": {
+        "xp": 400,
+        "gold": 100,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "ale-mug",
+            "quantity": 1
+          },
+          {
+            "id": "rat-tail-trophy",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

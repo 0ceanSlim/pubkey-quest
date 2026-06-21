@@ -1,0 +1,150 @@
+{
+  "id": "sword-of-the-ancestors",
+  "name": "The Sword of the Ancestors",
+  "category": "race",
+  "difficulty": "Experienced",
+  "step_count": 6,
+  "total_qp": 3,
+  "description": "A legendary dwarven blade was lost when the Flooded Mine was abandoned. It must be recovered to restore the honor of your clan, but you'll need the right tools and connections to reach the lowest depths.",
+  "start_condition": {
+    "type": "talk",
+    "target": "thistle-goldworthy",
+    "location": "merchants-highway",
+    "start_hint": "Speak with Thistle Goldworthy at the Wayward Wagon."
+  },
+  "requirements": [
+    {
+      "type": "race",
+      "values": [
+        "Dwarf"
+      ],
+      "description": "This is a matter of dwarven honor."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Strength 16",
+      "Resolve 14",
+      "Athletics 14"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "clue-gathering",
+      "description": "Thistle saw a band of kobolds carrying a rusted but ornate hilt into the Cragspire Mountains.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "thistle-goldworthy",
+          "description": "Ask Thistle about kobold activity."
+        },
+        {
+          "type": "explore",
+          "target": "cragspire-mountains",
+          "description": "Search the mountain pass for kobold tracks."
+        }
+      ]
+    },
+    {
+      "id": "tool-preparation",
+      "description": "Kobold tracks lead into the Flooded Mine, but the lowest level is blocked by a massive iron grate. You'll need a heavy-duty crowbar.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "heavy-crowbar",
+          "count": 1,
+          "description": "Obtain a Heavy Crowbar (Can be bought or found)."
+        }
+      ]
+    },
+    {
+      "id": "explore-mine-depths",
+      "description": "Use the crowbar to bypass the grate and enter the lowest mining shafts.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "flooded-mine-depths",
+          "description": "Reach the Kobold Warrens in the mine."
+        },
+        {
+          "type": "check",
+          "skill": "athletics",
+          "value": 16,
+          "description": "Climb down the rusted scaffolding."
+        }
+      ]
+    },
+    {
+      "id": "kobold-skirmish",
+      "description": "Clear the kobolds defending the stolen blade.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "kobold-warrior",
+          "count": 10,
+          "description": "Defeat the warren guards."
+        },
+        {
+          "type": "slay",
+          "target": "kobold-shaman",
+          "count": 1,
+          "description": "Banish the Shaman guarding the hilt."
+        }
+      ]
+    },
+    {
+      "id": "recover-blade",
+      "description": "Retrieve the Ancestral Blade. It's partially embedded in a geode.",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 15,
+          "description": "Find the geode's weak point."
+        },
+        {
+          "type": "fetch",
+          "target": "ancestral-blade",
+          "count": 1,
+          "description": "Recover the blade."
+        }
+      ]
+    },
+    {
+      "id": "honor-restored",
+      "description": "Perform the ritual of clan restoration at the Dwarven Geode Cache.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "dwarven-geode-cache",
+          "description": "Reach the Geode Cache."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 15,
+          "description": "Perform the clan ritual."
+        }
+      ],
+      "rewards": {
+        "xp": 1000,
+        "gold": 300,
+        "items": [
+          {
+            "id": "ancestral-blade-restored",
+            "quantity": 1
+          },
+          {
+            "id": "blessed-incense",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

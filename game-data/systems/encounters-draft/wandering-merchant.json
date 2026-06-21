@@ -1,0 +1,142 @@
+{
+  "id": "wandering-merchant",
+  "name": "Barnaby's Traveling Trade",
+  "description": "A cheerful merchant leads a heavily laden pony along the road. He waves enthusiastically as he sees you.",
+  "trigger": "travel",
+  "valid_locations": [
+    "merchants-highway",
+    "windswept-hills",
+    "suncrest-coastlands"
+  ],
+  "chance": 0.12,
+  "repeatable": true,
+  "cooldown_minutes": 360,
+  "start_node": "approach",
+  "nodes": {
+    "approach": {
+      "type": "npc_interaction",
+      "text": "'Greetings! I'm Barnaby. I've got everything a traveler needs to stay fed, warm, and mostly alive! Care to trade?'",
+      "npc_ids": [
+        "barnaby-the-trader"
+      ],
+      "is_terminal": true
+    }
+  },
+  "npcs": [
+    {
+      "id": "barnaby-the-trader",
+      "name": "Barnaby Wynn",
+      "title": "Wandering Merchant",
+      "race": "Human",
+      "description": "A cheerful, road-worn human leading a heavily laden pony. His pack overflows with rations, torches, and odds and ends from across the kingdoms.",
+      "greeting": {
+        "first_time": "Greetings! I'm Barnaby. I've got everything a traveler needs to stay fed, warm, and mostly alive! Care to trade?",
+        "returning": "Back so soon? My pony will be glad of the rest. What'll it be?"
+      },
+      "dialogue": {
+        "main_menu": {
+          "text": "What can I get for you today?",
+          "options": [
+            {
+              "label": "Show me what you've got.",
+              "action": "open_shop"
+            },
+            {
+              "label": "[Wizard] Do you have any reagents for a fellow seeker of knowledge?",
+              "next": "arcane_shop",
+              "requirements": [
+                {
+                  "type": "class",
+                  "values": [
+                    "Wizard",
+                    "Sorcerer"
+                  ]
+                }
+              ]
+            },
+            {
+              "label": "[Paladin/Cleric] Any holy icons or blessed supplies?",
+              "next": "holy_shop",
+              "requirements": [
+                {
+                  "type": "class",
+                  "values": [
+                    "Paladin",
+                    "Cleric"
+                  ]
+                }
+              ]
+            },
+            {
+              "label": "[Influence 12] Any 'wayfarer's special' today?",
+              "next": "discount",
+              "requirements": [
+                {
+                  "type": "skill",
+                  "id": "influence",
+                  "min": 12
+                }
+              ]
+            },
+            {
+              "label": "Farewell, Barnaby.",
+              "next": "goodbye"
+            }
+          ]
+        },
+        "arcane_shop": {
+          "text": "A spellcaster! I have just the thing - some fine silver dust and a few rare herbs.",
+          "action": "open_shop_filtered_arcane"
+        },
+        "holy_shop": {
+          "text": "Always room for the divine! I have some blessed incense tucked away.",
+          "action": "open_shop_filtered_holy"
+        },
+        "discount": {
+          "text": "For a friendly face? Always! I'll knock a few coins off the basics.",
+          "action": "apply_temporary_discount",
+          "options": [
+            {
+              "label": "Thanks!",
+              "next": "main_menu"
+            }
+          ]
+        },
+        "goodbye": {
+          "text": "Safe travels, friend! May your boots never wear thin!",
+          "action": "end_dialogue"
+        }
+      },
+      "shop_config": {
+        "shop_type": "general",
+        "buys_items": true,
+        "starting_gold": 150,
+        "inventory": [
+          {
+            "item_id": "rations",
+            "stock": 10,
+            "max_stock": 15
+          },
+          {
+            "item_id": "torch",
+            "stock": 5,
+            "max_stock": 8
+          },
+          {
+            "item_id": "arcane-powder",
+            "stock": 2,
+            "max_stock": 4
+          },
+          {
+            "item_id": "blessed-incense",
+            "stock": 2,
+            "max_stock": 4
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

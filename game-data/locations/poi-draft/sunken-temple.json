@@ -1,0 +1,128 @@
+{
+  "id": "sunken-temple",
+  "name": "Sunken Temple",
+  "category": "dungeon",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.8,
+  "description": "The moss-covered roof of an ancient stone structure juts out from the dark waters of the swamp. It appears to be sinking slowly into the mire.",
+  "discovery": {
+    "chance": 0.2,
+    "message": "Through the thick swamp mist, you spot the vine-draped ruins of a large stone building."
+  },
+  "requirements": [],
+  "start_node": "approach",
+  "nodes": {
+    "approach": {
+      "text": "You must wade through waist-deep, foul-smelling mud to reach the entrance.",
+      "type": "check",
+      "skill": "athletics",
+      "dc": 14,
+      "success_text": "You push through the muck and reach the stone steps of the temple.",
+      "success_next": "temple-entry",
+      "failure_text": "The mud is thick and exhausting. You eventually reach the temple, but you're worn out.",
+      "failure_next": "approach-fail"
+    },
+    "approach-fail": {
+      "text": "Your muscles ache from the struggle. (Gained 2 Fatigue)",
+      "type": "effect",
+      "effect": {
+        "id": "fatigue",
+        "amount": 2
+      },
+      "next": "temple-entry"
+    },
+    "temple-entry": {
+      "text": "The heavy stone doors are ajar. Inside, a main hallway leads deep into the structure, but you notice a narrow, dry crack in the wall to the right.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Walk down the main hallway.",
+          "next": "temple-guardian"
+        },
+        {
+          "label": "[Perception 16] Examine the crack in the wall.",
+          "next": "secret-passage-find",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "perception",
+              "min": 16
+            }
+          ]
+        }
+      ]
+    },
+    "temple-guardian": {
+      "text": "A pale, flickering light floats in the darkness of the hall. As you approach, it lunges!",
+      "type": "monster",
+      "monster_id": "will-o-wisp",
+      "count": 1,
+      "next": "temple-boss"
+    },
+    "secret-passage-find": {
+      "text": "The crack leads to a narrow maintenance tunnel that bypasses the main hall. It seems much safer.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Take the maintenance tunnel.",
+          "next": "temple-boss"
+        },
+        {
+          "label": "Go back and take the main hall anyway.",
+          "next": "temple-guardian"
+        }
+      ]
+    },
+    "temple-boss": {
+      "text": "In the main chamber, a massive spider has spun its web across the altar. It drops from the ceiling to defend its lair!",
+      "type": "monster",
+      "monster_id": "giant-spider",
+      "count": 1,
+      "next": "temple-altar"
+    },
+    "temple-altar": {
+      "text": "Behind the spider's web, the ancient altar holds a few remaining treasures.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              300,
+              700
+            ]
+          }
+        ],
+        "rolls": 2,
+        "tiers": [
+          {
+            "name": "rare",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "amulet",
+                "weight": 50,
+                "quantity": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "item": "arcane-powder",
+                "weight": 50,
+                "quantity": [
+                  1,
+                  5
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

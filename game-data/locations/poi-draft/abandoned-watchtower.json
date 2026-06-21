@@ -1,0 +1,120 @@
+{
+  "id": "abandoned-watchtower",
+  "name": "Abandoned Watchtower",
+  "category": "dungeon",
+  "parent_environment": "merchants-highway",
+  "position": 0.2,
+  "description": "A stone tower looms over the highway, its upper floors collapsed and overgrown with ivy. It looks like it hasn't seen use in decades.",
+  "discovery": {
+    "chance": 0.4,
+    "message": "Off the main road, you spot the crumbling remains of an old watchtower peeking through the trees."
+  },
+  "start_node": "approach",
+  "nodes": {
+    "approach": {
+      "type": "choice",
+      "text": "The heavy oak door hangs off its hinges, but the ivy-covered stone walls look climbable. You hear voices from inside.",
+      "choices": [
+        {
+          "label": "Enter through the front door.",
+          "next": "entry-front"
+        },
+        {
+          "label": "[Athletics 14] Climb the ivy and enter through a second-story window.",
+          "next": "climb-success",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "athletics",
+              "min": 14
+            }
+          ]
+        }
+      ]
+    },
+    "entry-front": {
+      "type": "monster",
+      "text": "You step through the broken door. Two bandits are huddled around a small fire, and they jump up as you enter!",
+      "monster_id": "bandit",
+      "count": 2,
+      "next": "stairs"
+    },
+    "climb-success": {
+      "type": "choice",
+      "text": "You pull yourself up the thick vines and slip through a window. You're on the second floor, looking down at two bandits by a fire. They haven't noticed you.",
+      "choices": [
+        {
+          "label": "Drop down with a surprise attack.",
+          "next": "surprise-attack"
+        },
+        {
+          "label": "Quietly loot the chest on this floor first.",
+          "next": "watchtower-treasure"
+        }
+      ]
+    },
+    "surprise-attack": {
+      "type": "monster",
+      "text": "You drop down with a roar! The bandits are caught completely off guard.",
+      "monster_id": "bandit",
+      "count": 2,
+      "surprise": true,
+      "next": "watchtower-treasure"
+    },
+    "stairs": {
+      "type": "check",
+      "text": "The stairs to the second floor are rotting and treacherous.",
+      "skill": "athletics",
+      "dc": 12,
+      "success_text": "You carefully navigate the rotting wooden stairs to the second floor.",
+      "success_next": "watchtower-treasure",
+      "failure_text": "A step cracks under your weight! You tumble back down.",
+      "failure_next": "stairs-fall"
+    },
+    "stairs-fall": {
+      "type": "damage",
+      "text": "You hit the ground hard.",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 2
+      },
+      "next": "stairs"
+    },
+    "watchtower-treasure": {
+      "type": "loot",
+      "text": "In a corner of the upper floor, you find a small chest.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              10,
+              25
+            ]
+          }
+        ],
+        "rolls": 1,
+        "tiers": [
+          {
+            "name": "common",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "shortsword",
+                "quantity": 1
+              },
+              {
+                "item": "leather-cap",
+                "quantity": 1
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

@@ -1,0 +1,93 @@
+{
+  "id": "daily-mountain-survey",
+  "name": "Daily Bounty: Cragspire Survey",
+  "category": "daily",
+  "step_count": 6,
+  "difficulty": "Novice",
+  "total_qp": 0,
+  "is_randomized": true,
+  "description": "A quick survey of the local mountain pass to check for rockslides and monster activity.",
+  "start_condition": {
+    "type": "bulletin_board",
+    "target": "town-square-board",
+    "start_hint": "Check the Bulletin Board in any town square."
+  },
+  "requirements": [
+    {
+      "type": "skill",
+      "id": "athletics",
+      "min": 10
+    }
+  ],
+  "stages": [
+    {
+      "id": "travel-pass",
+      "description": "Scout the Cragspire Mountain Pass.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "cragspire-mountains",
+          "description": "Reach the mountain pass."
+        }
+      ]
+    },
+    {
+      "id": "check-poi",
+      "description": "Check on the Desperate Outcast to ensure the ridge is safe.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "desperate-outcast",
+          "description": "Visit the Orc's cleft."
+        },
+        {
+          "type": "talk",
+          "target": "exiled-orc",
+          "description": "Ask about recent sightings."
+        }
+      ]
+    },
+    {
+      "id": "survey-peak",
+      "description": "Survey the pass from the highest reachable ledge.",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 14,
+          "description": "Scan for blocked trails."
+        },
+        {
+          "type": "slay",
+          "target": "zombie",
+          "count": 2,
+          "description": "Clear any stragglers on the trail."
+        }
+      ]
+    },
+    {
+      "id": "return-to-board",
+      "description": "Return to the board to file your daily report.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "town-square-board",
+          "description": "File the report."
+        }
+      ],
+      "rewards": {
+        "xp": 350,
+        "gold": 75,
+        "items": [
+          {
+            "id": "rations",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

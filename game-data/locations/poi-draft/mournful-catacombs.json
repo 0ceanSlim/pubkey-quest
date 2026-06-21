@@ -1,0 +1,203 @@
+{
+  "id": "mournful-catacombs",
+  "name": "The Mournful Catacombs",
+  "category": "dungeon",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.9,
+  "description": "An ancient burial site beneath the marsh, where the boundary between the living and the dead is dangerously thin.",
+  "discovery": {
+    "chance": 0.05,
+    "skill": "perception",
+    "dc": 20,
+    "message": "The swamp gas momentarily clears, revealing a massive, skull-shaped stone entrance partially submerged in the muck."
+  },
+  "requirements": [
+    {
+      "type": "skill",
+      "id": "resolve",
+      "min": 14,
+      "description": "The aura of pure malevolence at the entrance is so strong that only those with a steel will can even consider entering."
+    }
+  ],
+  "start_node": "bone-hall",
+  "nodes": {
+    "bone-hall": {
+      "text": "The walls of this hall are constructed entirely from polished human bones. A low, rhythmic chanting seems to emanate from the very stones.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Walk toward the sound of the chanting.",
+          "next": "cultist-ritual"
+        },
+        {
+          "label": "[Perception 18] Search the wall for a hidden lever.",
+          "next": "bone-lever-check",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "perception",
+              "min": 18
+            }
+          ]
+        },
+        {
+          "label": "[Resolve 18] Attempt to silence the voices in your head.",
+          "next": "psychic-shield-check",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "resolve",
+              "min": 18
+            }
+          ]
+        }
+      ]
+    },
+    "cultist-ritual": {
+      "text": "You emerge into a large chamber where several hooded figures are performing a ritual over a glowing pit. They turn to you with empty eye sockets.",
+      "type": "monster",
+      "monster_id": "ghoul",
+      "count": 4,
+      "next": "pit-of-despair"
+    },
+    "bone-lever-check": {
+      "text": "You trace your fingers over the smooth skulls until one eye socket feels different.",
+      "type": "check",
+      "skill": "perception",
+      "dc": 18,
+      "success_text": "A section of the wall slides away, revealing a secret ossuary.",
+      "success_next": "secret-ossuary",
+      "failure_text": "A needle pricks your finger as you search.",
+      "failure_next": "bone-trap-damage"
+    },
+    "bone-trap-damage": {
+      "text": "The needle was coated in ancient toxins. (Took 6 Poison Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "poison",
+        "amount": 6
+      },
+      "next": "bone-hall"
+    },
+    "secret-ossuary": {
+      "text": "This hidden room contains the remains of saints. A holy relic sits on a velvet cushion.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "holy-water",
+            "quantity": 2
+          },
+          {
+            "item": "blessed-incense",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "bone-hall"
+    },
+    "psychic-shield-check": {
+      "text": "You focus your mind into a single, unbreakable point of light.",
+      "type": "check",
+      "skill": "resolve",
+      "dc": 18,
+      "success_text": "The chanting falls silent. The spectral barriers in the next room vanish.",
+      "success_next": "silent-inner-sanctum",
+      "failure_text": "The voices scream in triumph. Your vision blurs as your mind cracks.",
+      "failure_next": "psychic-shield-fail"
+    },
+    "psychic-shield-fail": {
+      "text": "The mental agony is physical. (Took 10 Psychic Damage)",
+      "type": "damage",
+      "damage": {
+        "type": "psychic",
+        "amount": 10
+      },
+      "next": "bone-hall"
+    },
+    "pit-of-despair": {
+      "text": "The ritual was a success. A massive shadow rises from the pit—a Wraith of the Catacombs.",
+      "type": "monster",
+      "monster_id": "wraith",
+      "count": 1,
+      "next": "catacombs-end"
+    },
+    "silent-inner-sanctum": {
+      "text": "Because you silenced the voices, the Wraith remains trapped in the ethereal plane, allowing you to loot the chamber unhindered.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              200,
+              400
+            ]
+          }
+        ],
+        "rolls": 1,
+        "tiers": [
+          {
+            "name": "rare",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "amulet",
+                "quantity": 1
+              },
+              {
+                "item": "ring",
+                "quantity": 1
+              },
+              {
+                "item": "longsword",
+                "quantity": 1
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "catacombs-end": {
+      "text": "With the Wraith defeated, you can finally claim the treasures it was guarding.",
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              200,
+              400
+            ]
+          }
+        ],
+        "rolls": 1,
+        "tiers": [
+          {
+            "name": "rare",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "amulet",
+                "quantity": 1
+              },
+              {
+                "item": "ring",
+                "quantity": 1
+              },
+              {
+                "item": "longsword",
+                "quantity": 1
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

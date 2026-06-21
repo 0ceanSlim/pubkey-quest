@@ -1,0 +1,87 @@
+{
+  "id": "the-shadows-source",
+  "name": "The Shadow's Source",
+  "category": "main",
+  "step_count": 15,
+  "difficulty": "Experienced",
+  "total_qp": 5,
+  "description": "The shadow fragment you recovered points toward a deeper malevolence. You must travel to the Sunken Temple and find the source of the corruption.",
+  "start_condition": {
+    "type": "talk",
+    "target": "oracle-seraphina",
+    "location": "goldenhaven-temple",
+    "start_hint": "Speak with Oracle Seraphina after completing 'The Rising Shadow' and earning at least 5 Quest Points."
+  },
+  "requirements": [
+    {
+      "type": "quest_points",
+      "min": 5,
+      "description": "Requires at least 5 Quest Points."
+    }
+  ],
+  "prerequisites": [
+    "the-rising-shadow"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Resolve 14",
+      "Intelligence 14"
+    ],
+    "combat_danger": "High"
+  },
+  "stages": [
+    {
+      "id": "travel-to-temple",
+      "description": "Travel to the Shadowmere Wetlands and locate the Sunken Temple.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "sunken-temple",
+          "description": "Reach the Sunken Temple."
+        }
+      ]
+    },
+    {
+      "id": "retrieve-the-eye",
+      "description": "Find the 'Eye of the Abyss' within the temple's inner sanctum.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "eye-of-the-abyss",
+          "count": 1,
+          "description": "Retrieve the Eye from the temple altar."
+        }
+      ]
+    },
+    {
+      "id": "purify-the-eye",
+      "description": "Bring the Eye to the Raven Shrine to be purified by ancient light.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "raven-shrine",
+          "description": "Reach the Raven Shrine."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 16,
+          "description": "Withstand the Eye's corrupting whispers."
+        }
+      ],
+      "rewards": {
+        "xp": 1500,
+        "quest_points": 5,
+        "items": [
+          {
+            "id": "purified-gem",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+

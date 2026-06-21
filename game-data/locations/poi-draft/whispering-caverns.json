@@ -1,0 +1,221 @@
+{
+  "id": "whispering-caverns",
+  "name": "The Whispering Caverns",
+  "category": "dungeon",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.35,
+  "description": "A limestone cave system where the wind creates eerie, speech-like sounds as it whistles through the stalactites.",
+  "discovery": {
+    "chance": 0.2,
+    "skill": "perception",
+    "dc": 12,
+    "message": "You notice a rhythmic whistling sound coming from behind a cluster of cypress trees. Investigating, you find the entrance to a deep cavern."
+  },
+  "start_node": "cavern-mouth",
+  "nodes": {
+    "cavern-mouth": {
+      "type": "choice",
+      "text": "The entrance is slick with moss. The 'whispering' is louder here, echoing from two main tunnels ahead.",
+      "choices": [
+        {
+          "label": "[Athletics 15] Force open the jammed iron portcullis to the left.",
+          "next": "warrior-path-start",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "athletics",
+              "min": 15
+            }
+          ]
+        },
+        {
+          "label": "Squeeze through the narrow fissure to the right.",
+          "next": "thief-path-start"
+        },
+        {
+          "label": "Search the debris near the entrance.",
+          "next": "search-debris"
+        }
+      ]
+    },
+    "search-debris": {
+      "type": "passive_check",
+      "skill": "perception",
+      "dc": 14,
+      "success_next": "hidden-nook",
+      "failure_next": "cavern-mouth-no-find"
+    },
+    "cavern-mouth-no-find": {
+      "type": "choice",
+      "text": "You find nothing but damp rocks. The two tunnels still beckon.",
+      "choices": [
+        {
+          "label": "Take the portcullis (requires great strength).",
+          "next": "warrior-path-start"
+        },
+        {
+          "label": "Take the fissure.",
+          "next": "thief-path-start"
+        }
+      ]
+    },
+    "hidden-nook": {
+      "type": "loot",
+      "text": "Behind a loose stone, you find an old leather pouch containing a Silver Key and some dried rations.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "silver-key",
+            "quantity": 1
+          },
+          {
+            "item": "rations",
+            "quantity": 2
+          }
+        ]
+      },
+      "next": "cavern-mouth-no-find"
+    },
+    "warrior-path-start": {
+      "type": "monster",
+      "text": "You heave the portcullis up just enough to slide under. You enter a wide gallery where several Cave Bears have made their den.",
+      "monster_id": "cave-bear",
+      "count": 2,
+      "next": "warrior-path-mid"
+    },
+    "warrior-path-mid": {
+      "type": "monster",
+      "text": "Past the bears, the tunnel opens into a grand chamber with a stone chest. A massive Ogre stands guard.",
+      "monster_id": "ogre",
+      "count": 1,
+      "next": "warrior-path-end"
+    },
+    "warrior-path-end": {
+      "type": "loot",
+      "text": "The Ogre falls with a crash. The stone chest contains the spoils of its many raids.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              200,
+              400
+            ]
+          }
+        ],
+        "rolls": 1,
+        "tiers": [
+          {
+            "name": "rare",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "warhammer",
+                "weight": 50,
+                "quantity": 1
+              },
+              {
+                "item": "chainmail",
+                "weight": 50,
+                "quantity": 1
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    },
+    "thief-path-start": {
+      "type": "check",
+      "text": "The fissure is tight, but you emerge into a silent, damp corridor. Pressure plates are visible on the floor.",
+      "skill": "thieving",
+      "dc": 14,
+      "success_text": "You nimbly dance between the plates, avoiding the poison darts.",
+      "success_next": "thief-path-mid",
+      "failure_text": "A plate clicks. A dart strikes your shoulder!",
+      "failure_next": "thief-path-trap-damage"
+    },
+    "thief-path-trap-damage": {
+      "type": "damage",
+      "text": "You feel a burning sensation.",
+      "damage": {
+        "type": "poison",
+        "amount": 5
+      },
+      "next": "thief-path-mid"
+    },
+    "thief-path-mid": {
+      "type": "choice",
+      "text": "You reach a locked silver door. The lock looks delicate.",
+      "choices": [
+        {
+          "label": "[Thieving 18] Attempt to pick the lock.",
+          "next": "thief-path-vault",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "thieving",
+              "min": 18
+            }
+          ]
+        },
+        {
+          "label": "Use the Silver Key.",
+          "next": "thief-path-vault",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "silver-key",
+              "consumed": true
+            }
+          ]
+        },
+        {
+          "label": "Turn back to the fissure.",
+          "next": "cavern-mouth"
+        }
+      ]
+    },
+    "thief-path-vault": {
+      "type": "loot",
+      "text": "The door clicks open. Inside is a small, pristine vault filled with ancient jewelry.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "gold-piece",
+            "quantity": [
+              300,
+              600
+            ]
+          }
+        ],
+        "rolls": 2,
+        "tiers": [
+          {
+            "name": "rare",
+            "weight": 100,
+            "entries": [
+              {
+                "item": "amulet",
+                "weight": 50,
+                "quantity": 1
+              },
+              {
+                "item": "silver-ring",
+                "weight": 50,
+                "quantity": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "is_terminal": true
+    }
+  }
+}
+
+
+

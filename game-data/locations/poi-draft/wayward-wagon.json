@@ -1,0 +1,27 @@
+{
+  "id": "wayward-wagon",
+  "name": "The Wayward Wagon",
+  "category": "utility",
+  "parent_environment": "merchants-highway",
+  "position": 0.4,
+  "description": "A colorful wagon is parked just off the road. A stout halfling is busy arranging crates, humming a cheerful tune.",
+  "discovery": {
+    "chance": 0.4,
+    "message": "A splash of bright color catches your eye - a merchant wagon parked in a small clearing."
+  },
+  "start_node": "wagon-approach",
+  "nodes": {
+    "wagon-approach": {
+      "type": "npc_interaction",
+      "text": "The halfling looks up as you approach, a wide grin spreading across his face.",
+      "npc_ids": [
+        "thistle-goldworthy"
+      ],
+      "is_terminal": true
+    }
+  },
+  "npc_ids": [
+    "thistle-goldworthy"
+  ]
+}
+

@@ -1,0 +1,91 @@
+{
+  "id": "paladins-vow",
+  "name": "The Paladin's Vow",
+  "category": "class",
+  "difficulty": "Moderate",
+  "step_count": 3,
+  "total_qp": 2,
+  "description": "A dark presence has been spotted near the Forgotten Battlefield. You must lay the restless spirits to rest.",
+  "start_condition": {
+    "type": "talk",
+    "target": "high-priest-lawrence",
+    "location": "goldenhaven-temple",
+    "start_hint": "Speak with High Priest Lawrence in the Goldenhaven Temple."
+  },
+  "requirements": [
+    {
+      "type": "class",
+      "values": [
+        "Paladin"
+      ],
+      "description": "Only a Paladin can perform the Rite of Rest."
+    },
+    {
+      "type": "alignment",
+      "values": [
+        "good",
+        "lawful_good",
+        "neutral_good",
+        "chaotic_good"
+      ],
+      "description": "You must be of pure heart."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Resolve 14",
+      "Charisma 14"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "reach-battlefield",
+      "description": "Travel to the Forgotten Battlefield on the Merchant's Highway.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "forgotten-battlefield",
+          "description": "Reach the Forgotten Battlefield."
+        }
+      ]
+    },
+    {
+      "id": "perform-rite",
+      "description": "Perform the Rite of Rest at the center of the field.",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 15,
+          "description": "Maintain focus during the rite."
+        }
+      ]
+    },
+    {
+      "id": "defend-the-rite",
+      "description": "Angry spirits will try to disrupt the ritual. Stand your ground.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "restless-spirit",
+          "count": 3,
+          "description": "Defeat the spirits."
+        }
+      ],
+      "rewards": {
+        "xp": 800,
+        "items": [
+          {
+            "id": "holy-water",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+
