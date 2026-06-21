@@ -4,11 +4,56 @@
   "title": "Innkeeper & Barkeep",
   "race": "Dwarf",
   "description": "A sturdy dwarf with a booming laugh and iron will. She runs The Pickaxe & Pint with the efficiency of a mine foreman and the warmth of a clan matriarch.",
+  "primary_home": "ironpeak",
   "schedule": [
-    {"start": 0, "end": 240, "location": "miners_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]},
-    {"start": 240, "end": 360, "location": "helga_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 360, "end": 420, "location": "helga_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 420, "end": 1440, "location": "miners_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]}
+    {
+      "start": 0,
+      "end": 240,
+      "location": "miners_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 240,
+      "end": 360,
+      "location": "helga_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "helga_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1440,
+      "location": "miners_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Welcome to The Pickaxe & Pint! I'm Helga Stonebrew. Fresh from the mines? I've got cold drinks, warm beds, and music that'll shake the mountain!",
@@ -18,42 +63,65 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring like thunder* Zzz... *grumbles* ...double shift in the mines... Zzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "Takin' a breather! The inn's open—help yerself!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What can I get for ye?",
-      "options": ["buy_drink", "ask_rent_room", "ask_about_shows", "goodbye"]
+      "options": [
+        "buy_drink",
+        "ask_rent_room",
+        "ask_about_shows",
+        "goodbye"
+      ]
     },
     "buy_drink": {
       "text": "Best beer in the mountains, brewed by me own hands! Have a look!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_rent_room": {
       "text": "A room's 50 gold. Ye get a sturdy bed and breakfast fit for a miner. Interested?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
       "action": "rent_room",
       "cost": 50,
-      "requirements": {"gold": 50},
+      "requirements": {
+        "gold": 50
+      },
       "success": "Aye! Yer room is upstairs, first door on the right. Sleep sound!",
       "failure": "Ye need 50 gold for a room. Come back when ye got it!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_shows": {
       "text": "We have music every night at 9 PM! Loud, rhythmic stuff the miners love—nothin' fancy! Need yer instruments and book before 8 PM. Want to see what's on tonight?",
-      "options": ["see_available_shows", "main_menu"]
+      "options": [
+        "see_available_shows",
+        "main_menu"
+      ]
     },
     "see_available_shows": {
       "text": "Let's see what we got...",
       "action": "book_show",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "May yer path be as steady as stone!",
@@ -70,7 +138,13 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
-      {"item_id": "beer", "stock": 60, "max_stock": 60, "restock_rate": 15, "restock_interval": "hourly"}
+      {
+        "item_id": "beer",
+        "stock": 60,
+        "max_stock": 60,
+        "restock_rate": 15,
+        "restock_interval": "hourly"
+      }
     ]
   },
   "inn_config": {
@@ -79,7 +153,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

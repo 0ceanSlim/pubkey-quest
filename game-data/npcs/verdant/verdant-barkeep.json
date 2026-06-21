@@ -4,11 +4,56 @@
   "title": "Innkeeper & Barkeep",
   "race": "Elf",
   "description": "A gentle druid with a serene presence and deep connection to nature. She runs The Moonlit Glade with peaceful grace, offering rest and music beneath the ancient trees.",
+  "primary_home": "verdant",
   "schedule": [
-    {"start": 0, "end": 240, "location": "moonlit_glade_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]},
-    {"start": 240, "end": 360, "location": "faelyn_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 360, "end": 420, "location": "faelyn_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 420, "end": 1440, "location": "moonlit_glade_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]}
+    {
+      "start": 0,
+      "end": 240,
+      "location": "moonlit_glade_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 240,
+      "end": 360,
+      "location": "faelyn_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "faelyn_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1440,
+      "location": "moonlit_glade_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Welcome to The Moonlit Glade, traveler. I am Faelyn, keeper of this sanctuary. May the forest's peace find you here. We offer rest, refreshment, and music beneath the stars.",
@@ -18,42 +63,65 @@
   "dialogue": {
     "sleeping": {
       "text": "*sleeping peacefully* ...the trees whisper... *soft breathing*",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm tending to the grove right now. The inn is open—feel free to make yourself comfortable!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "How may the Glade serve you?",
-      "options": ["buy_drink", "ask_rent_room", "ask_about_shows", "goodbye"]
+      "options": [
+        "buy_drink",
+        "ask_rent_room",
+        "ask_about_shows",
+        "goodbye"
+      ]
     },
     "buy_drink": {
       "text": "I have beer brewed with forest herbs—refreshing and pure. Take a look!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_rent_room": {
       "text": "A room here costs 50 gold. You'll sleep beneath the canopy, where the stars shine through the leaves and the forest sings you to rest. Would you like to stay?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
       "action": "rent_room",
       "cost": 50,
-      "requirements": {"gold": 50},
+      "requirements": {
+        "gold": 50
+      },
       "success": "Wonderful! Your room is among the upper branches. May the forest grant you peaceful dreams.",
       "failure": "I'm sorry, but a room costs 50 gold. The forest will be here when you're ready.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_shows": {
       "text": "Every evening at 9 PM, we have live music here beneath the trees. Gentle melodies that honor nature—lutes, flutes, lyres, and such. You'll need your instruments, and you must book before 8 PM. Want to see tonight's performance?",
-      "options": ["see_available_shows", "main_menu"]
+      "options": [
+        "see_available_shows",
+        "main_menu"
+      ]
     },
     "see_available_shows": {
       "text": "Let me show you what's planned...",
       "action": "book_show",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "May the forest's blessings walk with you.",
@@ -70,7 +138,13 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
-      {"item_id": "beer", "stock": 45, "max_stock": 45, "restock_rate": 12, "restock_interval": "hourly"}
+      {
+        "item_id": "beer",
+        "stock": 45,
+        "max_stock": 45,
+        "restock_rate": 12,
+        "restock_interval": "hourly"
+      }
     ]
   },
   "inn_config": {
@@ -79,7 +153,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

@@ -4,13 +4,16 @@
   "title": "Master Instrumentalist",
   "race": "Half-Elf",
   "description": "A graceful half-elf with silver-streaked hair and musical notes tattooed along her forearms. Her shop resonates with the gentle hum of strings and the soft echo of woodwinds. She can identify any instrument by sound alone.",
+  "primary_home": "kingdom",
   "schedule": [
     {
       "start": 0,
       "end": 420,
       "location": "melodia_home",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 480,
       "location": "kingdom-east",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -26,15 +31,21 @@
       "end": 1260,
       "location": "kingdom_instrument_shop",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1260,
       "end": 1320,
       "location": "kingdom-east",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -42,7 +53,9 @@
       "end": 1440,
       "location": "melodia_home",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -54,23 +67,37 @@
   "dialogue": {
     "sleeping": {
       "text": "*soft snoring accompanied by the faint sound of a music box* Zzz... in perfect harmony...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "Good morning! I'm just opening the shop. Come by if you need an instrument—I have everything from drums to dulcimers!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "The shop is closed for the evening, but music never sleeps! Visit me tomorrow during business hours.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm practicing a new piece this evening. Stop by the shop tomorrow if you need an instrument!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What can I help you with today? Looking to buy, sell, or perhaps just talk music?",
-      "options": ["browse_shop", "sell_items", "ask_about_instruments", "ask_about_craft", "goodbye"]
+      "options": [
+        "browse_shop",
+        "sell_items",
+        "ask_about_instruments",
+        "ask_about_craft",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "Please, browse my collection! Each instrument here has been personally selected or crafted for its superior sound quality.",
@@ -78,11 +105,15 @@
     },
     "ask_about_instruments": {
       "text": "I specialize in all manner of instruments—from the thunderous drum to the delicate lyre. Whether you're a bard seeking to inspire allies or a performer looking to earn coin, the right instrument makes all the difference. I restock my collection regularly with both common and rare pieces.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_craft": {
       "text": "I learned the art of instrument making from my elven mother and human father, combining precision craftsmanship with an ear for perfect tone. Each instrument I sell is tested and tuned before it leaves my shop. I also buy instruments from travelers—you never know when you'll find a gem with a unique voice!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "May your life be filled with beautiful music! Come back anytime!",
@@ -98,15 +129,51 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      { "item_id": "drum", "stock": 3, "max_stock": 5 },
-      { "item_id": "dulcimer", "stock": 2, "max_stock": 3 },
-      { "item_id": "flute", "stock": 4, "max_stock": 6 },
-      { "item_id": "horn", "stock": 3, "max_stock": 5 },
-      { "item_id": "lute", "stock": 3, "max_stock": 5 },
-      { "item_id": "lyre", "stock": 2, "max_stock": 4 },
-      { "item_id": "pan-flute", "stock": 3, "max_stock": 5 },
-      { "item_id": "shawm", "stock": 2, "max_stock": 3 },
-      { "item_id": "viol", "stock": 2, "max_stock": 3 }
+      {
+        "item_id": "drum",
+        "stock": 3,
+        "max_stock": 5
+      },
+      {
+        "item_id": "dulcimer",
+        "stock": 2,
+        "max_stock": 3
+      },
+      {
+        "item_id": "flute",
+        "stock": 4,
+        "max_stock": 6
+      },
+      {
+        "item_id": "horn",
+        "stock": 3,
+        "max_stock": 5
+      },
+      {
+        "item_id": "lute",
+        "stock": 3,
+        "max_stock": 5
+      },
+      {
+        "item_id": "lyre",
+        "stock": 2,
+        "max_stock": 4
+      },
+      {
+        "item_id": "pan-flute",
+        "stock": 3,
+        "max_stock": 5
+      },
+      {
+        "item_id": "shawm",
+        "stock": 2,
+        "max_stock": 3
+      },
+      {
+        "item_id": "viol",
+        "stock": 2,
+        "max_stock": 3
+      }
     ]
   }
 }

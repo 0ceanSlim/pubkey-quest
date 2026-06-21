@@ -4,11 +4,56 @@
   "title": "Innkeeper & Barkeep",
   "race": "Orc",
   "description": "A practical and no-nonsense orc with a fierce demeanor but a welcoming spirit for warriors. She runs The Glowing Lantern with efficiency and only allows strong, powerful music that befits warriors.",
+  "primary_home": "marshlight",
   "schedule": [
-    {"start": 0, "end": 240, "location": "marsh_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]},
-    {"start": 240, "end": 360, "location": "grishka_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 360, "end": 420, "location": "grishka_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 420, "end": 1440, "location": "marsh_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]}
+    {
+      "start": 0,
+      "end": 240,
+      "location": "marsh_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 240,
+      "end": 360,
+      "location": "grishka_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "grishka_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1440,
+      "location": "marsh_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Welcome to The Glowing Lantern! I'm Grishka. We don't do fancy here—just strong drink, warm beds, and music fit for warriors! Rokgar at the door makes sure of that.",
@@ -18,42 +63,65 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring loudly* Grrr... *mumbles* ...swamp beasts... Zzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "Taking a break! The inn's open—help yerself!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What d'ye need?",
-      "options": ["buy_drink", "ask_rent_room", "ask_about_shows", "goodbye"]
+      "options": [
+        "buy_drink",
+        "ask_rent_room",
+        "ask_about_shows",
+        "goodbye"
+      ]
     },
     "buy_drink": {
       "text": "Strong beer, brewed tough like we are! Take a look!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_rent_room": {
       "text": "Room's 50 gold. Solid bed, dry roof. Better than the swamp! Interested?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
       "action": "rent_room",
       "cost": 50,
-      "requirements": {"gold": 50},
+      "requirements": {
+        "gold": 50
+      },
       "success": "Good! Yer room is upstairs. Sleep well, warrior!",
       "failure": "Ye need 50 gold for a room. Come back when ye got it!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_shows": {
       "text": "We have shows at 9 PM every night! But listen—Rokgar at the door only lets in strong, powerful music. Drums, horns, battle chants! None of that soft stuff! Book before 8 PM. Want to see tonight's lineup?",
-      "options": ["see_available_shows", "main_menu"]
+      "options": [
+        "see_available_shows",
+        "main_menu"
+      ]
     },
     "see_available_shows": {
       "text": "Let's see what warriors are playin' tonight...",
       "action": "book_show",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "May yer strength never fail!",
@@ -70,7 +138,13 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
-      {"item_id": "beer", "stock": 50, "max_stock": 50, "restock_rate": 13, "restock_interval": "hourly"}
+      {
+        "item_id": "beer",
+        "stock": 50,
+        "max_stock": 50,
+        "restock_rate": 13,
+        "restock_interval": "hourly"
+      }
     ]
   },
   "inn_config": {
@@ -79,7 +153,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

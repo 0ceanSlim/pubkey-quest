@@ -1,0 +1,98 @@
+{
+  "id": "thistle-goldworthy",
+  "name": "Thistle Goldworthy",
+  "race": "Halfling",
+  "description": "A stout, cheerful halfling merchant who travels the merchant's highway with a wagon full of luxury goods and gossip.",
+  "primary_home": "wayward-wagon",
+  "greeting": {
+    "first_time": "Well met, traveler! Looking for a bit of luxury on this dusty road?",
+    "returning": "Back again, eh? My wagon's still here, and so are my prices."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "I've got fine silks, exotic spices, and the best gossip from the capital. What'll it be?",
+      "options": [
+        {
+          "label": "Show me your wares.",
+          "action": "open_shop"
+        },
+        {
+          "label": "[Influence 14] Surely a traveler like me deserves a friend's discount?",
+          "next": "discount_success",
+          "requirements": [
+            {
+              "type": "skill",
+              "id": "influence",
+              "min": 14
+            }
+          ]
+        },
+        {
+          "label": "[Dwarf] You look like you appreciate good craftsmanship. Any dwarven goods?",
+          "next": "dwarf_talk",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Dwarf"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Just passing through. Good luck with the trade.",
+          "next": "goodbye"
+        }
+      ]
+    },
+    "discount_success": {
+      "text": "Ha! You've got a silver tongue, friend. For you, I'll shave 10% off the top.",
+      "action": "apply_temporary_discount",
+      "options": [
+        {
+          "label": "Thank you, Thistle.",
+          "next": "main_menu"
+        }
+      ]
+    },
+    "dwarf_talk": {
+      "text": "Ah, a son of the mountain! As a matter of fact, I just came into possession of some fine Iron Hills ore. Interested?",
+      "options": [
+        {
+          "label": "Let me see.",
+          "action": "open_shop_filtered_dwarf"
+        },
+        {
+          "label": "Maybe later.",
+          "next": "main_menu"
+        }
+      ]
+    },
+    "goodbye": {
+      "text": "Safe roads and heavy purses to you!",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": true,
+    "starting_gold": 300,
+    "inventory": [
+      {
+        "item_id": "silk-scrap",
+        "stock": 5,
+        "max_stock": 10
+      },
+      {
+        "item_id": "fine-clothes",
+        "stock": 1,
+        "max_stock": 2
+      },
+      {
+        "item_id": "spices",
+        "stock": 3,
+        "max_stock": 5
+      }
+    ]
+  }
+}

@@ -4,11 +4,56 @@
   "title": "Innkeeper & Barkeep",
   "race": "Halfling",
   "description": "A cheerful halfling with a warm smile and boundless energy. She runs The Grain & Grape with genuine hospitality, ensuring every guest feels like family.",
+  "primary_home": "millhaven",
   "schedule": [
-    {"start": 0, "end": 240, "location": "village_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]},
-    {"start": 240, "end": 360, "location": "marigold_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 360, "end": 420, "location": "marigold_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 420, "end": 1440, "location": "village_inn", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]}
+    {
+      "start": 0,
+      "end": 240,
+      "location": "village_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 240,
+      "end": 360,
+      "location": "marigold_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "marigold_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1440,
+      "location": "village_inn",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Welcome to The Grain & Grape! I'm Marigold, your host. Whether you need a drink, a room, or a stage to perform on, I've got you covered!",
@@ -18,42 +63,65 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring softly* Zzz... *mumbles* ...fresh bread in the morning... Zzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "Just taking a short break! The inn is open—help yourself downstairs!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What brings you to The Grain & Grape?",
-      "options": ["buy_drink", "ask_rent_room", "ask_about_shows", "goodbye"]
+      "options": [
+        "buy_drink",
+        "ask_rent_room",
+        "ask_about_shows",
+        "goodbye"
+      ]
     },
     "buy_drink": {
       "text": "I've got cold beer fresh from the cellar. Take a look!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_rent_room": {
       "text": "A room for the night costs 50 gold. Includes a comfortable bed and a hearty breakfast. Would you like to rent a room?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
       "action": "rent_room",
       "cost": 50,
-      "requirements": {"gold": 50},
+      "requirements": {
+        "gold": 50
+      },
       "success": "Wonderful! Your room is upstairs, second door on the left. Sleep well!",
       "failure": "I'm sorry, dear, but a room costs 50 gold. Come back when you have enough.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_shows": {
       "text": "We have live music every night at 9 PM! All musicians are welcome here—we love a good performance! Shows vary by the day. You'll need your instruments, and bookings close at 8 PM. Want to see tonight's options?",
-      "options": ["see_available_shows", "main_menu"]
+      "options": [
+        "see_available_shows",
+        "main_menu"
+      ]
     },
     "see_available_shows": {
       "text": "Let me check what's available tonight...",
       "action": "book_show",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels! Come back anytime!",
@@ -70,7 +138,13 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
-      {"item_id": "beer", "stock": 40, "max_stock": 40, "restock_rate": 10, "restock_interval": "hourly"}
+      {
+        "item_id": "beer",
+        "stock": 40,
+        "max_stock": 40,
+        "restock_rate": 10,
+        "restock_interval": "hourly"
+      }
     ]
   },
   "inn_config": {
@@ -79,7 +153,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

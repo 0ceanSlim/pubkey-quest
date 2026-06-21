@@ -4,14 +4,20 @@
   "title": "Keywarden",
   "race": "Halfling",
   "description": "A cheerful halfling woman with nimble fingers and a ring of intricate keys hanging from her belt. Rosie runs the communal storage burrows with the same care she gives her prize-winning garden.",
+  "primary_home": "millhaven",
   "schedule": [
     {
       "start": 0,
       "end": 1440,
       "location": "burrow_lock",
       "state": "working",
-      "dialogue_options": ["about_service"],
-      "available_actions": ["open_storage", "register_storage"]
+      "dialogue_options": [
+        "about_service"
+      ],
+      "available_actions": [
+        "open_storage",
+        "register_storage"
+      ]
     }
   ],
   "greeting": {
@@ -22,7 +28,11 @@
   "dialogue": {
     "about_service": {
       "text": "Every family in Millhaven has a storage burrow beneath their home—been that way for generations! Halflings and gnomes who live here use them freely, of course. But if you're from out of town, I'll need to carve you a new lock and key. Can't be too careful, you know, though I'm sure you're perfectly trustworthy!",
-      "options": ["ask_about_key", "use_storage", "goodbye"]
+      "options": [
+        "ask_about_key",
+        "use_storage",
+        "goodbye"
+      ]
     },
     "ask_about_key": {
       "text": "The Burrow Key Fee is just 45 gold—very reasonable! I'll carve you a beautiful brass key, unique as a snowflake, and prepare a cozy little burrow just for you. Once you have your key, you can come and go as you please. I keep everything organized and tidy!",
@@ -30,7 +40,10 @@
         "not_native": true,
         "not_registered": true
       },
-      "options": ["pay_key_fee", "maybe_later"]
+      "options": [
+        "pay_key_fee",
+        "maybe_later"
+      ]
     },
     "pay_key_fee": {
       "text": "Wonderful! Let me just... *tinkering sounds* ...there we are! One perfectly fitted key, and here's your burrow number. I've lined it with fresh cedar—keeps everything smelling nice. Come on, I'll show you!",
@@ -42,7 +55,10 @@
       },
       "success": "Your burrow key has been crafted. You may now store items at the Burrowlock.",
       "failure": "Oh dear, you're a bit short, love. You'll need 45 gold for the key fee.",
-      "options": ["use_storage", "goodbye"]
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     },
     "use_storage": {
       "text": "Right this way! Watch your head on the doorframe, dear—we halflings don't build for tall folk!",
@@ -50,11 +66,15 @@
       "requirements": {
         "registered": true
       },
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "maybe_later": {
       "text": "No rush at all, dear! I'm here every day. Do stop by the market before you go—Farmer Took has the loveliest turnips!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "goodbye": {
       "text": "Safe travels, dear! Come back anytime—there's always a warm meal and a friendly face in Millhaven!",

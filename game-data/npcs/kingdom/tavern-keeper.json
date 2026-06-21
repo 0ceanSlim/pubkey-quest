@@ -4,13 +4,16 @@
   "title": "Tavern Keeper",
   "race": "Human",
   "description": "A stout, friendly man with a booming voice and infectious laughter. His tavern is always lively, filled with music, drinks, and good cheer.",
+  "primary_home": "kingdom",
   "schedule": [
     {
       "start": 0,
       "end": 120,
       "location": "tavern_golden_griffin",
       "state": "working",
-      "dialogue_options": ["main_menu"],
+      "dialogue_options": [
+        "main_menu"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 360,
       "location": "gareth_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -26,7 +31,9 @@
       "end": 1020,
       "location": "gareth_quarters",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     },
     {
@@ -34,7 +41,9 @@
       "end": 1440,
       "location": "tavern_golden_griffin",
       "state": "working",
-      "dialogue_options": ["main_menu"],
+      "dialogue_options": [
+        "main_menu"
+      ],
       "available_actions": []
     }
   ],
@@ -46,11 +55,15 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring loudly* Zzzzz... *mumbles* ...more ale for table three... Zzzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "Just taking a short break before the evening rush! The tavern's open—help yourself to a seat downstairs!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What brings you to the Griffin today?",
@@ -63,15 +76,21 @@
     },
     "ask_about_lodging": {
       "text": "Looking for a place to stay? We don't rent rooms here at the Griffin—we're a tavern, not an inn! But I can point you to the Wayward Traveler Inn in the southern district. Mara runs a fine establishment there, perfect for weary travelers.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "buy_drink": {
       "text": "Thirsty, are you? Talk to Marcus at the bar—he's our barkeep and he'll get you sorted with our finest ales and beers!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_entertainment": {
       "text": "We have live music every night at 9 PM! Different shows are available depending on the day of the week. Marcus handles all the bookings and keeps our music schedule. He'll need you to have the right instruments, and bookings must be made before 8 PM. Talk to him if you're interested in performing!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels, friend! Come back anytime!",

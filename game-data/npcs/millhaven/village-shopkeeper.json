@@ -4,13 +4,16 @@
   "title": "Shopkeeper",
   "race": "Halfling",
   "description": "A cheerful halfling with rosy cheeks and an infectious smile. His shop is tidy and welcoming, with every item neatly organized and clearly priced.",
+  "primary_home": "millhaven",
   "schedule": [
     {
       "start": 0,
       "end": 420,
       "location": "pip_home",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 480,
       "location": "millhaven-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -26,15 +31,21 @@
       "end": 1200,
       "location": "general_store",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1200,
       "end": 1260,
       "location": "millhaven-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,7 +54,9 @@
       "location_type": "building",
       "location_id": "pip_home",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -55,23 +68,35 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring softly* Mmm... just five more minutes, dear...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "Good morning! I'm just heading to open the shop. Do stop by Haversham's if you need anything!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "Shop's closed for the day! I'm heading home for a nice cup of tea. Come by tomorrow during business hours!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm off for the evening, dear! Visit Haversham's tomorrow—I'll have fresh stock ready for you!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What brings you to our little shop today?",
-      "options": ["browse_shop", "ask_about_village", "goodbye"]
+      "options": [
+        "browse_shop",
+        "ask_about_village",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "Please, have a look around! Everything's priced fairly—we pride ourselves on honest business here in Millhaven!",
@@ -79,7 +104,9 @@
     },
     "ask_about_village": {
       "text": "Millhaven is a wonderful place! Everyone knows everyone, and we all look out for each other. If you're planning to stay, do visit the Burrowlock—Rosie can set you up with storage!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels, friend! Do come back anytime—there's always a warm welcome at Haversham's!",
@@ -95,13 +122,41 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      { "item_id": "rope-hemp", "stock": 8, "max_stock": 8 },
-      { "item_id": "torch", "stock": 15, "max_stock": 15 },
-      { "item_id": "rations", "stock": 25, "max_stock": 25 },
-      { "item_id": "waterskin", "stock": 12, "max_stock": 12 },
-      { "item_id": "backpack", "stock": 4, "max_stock": 4 },
-      { "item_id": "bedroll", "stock": 6, "max_stock": 6 },
-      { "item_id": "tinderbox", "stock": 8, "max_stock": 8 }
+      {
+        "item_id": "rope-hemp",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "torch",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "rations",
+        "stock": 25,
+        "max_stock": 25
+      },
+      {
+        "item_id": "waterskin",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "backpack",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "bedroll",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "tinderbox",
+        "stock": 8,
+        "max_stock": 8
+      }
     ]
   }
 }

@@ -4,14 +4,20 @@
   "title": "Scalekeeper",
   "race": "Dragonborn",
   "description": "A golden-scaled dragonborn whose presence commands respect. Zarithax's eyes shimmer with an inner fire, and their voice carries the weight of ancient draconic authority.",
+  "primary_home": "goldenhaven",
   "schedule": [
     {
       "start": 0,
       "end": 1440,
       "location": "ember_vault",
       "state": "working",
-      "dialogue_options": ["about_service"],
-      "available_actions": ["open_storage", "register_storage"]
+      "dialogue_options": [
+        "about_service"
+      ],
+      "available_actions": [
+        "open_storage",
+        "register_storage"
+      ]
     }
   ],
   "greeting": {
@@ -22,7 +28,11 @@
   "dialogue": {
     "about_service": {
       "text": "The Ember Vault was forged in dragonfire and sealed by the ancient pact. Those who carry dragonborn blood may claim a vault here by birthright—it is our heritage, passed down through flame and scale. Outsiders seeking to use our vaults must undergo the Flamebinding Rite and pay the appropriate tribute.",
-      "options": ["ask_about_rite", "use_storage", "goodbye"]
+      "options": [
+        "ask_about_rite",
+        "use_storage",
+        "goodbye"
+      ]
     },
     "ask_about_rite": {
       "text": "The Flamebinding Rite is a solemn ceremony. You must offer 70 gold as tribute to the ancestral flames. In return, I will bind a vault to your essence using dragonfire. Once bound, your possessions will be protected by the same magic that guards our clan relics. Few outsiders have earned this honor. Will you?",
@@ -30,7 +40,10 @@
         "not_native": true,
         "not_registered": true
       },
-      "options": ["pay_rite", "maybe_later"]
+      "options": [
+        "pay_rite",
+        "maybe_later"
+      ]
     },
     "pay_rite": {
       "text": "You have paid the tribute. Approach the flames. *breathes a controlled gout of golden fire* It is done. The vault recognizes you now. Your belongings will be safe here, guarded by dragonfire itself. Use this honor wisely.",
@@ -42,7 +55,10 @@
       },
       "success": "The Flamebinding Rite is complete. You may now store items in the Ember Vault.",
       "failure": "You lack the tribute required. The rite demands 70 gold.",
-      "options": ["use_storage", "goodbye"]
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     },
     "use_storage": {
       "text": "The flames will part for you. Enter, and know that your possessions are secure.",
@@ -50,11 +66,15 @@
       "requirements": {
         "registered": true
       },
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "maybe_later": {
       "text": "The flames are patient. Return when you are prepared.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "goodbye": {
       "text": "May the fire within you burn eternal. Farewell.",

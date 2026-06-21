@@ -4,11 +4,56 @@
   "title": "Innkeeper & Barkeep",
   "race": "Dragonborn",
   "description": "A boisterous dragonborn sea captain who runs The Salty Anchor with the energy of a storm. She loves loud music, strong drinks, and the company of sailors and adventurers from distant lands.",
+  "primary_home": "goldenhaven",
   "schedule": [
-    {"start": 0, "end": 240, "location": "sailors_tavern", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]},
-    {"start": 240, "end": 360, "location": "reylia_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 360, "end": 420, "location": "reylia_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 420, "end": 1440, "location": "sailors_tavern", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show", "rent_room"]}
+    {
+      "start": 0,
+      "end": 240,
+      "location": "sailors_tavern",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 240,
+      "end": 360,
+      "location": "reylia_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "reylia_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1440,
+      "location": "sailors_tavern",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Ahoy! Welcome to The Salty Anchor! I'm Captain Reylia Stormwave. We've got cold beer, warm beds, and the loudest, rowdiest music in the harbor! What brings ye here, sailor?",
@@ -18,42 +63,65 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring like waves crashing* Zzz... *grumbles* ...full sails ahead... Zzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "Just checkin' the rigging! The tavern's open—help yerself below deck!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What can I do for ye, sailor?",
-      "options": ["buy_drink", "ask_rent_room", "ask_about_shows", "goodbye"]
+      "options": [
+        "buy_drink",
+        "ask_rent_room",
+        "ask_about_shows",
+        "goodbye"
+      ]
     },
     "buy_drink": {
       "text": "Best beer this side of the ocean, brewed strong like the sea! Take a look!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_rent_room": {
       "text": "A hammock for the night costs 50 gold. Sleeps like ye're rockin' on the waves! Want it?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
       "action": "rent_room",
       "cost": 50,
-      "requirements": {"gold": 50},
+      "requirements": {
+        "gold": 50
+      },
       "success": "Aye! Yer hammock's ready below deck. Sleep well, sailor!",
       "failure": "Ye need 50 gold for a room. Come back when ye got the coin!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_shows": {
       "text": "Every night at 9 PM, we have the loudest music in the harbor! Sea shanties, drums, horns—music that carries over the waves! Ye need yer instruments and book before 8 PM. Want to see what's on tonight?",
-      "options": ["see_available_shows", "main_menu"]
+      "options": [
+        "see_available_shows",
+        "main_menu"
+      ]
     },
     "see_available_shows": {
       "text": "Let's see what we got lined up...",
       "action": "book_show",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Fair winds and following seas!",
@@ -70,7 +138,13 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
-      {"item_id": "beer", "stock": 70, "max_stock": 70, "restock_rate": 18, "restock_interval": "hourly"}
+      {
+        "item_id": "beer",
+        "stock": 70,
+        "max_stock": 70,
+        "restock_rate": 18,
+        "restock_interval": "hourly"
+      }
     ]
   },
   "inn_config": {
@@ -79,7 +153,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

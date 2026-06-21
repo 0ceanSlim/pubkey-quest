@@ -4,11 +4,54 @@
   "title": "Barkeep & Entertainment Coordinator",
   "race": "Half-Elf",
   "description": "A refined half-elf with an ear for music and an eye for talent. He tends the bar and manages entertainment at the Golden Griffin with professionalism and taste.",
+  "primary_home": "kingdom",
   "schedule": [
-    {"start": 0, "end": 120, "location": "tavern_golden_griffin", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show"]},
-    {"start": 120, "end": 360, "location": "marcus_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 360, "end": 1020, "location": "marcus_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 1020, "end": 1440, "location": "tavern_golden_griffin", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["open_shop", "book_show"]}
+    {
+      "start": 0,
+      "end": 120,
+      "location": "tavern_golden_griffin",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show"
+      ]
+    },
+    {
+      "start": 120,
+      "end": 360,
+      "location": "marcus_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 1020,
+      "location": "marcus_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1020,
+      "end": 1440,
+      "location": "tavern_golden_griffin",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Welcome to the Golden Griffin! I'm Marcus, barkeep and entertainment coordinator. What can I get you?",
@@ -18,29 +61,44 @@
   "dialogue": {
     "sleeping": {
       "text": "*sleeping soundly* Zzz... *murmurs* ...excellent performance... Zzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm off duty at the moment. The tavern is open below—feel free to enjoy yourself. I'll be back on the floor soon.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "How can I help you?",
-      "options": ["buy_drink", "ask_about_shows", "goodbye"]
+      "options": [
+        "buy_drink",
+        "ask_about_shows",
+        "goodbye"
+      ]
     },
     "buy_drink": {
       "text": "I've got the finest ales and beers in the kingdom. Take a look at what we have!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_shows": {
       "text": "We have live music every night at 9 PM! Different shows are available depending on the day of the week. You'll need the right instruments to perform. Bookings must be made before 8 PM. Interested in booking a show?",
-      "options": ["see_available_shows", "main_menu"]
+      "options": [
+        "see_available_shows",
+        "main_menu"
+      ]
     },
     "see_available_shows": {
       "text": "Let me check what shows are available tonight...",
       "action": "book_show",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels! Come back anytime!",
@@ -57,7 +115,13 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
-      {"item_id": "beer", "stock": 50, "max_stock": 50, "restock_rate": 10, "restock_interval": "hourly"}
+      {
+        "item_id": "beer",
+        "stock": 50,
+        "max_stock": 50,
+        "restock_rate": 10,
+        "restock_interval": "hourly"
+      }
     ]
   },
   "show_config": {
@@ -65,32 +129,174 @@
     "booking_deadline": 1200,
     "shows_by_day": {
       "0": [
-        {"id": "lute-ballad-night", "name": "Ballad Night", "description": "Romantic ballads on the lute", "required_instruments": ["lute"], "base_gold": 15, "base_xp": 10, "charisma_gold_bonus": 2},
-        {"id": "flute-serenade", "name": "Flute Serenade", "description": "Gentle melodies to start the week", "required_instruments": ["flute"], "base_gold": 12, "base_xp": 8, "charisma_gold_bonus": 2}
+        {
+          "id": "lute-ballad-night",
+          "name": "Ballad Night",
+          "description": "Romantic ballads on the lute",
+          "required_instruments": [
+            "lute"
+          ],
+          "base_gold": 15,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "flute-serenade",
+          "name": "Flute Serenade",
+          "description": "Gentle melodies to start the week",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
       ],
       "1": [
-        {"id": "viol-ensemble", "name": "Viol Ensemble", "description": "Sophisticated string performance", "required_instruments": ["viol"], "base_gold": 16, "base_xp": 12, "charisma_gold_bonus": 2},
-        {"id": "lyre-tales", "name": "Bardic Tales", "description": "Stories accompanied by lyre", "required_instruments": ["lyre"], "base_gold": 14, "base_xp": 10, "charisma_gold_bonus": 2}
+        {
+          "id": "viol-ensemble",
+          "name": "Viol Ensemble",
+          "description": "Sophisticated string performance",
+          "required_instruments": [
+            "viol"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "lyre-tales",
+          "name": "Bardic Tales",
+          "description": "Stories accompanied by lyre",
+          "required_instruments": [
+            "lyre"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
       ],
       "2": [
-        {"id": "horn-fanfare", "name": "Horn Fanfare", "description": "Triumphant horn melodies", "required_instruments": ["horn"], "base_gold": 10, "base_xp": 8, "charisma_gold_bonus": 2},
-        {"id": "drum-rhythm", "name": "Drum Circle", "description": "Energetic rhythmic performance", "required_instruments": ["drum"], "base_gold": 8, "base_xp": 6, "charisma_gold_bonus": 1}
+        {
+          "id": "horn-fanfare",
+          "name": "Horn Fanfare",
+          "description": "Triumphant horn melodies",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "drum-rhythm",
+          "name": "Drum Circle",
+          "description": "Energetic rhythmic performance",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
       ],
       "3": [
-        {"id": "lute-classical", "name": "Classical Lute", "description": "Refined classical pieces", "required_instruments": ["lute"], "base_gold": 15, "base_xp": 10, "charisma_gold_bonus": 2},
-        {"id": "flute-dance", "name": "Dance Night Flute", "description": "Lively dance tunes", "required_instruments": ["flute"], "base_gold": 12, "base_xp": 8, "charisma_gold_bonus": 2}
+        {
+          "id": "lute-classical",
+          "name": "Classical Lute",
+          "description": "Refined classical pieces",
+          "required_instruments": [
+            "lute"
+          ],
+          "base_gold": 15,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "flute-dance",
+          "name": "Dance Night Flute",
+          "description": "Lively dance tunes",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
       ],
       "4": [
-        {"id": "viol-virtuoso", "name": "Viol Virtuoso", "description": "Masterful solo performance", "required_instruments": ["viol"], "base_gold": 16, "base_xp": 12, "charisma_gold_bonus": 2},
-        {"id": "lyre-evening", "name": "Evening Lyre", "description": "Relaxing melodies for the weekend", "required_instruments": ["lyre"], "base_gold": 14, "base_xp": 10, "charisma_gold_bonus": 2}
+        {
+          "id": "viol-virtuoso",
+          "name": "Viol Virtuoso",
+          "description": "Masterful solo performance",
+          "required_instruments": [
+            "viol"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "lyre-evening",
+          "name": "Evening Lyre",
+          "description": "Relaxing melodies for the weekend",
+          "required_instruments": [
+            "lyre"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
       ],
       "5": [
-        {"id": "mixed-ensemble", "name": "Mixed Ensemble", "description": "Lute and flute duo performance", "required_instruments": ["lute", "flute"], "base_gold": 25, "base_xp": 18, "charisma_gold_bonus": 3},
-        {"id": "horn-celebration", "name": "Celebration Horn", "description": "Festive horn performance for the busy night", "required_instruments": ["horn"], "base_gold": 10, "base_xp": 8, "charisma_gold_bonus": 2}
+        {
+          "id": "mixed-ensemble",
+          "name": "Mixed Ensemble",
+          "description": "Lute and flute duo performance",
+          "required_instruments": [
+            "lute",
+            "flute"
+          ],
+          "base_gold": 25,
+          "base_xp": 18,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "horn-celebration",
+          "name": "Celebration Horn",
+          "description": "Festive horn performance for the busy night",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
       ],
       "6": [
-        {"id": "grand-performance", "name": "Grand Performance", "description": "Epic multi-instrument showcase", "required_instruments": ["viol", "lyre"], "base_gold": 28, "base_xp": 20, "charisma_gold_bonus": 3},
-        {"id": "drum-feast", "name": "Feast Night Drums", "description": "Lively drumming for weekend festivities", "required_instruments": ["drum"], "base_gold": 8, "base_xp": 6, "charisma_gold_bonus": 1}
+        {
+          "id": "grand-performance",
+          "name": "Grand Performance",
+          "description": "Epic multi-instrument showcase",
+          "required_instruments": [
+            "viol",
+            "lyre"
+          ],
+          "base_gold": 28,
+          "base_xp": 20,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "drum-feast",
+          "name": "Feast Night Drums",
+          "description": "Lively drumming for weekend festivities",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
       ]
     }
   }

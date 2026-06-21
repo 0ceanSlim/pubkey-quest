@@ -1,0 +1,29 @@
+{
+  "id": "shadowmere-hermit",
+  "name": "Old Mother Muriel",
+  "race": "Human",
+  "title": "Alchemist",
+  "primary_home": "shadowmere-hermit",
+  "shop_config": {
+    "shop_type": "alchemist",
+    "buys_items": true,
+    "starting_gold": 150,
+    "inventory": [
+      {
+        "item_id": "potion-of-healing",
+        "stock": 2,
+        "max_stock": 5
+      },
+      {
+        "item_id": "antidote",
+        "stock": 3,
+        "max_stock": 10
+      },
+      {
+        "item_id": "alchemists-fire",
+        "stock": 1,
+        "max_stock": 3
+      }
+    ]
+  }
+}

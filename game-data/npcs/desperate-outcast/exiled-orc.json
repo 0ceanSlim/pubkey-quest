@@ -1,0 +1,75 @@
+{
+  "id": "exiled-orc",
+  "name": "Thok the Exiled",
+  "race": "Orc",
+  "primary_home": "desperate-outcast",
+  "greeting": {
+    "first_time": "If you've come to finish me, get on with it. Otherwise, leave an old warrior to his silence.",
+    "returning": "You return. The wind is still cold on this ridge."
+  },
+  "dialogue": {
+    "main": {
+      "text": "The wind is cold on this ridge. Why have you stopped?",
+      "options": [
+        {
+          "label": "[Orc] Brother, what brought you to this state?",
+          "next": "orc_brotherhood",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Orc"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Charisma 12] You look like you've seen better days. I have rations to spare.",
+          "cost": {
+            "items": [
+              {
+                "id": "rations",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "spare_rations",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "charisma",
+              "min": 12
+            }
+          ]
+        },
+        {
+          "label": "I'm just resting here for a moment.",
+          "next": "goodbye"
+        }
+      ]
+    },
+    "orc_brotherhood": {
+      "text": "He looks at you, surprised. 'Exiled for refusing a corrupt chieftain's command. Take my blade, brother. It's better in your hands than rusting with me.'",
+      "reward": {
+        "items": [
+          {
+            "id": "battleaxe",
+            "quantity": 1
+          }
+        ]
+      },
+      "action": "end_dialogue"
+    },
+    "spare_rations": {
+      "text": "He eats ravenously. 'A strange kindness. I have little to give, but know this: the pass ahead is guarded by more than just stone. Watch the shadows.'",
+      "reward": {
+        "xp": 100
+      },
+      "action": "end_dialogue"
+    },
+    "goodbye": {
+      "text": "He grunts and looks back into the fire.",
+      "action": "end_dialogue"
+    }
+  }
+}

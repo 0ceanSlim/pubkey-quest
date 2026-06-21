@@ -4,13 +4,16 @@
   "title": "Trade Merchant",
   "race": "Dragonborn",
   "description": "A bronze-scaled dragonborn with sharp golden eyes and an even sharper mind for business. Her shop caters to wealthy travelers and adventurers with coin to spend.",
+  "primary_home": "goldenhaven",
   "schedule": [
     {
       "start": 0,
       "end": 420,
       "location": "aurelia_home",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 480,
       "location": "goldenhaven-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -26,15 +31,21 @@
       "end": 1200,
       "location": "goldenhaven_trade_goods",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1200,
       "end": 1260,
       "location": "goldenhaven-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,7 +54,9 @@
       "location_type": "building",
       "location_id": "aurelia_home",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -55,32 +68,49 @@
   "dialogue": {
     "sleeping": {
       "text": "*breathing slowly* ...Not now. Business hours only.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "I am on my way to open the trading house. Visit during business hours if you require supplies.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "The trading house is closed. I am retiring for the evening. Return tomorrow.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I do not conduct business outside my establishment. Visit the trading house during operating hours.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What business do you have with me?",
-      "options": ["browse_shop", "sell_items", "ask_about_quality", "goodbye"]
+      "options": [
+        "browse_shop",
+        "sell_items",
+        "ask_about_quality",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "Browse as you will. Every item is of the highest quality—I accept nothing less in my establishment.",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_quality": {
       "text": "I deal only in quality merchandise. Every item I stock comes from trusted suppliers across the trading routes. Inferior goods tarnish one's reputation.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "May your ventures prove profitable. Farewell.",
@@ -96,21 +126,81 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      { "item_id": "rope", "stock": 8, "max_stock": 8 },
-      { "item_id": "torch", "stock": 15, "max_stock": 15 },
-      { "item_id": "rations", "stock": 25, "max_stock": 25 },
-      { "item_id": "waterskin", "stock": 12, "max_stock": 12 },
-      { "item_id": "backpack", "stock": 6, "max_stock": 6 },
-      { "item_id": "bedroll", "stock": 10, "max_stock": 10 },
-      { "item_id": "tinderbox", "stock": 8, "max_stock": 8 },
-      { "item_id": "oil", "stock": 10, "max_stock": 10 },
-      { "item_id": "lantern-hooded", "stock": 8, "max_stock": 8 },
-      { "item_id": "spyglass", "stock": 2, "max_stock": 2 },
-      { "item_id": "crowbar", "stock": 5, "max_stock": 5 },
-      { "item_id": "grappling-hook", "stock": 4, "max_stock": 4 },
-      { "item_id": "piton", "stock": 25, "max_stock": 25 },
-      { "item_id": "healers-kit", "stock": 5, "max_stock": 5 },
-      { "item_id": "parchment", "stock": 20, "max_stock": 20 }
+      {
+        "item_id": "rope",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "torch",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "rations",
+        "stock": 25,
+        "max_stock": 25
+      },
+      {
+        "item_id": "waterskin",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "backpack",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "bedroll",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "tinderbox",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "oil",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "lantern-hooded",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "spyglass",
+        "stock": 2,
+        "max_stock": 2
+      },
+      {
+        "item_id": "crowbar",
+        "stock": 5,
+        "max_stock": 5
+      },
+      {
+        "item_id": "grappling-hook",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "piton",
+        "stock": 25,
+        "max_stock": 25
+      },
+      {
+        "item_id": "healers-kit",
+        "stock": 5,
+        "max_stock": 5
+      },
+      {
+        "item_id": "parchment",
+        "stock": 20,
+        "max_stock": 20
+      }
     ]
   }
 }

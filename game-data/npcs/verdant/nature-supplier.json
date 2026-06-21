@@ -4,13 +4,16 @@
   "title": "Nature's Provisioner",
   "race": "Elf",
   "description": "A graceful elf with vine-woven hair and earth-toned garments. Her shop smells of fresh herbs and treated leather, offering supplies that work in harmony with nature.",
+  "primary_home": "verdant",
   "schedule": [
     {
       "start": 0,
       "end": 420,
       "location": "thalindra_grove",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 480,
       "location": "verdant-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -26,15 +31,21 @@
       "end": 1200,
       "location": "verdant_supplies",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1200,
       "end": 1260,
       "location": "verdant-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,7 +54,9 @@
       "location_type": "building",
       "location_id": "thalindra_grove",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -55,32 +68,48 @@
   "dialogue": {
     "sleeping": {
       "text": "*resting peacefully among the leaves* ...the trees whisper... ...tomorrow...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "Aiya. I walk to my shop. The morning dew blesses the path. Visit me there if you need supplies.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "The shop rests now. I return to the grove. Come when the sun rises again.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I commune with the forest spirits during these hours. Seek me at my shop when the sun is high.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "How may the forest provide for you?",
-      "options": ["browse_shop", "ask_about_goods", "goodbye"]
+      "options": [
+        "browse_shop",
+        "ask_about_goods",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "All my wares are crafted with respect for the natural world. Please, look upon them.",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_goods": {
       "text": "I work with local artisans who understand the old ways. Nothing is taken from the forest without gratitude, and nothing is wasted.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "May the leaves guide your path. Farewell, wanderer.",
@@ -96,20 +125,76 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      { "item_id": "rope", "stock": 12, "max_stock": 12 },
-      { "item_id": "torch", "stock": 18, "max_stock": 18 },
-      { "item_id": "rations", "stock": 35, "max_stock": 35 },
-      { "item_id": "waterskin", "stock": 18, "max_stock": 18 },
-      { "item_id": "backpack", "stock": 6, "max_stock": 6 },
-      { "item_id": "bedroll", "stock": 10, "max_stock": 10 },
-      { "item_id": "tinderbox", "stock": 12, "max_stock": 12 },
-      { "item_id": "oil", "stock": 10, "max_stock": 10 },
-      { "item_id": "healers-kit", "stock": 6, "max_stock": 6 },
-      { "item_id": "herbalism-kit", "stock": 3, "max_stock": 3 },
-      { "item_id": "hunting-trap", "stock": 4, "max_stock": 4 },
-      { "item_id": "net", "stock": 5, "max_stock": 5 },
-      { "item_id": "quiver", "stock": 8, "max_stock": 8 },
-      { "item_id": "arrows", "stock": 40, "max_stock": 40 }
+      {
+        "item_id": "rope",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "torch",
+        "stock": 18,
+        "max_stock": 18
+      },
+      {
+        "item_id": "rations",
+        "stock": 35,
+        "max_stock": 35
+      },
+      {
+        "item_id": "waterskin",
+        "stock": 18,
+        "max_stock": 18
+      },
+      {
+        "item_id": "backpack",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "bedroll",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "tinderbox",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "oil",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "healers-kit",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "herbalism-kit",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "hunting-trap",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "net",
+        "stock": 5,
+        "max_stock": 5
+      },
+      {
+        "item_id": "quiver",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "arrows",
+        "stock": 40,
+        "max_stock": 40
+      }
     ]
   }
 }

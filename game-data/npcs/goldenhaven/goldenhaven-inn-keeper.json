@@ -4,11 +4,52 @@
   "title": "Innkeeper",
   "race": "Dragonborn",
   "description": "A massive dragonborn with bronze scales who runs the Caravan Rest Inn. Despite his intimidating appearance, he's a professional innkeeper who ensures merchant caravans and their guards get proper rest.",
+  "primary_home": "goldenhaven",
   "schedule": [
-    {"start": 0, "end": 480, "location": "caravan_rest", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["rent_room"]},
-    {"start": 480, "end": 600, "location": "crusher_quarters", "state": "sleeping", "dialogue_options": ["sleeping"], "available_actions": []},
-    {"start": 600, "end": 660, "location": "crusher_quarters", "state": "home", "dialogue_options": ["off_duty"], "available_actions": []},
-    {"start": 660, "end": 1440, "location": "caravan_rest", "state": "working", "dialogue_options": ["main_menu"], "available_actions": ["rent_room"]}
+    {
+      "start": 0,
+      "end": 480,
+      "location": "caravan_rest",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 480,
+      "end": 600,
+      "location": "crusher_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 600,
+      "end": 660,
+      "location": "crusher_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 660,
+      "end": 1440,
+      "location": "caravan_rest",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    }
   ],
   "greeting": {
     "first_time": "Welcome to Caravan Rest Inn. I'm Crusher Ironhide. We provide secure lodging for merchants, caravans, and their guards. How may I assist you?",
@@ -18,28 +59,42 @@
   "dialogue": {
     "sleeping": {
       "text": "*deep rumbling snores* Zzz... *shifts* ...extra security on the west wing... Zzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm on my break. The inn is staffed—ask at the desk if you need anything.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "Do you need lodging?",
-      "options": ["ask_rent_room", "goodbye"]
+      "options": [
+        "ask_rent_room",
+        "goodbye"
+      ]
     },
     "ask_rent_room": {
       "text": "A room for the night costs 50 gold. Secure, quiet, and well-maintained. We cater to merchants and guards who need proper rest. Interested?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
       "action": "rent_room",
       "cost": 50,
-      "requirements": {"gold": 50},
+      "requirements": {
+        "gold": 50
+      },
       "success": "Room secured. Second floor, third door on the left. Rest well.",
       "failure": "A room costs 50 gold. Return when you have sufficient funds.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels, and may your ventures be profitable.",
@@ -52,7 +107,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

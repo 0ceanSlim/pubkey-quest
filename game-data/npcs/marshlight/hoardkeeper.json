@@ -4,14 +4,20 @@
   "title": "Hoardkeeper",
   "race": "Orc",
   "description": "A battle-scarred orc with iron-gray skin and tusks decorated with war trophies. Grommash guards the clan's communal war spoils with fierce loyalty and unexpected wisdom.",
+  "primary_home": "marshlight",
   "schedule": [
     {
       "start": 0,
       "end": 1440,
       "location": "war_hoard",
       "state": "working",
-      "dialogue_options": ["about_service"],
-      "available_actions": ["open_storage", "register_storage"]
+      "dialogue_options": [
+        "about_service"
+      ],
+      "available_actions": [
+        "open_storage",
+        "register_storage"
+      ]
     }
   ],
   "greeting": {
@@ -22,7 +28,11 @@
   "dialogue": {
     "about_service": {
       "text": "The Warhoard holds the spoils of every battle our clan has won. Every orc of Marshlight may claim their share of storage—it is our right by blood and steel. But outsiders must prove themselves worthy. You will pay the Tribute of Iron, or you will store nothing here.",
-      "options": ["ask_about_tribute", "use_storage", "goodbye"]
+      "options": [
+        "ask_about_tribute",
+        "use_storage",
+        "goodbye"
+      ]
     },
     "ask_about_tribute": {
       "text": "The Tribute of Iron is 65 gold. It is high because trust must be earned among warriors. Pay it, and I will grant you a cache in the hoard. Betray that trust, and you will learn why I am called Ironhide. Do we have an understanding?",
@@ -30,7 +40,10 @@
         "not_native": true,
         "not_registered": true
       },
-      "options": ["pay_tribute", "maybe_later"]
+      "options": [
+        "pay_tribute",
+        "maybe_later"
+      ]
     },
     "pay_tribute": {
       "text": "You have coin and courage. Good. *stamps iron marker* This mark is your claim. Your cache is in the lower vaults. Guard your key well—I do not replace what is lost.",
@@ -42,7 +55,10 @@
       },
       "success": "Your tribute has been accepted. You may now store items in the Warhoard.",
       "failure": "Your purse is light. Return with 65 gold if you wish to store here.",
-      "options": ["use_storage", "goodbye"]
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     },
     "use_storage": {
       "text": "Follow. Do not touch what is not yours.",
@@ -50,11 +66,15 @@
       "requirements": {
         "registered": true
       },
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "maybe_later": {
       "text": "Then go. The Warhoard does not wait for the weak of will.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "goodbye": {
       "text": "Strength and steel. May your enemies fall swiftly.",

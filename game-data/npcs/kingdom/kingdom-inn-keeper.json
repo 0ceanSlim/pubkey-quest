@@ -4,21 +4,28 @@
   "title": "Inn Keeper",
   "race": "Human",
   "description": "A warm and welcoming woman who runs the Wayward Traveler Inn with care and hospitality. She ensures every guest feels at home.",
+  "primary_home": "kingdom",
   "schedule": [
     {
       "start": 0,
       "end": 480,
       "location": "travelers_inn",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["rent_room"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
     },
     {
       "start": 480,
       "end": 600,
       "location": "mara_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -26,7 +33,9 @@
       "end": 1020,
       "location": "mara_quarters",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     },
     {
@@ -34,8 +43,12 @@
       "end": 1440,
       "location": "travelers_inn",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["rent_room"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
     }
   ],
   "greeting": {
@@ -46,19 +59,30 @@
   "dialogue": {
     "sleeping": {
       "text": "*sleeping peacefully* Zzzzz... *murmurs* ...fresh linens in the morning... Zzzz...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "The inn is open downstairs, but I'm taking a well-deserved break. Feel free to wait in the common room!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What can I help you with?",
-      "options": ["ask_rent_room", "ask_about_inn", "goodbye"]
+      "options": [
+        "ask_rent_room",
+        "ask_about_inn",
+        "goodbye"
+      ]
     },
     "ask_rent_room": {
       "text": "A room for the night costs 50 gold. It includes a comfortable bed, fresh linens, and breakfast in the morning. Would you like to rent a room?",
-      "options": ["confirm_rent_room", "main_menu"]
+      "options": [
+        "confirm_rent_room",
+        "main_menu"
+      ]
     },
     "confirm_rent_room": {
       "text": "",
@@ -69,11 +93,15 @@
       },
       "success": "Wonderful! Your room is upstairs, first door on the left. Sleep well, and don't hesitate to ask if you need anything! You can now use the 'Sleep' button in your room.",
       "failure": "I'm sorry, dear, but a room costs 50 gold. Come back when you have enough.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "ask_about_inn": {
       "text": "The Wayward Traveler has been serving travelers for three generations. We pride ourselves on clean rooms, hot meals, and a safe place to rest. We're open from 5 PM to 8 AM - perfect for those arriving late or leaving early.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels, and may the road be kind to you!",
@@ -86,7 +114,9 @@
       "fatigue_restored": 100,
       "hp_restored": "full",
       "hunger_restored": 1,
-      "special_effects": ["well_rested"]
+      "special_effects": [
+        "well_rested"
+      ]
     }
   }
 }

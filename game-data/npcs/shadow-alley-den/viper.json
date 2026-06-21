@@ -1,0 +1,84 @@
+{
+  "id": "viper",
+  "name": "Viper",
+  "race": "Elf",
+  "title": "Thief Merchant",
+  "description": "An elf with cold, calculating eyes and fingers that never stop moving, playing with a silver coin.",
+  "primary_home": "shadow-alley-den",
+  "dialogue": {
+    "main": {
+      "text": "What do you want? I don't trade with just anyone.",
+      "options": [
+        {
+          "label": "I'd like to see your inventory.",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Rogue"
+              ]
+            }
+          ],
+          "action": "open_shop"
+        },
+        {
+          "label": "[Evil] My reputation should speak for itself.",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "neutral_evil",
+                "lawful_evil",
+                "chaotic_evil"
+              ]
+            }
+          ],
+          "action": "open_shop"
+        },
+        {
+          "label": "Why won't you trade with me?",
+          "next": "rejection"
+        },
+        {
+          "label": "Never mind. (Leave)",
+          "next": "goodbye"
+        }
+      ]
+    },
+    "rejection": {
+      "text": "You've got the look of someone who pays taxes and respects the watch. My goods are for those who live in the shadows. Now get out.",
+      "action": "end_dialogue"
+    },
+    "goodbye": {
+      "text": "Don't let the rats bite on your way out.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "thieves_guild",
+    "buys_items": true,
+    "starting_gold": 600,
+    "inventory": [
+      {
+        "item_id": "thieves-kit",
+        "stock": 5,
+        "max_stock": 10
+      },
+      {
+        "item_id": "poison-vial",
+        "stock": 3,
+        "max_stock": 5
+      },
+      {
+        "item_id": "lock-pick",
+        "stock": 20,
+        "max_stock": 50
+      },
+      {
+        "item_id": "smoke-bomb",
+        "stock": 5,
+        "max_stock": 10
+      }
+    ]
+  }
+}

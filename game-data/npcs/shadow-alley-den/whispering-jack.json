@@ -1,0 +1,66 @@
+{
+  "id": "whispering-jack",
+  "name": "Whispering Jack",
+  "race": "Human",
+  "title": "Lookout",
+  "description": "A man with a jagged scar across his throat, making his voice a permanent rasp.",
+  "primary_home": "shadow-alley-den",
+  "dialogue": {
+    "main": {
+      "text": "Identify yourself, or the next thing you hear will be your own blood hitting the floor.",
+      "options": [
+        {
+          "label": "[Rogue] (Show the secret sign)",
+          "next": "welcome_rogue",
+          "requirements": [
+            {
+              "type": "class",
+              "values": [
+                "Rogue"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[Charisma 16] I'm just a traveler looking for some... unofficial services.",
+          "next": "welcome_outsider",
+          "requirements": [
+            {
+              "type": "stat",
+              "id": "charisma",
+              "min": 16
+            }
+          ]
+        },
+        {
+          "label": "[Evil] I have gold and I have business. That's all you need to know.",
+          "next": "welcome_outsider",
+          "requirements": [
+            {
+              "type": "alignment",
+              "values": [
+                "evil"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "I'm leaving. (Exit)",
+          "next": "goodbye"
+        }
+      ]
+    },
+    "welcome_rogue": {
+      "text": "Aye, one of the family. Go on in, Viper's in the back.",
+      "action": "allow_entry"
+    },
+    "welcome_outsider": {
+      "text": "We don't usually like 'tourists'. Keep your hands off your weapons and maybe you'll leave with your purse.",
+      "action": "allow_entry"
+    },
+    "goodbye": {
+      "text": "Smart move. Keep walking.",
+      "action": "end_dialogue"
+    }
+  }
+}

@@ -4,14 +4,20 @@
   "title": "Vaultwright",
   "race": "Dwarf",
   "description": "A stout dwarf with a braided beard adorned with iron rings. Thorin's hands are calloused from years of carving vaultstones, and his sharp eyes miss nothing.",
+  "primary_home": "ironpeak",
   "schedule": [
     {
       "start": 0,
       "end": 1440,
       "location": "stone_vault",
       "state": "working",
-      "dialogue_options": ["about_service"],
-      "available_actions": ["open_storage", "register_storage"]
+      "dialogue_options": [
+        "about_service"
+      ],
+      "available_actions": [
+        "open_storage",
+        "register_storage"
+      ]
     }
   ],
   "greeting": {
@@ -22,7 +28,11 @@
   "dialogue": {
     "about_service": {
       "text": "The Stonevault is clan heritage, carved deep into the mountain by the first dwarves who settled these peaks. Every dwarf has a vault here by birthright. But outsiders... well, ye'll need a vaultstone carved and keyed to ye personally. It's ancient work, precise work.",
-      "options": ["ask_about_engraving", "use_storage", "goodbye"]
+      "options": [
+        "ask_about_engraving",
+        "use_storage",
+        "goodbye"
+      ]
     },
     "ask_about_engraving": {
       "text": "The Vaultstone Engraving Fee is 55 gold. I'll carve ye a personal stone, inscribed with your name and sealed with a lock only ye can open. Once it's done, your vault is yours for life. Dwarven stonework lasts forever, ye know.",
@@ -30,7 +40,10 @@
         "not_native": true,
         "not_registered": true
       },
-      "options": ["pay_engraving", "maybe_later"]
+      "options": [
+        "pay_engraving",
+        "maybe_later"
+      ]
     },
     "pay_engraving": {
       "text": "Good! Let me fetch my tools... *sound of hammer on stone* ...There! Your vaultstone is ready. She'll guard your treasures well. Come, I'll show ye to your vault.",
@@ -42,7 +55,10 @@
       },
       "success": "Your vaultstone has been engraved. You may now store items in the Stonevault.",
       "failure": "Ah, ye're short on coin. Come back when ye have 55 gold, friend.",
-      "options": ["use_storage", "goodbye"]
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     },
     "use_storage": {
       "text": "Right this way. Mind the stairs—they're steep, but solid as the mountain itself.",
@@ -50,11 +66,15 @@
       "requirements": {
         "registered": true
       },
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "maybe_later": {
       "text": "Aye, take your time. The stone isn't goin' anywhere. Neither am I!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "goodbye": {
       "text": "Stone and steel keep ye safe, friend. Until next time.",

@@ -4,13 +4,16 @@
   "title": "Supply Master",
   "race": "Dwarf",
   "description": "A stocky dwarf with soot-stained hands and a no-nonsense demeanor. His shop is crammed with sturdy, practical gear that can survive the harsh mountain conditions.",
+  "primary_home": "ironpeak",
   "schedule": [
     {
       "start": 0,
       "end": 360,
       "location": "brogni_home",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 420,
       "location": "ironpeak-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -26,15 +31,22 @@
       "end": 1200,
       "location": "ironpeak_general_supplies",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop", "open_sell"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "open_sell"
+      ]
     },
     {
       "start": 1200,
       "end": 1260,
       "location": "ironpeak-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,7 +55,9 @@
       "location_type": "building",
       "location_id": "brogni_home",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -55,33 +69,48 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring loudly* Zzzz... *mumbles about ore prices*",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "Mornin'! Headin' to the shop to open up. Stop by if ye need quality gear!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "Shop's closed for the night, friend. I'm headin' home. Come back tomorrow!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm off duty, friend. Visit me shop during business hours if ye need supplies!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What can I get for ye?",
-      "options": ["browse_shop", "ask_about_durability", "goodbye"]
+      "options": [
+        "browse_shop",
+        "ask_about_durability",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "Take a look! Every item built to last—dwarven quality, guaranteed. No shoddy goods here!",
       "action": "open_shop",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
-
     "ask_about_durability": {
       "text": "Every piece o' gear in this shop is tested personal-like. If it can't survive a trip into the mines, it don't make it onto me shelves. That's the dwarven way!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Stone and steel keep ye safe! Come back anytime!",
@@ -97,20 +126,76 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      { "item_id": "rope", "stock": 15, "max_stock": 15 },
-      { "item_id": "torch", "stock": 30, "max_stock": 30 },
-      { "item_id": "rations", "stock": 25, "max_stock": 25 },
-      { "item_id": "waterskin", "stock": 12, "max_stock": 12 },
-      { "item_id": "backpack", "stock": 8, "max_stock": 8 },
-      { "item_id": "bedroll", "stock": 6, "max_stock": 6 },
-      { "item_id": "tinderbox", "stock": 15, "max_stock": 15 },
-      { "item_id": "oil", "stock": 15, "max_stock": 15 },
-      { "item_id": "lantern-hooded", "stock": 10, "max_stock": 10 },
-      { "item_id": "piton", "stock": 40, "max_stock": 40 },
-      { "item_id": "hammer", "stock": 8, "max_stock": 8 },
-      { "item_id": "pickaxe", "stock": 6, "max_stock": 6 },
-      { "item_id": "crowbar", "stock": 8, "max_stock": 8 },
-      { "item_id": "chain", "stock": 4, "max_stock": 4 }
+      {
+        "item_id": "rope",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "torch",
+        "stock": 30,
+        "max_stock": 30
+      },
+      {
+        "item_id": "rations",
+        "stock": 25,
+        "max_stock": 25
+      },
+      {
+        "item_id": "waterskin",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "backpack",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "bedroll",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "tinderbox",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "oil",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "lantern-hooded",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "piton",
+        "stock": 40,
+        "max_stock": 40
+      },
+      {
+        "item_id": "hammer",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "pickaxe",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "crowbar",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "chain",
+        "stock": 4,
+        "max_stock": 4
+      }
     ]
   }
 }

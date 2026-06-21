@@ -4,14 +4,20 @@
   "title": "Warden of Roots",
   "race": "Elf",
   "description": "An ancient elf with bark-like skin and eyes the color of spring leaves. Silvanthir tends the enchanted trees that serve as living vaults, speaking to them in the old tongue.",
+  "primary_home": "verdant",
   "schedule": [
     {
       "start": 0,
       "end": 1440,
       "location": "glade_of_safekeeping",
       "state": "working",
-      "dialogue_options": ["about_service"],
-      "available_actions": ["open_storage", "register_storage"]
+      "dialogue_options": [
+        "about_service"
+      ],
+      "available_actions": [
+        "open_storage",
+        "register_storage"
+      ]
     }
   ],
   "greeting": {
@@ -22,7 +28,11 @@
   "dialogue": {
     "about_service": {
       "text": "The Glade of Safekeeping is blessed by the eldest trees of this enclave. They store belongings within their hollow roots, keeping them safe from fire, rot, and thieves. Those born under the green canopy may use this gift freely. Others must offer a binding to attune a new hollow to their essence.",
-      "options": ["ask_about_offering", "use_storage", "goodbye"]
+      "options": [
+        "ask_about_offering",
+        "use_storage",
+        "goodbye"
+      ]
     },
     "ask_about_offering": {
       "text": "The Offering of Binding requires a gift of 60 gold or an equivalent in mana crystals. With this offering, I will sing the old songs and the trees will hollow a space for you, bound to your spirit alone. Once bound, you may return whenever the need arises.",
@@ -30,7 +40,10 @@
         "not_native": true,
         "not_registered": true
       },
-      "options": ["pay_offering", "maybe_later"]
+      "options": [
+        "pay_offering",
+        "maybe_later"
+      ]
     },
     "pay_offering": {
       "text": "The trees accept your offering. Listen... can you hear them? They sing your name now. A hollow has been prepared. Come, I will show you.",
@@ -42,7 +55,10 @@
       },
       "success": "The trees have bound a hollow to your spirit. You may store items in the Glade of Safekeeping.",
       "failure": "I sense your pockets are light. The offering requires 60 gold, friend.",
-      "options": ["use_storage", "goodbye"]
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     },
     "use_storage": {
       "text": "Place your hand upon the bark. The tree will open for you.",
@@ -50,11 +66,15 @@
       "requirements": {
         "registered": true
       },
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "maybe_later": {
       "text": "The forest is patient. We will be here when you are ready.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "goodbye": {
       "text": "May the canopy shelter you, and may your path be ever green.",

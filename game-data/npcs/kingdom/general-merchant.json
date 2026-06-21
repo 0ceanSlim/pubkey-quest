@@ -4,13 +4,16 @@
   "title": "General Merchant",
   "race": "Human",
   "description": "A portly, cheerful merchant with a quick smile and keen eye for business. His shop is packed with everything an adventurer might need, from rope to rations.",
+  "primary_home": "kingdom",
   "schedule": [
     {
       "start": 0,
       "end": 360,
       "location": "aldric_home",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -18,7 +21,9 @@
       "end": 420,
       "location": "kingdom-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -26,15 +31,21 @@
       "end": 1320,
       "location": "kingdom_general_store",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1320,
       "end": 1380,
       "location": "kingdom-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -42,7 +53,9 @@
       "end": 1440,
       "location": "aldric_home",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -54,23 +67,35 @@
   "dialogue": {
     "sleeping": {
       "text": "*snoring* Zzz... five more minutes...",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "Morning! Heading to the shop to open up. Stop by if you need supplies!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "Shop's closed for the night, friend. I'm heading home to rest these old bones. Come back tomorrow!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "I'm off the clock for the evening. Visit me at the Grand Market tomorrow during business hours!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "What brings you to my shop today?",
-      "options": ["browse_shop", "ask_about_stock", "goodbye"]
+      "options": [
+        "browse_shop",
+        "ask_about_stock",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "Have a look around! All my prices are fair—you won't find better deals in the kingdom.",
@@ -78,7 +103,9 @@
     },
     "ask_about_stock": {
       "text": "I restock my shelves every morning with fresh supplies from local craftsmen and traders. If something's out of stock, check back tomorrow!",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Safe travels, friend! Come back anytime!",
@@ -94,20 +121,76 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      { "item_id": "rope", "stock": 5, "max_stock": 10 },
-      { "item_id": "torch", "stock": 20, "max_stock": 20 },
-      { "item_id": "rations", "stock": 10, "max_stock": 30 },
-      { "item_id": "waterskin", "stock": 2, "max_stock": 15 },
-      { "item_id": "backpack", "stock": 5, "max_stock": 5 },
-      { "item_id": "bedroll", "stock": 2, "max_stock": 8 },
-      { "item_id": "tinderbox", "stock": 5, "max_stock": 10 },
-      { "item_id": "oil", "stock": 10, "max_stock": 12 },
-      { "item_id": "lantern-hooded", "stock": 6, "max_stock": 6 },
-      { "item_id": "crowbar", "stock": 2, "max_stock": 4 },
-      { "item_id": "hammer", "stock": 2, "max_stock": 5 },
-      { "item_id": "piton", "stock": 30, "max_stock": 30 },
-      { "item_id": "healers-kit", "stock": 3, "max_stock": 3 },
-      { "item_id": "mess-kit", "stock": 3, "max_stock": 8 }
+      {
+        "item_id": "rope",
+        "stock": 5,
+        "max_stock": 10
+      },
+      {
+        "item_id": "torch",
+        "stock": 20,
+        "max_stock": 20
+      },
+      {
+        "item_id": "rations",
+        "stock": 10,
+        "max_stock": 30
+      },
+      {
+        "item_id": "waterskin",
+        "stock": 2,
+        "max_stock": 15
+      },
+      {
+        "item_id": "backpack",
+        "stock": 5,
+        "max_stock": 5
+      },
+      {
+        "item_id": "bedroll",
+        "stock": 2,
+        "max_stock": 8
+      },
+      {
+        "item_id": "tinderbox",
+        "stock": 5,
+        "max_stock": 10
+      },
+      {
+        "item_id": "oil",
+        "stock": 10,
+        "max_stock": 12
+      },
+      {
+        "item_id": "lantern-hooded",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "crowbar",
+        "stock": 2,
+        "max_stock": 4
+      },
+      {
+        "item_id": "hammer",
+        "stock": 2,
+        "max_stock": 5
+      },
+      {
+        "item_id": "piton",
+        "stock": 30,
+        "max_stock": 30
+      },
+      {
+        "item_id": "healers-kit",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "mess-kit",
+        "stock": 3,
+        "max_stock": 8
+      }
     ]
   }
 }
