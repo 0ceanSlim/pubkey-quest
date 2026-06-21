@@ -48,6 +48,13 @@ func LoadSaveFile(path string) (*types.SaveFile, error) {
 	dir := filepath.Dir(path)
 	save.InternalNpub = filepath.Base(dir)
 
+	// Schema migration: v1 saves unmarshal with zero-valued new fields (the
+	// correct defaults); stamp them up to the current version. Future field
+	// migrations key off the incoming SchemaVersion here.
+	if save.SchemaVersion < types.CurrentSchemaVersion {
+		save.SchemaVersion = types.CurrentSchemaVersion
+	}
+
 	return &save, nil
 }
 

@@ -195,10 +195,6 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	startingVault := generateStartingVault(startingCity)
 	vaults := []map[string]interface{}{startingVault}
 
-	// 11. Calculate HP and Mana
-	hp := calculateHP(generatedChar.Stats["Constitution"], generatedChar.Class)
-	mana := calculateMana(generatedChar.Stats, generatedChar.Class)
-
 	// 12. Use location IDs directly (not display names)
 	// startingCity is already an ID like "millhaven", "verdant", etc.
 	locationID := startingCity
@@ -218,6 +214,11 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		statsInterface[k] = v
 	}
 
+	// HP/Mana from the canonical derive functions (level 1) so a fresh character
+	// matches exactly what Hydrate recomputes on every later load.
+	hp := gamecharacter.DeriveMaxHP(generatedChar.Class, 1, statsInterface)
+	mana := gamecharacter.DeriveMaxMana(generatedChar.Class, 1, statsInterface)
+
 	// 15. Create save file
 	saveFile := SaveFile{
 		D:                   req.Name,
@@ -226,6 +227,7 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		Class:               generatedChar.Class,
 		Background:          generatedChar.Background,
 		Alignment:           generatedChar.Alignment,
+		SchemaVersion:       types.CurrentSchemaVersion,
 		Experience:          0,
 		HP:                  hp,
 		MaxHP:               hp,
@@ -306,59 +308,4 @@ func respondWithError(w http.ResponseWriter, message string) {
 		Success: false,
 		Error:   message,
 	})
-}
-
-// Calculate HP based on class and constitution
-func calculateHP(constitution int, class string) int {
-	hitDice := map[string]int{
-		"Barbarian": 12,
-		"Fighter":   10,
-		"Paladin":   10,
-		"Monk":      8,
-		"Ranger":    10,
-		"Rogue":     8,
-		"Bard":      8,
-		"Cleric":    8,
-		"Druid":     8,
-		"Sorcerer":  6,
-		"Warlock":   8,
-		"Wizard":    6,
-	}
-
-	hitDie := hitDice[class]
-	if hitDie == 0 {
-		hitDie = 8 // Default
-	}
-
-	conModifier := (constitution - 10) / 2
-	return hitDie + conModifier
-}
-
-// Calculate mana based on class and stats
-func calculateMana(stats map[string]int, class string) int {
-	spellcasters := map[string]string{
-		"Wizard":   "Intelligence",
-		"Sorcerer": "Charisma",
-		"Warlock":  "Charisma",
-		"Bard":     "Charisma",
-		"Cleric":   "Wisdom",
-		"Druid":    "Wisdom",
-		"Paladin":  "Charisma",
-		"Ranger":   "Wisdom",
-	}
-
-	spellcastingStat, isCaster := spellcasters[class]
-	if !isCaster {
-		return 0
-	}
-
-	statValue := stats[spellcastingStat]
-	statModifier := (statValue - 10) / 2
-
-	mana := statModifier + 1
-	if mana < 0 {
-		mana = 0
-	}
-
-	return mana
 }
