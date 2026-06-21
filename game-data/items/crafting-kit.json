@@ -1,0 +1,16 @@
+{
+  "description": "A consolidated set of artisan's tools — hammers, files, chisels, awls, needles, and shaping implements covering smithing, carpentry, masonry, leatherworking, weaving, woodcarving, glassblowing, and pottery. Used with the Crafting skill to build and repair equipment.",
+  "id": "crafting-kit",
+  "image": "/res/img/items/crafting-kit.png",
+  "img": "equipment/tool.jpg",
+  "name": "Crafting Kit",
+  "notes": [
+    "Used with the Crafting skill to craft and repair equipment"
+  ],
+  "price": 2000,
+  "rarity": "common",
+  "stack": 1,
+  "tags": [],
+  "type": "Tools",
+  "weight": 8
+}

@@ -1,8 +1,63 @@
-| Tool Type                 | Consolidated From                                                                                                        | Used With Skill | Purpose / Effect                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------------------- |
-| **Crafting Kit**          | Artisan tools: Smith’s, Carpenter’s, Mason’s, Leatherworker’s, Weaver’s, Woodcarver’s, Glassblower’s, Potter’s, Tinker’s | Crafting        | Enables crafting & repairing. Fine/advanced kits improve item quality and reduce crafting time.          |
-| **Thieves’ Kit**          | Thieves’ tools, Disguise kit, Forgery kit, Poisoner’s kit                                                                | Thieving        | Enables lockpicking, trap disarming, forgery, poisons. Lacking the kit → disadvantage or cannot attempt. |
-| **Herbalism Kit**         | Herbalism kit, Alchemist’s supplies, Brewer’s supplies                                                                   | Medicine        | Enables potion/antidote/herbal creation. Improves effectiveness of healing or poison crafting.           |
-| **Navigator Kit**         | Cartographer’s tools, Navigator’s tools                                                                                  | Survival        | Enables map reading, orientation, avoiding getting lost, and faster travel.                              |
-| **Instrument**            | Bagpipes, Drum, Dulcimer, Flute, Lute, Lyre, Horn, Pan flute, Shawm, Viol                                                | Influence       | Enhances performance, social checks, morale bonuses, or tavern/entertainment mechanics.                  |
-| **Gaming Set (Optional)** | Dice set, Dragonchess set, Playing card set, Three-Dragon Ante set                                                       | Influence       | Enables gambling/social mini-games. Optional: can give Influence bonuses or NPC bonding effects.         |
+# Tool & Kit Consolidation
+
+**Status:** DECIDED 2026-06-20, implemented in `game-data/items/`.
+
+**Goal:** collapse the long tail of near-identical D&D tool items into a few
+skill-linked kits, so the inventory — and the future crafting / skill-check
+runtime — has one clear item per capability instead of a dozen flavor dupes.
+
+## Consolidated kits (many → one)
+
+| Kit           | Item id        | Replaces (deleted)                                                                              | Skill    | Purpose                                          |
+| ------------- | -------------- | ---------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------ |
+| Crafting Kit  | `crafting-kit` | smith's, carpenter's, mason's, leatherworker's, weaver's, woodcarver's, glassblower's, potter's | Crafting | Build & repair gear.                             |
+| Thieves' Kit  | `thieves-kit`  | thieves-tools, disguise-kit, forgery-kit, poisoners-kit                                         | Thieving | Lockpicking, traps, forgery, poisons, disguise.  |
+| Herbalism Kit | `herbalism-kit`| herbalism-kit (kept as the survivor) + alchemists-supplies, brewers-supplies (folded in)        | Medicine | Potions, antidotes, remedies.                    |
+| Navigator Kit | `navigator-kit`| cartographers-tools, navigators-tools                                                          | Survival | Map reading, orientation, faster/safer travel.   |
+
+## Kept individual — type already unified, NOT collapsed
+
+These stay one-item-per-flavor because game systems key on the specific id:
+the bard performance system (`entertainment.go`) looks up instruments by id and
+reads each instrument's own `performance` block. Collapsing them would break
+shows, the instrument merchant, and the Bard's starting-gear choice.
+
+| Category   | Items                                                                    | type (already consistent) | Skill     |
+| ---------- | ------------------------------------------------------------------------ | ------------------------- | --------- |
+| Instrument | bagpipe, drum, dulcimer, flute, lute, lyre, horn, pan-flute, shawm, viol | `Musical Instrument`      | Influence |
+| Gaming Set | dice-set, dragonchess-set, playing-card-set, three-dragon-ante-set       | `Gaming Set`              | Influence |
+
+No item edits were needed here — the types were already uniform. The skill
+mapping is recorded so the future Influence-based performance / gambling
+runtime can use it.
+
+## Deleted outright (no consolidation target)
+
+These artisan tools had no gameplay hook and no kit to fold into, so they were
+removed rather than merged: `jewelers-tools`, `cooks-utensils`,
+`calligraphers-supplies`, `painters-supplies`.
+(The draft's "Tinker's tools" never existed as a file.)
+
+## Open decision — making the kit→skill link mechanical
+
+Today the link is **descriptive only** (named in each kit's description). No
+runtime consumes it yet — there's no crafting system and no skill-check gating
+(roadmap M3+). We deliberately did **not** add a static `skill` field to the
+items, because the likely-better mechanism is the **effects system** (per the
+"while-held effect" idea):
+
+- Precedent exists: items grant effects on equip via `effects_when_worn`
+  (`equipment.go`), and a `constant` modifier on a bespoke stat
+  (`weight_capacity`, the `backpack-capacity` effect) is read by `weight.go`.
+- But to express "this kit enables/buffs a skill while carried" the effects
+  system needs three things it lacks today:
+  1. a **while-carried trigger** — the current trigger is equip-only, and kits
+     live in the backpack, not an equip slot (note: `removal.type:"equipment"`
+     is declared but its lifecycle is only half-wired — no remove-on-unequip);
+  2. **skills made effect-modifiable** — skill values are pure stat→ratio math,
+     and `GetActiveStatModifiers` only touches the six ability scores;
+  3. **gate semantics** ("can't attempt without the kit"), which is different
+     from a numeric buff.
+
+Resolve this when the crafting / skill-check runtime is built. Until then the
+kits are clean items and the table above is the source of truth.
