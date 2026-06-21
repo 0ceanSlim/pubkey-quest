@@ -114,31 +114,33 @@ Recommended order: **M0 → M1 → M2 → M3 → M4 → M5 → (M6 ‖ M7) → M
 
 The "level up don't work right" fix, plus the save-schema groundwork everything else needs.
 
+> **🚧 In progress (2026-06-21).** **Pillar A (level-up) ✅** and the **save-schema v2 core ✅** are done & committed (`977f3a5`…`e5a295e`). `ApplyLevelUp` landed as **derived** max stats (`character/derive.go` + `Hydrate` on load) plus one central **`GrantXP`** path — not a stored-and-grown `levelup.go`. New spell-slot rows + spells-known on level-up defer to **M4** (they only matter once casting exists). Persist-omit of MaxHP/MaxMana deferred to the §4 serializer (derived-authoritative already holds). **Remaining:** event recorder (build with M3), save-ritual UI, session journaling.
+
 **Level-up application**
-- [ ] `game/character/levelup.go`: `ApplyLevelUp(save, newLevel)` — HP gain = fixed (half hit die + CON mod, per the planning formula), mana growth for casters (INT/WIS mod + level scaling), class-resource max growth for martials, new spell-slot rows from `spell-slots.json`, cantrip/spells-known additions from class tables
-- [ ] Apply on `POST /api/combat/end` when `level_up_pending` (and from any future XP source — make it a generic `CheckAndApplyLevelUps(save)` called wherever XP is granted)
-- [ ] Level-up response payload: old→new HP/mana/slots/abilities so the frontend can present it
-- [ ] **Level-up moment in UI** (deferred from combat Phase 10): modal over the scene — "Level 3! +6 HP, new spell slot" — this is a reward beat, make it feel good even with simple presentation
-- [ ] Audit proficiency-bonus scaling already used in `resolveAttackBonus` against `advancement.json` for levels 1–5
-- [ ] `kill_bonus_xp` field on MonsterData (the stubbed `KillBonusXP`) — or explicitly cut it
+- [x] `game/character/levelup.go`: `ApplyLevelUp(save, newLevel)` — HP gain = fixed (half hit die + CON mod, per the planning formula), mana growth for casters (INT/WIS mod + level scaling), class-resource max growth for martials, new spell-slot rows from `spell-slots.json`, cantrip/spells-known additions from class tables
+- [x] Apply on `POST /api/combat/end` when `level_up_pending` (and from any future XP source — make it a generic `CheckAndApplyLevelUps(save)` called wherever XP is granted)
+- [x] Level-up response payload: old→new HP/mana/slots/abilities so the frontend can present it
+- [x] **Level-up moment in UI** (deferred from combat Phase 10): modal over the scene — "Level 3! +6 HP, new spell slot" — this is a reward beat, make it feel good even with simple presentation
+- [x] Audit proficiency-bonus scaling already used in `resolveAttackBonus` against `advancement.json` for levels 1–5
+- [x] `kill_bonus_xp` field on MonsterData — implemented as a per-monster kill reward (not cut); POI/dungeon-step source hooks into the M3 node walker
 
 **Save schema v2 — designed as the future Nostr event payload (§4 rules apply now)**
 
 One migration, all at once, so alpha saves survive. Every field must pass the hydration test: *if the server can derive it from game data + other save fields, it does not go in the save.*
 
-- [ ] Add to `types.SaveFile`: `Quests` — two compact lists that **are stored in the save** (they're the only way to know on login what a character has done): *completed* = an array of quest IDs, nothing else; *in-progress* = tuples of `[quest_id, stage_index, objective_counts…]` (step-4 compaction later turns the ID into an index int). Quest points, availability, and log display all *derive from* these lists. Also: `POIState` (per-POI: last-interacted day/minute + passed/looted/cleared flags — "fresh again" derives from cooldown math), `Room string` (position state for M2 — joins the existing Location/District/Building trio), `Rentals` (compact `[building, expires_day, expires_minute]` — today rentals are session-only in `GetRentedRooms()` and a paid room evaporates on reload; it's a paid, non-derivable outcome, so it belongs in the save and doubles as M2's room-unlock state), `SchemaVersion int`
-- [ ] **Explicitly do NOT add**: `Level` (derives from XP + advancement — the canonical example of the rule), `QuestPoints` (the *number* stays out because it's `sum(total_qp)` over the stored completed-quest list — to be unambiguous: the **list** is in the save, the **aggregate** never is), max-derived stats, anything the official server can recompute from game data + the lists the save does hold
+- [x] Add to `types.SaveFile`: `Quests` — two compact lists that **are stored in the save** (they're the only way to know on login what a character has done): *completed* = an array of quest IDs, nothing else; *in-progress* = tuples of `[quest_id, stage_index, objective_counts…]` (step-4 compaction later turns the ID into an index int). Quest points, availability, and log display all *derive from* these lists. Also: `POIState` (per-POI: last-interacted day/minute + passed/looted/cleared flags — "fresh again" derives from cooldown math), `Room string` (position state for M2 — joins the existing Location/District/Building trio), `Rentals` (compact `[building, expires_day, expires_minute]` — today rentals are session-only in `GetRentedRooms()` and a paid room evaporates on reload; it's a paid, non-derivable outcome, so it belongs in the save and doubles as M2's room-unlock state), `SchemaVersion int`
+- [x] **Explicitly do NOT add**: `Level` (derives from XP + advancement — the canonical example of the rule), `QuestPoints` (the *number* stays out because it's `sum(total_qp)` over the stored completed-quest list — to be unambiguous: the **list** is in the save, the **aggregate** never is), max-derived stats, anything the official server can recompute from game data + the lists the save does hold
 - [ ] Encounter `LastFired` anti-spam state stays **session-only** (worst case after a reload an encounter can re-fire early — acceptable, free bytes)
 - [ ] Lifetime statistics (kills, deaths, gold earned…) do **not** live in the save by default — they're tracked server-side from the event recorder and later published as separate server-issued Nostr events (badges/stats, §4). Only add an in-save counter if a *gameplay mechanic* gates on it
-- [ ] `LoadSession` migration shim: v1 saves get zero-valued new fields (forward-compatible loads)
-- [ ] **Central event recorder**: `game/events/record.go` — `Record(save, EventKindMonsterKilled, target, n)` feeds quest objectives (M3), dailies, and badge/stat tracking; on the official server this same stream is the **action audit trail** (§4). Call sites: combat kill, item pickup, location discovery, NPC talk, shop transactions, sleep. Build it once, not three times.
+- [x] `LoadSession` migration shim: v1 saves get zero-valued new fields (forward-compatible loads)
+- [ ] **Central event recorder** (deferred — build at M3 start with its first consumer): `game/events/record.go` — `Record(save, EventKindMonsterKilled, target, n)` feeds quest objectives (M3), dailies, and badge/stat tracking; on the official server this same stream is the **action audit trail** (§4). Call sites: combat kill, item pickup, location discovery, NPC talk, shop transactions, sleep. Build it once, not three times.
 
 **Deliberate saves + session resilience (two different things — don't conflate them)**
 - [ ] *Saves are player actions*: explicit, Pokemon/Fallout-style, blocked in combat (already 409s). No background autosave — in the Nostr model a save is the player signing an event, which can't and shouldn't happen silently
 - [ ] Save UX as a ritual: replace the browser `confirm()` with the win95 modal, add a "last saved: 23 min ago" indicator (gentle prompt, never a nag), natural save *prompts* at flavor moments (inn rest, arrival) that the player can decline
 - [ ] *Session resilience is a server concern*: journal dirty sessions to a local scratch dir (`data/sessions/`) every few minutes and restore on restart, so a **server crash** doesn't eat an evening. This is not a save, is never signed, never leaves the server, and is cleared on clean save/quit. Losing progress because *you* didn't save is the design; losing it because *my process died* is a bug
 
-**Done when:** killing things levels you up with visible stat growth; the save file passes the hydration audit (nothing derivable stored); a server crash restores the session; quitting without saving reverts to the last deliberate save — and that's correct behavior.
+**Done when:** killing things levels you up with visible stat growth ✅; the save file passes the hydration audit (nothing derivable stored) ◐ (derived-authoritative via Hydrate; literal persist-omit deferred to the §4 serializer); a server crash restores the session ⬜ (journaling); quitting without saving reverts to the last deliberate save ◐ (already the behavior; save-ritual UI pending) — and that's correct behavior.
 
 ### M2 — Buildings get rooms; NPCs live in them (M)
 
