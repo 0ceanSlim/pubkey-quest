@@ -1,4 +1,19 @@
 {{define "game/scene.html"}}
+<style>
+  @keyframes sceneFlairAnim {
+    0%   { opacity: 1; transform: translateY(0) scale(1.0); }
+    50%  { opacity: 1; transform: translateY(-18px) scale(1.15); }
+    100% { opacity: 0; transform: translateY(-34px) scale(0.9); }
+  }
+  .scene-flair {
+    position: absolute;
+    font-weight: bold;
+    pointer-events: none;
+    white-space: nowrap;
+    text-shadow: 1px 1px 3px #000, 0 0 8px rgba(0, 0, 0, 0.9);
+    animation: sceneFlairAnim 1.6s ease-out forwards;
+  }
+</style>
 <!-- Scene Image Area (4:3 ratio, 347x347px) - Win95 Style -->
 <div
   class="w-full h-full shrink-0"
@@ -37,6 +52,13 @@
 
     <!-- Combat Overlay (positioned over scene, shown during combat) -->
     {{template "game/combat-overlay.html"}}
+
+    <!-- Scene flair zone: little floating popups over the scene (XP gain, etc.) -->
+    <div
+      id="scene-flair-zone"
+      style="position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 40;"
+    ></div>
+
     <!-- City name at top -->
     <div
       class="absolute top-0 left-0 right-0 p-2 text-center"

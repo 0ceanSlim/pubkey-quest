@@ -128,6 +128,32 @@ async function updateResourceBar(character) {
     logger.debug(`Resource bar updated for ${character.class}: ${currentResource}/${maxResource} (${resourceConfig.type})`);
 }
 
+// XP-gain scene flair — tracks total XP so a "+N XP" popup fires over the scene
+// whenever the bar rises, from any source (combat, performance, quests, …).
+let _lastXP;
+let _lastXPCharKey;
+
+/**
+ * Spawn a small floating popup over the scene (mirrors the combat flairs).
+ * @param {string} text
+ * @param {string} color
+ * @param {string} [size]
+ */
+function spawnSceneFlair(text, color, { size = '12px', glow = false } = {}) {
+    const zone = document.getElementById('scene-flair-zone');
+    if (!zone) return;
+    const el = document.createElement('span');
+    el.className = 'scene-flair';
+    const xPct = 25 + Math.random() * 50;
+    const yPct = 28 + Math.random() * 30;
+    let css = `left:${xPct}%;top:${yPct}%;font-size:${size};color:${color};`;
+    if (glow) css += `text-shadow:1px 1px 2px #000,0 0 8px ${color},0 0 14px ${color};`;
+    el.style.cssText = css;
+    el.textContent = text;
+    zone.appendChild(el);
+    setTimeout(() => el.remove(), 1700);
+}
+
 /**
  * Update full character display from save data
  */
@@ -195,6 +221,16 @@ export async function updateCharacterDisplay() {
         const expPercentage = xpNeededForLevel > 0 ? (xpIntoLevel / xpNeededForLevel * 100) : 0;
         expBarEl.style.width = Math.min(100, Math.max(0, expPercentage)) + '%';
     }
+
+    // XP-gain flair: pop "+N XP" over the scene whenever total XP rises. Don't
+    // flair when the character changes (load / save-swap) — just resync.
+    const charKey = character.name ?? character.d ?? '';
+    if (charKey !== _lastXPCharKey) {
+        _lastXPCharKey = charKey;
+    } else if (_lastXP !== undefined && currentXP > _lastXP) {
+        spawnSceneFlair(`+${(currentXP - _lastXP).toLocaleString()} XP`, '#22d3ee', { glow: true });
+    }
+    _lastXP = currentXP;
 
     // Update HP display
     const currentHpEl = document.getElementById('current-hp');

@@ -762,7 +762,7 @@ const FLAIR_CFG = [
     { re: /\bMISS\b/,       text: 'MISS',      color: '#6b7280', size: '11px' },
     { re: /you deal (\d+)/i, text: null, color: '#f87171', size: '13px' },
     { re: /deals (\d+)/i,    text: null, color: '#ef4444', size: '12px' },
-    { re: /\+(\d+) XP/i,     text: null, color: '#4ade80', size: '11px' },
+    { re: /\+(\d+) XP/i,     text: null, color: '#22d3ee', size: '11px', xp: true, glow: true },
     { re: /readied stance pays off/i,        text: '⚡ COUNTER!',  color: '#fbbf24', size: '13px' },
     { re: /twist away just in time/i,        text: '⚡ EVADED!',   color: '#4ade80', size: '13px' },
     { re: /take the dodge action/i,   text: '🛡 DODGE!',   color: '#60a5fa', size: '12px' },
@@ -780,13 +780,15 @@ function _spawnFlair(lines) {
         for (const cfg of FLAIR_CFG) {
             const m = line.match(cfg.re);
             if (!m) continue;
-            const text = cfg.text ?? (m[1] ? (cfg.color === '#4ade80' && cfg.re.source.includes('XP') ? `+${m[1]} XP` : `-${m[1]}`) : null);
+            const text = cfg.text ?? (m[1] ? (cfg.xp ? `+${m[1]} XP` : `-${m[1]}`) : null);
             if (!text) continue;
             const xPct = 20 + Math.random() * 60;
             const yPct = 30 + Math.random() * 35;
             const el = document.createElement('span');
             el.className = 'combat-flair';
-            el.style.cssText = `left:${xPct}%;top:${yPct}%;font-size:${cfg.size};color:${cfg.color};`;
+            let css = `left:${xPct}%;top:${yPct}%;font-size:${cfg.size};color:${cfg.color};`;
+            if (cfg.glow) css += `text-shadow:1px 1px 2px #000,0 0 8px ${cfg.color},0 0 14px ${cfg.color};`;
+            el.style.cssText = css;
             el.textContent = text;
             zone.appendChild(el);
             setTimeout(() => el.remove(), 1700);
