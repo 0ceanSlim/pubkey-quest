@@ -60,7 +60,7 @@ Every system below works and is architecturally sound, but **all of it carries a
 
 | Content | Count | Notes |
 |---|---|---|
-| Items | 226 | + ~38 quest items to author (followups §1a) |
+| Items | 209 | artisan/profession tools merged into 4 skill-kits; + ~38 quest items to author (followups §1a) |
 | Spells | 84 | data complete (concentration, tags, durations) |
 | Monsters | **31** | all combat-ready; ~10 more needed by quest drafts |
 | Effects | 28 | + 4 net-new needed by drafts |
@@ -97,16 +97,18 @@ Recommended order: **M0 → M1 → M2 → M3 → M4 → M5 → (M6 ‖ M7) → M
 
 ### M0 — Land the in-flight work, stabilize the base (S)
 
-The working tree has a month of uncommitted work (POI schema, codex consolidation, 25 modified NPC files, new types). Get to a clean baseline.
+**✅ Done (2026-06-21)** — the month of in-flight work landed as 7 logical commits on `main` (`a2d7704`…`57a93f4`); tree clean, shape-check green, CLAUDE.md rewritten.
 
-- [ ] Commit the POI/quest schema work + codex validation consolidation (logical commits: types, codex, NPC data, docs)
-- [ ] Delete `nul` file at repo root (Windows artifact, will break checkouts on some tooling); run `go mod tidy` (kr/text, rogpeppe/go-internal unused; swaggo deps mis-marked indirect)
-- [ ] `go run ./cmd/codex --check-schema` green on shape; broken-ref list snapshotted as the M7 content backlog
-- [ ] Rewrite `CLAUDE.md` to match reality (directory layout `cmd/server` not `server/`, systems status, codex workflow) — it actively misleads right now
-- [ ] Finalize the NPC schedule model **including room references** (the `primary_home` externalization is largely landed; M2 adds a `room` dimension to schedule slots) — decide before quest NPCs are authored in M7
-- [ ] Remove the dead commented `<!-- OLD SCRIPTS -->` blocks from `game.html` / `game-intro.html`
+- [x] Commit the POI/quest schema work + codex validation consolidation (logical commits: types, codex, content drafts, NPC data, docs)
+- [x] Delete `nul` file at repo root; `go mod tidy` (dropped unused `kr/text`, `rogpeppe/go-internal`)
+- [x] `go run ./cmd/codex --check-schema` green on shape; broken-ref list is the M7 content backlog (`docs/draft/poi-quest-followups.md`)
+- [x] Rewrite `CLAUDE.md` to match reality (`cmd/server`/`cmd/codex`/`types/` layout, the DB-built-by-codex-first flow, codex workflow) — note: `CLAUDE.md` is gitignored, so it lives locally
+- [x] Finalize the NPC schedule model **including room references** — decided: optional `room` per schedule slot, absent = building's default room (implemented in M2); `primary_home` externalization now committed
+- [x] Remove the dead commented `<!-- OLD SCRIPTS -->` blocks (all 7 view files, not just game/game-intro)
 
-**Done when:** clean `git status`, schema check green, CLAUDE.md trustworthy.
+**Done when:** clean `git status`, schema check green, CLAUDE.md trustworthy. ✅ met.
+
+> Side task landed alongside M0: artisan/profession **tools consolidated into 4 skill-linked kits** (Crafting/Thieves/Herbalism/Navigator); instruments + gaming sets kept individual. Design: `docs/draft/tools.txt`.
 
 ### M1 — Progression that actually works (M)
 
