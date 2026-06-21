@@ -362,6 +362,7 @@ export async function endCombat() {
             result.outcome === 'victory' ? 'success' : 'error');
         exitCombatMode();
         if (window.refreshGameState) await window.refreshGameState();
+        if (result.level_up?.leveled) window.showLevelUpModal?.(result.level_up);
     } catch (err) {
         logger.error('endCombat error:', err);
     }

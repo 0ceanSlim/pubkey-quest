@@ -1,0 +1,31 @@
+{{define "game/level-up-modal.html"}}
+<!-- Level-Up Modal Overlay -->
+<div id="level-up-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
+    <div class="relative bg-win95-bgDark m-2" style="border: 2px solid #808080; max-width: 280px; margin-left: auto; margin-right: auto; margin-top: 60px; pointer-events: auto; box-shadow: 0 0 16px rgba(34,211,238,0.55);">
+        <!-- Title Bar -->
+        <div class="px-2 py-1 flex items-center gap-2" style="background: linear-gradient(90deg, #0e7490, #22d3ee);">
+            <span style="font-size: 12px;">⬆</span>
+            <span class="text-white font-bold" style="font-size: 9px;">LEVEL UP</span>
+        </div>
+
+        <!-- Content -->
+        <div class="p-4 bg-win95-bgDark text-center">
+            <div class="font-bold mb-3" style="font-size: 14px; color: #22d3ee; text-shadow: 0 0 8px rgba(34,211,238,0.7);">
+                You reached Level <span id="level-up-new-level">2</span>!
+            </div>
+            <div class="mb-1 text-white" style="font-size: 9px;">
+                +<span id="level-up-hp-gain">0</span> Max HP
+            </div>
+            <div class="mb-4 text-white" id="level-up-mana-row" style="font-size: 9px;">
+                +<span id="level-up-mana-gain">0</span> Max Mana
+            </div>
+            <button
+                onclick="window.closeLevelUpModal()"
+                class="px-4 py-2 font-bold text-white"
+                style="font-size: 8px; background: #0e7490; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; border-right: 2px solid #155e75; border-bottom: 2px solid #155e75;">
+                CONTINUE
+            </button>
+        </div>
+    </div>
+</div>
+{{end}}

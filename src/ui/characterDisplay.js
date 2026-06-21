@@ -155,6 +155,34 @@ function spawnSceneFlair(text, color, { size = '12px', glow = false } = {}) {
 }
 
 /**
+ * Show the level-up modal from a LevelUpResult payload. Safe to call from any
+ * XP source (combat-end response or a generic action response's data.level_up).
+ * @param {object} lvl - { new_level, old_max_hp, new_max_hp, old_max_mana, new_max_mana }
+ */
+function showLevelUpModal(lvl) {
+    if (!lvl) return;
+    const modal = document.getElementById('level-up-modal');
+    if (!modal) return;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('level-up-new-level', lvl.new_level ?? '');
+    set('level-up-hp-gain', (lvl.new_max_hp ?? 0) - (lvl.old_max_hp ?? 0));
+    const manaGain = (lvl.new_max_mana ?? 0) - (lvl.old_max_mana ?? 0);
+    set('level-up-mana-gain', manaGain);
+    const manaRow = document.getElementById('level-up-mana-row');
+    if (manaRow) manaRow.style.display = manaGain > 0 ? '' : 'none'; // hide for non-casters
+    modal.classList.remove('hidden');
+}
+
+function closeLevelUpModal() {
+    document.getElementById('level-up-modal')?.classList.add('hidden');
+}
+
+if (typeof window !== 'undefined') {
+    window.showLevelUpModal = showLevelUpModal;
+    window.closeLevelUpModal = closeLevelUpModal;
+}
+
+/**
  * Update full character display from save data
  */
 export async function updateCharacterDisplay() {

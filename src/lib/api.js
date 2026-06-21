@@ -78,6 +78,12 @@ class GameAPI {
 
             logger.info(`Action completed: ${actionType}`, result.message);
 
+            // Any action can award XP; surface a level-up moment generically so
+            // every XP source (shows, quests, …) shows it without bespoke wiring.
+            if (result.data?.level_up?.leveled && typeof window !== 'undefined') {
+                window.showLevelUpModal?.(result.data.level_up);
+            }
+
             // Return the updated state
             return result;
 
