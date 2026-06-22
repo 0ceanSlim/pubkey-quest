@@ -104,9 +104,20 @@ func DeriveMaxHP(class string, level int, stats map[string]interface{}) int {
 	return hp
 }
 
-// DeriveMaxMana computes maximum mana. Non-casters get 0. Casters get
-// (spellcasting-ability mod + level), which equals the legacy creation value
-// (mod + 1) at level 1 and grows by 1 per level. Clamped to >= 0.
+// halfCasters cast at half their level. Like D&D half-casters (Paladin, Ranger)
+// their magic is secondary to martial prowess: spells start at level 2 and the
+// progression tops out around 5th-level spells. Their effective caster level is
+// floor(level/2), which mirrors the half-caster slot curve in spell-slots.json.
+var halfCasters = map[string]bool{
+	"Paladin": true,
+	"Ranger":  true,
+}
+
+// DeriveMaxMana computes maximum mana. Non-casters get 0. A caster's mana is
+// (spellcasting-ability mod + caster level), where full casters use their level
+// and half-casters (Paladin/Ranger) use floor(level/2) — so their mana pool
+// scales with their half-rate spell progression, not a full caster's. Clamped
+// to >= 0.
 func DeriveMaxMana(class string, level int, stats map[string]interface{}) int {
 	if level < 1 {
 		level = 1
@@ -115,7 +126,11 @@ func DeriveMaxMana(class string, level int, stats map[string]interface{}) int {
 	if !isCaster {
 		return 0
 	}
-	mana := AbilityMod(statScore(stats, statName)) + level
+	casterLevel := level
+	if halfCasters[class] {
+		casterLevel = level / 2 // floor — effective caster level for half-casters
+	}
+	mana := AbilityMod(statScore(stats, statName)) + casterLevel
 	if mana < 0 {
 		mana = 0
 	}

@@ -5,10 +5,11 @@
         <!-- Save Section -->
         <div class="border border-gray-600 p-2" style="background: #1a1a1a;">
             <h3 class="font-bold text-yellow-400 mb-2">Save Game</h3>
-            <button id="manual-save-btn" onclick="manualSaveGame()" class="w-full py-2 px-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
-                💾 Save Now
+            <button id="manual-save-btn" onclick="window.openSaveModal && window.openSaveModal()" class="w-full py-2 px-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
+                💾 Save Game
             </button>
-            <div id="save-status" class="mt-2 text-xs text-gray-400"></div>
+            <div id="save-status" data-last-saved class="mt-2 text-xs text-gray-400">Last saved: never this session</div>
+            <p class="mt-1 text-gray-500" style="font-size: 9px;">Progress is only written when you save (Ctrl+S).</p>
         </div>
 
         <!-- Debug Section -->

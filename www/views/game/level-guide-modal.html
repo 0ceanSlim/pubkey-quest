@@ -1,0 +1,18 @@
+{{define "game/level-guide-modal.html"}}
+<!-- Level Guide Modal Overlay (positioned over scene) — one level per slide -->
+<div id="level-guide-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
+    <div class="relative bg-win95-bgDark" style="border: 2px solid #808080; width: 264px; margin: 40px auto 0; pointer-events: auto; box-shadow: 0 0 16px rgba(34,211,238,0.55);">
+        <!-- Title Bar -->
+        <div class="px-2 py-1 flex items-center justify-between" style="background: linear-gradient(90deg, #0e7490, #22d3ee);">
+            <div class="flex items-center gap-2">
+                <span style="font-size: 11px;">📖</span>
+                <span class="text-white font-bold" style="font-size: 9px;">PROGRESSION</span>
+            </div>
+            <button onclick="window.closeLevelGuide()" class="text-white font-bold" style="font-size: 10px; cursor: pointer; background: none; border: none; line-height: 1;" title="Close">✕</button>
+        </div>
+
+        <!-- Single slide (populated by levelGuideModal.js) -->
+        <div id="level-guide-slide" style="min-height: 130px;"></div>
+    </div>
+</div>
+{{end}}

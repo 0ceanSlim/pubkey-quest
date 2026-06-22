@@ -1,0 +1,26 @@
+{{define "game/ability-allocate-modal.html"}}
+<!-- Ability-Point Allocation Modal (positioned over scene) -->
+<div id="ability-allocate-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
+    <div class="relative bg-win95-bgDark" style="border: 2px solid #808080; width: 244px; margin: 48px auto 0; pointer-events: auto; box-shadow: 0 0 16px rgba(252,211,77,0.5);">
+        <!-- Title Bar -->
+        <div class="px-2 py-1 flex items-center justify-between" style="background: linear-gradient(90deg, #b45309, #fcd34d);">
+            <div class="flex items-center gap-2">
+                <span style="font-size: 11px;">💪</span>
+                <span class="text-white font-bold" style="font-size: 9px;">ALLOCATE POINTS</span>
+            </div>
+            <button onclick="window.closeAbilityAllocate()" class="text-white font-bold" style="font-size: 10px; cursor: pointer; background: none; border: none; line-height: 1;" title="Close">✕</button>
+        </div>
+
+        <!-- Points-remaining header -->
+        <div id="ability-allocate-points" class="px-2 py-1 text-center font-bold" style="font-size: 9px; color: #fcd34d; background: #332b15; border-bottom: 1px solid #444;"></div>
+
+        <!-- Ability rows (populated by abilityAllocateModal.js) -->
+        <div id="ability-allocate-list" style="padding: 4px 8px;"></div>
+
+        <!-- Footer -->
+        <div class="px-2 py-1" style="font-size: 6px; color: #9ca3af; border-top: 1px solid #444; line-height: 1.5;">
+            Max 20 per ability. Allocations are permanent and saved with your game.
+        </div>
+    </div>
+</div>
+{{end}}

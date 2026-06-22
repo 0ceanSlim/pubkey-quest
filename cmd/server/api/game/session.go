@@ -343,6 +343,9 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The deliberate save is now the authoritative state — drop the crash journal.
+	session.RemoveJournal(request.Npub, request.SaveID)
+
 	log.Printf("✅ Session saved to disk: %s:%s", request.Npub, request.SaveID)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -468,6 +471,9 @@ func CleanupSessionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.GetSessionManager().UnloadSession(npub, saveID)
+	// Clean quit: unsaved progress is intentionally discarded (revert to last
+	// deliberate save), so the crash journal goes too.
+	session.RemoveJournal(npub, saveID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{

@@ -114,7 +114,7 @@ func AbilitiesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load abilities from filesystem
-	abilities, err := loadAbilitiesForClass(className)
+	abilities, err := LoadAbilitiesForClass(className)
 	if err != nil {
 		log.Printf("❌ Error loading abilities for %s: %v", className, err)
 		writeJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -162,8 +162,8 @@ func AbilitiesHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// loadAbilitiesForClass reads all abilities for a given class from the database
-func loadAbilitiesForClass(className string) ([]Ability, error) {
+// LoadAbilitiesForClass reads all abilities for a given class from the database
+func LoadAbilitiesForClass(className string) ([]Ability, error) {
 	database := db.GetDB()
 	if database == nil {
 		return nil, fmt.Errorf("database not available")

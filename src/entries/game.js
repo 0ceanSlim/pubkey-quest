@@ -17,12 +17,15 @@ import { getItemById, getSpellById, getLocationById, getNPCById, getAllMusicTrac
 
 // Systems
 import { saveGameToLocal } from '../systems/saveSystem.js';
+import '../systems/saveRitual.js'; // Auto-initializes save modal (Ctrl+S) + last-saved indicator
 import * as inventoryInteractions from '../systems/inventoryInteractions.js';
 import { openContainer, closeContainer } from '../systems/containers.js';
 import { initTimeClock, cleanupTimeClock } from '../systems/timeClock.js';
 import { initMusicSystem } from '../systems/musicSystem.js';
 import '../systems/shopSystem.js'; // Auto-initializes shop functions on window
 import '../systems/waitModal.js'; // Auto-initializes wait modal functions on window
+import '../systems/levelGuideModal.js'; // Auto-initializes level-guide modal functions on window
+import '../systems/abilityAllocateModal.js'; // Auto-initializes ability-allocation modal functions on window
 import '../ui/spellAbilityModal.js'; // Auto-initializes spell/ability modal functions on window
 import * as combatSystem from '../systems/combatSystem.js';
 

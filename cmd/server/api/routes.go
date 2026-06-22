@@ -55,6 +55,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	registerShopRoutes(mux)
 	registerProfileRoutes(mux)
 	registerSpellRoutes(mux)
+	registerProgressionRoutes(mux)
 
 	if utils.AppConfig.Server.DebugMode {
 		registerDebugRoutes(mux)
@@ -518,6 +519,42 @@ func registerSpellRoutes(mux *http.ServeMux) {
 	// @Success      200      {object}  map[string]interface{}
 	// @Router       /api/spells/unslot [post]
 	mux.HandleFunc("/api/spells/unslot", game.UnslotSpellHandler)
+}
+
+// ============================================================================
+// Progression Routes - Ability-point allocation (level-up stat growth)
+// ============================================================================
+
+func registerProgressionRoutes(mux *http.ServeMux) {
+	// @Summary      Get ability-point state
+	// @Description  Returns unspent ability points (derived), the per-ability cap, and current scores
+	// @Tags         Progression
+	// @Produce      json
+	// @Param        npub     query  string  true  "Nostr public key"
+	// @Param        save_id  query  string  true  "Save ID"
+	// @Success      200      {object}  game.AbilityPointsResponse
+	// @Router       /api/progression/ability-points [get]
+	mux.HandleFunc("/api/progression/ability-points", game.GetAbilityPointsHandler)
+
+	// @Summary      Spend an ability point
+	// @Description  Allocates one banked point into an ability (capped at 20), re-deriving Max HP/Mana
+	// @Tags         Progression
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.SpendAbilityPointRequest  true  "Ability to raise"
+	// @Success      200      {object}  game.SpendAbilityPointResponse
+	// @Router       /api/progression/spend-point [post]
+	mux.HandleFunc("/api/progression/spend-point", game.SpendAbilityPointHandler)
+
+	// @Summary      Level-up progression guide
+	// @Description  Returns the character's full 1→20 path (XP, ability points, feats, abilities, spell slots)
+	// @Tags         Progression
+	// @Produce      json
+	// @Param        npub     query  string  true  "Nostr public key"
+	// @Param        save_id  query  string  true  "Save ID"
+	// @Success      200      {object}  game.LevelGuideResponse
+	// @Router       /api/progression/guide [get]
+	mux.HandleFunc("/api/progression/guide", game.GetLevelGuideHandler)
 }
 
 // ============================================================================

@@ -171,6 +171,8 @@ function showLevelUpModal(lvl) {
     const manaRow = document.getElementById('level-up-mana-row');
     if (manaRow) manaRow.style.display = manaGain > 0 ? '' : 'none'; // hide for non-casters
     modal.classList.remove('hidden');
+    // Surface an "allocate ability points" prompt if any are now unspent.
+    window.refreshLevelUpPointsPrompt?.();
 }
 
 function closeLevelUpModal() {

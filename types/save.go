@@ -59,6 +59,8 @@ type SaveFile struct {
 	QuestsActive    []QuestProgress `json:"quests_active,omitempty"`    // In-progress quests
 	POIStates       []POIState      `json:"poi_states,omitempty"`       // Per-POI interaction state
 	Rentals         []Rental        `json:"rentals,omitempty"`          // Paid rooms held until expiry (M2)
+	AbilityIncreases map[string]int `json:"ability_increases,omitempty"` // Points spent per ability via level-up allocation (player choice). Unspent count derives — see character.UnspentAbilityPoints
+	FeatsChosen     []string        `json:"feats_chosen,omitempty"`     // Selected feat IDs (reserved; activated in the feats milestone — docs/draft/feats-progression.md)
 	SchemaVersion   int             `json:"schema_version,omitempty"`   // Save schema version (see CurrentSchemaVersion)
 
 	InternalID          string                   `json:"-"`                        // Not serialized, used internally for file naming

@@ -163,6 +163,68 @@ class GameAPI {
         }
     }
 
+    /**
+     * Fetch the level-up progression guide (1→20) for the current character.
+     * @returns {Promise<Object>} { class, current_level, xp_current, xp_to_next, levels[] }
+     */
+    async getLevelGuide() {
+        this.ensureInitialized();
+
+        const response = await fetch(
+            `${API_BASE_URL}/progression/guide?npub=${this.npub}&save_id=${this.saveID}`
+        );
+        if (!response.ok) {
+            throw new Error(`Failed to fetch level guide: ${response.status}`);
+        }
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error('Failed to fetch level guide');
+        }
+        return result;
+    }
+
+    /**
+     * Fetch the character's ability-point allocation state.
+     * @returns {Promise<Object>} { unspent, cap, scores }
+     */
+    async getAbilityPoints() {
+        this.ensureInitialized();
+
+        const response = await fetch(
+            `${API_BASE_URL}/progression/ability-points?npub=${this.npub}&save_id=${this.saveID}`
+        );
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ability points: ${response.status}`);
+        }
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error('Failed to fetch ability points');
+        }
+        return result;
+    }
+
+    /**
+     * Spend one banked ability point into an ability.
+     * @param {string} ability - Ability name or 3-letter abbrev (e.g. "Strength" / "str")
+     * @returns {Promise<Object>} { ability, unspent, cap, scores, max_hp, max_mana }
+     */
+    async spendAbilityPoint(ability) {
+        this.ensureInitialized();
+
+        const response = await fetch(`${API_BASE_URL}/progression/spend-point`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: this.npub, save_id: this.saveID, ability })
+        });
+        if (!response.ok) {
+            // The endpoint returns a plain-text reason (e.g. "no unspent ability points").
+            let reason = `spend failed: ${response.status}`;
+            try { reason = (await response.text()).trim() || reason; } catch { /* ignore */ }
+            throw new Error(reason);
+        }
+        return await response.json();
+    }
+
     // ========================================================================
     // CONVENIENCE METHODS FOR COMMON ACTIONS
     // ========================================================================

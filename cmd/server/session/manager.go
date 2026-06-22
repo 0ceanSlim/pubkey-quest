@@ -46,8 +46,11 @@ func (sm *SessionManagerWrapper) LoadSession(npub, saveID string) (*GameSession,
 	)
 }
 
-// ReloadSession forces a reload from disk with all dependencies injected
+// ReloadSession forces a reload from disk with all dependencies injected. A
+// reload is an explicit "discard in-memory changes", so it also drops any
+// crash-recovery journal before reloading from the deliberate save.
 func (sm *SessionManagerWrapper) ReloadSession(npub, saveID string) (*GameSession, error) {
+	RemoveJournal(npub, saveID)
 	return sm.SessionManager.ReloadSession(
 		npub,
 		saveID,
@@ -75,6 +78,12 @@ func loadAndHydrateSave(npub, saveID string) (*types.SaveFile, error) {
 	save, err := LoadSaveByID(npub, saveID)
 	if err != nil {
 		return nil, err
+	}
+	// Crash recovery: if a journal newer than the last deliberate save exists,
+	// the server died with unsaved progress — restore that state instead.
+	if recovered := RecoverJournaledSave(npub, saveID, GetSavePath(npub, saveID)); recovered != nil {
+		log.Printf("📓 Recovered session %s:%s from journal (progress since last save)", npub, saveID)
+		save = recovered
 	}
 	if database := db.GetDB(); database != nil {
 		if adv, advErr := character.LoadAdvancement(database); advErr == nil {

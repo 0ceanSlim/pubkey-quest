@@ -2,101 +2,121 @@
   {
     "ExperiencePoints": 0,
     "Level": 1,
-    "XPMultiplier": 1.0
+    "XPMultiplier": 1.0,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 250,
     "Level": 2,
-    "XPMultiplier": 1.05
+    "XPMultiplier": 1.05,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 650,
     "Level": 3,
-    "XPMultiplier": 1.10
+    "XPMultiplier": 1.10,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 1350,
     "Level": 4,
-    "XPMultiplier": 1.15
+    "XPMultiplier": 1.15,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 2750,
     "Level": 5,
-    "XPMultiplier": 1.20
+    "XPMultiplier": 1.20,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 4750,
     "Level": 6,
-    "XPMultiplier": 1.25
+    "XPMultiplier": 1.25,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 8050,
     "Level": 7,
-    "XPMultiplier": 1.30
+    "XPMultiplier": 1.30,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 13425,
     "Level": 8,
-    "XPMultiplier": 1.35
+    "XPMultiplier": 1.35,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 22300,
     "Level": 9,
-    "XPMultiplier": 1.40
+    "XPMultiplier": 1.40,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 36700,
     "Level": 10,
-    "XPMultiplier": 1.45
+    "XPMultiplier": 1.45,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 66800,
     "Level": 11,
-    "XPMultiplier": 1.50
+    "XPMultiplier": 1.50,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 110000,
     "Level": 12,
-    "XPMultiplier": 1.55
+    "XPMultiplier": 1.55,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 180000,
     "Level": 13,
-    "XPMultiplier": 1.60
+    "XPMultiplier": 1.60,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 296000,
     "Level": 14,
-    "XPMultiplier": 1.65
+    "XPMultiplier": 1.65,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 486000,
     "Level": 15,
-    "XPMultiplier": 1.70
+    "XPMultiplier": 1.70,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 797000,
     "Level": 16,
-    "XPMultiplier": 1.75
+    "XPMultiplier": 1.75,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 1445000,
     "Level": 17,
-    "XPMultiplier": 1.80
+    "XPMultiplier": 1.80,
+    "AbilityPoints": 0
   },
   {
     "ExperiencePoints": 2370000,
     "Level": 18,
-    "XPMultiplier": 1.85
+    "XPMultiplier": 1.85,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 3885000,
     "Level": 19,
-    "XPMultiplier": 1.90
+    "XPMultiplier": 1.90,
+    "AbilityPoints": 1
   },
   {
     "ExperiencePoints": 6380000,
     "Level": 20,
-    "XPMultiplier": 1.95
+    "XPMultiplier": 1.95,
+    "AbilityPoints": 1
   }
 ]

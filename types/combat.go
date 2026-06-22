@@ -125,6 +125,7 @@ type AdvancementEntry struct {
 	ExperiencePoints int     `json:"ExperiencePoints"`
 	Level            int     `json:"Level"`
 	XPMultiplier     float64 `json:"XPMultiplier"`
+	AbilityPoints    int     `json:"AbilityPoints"` // Ability points granted at this level (spend on stats; feats consume one — see docs/draft/feats-progression.md)
 }
 
 // LootDrop is a single item drop result after combat

@@ -4,17 +4,18 @@ import (
 	"pubkey-quest/types"
 )
 
-// XPForDamage computes the XP awarded to the player for dealing damage to a monster.
-// XP is proportional to damage dealt relative to the monster's max HP.
+// XPForDamage computes the BASE XP for dealing damage to a monster — proportional
+// to damage dealt relative to the monster's max HP (monster value ÷ max HP ×
+// damage), with the night bonus. The player's per-level XP multiplier is applied
+// separately via character.BonusXP, so this stays the raw "xp per hit" value.
 // nightMultiplier: 1.25 at night, 1.0 during the day.
-// xpMultiplier: from the player's current advancement level entry.
-func XPForDamage(monster *types.MonsterInstance, damageDealt int, nightMultiplier, xpMultiplier float64) int {
+func XPForDamage(monster *types.MonsterInstance, damageDealt int, nightMultiplier float64) int {
 	if monster.MaxHP <= 0 || monster.Data.XP <= 0 {
 		return 0
 	}
 
 	xpPerHP := float64(monster.Data.XP) / float64(monster.MaxHP)
-	raw := float64(damageDealt) * xpPerHP * nightMultiplier * xpMultiplier
+	raw := float64(damageDealt) * xpPerHP * nightMultiplier
 
 	// Minimum 1 XP per hit if monster has XP value
 	if raw < 1 && damageDealt > 0 {
@@ -24,15 +25,16 @@ func XPForDamage(monster *types.MonsterInstance, damageDealt int, nightMultiplie
 	return int(raw)
 }
 
-// KillBonusXP returns the flat kill-bonus XP defined on a monster, scaled by
-// xpMultiplier. Most monsters have none (field 0); tougher monsters — and POI/
-// dungeon steps via the node walker (M3) — set it as a reward for the kill
-// itself, on top of the proportional damage XP.
-func KillBonusXP(monster *types.MonsterData, xpMultiplier float64) int {
+// KillBonusXP returns the flat BASE kill-bonus XP defined on a monster. Most
+// monsters have none (field 0); tougher monsters — and POI/dungeon steps via the
+// node walker (M3) — set it as a reward for the kill itself, on top of the
+// proportional damage XP. The per-level multiplier is applied by the caller via
+// character.BonusXP.
+func KillBonusXP(monster *types.MonsterData) int {
 	if monster == nil || monster.KillBonusXP <= 0 {
 		return 0
 	}
-	return int(float64(monster.KillBonusXP) * xpMultiplier)
+	return monster.KillBonusXP
 }
 
 // IsNight returns true if the current in-game time falls in the night window (23:00–05:00).

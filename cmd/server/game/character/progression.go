@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"pubkey-quest/types"
 )
@@ -49,6 +50,25 @@ func GetXPMultiplierForLevel(level int, advancement []types.AdvancementEntry) fl
 	return 1.0
 }
 
+// BonusXP applies the per-level XP multiplier (advancement.json's XPMultiplier)
+// to a base XP amount for a known level. This is the single place the per-level
+// XP bonus is applied, so it reaches experience "from everything": combat runs
+// each hit's base damage XP through here with the player's level (the reward is
+// per-hit, kept even on a flee), and non-combat sources go through BonusedXP.
+// GrantXP itself stays pass-through and expects an already-bonused amount.
+func BonusXP(level, base int, advancement []types.AdvancementEntry) int {
+	return int(math.Round(float64(base) * GetXPMultiplierForLevel(level, advancement)))
+}
+
+// BonusedXP is the save-based convenience wrapper around BonusXP: it resolves the
+// character's current level from XP, then applies the multiplier.
+func BonusedXP(save *types.SaveFile, base int, advancement []types.AdvancementEntry) int {
+	if save == nil {
+		return base
+	}
+	return BonusXP(GetLevelFromXP(save.Experience, advancement), base, advancement)
+}
+
 // WillLevelUp returns true if adding gainedXP to currentXP crosses a level boundary.
 func WillLevelUp(currentXP, gainedXP int, advancement []types.AdvancementEntry) bool {
 	return GetLevelFromXP(currentXP+gainedXP, advancement) > GetLevelFromXP(currentXP, advancement)
@@ -60,6 +80,11 @@ func WillLevelUp(currentXP, gainedXP int, advancement []types.AdvancementEntry) 
 // to full (the level-up reward), returning old→new values so the caller can
 // surface a level-up moment. Route ALL experience through here so level-ups are
 // detected and shown consistently rather than only in combat.
+//
+// amount is the FINAL XP to award: callers apply the per-level XP bonus to base
+// amounts first — combat per hit via BonusXP, other sources via BonusedXP — so
+// the advancement XPMultiplier reaches experience from every source, not just
+// combat.
 func GrantXP(save *types.SaveFile, amount int, advancement []types.AdvancementEntry) types.LevelUpResult {
 	res := types.LevelUpResult{GainedXP: amount}
 	if save == nil {

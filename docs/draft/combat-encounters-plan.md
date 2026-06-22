@@ -868,6 +868,8 @@ Rogue: `sneak-attack`, `hide-in-shadows`, `poison-blade`, `evasion`, `assassinat
 
 Spellcaster classes use the spell system (Section 13) as their primary combat mechanism. Paladin and Ranger also have ability JSONs to be added as their melee/hybrid features are fleshed out.
 
+**Paladin / Ranger hybrid identity (design decision, build in M4/M5):** they are half-casters — secondary magic, martial-first (mana now scales at half rate via `DeriveMaxMana`, matching the half-caster spell-slot curve). Their identity = **tailored spells + a few signature abilities that cost mana** (the same pool as their spells, since they're locked to mana — `resource_type: "mana"` on the ability JSONs). Much of their flavor is already in the spell DB (Paladin: `searing-/thunderous-/wrathful-smite`, `divine-favor`, `shield-of-faith`; Ranger: `hunters-mark`, `ensnaring-strike`, `goodberry`). So: lean on spells for most of it, add ~2-3 iconic mana-cost abilities each (Paladin Divine Smite / Lay on Hands / aura; Ranger Hunter's Mark-as-toggle / Volley / companion strike) when the unified ability+casting engine lands (M4/M5). No new resource type needed — one mana pool keeps it believable and simple.
+
 ---
 
 ## 13. Magic in Combat

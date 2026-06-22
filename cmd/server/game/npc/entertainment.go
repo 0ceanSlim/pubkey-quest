@@ -301,7 +301,8 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 	var levelUp types.LevelUpResult
 	if performanceSuccess {
 		if adv, advErr := character.LoadAdvancement(db.GetDB()); advErr == nil {
-			levelUp = character.GrantXP(state, baseXP, adv)
+			// Apply the per-level XP bonus so performances scale like combat XP.
+			levelUp = character.GrantXP(state, character.BonusedXP(state, baseXP, adv), adv)
 		} else {
 			log.Printf("⚠️ advancement load failed; XP applied without level-up check: %v", advErr)
 			state.Experience += baseXP

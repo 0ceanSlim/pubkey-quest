@@ -336,34 +336,8 @@
     }
 
     function manualSaveGame() {
-      // Confirm before overwriting
-      if (!confirm('⚠️ This will overwrite your existing save file. Are you sure you want to continue?')) {
-        return;
-      }
-
-      const saveBtn = document.getElementById('manual-save-btn');
-      const saveStatus = document.getElementById('save-status');
-
-      saveBtn.disabled = true;
-      saveBtn.textContent = '💾 Saving...';
-      saveStatus.textContent = 'Overwriting save file...';
-      saveStatus.className = 'mt-2 text-xs text-yellow-400';
-
-      saveGame().then(() => {
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Save Now';
-        saveStatus.textContent = '✅ Save file overwritten successfully!';
-        saveStatus.className = 'mt-2 text-xs text-green-400';
-
-        setTimeout(() => {
-          saveStatus.textContent = '';
-        }, 3000);
-      }).catch((error) => {
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 Save Now';
-        saveStatus.textContent = '❌ Save failed: ' + error.message;
-        saveStatus.className = 'mt-2 text-xs text-red-400';
-      });
+      // Save is now a deliberate ritual via the win95 save modal.
+      if (window.openSaveModal) window.openSaveModal();
     }
 
     const DEBUG_MODE = {{.CustomData.DebugMode}};

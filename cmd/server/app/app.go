@@ -9,6 +9,7 @@ import (
 	"pubkey-quest/cmd/server/auth"
 	"pubkey-quest/cmd/server/cache"
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
 )
 
@@ -23,11 +24,18 @@ func Init() {
 	}
 
 	cache.InitProfileCache(24 * time.Hour)
+
+	// Crash resilience: periodically snapshot active sessions so an unexpected
+	// server death doesn't eat unsaved progress (restored on next load).
+	session.StartJournalLoop(2 * time.Minute)
+
 	log.Println("✅ All services initialized")
 }
 
 // Shutdown cleans up all application services
 func Shutdown() {
+	// Snapshot active sessions so a clean restart can recover in-progress play.
+	session.JournalAllSessions()
 	db.Close()
 	auth.ShutdownGrainClient()
 	log.Println("✅ All services shut down")

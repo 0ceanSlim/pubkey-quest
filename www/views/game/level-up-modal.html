@@ -19,12 +19,29 @@
             <div class="mb-4 text-white" id="level-up-mana-row" style="font-size: 9px;">
                 +<span id="level-up-mana-gain">0</span> Max Mana
             </div>
+            <div id="level-up-points-prompt" class="hidden mb-3">
+                <div class="text-yellow-300 font-bold mb-1" style="font-size: 9px;">✦ <span id="level-up-points-count">0</span> ability point(s) to spend!</div>
+                <button
+                    onclick="window.openAbilityAllocate && window.openAbilityAllocate()"
+                    class="px-3 py-1 font-bold text-white"
+                    style="font-size: 8px; background: #b45309; border-top: 2px solid #fcd34d; border-left: 2px solid #fcd34d; border-right: 2px solid #78350f; border-bottom: 2px solid #78350f;">
+                    ALLOCATE →
+                </button>
+            </div>
             <button
                 onclick="window.closeLevelUpModal()"
                 class="px-4 py-2 font-bold text-white"
                 style="font-size: 8px; background: #0e7490; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; border-right: 2px solid #155e75; border-bottom: 2px solid #155e75;">
                 CONTINUE
             </button>
+            <div class="mt-3">
+                <button
+                    onclick="window.openLevelGuide && window.openLevelGuide()"
+                    class="text-cyan-300 underline"
+                    style="font-size: 7px; background: none; border: none; cursor: pointer;">
+                    See your full path (1→20) →
+                </button>
+            </div>
         </div>
     </div>
 </div>

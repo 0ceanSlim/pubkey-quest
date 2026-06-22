@@ -892,10 +892,11 @@ func applyDamageToMonster(monster *types.MonsterInstance, dmg int) {
 	}
 }
 
-// awardDamageXP computes XP for the hit and adds it to the session total.
+// awardDamageXP computes XP for the hit and adds it to the session total. The
+// reward is per hit (kept even on a flee): base XP from damage, scaled by the
+// player's level multiplier through the single character.BonusXP path.
 func awardDamageXP(cs *types.CombatSession, monster *types.MonsterInstance, dmg, timeOfDay, level int, advancement []types.AdvancementEntry) int {
-	xpMult := character.GetXPMultiplierForLevel(level, advancement)
-	xp := XPForDamage(monster, dmg, NightMultiplier(timeOfDay), xpMult)
+	xp := character.BonusXP(level, XPForDamage(monster, dmg, NightMultiplier(timeOfDay)), advancement)
 	cs.XPEarnedThisFight += xp
 	return xp
 }
@@ -910,8 +911,8 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on
 	// POI/dungeon steps via the node walker in M3), on top of the proportional
 	// damage XP accrued during the fight.
-	xpMult := character.GetXPMultiplierForLevel(character.GetLevelFromXP(playerXP, advancement), advancement)
-	if bonus := KillBonusXP(&monster.Data, xpMult); bonus > 0 {
+	killLevel := character.GetLevelFromXP(playerXP, advancement)
+	if bonus := character.BonusXP(killLevel, KillBonusXP(&monster.Data), advancement); bonus > 0 {
 		cs.XPEarnedThisFight += bonus
 		log = append(log, fmt.Sprintf("  +%d bonus XP for slaying %s!", bonus, monster.Name))
 	}

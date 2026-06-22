@@ -1,0 +1,41 @@
+{{define "game/save-modal.html"}}
+<!-- Save Game Modal (positioned over scene) -->
+<div id="save-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
+    <div class="relative bg-win95-bgDark" style="border: 2px solid #808080; width: 236px; margin: 56px auto 0; pointer-events: auto; box-shadow: 0 0 16px rgba(34,197,94,0.45);">
+        <!-- Title Bar -->
+        <div class="px-2 py-1 flex items-center justify-between" style="background: linear-gradient(90deg, #166534, #22c55e);">
+            <div class="flex items-center gap-2">
+                <span style="font-size: 11px;">💾</span>
+                <span class="text-white font-bold" style="font-size: 9px;">SAVE GAME</span>
+            </div>
+            <button onclick="window.closeSaveModal()" class="text-white font-bold" style="font-size: 10px; cursor: pointer; background: none; border: none; line-height: 1;" title="Close">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-3 text-center">
+            <div id="save-modal-summary" class="text-white font-bold mb-1" style="font-size: 9px;"></div>
+            <div id="save-modal-last" class="text-gray-400 mb-2" style="font-size: 7px;">Last saved: never this session</div>
+            <div id="save-modal-status" class="hidden mb-2 font-bold" style="font-size: 8px;"></div>
+
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <button
+                    id="save-modal-confirm"
+                    onclick="window.confirmSaveGame()"
+                    class="px-4 py-2 font-bold text-white"
+                    style="font-size: 8px; background: #166534; border-top: 2px solid #22c55e; border-left: 2px solid #22c55e; border-right: 2px solid #14532d; border-bottom: 2px solid #14532d;">
+                    SAVE
+                </button>
+                <button
+                    onclick="window.closeSaveModal()"
+                    class="px-3 py-2 font-bold text-gray-300"
+                    style="font-size: 8px; background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
+                    not now
+                </button>
+            </div>
+            <div class="text-gray-500" style="font-size: 6px; line-height: 1.5;">
+                Saves are deliberate — your progress is only written when you save.
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
