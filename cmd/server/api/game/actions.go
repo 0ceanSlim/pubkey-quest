@@ -605,6 +605,7 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"location":              session.SaveData.Location,
 			"district":              session.SaveData.District,
 			"building":              session.SaveData.Building,
+			"room":                  session.SaveData.Room,
 			"travel_progress":       session.SaveData.TravelProgress,
 			"travel_stopped":        session.SaveData.TravelStopped,
 			"current_day":           session.SaveData.CurrentDay,

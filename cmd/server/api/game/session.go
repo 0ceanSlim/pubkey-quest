@@ -201,6 +201,7 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"location":              sess.SaveData.Location,
 		"district":              sess.SaveData.District,
 		"building":              sess.SaveData.Building,
+		"room":                  sess.SaveData.Room,
 		"current_day":           sess.SaveData.CurrentDay,
 		"time_of_day":           sess.SaveData.TimeOfDay,
 		"inventory":             sess.SaveData.Inventory,

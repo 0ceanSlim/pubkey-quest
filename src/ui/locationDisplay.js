@@ -31,7 +31,7 @@ let renderTimeout = null; // For debouncing
  * @param {string} building - Building ID (optional, empty string if not in building)
  * @returns {Promise<string[]>} Array of NPC IDs at this location
  */
-async function fetchNPCsAtLocation(location, district, building = '') {
+async function fetchNPCsAtLocation(location, district, building = '', room = '') {
     try {
         const state = getGameStateSync();
         const timeOfDay = state.character?.time_of_day !== undefined ? state.character.time_of_day : 720;
@@ -45,6 +45,9 @@ async function fetchNPCsAtLocation(location, district, building = '') {
 
         if (building) {
             params.append('building', building);
+        }
+        if (room) {
+            params.append('room', room); // room-scope NPC visibility inside a building (M2)
         }
 
         const response = await fetch(`/api/npcs/at-location?${params.toString()}`);
@@ -200,22 +203,36 @@ export async function displayCurrentLocation() {
     const connections = currentData.connections || currentData.properties?.connections;
     let buildings = currentData.buildings || currentData.properties?.buildings;
 
-    // Fetch NPCs from backend based on current location and time
+    // Fetch NPCs from backend (room-scoped when inside a building)
+    const currentRoomId = state.location?.room || '';
     let npcs = [];
-    await fetchNPCsAtLocation(cityId, districtKey, currentBuildingId).then(npcData => {
+    await fetchNPCsAtLocation(cityId, districtKey, currentBuildingId, currentRoomId).then(npcData => {
         npcs = npcData || [];
     });
 
-    // Check if we're inside a building
+    // Inside a building: the Buildings column becomes the building's Rooms (move
+    // between them) plus Exit. A building with no rooms just shows Exit (as before).
     if (currentBuildingId && buildings) {
-        // Find the current building data
         const currentBuilding = buildings.find(b => b.id === currentBuildingId);
-
         if (currentBuilding) {
-            logger.debug('Inside building:', currentBuilding);
+            const roomData = await fetchRoomsInBuilding();
+            const roomButtons = (roomData.rooms || [])
+                .filter(rm => !rm.is_current) // not the room you're already in
+                .map(rm => ({
+                    isRoom: true,
+                    roomId: rm.id,
+                    name: rm.accessible ? rm.name : `🔒 ${rm.name}`,
+                    accessible: rm.accessible,
+                    lockedReason: rm.locked_reason,
+                }));
+            buildings = [...roomButtons, { id: '__exit__', name: 'Exit Building', isExit: true }];
 
-            // Override buildings to show only "Exit Building" button
-            buildings = [{ id: '__exit__', name: 'Exit Building', isExit: true }];
+            // Scene header: "Building — Room"
+            const districtNameEl = document.getElementById('district-name');
+            if (districtNameEl) {
+                const here = (roomData.rooms || []).find(rm => rm.is_current);
+                districtNameEl.textContent = here ? `${currentBuilding.name} — ${here.name}` : currentBuilding.name;
+            }
         }
     }
 
@@ -309,6 +326,21 @@ export async function displayCurrentLocation() {
                         buildingFragment.appendChild(showButton);
                     }
 
+                    return;
+                }
+
+                // Room button (inside a building) — move between rooms; locked
+                // rooms show 🔒 and explain why on click.
+                if (building.isRoom) {
+                    const roomButton = createLocationButton(
+                        building.name,
+                        () => moveToRoom(building.roomId, building.accessible, building.lockedReason),
+                        building.accessible ? 'building' : 'building-closed'
+                    );
+                    if (!building.accessible) {
+                        roomButton.classList.add('opacity-60');
+                    }
+                    buildingFragment.appendChild(roomButton);
                     return;
                 }
 
@@ -825,6 +857,44 @@ export async function exitBuilding() {
     } catch (error) {
         logger.error('Failed to exit building:', error);
         showMessage('❌ Failed to exit building', 'error');
+    }
+}
+
+/**
+ * Fetch the current building's rooms with per-room accessibility (M2).
+ * @returns {Promise<{building:string,current_room:string,rooms:Array}>}
+ */
+async function fetchRoomsInBuilding() {
+    try {
+        const response = await fetch(`/api/rooms?npub=${gameAPI.npub}&save_id=${gameAPI.saveID}`);
+        if (!response.ok) return { rooms: [] };
+        return await response.json();
+    } catch (error) {
+        logger.error('Failed to fetch rooms:', error);
+        return { rooms: [] };
+    }
+}
+
+/**
+ * Move to another room within the current building. Locked rooms are pre-flagged
+ * by the server, so a locked click just explains why; accessible moves are
+ * validated again server-side.
+ * @param {string} roomId
+ * @param {boolean} accessible
+ * @param {string} lockedReason
+ */
+export async function moveToRoom(roomId, accessible, lockedReason) {
+    if (accessible === false) {
+        showActionText(lockedReason || 'That room is locked.', 'red');
+        return;
+    }
+    try {
+        await gameAPI.sendAction('move_to_room', { room_id: roomId });
+        await refreshGameState();
+        await updateAllDisplays();
+    } catch (error) {
+        logger.error('Failed to move to room:', error);
+        showActionText("You can't enter that room right now.", 'red');
     }
 }
 
@@ -1447,8 +1517,9 @@ export function checkIfRoomRented(buildingId) {
     // Check if there's a valid (non-expired) rented room at this building
     for (const room of rentedRooms) {
         if (room.building === buildingId) {
-            const expDay = room.expiration_day || 0;
-            const expTime = room.expiration_time || 0;
+            // Support both the new save.Rentals shape and the legacy session shape.
+            const expDay = room.expires_day ?? room.expiration_day ?? 0;
+            const expTime = room.expires_minute ?? room.expiration_time ?? 0;
 
             logger.debug('Found rented room:', { room, expDay, expTime });
 

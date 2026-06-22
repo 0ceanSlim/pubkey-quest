@@ -555,6 +555,16 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Success      200      {object}  game.LevelGuideResponse
 	// @Router       /api/progression/guide [get]
 	mux.HandleFunc("/api/progression/guide", game.GetLevelGuideHandler)
+
+	// @Summary      Rooms in the current building
+	// @Description  Lists the current building's rooms with per-room accessibility (M2)
+	// @Tags         Rooms
+	// @Produce      json
+	// @Param        npub     query  string  true  "Nostr public key"
+	// @Param        save_id  query  string  true  "Save ID"
+	// @Success      200      {object}  game.RoomsResponse
+	// @Router       /api/rooms [get]
+	mux.HandleFunc("/api/rooms", game.GetRoomsHandler)
 }
 
 // ============================================================================

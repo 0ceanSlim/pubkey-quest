@@ -194,6 +194,7 @@ export function transformSaveDataToUIState(saveData) {
             district: districtKey,
             raw_district: saveData.district || 'center', // Unparsed district (needed for travel origin)
             building: saveData.building || null,
+            room: saveData.room || null, // Current room within the building (M2)
             discovered: saveData.locations_discovered || [],
             travel_progress: saveData.travel_progress || 0,
             travel_stopped: saveData.travel_stopped || false
