@@ -59,7 +59,7 @@ func HandleAdvanceTimeAction(state *types.SaveFile, params map[string]interface{
 
 // HandleUpdateTimeAction syncs time from frontend clock to backend state
 // This is the main tick handler that updates buildings, NPCs, and effects
-func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	// Get the new time from frontend
 	newTimeOfDay, timeOk := params["time_of_day"].(float64)
 	newCurrentDay, dayOk := params["current_day"].(float64)
@@ -151,6 +151,7 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 				state.Location,
 				state.District,
 				state.Building,
+				state.Room,
 				newTime,
 			)
 			// Only log when NPCs actually change (reduces spam)
@@ -202,7 +203,7 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 
 // HandleWaitAction waits for a specified amount of time
 // Accepts either "minutes" (15-360) or "hours" (1-6) for backwards compatibility
-func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	var minutesToAdvance int
 
 	// Check for minutes first (more granular), fall back to hours
@@ -261,6 +262,7 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 				state.Location,
 				state.District,
 				state.Building,
+				state.Room,
 				newTime,
 			)
 			session.UpdateNPCsAtLocation(npcIDs, currentHour)

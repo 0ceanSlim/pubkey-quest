@@ -46,6 +46,7 @@ type NPCScheduleSlot struct {
 	Start            int      `json:"start"`              // Minutes from midnight (0-1439)
 	End              int      `json:"end"`                // Minutes from midnight (0-1439, wraps to next day if < start)
 	Location         string   `json:"location"`           // Building ID or district ID (backend determines type)
+	Room             string   `json:"room,omitempty"`     // Optional room within the building (M2); empty = the building's default room
 	State            string   `json:"state"`              // "sleeping", "working", "traveling", "home"
 	DialogueOptions  []string `json:"dialogue_options"`   // Which dialogue nodes are available
 	AvailableActions []string `json:"available_actions"`  // Which actions can be performed (open_shop, etc.)
@@ -82,6 +83,7 @@ type NPCScheduleInfo struct {
 	CurrentSlot       *NPCScheduleSlot `json:"current_slot"`
 	IsAvailable       bool             `json:"is_available"`
 	Location          string           `json:"location"`            // Current location (building or district)
+	Room              string           `json:"room,omitempty"`      // Resolved room within the building (M2)
 	State             string           `json:"state"`
 	AvailableDialogue []string         `json:"available_dialogue"`
 	AvailableActions  []string         `json:"available_actions"`

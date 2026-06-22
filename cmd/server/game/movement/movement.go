@@ -7,6 +7,7 @@ import (
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
 )
 
@@ -87,7 +88,13 @@ func HandleEnterBuildingAction(state *types.SaveFile, params map[string]interfac
 	// Update state to include building
 	state.Building = buildingID
 
-	log.Printf("🏛️ Entered building: %s", buildingID)
+	// Drop into the building's default room (empty when it has no rooms).
+	state.Room = ""
+	if rooms, defaultRoom, roomErr := building.GetBuildingRooms(database, state.Location, buildingID); roomErr == nil && len(rooms) > 0 {
+		state.Room = defaultRoom
+	}
+
+	log.Printf("🏛️ Entered building: %s (room: %q)", buildingID, state.Room)
 
 	return &types.GameActionResponse{
 		Success: true,
@@ -96,10 +103,48 @@ func HandleEnterBuildingAction(state *types.SaveFile, params map[string]interfac
 	}, nil
 }
 
+// HandleMoveToRoomAction moves the player to another room within the current
+// building, validating that the room exists and is accessible (hours / key /
+// rental state). On a locked room it returns a clear, declined message.
+func HandleMoveToRoomAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
+	roomID, ok := params["room_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("missing or invalid room_id parameter")
+	}
+	if state.Building == "" {
+		return &types.GameActionResponse{Success: false, Message: "You must be inside a building to move between rooms.", Color: "red"}, nil
+	}
+
+	database := db.GetDB()
+	if database == nil {
+		return nil, fmt.Errorf("database not available")
+	}
+
+	rooms, _, err := building.GetBuildingRooms(database, state.Location, state.Building)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load rooms: %v", err)
+	}
+	room, found := building.FindRoom(rooms, roomID)
+	if !found {
+		return &types.GameActionResponse{Success: false, Message: "There's no such room here.", Color: "red"}, nil
+	}
+
+	hasKey := room.Access != nil && room.Access.Key != "" && gameutil.PlayerHasItem(state, room.Access.Key)
+	isRented := gameutil.HasActiveRental(state, state.Building)
+	if accessible, reason := building.RoomAccessible(room, state.TimeOfDay, hasKey, isRented); !accessible {
+		return &types.GameActionResponse{Success: false, Message: reason, Color: "red"}, nil
+	}
+
+	state.Room = roomID
+	log.Printf("🚶 Moved to room: %s/%s", state.Building, roomID)
+	return &types.GameActionResponse{Success: true, Message: fmt.Sprintf("Entered %s", room.Name), Color: "blue"}, nil
+}
+
 // HandleExitBuildingAction exits a building
 func HandleExitBuildingAction(state *types.SaveFile, _ map[string]interface{}) (*types.GameActionResponse, error) {
 	// Update state to remove building (back outdoors)
 	state.Building = ""
+	state.Room = ""
 
 	log.Printf("🚪 Exited building")
 

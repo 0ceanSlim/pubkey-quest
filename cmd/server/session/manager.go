@@ -118,7 +118,7 @@ func sessionKey(npub, saveID string) string {
 }
 
 // LoadSession loads a save file into memory using the provided loader function
-func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string, string) (*types.SaveFile, error), initEffects func(*types.SaveFile) error, getNPCIDs func(string, string, string, int) []string, getBuildingStates func(string, string, int) (map[string]bool, error)) (*GameSession, error) {
+func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string, string) (*types.SaveFile, error), initEffects func(*types.SaveFile) error, getNPCIDs func(string, string, string, string, int) []string, getBuildingStates func(string, string, int) (map[string]bool, error)) (*GameSession, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -169,7 +169,7 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 
 	// Load initial NPCs at location
 	if getNPCIDs != nil {
-		npcIDs := getNPCIDs(saveData.Location, saveData.District, saveData.Building, timeOfDay)
+		npcIDs := getNPCIDs(saveData.Location, saveData.District, saveData.Building, saveData.Room, timeOfDay)
 		session.NPCsAtLocation = npcIDs
 		session.NPCsLastHour = currentHour
 	}
@@ -183,7 +183,7 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 }
 
 // ReloadSession forces a reload from disk, discarding in-memory changes
-func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(string, string) (*types.SaveFile, error), initEffects func(*types.SaveFile) error, getNPCIDs func(string, string, string, int) []string, getBuildingStates func(string, string, int) (map[string]bool, error)) (*GameSession, error) {
+func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(string, string) (*types.SaveFile, error), initEffects func(*types.SaveFile) error, getNPCIDs func(string, string, string, string, int) []string, getBuildingStates func(string, string, int) (map[string]bool, error)) (*GameSession, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -229,7 +229,7 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 
 	// Load initial NPCs at location
 	if getNPCIDs != nil {
-		npcIDs := getNPCIDs(saveData.Location, saveData.District, saveData.Building, timeOfDay)
+		npcIDs := getNPCIDs(saveData.Location, saveData.District, saveData.Building, saveData.Room, timeOfDay)
 		session.NPCsAtLocation = npcIDs
 		session.NPCsLastHour = currentHour
 	}

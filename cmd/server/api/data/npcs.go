@@ -1,14 +1,37 @@
 package data
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/types"
 )
+
+// NPCRoomMatches reports whether an NPC whose schedule slot is in slotRoom is
+// visible to a player standing in playerRoom. An empty slot room means the
+// building's default room; an empty player room means the building has no rooms.
+func NPCRoomMatches(slotRoom, playerRoom, defaultRoom string) bool {
+	if slotRoom == "" {
+		return playerRoom == "" || playerRoom == defaultRoom
+	}
+	return slotRoom == playerRoom
+}
+
+// buildingDefaultRoom returns a building's default room id (empty if it has none).
+func buildingDefaultRoom(database *sql.DB, locationID, buildingID string) string {
+	if buildingID == "" {
+		return ""
+	}
+	if _, defaultRoom, err := building.GetBuildingRooms(database, locationID, buildingID); err == nil {
+		return defaultRoom
+	}
+	return ""
+}
 
 // NPCLocationResponse represents NPC visibility at a location
 // swagger:model NPCLocationResponse
@@ -44,6 +67,7 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 	locationID := r.URL.Query().Get("location")
 	districtID := r.URL.Query().Get("district")
 	buildingID := r.URL.Query().Get("building")
+	roomID := r.URL.Query().Get("room")
 	timeOfDay := 720 // Default noon
 
 	if t := r.URL.Query().Get("time"); t != "" {
@@ -65,6 +89,7 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	visibleNPCs := []NPCLocationResponse{}
+	defaultRoom := buildingDefaultRoom(database, locationID, buildingID)
 
 	// Note: districtID is already the full district ID (e.g., "kingdom-center") from frontend
 	for rows.Next() {
@@ -84,10 +109,10 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 		// Determine location type from location ID
 		locationType := npc.DetermineLocationType(scheduleInfo.Location)
 
-		// Check if NPC is at player's current location
+		// Check if NPC is at player's current location (and room, when inside)
 		isVisible := false
 		if buildingID != "" && locationType == "building" && scheduleInfo.Location == buildingID {
-			isVisible = true
+			isVisible = NPCRoomMatches(scheduleInfo.Room, roomID, defaultRoom)
 		} else if buildingID == "" && locationType == "district" && scheduleInfo.Location == districtID {
 			isVisible = true
 		}
@@ -111,11 +136,12 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetNPCIDsAtLocation returns a list of NPC IDs visible at the given location
 // Used by the delta system to track NPC changes
-func GetNPCIDsAtLocation(locationID, districtID, buildingID string, timeOfDay int) []string {
+func GetNPCIDsAtLocation(locationID, districtID, buildingID, roomID string, timeOfDay int) []string {
 	database := db.GetDB()
 	if database == nil {
 		return []string{}
 	}
+	defaultRoom := buildingDefaultRoom(database, locationID, buildingID)
 
 	// Get all NPCs for this location
 	rows, err := database.Query("SELECT id, properties FROM npcs WHERE location = ?", locationID)
@@ -146,10 +172,10 @@ func GetNPCIDsAtLocation(locationID, districtID, buildingID string, timeOfDay in
 		// Determine location type from location ID
 		locationType := npc.DetermineLocationType(scheduleInfo.Location)
 
-		// Check if NPC is at player's current location
+		// Check if NPC is at player's current location (and room, when inside)
 		isVisible := false
 		if buildingID != "" && locationType == "building" && scheduleInfo.Location == buildingID {
-			isVisible = true
+			isVisible = NPCRoomMatches(scheduleInfo.Room, roomID, defaultRoom)
 		} else if buildingID == "" && locationType == "district" && scheduleInfo.Location == fullDistrictID {
 			isVisible = true
 		}

@@ -70,6 +70,7 @@ func ResolveNPCSchedule(npc *types.NPCData, timeOfDay int) *types.NPCScheduleInf
 		CurrentSlot:       currentSlot,
 		IsAvailable:       len(currentSlot.AvailableActions) > 0 || len(currentSlot.DialogueOptions) > 0,
 		Location:          currentSlot.Location,
+		Room:              currentSlot.Room,
 		State:             currentSlot.State,
 		AvailableDialogue: currentSlot.DialogueOptions,
 		AvailableActions:  currentSlot.AvailableActions,

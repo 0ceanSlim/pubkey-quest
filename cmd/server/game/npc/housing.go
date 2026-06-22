@@ -12,8 +12,11 @@ import (
 	"pubkey-quest/types"
 )
 
-// HandleRentRoomAction rents a room at an inn/tavern
-func HandleRentRoomAction(state *types.SaveFile, session SessionProvider, params map[string]interface{}) (*types.GameActionResponse, error) {
+// HandleRentRoomAction rents a room at an inn/tavern. The rental is recorded on
+// the save (survives reload) and unlocks the building's rented-state room; the
+// player then walks into that room to sleep. The session param is unused now
+// that rentals live on the save.
+func HandleRentRoomAction(state *types.SaveFile, _ SessionProvider, params map[string]interface{}) (*types.GameActionResponse, error) {
 	buildingID := state.Building
 	if buildingID == "" {
 		return nil, fmt.Errorf("not in a building")
@@ -25,9 +28,11 @@ func HandleRentRoomAction(state *types.SaveFile, session SessionProvider, params
 		cost = int(c)
 	}
 
-	// Check if player has enough gold
+	if gameutil.HasActiveRental(state, buildingID) {
+		return &types.GameActionResponse{Success: false, Message: "You already have a room rented here.", Color: "yellow"}, nil
+	}
+
 	goldAmount := gameutil.GetGoldQuantity(state)
-	log.Printf("🪙 Player has %d gold, room costs %d gold", goldAmount, cost)
 	if goldAmount < cost {
 		return &types.GameActionResponse{
 			Success: false,
@@ -35,60 +40,23 @@ func HandleRentRoomAction(state *types.SaveFile, session SessionProvider, params
 			Color:   "red",
 		}, nil
 	}
-
-	// Deduct gold
-	log.Printf("💰 Attempting to deduct %d gold...", cost)
 	if !gameutil.DeductGold(state, cost) {
-		log.Printf("❌ Failed to deduct gold!")
-		return &types.GameActionResponse{
-			Success: false,
-			Message: "Failed to deduct gold for room rental",
-			Color:   "red",
-		}, nil
+		return &types.GameActionResponse{Success: false, Message: "Failed to deduct gold for room rental", Color: "red"}, nil
 	}
 
-	// Verify gold was deducted
-	newGoldAmount := gameutil.GetGoldQuantity(state)
-	log.Printf("✅ Gold deducted successfully. Old: %d, New: %d", goldAmount, newGoldAmount)
+	// Rental holds through the end of the next day.
+	expiresDay := state.CurrentDay + 1
+	expiresMin := 1439 // 23:59
+	gameutil.AddRental(state, buildingID, expiresDay, expiresMin)
 
-	// Initialize rented rooms if needed (session-only data)
-	rentedRooms := session.GetRentedRooms()
-	if rentedRooms == nil {
-		rentedRooms = []map[string]interface{}{}
-	}
-
-	// Check if already rented at this building
-	for _, room := range rentedRooms {
-		if building, ok := room["building"].(string); ok && building == buildingID {
-			return &types.GameActionResponse{
-				Success: false,
-				Message: "You already have a room rented here",
-				Color:   "yellow",
-			}, nil
-		}
-	}
-
-	// Add rented room (expires at end of next day - 23:59)
-	expirationDay := state.CurrentDay + 1
-	expirationTime := 1439 // 23:59
-
-	room := map[string]interface{}{
-		"building":        buildingID,
-		"expiration_day":  expirationDay,
-		"expiration_time": expirationTime,
-	}
-
-	rentedRooms = append(rentedRooms, room)
-	session.SetRentedRooms(rentedRooms)
-
-	log.Printf("🏠 Rented room at %s for %d gold (expires day %d at %d)", buildingID, cost, expirationDay, expirationTime)
+	log.Printf("🏠 Rented room at %s for %d gold (expires day %d)", buildingID, cost, expiresDay)
 
 	return &types.GameActionResponse{
 		Success: true,
-		Message: fmt.Sprintf("Rented a room for %d gold. You can sleep here until tomorrow night.", cost),
+		Message: fmt.Sprintf("Rented a room for %d gold. Head to your room — you can sleep there after 9 PM.", cost),
 		Color:   "green",
 		Data: map[string]interface{}{
-			"rented_rooms": rentedRooms,
+			"rentals": state.Rentals,
 		},
 	}, nil
 }
@@ -101,57 +69,50 @@ type SleepSessionProvider interface {
 	UpdateSnapshotAndCalculateDeltaProvider() types.DeltaProvider
 }
 
-// HandleSleepAction sleeps in a rented room
-func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, int) []string) (*types.GameActionResponse, error) {
+// Sleep window: a night activity, no daytime naps.
+const (
+	sleepEarliest = 1260 // 21:00 — sleeping is barred before 9 PM
+	sleepWakeTime = 360  // 06:00 — wake time
+)
+
+// CanSleepNow reports whether the time of day is in the night sleep window
+// (after 9 PM, or before the 6 AM wake time).
+func CanSleepNow(timeOfDay int) bool {
+	return timeOfDay >= sleepEarliest || timeOfDay < sleepWakeTime
+}
+
+// HandleSleepAction sleeps in the player's rented room. Requires an active rental
+// for the building, standing in the rented-state room (when the building has
+// rooms), and a time after 9 PM. The rental persists until it expires — sleeping
+// doesn't consume it.
+func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	buildingID := state.Building
 	if buildingID == "" {
-		return nil, fmt.Errorf("not in a building")
+		return &types.GameActionResponse{Success: false, Message: "You can't sleep out here — rent a room at an inn.", Color: "red"}, nil
 	}
 
-	// Check if player has a rented room here and find the index (session-only data)
-	hasRoom := false
-	roomIndex := -1
-	rentedRooms := session.GetRentedRooms()
-	if rentedRooms != nil {
-		for i, room := range rentedRooms {
-			if building, ok := room["building"].(string); ok && building == buildingID {
-				// Check if expired
-				expDay, _ := room["expiration_day"].(int)
-				expTime, _ := room["expiration_time"].(int)
+	// Must hold an active rental for this building.
+	if !gameutil.HasActiveRental(state, buildingID) {
+		return &types.GameActionResponse{Success: false, Message: "You don't have a room rented here. Rent one from the innkeeper.", Color: "red"}, nil
+	}
 
-				if state.CurrentDay > expDay || (state.CurrentDay == expDay && state.TimeOfDay > expTime) {
-					// Room expired, remove it
-					rentedRooms = append(rentedRooms[:i], rentedRooms[i+1:]...)
-					session.SetRentedRooms(rentedRooms)
-					return &types.GameActionResponse{
-						Success: false,
-						Message: "Your room rental has expired. Please rent another room.",
-						Color:   "yellow",
-					}, nil
-				}
-
-				hasRoom = true
-				roomIndex = i
-				break
+	// If the building has rooms, you must be standing in your rented room.
+	if database := db.GetDB(); database != nil {
+		if rooms, _, roomErr := building.GetBuildingRooms(database, state.Location, buildingID); roomErr == nil && len(rooms) > 0 {
+			room, found := building.FindRoom(rooms, state.Room)
+			if !found || room.Access == nil || room.Access.State != "rented" {
+				return &types.GameActionResponse{Success: false, Message: "Head to your rented room to sleep.", Color: "yellow"}, nil
 			}
 		}
 	}
 
-	if !hasRoom {
-		return &types.GameActionResponse{
-			Success: false,
-			Message: "You don't have a room rented here",
-			Color:   "red",
-		}, nil
+	// Time gate: only after 9 PM (through the 6 AM wake time).
+	if !CanSleepNow(state.TimeOfDay) {
+		return &types.GameActionResponse{Success: false, Message: "It's too early to sleep — come back after 9 PM.", Color: "yellow"}, nil
 	}
 
-	// Calculate sleep quality based on current time (late bedtime = poor sleep)
-	// Ideal bedtime: before midnight (0-359 minutes or 1320-1439 minutes)
-	// Late bedtime: after midnight (360-720 minutes) - fatigue penalty
-	poorSleep := false
-	if state.TimeOfDay >= 360 && state.TimeOfDay <= 720 {
-		poorSleep = true
-	}
+	// Going to bed after midnight means a short night → poor sleep.
+	poorSleep := state.TimeOfDay < sleepWakeTime
 
 	// Calculate how many minutes will be slept
 	oldTime := state.TimeOfDay
@@ -192,13 +153,6 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 	state.HP = state.MaxHP
 	state.Mana = state.MaxMana
 
-	// Remove the rented room after sleeping (room is used up)
-	if roomIndex >= 0 && roomIndex < len(rentedRooms) {
-		rentedRooms = append(rentedRooms[:roomIndex], rentedRooms[roomIndex+1:]...)
-		session.SetRentedRooms(rentedRooms)
-		log.Printf("🚪 Room rental at %s has been used and removed", buildingID)
-	}
-
 	sleepMessage := "You wake up refreshed at 6 AM."
 	if poorSleep {
 		sleepMessage = "You wake up at 6 AM, but didn't sleep well due to going to bed late."
@@ -226,6 +180,7 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 			state.Location,
 			state.District,
 			state.Building,
+			state.Room,
 			newTime,
 		)
 		session.UpdateNPCsAtLocation(npcIDs, currentHour)
@@ -248,7 +203,7 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 			"max_hp":       state.MaxHP,
 			"mana":         state.Mana,
 			"max_mana":     state.MaxMana,
-			"rented_rooms": session.GetRentedRooms(), // Send updated rooms so frontend knows room was used
+			"rentals":      state.Rentals,
 		},
 	}, nil
 }

@@ -233,6 +233,8 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleEnterBuildingAction(state, action.Params)
 	case "exit_building":
 		return handleExitBuildingAction(state, action.Params)
+	case "move_to_room":
+		return handleMoveToRoomAction(state, action.Params)
 	case "talk_to_npc":
 		return handleTalkToNPCAction(state, action.Params)
 	case "npc_dialogue_choice":
@@ -619,8 +621,10 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"total_weight":    totalWeight,
 			"weight_capacity": weightCapacity,
 
-			// Add session-specific data
-			"rented_rooms":    session.RentedRooms,
+			// Rentals live on the save now (survive reload); shows are session-only.
+			// "rented_rooms" kept as a compat alias until the P4 room UI rework.
+			"rentals":         session.SaveData.Rentals,
+			"rented_rooms":    session.SaveData.Rentals,
 			"booked_shows":    session.BookedShows,
 			"performed_shows": session.PerformedShows,
 		},
@@ -637,6 +641,19 @@ func handleEnterBuildingAction(state *SaveFile, params map[string]any) (*GameAct
 		paramsIface[k] = v
 	}
 	resp, err := movement.HandleEnterBuildingAction(state, paramsIface)
+	if resp != nil {
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color}, err
+	}
+	return nil, err
+}
+
+// handleMoveToRoomAction moves between rooms inside the current building
+func handleMoveToRoomAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	paramsIface := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		paramsIface[k] = v
+	}
+	resp, err := movement.HandleMoveToRoomAction(state, paramsIface)
 	if resp != nil {
 		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color}, err
 	}
