@@ -30,7 +30,13 @@
           "name": "The Anchor's Rest",
           "description": "A cozy inn serving fresh seafood and providing rooms for traveling merchants and sailors.",
           "open": 1140,
-          "close": 240
+          "close": 240,
+          "default_room": "common_room",
+          "rooms": [
+            { "id": "common_room", "name": "Common Room", "description": "A weathered common room hung with fishing nets, where the bar serves chowder and the day's fresh catch." },
+            { "id": "fish_kitchen", "name": "Fish Kitchen", "description": "A salt-scrubbed kitchen out back where the morning's catch is gutted, fried, and stewed." },
+            { "id": "harbor_room", "name": "Harbor Room", "description": "A small guest room above the bar with a creaking bed and a window onto the bobbing boats.", "access": { "state": "rented" } }
+          ]
         },
         {
           "id": "net_and_tackle",

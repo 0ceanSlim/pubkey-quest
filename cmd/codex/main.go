@@ -34,6 +34,7 @@ func main() {
 	migrateFlag := flag.Bool("migrate", false, "Run database migration and exit")
 	validateFlag := flag.Bool("validate", false, "Run game data validation and exit")
 	checkSchemaFlag := flag.Bool("check-schema", false, "Run POI/encounter/quest draft schema check and exit")
+	checkConnectionsFlag := flag.Bool("check-connections", false, "Validate city↔environment world connectivity and exit")
 	formatSchemaFlag := flag.Bool("format-schema", false, "Pretty-print POI/encounter/quest draft JSON files and exit")
 	fixSchemaFlag := flag.Bool("fix-schema", false, "Apply legacy one-shot transforms to draft JSON (deprecated) and exit")
 	cleanupEffectsFlag := flag.Bool("cleanup-effects", false, "Migrate effects to new schema and exit")
@@ -86,6 +87,28 @@ func main() {
 			os.Exit(0)
 		}
 		fmt.Println("✅ all reference and skill checks passed")
+		os.Exit(0)
+	}
+
+	if *checkConnectionsFlag {
+		fmt.Println("🗺️  Validating world connectivity (city districts ↔ environments)...")
+		res, err := validation.ValidateConnections()
+		if err != nil {
+			fmt.Printf("❌ Connectivity check failed to run: %v\n", err)
+			os.Exit(1)
+		}
+		for _, w := range res.Warnings {
+			fmt.Printf("⚠️  %s\n", w)
+		}
+		for _, e := range res.Errors {
+			fmt.Printf("❌ %s\n", e)
+		}
+		fmt.Printf("\nChecked %d districts across %d environments — %d error(s), %d warning(s)\n",
+			res.Districts, res.Environments, len(res.Errors), len(res.Warnings))
+		if len(res.Errors) > 0 {
+			os.Exit(1)
+		}
+		fmt.Println("✅ world connectivity is consistent")
 		os.Exit(0)
 	}
 

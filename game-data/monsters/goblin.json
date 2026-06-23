@@ -11,7 +11,7 @@
   "alignment": "neutral evil",
   "tags": ["Goblinoid"],
   "img": "/static/img/monster/goblin.svg",
-  "environment": ["forest", "mountain", "urban", "grassland"],
+  "environment": ["forest", "mountain", "urban", "grassland", "hill"],
 
   "speed": {
     "walk": 30,

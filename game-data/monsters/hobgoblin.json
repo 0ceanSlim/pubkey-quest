@@ -11,7 +11,7 @@
   "alignment": "lawful evil",
   "tags": ["Goblinoid"],
   "img": "/static/img/monster/hobgoblin.svg",
-  "environment": ["forest", "mountain", "grassland"],
+  "environment": ["forest", "mountain", "grassland", "hill"],
 
   "speed": {
     "walk": 30,

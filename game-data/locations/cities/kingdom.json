@@ -59,7 +59,7 @@
       "description": "The northern district houses the city's scholars and nobility, with well-maintained gardens and elegant architecture.",
       "connections": {
         "center": "kingdom-center",
-        "north": "mistmarsh-swamplands"
+        "north": "greywind-plains"
       },
       "buildings": [
         {
@@ -70,7 +70,7 @@
           "close": 1200
         }
       ],
-      "exit_to_environment": "mistmarsh-swamplands"
+      "exit_to_environment": "greywind-plains"
     },
     "south": {
       "id": "kingdom-south",
@@ -86,7 +86,13 @@
           "name": "The Wayward Traveler Inn",
           "description": "A cozy inn catering to merchants and adventurers from distant lands. Rooms available for weary travelers.",
           "open": 1020,
-          "close": 480
+          "close": 480,
+          "default_room": "common_room",
+          "rooms": [
+            { "id": "common_room", "name": "Common Room", "description": "A warm, lamplit common room where Mara tends the front desk beside a crackling hearth." },
+            { "id": "kitchen", "name": "Kitchen", "description": "A homely kitchen where bread bakes through the night for the morning's breakfast." },
+            { "id": "guest_room", "name": "Guest Room", "description": "A snug upstairs room with fresh linens, a soft bed, and a view of the southern gate.", "access": { "state": "rented" } }
+          ]
         },
         {
           "id": "mara_quarters",
@@ -160,6 +166,12 @@
           "description": "A popular upscale tavern where merchants, adventurers, and locals gather for fine drinks, live music, and news. Gareth Thornfield runs a refined establishment with quality entertainment.",
           "open": 1020,
           "close": 120,
+          "default_room": "tavern_floor",
+          "rooms": [
+            { "id": "tavern_floor", "name": "Tavern Floor", "description": "The lively main floor where Marcus tends the polished bar and a small stage hosts the nightly music." },
+            { "id": "kitchen", "name": "Kitchen", "description": "A spotless kitchen behind the bar plating fine fare for the evening crowd." },
+            { "id": "wine_cellar", "name": "Wine Cellar", "description": "A cool cellar of casks and racked bottles, the source of the Griffin's celebrated drinks." }
+          ],
           "special_features": [
             "vip_section_for_happytavern_nip5",
             "live_music_nightly"

@@ -10,6 +10,7 @@
       "start": 0,
       "end": 480,
       "location": "caravan_rest",
+      "room": "common_room",
       "state": "working",
       "dialogue_options": [
         "main_menu"
@@ -42,6 +43,7 @@
       "start": 660,
       "end": 1440,
       "location": "caravan_rest",
+      "room": "common_room",
       "state": "working",
       "dialogue_options": [
         "main_menu"

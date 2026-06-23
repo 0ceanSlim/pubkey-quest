@@ -94,7 +94,14 @@
           "name": "Caravan Rest Inn",
           "description": "A large inn designed to accommodate merchant caravans and their guards.",
           "open": 1020,
-          "close": 480
+          "close": 480,
+          "default_room": "common_room",
+          "rooms": [
+            { "id": "common_room", "name": "Common Room", "description": "A broad common hall where caravan guards trade road stories over the front desk and a wide hearth." },
+            { "id": "kitchen", "name": "Kitchen", "description": "A busy kitchen turning out trail rations and hot meals for travelers at all hours." },
+            { "id": "store_room", "name": "Store Room", "description": "A locked back room where guests stow caravan cargo and saddle gear overnight." },
+            { "id": "guest_room", "name": "Guest Room", "description": "A clean, secure room on the upper floor with a bolted door and a comfortable bed.", "access": { "state": "rented" } }
+          ]
         }
       ],
       "exit_to_environment": "merchants-highway"
@@ -140,6 +147,13 @@
           "description": "A rowdy port tavern run by Captain Reylia Stormwave, where sailors, merchants, and adventurers gather for drinks, lodging, and loud music that carries over the harbor.",
           "open": 1020,
           "close": 120,
+          "default_room": "taproom",
+          "rooms": [
+            { "id": "taproom", "name": "Taproom", "description": "The rowdy main floor where the bar runs the length of one wall and sea-shanties drown out the gulls." },
+            { "id": "galley", "name": "Galley", "description": "A cramped, steamy kitchen behind the bar where fish stew bubbles in iron pots." },
+            { "id": "cellar", "name": "Dock Cellar", "description": "A dim store room below the waterline, stacked with barrels of ale and crates hauled off the ships." },
+            { "id": "hammock_deck", "name": "Hammock Below Deck", "description": "A low room strung with hammocks that rock you to sleep like a ship at anchor.", "access": { "state": "rented" } }
+          ],
           "shows": {
             "show_time": 1260,
             "booking_deadline": 1200,

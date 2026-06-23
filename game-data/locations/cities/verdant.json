@@ -49,6 +49,12 @@
           "description": "A serene inn built among ancient trees, run by the gentle druid Faelyn Nightbreeze. Soft music flows through the branches as nature-loving guests rest beneath the stars.",
           "open": 1020,
           "close": 120,
+          "default_room": "great_bough",
+          "rooms": [
+            { "id": "great_bough", "name": "The Great Bough", "description": "A tranquil common room grown into a vast living tree, where the bar curls along a mossy root and soft music drifts down from the branches." },
+            { "id": "herb_kitchen", "name": "Herb Kitchen", "description": "A fragrant kitchen woven from living vines where forest fare and herbal teas are prepared." },
+            { "id": "canopy_nook", "name": "Canopy Nook", "description": "A guest bower nestled high in the branches, open to the stars and lulled by rustling leaves.", "access": { "state": "rented" } }
+          ],
           "shows": {
             "show_time": 1260,
             "booking_deadline": 1200,

@@ -11,7 +11,7 @@
   "alignment": "unaligned",
   "tags": [],
   "img": "/static/img/monster/blood-hawk.svg",
-  "environment": ["mountain", "coast", "grassland"],
+  "environment": ["mountain", "coast", "grassland", "hill"],
 
   "speed": {
     "walk": 10,

@@ -11,7 +11,7 @@
   "alignment": "chaotic evil",
   "tags": ["Giant"],
   "img": "/static/img/monster/ogre.svg",
-  "environment": ["mountain", "grassland", "forest"],
+  "environment": ["mountain", "grassland", "forest", "hill"],
 
   "speed": {
     "walk": 40,

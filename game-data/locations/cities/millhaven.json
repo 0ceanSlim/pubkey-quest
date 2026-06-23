@@ -79,6 +79,12 @@
           "description": "A humble but comfortable inn run by the cheerful halfling Marigold Sweetwater. All musicians are welcome here, and the hearty farm meals smell like home.",
           "open": 1020,
           "close": 120,
+          "default_room": "common_room",
+          "rooms": [
+            { "id": "common_room", "name": "Common Room", "description": "A cozy common room smelling of fresh bread, where Marigold pours drinks and welcomes every musician to the corner stage." },
+            { "id": "farm_kitchen", "name": "Farm Kitchen", "description": "A homey kitchen turning out hearty farm meals from the day's grain and harvest." },
+            { "id": "loft_room", "name": "Loft Room", "description": "A warm guest room tucked under the eaves, with a soft bed and a window over the rolling fields.", "access": { "state": "rented" } }
+          ],
           "shows": {
             "show_time": 1260,
             "booking_deadline": 1200,

@@ -41,6 +41,12 @@
           "description": "A rowdy inn run by the sturdy dwarf Helga Stonebrew, where miners gather after long shifts underground. Loud rhythmic music echoes through the halls.",
           "open": 1020,
           "close": 120,
+          "default_room": "tap_hall",
+          "rooms": [
+            { "id": "tap_hall", "name": "Tap Hall", "description": "A boisterous stone hall carved into the rock where off-shift miners pound the bar and the music shakes the dust from the rafters." },
+            { "id": "ale_cellar", "name": "Ale Cellar", "description": "A deep, cool cellar hewn from the mountain, lined with kegs of Helga's famous stout." },
+            { "id": "miners_bunk", "name": "Miner's Bunk", "description": "A sturdy stone-walled room with a heavy bunk, quiet enough to sleep off a long shift.", "access": { "state": "rented" } }
+          ],
           "shows": {
             "show_time": 1260,
             "booking_deadline": 1200,
@@ -117,6 +123,17 @@
         }
       ],
       "exit_to_environment": "cragspire-mountains"
+    },
+    "west": {
+      "id": "ironpeak-west",
+      "name": "Western Pass",
+      "description": "A windswept pass on the mountain's western flank, where the cobbled road gives way to ice. The Frozen Wastes begin here — a tundra crossing toward distant Frosthold.",
+      "connections": {
+        "center": "ironpeak-center",
+        "west": "frozen-wastes"
+      },
+      "buildings": [],
+      "exit_to_environment": "frozen-wastes"
     }
   }
 }

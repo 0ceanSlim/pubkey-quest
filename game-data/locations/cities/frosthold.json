@@ -23,7 +23,7 @@
       "description": "The town center is dominated by the Great Hearth, a massive stone fire pit that provides warmth and light. Fur-clad residents gather here to trade news and warm themselves.",
       "connections": {
         "south": "frosthold-south",
-        "north": "frozen-wastes"
+        "east": "frosthold-east"
       },
       "buildings": [
         {
@@ -31,7 +31,13 @@
           "name": "The Frozen Mug Tavern",
           "description": "A warm tavern serving strong ales and hearty stews to ward off the northern cold.",
           "open": 1140,
-          "close": 240
+          "close": 240,
+          "default_room": "hearth_hall",
+          "rooms": [
+            { "id": "hearth_hall", "name": "Hearth Hall", "description": "The main hall built tight around a roaring stone hearth, where fur-clad patrons thaw over strong ale." },
+            { "id": "stew_kitchen", "name": "Stew Kitchen", "description": "A warm back kitchen where great cauldrons of hearty stew simmer day and night." },
+            { "id": "bunk_room", "name": "Bunk Room", "description": "A snug, fur-lined room with a heavy bed kept warm against the arctic chill.", "access": { "state": "rented" } }
+          ]
         },
         {
           "id": "fur_trader",
@@ -55,7 +61,7 @@
       "description": "The southern entrance to town, where travelers arrive from warmer lands. Guard towers flank a sturdy gate built to keep out both bandits and arctic beasts.",
       "connections": {
         "center": "frosthold-center",
-        "south": "mistmarsh-swamplands"
+        "south": "greywind-plains"
       },
       "buildings": [
         {
@@ -66,7 +72,18 @@
           "close": null
         }
       ],
-      "exit_to_environment": "mistmarsh-swamplands"
+      "exit_to_environment": "greywind-plains"
+    },
+    "east": {
+      "id": "frosthold-east",
+      "name": "Glacier Gate",
+      "description": "The town's eastern gate opens onto a frozen tundra pass. Beyond the ice-rimed walls, the Frozen Wastes stretch toward the distant mountains of Ironpeak.",
+      "connections": {
+        "center": "frosthold-center",
+        "east": "frozen-wastes"
+      },
+      "buildings": [],
+      "exit_to_environment": "frozen-wastes"
     }
   }
 }

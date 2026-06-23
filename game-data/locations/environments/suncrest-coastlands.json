@@ -2,7 +2,7 @@
   "id": "suncrest-coastlands",
   "name": "Suncrest Coastlands",
   "type": "environment",
-  "environment_type": "coastal",
+  "environment_type": "coast",
   "music": "Medieval Jubilee",
   "connects": ["verdant-south", "saltwind-north"],
   "description": "Rocky cliffs and sandy beaches stretch along the azure sea. Seabirds wheel overhead while waves crash against weathered stone. Hidden coves and tide pools reveal treasures from the deep.",

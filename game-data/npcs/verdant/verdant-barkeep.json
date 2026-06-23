@@ -10,6 +10,7 @@
       "start": 0,
       "end": 240,
       "location": "moonlit_glade_inn",
+      "room": "great_bough",
       "state": "working",
       "dialogue_options": [
         "main_menu"
@@ -44,6 +45,7 @@
       "start": 420,
       "end": 1440,
       "location": "moonlit_glade_inn",
+      "room": "great_bough",
       "state": "working",
       "dialogue_options": [
         "main_menu"

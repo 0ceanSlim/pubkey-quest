@@ -11,7 +11,7 @@
   "alignment": "chaotic evil",
   "tags": ["Orc"],
   "img": "/static/img/monster/orc.svg",
-  "environment": ["mountain", "forest", "grassland"],
+  "environment": ["mountain", "forest", "grassland", "hill"],
 
   "speed": {
     "walk": 30,

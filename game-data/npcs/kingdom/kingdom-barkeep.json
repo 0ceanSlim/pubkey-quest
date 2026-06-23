@@ -10,6 +10,7 @@
       "start": 0,
       "end": 120,
       "location": "tavern_golden_griffin",
+      "room": "tavern_floor",
       "state": "working",
       "dialogue_options": [
         "main_menu"
@@ -43,6 +44,7 @@
       "start": 1020,
       "end": 1440,
       "location": "tavern_golden_griffin",
+      "room": "tavern_floor",
       "state": "working",
       "dialogue_options": [
         "main_menu"

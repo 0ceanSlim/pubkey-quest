@@ -30,7 +30,13 @@
           "name": "The Mirage's Rest",
           "description": "A cool, shaded inn built around the oasis where desert travelers rest.",
           "open": 1140,
-          "close": 240
+          "close": 240,
+          "default_room": "shaded_hall",
+          "rooms": [
+            { "id": "shaded_hall", "name": "Shaded Hall", "description": "A cool common hall of adobe and palm shade where the bar serves chilled water and date wine." },
+            { "id": "cool_cellar", "name": "Cool Cellar", "description": "A sunken store room kept cold by the oasis spring, stocked with provisions and waterskins." },
+            { "id": "oasis_room", "name": "Oasis Room", "description": "A breezy guest room with woven mats and a window over the shimmering oasis pool.", "access": { "state": "rented" } }
+          ]
         },
         {
           "id": "desert_supplies",

@@ -79,6 +79,12 @@
           "description": "A cozy inn built over the water, run by the practical orc Grishka Marshborn. Rokgar the Grim guards the door and only allows strong, powerful music that befits warriors.",
           "open": 1020,
           "close": 120,
+          "default_room": "lantern_hall",
+          "rooms": [
+            { "id": "lantern_hall", "name": "Lantern Hall", "description": "The main hall built out over the water on stilts, lit by phosphorescent moss lanterns where warriors drink and drum." },
+            { "id": "smokehouse", "name": "Smokehouse", "description": "A back room thick with smoke where swamp catch and bog game are cured over low coals." },
+            { "id": "stilt_room", "name": "Stilt Room", "description": "A guest room perched on stilts above the marsh, rocked gently by the water below.", "access": { "state": "rented" } }
+          ],
           "shows": {
             "show_time": 1260,
             "booking_deadline": 1200,

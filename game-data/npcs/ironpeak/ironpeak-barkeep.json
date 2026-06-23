@@ -10,6 +10,7 @@
       "start": 0,
       "end": 240,
       "location": "miners_inn",
+      "room": "tap_hall",
       "state": "working",
       "dialogue_options": [
         "main_menu"
@@ -44,6 +45,7 @@
       "start": 420,
       "end": 1440,
       "location": "miners_inn",
+      "room": "tap_hall",
       "state": "working",
       "dialogue_options": [
         "main_menu"

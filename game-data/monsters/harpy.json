@@ -11,7 +11,7 @@
   "alignment": "chaotic evil",
   "tags": [],
   "img": "/static/img/monster/harpy.svg",
-  "environment": ["mountain", "coast"],
+  "environment": ["mountain", "coast", "hill"],
 
   "speed": {
     "walk": 20,

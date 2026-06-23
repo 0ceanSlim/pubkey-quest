@@ -1,0 +1,11 @@
+{
+  "id": "greywind-plains",
+  "name": "Greywind Plains",
+  "type": "environment",
+  "environment_type": "grassland",
+  "music": "Medieval Jubilee",
+  "connects": ["kingdom-north", "frosthold-south"],
+  "description": "Wide, wind-combed grasslands roll between the heartland and the northern reaches. Tall grass ripples in endless waves beneath a vast open sky, broken only by lone standing stones and the cries of circling hawks.",
+  "travel_time": 600,
+  "travel_difficulty": "easy"
+}

@@ -11,7 +11,7 @@
   "alignment": "chaotic neutral",
   "tags": ["Human"],
   "img": "/static/img/monster/bandit.svg",
-  "environment": ["highway", "urban", "forest", "grassland"],
+  "environment": ["urban", "forest", "grassland"],
 
   "speed": {
     "walk": 30,
