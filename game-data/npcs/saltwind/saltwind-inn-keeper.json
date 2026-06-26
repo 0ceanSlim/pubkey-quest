@@ -1,0 +1,56 @@
+{
+  "id": "saltwind-inn-keeper",
+  "name": "Tobias Saltmarsh",
+  "title": "Inn Keeper",
+  "race": "Human",
+  "description": "A weathered old fisherman who hung up his nets to run Anchor's Rest, where the chowder is hot and the beds smell faintly of the sea.",
+  "primary_home": "saltwind",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 1440,
+      "location": "fishermans_inn",
+      "room": "common_room",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["rent_room"]
+    }
+  ],
+  "greeting": {
+    "first_time": "Ahoy, and welcome to Anchor's Rest! Tobias is the name. Off the boats or off the road, there's a warm bed here — care to drop anchor for the night?",
+    "returning": "Back ashore, are ye? Need a bunk?",
+    "tired": "Ye look storm-tossed. Take a room and rest those sea legs."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "What can I do for ye?",
+      "options": ["ask_rent_room", "goodbye"]
+    },
+    "ask_rent_room": {
+      "text": "A harbor room for the night's 50 gold — sound sleep with the waves for a lullaby. Want it?",
+      "options": ["confirm_rent_room", "main_menu"]
+    },
+    "confirm_rent_room": {
+      "text": "",
+      "action": "rent_room",
+      "cost": 50,
+      "requirements": { "gold": 50 },
+      "success": "The harbor room's yours — head up and use the Sleep option when ye're ready to turn in.",
+      "failure": "Fifty gold for the room, friend. Come back when the tide's brought ye more coin.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Fair winds, and watch the tides.",
+      "action": "end_dialogue"
+    }
+  },
+  "inn_config": {
+    "rest_cost": 50,
+    "rest_benefits": {
+      "fatigue_restored": 100,
+      "hp_restored": "full",
+      "hunger_restored": 1,
+      "special_effects": ["well_rested"]
+    }
+  }
+}

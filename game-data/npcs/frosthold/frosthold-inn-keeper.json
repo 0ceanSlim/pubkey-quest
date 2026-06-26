@@ -1,0 +1,56 @@
+{
+  "id": "frosthold-inn-keeper",
+  "name": "Sigrid Hearthward",
+  "title": "Inn Keeper",
+  "race": "Human",
+  "description": "A broad-shouldered northern woman who keeps the Frozen Mug's hearth roaring and its beds warm against the arctic cold. No traveler is turned out into the snow on her watch.",
+  "primary_home": "frosthold",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 1440,
+      "location": "frost_inn",
+      "room": "hearth_hall",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["rent_room"]
+    }
+  ],
+  "greeting": {
+    "first_time": "Come in from the cold, traveler! I'm Sigrid, keeper of the Frozen Mug. A warm bed and a roaring hearth await — care to rent a room?",
+    "returning": "Back again, and half-frozen by the look of you. Need a room?",
+    "tired": "You're chilled to the bone. Take a room and thaw out by the hearth."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "What'll it be, traveler?",
+      "options": ["ask_rent_room", "goodbye"]
+    },
+    "ask_rent_room": {
+      "text": "A warm bed for the night runs 50 gold — fur blankets and a banked fire included. Want it?",
+      "options": ["confirm_rent_room", "main_menu"]
+    },
+    "confirm_rent_room": {
+      "text": "",
+      "action": "rent_room",
+      "cost": 50,
+      "requirements": { "gold": 50 },
+      "success": "The bunk room's yours — head up and use the Sleep option once you're settled. Rest well against the cold.",
+      "failure": "A room's 50 gold, friend. Come back when your purse is heavier.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Stay warm out there, and mind the wastes to the east.",
+      "action": "end_dialogue"
+    }
+  },
+  "inn_config": {
+    "rest_cost": 50,
+    "rest_benefits": {
+      "fatigue_restored": 100,
+      "hp_restored": "full",
+      "hunger_restored": 1,
+      "special_effects": ["well_rested"]
+    }
+  }
+}

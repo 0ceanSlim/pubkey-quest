@@ -1,0 +1,56 @@
+{
+  "id": "dusthaven-inn-keeper",
+  "name": "Zahra Sandwell",
+  "title": "Inn Keeper",
+  "race": "Human",
+  "description": "A shrewd, sun-weathered host who runs Mirage's Rest as an oasis of cool shade and cold water for travelers crossing the burning sands.",
+  "primary_home": "dusthaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 1440,
+      "location": "desert_inn",
+      "room": "shaded_hall",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["rent_room"]
+    }
+  ],
+  "greeting": {
+    "first_time": "Out of the sun with you! I'm Zahra, and Mirage's Rest is the coolest shade in Dusthaven. A room and clean water for the night?",
+    "returning": "Back from the dunes? You'll want a room and a long drink.",
+    "tired": "The desert's worn you thin. Rest here where it's cool."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "How can I help, traveler?",
+      "options": ["ask_rent_room", "goodbye"]
+    },
+    "ask_rent_room": {
+      "text": "A shaded room with cool water is 50 gold the night. Shall I draw back the curtain for you?",
+      "options": ["confirm_rent_room", "main_menu"]
+    },
+    "confirm_rent_room": {
+      "text": "",
+      "action": "rent_room",
+      "cost": 50,
+      "requirements": { "gold": 50 },
+      "success": "The oasis room is yours — settle in and use the Sleep option to rest out of the heat.",
+      "failure": "50 gold for the room, traveler. The desert gives nothing for free, and neither do I.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "May you find shade and water on the road ahead.",
+      "action": "end_dialogue"
+    }
+  },
+  "inn_config": {
+    "rest_cost": 50,
+    "rest_benefits": {
+      "fatigue_restored": 100,
+      "hp_restored": "full",
+      "hunger_restored": 1,
+      "special_effects": ["well_rested"]
+    }
+  }
+}
