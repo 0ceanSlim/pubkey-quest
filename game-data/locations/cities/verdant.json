@@ -37,12 +37,23 @@
           "close": null
         },
         {
-          "id": "verdant_supplies",
-          "name": "Greenleaf Provisions",
-          "description": "Thalindra Greenleaf's nature-focused supply shop, offering general goods crafted in harmony with the forest.",
-          "open": 480,
-          "close": 1200
-        },
+          "id": "theren_quarters",
+          "name": "Theren's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        }
+      ]
+    },
+    "north": {
+      "id": "verdant-north",
+      "name": "Forest Quarter",
+      "description": "The northern district blends seamlessly with the great forest. Tree-houses and elevated walkways connect buildings built among the ancient trees.",
+      "connections": {
+        "center": "verdant-center",
+        "north": "darkwood-forest"
+      },
+      "buildings": [
         {
           "id": "moonlit_glade_inn",
           "name": "The Moonlit Glade",
@@ -75,32 +86,8 @@
           "description": "Private quarters.",
           "open": -1,
           "close": null
-        },
-        {
-          "id": "theren_quarters",
-          "name": "Theren's Private Quarters",
-          "description": "Private quarters.",
-          "open": -1,
-          "close": null
-        },
-        {
-          "id": "thalindra_grove",
-          "name": "Thalindra's Grove",
-          "description": "Private quarters.",
-          "open": -1,
-          "close": null
         }
-      ]
-    },
-    "north": {
-      "id": "verdant-north",
-      "name": "Forest Quarter",
-      "description": "The northern district blends seamlessly with the great forest. Tree-houses and elevated walkways connect buildings built among the ancient trees.",
-      "connections": {
-        "center": "verdant-center",
-        "north": "darkwood-forest"
-      },
-      "buildings": [],
+      ],
       "exit_to_environment": "darkwood-forest"
     },
     "west": {
@@ -111,7 +98,22 @@
         "center": "verdant-center",
         "west": "shadowmere-wetlands"
       },
-      "buildings": [],
+      "buildings": [
+        {
+          "id": "verdant_supplies",
+          "name": "Greenleaf Provisions",
+          "description": "Thalindra Greenleaf's nature-focused supply shop, offering general goods crafted in harmony with the forest.",
+          "open": 480,
+          "close": 1200
+        },
+        {
+          "id": "thalindra_grove",
+          "name": "Thalindra's Grove",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        }
+      ],
       "exit_to_environment": "shadowmere-wetlands"
     },
     "south": {
