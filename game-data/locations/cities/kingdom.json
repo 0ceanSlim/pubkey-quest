@@ -169,7 +169,6 @@
           "default_room": "tavern_floor",
           "rooms": [
             { "id": "tavern_floor", "name": "Tavern Floor", "description": "The lively main floor where Marcus tends the polished bar and a small stage hosts the nightly music." },
-            { "id": "kitchen", "name": "Kitchen", "description": "A spotless kitchen behind the bar plating fine fare for the evening crowd." },
             { "id": "wine_cellar", "name": "Wine Cellar", "description": "A cool cellar of casks and racked bottles, the source of the Griffin's celebrated drinks." }
           ],
           "special_features": [
