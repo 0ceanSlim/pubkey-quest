@@ -51,6 +51,13 @@
           "description": "A shrine dedicated to the goddess of the sea, where fishermen pray for safe voyages.",
           "open": "always",
           "close": null
+        },
+        {
+          "id": "tobias_quarters",
+          "name": "Tobias's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ]
     },

@@ -51,6 +51,13 @@
           "description": "A modest shrine dedicated to the water spirits that bless the oasis.",
           "open": "always",
           "close": null
+        },
+        {
+          "id": "zahra_quarters",
+          "name": "Zahra's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ]
     },

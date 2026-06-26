@@ -8,6 +8,31 @@
   "schedule": [
     {
       "start": 0,
+      "end": 240,
+      "location": "fishermans_inn",
+      "room": "common_room",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["rent_room"]
+    },
+    {
+      "start": 240,
+      "end": 540,
+      "location": "tobias_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 540,
+      "end": 1140,
+      "location": "tobias_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    },
+    {
+      "start": 1140,
       "end": 1440,
       "location": "fishermans_inn",
       "room": "common_room",
@@ -38,6 +63,14 @@
       "success": "The harbor room's yours — head up and use the Sleep option when ye're ready to turn in.",
       "failure": "Fifty gold for the room, friend. Come back when the tide's brought ye more coin.",
       "options": ["main_menu"]
+    },
+    "sleeping": {
+      "text": "*asleep in his bunk, snoring like the tide* Zzzz...",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "Anchor's Rest opens of an evening, friend. Come back when the lamps are lit and I'll find ye a bunk.",
+      "options": ["goodbye"]
     },
     "goodbye": {
       "text": "Fair winds, and watch the tides.",

@@ -8,6 +8,31 @@
   "schedule": [
     {
       "start": 0,
+      "end": 240,
+      "location": "desert_inn",
+      "room": "shaded_hall",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["rent_room"]
+    },
+    {
+      "start": 240,
+      "end": 540,
+      "location": "zahra_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 540,
+      "end": 1140,
+      "location": "zahra_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    },
+    {
+      "start": 1140,
       "end": 1440,
       "location": "desert_inn",
       "room": "shaded_hall",
@@ -38,6 +63,14 @@
       "success": "The oasis room is yours — settle in and use the Sleep option to rest out of the heat.",
       "failure": "50 gold for the room, traveler. The desert gives nothing for free, and neither do I.",
       "options": ["main_menu"]
+    },
+    "sleeping": {
+      "text": "*dozing in the cool shade through the heat of the day* Mmm... Zzzz...",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "Mirage's Rest opens come evening, when the sands cool. Return then and I'll draw back the curtain for you.",
+      "options": ["goodbye"]
     },
     "goodbye": {
       "text": "May you find shade and water on the road ahead.",

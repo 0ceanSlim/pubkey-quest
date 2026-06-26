@@ -8,6 +8,31 @@
   "schedule": [
     {
       "start": 0,
+      "end": 240,
+      "location": "frost_inn",
+      "room": "hearth_hall",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["rent_room"]
+    },
+    {
+      "start": 240,
+      "end": 540,
+      "location": "sigrid_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 540,
+      "end": 1140,
+      "location": "sigrid_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    },
+    {
+      "start": 1140,
       "end": 1440,
       "location": "frost_inn",
       "room": "hearth_hall",
@@ -38,6 +63,14 @@
       "success": "The bunk room's yours — head up and use the Sleep option once you're settled. Rest well against the cold.",
       "failure": "A room's 50 gold, friend. Come back when your purse is heavier.",
       "options": ["main_menu"]
+    },
+    "sleeping": {
+      "text": "*snoring softly by the banked hearth* Zzzz...",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "The Mug doesn't open till evening, friend. Come back when the hearth's lit and I'll see you to a room.",
+      "options": ["goodbye"]
     },
     "goodbye": {
       "text": "Stay warm out there, and mind the wastes to the east.",

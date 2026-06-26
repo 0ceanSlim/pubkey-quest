@@ -52,6 +52,13 @@
           "description": "The administrative center where the town elder holds court.",
           "open": 480,
           "close": 1080
+        },
+        {
+          "id": "sigrid_quarters",
+          "name": "Sigrid's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ]
     },
