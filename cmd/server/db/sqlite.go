@@ -81,6 +81,9 @@ func validateDatabase() error {
 		"music_tracks",
 		"shop_pricing",
 		"advancement",
+		"quests",
+		"pois",
+		"encounters",
 	}
 
 	for _, table := range requiredTables {

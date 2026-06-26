@@ -288,6 +288,45 @@ func createTables() error {
 			properties TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
+
+		// Quests table (M3) — full definition in properties; the columns are the
+		// fields availability/log queries filter on. Loaded from quests-drafts/
+		// until refs are fixed and the dir leaves -draft at M7.
+		`CREATE TABLE IF NOT EXISTS quests (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			category TEXT,
+			difficulty TEXT,
+			total_qp INTEGER DEFAULT 0,
+			is_randomized INTEGER DEFAULT 0,
+			properties TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
+
+		// Points of interest (M3) — node graph in properties; parent_environment
+		// and position drive travel-time discovery. From locations/poi-draft/.
+		`CREATE TABLE IF NOT EXISTS pois (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			category TEXT,
+			parent_environment TEXT,
+			position REAL,
+			properties TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
+
+		// Encounters (M3) — node graph in properties; trigger/chance/cooldown are
+		// what the scheduler gathers and filters on. From systems/encounters-draft/.
+		`CREATE TABLE IF NOT EXISTS encounters (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			trigger TEXT,
+			chance REAL,
+			repeatable INTEGER DEFAULT 0,
+			cooldown_minutes INTEGER DEFAULT 0,
+			properties TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for _, table := range tables {
@@ -363,6 +402,14 @@ func migrateFromJSON(callback StatusCallback) error {
 	}
 	if err := migrateAbilities(callback); err != nil {
 		return fmt.Errorf("failed to migrate abilities: %v", err)
+	}
+
+	// Migrate narrative content (quests, POIs, encounters) — M3 runtime
+	if callback != nil {
+		callback(Status{Step: "narrative", Message: "Migrating quests, POIs, and encounters"})
+	}
+	if err := migrateNarrativeContent(callback); err != nil {
+		return fmt.Errorf("failed to migrate narrative content: %v", err)
 	}
 
 	// Migrate system data (spell slots, music)
@@ -955,6 +1002,216 @@ func migrateAbilityFile(filePath string) error {
 	stmt := `INSERT INTO abilities (id, name, class, unlock_level, resource_cost, resource_type, cooldown, description, properties)
 	         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err = database.Exec(stmt, id, name, class, unlockLevel, resourceCost, resourceType, cooldown, description, string(propertiesJSON))
+	return err
+}
+
+// migrateNarrativeContent loads the M3 quest / POI / encounter content. These
+// still live under *-draft directories (their cross-references finish landing
+// at M7); the runtime treats them as content-ready and stores the full node
+// graph in the properties column, with the queried fields broken out.
+func migrateNarrativeContent(callback StatusCallback) error {
+	if err := migrateQuests(); err != nil {
+		return fmt.Errorf("failed to migrate quests: %v", err)
+	}
+	if err := migratePOIs(); err != nil {
+		return fmt.Errorf("failed to migrate POIs: %v", err)
+	}
+	if err := migrateEncounters(); err != nil {
+		return fmt.Errorf("failed to migrate encounters: %v", err)
+	}
+	return nil
+}
+
+// migrateQuests loads every quest draft (recursively across category subdirs,
+// skipping the authoring template).
+func migrateQuests() error {
+	questsPath := "game-data/quests-drafts"
+
+	if _, err := database.Exec("DELETE FROM quests"); err != nil {
+		return fmt.Errorf("failed to clear quests table: %v", err)
+	}
+
+	count := 0
+	err := filepath.WalkDir(questsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".json") {
+			return nil
+		}
+		if filepath.Base(path) == "template.json" {
+			return nil
+		}
+		if err := migrateQuestFile(path); err != nil {
+			log.Printf("Warning: failed to migrate quest file %s: %v", path, err)
+		} else {
+			count++
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to walk quests directory: %v", err)
+	}
+
+	log.Printf("Migrated %d quests", count)
+	return nil
+}
+
+// migrateQuestFile migrates a single quest JSON file.
+func migrateQuestFile(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var quest map[string]interface{}
+	if err := json.Unmarshal(data, &quest); err != nil {
+		return err
+	}
+
+	// Quests reference each other by id (prerequisites); prefer the in-file id.
+	id := strings.TrimSuffix(filepath.Base(filePath), ".json")
+	if v, ok := quest["id"].(string); ok && v != "" {
+		id = v
+	}
+	name, _ := quest["name"].(string)
+	category, _ := quest["category"].(string)
+	difficulty, _ := quest["difficulty"].(string)
+	totalQP, _ := quest["total_qp"].(float64)
+	isRandomized := 0
+	if r, ok := quest["is_randomized"].(bool); ok && r {
+		isRandomized = 1
+	}
+
+	propertiesJSON, _ := json.Marshal(quest)
+
+	stmt := `INSERT INTO quests (id, name, category, difficulty, total_qp, is_randomized, properties)
+	         VALUES (?, ?, ?, ?, ?, ?, ?)`
+	_, err = database.Exec(stmt, id, name, category, difficulty, int(totalQP), isRandomized, string(propertiesJSON))
+	return err
+}
+
+// migratePOIs loads every POI draft.
+func migratePOIs() error {
+	poisPath := "game-data/locations/poi-draft"
+
+	if _, err := database.Exec("DELETE FROM pois"); err != nil {
+		return fmt.Errorf("failed to clear pois table: %v", err)
+	}
+
+	count := 0
+	err := filepath.WalkDir(poisPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".json") {
+			return nil
+		}
+		if err := migratePOIFile(path); err != nil {
+			log.Printf("Warning: failed to migrate POI file %s: %v", path, err)
+		} else {
+			count++
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to walk POI directory: %v", err)
+	}
+
+	log.Printf("Migrated %d POIs", count)
+	return nil
+}
+
+// migratePOIFile migrates a single POI JSON file.
+func migratePOIFile(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var poi map[string]interface{}
+	if err := json.Unmarshal(data, &poi); err != nil {
+		return err
+	}
+
+	id := strings.TrimSuffix(filepath.Base(filePath), ".json")
+	if v, ok := poi["id"].(string); ok && v != "" {
+		id = v
+	}
+	name, _ := poi["name"].(string)
+	category, _ := poi["category"].(string)
+	parentEnv, _ := poi["parent_environment"].(string)
+	position, _ := poi["position"].(float64)
+
+	propertiesJSON, _ := json.Marshal(poi)
+
+	stmt := `INSERT INTO pois (id, name, category, parent_environment, position, properties)
+	         VALUES (?, ?, ?, ?, ?, ?)`
+	_, err = database.Exec(stmt, id, name, category, parentEnv, position, string(propertiesJSON))
+	return err
+}
+
+// migrateEncounters loads every encounter draft.
+func migrateEncounters() error {
+	encountersPath := "game-data/systems/encounters-draft"
+
+	if _, err := database.Exec("DELETE FROM encounters"); err != nil {
+		return fmt.Errorf("failed to clear encounters table: %v", err)
+	}
+
+	count := 0
+	err := filepath.WalkDir(encountersPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".json") {
+			return nil
+		}
+		if err := migrateEncounterFile(path); err != nil {
+			log.Printf("Warning: failed to migrate encounter file %s: %v", path, err)
+		} else {
+			count++
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to walk encounters directory: %v", err)
+	}
+
+	log.Printf("Migrated %d encounters", count)
+	return nil
+}
+
+// migrateEncounterFile migrates a single encounter JSON file.
+func migrateEncounterFile(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var enc map[string]interface{}
+	if err := json.Unmarshal(data, &enc); err != nil {
+		return err
+	}
+
+	id := strings.TrimSuffix(filepath.Base(filePath), ".json")
+	if v, ok := enc["id"].(string); ok && v != "" {
+		id = v
+	}
+	name, _ := enc["name"].(string)
+	trigger, _ := enc["trigger"].(string)
+	chance, _ := enc["chance"].(float64)
+	repeatable := 0
+	if r, ok := enc["repeatable"].(bool); ok && r {
+		repeatable = 1
+	}
+	cooldown, _ := enc["cooldown_minutes"].(float64)
+
+	propertiesJSON, _ := json.Marshal(enc)
+
+	stmt := `INSERT INTO encounters (id, name, trigger, chance, repeatable, cooldown_minutes, properties)
+	         VALUES (?, ?, ?, ?, ?, ?, ?)`
+	_, err = database.Exec(stmt, id, name, trigger, chance, repeatable, int(cooldown), string(propertiesJSON))
 	return err
 }
 
