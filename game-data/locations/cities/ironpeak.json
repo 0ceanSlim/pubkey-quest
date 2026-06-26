@@ -62,18 +62,11 @@
           }
         },
         {
-          "id": "ironpeak_general_supplies",
-          "name": "Ironhand's Supplies",
-          "description": "Brogni Ironhand's no-nonsense supply shop, stocked with durable gear built to survive the harsh mountains.",
-          "open": 420,
-          "close": 1200
-        },
-        {
-          "id": "brogni_home",
-          "name": "Brogni's Private Residence",
-          "description": "Private quarters.",
-          "open": -1,
-          "close": null
+          "id": "miners_guild",
+          "name": "Miners' Guild Hall",
+          "description": "The administrative center for all mining operations in the region.",
+          "open": 480,
+          "close": 1080
         },
         {
           "id": "helga_quarters",
@@ -88,20 +81,6 @@
           "description": "Private quarters.",
           "open": -1,
           "close": null
-        },
-        {
-          "id": "ore_exchange",
-          "name": "Mountain Ore Exchange",
-          "description": "A trading post that buys raw ores and sells mining equipment.",
-          "open": 420,
-          "close": 1140
-        },
-        {
-          "id": "miners_guild",
-          "name": "Miners' Guild Hall",
-          "description": "The administrative center for all mining operations in the region.",
-          "open": 480,
-          "close": 1080
         }
       ]
     },
@@ -119,6 +98,27 @@
           "name": "Mine Cart Station",
           "description": "A depot where mine carts are loaded and dispatched to various mining sites.",
           "open": "always",
+          "close": null
+        },
+        {
+          "id": "ore_exchange",
+          "name": "Mountain Ore Exchange",
+          "description": "A trading post that buys raw ores and sells mining equipment.",
+          "open": 420,
+          "close": 1140
+        },
+        {
+          "id": "ironpeak_general_supplies",
+          "name": "Ironhand's Supplies",
+          "description": "Brogni Ironhand's no-nonsense supply shop, stocked with durable gear built to survive the harsh mountains.",
+          "open": 420,
+          "close": 1200
+        },
+        {
+          "id": "brogni_home",
+          "name": "Brogni's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
           "close": null
         }
       ],
