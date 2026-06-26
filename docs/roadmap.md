@@ -114,7 +114,7 @@ Recommended order: **M0 → M1 → M2 → M3 → M4 → M5 → (M6 ‖ M7) → M
 
 The "level up don't work right" fix, plus the save-schema groundwork everything else needs.
 
-> **🚧 In progress (2026-06-21).** **Pillar A (level-up) ✅** and the **save-schema v2 core ✅** are done & committed (`977f3a5`…`e5a295e`). `ApplyLevelUp` landed as **derived** max stats (`character/derive.go` + `Hydrate` on load) plus one central **`GrantXP`** path — not a stored-and-grown `levelup.go`. New spell-slot rows + spells-known on level-up defer to **M4** (they only matter once casting exists). Persist-omit of MaxHP/MaxMana deferred to the §4 serializer (derived-authoritative already holds). **Remaining:** event recorder (build with M3), save-ritual UI, session journaling.
+> **🚧 In progress (2026-06-21).** **Pillar A (level-up) ✅** and the **save-schema v2 core ✅** are done & committed (`977f3a5`…`e5a295e`). `ApplyLevelUp` landed as **derived** max stats (`character/derive.go` + `Hydrate` on load) plus one central **`GrantXP`** path — not a stored-and-grown `levelup.go`. New spell-slot rows + spells-known on level-up defer to **M4** (they only matter once casting exists). Persist-omit of MaxHP/MaxMana deferred to the §4 serializer (derived-authoritative already holds). **Remaining:** only the event recorder, deferred to M3 (save-ritual UI + session journaling have since landed ✅).
 
 **Level-up application**
 - [x] `game/character/levelup.go`: `ApplyLevelUp(save, newLevel)` — HP gain = fixed (half hit die + CON mod, per the planning formula), mana growth for casters (INT/WIS mod + level scaling), class-resource max growth for martials, new spell-slot rows from `spell-slots.json`, cantrip/spells-known additions from class tables
@@ -144,6 +144,8 @@ One migration, all at once, so alpha saves survive. Every field must pass the hy
 **Done when:** killing things levels you up with visible stat growth ✅; the save file passes the hydration audit (nothing derivable stored) ◐ (derived-authoritative via Hydrate; literal persist-omit deferred to the §4 serializer); a server crash restores the session ✅ (journaling); quitting without saving reverts to the last deliberate save ✅ (save-ritual modal + last-saved indicator) — and that's correct behavior.
 
 ### M2 — Buildings get rooms; NPCs live in them (M)
+
+> **✅ Done (2026-06-26).** Room engine + navigation, NPC room placement, the spatial inn flow (rent → unlock → night-gated **Sleep**), and the room UI all shipped; rooms authored for every alpha inn/tavern. Landed alongside: a world-connectivity validator (`--check-connections`), the Frozen Wastes crossing fix, an environment-type reconciliation, and a building-placement pass — innkeepers (with homes + day-cycle schedules) for the 3 NPC-less towns, plus Verdant and Ironpeak de-clustered by district theme. The only unmet "done-when" bits are *demonstrative content* (an NPC standing in a back room, one key-locked door) — engine-supported, folded into M7.
 
 The structural change to how interiors work: entering a building puts you in its **default room**; you navigate to other rooms and back; NPCs are present *in a room*, not smeared across the building. This also quietly fixes the "People column lists everyone in the building" overload.
 
