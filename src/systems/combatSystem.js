@@ -6,9 +6,10 @@
  * @module systems/combatSystem
  */
 
-import { logger }   from '../lib/logger.js';
-import { eventBus } from '../lib/events.js';
-import { gameAPI }  from '../lib/api.js';
+import { logger }     from '../lib/logger.js';
+import { eventBus }   from '../lib/events.js';
+import { gameAPI }    from '../lib/api.js';
+import { smoothClock } from './smoothClock.js';
 
 // ─── Range descriptions ────────────────────────────────────────────────────────
 const RANGE_LABELS = {
@@ -76,6 +77,9 @@ export async function debugStartCombat() {
 
 export function enterCombatMode(cs) {
     logger.info('⚔️  Entering combat mode');
+    // Freeze in-game time while fighting — combat is turn-based; the world tick
+    // resumes on exit. (Combat actions use their own endpoints, not the tick.)
+    smoothClock.pause();
     _baseExperience = window.getGameStateSync?.()?.character?.experience ?? 0;
     // Clear any stale pacing timers from a prior combat that ended mid-flush.
     _logQueueTailAt = 0;
@@ -88,6 +92,7 @@ export function enterCombatMode(cs) {
 
 export function exitCombatMode() {
     logger.info('🏳️  Exiting combat mode');
+    smoothClock.unpause(); // resume the world tick now the fight is over
     _hide('combat-overlay');
     _restoreGameText();
     _restoreActionButtons();
@@ -387,6 +392,10 @@ async function checkActiveCombatOnLoad() {
     } catch (_) { /* no active combat */ }
 }
 eventBus.on('gameStateLoaded', checkActiveCombatOnLoad);
+
+// A biome travel encounter fired on the world tick — drop straight into combat
+// with the server-supplied state (same payload shape as a manual combat start).
+eventBus.on('combat:started', enterCombatMode);
 
 // ─── Left text-box replacement ────────────────────────────────────────────────
 function _replaceGameText() {
