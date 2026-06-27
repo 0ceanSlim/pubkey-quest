@@ -9,6 +9,7 @@
 
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
+import { API_BASE_URL } from '../config/constants.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { getLocationById, getNPCById } from '../state/staticData.js';
 import { updateTimeDisplay, formatTime } from './timeDisplay.js';
@@ -989,9 +990,60 @@ export function showNPCDialogue(dialogueData, npcMessage) {
     }
 
     dialogueOverlay.appendChild(optionsGrid);
+
+    // Quest offers (M3 in-world start): quests this NPC gives, rendered as
+    // prominent accept buttons above the normal dialogue options.
+    if (Array.isArray(dialogueData.offered_quests) && dialogueData.offered_quests.length > 0) {
+        const questWrap = document.createElement('div');
+        questWrap.className = 'flex flex-col gap-0.5 mt-1';
+        dialogueData.offered_quests.forEach(q => {
+            const qb = document.createElement('button');
+            qb.style.fontSize = '8px';
+            qb.style.fontWeight = 'bold';
+            qb.style.color = '#fff';
+            qb.style.background = '#3b5bbf';
+            qb.style.cursor = 'pointer';
+            qb.style.padding = '2px 4px';
+            qb.style.textAlign = 'left';
+            qb.style.borderTop = '1px solid #7d97ff';
+            qb.style.borderLeft = '1px solid #7d97ff';
+            qb.style.borderRight = '1px solid #000000';
+            qb.style.borderBottom = '1px solid #000000';
+            qb.textContent = `📜 Accept: ${q.name}`;
+            qb.title = q.description || '';
+            qb.addEventListener('click', () => acceptOfferedQuest(q.id, dialogueData.npc_id));
+            questWrap.appendChild(qb);
+        });
+        dialogueOverlay.appendChild(questWrap);
+    }
+
     dialogueOverlay.style.display = 'block';
 
     logger.debug('Dialogue overlay created with', dialogueData.options?.length || 0, 'options');
+}
+
+/**
+ * Accept a quest offered by an NPC during dialogue, then reopen the dialogue so
+ * the now-accepted quest drops off the offer list.
+ */
+async function acceptOfferedQuest(questId, npcId) {
+    try {
+        const resp = await fetch(`${API_BASE_URL}/quests/accept`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: gameAPI.npub, save_id: gameAPI.saveID, quest_id: questId }),
+        });
+        const json = await resp.json();
+        if (!resp.ok || !json.success) {
+            showMessage(json.error ?? 'Could not accept the quest', 'error');
+            return;
+        }
+        showMessage(json.message ?? 'Quest accepted!', 'success');
+        talkToNPC(npcId);
+    } catch (err) {
+        logger.error('acceptOfferedQuest error:', err);
+        showMessage('Could not accept the quest', 'error');
+    }
 }
 
 /**

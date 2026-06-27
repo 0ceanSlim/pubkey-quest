@@ -746,10 +746,11 @@ func handleTalkToNPCAction(state *SaveFile, params map[string]any) (*GameActionR
 	}
 	resp, err := npc.HandleTalkToNPCAction(state, paramsIface)
 	if resp != nil && resp.Success {
-		// Feed the conversation to the event recorder so "talk" quest
-		// objectives advance.
 		if npcID, ok := params["npc_id"].(string); ok && npcID != "" {
+			// Feed the conversation to the event recorder so "talk" quest
+			// objectives advance, then offer any quests this NPC gives.
 			events.Record(state, events.NPCTalked, npcID, 1)
+			injectQuestOffers(resp, npcID, state)
 		}
 	}
 	if resp != nil {

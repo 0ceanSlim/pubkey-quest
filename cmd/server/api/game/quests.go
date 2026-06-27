@@ -155,6 +155,40 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 	return view
 }
 
+// injectQuestOffers adds the quests this NPC gives — those whose start
+// condition is talking to it, and which the player can currently start — onto
+// the dialogue delta as offered_quests, so the talk UI can present them.
+func injectQuestOffers(resp *types.GameActionResponse, npcID string, state *types.SaveFile) {
+	if resp.Delta == nil {
+		return
+	}
+	dlg, ok := resp.Delta["npc_dialogue"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	all, err := serverdb.GetAllQuests()
+	if err != nil {
+		return
+	}
+	ctx := buildQuestContext(state)
+
+	var offers []map[string]interface{}
+	for _, q := range all {
+		if q.StartCondition.Type == "talk" && q.StartCondition.Target == npcID && quest.CanStart(q, state, ctx) {
+			offers = append(offers, map[string]interface{}{
+				"id":          q.ID,
+				"name":        q.Name,
+				"category":    string(q.Category),
+				"difficulty":  q.Difficulty,
+				"description": q.Description,
+			})
+		}
+	}
+	if len(offers) > 0 {
+		dlg["offered_quests"] = offers
+	}
+}
+
 // ─── handlers ─────────────────────────────────────────────────────────────────
 
 type questActionRequest struct {

@@ -1,0 +1,36 @@
+{
+  "id": "mayor-thomas",
+  "name": "Mayor Thomas Aldebrand",
+  "title": "Mayor of Goldenhaven",
+  "race": "Human",
+  "description": "A silver-tongued administrator who keeps Goldenhaven's merchant princes from each other's throats. Today his usual composure is cracked by worry.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 1440,
+      "location": "merchants_guild",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Ah — a stranger, but a sturdy one. I am Mayor Thomas. Forgive my distraction; I am a man with a problem and few I can trust.",
+    "returning": "Welcome back to the Guild Hall. The city remains in your debt."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "How may I help you — or you, me?",
+      "options": ["ask_about_city", "goodbye"]
+    },
+    "ask_about_city": {
+      "text": "Goldenhaven runs on trade and trust. The merchant princes squabble, but gold keeps the peace. Mostly.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Walk with prosperity, friend.",
+      "action": "end_dialogue"
+    }
+  }
+}

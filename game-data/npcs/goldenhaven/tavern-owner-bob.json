@@ -1,0 +1,36 @@
+{
+  "id": "tavern-owner-bob",
+  "name": "Bob Cellarman",
+  "title": "Tavern Owner",
+  "race": "Human",
+  "description": "The harried owner of The Salty Anchor, forever wiping down a bar that never gets clean. Lately he keeps casting nervous glances at the cellar door.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 1440,
+      "location": "sailors_tavern",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Oh, thank the gods — a capable-looking sort! I'm Bob, I own this place. You don't happen to be the adventuring type, do you?",
+    "returning": "Back again? The Anchor's always got a stool free for you."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "What can I do for you?",
+      "options": ["ask_about_tavern", "goodbye"]
+    },
+    "ask_about_tavern": {
+      "text": "The Salty Anchor's the finest tavern on the Goldenhaven docks — or it was, before the cellar started... squeaking. Best ale in the city, when I can get to the casks.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Mind the cellar steps on your way out.",
+      "action": "end_dialogue"
+    }
+  }
+}
