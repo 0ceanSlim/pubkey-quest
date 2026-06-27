@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/types"
 )
 
@@ -486,6 +487,8 @@ func processArrival(state *types.SaveFile, env *EnvironmentData) *TravelUpdate {
 		state.LocationsDiscovered = append(state.LocationsDiscovered, destCity)
 		newlyDiscovered = true
 		log.Printf("🗺️ New location discovered: %s", destCityName)
+		// Feed discovery to the event recorder so "explore" objectives advance.
+		events.Record(state, events.LocationDiscovered, destCity, 1)
 	}
 
 	// Check for music unlocks

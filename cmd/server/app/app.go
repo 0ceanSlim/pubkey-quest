@@ -9,6 +9,9 @@ import (
 	"pubkey-quest/cmd/server/auth"
 	"pubkey-quest/cmd/server/cache"
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/events"
+	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
 )
@@ -24,6 +27,15 @@ func Init() {
 	}
 
 	cache.InitProfileCache(24 * time.Hour)
+
+	// Wire the quest objective tracker into the event recorder so gameplay
+	// events (kills, talks, fetches, discoveries) advance active quests.
+	if adv, err := character.LoadAdvancement(db.GetDB()); err != nil {
+		log.Printf("⚠️ quest tracker: failed to load advancement: %v", err)
+	} else {
+		events.Subscribe(quest.Consumer(db.GetQuestByID, adv))
+		log.Println("✅ Quest objective tracker registered")
+	}
 
 	// Crash resilience: periodically snapshot active sessions so an unexpected
 	// server death doesn't eat unsaved progress (restored on next load).

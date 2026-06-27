@@ -7,6 +7,7 @@ import (
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
+	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
 )
@@ -29,6 +30,8 @@ func HandleMoveAction(state *types.SaveFile, params map[string]interface{}) (*ty
 	// Add to discovered locations if not already there
 	if !slices.Contains(state.LocationsDiscovered, location) {
 		state.LocationsDiscovered = append(state.LocationsDiscovered, location)
+		// Feed discovery to the event recorder so "explore" objectives advance.
+		events.Record(state, events.LocationDiscovered, location, 1)
 	}
 
 	return &types.GameActionResponse{

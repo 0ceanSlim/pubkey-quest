@@ -14,6 +14,7 @@ import (
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/encounter"
+	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/inventory"
@@ -744,6 +745,13 @@ func handleTalkToNPCAction(state *SaveFile, params map[string]any) (*GameActionR
 		paramsIface[k] = v
 	}
 	resp, err := npc.HandleTalkToNPCAction(state, paramsIface)
+	if resp != nil && resp.Success {
+		// Feed the conversation to the event recorder so "talk" quest
+		// objectives advance.
+		if npcID, ok := params["npc_id"].(string); ok && npcID != "" {
+			events.Record(state, events.NPCTalked, npcID, 1)
+		}
+	}
 	if resp != nil {
 		return &GameActionResponse{
 			Success: resp.Success,

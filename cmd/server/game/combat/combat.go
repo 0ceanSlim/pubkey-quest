@@ -8,6 +8,7 @@ import (
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/events"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
 )
@@ -569,7 +570,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	}
 
 	if !monster.IsAlive {
-		return append(log, handleMonsterKill(cs, monster, save.Experience, advancement)...), nil
+		return append(log, handleMonsterKill(cs, monster, save, advancement)...), nil
 	}
 
 	return log, nil
@@ -902,8 +903,12 @@ func awardDamageXP(cs *types.CombatSession, monster *types.MonsterInstance, dmg,
 }
 
 // handleMonsterKill processes monster death: rolls loot and checks for a level-up.
-func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, playerXP int, advancement []types.AdvancementEntry) []string {
+func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, save *types.SaveFile, advancement []types.AdvancementEntry) []string {
 	log := []string{fmt.Sprintf("  %s is defeated!", monster.Name)}
+
+	// Feed the kill to the event recorder so "slay" quest objectives advance.
+	// No-op until a consumer is subscribed at startup.
+	events.Record(save, events.MonsterKilled, monster.Data.ID, 1)
 
 	cs.LootRolled = RollLoot(monster.Data.LootTable)
 	cs.Phase = "loot"
@@ -911,13 +916,13 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on
 	// POI/dungeon steps via the node walker in M3), on top of the proportional
 	// damage XP accrued during the fight.
-	killLevel := character.GetLevelFromXP(playerXP, advancement)
+	killLevel := character.GetLevelFromXP(save.Experience, advancement)
 	if bonus := character.BonusXP(killLevel, KillBonusXP(&monster.Data), advancement); bonus > 0 {
 		cs.XPEarnedThisFight += bonus
 		log = append(log, fmt.Sprintf("  +%d bonus XP for slaying %s!", bonus, monster.Name))
 	}
 
-	if character.WillLevelUp(playerXP, cs.XPEarnedThisFight, advancement) {
+	if character.WillLevelUp(save.Experience, cs.XPEarnedThisFight, advancement) {
 		cs.LevelUpPending = true
 		log = append(log, "  Level up!")
 	}
@@ -1057,7 +1062,7 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 	}
 
 	if !monster.IsAlive {
-		log = append(log, handleMonsterKill(cs, monster, save.Experience, advancement)...)
+		log = append(log, handleMonsterKill(cs, monster, save, advancement)...)
 	}
 	return log
 }
@@ -1135,7 +1140,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	}
 
 	if !monster.IsAlive {
-		log = append(log, handleMonsterKill(cs, monster, save.Experience, advancement)...)
+		log = append(log, handleMonsterKill(cs, monster, save, advancement)...)
 		return log, true
 	}
 	return log, false

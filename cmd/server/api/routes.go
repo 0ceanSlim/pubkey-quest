@@ -388,6 +388,14 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Router       /api/combat/state [get]
 	mux.HandleFunc("/api/combat/state", game.GetCombatStateHandler)
 
+	// ─── Quests (M3) ───
+	// Log (active w/ objective progress, completed, available, QP total), and
+	// accept / abandon. Objective progress itself flows through the event
+	// recorder, not these endpoints.
+	mux.HandleFunc("/api/quests/log", game.QuestLogHandler)
+	mux.HandleFunc("/api/quests/accept", game.QuestAcceptHandler)
+	mux.HandleFunc("/api/quests/abandon", game.QuestAbandonHandler)
+
 	// @Summary      Execute a player attack action
 	// @Description  Resolves one full combat round: player movement, attack roll, damage,
 	//               XP award, and the monster's response turn. weapon_slot: "mainHand",
