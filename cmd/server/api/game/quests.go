@@ -78,14 +78,43 @@ type objectiveView struct {
 	Done        bool   `json:"done"`
 }
 
+type rewardItemView struct {
+	ID       string `json:"id"`
+	Quantity int    `json:"quantity"`
+}
+
+type rewardView struct {
+	XP    int              `json:"xp,omitempty"`
+	Gold  int              `json:"gold,omitempty"`
+	Items []rewardItemView `json:"items,omitempty"`
+}
+
+// questRewardView summarises a quest's payout — the last stage that carries one.
+func questRewardView(qd *types.QuestData) *rewardView {
+	for i := len(qd.Stages) - 1; i >= 0; i-- {
+		r := qd.Stages[i].Rewards
+		if r == nil {
+			continue
+		}
+		rv := &rewardView{XP: r.XP, Gold: r.Gold}
+		for _, it := range r.Items {
+			rv.Items = append(rv.Items, rewardItemView{ID: it.ID, Quantity: it.Quantity})
+		}
+		return rv
+	}
+	return nil
+}
+
 type activeQuestView struct {
 	ID          string          `json:"id"`
 	Name        string          `json:"name"`
 	Category    string          `json:"category"`
+	Difficulty  string          `json:"difficulty,omitempty"`
 	Stage       int             `json:"stage"`
 	StageCount  int             `json:"stage_count"`
 	Description string          `json:"description"`
 	Objectives  []objectiveView `json:"objectives"`
+	Rewards     *rewardView     `json:"rewards,omitempty"`
 }
 
 type namedQuestView struct {
@@ -93,8 +122,9 @@ type namedQuestView struct {
 	Name        string `json:"name"`
 	Category    string `json:"category,omitempty"`
 	Difficulty  string `json:"difficulty,omitempty"`
-	Description string `json:"description,omitempty"`
-	StartHint   string `json:"start_hint,omitempty"`
+	Description string      `json:"description,omitempty"`
+	StartHint   string      `json:"start_hint,omitempty"`
+	Rewards     *rewardView `json:"rewards,omitempty"`
 }
 
 type questLogView struct {
@@ -113,8 +143,8 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 			continue
 		}
 		av := activeQuestView{
-			ID: qd.ID, Name: qd.Name, Category: string(qd.Category),
-			Stage: qp.Stage, StageCount: len(qd.Stages),
+			ID: qd.ID, Name: qd.Name, Category: string(qd.Category), Difficulty: qd.Difficulty,
+			Stage: qp.Stage, StageCount: len(qd.Stages), Rewards: questRewardView(qd),
 		}
 		if qp.Stage < len(qd.Stages) {
 			stage := qd.Stages[qp.Stage]
@@ -149,7 +179,7 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 		view.Available = append(view.Available, namedQuestView{
 			ID: qd.ID, Name: qd.Name, Category: string(qd.Category),
 			Difficulty: qd.Difficulty, Description: qd.Description,
-			StartHint: qd.StartCondition.StartHint,
+			StartHint: qd.StartCondition.StartHint, Rewards: questRewardView(&qd),
 		})
 	}
 	return view

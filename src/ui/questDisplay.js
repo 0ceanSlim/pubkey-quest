@@ -198,6 +198,16 @@ function modalBody(q) {
         html += `<div style="color:#9ca3af;font-size:10px;text-transform:uppercase;margin-bottom:2px;">How to start</div>`;
         html += `<div style="color:#93c5fd;font-size:11px;">${esc(q.start_hint || 'Seek it out in the world.')}</div>`;
     }
+
+    const r = q.rewards;
+    if (r && (r.xp || r.gold || (r.items || []).length)) {
+        const parts = [];
+        if (r.xp) parts.push(`${r.xp} XP`);
+        if (r.gold) parts.push(`${r.gold} gold`);
+        (r.items || []).forEach((it) => parts.push(`${esc(it.id)}${it.quantity > 1 ? ' ×' + it.quantity : ''}`));
+        html += `<div style="color:#9ca3af;font-size:10px;text-transform:uppercase;margin:10px 0 2px;">Rewards</div>`;
+        html += `<div style="color:#fcd34d;font-size:11px;">${parts.join(' · ')}</div>`;
+    }
     return html;
 }
 
