@@ -173,6 +173,7 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 		}
 
 		if minutesElapsed > 0 {
+			oldProgress := state.TravelProgress
 			travelUpdate := travel.MaybeAdvanceTravelProgress(state, minutesElapsed)
 			if travelUpdate != nil {
 				if response.Data == nil {
@@ -187,8 +188,10 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					response.Data["newly_discovered"] = travelUpdate.NewlyDiscovered
 					response.Data["music_unlocked"] = travelUpdate.MusicUnlocked
 				} else {
-					// Still out in the wild — roll for a biome monster encounter.
+					// Still out in the wild — roll for a biome monster encounter,
+					// and for discovering any POI we just travelled past.
 					maybeRollTravelEncounter(session, state, minutesElapsed, response)
+					maybeDiscoverPOIs(state, oldProgress, response)
 				}
 			}
 		}
@@ -256,6 +259,54 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	response.Data["combat_started"] = true
 	response.Data["combat"] = combatPayload
 	log.Printf("⚔️  Travel encounter: %s (CR %.2f) in biome %q at level %d", monster.ID, monster.CR, biome, level)
+}
+
+// maybeDiscoverPOIs rolls discovery for any POI the player just travelled past
+// this tick (its position fell between the old and new travel progress). On a
+// discovery the POI joins locations_discovered as a revisitable feature and
+// fires the discovery event (XP + "explore" quest objectives). v1 uses the flat
+// discovery chance; the optional perception path is a follow-up (it needs the
+// shared skill-check formula the POI node-walker will also use).
+func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActionResponse) {
+	pois, err := serverdb.GetPOIsByEnvironment(state.Location)
+	if err != nil || len(pois) == 0 {
+		return
+	}
+	newProgress := state.TravelProgress
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for _, poi := range pois {
+		if poi.Position <= oldProgress || poi.Position > newProgress {
+			continue // not crossed this tick
+		}
+		if alreadyDiscovered(state, poi.ID) {
+			continue
+		}
+		if rng.Float64() >= poi.Discovery.Chance {
+			continue // missed the discovery roll
+		}
+		state.LocationsDiscovered = append(state.LocationsDiscovered, poi.ID)
+		events.Record(state, events.LocationDiscovered, poi.ID, 1)
+		msg := poi.Discovery.Message
+		if msg == "" {
+			msg = "You discover " + poi.Name + "."
+		}
+		if response.Data == nil {
+			response.Data = make(map[string]interface{})
+		}
+		response.Data["poi_discovered"] = map[string]interface{}{
+			"id": poi.ID, "name": poi.Name, "message": msg,
+		}
+		return // one discovery per tick
+	}
+}
+
+func alreadyDiscovered(state *SaveFile, id string) bool {
+	for _, d := range state.LocationsDiscovered {
+		if d == id {
+			return true
+		}
+	}
+	return false
 }
 
 // processActionSwitch dispatches to specific action handlers

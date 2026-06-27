@@ -122,6 +122,12 @@ class TickManager {
             // Note: Clock sync is handled by deltaApplier, not here (avoid double sync)
             const data = response.data || response;
 
+            // Discovered a POI while travelling — surface it (the server already
+            // recorded it; this is just the notification).
+            if (data && data.poi_discovered) {
+                window.showMessage?.(`🗺️ ${data.poi_discovered.message}`, 'info');
+            }
+
             // A biome travel encounter fired server-side this tick — hand off to
             // the combat UI (enterCombatMode pauses the clock) and stop here; the
             // rest of the tick (delta, travel progress) is irrelevant now.
