@@ -8,6 +8,7 @@ import (
 	"pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
@@ -23,12 +24,16 @@ type questContext struct {
 	save        *types.SaveFile
 	skillDefs   map[string]data.SkillDefinition
 	advancement []types.AdvancementEntry
+	// effStats is the player's stat block with active effect modifiers folded in
+	// (base stats already include spent ability points). Computed once so skill
+	// and stat gates read the same effective values a check would roll against.
+	effStats map[string]interface{}
 }
 
 func buildQuestContext(save *types.SaveFile) requirement.Context {
 	defs, _ := data.LoadSkillDefinitions()
 	adv, _ := loadAdvancement()
-	return questContext{save: save, skillDefs: defs, advancement: adv}
+	return questContext{save: save, skillDefs: defs, advancement: adv, effStats: effects.EffectiveStats(save)}
 }
 
 func (c questContext) SkillValue(id string) int {
@@ -36,9 +41,22 @@ func (c questContext) SkillValue(id string) int {
 	if !ok {
 		return 0
 	}
-	return data.CalculateSkillValue(c.save.Stats, def.Ratio)
+	return data.CalculateSkillValue(c.effStats, def.Ratio)
 }
-func (c questContext) StatValue(id string) int         { return effectiveStatValue(c.save, id) }
+func (c questContext) StatValue(id string) int {
+	for k, v := range c.effStats {
+		if !strings.EqualFold(k, id) {
+			continue
+		}
+		switch n := v.(type) {
+		case float64:
+			return int(n)
+		case int:
+			return n
+		}
+	}
+	return 0
+}
 func (c questContext) Level() int                      { return character.GetLevelFromXP(c.save.Experience, c.advancement) }
 func (c questContext) QuestPoints() int                { return quest.QuestPoints(c.save, serverdb.GetQuestByID) }
 func (c questContext) HasItem(id string) bool          { return gameutil.PlayerHasItem(c.save, id) }
@@ -46,28 +64,6 @@ func (c questContext) Class() string                   { return c.save.Class }
 func (c questContext) Race() string                    { return c.save.Race }
 func (c questContext) Alignment() string               { return c.save.Alignment }
 func (c questContext) IsQuestCompleted(id string) bool { return quest.IsCompleted(c.save, id) }
-
-// effectiveStatValue reads a base ability score (case-insensitive) plus any
-// allocated increases. Quest content does not currently use stat gates, so this
-// is a best-effort fallback.
-func effectiveStatValue(save *types.SaveFile, id string) int {
-	val := 0
-	for k, v := range save.Stats {
-		if strings.EqualFold(k, id) {
-			switch n := v.(type) {
-			case float64:
-				val = int(n)
-			case int:
-				val = n
-			}
-			break
-		}
-	}
-	if save.AbilityIncreases != nil {
-		val += save.AbilityIncreases[strings.ToLower(id)]
-	}
-	return val
-}
 
 // ─── log view ─────────────────────────────────────────────────────────────────
 

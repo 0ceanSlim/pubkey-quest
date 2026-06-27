@@ -451,6 +451,44 @@ func GetActiveStatModifiers(state *types.SaveFile) map[string]int {
 	return modifiers
 }
 
+// EffectiveStats returns the player's stats with active effect modifiers folded
+// in — base ability scores plus whatever buffs/debuffs are applied right now.
+// This is the stat block skill checks and skill gates should read from, so a
+// buff or a fatigue penalty actually changes the outcome. Effects only touch the
+// six ability scores, so skills (derived from abilities via ratios) pick up the
+// change automatically.
+func EffectiveStats(state *types.SaveFile) map[string]interface{} {
+	out := make(map[string]interface{}, len(state.Stats))
+	for k, v := range state.Stats {
+		out[k] = v
+	}
+	for stat, mod := range GetActiveStatModifiers(state) {
+		if mod == 0 {
+			continue
+		}
+		matched := false
+		for k := range out {
+			if !strings.EqualFold(k, stat) {
+				continue
+			}
+			base := 0
+			switch n := out[k].(type) {
+			case float64:
+				base = int(n)
+			case int:
+				base = n
+			}
+			out[k] = base + mod
+			matched = true
+			break
+		}
+		if !matched {
+			out[stat] = mod
+		}
+	}
+	return out
+}
+
 // LoadEffectData loads effect data from database
 func LoadEffectData(effectID string) (*types.EffectData, error) {
 	// Normalize old effect IDs for backward compatibility

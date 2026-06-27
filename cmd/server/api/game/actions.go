@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/events"
+	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/inventory"
@@ -264,9 +265,9 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 // maybeDiscoverPOIs rolls discovery for any POI the player just travelled past
 // this tick (its position fell between the old and new travel progress). On a
 // discovery the POI joins locations_discovered as a revisitable feature and
-// fires the discovery event (XP + "explore" quest objectives). v1 uses the flat
-// discovery chance; the optional perception path is a follow-up (it needs the
-// shared skill-check formula the POI node-walker will also use).
+// fires the discovery event (XP + "explore" quest objectives). A POI with a
+// discovery skill+DC is found automatically on a passing passive check,
+// otherwise on the flat discovery chance (see discoveryRoll).
 func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActionResponse) {
 	pois, err := serverdb.GetPOIsByEnvironment(state.Location)
 	if err != nil || len(pois) == 0 {
@@ -281,7 +282,7 @@ func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActio
 		if alreadyDiscovered(state, poi.ID) {
 			continue
 		}
-		if rng.Float64() >= poi.Discovery.Chance {
+		if !discoveryRoll(poi, state, rng) {
 			continue // missed the discovery roll
 		}
 		state.LocationsDiscovered = append(state.LocationsDiscovered, poi.ID)
@@ -307,6 +308,20 @@ func alreadyDiscovered(state *SaveFile, id string) bool {
 		}
 	}
 	return false
+}
+
+// discoveryRoll decides whether a POI is discovered as the player passes it: a
+// passing passive skill check (when the POI defines discovery.skill + dc)
+// guarantees it; otherwise it falls back to the flat discovery chance. The skill
+// value is the player's effective skill (base + active effects) via the context.
+func discoveryRoll(poi types.POIData, state *SaveFile, rng *rand.Rand) bool {
+	if poi.Discovery.Skill != "" && poi.Discovery.DC > 0 {
+		ctx := buildQuestContext(state)
+		if skillcheck.Passive(ctx.SkillValue(poi.Discovery.Skill), poi.Discovery.DC) {
+			return true
+		}
+	}
+	return rng.Float64() < poi.Discovery.Chance
 }
 
 // processActionSwitch dispatches to specific action handlers

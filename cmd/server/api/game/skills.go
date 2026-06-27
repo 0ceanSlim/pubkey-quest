@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"pubkey-quest/cmd/server/api/data"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/session"
 )
 
@@ -39,7 +40,9 @@ func SkillsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats := gameSession.SaveData.Stats
+	// Effective stats (base + active effect modifiers) so the displayed skill
+	// matches the value a check or gate uses.
+	stats := effects.EffectiveStats(&gameSession.SaveData)
 
 	// Calculate values for each skill
 	result := make(map[string]data.SkillResponse)
