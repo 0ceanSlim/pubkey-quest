@@ -139,37 +139,24 @@ function wireJournal(journal) {
 
 // ── detail modal (the quest guide) ──────────────────────────────────────────
 
-function ensureModal() {
-    let overlay = $('quest-modal');
-    if (overlay) return overlay;
-    overlay = document.createElement('div');
-    overlay.id = 'quest-modal';
-    overlay.className = 'hidden';
-    overlay.style.cssText =
-        'position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.65);';
-    overlay.innerHTML = `
-        <div style="width:340px;max-width:90vw;max-height:80vh;overflow:auto;background:#1f2430;border:2px solid #b8860b;box-shadow:0 0 0 1px #000;padding:14px;">
-            <div id="quest-modal-content"></div>
-            <button id="quest-modal-close" style="margin-top:12px;width:100%;background:#3a3f4b;color:#fff;font-weight:bold;font-size:11px;padding:4px;border-top:1px solid #5a5f6b;border-left:1px solid #5a5f6b;border-right:1px solid #000;border-bottom:1px solid #000;cursor:pointer;">Close</button>
-        </div>`;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) closeQuestModal();
-    });
-    overlay.querySelector('#quest-modal-close').addEventListener('click', closeQuestModal);
-    return overlay;
-}
-
+// The modal markup lives in the scene (game/quest-modal.html) so it draws over
+// the scene and scales with it — same pattern as the level-up modal.
 function openQuestModal(questId) {
     const q = _questsById[questId];
     if (!q) return;
-    const overlay = ensureModal();
-    overlay.querySelector('#quest-modal-content').innerHTML = modalBody(q);
-    overlay.classList.remove('hidden');
+    const content = $('quest-modal-content');
+    const modal = $('quest-modal');
+    if (!content || !modal) return;
+    content.innerHTML = modalBody(q);
+    modal.classList.remove('hidden');
 }
 
 function closeQuestModal() {
     $('quest-modal')?.classList.add('hidden');
+}
+
+if (typeof window !== 'undefined') {
+    window.closeQuestModal = closeQuestModal;
 }
 
 function modalBody(q) {
@@ -200,8 +187,9 @@ function modalBody(q) {
     }
 
     const r = q.rewards;
-    if (r && (r.xp || r.gold || (r.items || []).length)) {
+    if (r && (r.xp || r.gold || r.quest_points || (r.items || []).length)) {
         const parts = [];
+        if (r.quest_points) parts.push(`${r.quest_points} QP`);
         if (r.xp) parts.push(`${r.xp} XP`);
         if (r.gold) parts.push(`${r.gold} gold`);
         (r.items || []).forEach((it) => parts.push(`${esc(it.id)}${it.quantity > 1 ? ' ×' + it.quantity : ''}`));

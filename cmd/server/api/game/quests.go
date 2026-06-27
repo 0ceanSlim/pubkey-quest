@@ -84,25 +84,31 @@ type rewardItemView struct {
 }
 
 type rewardView struct {
-	XP    int              `json:"xp,omitempty"`
-	Gold  int              `json:"gold,omitempty"`
-	Items []rewardItemView `json:"items,omitempty"`
+	XP          int              `json:"xp,omitempty"`
+	Gold        int              `json:"gold,omitempty"`
+	QuestPoints int              `json:"quest_points,omitempty"`
+	Items       []rewardItemView `json:"items,omitempty"`
 }
 
-// questRewardView summarises a quest's payout — the last stage that carries one.
+// questRewardView summarises a quest's payout: its quest points (the quest's
+// TotalQP, awarded on completion) plus the XP/gold/items from the last stage
+// that carries a reward.
 func questRewardView(qd *types.QuestData) *rewardView {
+	rv := &rewardView{QuestPoints: qd.TotalQP}
 	for i := len(qd.Stages) - 1; i >= 0; i-- {
-		r := qd.Stages[i].Rewards
-		if r == nil {
-			continue
+		if r := qd.Stages[i].Rewards; r != nil {
+			rv.XP = r.XP
+			rv.Gold = r.Gold
+			for _, it := range r.Items {
+				rv.Items = append(rv.Items, rewardItemView{ID: it.ID, Quantity: it.Quantity})
+			}
+			break
 		}
-		rv := &rewardView{XP: r.XP, Gold: r.Gold}
-		for _, it := range r.Items {
-			rv.Items = append(rv.Items, rewardItemView{ID: it.ID, Quantity: it.Quantity})
-		}
-		return rv
 	}
-	return nil
+	if rv.QuestPoints == 0 && rv.XP == 0 && rv.Gold == 0 && len(rv.Items) == 0 {
+		return nil
+	}
+	return rv
 }
 
 type activeQuestView struct {
