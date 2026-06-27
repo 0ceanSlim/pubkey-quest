@@ -4,11 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
+	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/api/data"
+	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
+	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/inventory"
@@ -180,12 +185,69 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					response.Data["dest_district"] = travelUpdate.DestDistrict
 					response.Data["newly_discovered"] = travelUpdate.NewlyDiscovered
 					response.Data["music_unlocked"] = travelUpdate.MusicUnlocked
+				} else {
+					// Still out in the wild — roll for a biome monster encounter.
+					maybeRollTravelEncounter(session, state, minutesElapsed, response)
 				}
 			}
 		}
 	}
 
 	return response, err
+}
+
+// maybeRollTravelEncounter rolls a biome monster encounter on a travel tick.
+// On a hit it starts combat server-side, stores it on the session, and flags
+// the result on the response so the client drops into the combat UI. The biome
+// and the CR band come from the player's current environment and level — this
+// is the generic, scheduled travel-combat source (see the encounter package),
+// separate from the hand-authored encounter vignettes.
+func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed int, response *GameActionResponse) {
+	if sess.ActiveCombat != nil {
+		return
+	}
+	biome, err := serverdb.GetEnvironmentType(state.Location)
+	if err != nil || biome == "" {
+		return
+	}
+	refs, err := serverdb.GetMonstersByBiome(biome)
+	if err != nil || len(refs) == 0 {
+		return
+	}
+	advancement, err := loadAdvancement()
+	if err != nil {
+		return
+	}
+
+	candidates := make([]encounter.Candidate, 0, len(refs))
+	for _, r := range refs {
+		candidates = append(candidates, encounter.Candidate{ID: r.ID, Name: r.Name, CR: r.CR})
+	}
+	level := character.GetLevelFromXP(state.Experience, advancement)
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	monster, ok := encounter.Roll(candidates, level, minutesElapsed, rng)
+	if !ok {
+		return
+	}
+
+	cs, err := combat.StartCombat(serverdb.GetDB(), state, sess.Npub, monster.ID, state.Location, advancement)
+	if err != nil {
+		log.Printf("⚠️ travel encounter: StartCombat failed: %v", err)
+		return
+	}
+	sess.ActiveCombat = cs
+
+	if response.Data == nil {
+		response.Data = make(map[string]interface{})
+	}
+	// Build the combat payload, then clear the spawn position so later state
+	// queries don't replay the opening animation (mirrors StartCombatHandler).
+	combatPayload := buildStateResponse(cs, state, cs.Log)
+	cs.MonsterSpawnPos = nil
+	response.Data["combat_started"] = true
+	response.Data["combat"] = combatPayload
+	log.Printf("⚔️  Travel encounter: %s (CR %.2f) in biome %q at level %d", monster.ID, monster.CR, biome, level)
 }
 
 // processActionSwitch dispatches to specific action handlers
