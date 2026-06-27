@@ -594,7 +594,7 @@ let _travelViewMeta = null;
  * Travel view replaces the innerHTML and changes display to flex, so we need to
  * rebuild the original structure when returning to a city.
  */
-function restoreActionButtonsLayout() {
+export function restoreActionButtonsLayout() {
     const actionButtons = document.getElementById('action-buttons');
     if (!actionButtons) return;
 

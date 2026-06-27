@@ -10,6 +10,7 @@ import { logger }     from '../lib/logger.js';
 import { eventBus }   from '../lib/events.js';
 import { gameAPI }    from '../lib/api.js';
 import { smoothClock } from './smoothClock.js';
+import { restoreActionButtonsLayout, displayCurrentLocation } from '../ui/locationDisplay.js';
 
 // ─── Range descriptions ────────────────────────────────────────────────────────
 const RANGE_LABELS = {
@@ -85,6 +86,10 @@ export function enterCombatMode(cs) {
     _logQueueTailAt = 0;
     _animationEndsAt = 0;
     _replaceGameText();
+    // If we entered from a travel encounter, the action bar is the travel flex
+    // layout (no navigation/building/npc sub-elements). Rebuild the normal grid
+    // first so the combat buttons have somewhere to render. No-op outside travel.
+    restoreActionButtonsLayout();
     _replaceActionButtons(cs);
     _show('combat-overlay');
     renderCombatState(cs);
@@ -102,6 +107,10 @@ export function exitCombatMode() {
     _lastState = null;
     _logQueueTailAt = 0;
     _animationEndsAt = 0;
+    // Re-render the scene we returned to so the correct action bar comes back —
+    // in particular the travel controls when a fight ended mid-journey (the
+    // cached bar restore above only rebuilds the generic grid).
+    Promise.resolve(displayCurrentLocation?.()).catch((e) => logger.error('post-combat location refresh failed:', e));
 }
 
 /** Single re-render function — reads cs and updates every DOM region. */
