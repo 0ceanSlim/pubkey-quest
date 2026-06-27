@@ -39,6 +39,7 @@ import { showMessage, showActionText, addGameLog } from '../ui/messaging.js';
 import { openGroundModal } from '../ui/groundItems.js';
 import { initMusicDisplay } from '../ui/musicDisplay.js';
 import * as musicDisplay from '../ui/musicDisplay.js';
+import * as questDisplay from '../ui/questDisplay.js';
 
 // Page initialization
 import { pubkeyQuestStartup } from '../pages/startup.js';
@@ -115,6 +116,9 @@ document.addEventListener('gameDataLoaded', () => {
 
 // Export music display for global access
 window.musicDisplay = musicDisplay;
+
+// Export quest display so the questlog tab can load on open (see switchTab)
+window.questDisplay = questDisplay;
 
 // Cleanup time clock on page unload
 window.addEventListener('beforeunload', () => {

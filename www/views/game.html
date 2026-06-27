@@ -280,6 +280,11 @@
       if (tabName === 'music' && window.musicDisplay && window.musicDisplay.updateMusicDisplay) {
         window.musicDisplay.updateMusicDisplay();
       }
+
+      // Load the quest log when opening the quests tab
+      if (tabName === 'questlog' && window.questDisplay && window.questDisplay.loadQuestLog) {
+        window.questDisplay.loadQuestLog();
+      }
     }
 
     // Game UI Scaling System
