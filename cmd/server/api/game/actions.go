@@ -207,6 +207,12 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	if sess.ActiveCombat != nil {
 		return
 	}
+	// Cooldown: don't fire another biome encounter within CooldownMinutes of the
+	// last, so fights can't bunch up back-to-back right after one ends.
+	nowAbs := state.CurrentDay*1440 + state.TimeOfDay
+	if sess.LastEncounterTime > 0 && nowAbs-sess.LastEncounterTime < encounter.CooldownMinutes {
+		return
+	}
 	biome, err := serverdb.GetEnvironmentType(state.Location)
 	if err != nil || biome == "" {
 		return
@@ -231,6 +237,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	if !ok {
 		return
 	}
+	sess.LastEncounterTime = nowAbs
 
 	cs, err := combat.StartCombat(serverdb.GetDB(), state, sess.Npub, monster.ID, state.Location, advancement)
 	if err != nil {

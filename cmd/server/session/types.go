@@ -21,6 +21,11 @@ type GameSession struct {
 	// Nil when no combat is in progress.
 	ActiveCombat *types.CombatSession `json:"-"`
 
+	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
+	// time_of_day) of the last biome encounter, so they can't fire back-to-back.
+	// Session-only.
+	LastEncounterTime int `json:"-"`
+
 	// Spell preparation queue — lives in server memory only, cleared on session unload.
 	// Each entry tracks a spell being prepared for a specific slot.
 	PrepQueue []types.SpellPrepTask `json:"-"`

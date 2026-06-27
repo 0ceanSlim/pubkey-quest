@@ -19,9 +19,14 @@ type Candidate struct {
 // math to beta, so these are meant to be adjusted by feel after playtesting;
 // they should season travel, not dominate it.
 const (
-	// chancePerMinute is the per-in-game-minute encounter probability. At ~0.008
-	// a standard 30-minute travel tick rolls ~21%.
-	chancePerMinute = 0.008
+	// CooldownMinutes is the minimum in-game time between biome encounters, so
+	// they can't fire back-to-back after a fight. The roll is skipped within this
+	// window of the last encounter (enforced at the call site, which has the
+	// session timing).
+	CooldownMinutes = 90
+	// chancePerMinute is the per-in-game-minute encounter probability. At ~0.006
+	// (with the cooldown above) travel averages a couple of fights per crossing.
+	chancePerMinute = 0.006
 	// maxTickChance caps a single tick so one large time jump can't guarantee a
 	// fight (e.g. resuming travel after a long idle).
 	maxTickChance = 0.5
