@@ -307,6 +307,16 @@ func HandleStartTravel(state *types.SaveFile, params map[string]interface{}) (*t
 	// Unlock music track for this environment (if not already unlocked)
 	musicUnlocked := checkMusicUnlocks(state, envID)
 
+	// Discover the environment on first entry — tracked like a location, with a
+	// discovery event (base XP + explore objectives) alongside the music unlock.
+	envDiscovered := false
+	if !slices.Contains(state.LocationsDiscovered, envID) {
+		state.LocationsDiscovered = append(state.LocationsDiscovered, envID)
+		events.Record(state, events.LocationDiscovered, envID, 1)
+		envDiscovered = true
+		log.Printf("🗺️ New environment discovered: %s", env.Name)
+	}
+
 	log.Printf("🚶 Started travel through %s: %s → %s (travel_time: %d min)",
 		env.Name, endpoints.OriginCity, endpoints.DestCity, env.TravelTime)
 
@@ -323,6 +333,7 @@ func HandleStartTravel(state *types.SaveFile, params map[string]interface{}) (*t
 			"origin_city":      endpoints.OriginCity,
 			"travel_progress":  0.0,
 			"music_unlocked":   musicUnlocked,
+			"newly_discovered": envDiscovered,
 		},
 	}, nil
 }
