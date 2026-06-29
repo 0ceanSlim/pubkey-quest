@@ -13,6 +13,20 @@ import (
 	"pubkey-quest/types"
 )
 
+// slotQuantity reads a slot's "quantity", tolerating both the float64 that JSON
+// decoding produces and the int that in-Go slot edits store (e.g. a split writes
+// int — see HandleSplitItemAction). Reading only float64 made consume on a
+// freshly-split stack see qty 0 and wipe the whole stack.
+func slotQuantity(slotMap map[string]interface{}) int {
+	switch v := slotMap["quantity"].(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	}
+	return 0
+}
+
 // HandleUseItemAction uses an item from inventory
 func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
 	itemID, ok := params["item_id"].(string)
@@ -74,7 +88,7 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 				effects = ApplyItemEffects(state, itemID)
 
 				// Remove/reduce item quantity
-				qty, _ := slotMap["quantity"].(float64)
+				qty := slotQuantity(slotMap)
 				if qty > 1 {
 					slotMap["quantity"] = qty - 1
 				} else {
@@ -105,7 +119,7 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 					effects = ApplyItemEffects(state, itemID)
 
 					// Remove/reduce item quantity
-					qty, _ := slotMap["quantity"].(float64)
+					qty := slotQuantity(slotMap)
 					if qty > 1 {
 						slotMap["quantity"] = qty - 1
 					} else {
@@ -316,11 +330,8 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 		if slotMap["item"] == itemID && (slot < 0 || i == int(slot)) {
 			itemFound = true
 
-			// Get current quantity
-			currentQty := 1
-			if qty, ok := slotMap["quantity"].(float64); ok {
-				currentQty = int(qty)
-			}
+			// Get current quantity (tolerates int from a prior split)
+			currentQty := slotQuantity(slotMap)
 
 			// Determine how much to drop
 			if dropQuantity <= 0 || dropQuantity >= currentQty {

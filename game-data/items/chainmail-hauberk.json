@@ -3,7 +3,7 @@
   "name": "Chain Mail Hauberk",
   "description": "A long shirt of interlocking metal rings covering the torso and arms.",
   "rarity": "uncommon",
-  "price": 7200,
+  "value": 7200,
   "weight": 33,
   "stack": 1,
   "type": "Heavy Armor",

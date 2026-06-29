@@ -9,7 +9,7 @@
     "Can be used as a spellcasting focus for druidic magic",
     "Provides unlimited Tree Sap for poison and transformation magic"
   ],
-  "price": 1000,
+  "value": 1000,
   "provides": "tree-sap",
   "rarity": "common",
   "stack": 1,

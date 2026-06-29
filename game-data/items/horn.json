@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Horn",
   "notes": [],
-  "price": 300,
+  "value": 300,
   "rarity": "common",
   "stack": 1,
   "tags": [],

@@ -61,6 +61,11 @@ type SaveFile struct {
 	Rentals         []Rental        `json:"rentals,omitempty"`          // Paid rooms held until expiry (M2)
 	AbilityIncreases map[string]int `json:"ability_increases,omitempty"` // Points spent per ability via level-up allocation (player choice). Unspent count derives — see character.UnspentAbilityPoints
 	FeatsChosen     []string        `json:"feats_chosen,omitempty"`     // Selected feat IDs (reserved; activated in the feats milestone — docs/draft/feats-progression.md)
+	// RepeatableQuests records when a daily/weekly was last completed: quest id →
+	// period index (day for daily, ISO week for weekly). Repeatable quests cycle,
+	// so they never enter QuestsCompleted; this is the non-derivable runtime fact
+	// that gates "already done this period" (schema v3).
+	RepeatableQuests map[string]int `json:"repeatable_quests,omitempty"`
 	SchemaVersion   int             `json:"schema_version,omitempty"`   // Save schema version (see CurrentSchemaVersion)
 
 	InternalID          string                   `json:"-"`                        // Not serialized, used internally for file naming
@@ -70,7 +75,7 @@ type SaveFile struct {
 // CurrentSchemaVersion is the save schema version this build writes. The load
 // path stamps older saves up to this value (see the migration shim in the
 // session package).
-const CurrentSchemaVersion = 2
+const CurrentSchemaVersion = 3
 
 // QuestProgress is one in-progress quest. ObjectiveCounts indexes the current
 // stage's objectives (e.g. slay 3 of 5). Completed quests live in

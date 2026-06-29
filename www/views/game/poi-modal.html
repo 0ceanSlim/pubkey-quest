@@ -1,0 +1,19 @@
+{{define "game/poi-modal.html"}}
+<!-- POI Exploration Modal Overlay (drawn over the scene, scales with it) -->
+<div id="poi-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
+    <div class="relative bg-win95-bgDark m-2" style="border: 2px solid #16a34a; max-width: 300px; max-height: 88%; overflow-y: auto; margin-left: auto; margin-right: auto; margin-top: 20px; pointer-events: auto; box-shadow: 0 0 16px rgba(22,163,74,0.5);">
+        <!-- Title Bar -->
+        <div id="poi-modal-title" class="px-2 py-1 flex items-center gap-2" style="background: linear-gradient(90deg, #14532d, #16a34a);">
+            <span style="font-size: 12px;">🗺️</span>
+            <span class="text-white font-bold" style="font-size: 9px;">EXPLORING</span>
+        </div>
+
+        <!-- Content (populated by poiExplore.js) -->
+        <div class="p-3 bg-win95-bgDark">
+            <div id="poi-modal-text" style="color:#e5e7eb; font-size: 11px; line-height: 1.4;"></div>
+            <div id="poi-modal-outcome" class="mt-2"></div>
+            <div id="poi-modal-buttons" class="mt-3 flex flex-col gap-1"></div>
+        </div>
+    </div>
+</div>
+{{end}}

@@ -3,7 +3,7 @@
   "name": "Ring Mail Chausses",
   "description": "Leather leg armor with heavy metal rings sewn onto it for added protection.",
   "rarity": "common",
-  "price": 1200,
+  "value": 1200,
   "weight": 16,
   "stack": 1,
   "type": "Heavy Armor",

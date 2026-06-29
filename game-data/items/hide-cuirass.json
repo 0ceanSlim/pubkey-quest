@@ -3,7 +3,7 @@
   "name": "Hide Cuirass",
   "description": "A primitive chest piece made from thick beast hides and furs.",
   "rarity": "common",
-  "price": 600,
+  "value": 600,
   "weight": 7,
   "stack": 1,
   "type": "Medium Armor",

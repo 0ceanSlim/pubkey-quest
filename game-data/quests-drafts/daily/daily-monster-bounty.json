@@ -8,9 +8,9 @@
   "is_randomized": true,
   "description": "A bounty posted on the town board for the removal of local pests.",
   "start_condition": {
-    "type": "bulletin_board",
-    "target": "town-square-board",
-    "start_hint": "Check the Bulletin Board in any town square."
+    "type": "innkeeper",
+    "target": "",
+    "start_hint": "Ask the innkeeper at any inn or tavern."
   },
   "requirements": [],
   "stages": [
@@ -53,6 +53,3 @@
     }
   ]
 }
-
-
-

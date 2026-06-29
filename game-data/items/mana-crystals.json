@@ -3,7 +3,7 @@
   "name": "Mana Crystals",
   "description": "Small crystalline formations that store concentrated magical energy. Provided unlimited when using a Staff focus.",
   "rarity": "common",
-  "price": 200,
+  "value": 200,
   "weight": 0.2,
   "stack": 5,
   "type": "Spell Component",

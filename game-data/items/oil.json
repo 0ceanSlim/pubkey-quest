@@ -4,7 +4,7 @@
   "image": "/res/img/items/oil.png",
   "name": "Oil",
   "notes": [],
-  "price": 10,
+  "value": 10,
   "rarity": "common",
   "stack": 1,
   "tags": [],

@@ -9,7 +9,7 @@
     "Can be used as a spellcasting focus for druidic magic",
     "Provides unlimited Pollen for charm and nature spells"
   ],
-  "price": 100,
+  "value": 100,
   "provides": "pollen",
   "rarity": "common",
   "stack": 1,

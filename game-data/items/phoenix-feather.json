@@ -2,7 +2,7 @@
   "id": "phoenix-feather",
   "name": "Phoenix Feather",
   "description": "A brilliant crimson feather that burns with eternal flame yet never consumes itself. Holds the power of rebirth.",
-  "price": 5000,
+  "value": 5000,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 1,

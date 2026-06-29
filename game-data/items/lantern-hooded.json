@@ -8,7 +8,7 @@
     "Light can be dimmed or blocked by closing shutters",
     "Burns for 6 hours on one flask of oil"
   ],
-  "price": 500,
+  "value": 500,
   "rarity": "common",
   "stack": 1,
   "tags": [

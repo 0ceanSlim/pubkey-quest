@@ -9,7 +9,7 @@
     "Contains 10 uses",
     "Each use heals 2 hitpoints"
   ],
-  "price": 500,
+  "value": 500,
   "rarity": "common",
   "stack": 10,
   "tags": [

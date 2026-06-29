@@ -23,6 +23,52 @@ import {
 // Advancement data cache
 let advancementDataCache = null;
 
+// ── Item rarity indicators ──────────────────────────────────────────────────
+// Common / uncommon / rare get an inner (inset) glow of the rarity color across
+// the slot; legendary / mythic get an outer glow border. Colors per the palette.
+const RARITY_COLORS = {
+    common: '#c2bbb2',    // grey
+    uncommon: '#336b3e',  // green
+    rare: '#567e9d',      // blue
+    legendary: '#4f3663', // purple
+    mythic: '#cdad36',    // yellow
+};
+const GLOW_RARITIES = new Set(['legendary', 'mythic']);
+
+// Cached {itemId → rarity} map, built once from the static #all-items blob so the
+// inventory render doesn't re-parse the whole item list per slot.
+let _rarityMap = null;
+function getItemRarity(itemId) {
+    // Build lazily, but only cache once #all-items is actually populated — otherwise
+    // an early render would lock in an empty map and everything would read "common".
+    if (!_rarityMap) {
+        try {
+            const all = JSON.parse(document.getElementById('all-items')?.textContent || '[]');
+            if (all.length > 0) {
+                _rarityMap = {};
+                all.forEach((it) => { _rarityMap[it.id] = String(it.rarity || 'common').toLowerCase(); });
+            }
+        } catch (e) {
+            logger.warn('rarity map build failed:', e);
+        }
+    }
+    return (_rarityMap && _rarityMap[itemId]) || 'common';
+}
+
+// applyRarityIndicator tints a filled inventory slot by rarity: legendary/mythic
+// get an outer glow border around the whole slot; everything else gets an inner
+// (inset) glow of the rarity color across the slot.
+function applyRarityIndicator(slotDiv, itemId) {
+    const rarity = getItemRarity(itemId);
+    const color = RARITY_COLORS[rarity] || RARITY_COLORS.common;
+    if (GLOW_RARITIES.has(rarity)) {
+        slotDiv.style.borderColor = color;
+        slotDiv.style.boxShadow = `0 0 6px 1px ${color}, inset 0 0 4px ${color}`;
+    } else {
+        slotDiv.style.boxShadow = `inset 0 0 6px 1px ${color}`;
+    }
+}
+
 /**
  * Load advancement data from JSON
  * @returns {Promise<Array>} Advancement data array
@@ -233,7 +279,18 @@ export async function updateCharacterDisplay() {
 
     const advancementData = await loadAdvancementData();
     const currentXP = character.experience || 0;
-    const currentLevel = character.level || 1;
+
+    // Derive level from XP — authoritative. The save never stores level (it's
+    // derived from XP), so trusting a stale character.level froze the top-bar
+    // number and the XP bar at level 1's interval after leveling up.
+    let currentLevel = 1;
+    for (const entry of advancementData) {
+        if (currentXP >= entry.ExperiencePoints) {
+            currentLevel = Math.max(currentLevel, entry.Level);
+        }
+    }
+    const lvlEl = document.getElementById('char-level');
+    if (lvlEl) lvlEl.textContent = currentLevel;
 
     // Find current and next level data
     const currentLevelData = advancementData.find(l => l.Level === currentLevel);
@@ -439,12 +496,14 @@ export async function updateCharacterDisplay() {
             character.inventory.general_slots = [];
         }
 
-        // Create a map of slot index to item data (respecting the "slot" field)
+        // Map items to slots. The array index IS the slot; an explicit "slot"
+        // field wins when present, but items the server places WITHOUT one
+        // (combat loot, death-kept items) fall back to their array index so they
+        // render instead of silently vanishing.
         const slotMap = {};
-        character.inventory.general_slots.forEach(item => {
+        character.inventory.general_slots.forEach((item, index) => {
             if (item && item.item) {
-                const slotIndex = item.slot;
-                // Only use valid slot indices (0-3)
+                const slotIndex = typeof item.slot === 'number' ? item.slot : index;
                 if (slotIndex >= 0 && slotIndex < 4) {
                     slotMap[slotIndex] = item;
                 }
@@ -489,6 +548,9 @@ export async function updateCharacterDisplay() {
                     quantityLabel.textContent = `${slot.quantity}`;
                     slotDiv.appendChild(quantityLabel);
                 }
+
+                // Rarity indicator (dot for common/uncommon/rare, glow for legendary/mythic)
+                applyRarityIndicator(slotDiv, slot.item);
             }
 
             generalSlotsDiv.appendChild(slotDiv);
@@ -524,12 +586,13 @@ export async function updateCharacterDisplay() {
 
             const contents = character.inventory.gear_slots.bag.contents;
 
-            // Create a map of slot index to item data (respecting the "slot" field)
+            // Same fallback as the general slots: array index is the slot, with an
+            // explicit "slot" field winning when present, so server-placed items
+            // (loot) without a slot field still render.
             const bagSlotMap = {};
-            contents.forEach(item => {
+            contents.forEach((item, index) => {
                 if (item && item.item) {
-                    const slotIndex = item.slot;
-                    // Only use valid slot indices (0-19 for 20-slot backpack)
+                    const slotIndex = typeof item.slot === 'number' ? item.slot : index;
                     if (slotIndex >= 0 && slotIndex < 20) {
                         bagSlotMap[slotIndex] = item;
                     }
@@ -577,6 +640,9 @@ export async function updateCharacterDisplay() {
                         quantityLabel.textContent = `${slot.quantity}`;
                         slotDiv.appendChild(quantityLabel);
                     }
+
+                    // Rarity indicator (dot for common/uncommon/rare, glow for legendary/mythic)
+                    applyRarityIndicator(slotDiv, slot.item);
                 }
 
                 backpackDiv.appendChild(slotDiv);

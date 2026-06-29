@@ -377,6 +377,17 @@ export async function endCombat() {
         exitCombatMode();
         if (window.refreshGameState) await window.refreshGameState();
         if (result.level_up?.leveled) window.showLevelUpModal?.(result.level_up);
+
+        // If this fight happened inside a POI walk, reopen the exploration overlay
+        // at the node past the monster (server resumed it on victory).
+        if (result.poi_resumed) {
+            try {
+                const m = await import('../ui/poiExplore.js');
+                await m.resumeFromCombat(result.poi_resumed);
+            } catch (err) {
+                logger.error('POI resume after combat failed:', err);
+            }
+        }
     } catch (err) {
         logger.error('endCombat error:', err);
     }

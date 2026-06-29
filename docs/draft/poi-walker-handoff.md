@@ -1,5 +1,10 @@
 # Handoff: finish the POI node-walker (exploration)
 
+> ✅ **DONE (2026-06-29).** This handoff is fully complete — the walker is wired
+> into a playable loop, and the rest of M3 (authored-encounter scheduler, quest-
+> tracker chip, daily/weekly roll) shipped too. M3 is closed. See
+> `docs/roadmap.md` §M3 for the current status. Kept for historical reference.
+
 State as of commit `035dfa6`. M3 is ~90% done. This doc is the pickup point for
 the **next session**: wire the already-built walker engine into a playable
 exploration loop.

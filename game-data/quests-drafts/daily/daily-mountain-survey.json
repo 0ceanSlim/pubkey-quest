@@ -8,9 +8,9 @@
   "is_randomized": true,
   "description": "A quick survey of the local mountain pass to check for rockslides and monster activity.",
   "start_condition": {
-    "type": "bulletin_board",
-    "target": "town-square-board",
-    "start_hint": "Check the Bulletin Board in any town square."
+    "type": "innkeeper",
+    "target": "",
+    "start_hint": "Ask the innkeeper at any inn or tavern."
   },
   "requirements": [
     {
@@ -88,6 +88,3 @@
     }
   ]
 }
-
-
-

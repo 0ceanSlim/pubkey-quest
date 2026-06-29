@@ -2,7 +2,7 @@
   "id": "quartz-dust",
   "name": "Quartz Dust",
   "description": "Finely ground crystal dust that sparkles with inner light. Provided unlimited when using a Crystal focus.",
-  "price": 50,
+  "value": 50,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

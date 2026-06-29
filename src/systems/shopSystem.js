@@ -835,9 +835,10 @@ export async function addItemToSell(itemId, slotIndex, slotType) {
         return;
     }
 
-    // Calculate sell value (what merchant pays player)
-    // Price can be in itemData.price OR itemData.properties.price
-    const basePrice = itemData.price || itemData.properties?.price || 0;
+    // Calculate sell value (what merchant pays player). Base worth is the
+    // canonical "value" field (legacy "price" kept as a fallback).
+    const basePrice = itemData.value ?? itemData.properties?.value
+        ?? itemData.price ?? itemData.properties?.price ?? 0;
 
     // Get player charisma for pricing calculation
     const playerCharisma = state.stats?.charisma || 10;

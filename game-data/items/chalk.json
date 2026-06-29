@@ -4,7 +4,7 @@
   "image": "/res/img/items/chalk.png",
   "name": "Chalk",
   "notes": [],
-  "price": 1,
+  "value": 1,
   "rarity": "common",
   "stack": 10,
   "tags": [],

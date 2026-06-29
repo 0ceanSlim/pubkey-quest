@@ -4,7 +4,43 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
+
+// knownBuildingTypes are the type tokens we recognize when inferring a building's
+// type from its id. Buildings don't carry an explicit "type" field yet, so the id
+// convention ("sailors_tavern" → tavern, "desert_inn" → inn) is the source.
+// TODO: add a real "type" field to building JSON and prefer it (GetBuildingType
+// already does when present).
+var knownBuildingTypes = map[string]bool{
+	"tavern": true, "inn": true, "shop": true, "store": true, "supplies": true,
+	"guild": true, "smithy": true, "forge": true, "temple": true, "shrine": true,
+	"market": true, "bank": true, "vault": true, "library": true,
+}
+
+// GetBuildingType returns a building's type. It prefers an explicit "type" field
+// when one exists, otherwise infers it from the id: the first recognized type
+// token, or the last "_"-separated token. Used by the encounter scheduler's
+// building_type trigger.
+func GetBuildingType(db *sql.DB, locationID, buildingID string) (string, error) {
+	b, err := findBuilding(db, locationID, buildingID)
+	if err != nil {
+		return "", err
+	}
+	if t, ok := b["type"].(string); ok && t != "" {
+		return t, nil
+	}
+	tokens := strings.Split(buildingID, "_")
+	for _, tok := range tokens {
+		if knownBuildingTypes[tok] {
+			return tok, nil
+		}
+	}
+	if len(tokens) > 0 {
+		return tokens[len(tokens)-1], nil
+	}
+	return buildingID, nil
+}
 
 // Rooms (M2): navigable spaces inside a building, in the city JSON as
 // building.rooms[] + building.default_room. A building with no rooms behaves

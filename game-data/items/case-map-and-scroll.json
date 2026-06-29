@@ -3,7 +3,7 @@
   "name": "Map and Scroll Case",
   "description": "A waterproof leather case designed to protect maps, scrolls, and important documents.",
   "rarity": "rare",
-  "price": 1,
+  "value": 1,
   "weight": 1,
   "stack": 1,
   "type": "Adventuring Gear",

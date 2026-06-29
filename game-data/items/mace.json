@@ -8,7 +8,7 @@
   "img": "equipment/weapon.jpg",
   "name": "Mace",
   "notes": [],
-  "price": 5,
+  "value": 5,
   "rarity": "common",
   "stack": 1,
   "tags": [

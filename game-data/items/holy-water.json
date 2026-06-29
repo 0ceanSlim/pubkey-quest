@@ -2,7 +2,7 @@
   "id": "holy-water",
   "name": "Holy Water",
   "description": "Water blessed by divine powers, harmful to undead and fiends.",
-  "price": 150,
+  "value": 150,
   "type": "Spell Component",
   "weight": 0.5,
   "stack": 10,

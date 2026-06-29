@@ -27,6 +27,7 @@ import '../systems/waitModal.js'; // Auto-initializes wait modal functions on wi
 import '../systems/levelGuideModal.js'; // Auto-initializes level-guide modal functions on window
 import '../systems/abilityAllocateModal.js'; // Auto-initializes ability-allocation modal functions on window
 import '../ui/spellAbilityModal.js'; // Auto-initializes spell/ability modal functions on window
+import '../ui/questTracker.js'; // Active-quest tracker chip — registers its own state listeners
 import * as combatSystem from '../systems/combatSystem.js';
 
 // UI modules

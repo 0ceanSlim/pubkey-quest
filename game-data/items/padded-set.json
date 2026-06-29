@@ -3,7 +3,7 @@
   "name": "Padded Armor Set",
   "description": "A complete set of quilted cloth armor with thick padding for basic protection.",
   "rarity": "common",
-  "price": 500,
+  "value": 500,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

@@ -6,7 +6,7 @@
   "img": "equipment/ammunition.jpg",
   "name": "Crossbow Bolts",
   "notes": [],
-  "price": 5,
+  "value": 5,
   "rarity": "common",
   "stack": 20,
   "tags": [

@@ -3,7 +3,7 @@
   "name": "Half Plate Set",
   "description": "A complete set of shaped metal plates covering most of the body, with lighter protection on the limbs.",
   "rarity": "rare",
-  "price": 75000,
+  "value": 75000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

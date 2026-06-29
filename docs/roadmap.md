@@ -1,6 +1,7 @@
 # Pubkey Quest — Release Roadmap (Pre-Alpha → Alpha → Beta → 1.0)
 
-**Written:** 2026-06-11, against the working tree (post combat Phase 3, POI/quest schema canonicalized but runtime unbuilt).
+**Written:** 2026-06-11. **Last status update:** 2026-06-29.
+**Progress (pre-alpha → alpha):** M0 ✅ · M1 ✅ (progression) · M2 ✅ (rooms) · **M3 ✅ (quest/POI/encounter runtime + daily roll)** · M4 ⬜ next (spells & items as real systems) · M5 ⬜ (combat completion) · M6 ⬜ (presentation) · M7 ⬜ (content) · M8 ⬜ (release eng). Recent extras done off-milestone: item `value` economy + effect-aware pricing, death keep-3, inventory rarity, item-info redesign, debug/settings cleanup. **Deferred backlog:** progression polish (level-up popup, spend-confirm), wait-stages, UI/interaction track (containers/trade/vault click + touch parity — `docs/draft/ui-inventory-issues.md`).
 **How to read this:** §1 is an honest inventory of what exists. §3 is the detailed pre-alpha → alpha plan. §4 is the Nostr save & trust architecture that constrains everything else. §7 is the UI/UX critique. §8 is the content/liveness strategy.
 
 Known parallel infra track (not gameplay, planned separately): Grain client upgrade + login replaced with the mill library. The plan below assumes those land independently; the only hard constraint is they must be stable **before beta** (beta = saves become precious).
@@ -15,7 +16,7 @@ Known parallel infra track (not gameplay, planned separately): Grain client upgr
 
 ## 1. Where the game actually is
 
-The codebase is far ahead of `CLAUDE.md` (which still says combat/shops/NPCs are unimplemented — it badly needs a refresh, see §9). Real state:
+(`CLAUDE.md` has since been refreshed to describe the architecture accurately and defers status to this file.) Real state:
 
 ### Implemented end-to-end — functional, none of it polished
 
@@ -35,24 +36,30 @@ Every system below works and is architecturally sound, but **all of it carries a
 | Skills: 8 derived skills computed server-side | `api/game/skills.go`, `game-data/systems/skills.json` |
 | Content tooling: Codex (item editor, char-gen tables editor, systems editor, pixellab, migration, validation, `--check-schema/--format-schema`) | `cmd/codex/` — the schemacheck/fmt/fix consolidation is done in the working tree. **Big gaps remain**: no editors for locations, monsters, spells, or NPCs (the "character editor" edits char-gen tables, not creatures; all of those are hand-edited JSON today — rooms will make locations worse), and no NPC-schedule→building cross-validation — see the Codex track in §3 |
 | POI/Encounter/Quest **schema**: canonical types, strict validation, 36 draft content files | `types/poi.go`, `types/quests.go`, `docs/poi-quest-{schema,design}.md` |
+| **Progression (M1)**: level-up, ability-point earn/spend, re-derived MaxHP/MaxMana, save ritual, derived level/XP display | `game/character/`, progression endpoints |
+| **Building rooms (M2)**: per-room NPC placement, inn flow, in-building bar rework, connectivity validation | `game/building/`, `api/game/rooms.go`, `locationDisplay.js` |
+| **Event recorder (M1)**: central gameplay-event stream (kill/fetch/explore/talk/check/…) feeding quest objectives + discovery XP | `game/events/`, `game/quest/objective.go` |
+| **Quest / POI / Encounter RUNTIME (M3)**: quest engine, POI node-walker (combat-bridged), authored-encounter scheduler (3 triggers), discovery, daily/weekly roll, quest-tracker chip | `game/quest/`, `game/poi/`, `api/game/{poi,encounter_scheduler,quests}.go`, `poiExplore.js`, `questTracker.js` |
+| **Economy (M3-era)**: canonical item `value`, shop pricing off effective charisma (effects move prices) | `game/shop/pricing.go`, `api/game/shop.go` |
 
 ### Half-baked (exists but doesn't actually work end-to-end)
 
-1. **Level-up** — XP is earned and `level_up_pending` is flagged (`game/combat/combat.go:910`), level is derived from `advancement.json` for attack bonuses… and that's it. **Nothing ever raises MaxHP, MaxMana, or spell slots after character creation** (only `character/generation.go` writes them). No level-up endpoint, no modal, no class-resource growth, no new-spells-on-level. This is the single most visible "broken" feature. (Note: level being *derived* from XP is correct and stays — see §4 hydration rule; what's missing is applying the *gains*.)
+1. ✅ **RESOLVED (M1) — Level-up works.** Progression (level-up + ability-point earn/spend, re-derived MaxHP/MaxMana, journaling, save ritual) shipped; level is derived from XP (hydration-correct) and the top-bar number + XP bar track it. *Feats are slotted but not yet active (post-M5).*
 2. **Spell casting** — `cast_spell` in `api/game/actions.go:388` is a stub of TODOs (no validation, no mana cost, no effect). There is **no combat spell action at all** (`/api/combat/action` only takes weapon_slot/hand/thrown). Prep exists; casting doesn't.
 3. **Item usage in combat** — `use_item` works out of combat (food/potions through the effect system) but combat has no item action (plan §14 ❌).
 4. **Martial class abilities** — abilities data + `/api/abilities` + the class-resource bar (Stamina/Rage/Ki/Cunning) exist in UI, but no ability is usable anywhere (plan §12 ❌).
-5. **Quests** — schema + 11 drafted quests + quest log tab exist, but the tab is a hardcoded placeholder (`tabs/questlog.html`), the save file has **no quest fields**, and there is no quest engine. Same for POIs (15 drafts) and encounters (9 drafts): no loaders, no triggering, no node-walker. 116 broken content refs cataloged in `docs/draft/poi-quest-followups.md`.
+5. ✅ **RESOLVED (M3, 2026-06-29) — Quests / POIs / Encounters now run end-to-end.** Quest engine (availability, talk-to-NPC + innkeeper-daily start, event-fed objective tracking, stage rewards, derived QP), real quest-log journal + over-scene tracker chip, POI node-walker (playable, combat-bridged), authored-encounter scheduler (all 3 triggers, 9 vignettes), daily/weekly roll (schema v3). Save now carries quest fields (`QuestsActive`/`QuestsCompleted`/`POIStates`/`RepeatableQuests`). *Still open:* the 116 broken content refs (`docs/draft/poi-quest-followups.md`) are an M7 content job, not engine.
 6. **NPC dialogue presentation** — backend dialogue trees are genuinely good (greetings w/ first-time/returning/native-race, requirements, branching). But the *speech text renders as a transient toast in the top-right corner* (`locationDisplay.js:862` → `showMessage(msg,'warning')`) and options are 7px buttons in the bottom 125px strip. The single most-authored content in the game is shown in its least readable surface.
-7. **Save UX & resilience** — manual save is the *intended* model (deliberate, Pokemon-style — §4), but today it's a browser `confirm()` with no "last saved" awareness, and a server crash silently eats the whole in-memory session. Deliberate saves need to be a polished ritual, and the *server* needs crash resilience that is distinct from player saves (§3 M1).
-8. **Tracking** — no statistics/counters of any kind on the save (kills, quests done, gold earned, distance traveled, deaths). Badges button says "coming soon". Dailies, quest objectives (`slay x3`), and achievements all need a central event stream that doesn't exist yet — and on the official server that same stream is the action audit trail (§4).
+7. ✅ **RESOLVED (M1) — Save ritual** (win95 save modal, "last saved" awareness, deliberate save) + session journaling for crash recovery shipped.
+8. **Tracking — partial.** The central **event stream now exists** (`game/events/`) and feeds quest objectives + discovery XP. Still missing: persisted statistics/counters on the save (kills, quests done, gold earned, deaths) and the badges system (button still hidden until badges exist); on the official server this stream is also the action audit trail (§4).
 
 ### Missing entirely
-- Quest/POI/encounter runtime (the biggest one)
-- **Building rooms** (new requirement — NPCs placed per-room instead of dumped at building level; M2)
+- ~~Quest/POI/encounter runtime~~ ✅ **DONE (M3)**
+- ~~Building rooms~~ ✅ **DONE (M2)** — NPCs placed per-room; inn flow; in-building bar rework
+- ~~Encounter triggering~~ ✅ **DONE (M3)** — biome + authored encounters fire on context; debug-only path retired
 - **Codex content tooling** — no editors for locations (buildings live inside city JSON, so rooms raise the stakes), monsters, spells, or NPCs; no validation that NPC schedule slots point at real buildings/rooms; no derived world-map view (§3 Codex track)
-- Conditions (15 D&D conditions), saving throws vs. spells, stealth/surprise, monster difficulty scaling
-- Encounter triggering (combat is only reachable via the debug button)
+- Conditions (15 D&D conditions), saving throws vs. spells, stealth/surprise, monster difficulty scaling (M5)
+- Spell casting + items/abilities in combat (M4/M5 — see Half-baked #2–4)
 - Spell scrolls/crafting (fully drafted in `docs/draft/spell-scroll-system.md` — deferred to beta, scheduled in §5)
 - The official-server validation layer (§4): event-ID chain tracking, save plausibility checks. Note `POST /api/session/update` accepts a raw full-state overwrite today — fine solo, must be gated before strangers arrive
 
@@ -67,9 +74,9 @@ Every system below works and is architecturally sound, but **all of it carries a
 | Cities | 9 | **only 5 have art** (missing: dusthaven, frosthold, goldenhaven⚠️, saltwind) |
 | Environments | 9 | **only 2 have art** (darkwood-forest, merchants-highway) |
 | NPCs | 27 files | + ~7 quest NPCs to author (oracle-seraphina, mayor-thomas, …) |
-| POI drafts | 15 | content-ready, runtime missing |
-| Encounter drafts | 9 | same |
-| Quest drafts | 11 | 2 main / 3 side / 2 class / 2 race / 2 daily / **0 weekly** |
+| POI drafts | 15 | ✅ runtime live (walker); still in `-draft` until M7 ref-fix |
+| Encounter drafts | 9 | ✅ runtime live (scheduler, all 3 triggers) |
+| Quest drafts | 11 | 2 main / 3 side / 2 class / 2 race / 2 daily / **0 weekly**; engine live; dailies innkeeper-given + roll. **Author weeklies** to exercise the weekly pool |
 
 ⚠️ Goldenhaven is the main-quest hub (Oracle, temple, mayor) and has no city art.
 
@@ -77,7 +84,7 @@ Every system below works and is architecturally sound, but **all of it carries a
 
 ## 2. Release definitions (what the words mean for this game)
 
-**Pre-alpha (now):** systems under construction; no end-to-end loop; content in `-draft` dirs; debug-only combat entry; wipes constant.
+**Pre-alpha (now, M0–M3 done / M4–M8 remaining):** core loop coming together — quest/POI/encounter runtime live, organic combat entry, progression + rooms working; content still in `-draft` dirs; spells/abilities/items-in-combat not yet real (M4/M5); wipes still possible (schema-break — most recent: save v3).
 
 **Alpha:** *feature-complete core loop, content-light.* A stranger with a Nostr key can: log in → get a character → take the intro → learn time/saving/vault/trading from the spotlight tutorial → explore towns → enter buildings and walk their rooms → talk to NPCs (readably) → pick up a quest from an NPC or board → travel → hit a random encounter → fight with weapons *and* spells *and* items *and* class abilities → win/lose meaningfully → level up and get stronger → buy/sell/rest/bank → complete the quest → see progress tracked → **save deliberately and trust the save round-trips**. Placeholder art acceptable. Save wipes announced but rare (schema-break only). Invite-only testers. Bug-report button (already exists) is the feedback channel.
 
@@ -95,7 +102,7 @@ Recommended order: **M0 → M1 → M2 → M3 → M4 → M5 → (M6 ‖ M7) → M
 
 **Polish discipline (standing rule):** every system that "works" still needs its edge cases defined and its bugs swept — the spellbook-attack no-op is the canonical example. Budget ~20% of each milestone for polishing and debugging the systems it touches, keep a running `bugs/` issue label, and treat "undefined interaction" (what *should* happen when X meets Y?) as a design task, not just a bug. M8 ends with a dedicated bug-bash.
 
-### M0 — Land the in-flight work, stabilize the base (S)
+### M0 — Land the in-flight work, stabilize the base (S) — ✅ DONE
 
 **✅ Done (2026-06-21)** — the month of in-flight work landed as 7 logical commits on `main` (`a2d7704`…`57a93f4`); tree clean, shape-check green, CLAUDE.md rewritten.
 
@@ -110,7 +117,7 @@ Recommended order: **M0 → M1 → M2 → M3 → M4 → M5 → (M6 ‖ M7) → M
 
 > Side task landed alongside M0: artisan/profession **tools consolidated into 4 skill-linked kits** (Crafting/Thieves/Herbalism/Navigator); instruments + gaming sets kept individual. Design: `docs/draft/tools.txt`.
 
-### M1 — Progression that actually works (M)
+### M1 — Progression that actually works (M) — ✅ DONE
 
 The "level up don't work right" fix, plus the save-schema groundwork everything else needs.
 
@@ -143,7 +150,7 @@ One migration, all at once, so alpha saves survive. Every field must pass the hy
 
 **Done when:** killing things levels you up with visible stat growth ✅; the save file passes the hydration audit (nothing derivable stored) ◐ (derived-authoritative via Hydrate; literal persist-omit deferred to the §4 serializer); a server crash restores the session ✅ (journaling); quitting without saving reverts to the last deliberate save ✅ (save-ritual modal + last-saved indicator) — and that's correct behavior.
 
-### M2 — Buildings get rooms; NPCs live in them (M)
+### M2 — Buildings get rooms; NPCs live in them (M) — ✅ DONE
 
 > **✅ Done (2026-06-26).** Room engine + navigation, NPC room placement, the spatial inn flow (rent → unlock → night-gated **Sleep**), and the room UI all shipped; rooms authored for every alpha inn/tavern. Landed alongside: a world-connectivity validator (`--check-connections`), the Frozen Wastes crossing fix, an environment-type reconciliation, and a building-placement pass — innkeepers (with homes + day-cycle schedules) for the 3 NPC-less towns, plus Verdant and Ironpeak de-clustered by district theme. The only unmet "done-when" bits are *demonstrative content* (an NPC standing in a back room, one key-locked door) — engine-supported, folded into M7.
 
@@ -170,9 +177,11 @@ The structural change to how interiors work: entering a building puts you in its
 
 **Done when:** you can walk into a tavern's common room, find the barkeep there but the cook in the kitchen, see a locked guest room, rent it from the innkeeper, watch it unlock, walk into *your* room, and sleep in it; a keyed door refuses you without the key; no existing building breaks.
 
-### M3 — Quest / POI / Encounter runtime (L — the big one)
+### M3 — Quest / POI / Encounter runtime (L — the big one) — ✅ COMPLETE (2026-06-29)
 
-Everything is designed (`docs/poi-quest-design.md`) and content exists; this is pure engine work.
+**Status:** done. Shipped: the shared **requirement evaluator** + **event recorder**; content **loaders/migration** (quests/pois/encounters tables); the **quest engine** (availability, talk-to-NPC start, objective tracking via events, stage rewards, QP derived); the **POI node-walker** wired into a playable loop (enter/advance endpoints, anti-skip, combat bridge both ways, discovery + travel-bar markers, exploration overlay); the **authored-encounter scheduler** (travel / location / building_type triggers, all 9 vignettes, through the same walker); biome **organic combat** (retired the debug-only path); the over-scene **quest-tracker chip**; and the **daily/weekly roll** (innkeeper-given, one-per-period rotation, repeatable, schema v3). **Deferred (out of done-when):** wait-stages (no quest content uses them) and POIState cooldown/looted persistence (POIs re-walkable for now). The checkboxes below are retained for historical detail; all but those two are done.
+
+Everything was designed (`docs/poi-quest-design.md`) and content existed; this was pure engine work.
 
 **Loaders + migration**
 - [ ] Extend `cmd/codex/migration` + server `db/migration.go` to load `pois`, `encounters`, `quests` tables from the (still `-draft`) dirs; keep strict schema check as a migration pre-gate
@@ -201,7 +210,7 @@ Everything is designed (`docs/poi-quest-design.md`) and content exists; this is 
 - [ ] Replace placeholder `tabs/questlog.html`: active quests w/ current stage + objective progress (2/3), completed list, QP total (derived, returned by the API)
 - [ ] **Active-objective tracker chip** over the scene (one line: "◆ Speak with Oracle Seraphina — Goldenhaven Temple") — biggest bang-for-buck quest UX element
 
-**Done when:** the two drafted dailies are acceptable from a board, a side quest can be taken from an NPC, progressed by killing/fetching, and turned in for gold+XP; a POI can be discovered while traveling and run start-to-finish including its combat node; wolves can jump you on the highway.
+**Done when:** ✅ MET — dailies are acceptable (from **innkeepers**, not a board — user preference); a side quest can be taken from an NPC, progressed by killing/fetching, turned in for gold+XP; a POI is discovered while traveling and runs start-to-finish including its combat node; wolves (biome) and authored vignettes can jump you on the highway.
 
 ### M4 — Spells and items as real systems (L)
 

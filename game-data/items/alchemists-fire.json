@@ -6,7 +6,7 @@
   "image": "/res/img/items/alchemists-fire.png",
   "name": "Alchemist's Fire",
   "notes": [],
-  "price": 5000,
+  "value": 5000,
   "range": "1",
   "range-long": "2",
   "rarity": "common",

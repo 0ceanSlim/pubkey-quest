@@ -3,7 +3,7 @@
   "name": "Leather Leggings",
   "description": "Supple leather pants that provide basic leg protection while maintaining flexibility.",
   "rarity": "common",
-  "price": 400,
+  "value": 400,
   "weight": 4,
   "stack": 1,
   "type": "Light Armor",

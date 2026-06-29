@@ -2,7 +2,7 @@
   "id": "elemental-sparks",
   "name": "Elemental Sparks",
   "description": "Tiny motes of elemental energy that dance and flicker with primal power.",
-  "price": 150,
+  "value": 150,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

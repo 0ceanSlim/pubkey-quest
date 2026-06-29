@@ -9,6 +9,7 @@ import (
 
 	"pubkey-quest/cmd/server/api/character"
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/shop"
@@ -23,26 +24,24 @@ func parseIntervalToMinutes(interval string) int {
 	return shop.ParseIntervalToMinutes(interval)
 }
 
-// Helper: Get charisma stat from session state
+// getCharismaFromSession returns the player's EFFECTIVE charisma — base charisma
+// with active ability-modifier effects folded in (effects.EffectiveStats, the
+// same value checks roll against). This is what shop pricing keys off, so a CHA
+// buff/debuff shifts buy and sell prices just like it shifts skill checks.
 func getCharismaFromSession(npub, saveID string) int {
-	session, err := session.GetSessionManager().GetSession(npub, saveID)
+	sess, err := session.GetSessionManager().GetSession(npub, saveID)
 	if err != nil {
 		log.Printf("⚠️ Failed to get session for charisma lookup: %v", err)
 		return 10 // Default charisma
 	}
 
-	if session.SaveData.Stats == nil {
-		return 10 // Default charisma
-	}
-
-	// Try to get charisma from stats map in session state
-	if cha, ok := session.SaveData.Stats["charisma"].(float64); ok {
+	eff := effects.EffectiveStats(&sess.SaveData)
+	switch cha := eff["charisma"].(type) {
+	case float64:
 		return int(cha)
-	}
-	if cha, ok := session.SaveData.Stats["charisma"].(int); ok {
+	case int:
 		return cha
 	}
-
 	return 10 // Default charisma if not found
 }
 

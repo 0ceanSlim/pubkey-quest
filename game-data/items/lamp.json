@@ -8,7 +8,7 @@
     "Burns for 6 hours on one flask of oil",
     "Provides bright light in 15-foot radius"
   ],
-  "price": 50,
+  "value": 50,
   "rarity": "common",
   "stack": 1,
   "tags": [

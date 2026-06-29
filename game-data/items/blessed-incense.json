@@ -2,7 +2,7 @@
   "id": "blessed-incense",
   "name": "Blessed Incense",
   "description": "Sacred incense blessed by divine rites, producing fragrant smoke that enhances holy magic.",
-  "price": 100,
+  "value": 100,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 15,

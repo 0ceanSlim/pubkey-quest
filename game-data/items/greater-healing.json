@@ -10,7 +10,7 @@
     "Single use item",
     "Takes an action to drink"
   ],
-  "price": 10000,
+  "value": 10000,
   "rarity": "common",
   "stack": 1,
   "tags": [

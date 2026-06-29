@@ -4,7 +4,7 @@
   "image": "/res/img/items/bagpipe.png",
   "name": "Bagpipe",
   "notes": [],
-  "price": 3000,
+  "value": 3000,
   "rarity": "uncommon",
   "stack": 1,
   "tags": [],

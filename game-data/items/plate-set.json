@@ -3,7 +3,7 @@
   "name": "Plate Armor Set",
   "description": "A complete suit of articulated steel plates providing the ultimate in protection.",
   "rarity": "rare",
-  "price": 150000,
+  "value": 150000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

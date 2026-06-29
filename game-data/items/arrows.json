@@ -6,7 +6,7 @@
   "img": "equipment/ammunition.jpg",
   "name": "Arrows",
   "notes": [],
-  "price": 5,
+  "value": 5,
   "rarity": "common",
   "stack": 25,
   "tags": [

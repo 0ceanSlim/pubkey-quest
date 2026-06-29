@@ -3,7 +3,7 @@
   "name": "Ring Mail Hauberk",
   "description": "A leather chest piece with heavy metal rings sewn onto it for added protection.",
   "rarity": "common",
-  "price": 1800,
+  "value": 1800,
   "weight": 24,
   "stack": 1,
   "type": "Heavy Armor",

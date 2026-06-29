@@ -38,7 +38,7 @@
   "image": "/res/img/items/explorers-pack.png",
   "name": "Explorer's Pack",
   "notes": [],
-  "price": 850,
+  "value": 850,
   "rarity": "common",
   "stack": 1,
   "tags": [

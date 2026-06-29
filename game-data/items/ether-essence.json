@@ -3,7 +3,7 @@
   "name": "Ether Essence",
   "description": "A shimmering substance that seems to exist between dimensions. Provided unlimited when using an Orb focus.",
   "rarity": "common",
-  "price": 100,
+  "value": 100,
   "weight": 0.1,
   "stack": 10,
   "type": "Spell Component",

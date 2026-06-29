@@ -13,6 +13,7 @@ import (
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
@@ -130,6 +131,10 @@ type CombatEndResponse struct {
 	LootDropped []types.LootDrop     `json:"loot_dropped,omitempty"`
 	Message     string               `json:"message"               example:"You defeated the Goblin and gained 47 XP."`
 	LevelUp     *types.LevelUpResult `json:"level_up,omitempty"`
+	// POIResumed is the next POI node when this fight happened inside a POI walk
+	// (a monster node). The client reopens the exploration overlay on it. Nil for
+	// ordinary fights and on defeat.
+	POIResumed *poi.StepResult `json:"poi_resumed,omitempty"`
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -911,6 +916,25 @@ func CombatEndHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sess.ActiveCombat = nil
+
+	// If this fight happened inside a POI walk, bridge back: defeat ends the walk
+	// (the player is teleported home), victory resumes it at the node past the
+	// monster so the client can reopen the exploration overlay.
+	if sess.ActivePOI != nil {
+		if resp.Outcome == "defeat" {
+			sess.ActivePOI = nil
+		} else {
+			resp.POIResumed = resumePOIAfterVictory(sess)
+		}
+	}
+
+	// Combat mutated HP / XP / inventory (loot) outside the per-tick delta system,
+	// so the session's delta snapshot is now stale (it predates the fight). Re-base
+	// it to the post-combat state: the client already has the full picture from its
+	// post-combat refresh, and this stops the next world tick from emitting a stale
+	// inventory diff against a pre-loot baseline.
+	sess.InitializeSnapshot()
+
 	log.Printf("✅ Combat ended: npub=%s outcome=%s xp=%d", npub, resp.Outcome, resp.XPApplied)
 
 	writeCombatJSON(w, http.StatusOK, resp)
@@ -1186,6 +1210,17 @@ func stripInventoryForDeath(inventory map[string]interface{}) []types.LootDrop {
 	clearEntireInventory(inventory)
 	placeItemsInGeneralSlots(inventory, top3)
 
+	// Diagnostic: pin whether "only a backpack on death" is a strip bug (units
+	// collected but not kept) or an already-empty inventory (loot lost earlier).
+	sample := make([]string, 0, len(units))
+	for i, u := range units {
+		if i >= 5 {
+			break
+		}
+		sample = append(sample, fmt.Sprintf("%s(%.0f)", u.itemID, u.cost))
+	}
+	log.Printf("💀 death strip: %d units collected %v → kept top %d %+v", len(units), sample, len(top3), top3)
+
 	return top3
 }
 
@@ -1212,11 +1247,10 @@ func collectItemUnits(inventory map[string]interface{}) []itemUnit {
 		return units
 	}
 
-	// Equipped gear (excluding bag)
-	for slotName, val := range gearSlots {
-		if slotName == "bag" {
-			continue
-		}
+	// Equipped gear, including the bag itself — a backpack is an item with a value
+	// and competes for the kept slots like anything else (unitsFromSlot reads the
+	// bag's own "item"/"quantity"; its contents are gathered separately below).
+	for _, val := range gearSlots {
 		units = append(units, unitsFromSlot(val)...)
 	}
 
@@ -1258,14 +1292,20 @@ func unitsFromSlot(slot interface{}) []itemUnit {
 	return units
 }
 
-// lookupItemCost queries the item's cost field from the database.
+// lookupItemCost queries the item's base worth from the database — the canonical
+// "value" field (with a legacy "price" fallback), the same fields db/sqlite.go
+// reads into Item.Value. Reading the wrong key here made every item score 0, so
+// the death "keep your 3 most valuable items" rule was keeping arbitrary items.
 func lookupItemCost(itemID string) float64 {
 	item, err := gamedata.LoadItemByID(serverdb.GetDB(), itemID)
 	if err != nil {
 		return 0
 	}
-	if cost, ok := item["cost"].(float64); ok {
-		return cost
+	if value, ok := item["value"].(float64); ok {
+		return value
+	}
+	if price, ok := item["price"].(float64); ok {
+		return price
 	}
 	return 0
 }
@@ -1302,20 +1342,11 @@ func clearEntireInventory(inventory map[string]interface{}) {
 	}
 
 	if gearSlots, ok := inventory["gear_slots"].(map[string]interface{}); ok {
-		for slotName, val := range gearSlots {
-			if slotName == "bag" {
-				if bag, ok := val.(map[string]interface{}); ok {
-					if contents, ok := bag["contents"].([]interface{}); ok {
-						for i := range contents {
-							contents[i] = nil
-						}
-						bag["contents"] = contents
-					}
-					gearSlots["bag"] = bag
-				}
-			} else {
-				gearSlots[slotName] = nil
-			}
+		// Clear every equipped slot, the bag included — it's an item like any
+		// other and is only kept if it placed in the top 3 (as a general-slot
+		// item). Its contents were already flattened into the valuation.
+		for slotName := range gearSlots {
+			gearSlots[slotName] = nil
 		}
 		inventory["gear_slots"] = gearSlots
 	}

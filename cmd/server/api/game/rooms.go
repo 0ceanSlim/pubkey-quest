@@ -25,6 +25,7 @@ type RoomsResponse struct {
 	Success     bool       `json:"success"`
 	Building    string     `json:"building"`
 	CurrentRoom string     `json:"current_room"`
+	DefaultRoom string     `json:"default_room"` // the common/entrance room — where "Exit Room" returns you
 	Rooms       []RoomView `json:"rooms"`
 }
 
@@ -62,7 +63,8 @@ func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := RoomsResponse{Success: true, Building: save.Building, CurrentRoom: save.Room, Rooms: []RoomView{}}
 	if save.Building != "" {
-		if rooms, _, err := building.GetBuildingRooms(serverdb.GetDB(), save.Location, save.Building); err == nil {
+		if rooms, defaultRoom, err := building.GetBuildingRooms(serverdb.GetDB(), save.Location, save.Building); err == nil {
+			resp.DefaultRoom = defaultRoom
 			for _, room := range rooms {
 				hasKey := room.Access != nil && room.Access.Key != "" && gameutil.PlayerHasItem(save, room.Access.Key)
 				isRented := gameutil.HasActiveRental(save, save.Building)

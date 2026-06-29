@@ -3,7 +3,7 @@
   "name": "Leather Armor Set",
   "description": "A complete set of supple leather armor providing basic protection while maintaining flexibility.",
   "rarity": "common",
-  "price": 1000,
+  "value": 1000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

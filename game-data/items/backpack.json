@@ -2,7 +2,7 @@
   "id": "backpack",
   "name": "Backpack",
   "description": "A sturdy leather backpack with multiple compartments for organizing gear and supplies.",
-  "price": 1000,
+  "value": 1000,
   "type": "Adventuring Gear",
   "weight": 5,
   "stack": 1,

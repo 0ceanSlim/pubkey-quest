@@ -9,7 +9,7 @@
     "Unlimited when Totem focus is equipped",
     "Consumed on use if no Totem focus"
   ],
-  "price": 200,
+  "value": 200,
   "rarity": "common",
   "stack": 5,
   "tags": [

@@ -10,7 +10,7 @@
   "notes": [
     "Can be thrown at targets within 60 feet"
   ],
-  "price": 0,
+  "value": 0,
   "range": "1",
   "range-long": "2",
   "rarity": "common",

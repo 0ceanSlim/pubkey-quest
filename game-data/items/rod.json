@@ -9,7 +9,7 @@
     "Can be used as a spellcasting focus for arcane magic",
     "Provides unlimited Sulfur for fire and explosion spells"
   ],
-  "price": 1000,
+  "value": 1000,
   "provides": "sulfur",
   "rarity": "common",
   "stack": 1,

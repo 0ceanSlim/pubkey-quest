@@ -3,7 +3,7 @@
   "name": "Candle",
   "description": "A small wax candle that provides a modest amount of light when lit.",
   "rarity": "common",
-  "price": 1,
+  "value": 1,
   "weight": 0.1,
   "stack": 10,
   "type": "Adventuring Gear",

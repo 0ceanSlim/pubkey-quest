@@ -2,7 +2,7 @@
   "id": "sulfur",
   "name": "Sulfur",
   "description": "A small vial containing sulfur powder. It smells terrible but creates spectacular explosions when used in fire magic. Required for casting Fireball.",
-  "price": 500,
+  "value": 500,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

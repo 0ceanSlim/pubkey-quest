@@ -12,7 +12,7 @@
     "Requires bolts to fire",
     "Loading property requires action to reload"
   ],
-  "price": 0,
+  "value": 0,
   "range": "2",
   "range-long": "4",
   "rarity": "common",

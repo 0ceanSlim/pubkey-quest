@@ -3,7 +3,7 @@
   "name": "Plate Greaves",
   "description": "Heavy steel leg armor with articulated knee guards, the leg piece of a full plate armor set.",
   "rarity": "rare",
-  "price": 60000,
+  "value": 60000,
   "weight": 25,
   "stack": 1,
   "type": "Heavy Armor",

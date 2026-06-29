@@ -3,7 +3,7 @@
   "name": "Crossbow hand",
   "description": "A small hand-held crossbow that can be fired with one hand.",
   "rarity": "common",
-  "price": 150,
+  "value": 150,
   "weight": 3,
   "stack": 1,
   "type": "Martial Ranged Weapons",

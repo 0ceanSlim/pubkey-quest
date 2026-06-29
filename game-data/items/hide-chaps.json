@@ -3,7 +3,7 @@
   "name": "Hide Chaps",
   "description": "Primitive leg armor made from thick beast hides and furs.",
   "rarity": "common",
-  "price": 400,
+  "value": 400,
   "weight": 5,
   "stack": 1,
   "type": "Medium Armor",

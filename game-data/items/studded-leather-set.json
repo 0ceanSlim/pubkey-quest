@@ -3,7 +3,7 @@
   "name": "Studded Leather Set",
   "description": "A complete set of leather armor reinforced with metal studs and rivets.",
   "rarity": "common",
-  "price": 4500,
+  "value": 4500,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

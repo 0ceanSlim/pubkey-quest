@@ -4,7 +4,7 @@
   "image": "/res/img/items/ink.png",
   "name": "Ink",
   "notes": [],
-  "price": 1000,
+  "value": 1000,
   "rarity": "common",
   "stack": 1,
   "tags": [],

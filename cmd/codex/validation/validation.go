@@ -162,7 +162,7 @@ func validateItemFile(filePath string, validItemIDs map[string]bool) []Issue {
 	}
 
 	// Check ALL required fields
-	requiredFields := []string{"id", "name", "description", "rarity", "price", "weight", "stack", "type", "image", "tags", "notes"}
+	requiredFields := []string{"id", "name", "description", "rarity", "value", "weight", "stack", "type", "image", "tags", "notes"}
 	for _, field := range requiredFields {
 		if _, exists := item[field]; !exists {
 			issues = append(issues, Issue{
@@ -201,15 +201,15 @@ func validateItemFile(filePath string, validItemIDs map[string]bool) []Issue {
 		}
 	}
 
-	// Check price is non-negative
-	if price, ok := item["price"].(float64); ok {
-		if price < 0 {
+	// Check value is non-negative
+	if value, ok := item["value"].(float64); ok {
+		if value < 0 {
 			issues = append(issues, Issue{
 				Type:     "error",
 				Category: "items",
 				File:     filename,
-				Field:    "price",
-				Message:  "Price cannot be negative",
+				Field:    "value",
+				Message:  "Value cannot be negative",
 			})
 		}
 	}

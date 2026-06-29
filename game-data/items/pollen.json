@@ -2,7 +2,7 @@
   "id": "pollen",
   "name": "Pollen",
   "description": "Fine golden dust from sacred flowers that carries the essence of fertility and charm. Provided unlimited when using a Sprig of Mistletoe focus.",
-  "price": 30,
+  "value": 30,
   "type": "Spell Component",
   "weight": 0.05,
   "stack": 15,

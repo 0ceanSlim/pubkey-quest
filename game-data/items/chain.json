@@ -4,7 +4,7 @@
   "image": "/res/img/items/chain.png",
   "name": "Chain",
   "notes": [],
-  "price": 5,
+  "value": 5,
   "rarity": "common",
   "stack": 1,
   "tags": [

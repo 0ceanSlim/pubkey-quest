@@ -355,6 +355,20 @@ func registerGameRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/game/state", game.GetGameStateHandler)
 
 	registerCombatRoutes(mux)
+	registerPOIRoutes(mux)
+}
+
+// ============================================================================
+// POI Routes (M3) - Discovered point-of-interest node walks
+// ============================================================================
+
+func registerPOIRoutes(mux *http.ServeMux) {
+	// enter: begin a walk of a discovered POI at its start node.
+	// advance: resolve the next node the player chose (anti-skip validated).
+	// list: discovered POIs in the current environment (travel-screen markers).
+	mux.HandleFunc("/api/poi/enter", game.POIEnterHandler)
+	mux.HandleFunc("/api/poi/advance", game.POIAdvanceHandler)
+	mux.HandleFunc("/api/poi/list", game.POIListHandler)
 }
 
 // ============================================================================

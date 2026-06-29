@@ -36,6 +36,13 @@ type StepResult struct {
 	Combat   string   `json:"combat,omitempty"`  // monster id — the caller bridges into combat
 	Next     string   `json:"next,omitempty"`    // node to resolve on "continue" (empty if choices/terminal)
 	Terminal bool     `json:"terminal"`
+
+	// CheckSkill / CheckSuccess report the result of a check (or passive_check)
+	// node so the caller can record a SkillCheckPassed event (advancing quest
+	// "check" objectives) without the walker importing the event recorder —
+	// keeping resolution pure. Empty/false on every other node type.
+	CheckSkill   string `json:"-"`
+	CheckSuccess bool   `json:"-"`
 }
 
 // Deps injects the systems a node may touch, so the walker stays testable.
@@ -65,6 +72,8 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 
 	case types.POIStepCheck, types.POIStepPassiveCheck:
 		r := skillcheck.Resolve(deps.Ctx.SkillValue(node.Skill), node.DC, deps.Rng)
+		res.CheckSkill = node.Skill
+		res.CheckSuccess = r.Success
 		if r.Success {
 			res.Outcome = append(res.Outcome, nonEmpty(node.SuccessText, fmt.Sprintf("Success (%s check).", node.Skill)))
 			res.Next = node.SuccessNext

@@ -8,7 +8,7 @@
     "Comes with a key",
     "Can be picked with thieves' tools"
   ],
-  "price": 1000,
+  "value": 1000,
   "rarity": "common",
   "stack": 1,
   "tags": [],

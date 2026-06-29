@@ -3,7 +3,7 @@
   "name": "Plate Cuirass",
   "description": "A heavy steel breastplate with pauldrons, the chest piece of a full plate armor set.",
   "rarity": "rare",
-  "price": 90000,
+  "value": 90000,
   "weight": 40,
   "stack": 1,
   "type": "Heavy Armor",

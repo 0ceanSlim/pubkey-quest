@@ -6,7 +6,7 @@
   "img": "equipment/ammunition.jpg",
   "name": "Blowgun Needle",
   "notes": [],
-  "price": 2,
+  "value": 2,
   "rarity": "common",
   "stack": 50,
   "tags": [

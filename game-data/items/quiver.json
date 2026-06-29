@@ -11,7 +11,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Quiver",
   "notes": [],
-  "price": 0,
+  "value": 0,
   "rarity": "common",
   "stack": 1,
   "tags": [

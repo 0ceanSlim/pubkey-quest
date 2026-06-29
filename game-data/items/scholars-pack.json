@@ -42,7 +42,7 @@
   "image": "/res/img/items/scholars-pack.png",
   "name": "Scholar's Pack",
   "notes": [],
-  "price": 3902,
+  "value": 3902,
   "rarity": "common",
   "stack": 1,
   "tags": [

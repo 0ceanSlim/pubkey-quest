@@ -3,7 +3,7 @@
   "name": "Chain Mail Set",
   "description": "A complete suit of interlocking metal rings providing excellent protection at the cost of mobility.",
   "rarity": "uncommon",
-  "price": 12000,
+  "value": 12000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

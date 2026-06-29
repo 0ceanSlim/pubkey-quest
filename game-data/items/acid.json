@@ -4,7 +4,7 @@
   "image": "/res/img/items/acid.png",
   "name": "Acid",
   "notes": [],
-  "price": 2500,
+  "value": 2500,
   "rarity": "common",
   "stack": 1,
   "tags": [

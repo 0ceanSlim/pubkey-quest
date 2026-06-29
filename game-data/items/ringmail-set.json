@@ -3,7 +3,7 @@
   "name": "Ring Mail Set",
   "description": "A complete set of leather armor with heavy rings sewn onto it for reinforcement.",
   "rarity": "common",
-  "price": 3000,
+  "value": 3000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

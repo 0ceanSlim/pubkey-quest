@@ -2,7 +2,7 @@
   "id": "iron-filings",
   "name": "Iron Filings",
   "description": "Fine metallic shavings that crackle with electrical potential when exposed to magical energy.",
-  "price": 20,
+  "value": 20,
   "type": "Spell Component",
   "weight": 0.2,
   "stack": 10,

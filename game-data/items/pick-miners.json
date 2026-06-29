@@ -6,7 +6,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Pickaxe",
   "notes": [],
-  "price": 200,
+  "value": 200,
   "rarity": "common",
   "stack": 1,
   "tags": [

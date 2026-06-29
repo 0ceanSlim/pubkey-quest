@@ -9,7 +9,7 @@
     "Can be used as a spellcasting focus for druidic magic",
     "Provides unlimited Bone Dust for necromancy and summoning magic"
   ],
-  "price": 100,
+  "value": 100,
   "provides": "bone-dust",
   "rarity": "common",
   "stack": 1,

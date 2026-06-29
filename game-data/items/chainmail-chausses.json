@@ -3,7 +3,7 @@
   "name": "Chain Mail Chausses",
   "description": "Leg armor made of interlocking metal rings protecting the thighs and shins.",
   "rarity": "uncommon",
-  "price": 4800,
+  "value": 4800,
   "weight": 22,
   "stack": 1,
   "type": "Heavy Armor",

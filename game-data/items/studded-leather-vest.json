@@ -3,7 +3,7 @@
   "name": "Studded Leather Vest",
   "description": "A leather vest reinforced with metal studs and rivets for extra protection.",
   "rarity": "common",
-  "price": 2700,
+  "value": 2700,
   "weight": 8,
   "stack": 1,
   "type": "Light Armor",

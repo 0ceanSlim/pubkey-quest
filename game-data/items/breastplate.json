@@ -7,7 +7,7 @@
   "img": "equipment/armor.jpg",
   "name": "Breastplate",
   "notes": [],
-  "price": 40000,
+  "value": 40000,
   "rarity": "common",
   "stack": 1,
   "tags": [

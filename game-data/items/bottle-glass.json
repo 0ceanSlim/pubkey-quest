@@ -4,7 +4,7 @@
   "image": "/res/img/items/bottle-glass.png",
   "name": "Glass Bottle",
   "notes": [],
-  "price": 200,
+  "value": 200,
   "rarity": "common",
   "stack": 1,
   "tags": [],

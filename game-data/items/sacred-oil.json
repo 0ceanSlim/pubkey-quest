@@ -2,7 +2,7 @@
   "id": "sacred-oil",
   "name": "Sacred Oil",
   "description": "Consecrated oil used in healing rituals and blessing ceremonies.",
-  "price": 125,
+  "value": 125,
   "type": "Spell Component",
   "weight": 0.2,
   "stack": 10,

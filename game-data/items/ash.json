@@ -2,7 +2,7 @@
   "id": "ash",
   "name": "Ash",
   "description": "Fine gray powder from burned magical creatures, still warm with destructive energy.",
-  "price": 15,
+  "value": 15,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 15,

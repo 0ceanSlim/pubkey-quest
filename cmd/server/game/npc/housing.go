@@ -88,11 +88,13 @@ func CanSleepNow(timeOfDay int) bool {
 func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	buildingID := state.Building
 	if buildingID == "" {
+		log.Printf("😴 sleep rejected: not in a building (location=%s room=%q)", state.Location, state.Room)
 		return &types.GameActionResponse{Success: false, Message: "You can't sleep out here — rent a room at an inn.", Color: "red"}, nil
 	}
 
 	// Must hold an active rental for this building.
 	if !gameutil.HasActiveRental(state, buildingID) {
+		log.Printf("😴 sleep rejected: no active rental for %s (rentals=%+v)", buildingID, state.Rentals)
 		return &types.GameActionResponse{Success: false, Message: "You don't have a room rented here. Rent one from the innkeeper.", Color: "red"}, nil
 	}
 
@@ -101,6 +103,12 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 		if rooms, _, roomErr := building.GetBuildingRooms(database, state.Location, buildingID); roomErr == nil && len(rooms) > 0 {
 			room, found := building.FindRoom(rooms, state.Room)
 			if !found || room.Access == nil || room.Access.State != "rented" {
+				accessState := "<nil>"
+				if found && room.Access != nil {
+					accessState = room.Access.State
+				}
+				log.Printf("😴 sleep rejected: not in rented room (building=%s state.Room=%q found=%v access=%s)",
+					buildingID, state.Room, found, accessState)
 				return &types.GameActionResponse{Success: false, Message: "Head to your rented room to sleep.", Color: "yellow"}, nil
 			}
 		}
@@ -108,6 +116,7 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 
 	// Time gate: only after 9 PM (through the 6 AM wake time).
 	if !CanSleepNow(state.TimeOfDay) {
+		log.Printf("😴 sleep rejected: too early (time_of_day=%d)", state.TimeOfDay)
 		return &types.GameActionResponse{Success: false, Message: "It's too early to sleep — come back after 9 PM.", Color: "yellow"}, nil
 	}
 

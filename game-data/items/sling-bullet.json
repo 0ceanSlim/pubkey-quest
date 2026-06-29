@@ -5,7 +5,7 @@
   "image": "/res/img/items/sling-bullet.png",
   "name": "Sling Bullets",
   "notes": [],
-  "price": 0,
+  "value": 0,
   "rarity": "common",
   "stack": 8,
   "tags": [

@@ -6,7 +6,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Portable Ram",
   "notes": [],
-  "price": 400,
+  "value": 400,
   "rarity": "common",
   "stack": 1,
   "tags": [],

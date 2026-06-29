@@ -8,7 +8,7 @@
   "img": "equipment/weapon.jpg",
   "name": "Lance",
   "notes": [],
-  "price": 0,
+  "value": 0,
   "range": "1",
   "rarity": "common",
   "stack": 1,

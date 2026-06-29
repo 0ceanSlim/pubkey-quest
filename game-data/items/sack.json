@@ -9,7 +9,7 @@
   "notes": [
     "adds 4 inventory slots, change to contain anything that weighs less than a certain weight to limit item size"
   ],
-  "price": 50,
+  "value": 50,
   "rarity": "common",
   "stack": 1,
   "tags": [

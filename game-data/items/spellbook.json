@@ -10,7 +10,7 @@
   "notes": [
     "when equipped, should add a d3 to spell damages, maybe other bonuses"
   ],
-  "price": 5000,
+  "value": 5000,
   "rarity": "common",
   "stack": 1,
   "tags": [

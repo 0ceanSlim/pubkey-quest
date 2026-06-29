@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Whetstone",
   "notes": [],
-  "price": 1,
+  "value": 1,
   "rarity": "common",
   "stack": 10,
   "tags": [],

@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Waterskin",
   "notes": [],
-  "price": 20,
+  "value": 20,
   "rarity": "common",
   "stack": 1,
   "tags": [],

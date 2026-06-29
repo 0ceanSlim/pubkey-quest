@@ -3,7 +3,7 @@
   "name": "Padded Gambeson",
   "description": "A quilted cloth jacket with thick padding for basic chest protection.",
   "rarity": "common",
-  "price": 300,
+  "value": 300,
   "weight": 5,
   "stack": 1,
   "type": "Light Armor",

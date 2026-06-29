@@ -2,7 +2,7 @@
   "id": "spirit-dust",
   "name": "Spirit Dust",
   "description": "Ethereal powder that glows with ancestral spirits and animal essence.",
-  "price": 75,
+  "value": 75,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

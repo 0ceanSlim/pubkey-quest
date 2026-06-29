@@ -3,7 +3,7 @@
   "name": "Hide Armor Set",
   "description": "A complete set of primitive armor made from thick beast hides and furs.",
   "rarity": "common",
-  "price": 1000,
+  "value": 1000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

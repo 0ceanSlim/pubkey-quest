@@ -9,7 +9,7 @@
     "Can be used as a spellcasting focus for druidic magic",
     "Provides unlimited Bark Shavings for growth and healing spells"
   ],
-  "price": 500,
+  "value": 500,
   "provides": "bark-shavings",
   "rarity": "common",
   "stack": 1,

@@ -7,7 +7,7 @@
   "notes": [
     "Can be used to summon a monster to fight."
   ],
-  "price": 5,
+  "value": 5,
   "rarity": "common",
   "stack": 1,
   "tags": [],

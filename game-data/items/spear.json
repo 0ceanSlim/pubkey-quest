@@ -8,7 +8,7 @@
   "img": "equipment/weapon.jpg",
   "name": "Spear",
   "notes": [],
-  "price": 0,
+  "value": 0,
   "range": "1",
   "range-long": "2",
   "rarity": "common",

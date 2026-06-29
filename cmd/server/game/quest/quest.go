@@ -7,6 +7,7 @@ package quest
 
 import (
 	"fmt"
+	"time"
 
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/types"
@@ -44,8 +45,18 @@ func CanStart(q types.QuestData, save *types.SaveFile, ctx requirement.Context) 
 
 // Available filters a quest set down to those the player can start now.
 func Available(all []types.QuestData, save *types.SaveFile, ctx requirement.Context) []types.QuestData {
+	now := time.Now()
 	var out []types.QuestData
 	for _, q := range all {
+		// Repeatables (daily/weekly) never enter the completed list, so CanStart
+		// would always pass them — gate instead on "this period's pick, not yet
+		// done this period," still honoring requirements.
+		if IsRepeatable(q.Category) {
+			if RepeatableAvailable(q, save, all, now) && requirement.Evaluate(q.Requirements, ctx).OK {
+				out = append(out, q)
+			}
+			continue
+		}
 		if CanStart(q, save, ctx) {
 			out = append(out, q)
 		}

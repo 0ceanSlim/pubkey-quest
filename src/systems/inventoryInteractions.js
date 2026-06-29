@@ -1221,8 +1221,48 @@ async function promptSplitQuantity(itemName, maxQuantity) {
     });
 }
 
+// ── Item-info panel presentation ────────────────────────────────────────────
+const ITEM_RARITY_COLORS = {
+    common: '#c2bbb2', uncommon: '#336b3e', rare: '#567e9d',
+    legendary: '#4f3663', mythic: '#cdad36',
+};
+const ITEM_RARITY_GLOW = new Set(['legendary', 'mythic']);
+
+// What each item tag actually does — surfaced on hover (title) and on click
+// (inline, so it doesn't open a second stacked modal). Unknown tags show as a
+// plain chip with no description.
+const TAG_DESCRIPTIONS = {
+    light: 'Small and easy to wield — usable in your off-hand for two-weapon fighting.',
+    heavy: 'Large and unwieldy — small creatures attack with it at disadvantage.',
+    'two-handed': 'Requires two hands to wield.',
+    versatile: 'Can be used one- or two-handed, dealing more damage with two.',
+    finesse: 'Use Strength or Dexterity for attack and damage rolls.',
+    reach: 'Adds 5 ft to your reach when you attack.',
+    thrown: 'Can be thrown to make a ranged attack.',
+    ammunition: 'Fires ammunition; you draw a piece as part of the attack.',
+    loading: 'Fires only once per action, however many attacks you have.',
+    topple: 'On a hit, can knock the target prone (a save resists).',
+    'improvised-weapon': 'Not a true weapon — improvised, with a flat damage die.',
+    'light-source': 'Sheds light, illuminating the area around you.',
+    'oil-burning': 'Burns as fuel or a fire source.',
+    restraint: 'Can bind or restrain a creature.',
+    poison: 'Coated with or delivers poison.',
+    focus: 'Can serve as a spellcasting focus.',
+    focus_provided: 'Provides a spellcasting focus.',
+    spell_component: 'A material component for casting spells.',
+    container: 'Holds other items.',
+    pack: 'A bundle of adventuring gear.',
+    'armor-set': 'Part of a matching armor set.',
+    set: 'Part of a matching set.',
+    consumable: 'Used up when activated.',
+    healing: 'Restores hit points when consumed.',
+    medium: 'Medium armor — adds up to +2 Dexterity to AC.',
+    directional: 'Has a directional effect.',
+};
+const HIDDEN_ITEM_TAGS = new Set(['equipment']);
+
 /**
- * Show item details modal
+ * Show item details modal — a sectioned, rarity-aware panel sized to the scene.
  */
 export function showItemDetails(itemId) {
     const itemData = getItemById(itemId);
@@ -1240,110 +1280,122 @@ export function showItemDetails(itemId) {
         return;
     }
 
-    // Create modal overlay within scene
+    // Single-modal: don't let item-info panels stack on themselves.
+    sceneContainer.querySelectorAll('.item-detail-modal').forEach((m) => m.remove());
+
+    const props = itemData.properties || {};
+    const getProp = (name) => itemData[name] ?? props[name];
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const has = (v) => v !== undefined && v !== null && v !== '' && v !== 'null';
+
+    const rarity = String(itemData.rarity || 'common').toLowerCase();
+    const rColor = ITEM_RARITY_COLORS[rarity] || ITEM_RARITY_COLORS.common;
+    const glow = ITEM_RARITY_GLOW.has(rarity);
+
+    // Modal overlay within the scene — sized to the scene, scrolls only if needed.
     const modal = document.createElement('div');
-    modal.className = 'absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50';
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.remove();
-    });
+    modal.className = 'item-detail-modal absolute inset-0 flex items-center justify-center z-50';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
     const content = document.createElement('div');
-    content.className = 'bg-gray-800 border-4 border-gray-600 p-3 max-w-xs w-full mx-4';
-    content.style.clipPath = 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))';
+    content.style.cssText = [
+        'background:#23252b', 'width:92%', 'max-width:280px', 'max-height:88%',
+        'overflow-y:auto', 'font-size:10px', 'color:#dddddd',
+        `border:2px solid ${glow ? rColor : '#4b5563'}`,
+        glow ? `box-shadow:0 0 8px 1px ${rColor}` : '',
+    ].filter(Boolean).join(';');
 
-    // Build properties display - check both top-level and properties object
-    const properties = [];
-    const props = itemData.properties || {};
+    const row = (label, value, labelColor) =>
+        `<div style="display:flex; justify-content:space-between; gap:8px; padding:1px 0;"><span style="color:${labelColor || '#9ca3af'};">${label}</span><span style="color:#eee; text-align:right;">${value}</span></div>`;
+    const section = (title, rows) => rows.length
+        ? `<div style="padding:0 8px 6px;"><div style="font-size:8px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid #3a3a3a; padding-bottom:2px; margin-bottom:4px;">${title}</div>${rows.join('')}</div>`
+        : '';
 
-    // Helper to get property value
-    const getProp = (name) => itemData[name] ?? props[name];
-
-    // Always show basic info
-    properties.push(`<div><strong class="text-gray-400">Type:</strong> ${itemData.type || itemData.item_type || 'Unknown'}</div>`);
-    properties.push(`<div><strong class="text-gray-400">Rarity:</strong> <span class="capitalize">${itemData.rarity || 'common'}</span></div>`);
-
-    const weight = getProp('weight');
-    if (weight && weight > 0) {
-        properties.push(`<div><strong class="text-gray-400">⚖️</strong> ${weight} lb</div>`);
-    }
-
-    const price = getProp('price');
-    if (price && price > 0) {
-        properties.push(`<div><strong class="text-yellow-400">💰</strong> ${price} gp</div>`);
-    }
-
-    // Weapon properties
-    const damage = getProp('damage');
-    if (damage && damage !== 'null' && damage !== null) {
-        properties.push(`<div><strong class="text-red-400">Damage:</strong> ${damage}</div>`);
-    }
-
-    const damageType = getProp('damage-type');
-    if (damageType && damageType !== 'null') {
-        properties.push(`<div><strong class="text-red-400">Damage Type:</strong> <span class="capitalize">${damageType}</span></div>`);
-    }
-
-    const range = getProp('range');
-    if (range && range !== 'null' && range !== null) {
-        properties.push(`<div><strong class="text-blue-400">Range:</strong> ${range} ft</div>`);
-    }
-
-    const rangeLong = getProp('range-long');
-    if (rangeLong && rangeLong !== 'null' && rangeLong !== null) {
-        properties.push(`<div><strong class="text-blue-400">Long Range:</strong> ${rangeLong} ft</div>`);
-    }
-
-    // Armor properties
-    const ac = getProp('ac');
-    if (ac && ac !== 'null' && ac !== null) {
-        properties.push(`<div><strong class="text-blue-400">AC:</strong> ${ac}</div>`);
-    }
-
-    // Healing properties
-    const heal = getProp('heal');
-    if (heal && heal !== 'null' && heal !== null) {
-        properties.push(`<div><strong class="text-green-400">Healing:</strong> ${heal}</div>`);
-    }
-
-    // Effects (for consumables)
-    const effects = props.effects;
-    if (effects && Array.isArray(effects) && effects.length > 0) {
-        const effectsList = effects.map(effect => {
-            const sign = effect.value > 0 ? '+' : '';
-            return `${effect.type} ${sign}${effect.value}`;
-        }).join(', ');
-        properties.push(`<div class="col-span-2"><strong class="text-green-400">Effects:</strong> ${effectsList}</div>`);
-    }
-
-    // Tags
-    const tags = itemData.tags || props.tags;
-    if (tags && Array.isArray(tags) && tags.length > 0) {
-        const tagsList = tags
-            .filter(tag => tag !== 'equipment') // Hide generic equipment tag
-            .map(tag => `<span class="px-2 py-0.5 bg-gray-700 rounded text-xs capitalize">${tag.replace(/-/g, ' ')}</span>`)
-            .join(' ');
-        if (tagsList) {
-            properties.push(`<div class="col-span-2 mt-2"><strong class="text-gray-400">Tags:</strong> ${tagsList}</div>`);
-        }
-    }
-
-    // Gear slot
+    // Header: image + rarity-colored name, rarity badge, type · equip slot.
+    const typeBits = [esc(itemData.type || 'Item')];
     const gearSlot = getProp('gear_slot');
-    if (gearSlot) {
-        properties.push(`<div class="col-span-2"><strong class="text-purple-400">Equip Slot:</strong> <span class="capitalize">${gearSlot.replace(/_/g, ' ')}</span></div>`);
+    if (gearSlot) typeBits.push(esc(String(gearSlot).replace(/_/g, ' ')));
+    const header = `
+        <div style="display:flex; gap:8px; padding:8px; background:#1a1a1a; border-bottom:1px solid ${glow ? rColor : '#3a3a3a'};">
+            ${itemData.image ? `<img src="${esc(itemData.image)}" alt="" style="width:40px; height:40px; flex-shrink:0; image-rendering:pixelated; background:#111; border:1px solid #333; object-fit:contain;">` : ''}
+            <div style="min-width:0;">
+                <div style="color:${rColor}; font-weight:bold; font-size:13px; line-height:1.1;">${esc(itemData.name)}</div>
+                <div style="font-size:9px; margin-top:2px;"><span style="color:${rColor}; text-transform:capitalize;">◆ ${esc(rarity)}</span> <span style="color:#777;">·</span> <span style="color:#9ca3af; text-transform:capitalize;">${typeBits.join(' · ')}</span></div>
+            </div>
+        </div>`;
+
+    // Description + lore (notes).
+    let lore = `<div style="padding:8px; line-height:1.4;"><div style="color:#d1d5db;">${esc(itemData.description || itemData.ai_description || 'No description available.')}</div>`;
+    if (itemData.notes) lore += `<div style="color:#8b8b8b; font-style:italic; margin-top:3px;">${esc(itemData.notes)}</div>`;
+    lore += `</div>`;
+
+    // Combat.
+    const combatRows = [];
+    if (has(getProp('damage'))) {
+        let dmg = esc(getProp('damage'));
+        if (has(getProp('damage-type'))) dmg += ` ${esc(getProp('damage-type'))}`;
+        combatRows.push(row('Damage', dmg, '#f87171'));
+    }
+    if (has(getProp('range'))) {
+        const long = getProp('range-long');
+        combatRows.push(row('Range', has(long) ? `${esc(getProp('range'))}/${esc(long)} ft` : `${esc(getProp('range'))} ft`, '#93c5fd'));
+    }
+    if (has(getProp('ac'))) combatRows.push(row('Armor Class', esc(getProp('ac')), '#93c5fd'));
+
+    // Consumable.
+    const consumeRows = [];
+    if (has(getProp('heal'))) consumeRows.push(row('Healing', esc(getProp('heal')), '#86efac'));
+    const effects = props.effects || itemData.effects;
+    if (Array.isArray(effects) && effects.length) {
+        consumeRows.push(row('Effects', effects.map((e) => `${esc(e.type)} ${e.value > 0 ? '+' : ''}${esc(e.value)}`).join(', '), '#86efac'));
     }
 
-    content.innerHTML = `
-        <h2 class="text-base font-bold text-yellow-400 mb-1">${itemData.name}</h2>
-        ${itemData.image ? `<img src="${itemData.image}" alt="${itemData.name}" class="w-16 mx-auto mb-1" style="image-rendering: pixelated;">` : ''}
-        <p class="text-gray-300 mb-2 italic text-xs">${itemData.description || itemData.ai_description || 'No description available.'}</p>
-        <div class="grid grid-cols-2 gap-1 text-xs mb-2">
-            ${properties.join('\n            ')}
-        </div>
-        <button class="mt-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs w-full">Close</button>
-    `;
+    // Container.
+    const containRows = [];
+    if (has(getProp('container_slots'))) containRows.push(row('Capacity', `${esc(getProp('container_slots'))} slots`, '#c4b5fd'));
+    const allowed = getProp('allowed_types');
+    if (Array.isArray(allowed) && allowed.length) containRows.push(row('Holds', allowed.map(esc).join(', '), '#c4b5fd'));
 
-    content.querySelector('button').addEventListener('click', () => modal.remove());
+    // Details.
+    const detailRows = [];
+    const value = getProp('value') ?? getProp('price');
+    if (value && value > 0) detailRows.push(row('💰 Value', `${Number(value).toLocaleString()} gp`, '#fbbf24'));
+    if (getProp('weight') > 0) detailRows.push(row('⚖️ Weight', `${esc(getProp('weight'))} lb`, '#9ca3af'));
+    if (getProp('stack') > 1) detailRows.push(row('Stack', `up to ${esc(getProp('stack'))}`, '#9ca3af'));
+
+    // Tags as describable chips.
+    const tags = (itemData.tags || props.tags || []).filter((t) => typeof t === 'string' && !HIDDEN_ITEM_TAGS.has(t));
+    let tagsHtml = '';
+    if (tags.length) {
+        const chips = tags.map((t) => {
+            const desc = TAG_DESCRIPTIONS[t] || '';
+            return `<span class="item-tag-chip" data-tag="${esc(t)}" title="${esc(desc)}" style="font-size:8px; background:#3a3a3a; color:#cbd5e1; padding:1px 6px; border-radius:6px; text-transform:capitalize; cursor:${desc ? 'help' : 'default'};">${esc(t.replace(/[-_]/g, ' '))}</span>`;
+        }).join(' ');
+        tagsHtml = `<div style="padding:0 8px 4px; display:flex; gap:3px; flex-wrap:wrap;">${chips}</div>
+            <div id="item-tag-desc" style="padding:0 8px 6px; font-size:9px; color:#9ca3af;"></div>`;
+    }
+
+    content.innerHTML = header + lore
+        + section('Combat', combatRows)
+        + section('Consumable', consumeRows)
+        + section('Container', containRows)
+        + section('Details', detailRows)
+        + tagsHtml
+        + `<button class="item-detail-close" style="width:100%; padding:5px; background:#0e7490; color:#fff; font-size:10px; border:none; border-top:1px solid #155e75; cursor:pointer;">Close</button>`;
+
+    content.querySelector('.item-detail-close').addEventListener('click', () => modal.remove());
+
+    // Tag click → show its description inline (no second modal).
+    const descEl = content.querySelector('#item-tag-desc');
+    content.querySelectorAll('.item-tag-chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+            const d = TAG_DESCRIPTIONS[chip.dataset.tag];
+            if (descEl) descEl.innerHTML = d
+                ? `<strong style="color:#cbd5e1; text-transform:capitalize;">${esc(chip.dataset.tag.replace(/[-_]/g, ' '))}:</strong> ${esc(d)}`
+                : '';
+        });
+    });
 
     modal.appendChild(content);
     sceneContainer.appendChild(modal);

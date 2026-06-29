@@ -3,7 +3,7 @@
   "name": "Beer",
   "description": "A frothy mug of ale. Restores a small amount of fatigue and satisfies thirst.",
   "rarity": "common",
-  "price": 5,
+  "value": 5,
   "weight": 1,
   "stack": 1,
   "type": "Food",

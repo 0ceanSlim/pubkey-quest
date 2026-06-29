@@ -277,7 +277,7 @@ function populateForm(item) {
     document.getElementById('itemType').value = item.type || '';
     document.getElementById('itemDescription').value = item.description || '';
     document.getElementById('itemRarity').value = item.rarity || 'common';
-    document.getElementById('itemPrice').value = item.price || 0;
+    document.getElementById('itemPrice').value = item.value ?? item.price ?? 0;
     document.getElementById('itemWeight').value = item.weight || 1;
     document.getElementById('itemStack').value = item.stack || 1;
 
@@ -834,7 +834,7 @@ async function saveItem() {
         name: document.getElementById('itemNameInput').value.trim(),
         description: document.getElementById('itemDescription').value.trim(),
         rarity: document.getElementById('itemRarity').value,
-        price: parseInt(document.getElementById('itemPrice').value) || 0,
+        value: parseInt(document.getElementById('itemPrice').value) || 0,
         weight: parseFloat(document.getElementById('itemWeight').value) || 1,
         stack: parseInt(document.getElementById('itemStack').value) || 1,
         type: document.getElementById('itemType').value.trim(),

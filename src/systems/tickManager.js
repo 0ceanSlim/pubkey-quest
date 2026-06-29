@@ -123,9 +123,13 @@ class TickManager {
             const data = response.data || response;
 
             // Discovered a POI while travelling — surface it (the server already
-            // recorded it; this is just the notification).
+            // recorded it; this is just the notification) and refresh the travel
+            // markers so the new point of interest appears on the progress bar.
             if (data && data.poi_discovered) {
                 window.showMessage?.(`🗺️ ${data.poi_discovered.message}`, 'info');
+                import('../ui/locationDisplay.js')
+                    .then((m) => m.refreshTravelPOIMarkers?.())
+                    .catch(() => {});
             }
 
             // A biome travel encounter fired server-side this tick — hand off to
@@ -134,6 +138,18 @@ class TickManager {
             if (data && data.combat_started && data.combat) {
                 logger.info('⚔️ Travel encounter — entering combat');
                 eventBus.emit('combat:started', data.combat);
+                return;
+            }
+
+            // An authored encounter (vignette) fired this tick — open the
+            // exploration overlay on its first node (pauses the clock). The walk
+            // is already active server-side; advances flow through /poi/advance.
+            if (data && data.encounter_started && data.poi_step) {
+                logger.info('✨ Encounter — opening exploration overlay');
+                window.showMessage?.(`✨ ${data.encounter_name || 'Something happens…'}`, 'info');
+                import('../ui/poiExplore.js')
+                    .then((m) => m.openFromStep(data.poi_step))
+                    .catch((e) => logger.error('encounter overlay open failed:', e));
                 return;
             }
 

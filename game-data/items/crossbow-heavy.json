@@ -13,7 +13,7 @@
     "Loading property requires action to reload",
     "Heavy weapon"
   ],
-  "price": 0,
+  "value": 0,
   "range": "3",
   "range-long": "5",
   "rarity": "common",

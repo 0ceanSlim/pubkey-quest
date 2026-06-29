@@ -3,7 +3,7 @@
   "name": "Studded Leather Leggings",
   "description": "Leather pants reinforced with metal studs and rivets for extra protection.",
   "rarity": "common",
-  "price": 1800,
+  "value": 1800,
   "weight": 5,
   "stack": 1,
   "type": "Light Armor",

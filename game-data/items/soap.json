@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Soap",
   "notes": [],
-  "price": 2,
+  "value": 2,
   "rarity": "common",
   "stack": 50,
   "tags": [],

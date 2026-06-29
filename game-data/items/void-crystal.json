@@ -2,7 +2,7 @@
   "id": "void-crystal",
   "name": "Void Crystal",
   "description": "A dark crystal that seems to absorb light and reality itself. Looking into it reveals the endless depths of nothingness.",
-  "price": 8000,
+  "value": 8000,
   "type": "Spell Component",
   "weight": 1,
   "stack": 1,

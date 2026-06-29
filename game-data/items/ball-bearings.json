@@ -4,7 +4,7 @@
   "image": "/res/img/items/ball-bearings.png",
   "name": "Ball Bearings",
   "notes": [],
-  "price": 1,
+  "value": 1,
   "rarity": "common",
   "stack": 1,
   "tags": [

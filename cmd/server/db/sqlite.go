@@ -150,13 +150,13 @@ func GetItemByID(itemID string) (*Item, error) {
 	item.Properties = propertiesJSON
 	item.Tags = tagsJSON
 
-	// Parse price from properties JSON
+	// Parse the item's base worth. "value" is the canonical field; "price" is a
+	// legacy fallback for any not-yet-migrated data.
 	var properties map[string]interface{}
 	if err := parseJSON(propertiesJSON, &properties); err == nil {
-		if val, ok := properties["price"].(float64); ok {
+		if val, ok := properties["value"].(float64); ok {
 			item.Value = int(val)
-		} else if val, ok := properties["value"].(float64); ok {
-			// Fallback to "value" if "price" doesn't exist
+		} else if val, ok := properties["price"].(float64); ok {
 			item.Value = int(val)
 		}
 	}

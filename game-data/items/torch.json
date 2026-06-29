@@ -2,7 +2,7 @@
   "id": "torch",
   "name": "Torch",
   "description": "A wooden stick wrapped with oil-soaked cloth that provides light when lit.",
-  "price": 1,
+  "value": 1,
   "stack": 5,
   "weight": 1,
   "type": "Adventuring Gear",

@@ -2,7 +2,7 @@
   "id": "spider-silk",
   "name": "Spider Silk",
   "description": "Strong, sticky strands of webbing from giant spiders. Essential for binding and entanglement spells.",
-  "price": 25,
+  "value": 25,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

@@ -2,7 +2,7 @@
   "id": "demon-ichor",
   "name": "Demon Ichor",
   "description": "Black, smoking fluid from the veins of a demon. It writhes with malevolent energy and whispers dark secrets.",
-  "price": 600,
+  "value": 600,
   "type": "Spell Component",
   "weight": 0.2,
   "stack": 3,

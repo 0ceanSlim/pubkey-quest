@@ -2,7 +2,7 @@
   "id": "bark-shavings",
   "name": "Bark Shavings",
   "description": "Curled strips of ancient bark that pulse with life force and natural healing energy. Provided unlimited when using a Wooden Staff focus.",
-  "price": 25,
+  "value": 25,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

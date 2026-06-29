@@ -18,7 +18,7 @@ type Item struct {
 	Name           string              `json:"name"`
 	Description    string              `json:"description,omitempty"`
 	Rarity         string              `json:"rarity"`
-	Price          int                 `json:"price"`
+	Value          int                 `json:"value"`
 	Weight         float64             `json:"weight"`
 	Stack          int                 `json:"stack"`
 	Type           string              `json:"type"`

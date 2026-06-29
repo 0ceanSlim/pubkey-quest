@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Sealing wax",
   "notes": [],
-  "price": 50,
+  "value": 50,
   "rarity": "common",
   "stack": 20,
   "tags": [],

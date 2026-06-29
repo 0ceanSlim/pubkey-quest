@@ -4,7 +4,7 @@
   "image": "/res/img/items/poison-basic.png",
   "name": "Poison basic",
   "notes": [],
-  "price": 10000,
+  "value": 10000,
   "rarity": "common",
   "stack": 1,
   "tags": [

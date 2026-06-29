@@ -1,6 +1,7 @@
 package session
 
 import (
+	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/types"
 )
 
@@ -21,10 +22,20 @@ type GameSession struct {
 	// Nil when no combat is in progress.
 	ActiveCombat *types.CombatSession `json:"-"`
 
+	// POI walk state — lives in server memory only, never written to save files.
+	// Nil when the player is not inside a discovered POI. A monster node inside a
+	// POI sets ActiveCombat too and stashes the resume node here (poi.Session).
+	ActivePOI *poi.Session `json:"-"`
+
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.
 	// Session-only.
 	LastEncounterTime int `json:"-"`
+
+	// Authored-encounter firing log: encounter id → absolute in-game minute it
+	// last fired, for per-encounter cooldown + non-repeatable one-shots. Session-
+	// only (M1: LastFired lives in memory, not the save).
+	EncountersFired map[string]int `json:"-"`
 
 	// Spell preparation queue — lives in server memory only, cleared on session unload.
 	// Each entry tracks a spell being prepared for a specific slot.

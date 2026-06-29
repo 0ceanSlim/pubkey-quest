@@ -2,7 +2,7 @@
   "id": "tree-sap",
   "name": "Tree Sap",
   "description": "Sticky amber resin from ancient yew trees, containing transformative and poisonous properties. Provided unlimited when using a Yew Wand focus.",
-  "price": 50,
+  "value": 50,
   "type": "Spell Component",
   "weight": 0.1,
   "stack": 10,

@@ -3,7 +3,7 @@
   "name": "Splint Armor Set",
   "description": "A complete set of armor made from vertical metal strips riveted to a backing of leather over chain mail.",
   "rarity": "uncommon",
-  "price": 20000,
+  "value": 20000,
   "weight": 0,
   "stack": 1,
   "type": "Armor Set",

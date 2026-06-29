@@ -8,7 +8,7 @@
   "image": "/res/img/items/basket.png",
   "name": "Basket",
   "notes": [],
-  "price": 40,
+  "value": 40,
   "rarity": "common",
   "stack": 1,
   "tags": [

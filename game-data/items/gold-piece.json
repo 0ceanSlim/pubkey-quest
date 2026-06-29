@@ -2,7 +2,7 @@
   "id": "gold-piece",
   "name": "Gold Piece",
   "description": "A standard gold coin used as currency throughout the realm. Widely accepted for goods and services.",
-  "price": 1,
+  "value": 1,
   "type": "currency",
   "weight": 0.02,
   "stack": 1000000000000,

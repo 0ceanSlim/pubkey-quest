@@ -3,7 +3,7 @@
   "name": "Padded Leggings",
   "description": "Quilted cloth pants with thick padding for basic leg protection.",
   "rarity": "common",
-  "price": 200,
+  "value": 200,
   "weight": 3,
   "stack": 1,
   "type": "Light Armor",

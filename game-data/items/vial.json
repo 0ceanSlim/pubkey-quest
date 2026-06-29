@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Vial",
   "notes": [],
-  "price": 100,
+  "value": 100,
   "rarity": "common",
   "stack": 10,
   "tags": [],

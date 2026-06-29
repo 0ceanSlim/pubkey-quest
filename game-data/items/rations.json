@@ -1,7 +1,7 @@
 {
   "name": "Rations",
   "description": "Dried food packed in a waterproof bag, providing one day's sustenance for one person.",
-  "price": 50,
+  "value": 50,
   "type": "Food",
   "weight": 2,
   "stack": 10,

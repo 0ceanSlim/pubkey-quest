@@ -2,7 +2,7 @@
   "id": "dragon-scale",
   "name": "Dragon Scale",
   "description": "A brilliant scale from a young dragon, radiating intense elemental energy and magical resistance.",
-  "price": 500,
+  "value": 500,
   "type": "Spell Component",
   "weight": 0.5,
   "stack": 3,

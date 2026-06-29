@@ -3,7 +3,7 @@
   "name": "Barrel",
   "description": "NEEDS DESCRIPTION",
   "rarity": "common",
-  "price": 200,
+  "value": 200,
   "weight": 70,
   "stack": 1,
   "type": "Adventuring Gear",

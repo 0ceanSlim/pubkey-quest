@@ -3,7 +3,7 @@
   "name": "Blowgun",
   "description": "NEEDS DESCRIPTION",
   "rarity": "common",
-  "price": 1,
+  "value": 1,
   "weight": 1,
   "stack": 25,
   "type": "Martial Ranged Weapons",

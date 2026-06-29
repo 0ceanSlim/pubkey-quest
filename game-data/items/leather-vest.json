@@ -3,7 +3,7 @@
   "name": "Leather Vest",
   "description": "A supple leather vest that provides basic chest protection while maintaining flexibility.",
   "rarity": "common",
-  "price": 600,
+  "value": 600,
   "weight": 6,
   "stack": 1,
   "type": "Light Armor",

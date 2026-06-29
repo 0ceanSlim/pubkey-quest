@@ -56,6 +56,9 @@
     <!-- Quest Detail Modal (positioned over scene) -->
     {{template "game/quest-modal.html"}}
 
+    <!-- POI Exploration Modal (positioned over scene) -->
+    {{template "game/poi-modal.html"}}
+
     <!-- Combat Overlay (positioned over scene, shown during combat) -->
     {{template "game/combat-overlay.html"}}
 
@@ -86,6 +89,17 @@
       "
     >
       <h2 id="city-name" class="text-sm font-bold text-white">Kingdom</h2>
+    </div>
+    <!-- Active-quest tracker chip (one line over the scene; hidden when no active quest) -->
+    <div
+      id="quest-tracker"
+      class="hidden absolute"
+      style="top: 22px; left: 4px; max-width: 72%; background: rgba(0,0,0,0.7); border: 1px solid #b8860b; padding: 1px 6px; pointer-events: none; z-index: 35;"
+    >
+      <span
+        id="quest-tracker-text"
+        style="color: #facc15; font-size: 8px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;"
+      ></span>
     </div>
     <!-- Time indicator (top-right corner) -->
     <div

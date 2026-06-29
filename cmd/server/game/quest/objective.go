@@ -1,6 +1,8 @@
 package quest
 
 import (
+	"time"
+
 	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/types"
 )
@@ -82,7 +84,11 @@ func pruneCompleted(save *types.SaveFile, lookup QuestLookup) {
 	for _, qp := range save.QuestsActive {
 		quest, err := lookup(qp.QuestID)
 		if err == nil && quest != nil && qp.Stage >= len(quest.Stages) {
-			if !contains(save.QuestsCompleted, qp.QuestID) {
+			if IsRepeatable(quest.Category) {
+				// Daily/weekly: don't permanently complete — record the period so
+				// it re-opens next reset, and drop it from the active list.
+				markRepeatableDone(save, quest, time.Now())
+			} else if !contains(save.QuestsCompleted, qp.QuestID) {
 				save.QuestsCompleted = append(save.QuestsCompleted, qp.QuestID)
 			}
 			continue

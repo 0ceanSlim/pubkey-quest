@@ -17,6 +17,11 @@ import { showActionText, showMessage } from './messaging.js';
 import { moveToLocation } from '../logic/mechanics.js';
 import { updateAllDisplays } from './displayCoordinator.js';
 import { eventBus } from '../lib/events.js';
+import { loadEnvPOIs, getEnvPOIs, enterPOI } from './poiExplore.js';
+
+// How close (in 0–1 travel progress) the player must be to a discovered POI's
+// marker for its Enter button to appear on the travel screen.
+const POI_ENTER_WINDOW = 0.04;
 
 // Module-level state
 let lastDisplayedLocation = null;
@@ -66,6 +71,42 @@ async function fetchNPCsAtLocation(location, district, building = '', room = '')
         logger.error('Error fetching NPCs at location:', error);
         return [];
     }
+}
+
+// ensureDpadStructure rebuilds the left column's 3×3 travel D-pad if it isn't
+// currently there (e.g. it was replaced by "Exit Building" while inside a
+// building). Idempotent when the D-pad is already present.
+function ensureDpadStructure() {
+    const nav = document.getElementById('navigation-buttons');
+    if (!nav || document.getElementById('travel-center')) return;
+    nav.innerHTML = `
+        <h3 class="text-white text-[8px] font-bold uppercase mb-0.5 flex-shrink-0">Travel</h3>
+        <div class="grid grid-cols-3 grid-rows-3 gap-0.5 flex-1 min-h-0">
+            <div></div>
+            <div id="travel-n" class="flex items-center justify-center min-w-0 min-h-0"></div>
+            <div></div>
+            <div id="travel-w" class="flex items-center justify-center min-w-0 min-h-0"></div>
+            <div id="travel-center" class="flex items-center justify-center min-w-0 min-h-0"></div>
+            <div id="travel-e" class="flex items-center justify-center min-w-0 min-h-0"></div>
+            <div></div>
+            <div id="travel-s" class="flex items-center justify-center min-w-0 min-h-0"></div>
+            <div></div>
+        </div>`;
+}
+
+// renderLeaveColumn turns the left column into the building "Leave" control —
+// a single Exit Building button. The D-pad returns via ensureDpadStructure once
+// you step back outside.
+function renderLeaveColumn() {
+    const nav = document.getElementById('navigation-buttons');
+    if (!nav) return;
+    nav.innerHTML = `<h3 class="text-white text-[8px] font-bold uppercase mb-0.5 flex-shrink-0">Leave</h3>`;
+    const wrap = document.createElement('div');
+    wrap.className = 'flex flex-col gap-0.5';
+    const exitBtn = createLocationButton('Exit Building', () => exitBuilding(), 'building');
+    exitBtn.style.fontSize = '9px';
+    wrap.appendChild(exitBtn);
+    nav.appendChild(wrap);
 }
 
 /**
@@ -211,22 +252,22 @@ export async function displayCurrentLocation() {
         npcs = npcData || [];
     });
 
-    // Inside a building: the Buildings column becomes the building's Rooms (move
-    // between them) plus Exit. A building with no rooms just shows Exit (as before).
-    if (currentBuildingId && buildings) {
+    // Inside a building the bottom bar is re-tasked per context (rendered column by
+    // column below): Left = Exit Building, Middle = Rooms (or Exit Room when you're
+    // in one), Right = the people + actions for the room you're in. Outdoors none of
+    // this applies and the bar stays travel / buildings / people.
+    const inBuilding = !!currentBuildingId;
+    let inSubRoom = false;        // standing in a sub-room, not the common/default room
+    let defaultRoom = '';         // the common room — where Exit Room returns you
+    let enterableRooms = [];      // sub-rooms you can move into from the common room
+    if (inBuilding && buildings) {
         const currentBuilding = buildings.find(b => b.id === currentBuildingId);
         if (currentBuilding) {
             const roomData = await fetchRoomsInBuilding();
-            const roomButtons = (roomData.rooms || [])
-                .filter(rm => !rm.is_current) // not the room you're already in
-                .map(rm => ({
-                    isRoom: true,
-                    roomId: rm.id,
-                    name: rm.accessible ? rm.name : `🔒 ${rm.name}`,
-                    accessible: rm.accessible,
-                    lockedReason: rm.locked_reason,
-                }));
-            buildings = [...roomButtons, { id: '__exit__', name: 'Exit Building', isExit: true }];
+            defaultRoom = roomData.default_room || '';
+            const currentRoom = roomData.current_room || '';
+            inSubRoom = !!(defaultRoom && currentRoom && currentRoom !== defaultRoom);
+            enterableRooms = (roomData.rooms || []).filter(rm => !rm.is_current);
 
             // Scene header: "Building — Room"
             const districtNameEl = document.getElementById('district-name');
@@ -237,7 +278,11 @@ export async function displayCurrentLocation() {
         }
     }
 
-    // 1. NAVIGATION BUTTONS (D-pad style with cardinal directions)
+    // 1. LEFT COLUMN — the travel D-pad outdoors; "Exit Building" once you're inside.
+    if (inBuilding) {
+        renderLeaveColumn();
+    } else {
+    ensureDpadStructure();
     logger.debug('Navigation connections:', connections);
     if (connections) {
         // Clear all D-pad slots first
@@ -285,66 +330,39 @@ export async function displayCurrentLocation() {
     } else {
         logger.debug('No connections found for this location');
     }
+    }
 
-    // 2. BUILDING BUTTONS - Build in fragment first, then replace atomically to reduce flicker
+    // 2. MIDDLE COLUMN — town buildings outdoors; the building's Rooms (or Exit Room) inside.
     if (buildingContainer) {
+        const buildingHeader = buildingContainer.querySelector('h3');
+        if (buildingHeader) buildingHeader.textContent = inBuilding ? 'Rooms' : 'Buildings';
         const buildingButtonContainer = buildingContainer.querySelector('div');
         const buildingFragment = document.createDocumentFragment();
+        // Get current time of day from game state in minutes (0-1439)
+        const timeInMinutes = state.character?.time_of_day !== undefined ? state.character.time_of_day : 720;
 
-        if (buildings && buildings.length > 0) {
-            // Get current time of day from game state in minutes (0-1439)
-            const timeInMinutes = state.character?.time_of_day !== undefined ? state.character.time_of_day : 720;
-
+        if (inBuilding) {
+            // In a sub-room → a single "Exit Room" back to the common room. In the
+            // common room → the rooms you can enter (teal; locked rooms show 🔒).
+            // A building with no sub-rooms leaves this column empty (collapses).
+            if (inSubRoom) {
+                const exitRoomBtn = createLocationButton('Exit Room', () => moveToRoom(defaultRoom, true, ''), 'building');
+                exitRoomBtn.style.fontSize = '9px';
+                buildingFragment.appendChild(exitRoomBtn);
+            } else {
+                enterableRooms.forEach(rm => {
+                    const label = rm.accessible ? rm.name : `🔒 ${rm.name}`;
+                    const roomBtn = createLocationButton(
+                        label,
+                        () => moveToRoom(rm.id, rm.accessible, rm.locked_reason),
+                        rm.accessible ? 'room' : 'building-closed'
+                    );
+                    if (!rm.accessible) roomBtn.classList.add('opacity-60');
+                    buildingFragment.appendChild(roomBtn);
+                });
+            }
+        } else if (buildings && buildings.length > 0) {
             buildings.forEach(building => {
-                // Check if this is the special "Exit Building" button
-                if (building.isExit) {
-                    const button = createLocationButton(
-                        building.name,
-                        () => exitBuilding(),
-                        'building'  // Use green for exit button
-                    );
-                    buildingFragment.appendChild(button);
-
-                    // Check if player has a rented room here - add Sleep button
-                    const hasRentedRoom = checkIfRoomRented(currentBuildingId);
-                    if (hasRentedRoom) {
-                        const sleepButton = createLocationButton(
-                            'Sleep',
-                            () => sleepInRoom(),
-                            'action'  // Special color for action
-                        );
-                        buildingFragment.appendChild(sleepButton);
-                    }
-
-                    // Check if player has a booked show at the right time - add Play Show button
-                    const hasShow = checkIfShowReady(currentBuildingId, timeInMinutes);
-                    if (hasShow) {
-                        const showButton = createLocationButton(
-                            'Play Show',
-                            () => performShow(),
-                            'action'  // Special color for action
-                        );
-                        buildingFragment.appendChild(showButton);
-                    }
-
-                    return;
-                }
-
-                // Room button (inside a building) — move between rooms; locked
-                // rooms show 🔒 and explain why on click.
-                if (building.isRoom) {
-                    const roomButton = createLocationButton(
-                        building.name,
-                        () => moveToRoom(building.roomId, building.accessible, building.lockedReason),
-                        building.accessible ? 'building' : 'building-closed'
-                    );
-                    if (!building.accessible) {
-                        roomButton.classList.add('opacity-60');
-                    }
-                    buildingFragment.appendChild(roomButton);
-                    return;
-                }
-
                 // Check if building is currently open (pass time in minutes)
                 const isOpen = isBuildingOpen(building, timeInMinutes);
 
@@ -358,12 +376,18 @@ export async function displayCurrentLocation() {
                     button.dataset.buildingId = building.id; // For delta applier
                     buildingFragment.appendChild(button);
                 } else {
-                    // Closed building - grey styling with different click handler
+                    // Closed building — show it locked, and (when it opens on a
+                    // schedule, not a private -1) note the opening time in the nav.
+                    const openMin = typeof building.open === 'number' ? building.open : -1;
+                    const opensNote = openMin >= 0
+                        ? `\nopens ${formatTime(Math.floor(openMin / 60), openMin % 60)}`
+                        : '';
                     const button = createLocationButton(
-                        building.name,
+                        `🔒 ${building.name}${opensNote}`,
                         () => showBuildingClosedMessage(building),
                         'building-closed'
                     );
+                    button.style.whiteSpace = 'pre-line';
                     button.dataset.buildingId = building.id; // For delta applier
                     button.disabled = true;
                     button.classList.add('opacity-50', 'cursor-not-allowed');
@@ -382,28 +406,45 @@ export async function displayCurrentLocation() {
         buildingButtonContainer.replaceChildren(buildingFragment);
     }
 
-    // 3. NPC BUTTONS - Build in fragment first, then replace atomically to reduce flicker
+    // 3. RIGHT COLUMN — the people in this room, plus the actions you can take here.
+    // Outdoors it's just the people; inside a building the room's actions (Sleep in
+    // your rented room, Play Show when one's booked) sit alongside them.
     if (npcContainer) {
+        const npcHeader = npcContainer.querySelector('h3');
+        if (npcHeader) npcHeader.textContent = inBuilding ? 'People & Actions' : 'People';
         const npcButtonContainer = npcContainer.querySelector('div');
         const npcFragment = document.createDocumentFragment();
+        const timeInMinutes = state.character?.time_of_day !== undefined ? state.character.time_of_day : 720;
 
-        if (npcs && npcs.length > 0) {
-            npcs.forEach(npcId => {
-                const npcData = getNPCById(npcId);
-                const displayName = npcData ? npcData.name : npcId.replace(/_/g, ' ');
-                const button = createLocationButton(
-                    displayName,
-                    () => talkToNPC(npcId),
-                    'npc'
-                );
-                button.dataset.npcId = npcId; // For delta applier
-                npcFragment.appendChild(button);
-            });
-        } else {
-            // Show message when no NPCs in district (they're all in buildings)
+        // People present in this room (already room-scoped by the NPC fetch above).
+        (npcs || []).forEach(npcId => {
+            const npcData = getNPCById(npcId);
+            const displayName = npcData ? npcData.name : npcId.replace(/_/g, ' ');
+            const button = createLocationButton(displayName, () => talkToNPC(npcId), 'npc');
+            button.dataset.npcId = npcId; // For delta applier
+            npcFragment.appendChild(button);
+        });
+
+        // Room actions (in-building only): Sleep in your rented room, Play Show when ready.
+        let actionCount = 0;
+        if (inBuilding) {
+            if (inSubRoom && checkIfRoomRented(currentBuildingId)) {
+                const sleepButton = createLocationButton('Sleep', () => sleepInRoom(), 'action');
+                npcFragment.appendChild(sleepButton);
+                actionCount++;
+            }
+            if (checkIfShowReady(currentBuildingId, timeInMinutes)) {
+                const showButton = createLocationButton('Play Show', () => performShow(), 'action');
+                npcFragment.appendChild(showButton);
+                actionCount++;
+            }
+        }
+
+        // Empty-state message only when there's truly nothing here.
+        if ((npcs || []).length === 0 && actionCount === 0) {
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'empty-message text-gray-400 text-xs p-2 text-center italic';
-            emptyMessage.textContent = 'No one here. Check buildings.';
+            emptyMessage.textContent = inBuilding ? 'Nothing to do here.' : 'No one here. Check buildings.';
             npcFragment.appendChild(emptyMessage);
         }
 
@@ -453,7 +494,7 @@ function displayTravelView(state, envData) {
     }
 
     // Store travel metadata for updateTravelProgress to use
-    _travelViewMeta = { travelTime, originName, destName };
+    _travelViewMeta = { travelTime, originName, destName, envId: envData.id || state.location.current };
 
     const progressPct = Math.min(Math.floor(travelProgress * 100), 100);
     const timeRemainingStr = formatTravelTimeRemaining(travelTime, travelProgress);
@@ -521,8 +562,9 @@ function displayTravelView(state, envData) {
     labels.innerHTML = `<span>${originName}</span><span>${destName}</span>`;
     progressSection.appendChild(labels);
 
-    // Progress bar container
+    // Progress bar container (holds the fill plus the discovered-POI markers)
     const barContainer = document.createElement('div');
+    barContainer.id = 'travel-bar-container';
     barContainer.style.cssText = 'width: 100%; height: 10px; background: #1a1a1a; border: 1px solid #4a4a4a; position: relative;';
 
     const barFill = document.createElement('div');
@@ -539,6 +581,15 @@ function displayTravelView(state, envData) {
     progressSection.appendChild(progressText);
 
     actionButtons.appendChild(progressSection);
+
+    // -- Enter buttons for discovered POIs the player has reached --
+    // Populated by paintPOIEnterButtons; hidden until a POI is in range. Sits
+    // above the travel controls so reaching a point of interest is the prominent
+    // choice without crowding out Stop/Continue.
+    const poiEnterRow = document.createElement('div');
+    poiEnterRow.id = 'poi-enter-row';
+    poiEnterRow.style.cssText = 'width: 100%; display: none; gap: 4px; flex-wrap: wrap;';
+    actionButtons.appendChild(poiEnterRow);
 
     // -- Full-width travel control buttons --
     const controlsSection = document.createElement('div');
@@ -567,6 +618,64 @@ function displayTravelView(state, envData) {
     statusMsg.style.cssText = 'text-align: center; color: #9ca3af; font-size: 8px; font-style: italic;';
     statusMsg.textContent = isStopped ? 'Resting in the wilderness.' : 'Traveling...';
     actionButtons.appendChild(statusMsg);
+
+    // Load this environment's discovered POIs, then paint markers + any in-range
+    // Enter buttons. Fire-and-forget: the bar is already on screen.
+    loadEnvPOIs().then(() => {
+        paintPOIMarkers();
+        paintPOIEnterButtons(travelProgress);
+    });
+}
+
+// paintPOIMarkers draws a pin on the progress bar for each discovered POI in the
+// current environment, at its position along the route.
+function paintPOIMarkers() {
+    const container = document.getElementById('travel-bar-container');
+    if (!container) return;
+    container.querySelectorAll('.poi-marker').forEach((m) => m.remove());
+    getEnvPOIs().forEach((p) => {
+        const pct = Math.min(Math.max(p.position * 100, 0), 100);
+        const dot = document.createElement('div');
+        dot.className = 'poi-marker';
+        dot.title = p.name;
+        dot.style.cssText =
+            `position:absolute; top:-3px; left:${pct}%; transform:translateX(-50%); width:5px; height:16px; ` +
+            'background:#fbbf24; border:1px solid #000; pointer-events:none; box-shadow:0 0 3px rgba(251,191,36,0.8);';
+        container.appendChild(dot);
+    });
+}
+
+// paintPOIEnterButtons shows an Enter button for each discovered POI within
+// POI_ENTER_WINDOW of the current progress, and hides the row when none are near.
+function paintPOIEnterButtons(progress) {
+    const row = document.getElementById('poi-enter-row');
+    if (!row) return;
+    const near = getEnvPOIs().filter((p) => Math.abs(progress - p.position) <= POI_ENTER_WINDOW);
+    row.innerHTML = '';
+    if (!near.length) {
+        row.style.display = 'none';
+        return;
+    }
+    row.style.display = 'flex';
+    near.forEach((p) => {
+        const btn = createLocationButton(`🗺️ Enter: ${p.name}`, () => enterPOI(p.id), 'building');
+        btn.style.flex = '1';
+        btn.style.fontSize = '9px';
+        row.appendChild(btn);
+    });
+}
+
+/**
+ * Reload the current environment's discovered POIs and repaint the travel
+ * markers/buttons. Called when a new POI is discovered mid-travel so its marker
+ * appears immediately.
+ */
+export async function refreshTravelPOIMarkers() {
+    if (!document.getElementById('travel-bar-container')) return;
+    await loadEnvPOIs();
+    const progress = getGameStateSync()?.location?.travel_progress ?? 0;
+    paintPOIMarkers();
+    paintPOIEnterButtons(progress);
 }
 
 /**
@@ -658,6 +767,11 @@ export function updateTravelProgress(progress) {
         const timeStr = formatTravelTimeRemaining(_travelViewMeta.travelTime, progress);
         textEl.textContent = `${pct}% — ${timeStr} remaining`;
     }
+
+    // Surface/hide Enter buttons as the player passes discovered POIs (markers are
+    // static; this uses the already-cached env POI list, so it's cheap per tick).
+    paintPOIMarkers();
+    paintPOIEnterButtons(progress);
 }
 
 /**
@@ -734,10 +848,11 @@ export function createLocationButton(text, onClick, type = 'navigation') {
     const typeStyles = {
         navigation: '#6b7a9e',      // City districts - muted blue
         environment: '#9e6b6b',     // Outside city - muted red
-        building: '#6b8e6b',        // Open buildings - muted green
+        building: '#6b8e6b',        // Open buildings / exits - muted green
         'building-closed': '#808080', // Closed buildings - grey
         npc: '#8b6b9e',             // NPCs - muted purple
-        action: '#9e8b6b'           // Special actions (sleep, play show) - muted gold
+        action: '#9e8b6b',          // Special actions (sleep, play show) - muted gold
+        room: '#4a9e8b'             // Rooms inside a building - muted teal
     };
 
     const bgColor = typeStyles[type] || typeStyles.navigation;
@@ -1674,8 +1789,11 @@ export async function sleepInRoom() {
             showMessage(result.error || 'Failed to sleep', 'error');
         }
     } catch (error) {
+        // sendAction throws on a rejected sleep (success:false); the thrown
+        // message is the server's reason ("Head to your rented room to sleep.",
+        // "It's too early to sleep…", etc.) — show it so the player knows why.
         logger.error('Error sleeping:', error);
-        showMessage('❌ Failed to sleep', 'error');
+        showMessage(error?.message || 'Failed to sleep', 'error');
     }
 }
 

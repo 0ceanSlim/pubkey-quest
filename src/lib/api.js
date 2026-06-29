@@ -73,7 +73,10 @@ class GameAPI {
             const result = await response.json();
 
             if (!result.success) {
-                throw new Error(result.error || 'Action failed');
+                // Surface the server's human-readable reason. Handlers put the
+                // explanation in `message` (e.g. "Head to your rented room to
+                // sleep."); fall back to `error`, then a generic string.
+                throw new Error(result.error || result.message || 'Action failed');
             }
 
             logger.info(`Action completed: ${actionType}`, result.message);

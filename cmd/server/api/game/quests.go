@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
@@ -204,18 +205,37 @@ func injectQuestOffers(resp *types.GameActionResponse, npcID string, state *type
 	}
 	ctx := buildQuestContext(state)
 
+	offer := func(q types.QuestData) map[string]interface{} {
+		return map[string]interface{}{
+			"id":          q.ID,
+			"name":        q.Name,
+			"category":    string(q.Category),
+			"difficulty":  q.Difficulty,
+			"description": q.Description,
+		}
+	}
+
 	var offers []map[string]interface{}
 	for _, q := range all {
 		if q.StartCondition.Type == "talk" && q.StartCondition.Target == npcID && quest.CanStart(q, state, ctx) {
-			offers = append(offers, map[string]interface{}{
-				"id":          q.ID,
-				"name":        q.Name,
-				"category":    string(q.Category),
-				"difficulty":  q.Difficulty,
-				"description": q.Description,
-			})
+			offers = append(offers, offer(q))
 		}
 	}
+
+	// Innkeepers (the room-renting NPC, marked by inn_config) hand out the day's
+	// daily and week's weekly bounty — the current pick from each pool, if the
+	// player hasn't done it this period and meets its requirements.
+	if npcData, err := serverdb.GetNPCByID(npcID); err == nil && len(npcData.InnConfig) > 0 {
+		now := time.Now()
+		for _, cat := range []types.QuestCategory{types.QuestDaily, types.QuestWeekly} {
+			if q, ok := quest.CurrentRepeatable(all, cat, now); ok &&
+				quest.RepeatableAvailable(q, state, all, now) &&
+				requirement.Evaluate(q.Requirements, ctx).OK {
+				offers = append(offers, offer(q))
+			}
+		}
+	}
+
 	if len(offers) > 0 {
 		dlg["offered_quests"] = offers
 	}

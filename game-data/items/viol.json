@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Viol",
   "notes": [],
-  "price": 3000,
+  "value": 3000,
   "rarity": "common",
   "stack": 1,
   "tags": [],

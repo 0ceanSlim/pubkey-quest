@@ -9,7 +9,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Pouch",
   "notes": [],
-  "price": 0,
+  "value": 0,
   "rarity": "common",
   "slots": "4",
   "stack": 1,

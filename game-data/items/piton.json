@@ -5,7 +5,7 @@
   "img": "equipment/adventuring-gear.jpg",
   "name": "Piton",
   "notes": [],
-  "price": 5,
+  "value": 5,
   "rarity": "common",
   "stack": 20,
   "tags": [],

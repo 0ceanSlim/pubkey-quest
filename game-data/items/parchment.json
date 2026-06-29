@@ -4,7 +4,7 @@
   "image": "/res/img/items/parchment.png",
   "name": "Parchment",
   "notes": [],
-  "price": 10,
+  "value": 10,
   "rarity": "common",
   "stack": 10,
   "tags": [],

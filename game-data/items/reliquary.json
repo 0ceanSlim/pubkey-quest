@@ -3,7 +3,7 @@
   "name": "Reliquary",
   "description": "NEEDS DESCRIPTION",
   "rarity": "rare",
-  "price": 500,
+  "value": 500,
   "weight": 2,
   "stack": 1,
   "type": "Holy Symbol",

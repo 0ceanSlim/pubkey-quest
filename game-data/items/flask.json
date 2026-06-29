@@ -4,7 +4,7 @@
   "image": "/res/img/items/flask.png",
   "name": "Flask",
   "notes": [],
-  "price": 2,
+  "value": 2,
   "rarity": "common",
   "stack": 1,
   "tags": [],

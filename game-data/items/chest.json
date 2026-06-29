@@ -3,7 +3,7 @@
   "name": "Chest",
   "description": "A large wooden chest reinforced with iron bands, perfect for storing valuables and equipment.",
   "rarity": "common",
-  "price": 5,
+  "value": 5,
   "weight": 25,
   "stack": 1,
   "type": "Adventuring Gear",

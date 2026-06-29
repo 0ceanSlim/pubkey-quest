@@ -7,7 +7,7 @@
   "notes": [
     "Used with the Crafting skill to craft and repair equipment"
   ],
-  "price": 2000,
+  "value": 2000,
   "rarity": "common",
   "stack": 1,
   "tags": [],

@@ -178,6 +178,68 @@
             <span class="text-green-500">✓</span>
             <span>ES6 Module System (Vite build, modern JS architecture)</span>
           </div>
+
+          <!-- Combat -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Turn-Based Combat</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Grid combat with initiative, two-phase turns, 0–6 range, full weapon properties, ammo, opportunity attacks, disengage/dash, hold &amp; ready, flee, death saves, loot, and a defeat penalty.
+            </div>
+          </div>
+
+          <!-- Travel -->
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>World Travel (traverse environments between towns, live progress, fatigue, arrival discovery)</span>
+          </div>
+
+          <!-- POIs -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Points of Interest</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Discover landmarks &amp; dungeons while travelling, then explore them as branching node walks — narrative, choices gated by skills/items, skill checks, loot, and combat that resumes the walk on victory.
+            </div>
+          </div>
+
+          <!-- Encounters -->
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Encounters (random biome fights scaled to level + hand-authored roadside vignettes)</span>
+          </div>
+
+          <!-- Quests -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Quest System</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Main / side / class / race quests started by talking to NPCs, objective tracking (slay, fetch, explore, talk, skill-check), stage rewards, an on-screen objective tracker, and <strong>rotating daily quests</strong> handed out by innkeepers.
+            </div>
+          </div>
+
+          <!-- Progression -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Character Progression</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Level up from XP, spend ability points, growing HP/mana — a real "get stronger" loop.
+            </div>
+          </div>
+
+          <!-- Rooms -->
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Building Rooms (enter inns/taverns, rent a room, sleep, room-scoped NPCs)</span>
+          </div>
         </div>
       </div>
 
@@ -187,29 +249,37 @@
           <span>🔥</span> Current Focus: Road to Alpha
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          The last remaining systems before alpha release:
+          The core loop — explore, fight, quest, level up — is in. These are the systems still
+          being built before the alpha release:
         </p>
         <div class="space-y-3 win95-inset p-4 rounded-lg">
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Environmental Traversal</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Spells &amp; Items as Real Systems</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Connect all locations so players can travel the world</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Cast spells in and out of combat, drink potions and throw items mid-fight, and use spell scrolls. (Spell <em>preparation</em> already works; casting is next.)</div>
           </div>
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Points of Interest</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Combat Completion</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Discoverable landmarks, dungeons, wilderness encounters</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Class abilities (Rage, Second Wind, Ki…), conditions (poisoned, prone, frightened…), and saving throws — so every class has more than just "attack."</div>
           </div>
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Combat System</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Presentation Overhaul</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Turn-based combat encounters with D&D mechanics</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">NPC dialogue moved onto the scene with animated text, sharper scaling and fonts, richer equipment/stat readouts, and a general UI pass.</div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-orange-500">⟳</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Content &amp; Release Pass</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Author the missing quest items, monsters, and quest NPCs; fix content references; final release engineering and a guided tutorial.</div>
           </div>
         </div>
       </div>
@@ -220,7 +290,7 @@
           <span>🎯</span> Alpha to Beta
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          Once traversal, combat, and points of interest are in, it's alpha. Road to beta:
+          Once spells/items/abilities round out combat and the presentation pass lands, it's alpha. Road to beta:
         </p>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
@@ -262,10 +332,6 @@
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
             <span>Nostr Relay Integration (save files as Nostr events)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">&#9744;</span>
-            <span>Quest System design and implementation</span>
           </div>
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
@@ -312,8 +378,8 @@
 
       <div class="win95-inset p-4 rounded-lg">
         <p class="text-sm" style="color: var(--color-textMuted);">
-          <strong>Current Phase:</strong> Pre-Alpha - Road to Alpha<br>
-          <strong>Next Milestone:</strong> Alpha release (environmental traversal + combat + points of interest)<br>
+          <strong>Current Phase:</strong> Pre-Alpha — core loop complete (explore, fight, quest, level up); finishing spells/abilities, combat depth, and a presentation pass.<br>
+          <strong>Next Milestone:</strong> Alpha release (spells &amp; items in combat, class abilities, dialogue/UI overhaul).<br>
           <strong>Contributions Welcome!</strong> See the Contribute tab to help build Pubkey Quest.
         </p>
       </div>

@@ -10,6 +10,7 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/api/data"
+	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
@@ -190,10 +191,26 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					response.Data["music_unlocked"] = travelUpdate.MusicUnlocked
 				} else {
 					// Still out in the wild — roll for a biome monster encounter,
-					// and for discovering any POI we just travelled past.
+					// for an authored travel encounter, and for discovering any POI
+					// we just travelled past.
 					maybeRollTravelEncounter(session, state, minutesElapsed, response)
+					maybeFireEncounter(session, "travel", []string{state.Location}, response)
 					maybeDiscoverPOIs(state, oldProgress, response)
 				}
+			}
+		}
+
+		// Moving into a city district can trigger a location-scoped encounter
+		// (e.g. a pickpocket). District ids are "{location}-{district}".
+		if action.Type == "move" {
+			maybeFireEncounter(session, "location", []string{state.Location + "-" + state.District}, response)
+		}
+
+		// Entering a building can trigger a building_type encounter (e.g. a tavern
+		// brawler in any tavern/inn).
+		if action.Type == "enter_building" && state.Building != "" {
+			if btype, err := building.GetBuildingType(serverdb.GetDB(), state.Location, state.Building); err == nil && btype != "" {
+				maybeFireEncounter(session, "building_type", []string{btype}, response)
 			}
 		}
 	}
@@ -719,6 +736,13 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 	totalWeight := status.CalculateTotalWeight(&session.SaveData)
 	weightCapacity := status.CalculateWeightCapacity(&session.SaveData)
 
+	// Level is derived from XP (never stored — hydration rule). Send it so the UI's
+	// level number and XP bar track the right interval instead of defaulting to 1.
+	level := 1
+	if adv, err := loadAdvancement(); err == nil {
+		level = character.GetLevelFromXP(session.SaveData.Experience, adv)
+	}
+
 	// Include session-specific data in the response
 	stateWithSession := map[string]any{
 		"success": true,
@@ -730,6 +754,7 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"class":                 session.SaveData.Class,
 			"background":            session.SaveData.Background,
 			"alignment":             session.SaveData.Alignment,
+			"level":                 level,
 			"experience":            session.SaveData.Experience,
 			"hp":                    session.SaveData.HP,
 			"max_hp":                session.SaveData.MaxHP,

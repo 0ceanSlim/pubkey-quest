@@ -2,7 +2,7 @@
   "id": "mushroom-spores",
   "name": "Mushroom Spores",
   "description": "Microscopic fungal seeds that spread decay and disease, glowing faintly with sickly green light.",
-  "price": 45,
+  "value": 45,
   "type": "Spell Component",
   "weight": 0.05,
   "stack": 20,

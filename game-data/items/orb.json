@@ -9,7 +9,7 @@
     "Can be used as a spellcasting focus for arcane magic",
     "Provides unlimited Ether Essence for teleportation and dimensional magic"
   ],
-  "price": 2000,
+  "value": 2000,
   "provides": "ether-essence",
   "rarity": "common",
   "stack": 1,
