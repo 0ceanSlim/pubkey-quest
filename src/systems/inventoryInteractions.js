@@ -1437,8 +1437,9 @@ export async function storeInVault(itemId, fromSlot, fromSlotType) {
     const vaultSlots = document.querySelectorAll('[data-vault-slot]');
     if (vaultSlots.length === 0) return;
 
-    const buildingId = vaultSlots[0].getAttribute('data-vault-building');
-    if (!buildingId) return;
+    // May be empty for some vaults (legacy location-format); the backend
+    // resolves it from the player's current building, so don't bail here.
+    const buildingId = vaultSlots[0].getAttribute('data-vault-building') || '';
 
     // Find first free vault slot
     let freeVaultSlot = null;

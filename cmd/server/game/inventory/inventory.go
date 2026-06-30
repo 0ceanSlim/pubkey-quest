@@ -528,6 +528,13 @@ func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) 
 	if params["vault_building"] != nil {
 		vaultBuilding, _ = params["vault_building"].(string)
 	}
+	// Fall back to the building the player is standing in. The client reads the
+	// id from a data attribute that can be empty for some vaults (e.g. a vault
+	// stored in the legacy location format), which silently broke deposits in
+	// any town that wasn't the one whose vault first registered.
+	if (fromSlotType == "vault" || toSlotType == "vault") && vaultBuilding == "" {
+		vaultBuilding = state.Building
+	}
 
 	// Get from slots
 	switch fromSlotType {

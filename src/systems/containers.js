@@ -157,8 +157,6 @@ async function renderContainerSlots(grid, totalSlots, contents) {
             // Get item data
             const itemData = getItemById(slotItem.item);
             if (itemData) {
-                // Set draggable
-                slot.setAttribute('draggable', 'true');
                 slot.setAttribute('data-item-id', slotItem.item);
 
                 // Create image container (matching inventory structure)
@@ -188,19 +186,11 @@ async function renderContainerSlots(grid, totalSlots, contents) {
                     slot.appendChild(qty);
                 }
 
-                // Bind left-click to remove item from container
-                slot.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    logger.info(`👆 Container slot clicked - removing item from slot ${i}`);
-                    removeFromContainer(i);
-                });
+                // Click (remove) and drag in/out are handled by the unified
+                // pointer core (slotInteractions.js) via the data-container-slot
+                // marker — see routeClick/routeDrop's 'container' surface.
 
-                // Bind drag events
-                slot.addEventListener('dragstart', (e) => handleContainerDragStart(e, slotItem.item, i));
-                slot.addEventListener('dragend', handleContainerDragEnd);
-
-                // Bind right-click for context menu
+                // Bind right-click for context menu (desktop)
                 slot.addEventListener('contextmenu', (e) => {
                     logger.info(`⚡ Container contextmenu event fired for slot ${i}, item: ${slotItem.item}`);
                     e.preventDefault();
@@ -220,10 +210,6 @@ async function renderContainerSlots(grid, totalSlots, contents) {
             placeholder.textContent = '+';
             slot.appendChild(placeholder);
         }
-
-        // All slots can receive drops
-        slot.addEventListener('dragover', handleContainerDragOver);
-        slot.addEventListener('drop', (e) => handleContainerDrop(e, i));
 
         grid.appendChild(slot);
     }
@@ -310,10 +296,45 @@ async function handleContainerDrop(e, toSlotIndex) {
     }
 }
 
+/** The currently open container (or null), for the pointer core. */
+export function getOpenContainer() {
+    return currentOpenContainer;
+}
+
+/**
+ * Add an item from inventory into the currently open container. Used by the
+ * pointer core for both click-to-add (when a container is open) and drag-into
+ * the open-container modal.
+ */
+export async function addToOpenContainer(itemId, fromSlot, fromSlotType, toContainerSlot = -1) {
+    if (!currentOpenContainer) return;
+    try {
+        const result = await gameAPI.sendAction('add_to_container', {
+            item_id: itemId,
+            from_slot: fromSlot,
+            from_slot_type: fromSlotType,
+            container_slot: currentOpenContainer.fromSlot,
+            container_slot_type: currentOpenContainer.fromSlotType,
+            to_container_slot: toContainerSlot,
+        });
+        if (result.success) {
+            showActionText(result.message, result.color || 'green');
+            await refreshGameState();
+            await updateAllDisplays();
+            await openContainer(currentOpenContainer.itemId, currentOpenContainer.fromSlot, currentOpenContainer.fromSlotType);
+        } else {
+            showActionText(result.error || result.message, result.color || 'red');
+        }
+    } catch (error) {
+        logger.error('Failed to add item to container:', error);
+        showActionText('Failed to add item to container', 'red');
+    }
+}
+
 /**
  * Remove item from container
  */
-async function removeFromContainer(slotIndex) {
+export async function removeFromContainer(slotIndex) {
     logger.info(`🔍 removeFromContainer called - slotIndex: ${slotIndex}`);
 
     if (!currentOpenContainer) {

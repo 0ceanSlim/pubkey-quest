@@ -27,7 +27,7 @@ import { getItemById } from '../state/staticData.js';
 import { updateCharacterDisplay } from '../ui/characterDisplay.js';
 import { showMessage, showActionText } from '../ui/messaging.js';
 import { showVaultUI } from '../ui/locationDisplay.js';
-import { openContainer } from './containers.js';
+import { openContainer, getOpenContainer, addToOpenContainer, removeFromContainer } from './containers.js';
 import { isShopOpen, getCurrentTab, addItemToSell } from './shopSystem.js';
 import { deltaApplier } from './deltaApplier.js';
 import {
@@ -41,7 +41,7 @@ import {
     vaultOpen,
 } from './inventoryInteractions.js';
 
-const SLOT_SELECTOR = '[data-item-slot], [data-slot], [data-vault-slot]';
+const SLOT_SELECTOR = '[data-item-slot], [data-slot], [data-vault-slot], [data-container-slot]';
 const DRAG_THRESHOLD = 6;   // px of movement before a press becomes a drag
 const LONG_PRESS_MS = 500;  // touch long-press → context menu
 
@@ -77,8 +77,13 @@ export function initSlotInteractions() {
         if (!el) return;
         const d = readDescriptor(el);
         if (!d || !d.itemId) return;
+        if (d.surface === 'container') return; // container modal owns its own menu
         openContextMenu(d, e.clientX, e.clientY, e);
     });
+
+    // Hover label that follows the cursor (mouse only — touch has no hover).
+    document.addEventListener('mousemove', onHoverMove);
+    document.addEventListener('mouseleave', hideTip);
 
     logger.debug('Slot interactions (pointer core) initialized');
 }
@@ -94,6 +99,9 @@ function readDescriptor(el) {
             buildingId: el.getAttribute('data-vault-building'),
             itemId, el,
         };
+    }
+    if (el.hasAttribute('data-container-slot')) {
+        return { surface: 'container', index: parseInt(el.getAttribute('data-container-slot'), 10), itemId, el };
     }
     if (el.hasAttribute('data-slot')) {
         return { surface: 'equipment', slotName: el.getAttribute('data-slot'), itemId, el };
@@ -228,6 +236,18 @@ async function routeClick(src) {
     if (!src.itemId) return;
     const ref = src.surface === 'equipment' ? src.slotName : src.index;
 
+    // Clicking an item inside the open container modal removes it.
+    if (src.surface === 'container') {
+        await removeFromContainer(src.index);
+        return;
+    }
+
+    // A container modal is open: clicking an inventory item adds it in.
+    if (getOpenContainer() && (src.surface === 'general' || src.surface === 'inventory')) {
+        await addToOpenContainer(src.itemId, src.index, src.surface);
+        return;
+    }
+
     // Vault open: click moves between inventory and vault.
     if (vaultOpen) {
         if (src.surface === 'vault') await withdrawFromVault(src.itemId, src.index);
@@ -261,6 +281,19 @@ async function routeDrop(src, tgt) {
     if (!src.itemId) return;
     // No-op drop on the same slot.
     if (src.surface === tgt.surface && src.index === tgt.index && src.slotName === tgt.slotName) return;
+
+    // Into the open container modal: add an inventory item.
+    if (tgt.surface === 'container') {
+        if (src.surface === 'general' || src.surface === 'inventory') {
+            await addToOpenContainer(src.itemId, src.index, src.surface, tgt.index);
+        }
+        return; // container→container reorder isn't supported by the backend yet
+    }
+    // Out of the open container modal: remove to inventory.
+    if (src.surface === 'container') {
+        await removeFromContainer(src.index);
+        return;
+    }
 
     // Equip by dropping on an equipment slot (only from inventory/general).
     if (tgt.surface === 'equipment') {
@@ -366,6 +399,42 @@ function readSlotQuantity(desc) {
         return bp[desc.index]?.quantity || 1;
     }
     return 1;
+}
+
+// --- hover label (cursor-following, mouse only) --------------------------
+
+let tipEl = null;
+
+function ensureTip() {
+    if (tipEl) return tipEl;
+    tipEl = document.createElement('div');
+    tipEl.className = 'slot-hover-tip';
+    tipEl.style.cssText =
+        'position:fixed;z-index:2100;pointer-events:none;display:none;' +
+        'background:#1a1a1a;color:#fff;border:1px solid #6a6a6a;' +
+        'padding:2px 6px;font-size:10px;white-space:nowrap;' +
+        'box-shadow:1px 1px 0 #000;';
+    document.body.appendChild(tipEl);
+    return tipEl;
+}
+
+function onHoverMove(e) {
+    // Don't fight a drag, and don't show on touch-driven synthetic mouse moves.
+    if (pointerState && pointerState.dragging) { hideTip(); return; }
+    const el = e.target.closest && e.target.closest(SLOT_SELECTOR);
+    const itemId = el && el.getAttribute('data-item-id');
+    if (!el || !itemId) { hideTip(); return; }
+    const itemData = getItemById(itemId);
+    if (!itemData) { hideTip(); return; }
+    const tip = ensureTip();
+    tip.textContent = itemData.name || itemId;
+    tip.style.display = 'block';
+    tip.style.left = `${e.clientX + 14}px`;
+    tip.style.top = `${e.clientY + 14}px`;
+}
+
+function hideTip() {
+    if (tipEl) tipEl.style.display = 'none';
 }
 
 // Initialize as soon as the module loads (DOM-ready aware).
