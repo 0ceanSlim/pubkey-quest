@@ -19,6 +19,7 @@ import { getItemById, getSpellById, getLocationById, getNPCById, getAllMusicTrac
 import { saveGameToLocal } from '../systems/saveSystem.js';
 import '../systems/saveRitual.js'; // Auto-initializes save modal (Ctrl+S) + last-saved indicator
 import * as inventoryInteractions from '../systems/inventoryInteractions.js';
+import { initSlotInteractions } from '../systems/slotInteractions.js';
 import { openContainer, closeContainer } from '../systems/containers.js';
 import { initTimeClock, cleanupTimeClock } from '../systems/timeClock.js';
 import { initMusicSystem } from '../systems/musicSystem.js';
@@ -94,15 +95,17 @@ window.doEndTurn        = combatSystem.doEndTurn;
 window.rollDeathSave    = combatSystem.rollDeathSave;
 window.endCombat        = combatSystem.endCombat;
 
-// Initialize inventory interactions on DOM ready
+// Initialize inventory interactions on DOM ready. Slot interaction is now a
+// single delegated pointer-event layer (slotInteractions.js) — no per-render
+// rebinding needed; bindInventoryEvents() is a kept-for-compat no-op.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        inventoryInteractions.bindInventoryEvents();
+        initSlotInteractions();
         initTimeClock();
         // Music system will be initialized after game data loads
     });
 } else {
-    inventoryInteractions.bindInventoryEvents();
+    initSlotInteractions();
     initTimeClock();
     // Music system will be initialized after game data loads
 }

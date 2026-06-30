@@ -743,6 +743,10 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 		level = character.GetLevelFromXP(session.SaveData.Experience, adv)
 	}
 
+	// Equipment-derived combat stats (AC / attack / damage / ranged + ammo) for
+	// the Equipment tab — computed at runtime, never stored (hydration rule).
+	equippedStats := combat.BuildEquippedStats(serverdb.GetDB(), &session.SaveData, level)
+
 	// Include session-specific data in the response
 	stateWithSession := map[string]any{
 		"success": true,
@@ -782,6 +786,7 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			// Add calculated values (NOT persisted - calculated at runtime)
 			"total_weight":    totalWeight,
 			"weight_capacity": weightCapacity,
+			"equipped_stats":  equippedStats,
 
 			// Rentals live on the save now (survive reload); shows are session-only.
 			// "rented_rooms" kept as a compat alias until the P4 room UI rework.

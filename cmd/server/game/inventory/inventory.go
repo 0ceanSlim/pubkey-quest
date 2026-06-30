@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
+	"strings"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/effects"
@@ -12,6 +14,42 @@ import (
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/types"
 )
+
+// rollHealExpression rolls a heal dice string of the form "NdM", "NdM + K" or
+// "NdM - K" (e.g. healing potions: "2d4 + 2") and returns the total. Returns 0
+// on a malformed expression. Kept local because combat.ParseDice would create
+// an import cycle (combat imports inventory) and doesn't parse the ±K modifier.
+func rollHealExpression(expr string) int {
+	expr = strings.ToLower(strings.ReplaceAll(expr, " ", ""))
+
+	modifier := 0
+	if i := strings.IndexAny(expr, "+-"); i > 0 {
+		sign := 1
+		if expr[i] == '-' {
+			sign = -1
+		}
+		if m, err := strconv.Atoi(expr[i+1:]); err == nil {
+			modifier = sign * m
+		}
+		expr = expr[:i]
+	}
+
+	parts := strings.SplitN(expr, "d", 2)
+	if len(parts) != 2 {
+		return 0
+	}
+	count, err1 := strconv.Atoi(parts[0])
+	sides, err2 := strconv.Atoi(parts[1])
+	if err1 != nil || err2 != nil || count <= 0 || sides <= 0 {
+		return 0
+	}
+
+	total := 0
+	for i := 0; i < count; i++ {
+		total += rand.Intn(sides) + 1
+	}
+	return total + modifier
+}
 
 // slotQuantity reads a slot's "quantity", tolerating both the float64 that JSON
 // decoding produces and the int that in-Go slot edits store (e.g. a split writes
@@ -173,9 +211,25 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 		return []string{"Used"}
 	}
 
+	// Top-level heal dice. Healing potions store their heal as "heal": "2d4 + 2"
+	// with an empty effects array, so this must run independently of effects[].
+	if healExpr, ok := properties["heal"].(string); ok && healExpr != "" {
+		if rolled := rollHealExpression(healExpr); rolled > 0 {
+			oldHP := state.HP
+			state.HP = min(state.MaxHP, state.HP+rolled)
+			if state.HP > oldHP {
+				effectMessages = append(effectMessages, fmt.Sprintf("Healed %d HP", state.HP-oldHP))
+				log.Printf("✅ %s healed %d HP (rolled %s)", itemID, state.HP-oldHP, healExpr)
+			}
+		}
+	}
+
 	// Check if item has effects array
 	effectsRaw, hasEffects := properties["effects"]
 	if !hasEffects {
+		if len(effectMessages) > 0 {
+			return effectMessages
+		}
 		log.Printf("⚠️ Item %s has no effects defined", itemID)
 		return []string{"Used"}
 	}
@@ -183,6 +237,9 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 	// Parse effects array
 	effectsArray, ok := effectsRaw.([]interface{})
 	if !ok {
+		if len(effectMessages) > 0 {
+			return effectMessages
+		}
 		log.Printf("⚠️ Item %s has invalid effects format", itemID)
 		return []string{"Used"}
 	}

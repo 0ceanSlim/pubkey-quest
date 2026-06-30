@@ -113,10 +113,23 @@ func HandleAddToContainerAction(state *types.SaveFile, params map[string]interfa
 		containerSlots = int(val)
 	}
 
-	// Get allowed types
-	allowedTypes := "any"
-	if val, ok := properties["allowed_types"].(string); ok {
-		allowedTypes = val
+	// Get allowed types. The item JSON may store this as a single string or an
+	// array of strings (e.g. component-pouch: ["Spell Component"]). Empty or
+	// "any" means unrestricted. Reading it as a string only — as before — meant
+	// the array form failed the assertion and silently degraded to "any",
+	// letting anything into a type-restricted container.
+	var allowedTypes []string
+	switch v := properties["allowed_types"].(type) {
+	case string:
+		if v != "" && !strings.EqualFold(v, "any") {
+			allowedTypes = append(allowedTypes, v)
+		}
+	case []interface{}:
+		for _, t := range v {
+			if ts, ok := t.(string); ok && ts != "" && !strings.EqualFold(ts, "any") {
+				allowedTypes = append(allowedTypes, ts)
+			}
+		}
 	}
 
 	// Get container contents
@@ -167,38 +180,40 @@ func HandleAddToContainerAction(state *types.SaveFile, params map[string]interfa
 		}
 	}
 
-	// Validate item type if not "any"
-	if allowedTypes != "any" {
-		normalizedAllowedType := strings.Replace(allowedTypes, "-", "_", -1)
-		normalizedAllowedType = strings.TrimSuffix(normalizedAllowedType, "s")
-
-		itemAllowed := false
+	// Validate the item against the container's allowed types (if restricted).
+	if len(allowedTypes) > 0 {
+		// Candidate type identifiers from the item: its tags, plus item_type and
+		// type (the item JSON uses "type"; some rows also carry "item_type").
+		var candidates []string
 		if itemTags, ok := itemProperties["tags"].([]interface{}); ok {
 			for _, tag := range itemTags {
 				if tagStr, ok := tag.(string); ok {
-					normalizedTag := strings.Replace(tagStr, "-", "_", -1)
-					normalizedTag = strings.TrimSuffix(normalizedTag, "s")
-					if normalizedTag == normalizedAllowedType {
-						itemAllowed = true
-						break
-					}
+					candidates = append(candidates, normalizeContainerType(tagStr))
 				}
 			}
 		}
+		for _, key := range []string{"item_type", "type"} {
+			if itemType, ok := itemProperties[key].(string); ok && itemType != "" {
+				candidates = append(candidates, normalizeContainerType(itemType))
+			}
+		}
 
-		if !itemAllowed {
-			if itemType, ok := itemProperties["item_type"].(string); ok {
-				normalizedItemType := strings.Replace(strings.ToLower(itemType), " ", "_", -1)
-				normalizedItemType = strings.Replace(normalizedItemType, "-", "_", -1)
-				normalizedItemType = strings.TrimSuffix(normalizedItemType, "s")
-				if normalizedItemType == normalizedAllowedType {
+		itemAllowed := false
+		for _, allowed := range allowedTypes {
+			na := normalizeContainerType(allowed)
+			for _, c := range candidates {
+				if c == na {
 					itemAllowed = true
+					break
 				}
+			}
+			if itemAllowed {
+				break
 			}
 		}
 
 		if !itemAllowed {
-			return nil, fmt.Errorf("this item cannot be stored in this container (requires %s)", allowedTypes)
+			return nil, fmt.Errorf("this item cannot be stored in this container (requires %s)", strings.Join(allowedTypes, ", "))
 		}
 	}
 
@@ -511,4 +526,15 @@ func HandleRemoveFromContainerAction(state *types.SaveFile, params map[string]in
 		Message: fmt.Sprintf("Removed %dx %s from container", quantity, itemName),
 		Color:   "green",
 	}, nil
+}
+
+// normalizeContainerType canonicalizes a type/tag string for allowed_types
+// comparison: lowercased, spaces and hyphens to underscores, trailing plural
+// "s" trimmed. So the container's "Spell Component" and an item's
+// "spell_component" tag (or "Spell Component" type) compare equal.
+func normalizeContainerType(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	s = strings.ReplaceAll(s, " ", "_")
+	s = strings.ReplaceAll(s, "-", "_")
+	return strings.TrimSuffix(s, "s")
 }

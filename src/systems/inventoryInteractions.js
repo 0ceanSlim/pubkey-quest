@@ -76,50 +76,18 @@ export function initializeInventoryInteractions() {
 }
 
 /**
- * Bind drag-drop and click events to inventory slots
- * Note: Since slots are recreated via innerHTML='', old listeners are automatically removed
+ * Bind drag-drop and click events to inventory slots.
+ *
+ * DEPRECATED no-op. Slot interaction now lives in `slotInteractions.js`, which
+ * uses ONE delegated set of pointer-event listeners (mouse + touch) instead of
+ * per-slot HTML5-drag bindings. Delegation handles re-rendered DOM with no
+ * per-render rebinding, so this is kept only as a harmless entry point for the
+ * existing `window.inventoryInteractions.bindInventoryEvents()` callers.
+ * The per-slot bind* / handleDrag* / handleDrop* / handleLeftClick functions
+ * below are no longer wired up and will be removed in cleanup.
  */
 export function bindInventoryEvents() {
-    // General slots (quick access)
-    const generalSlots = document.querySelectorAll('#general-slots [data-item-slot]');
-    generalSlots.forEach((slot) => {
-        // Skip if already bound
-        if (slot.hasAttribute('data-events-bound')) return;
-        slot.setAttribute('data-events-bound', 'true');
-        const slotIndex = parseInt(slot.getAttribute('data-item-slot'), 10);
-        bindSlotEvents(slot, 'general', slotIndex);
-    });
-
-    // Backpack slots
-    const backpackSlots = document.querySelectorAll('#backpack-slots [data-item-slot]');
-    backpackSlots.forEach((slot) => {
-        // Skip if already bound
-        if (slot.hasAttribute('data-events-bound')) return;
-        slot.setAttribute('data-events-bound', 'true');
-        const slotIndex = parseInt(slot.getAttribute('data-item-slot'), 10);
-        bindSlotEvents(slot, 'inventory', slotIndex);
-    });
-
-    // Equipment slots
-    const equipmentSlots = document.querySelectorAll('[data-slot]');
-    equipmentSlots.forEach(slot => {
-        // Skip if already bound
-        if (slot.hasAttribute('data-events-bound')) return;
-        slot.setAttribute('data-events-bound', 'true');
-        const slotName = slot.getAttribute('data-slot');
-        bindEquipmentSlotEvents(slot, slotName);
-    });
-
-    // Vault slots
-    const vaultSlots = document.querySelectorAll('.vault-slot[data-vault-slot]');
-    vaultSlots.forEach((slot) => {
-        // Skip if already bound
-        if (slot.hasAttribute('data-events-bound')) return;
-        slot.setAttribute('data-events-bound', 'true');
-        const slotIndex = parseInt(slot.getAttribute('data-vault-slot'), 10);
-        const buildingId = slot.getAttribute('data-vault-building');
-        bindVaultSlotEvents(slot, slotIndex, buildingId);
-    });
+    /* no-op — see slotInteractions.js */
 }
 
 /**
@@ -662,7 +630,7 @@ export function getItemActions(itemData, isEquipped) {
 /**
  * Show context menu
  */
-function showContextMenu(x, y, itemId, slotIndex, slotType, actions) {
+export function showContextMenu(x, y, itemId, slotIndex, slotType, actions) {
     // Close existing menu
     closeContextMenu();
 
