@@ -1,166 +1,135 @@
 {{define "game/tabs/equipment.html"}}
-<!-- Equipment Tab - 3x4 Grid Layout -->
-<div id="equipment-panel" class="tab-panel h-full flex items-center justify-center p-2">
-    <div class="grid grid-cols-3 grid-rows-4 gap-1" style="width: 180px;">
+<!-- Equipment Tab - 3x4 grid of 28px slots (matching the inventory slots) -->
+<div id="equipment-panel" class="tab-panel h-full flex flex-col items-center justify-center gap-2 p-2">
+    <div style="display: grid; grid-template-columns: repeat(3, 40px); grid-auto-rows: 40px; gap: 3px; justify-content: center;">
 
         <!-- Row 1: neck, head, ammo -->
-        <div data-slot="neck" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M 12 24 Q 32 36, 52 24" fill="none" stroke="#666" stroke-width="4"/>
-                        <circle cx="32" cy="40" r="8" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">NECK</span>
+        <div data-slot="neck" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 12 24 Q 32 36, 52 24" fill="none" stroke="#666" stroke-width="4"/>
+                    <circle cx="32" cy="40" r="8" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="head" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="32" cy="36" rx="20" ry="16" fill="#666"/>
-                        <ellipse cx="32" cy="28" rx="16" ry="12" fill="#888"/>
-                        <rect x="24" y="44" width="16" height="8" fill="#666"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">HEAD</span>
+        <div data-slot="head" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="32" cy="36" rx="20" ry="16" fill="#666"/>
+                    <ellipse cx="32" cy="28" rx="16" ry="12" fill="#888"/>
+                    <rect x="24" y="44" width="16" height="8" fill="#666"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="ammo" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="26" y="12" width="4" height="40" fill="#666"/>
-                        <polygon points="28,12 20,22 36,22" fill="#888"/>
-                        <rect x="24" y="48" width="8" height="6" fill="#666"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">AMMO</span>
+        <div data-slot="ammo" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="26" y="12" width="4" height="40" fill="#666"/>
+                    <polygon points="28,12 20,22 36,22" fill="#888"/>
+                    <rect x="24" y="48" width="8" height="6" fill="#666"/>
+                </svg>
             </div>
         </div>
 
         <!-- Row 2: mainhand, chest, offhand -->
-        <div data-slot="mainhand" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="28" y="8" width="8" height="48" fill="#666"/>
-                        <rect x="20" y="52" width="24" height="4" fill="#666"/>
-                        <polygon points="32,8 22,18 42,18" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">MAIN</span>
+        <div data-slot="mainhand" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="28" y="8" width="8" height="48" fill="#666"/>
+                    <rect x="20" y="52" width="24" height="4" fill="#666"/>
+                    <polygon points="32,8 22,18 42,18" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="chest" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="16" y="16" width="32" height="36" rx="2" fill="#666"/>
-                        <rect x="20" y="20" width="24" height="8" fill="#888"/>
-                        <rect x="20" y="32" width="24" height="4" fill="#888"/>
-                        <rect x="20" y="40" width="24" height="4" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">CHEST</span>
+        <div data-slot="chest" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="16" y="16" width="32" height="36" rx="2" fill="#666"/>
+                    <rect x="20" y="20" width="24" height="8" fill="#888"/>
+                    <rect x="20" y="32" width="24" height="4" fill="#888"/>
+                    <rect x="20" y="40" width="24" height="4" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="offhand" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="32" cy="32" rx="16" ry="20" fill="#666"/>
-                        <ellipse cx="32" cy="32" rx="10" ry="14" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">OFF</span>
+        <div data-slot="offhand" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="32" cy="32" rx="16" ry="20" fill="#666"/>
+                    <ellipse cx="32" cy="32" rx="10" ry="14" fill="#888"/>
+                </svg>
             </div>
         </div>
 
         <!-- Row 3: ring1, legs, ring2 -->
-        <div data-slot="ring1" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="32" cy="32" r="12" fill="none" stroke="#666" stroke-width="6"/>
-                        <rect x="28" y="18" width="8" height="8" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">RING</span>
+        <div data-slot="ring1" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="12" fill="none" stroke="#666" stroke-width="6"/>
+                    <rect x="28" y="18" width="8" height="8" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="legs" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="20" y="12" width="10" height="40" rx="2" fill="#666"/>
-                        <rect x="34" y="12" width="10" height="40" rx="2" fill="#666"/>
-                        <rect x="18" y="12" width="28" height="8" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">LEGS</span>
+        <div data-slot="legs" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="12" width="10" height="40" rx="2" fill="#666"/>
+                    <rect x="34" y="12" width="10" height="40" rx="2" fill="#666"/>
+                    <rect x="18" y="12" width="28" height="8" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="ring2" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="32" cy="32" r="12" fill="none" stroke="#666" stroke-width="6"/>
-                        <rect x="28" y="18" width="8" height="8" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">RING</span>
+        <div data-slot="ring2" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="12" fill="none" stroke="#666" stroke-width="6"/>
+                    <rect x="28" y="18" width="8" height="8" fill="#888"/>
+                </svg>
             </div>
         </div>
 
         <!-- Row 4: gloves, boots, bag -->
-        <div data-slot="gloves" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="16" y="28" width="32" height="24" rx="4" fill="#666"/>
-                        <rect x="20" y="12" width="6" height="20" rx="2" fill="#888"/>
-                        <rect x="29" y="8" width="6" height="24" rx="2" fill="#888"/>
-                        <rect x="38" y="12" width="6" height="20" rx="2" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">GLOVES</span>
+        <div data-slot="gloves" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="16" y="28" width="32" height="24" rx="4" fill="#666"/>
+                    <rect x="20" y="12" width="6" height="20" rx="2" fill="#888"/>
+                    <rect x="29" y="8" width="6" height="24" rx="2" fill="#888"/>
+                    <rect x="38" y="12" width="6" height="20" rx="2" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="boots" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="14" y="20" width="14" height="32" rx="2" fill="#666"/>
-                        <rect x="36" y="20" width="14" height="32" rx="2" fill="#666"/>
-                        <rect x="10" y="48" width="18" height="6" fill="#888"/>
-                        <rect x="36" y="48" width="18" height="6" fill="#888"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">BOOTS</span>
+        <div data-slot="boots" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="14" y="20" width="14" height="32" rx="2" fill="#666"/>
+                    <rect x="36" y="20" width="14" height="32" rx="2" fill="#666"/>
+                    <rect x="10" y="48" width="18" height="6" fill="#888"/>
+                    <rect x="36" y="48" width="18" height="6" fill="#888"/>
+                </svg>
             </div>
         </div>
 
-        <div data-slot="bag" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 56px; height: 56px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
-            <div class="w-full h-full flex flex-col items-center justify-center p-1">
-                <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="placeholder-icon w-8 h-8" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="12" y="20" width="40" height="32" rx="2" fill="#666"/>
-                        <path d="M 20 20 Q 20 12, 32 12 Q 44 12, 44 20" fill="none" stroke="#888" stroke-width="4"/>
-                    </svg>
-                </div>
-                <span class="text-gray-500" style="font-size: 7px;">BAG</span>
+        <div data-slot="bag" class="equip-slot relative cursor-pointer hover:brightness-125" style="width: 40px; height: 40px; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);">
+            <div class="equip-icon w-full h-full flex items-center justify-center" style="padding: 2px;">
+                <svg class="placeholder-icon w-full h-full" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="12" y="20" width="40" height="32" rx="2" fill="#666"/>
+                    <path d="M 20 20 Q 20 12, 32 12 Q 44 12, 44 20" fill="none" stroke="#888" stroke-width="4"/>
+                </svg>
             </div>
         </div>
 
     </div>
+
+    <!-- Equipment-derived combat stats (AC / attack / damage / ranged + ammo).
+         Populated by characterDisplay.js from the backend's equipped_stats. -->
+    <div id="equipment-stats" class="text-gray-300"
+         style="width: 130px; font-size: 9px; border-top: 1px solid #4a4a4a; padding-top: 4px;"></div>
 </div>
 {{end}}

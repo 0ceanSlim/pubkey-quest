@@ -187,7 +187,8 @@ export function transformSaveDataToUIState(saveData) {
             active_effects: saveData.active_effects || [],
             // Include pre-calculated values from backend (NOT persisted)
             total_weight: saveData.total_weight,
-            weight_capacity: saveData.weight_capacity
+            weight_capacity: saveData.weight_capacity,
+            equipped_stats: saveData.equipped_stats
         },
         location: {
             current: locationId,

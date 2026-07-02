@@ -408,12 +408,15 @@ export async function updateCharacterDisplay() {
                     // Add data-item-id attribute to the slot for interaction system
                     slotEl.setAttribute('data-item-id', itemId);
 
+                    // Rarity glow, same as the inventory slots
+                    applyRarityIndicator(slotEl, itemId);
+
                     // Fetch item data
                     const itemData = await getItemByIdAsync(itemId);
 
                     if (itemData) {
                         // Replace placeholder with item image
-                        const imageContainer = slotEl.querySelector('.w-10.h-10');
+                        const imageContainer = slotEl.querySelector('.equip-icon');
                         if (imageContainer) {
                             const img = document.createElement('img');
                             img.src = `/res/img/items/${itemId}.png`;
@@ -449,6 +452,14 @@ export async function updateCharacterDisplay() {
                     // Remove data-item-id attribute if slot is empty
                     slotEl.removeAttribute('data-item-id');
 
+                    // Clear any rarity glow and restore the slot's bevel borders
+                    // (equipment slots persist across renders, unlike inventory).
+                    slotEl.style.boxShadow = '';
+                    slotEl.style.borderTopColor = '#1a1a1a';
+                    slotEl.style.borderLeftColor = '#1a1a1a';
+                    slotEl.style.borderRightColor = '#4a4a4a';
+                    slotEl.style.borderBottomColor = '#4a4a4a';
+
                     // Remove quantity label if present
                     const existingLabel = slotEl.querySelector('.equipment-quantity-label');
                     if (existingLabel) {
@@ -456,7 +467,7 @@ export async function updateCharacterDisplay() {
                     }
 
                     // Reset to placeholder if empty
-                    const imageContainer = slotEl.querySelector('.w-10.h-10');
+                    const imageContainer = slotEl.querySelector('.equip-icon');
                     if (imageContainer) {
                         // Check if placeholder exists
                         let placeholderIcon = slotEl.querySelector('.placeholder-icon');
@@ -480,6 +491,9 @@ export async function updateCharacterDisplay() {
             }
         }
     }
+
+    // Equipment-derived combat stats (AC / attack / damage / ranged + ammo)
+    renderEquipmentStats(character.equipped_stats);
 
     // Update general slots (4x1 grid) - ALWAYS create slots even if empty
     const generalSlotsDiv = document.getElementById('general-slots');
@@ -839,5 +853,35 @@ eventBus.on('character:statsUpdated', (data) => {
         renderStatsEffectsList(data.active_effects);
     }
 });
+
+/**
+ * Render the equipment-derived combat stats block on the Equipment tab from the
+ * backend's `equipped_stats` (AC, main/off-hand attack+damage, ranged + ammo,
+ * or unarmed when no weapon is held). All values are computed server-side.
+ */
+function renderEquipmentStats(stats) {
+    const el = document.getElementById('equipment-stats');
+    if (!el) return;
+    if (!stats) { el.innerHTML = ''; return; }
+
+    const row = (label, value, valueColor) =>
+        `<div class="flex justify-between" style="gap:8px;">
+            <span class="text-gray-500">${label}</span>
+            <span style="color:${valueColor || '#e5e5e5'}; white-space:nowrap;">${value}</span>
+        </div>`;
+
+    const weapon = (w) => {
+        const atk = `${w.attack_bonus >= 0 ? '+' : ''}${w.attack_bonus}`;
+        return w.damage ? `${atk} / ${w.damage}` : atk;
+    };
+
+    const rows = [row('AC', stats.armor_class ?? '—', '#ffd479')];
+    if (stats.main_hand) rows.push(row('Main', weapon(stats.main_hand), '#4a9eff'));
+    if (stats.off_hand) rows.push(row('Off', weapon(stats.off_hand), '#4a9eff'));
+    if (stats.ranged) rows.push(row('Ranged', `${weapon(stats.ranged)} (${stats.ammo || 0})`, '#4a9eff'));
+    if (stats.unarmed && !stats.main_hand) rows.push(row('Fists', weapon(stats.unarmed), '#4a9eff'));
+
+    el.innerHTML = rows.join('');
+}
 
 logger.debug('Character display module loaded');
