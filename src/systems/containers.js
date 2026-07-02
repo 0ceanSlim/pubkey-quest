@@ -144,6 +144,11 @@ export async function openContainer(itemId, fromSlot, fromSlotType = 'general') 
 async function renderContainerSlots(grid, totalSlots, contents) {
     grid.innerHTML = '';
 
+    // Fixed-size square cells (like the vault) — up to 5 across, then wrap.
+    const cols = Math.min(totalSlots, 5);
+    grid.style.gridTemplateColumns = `repeat(${cols}, 52px)`;
+    grid.style.gridAutoRows = '52px';
+
     for (let i = 0; i < totalSlots; i++) {
         const slot = document.createElement('div');
         // Match inventory slot styling
@@ -202,14 +207,8 @@ async function renderContainerSlots(grid, totalSlots, contents) {
 
                 logger.debug(`✅ Bound events to container slot ${i} (${slotItem.item})`);
             }
-        } else {
-            // Empty slot - add placeholder (matching inventory style)
-            const placeholder = document.createElement('div');
-            placeholder.className = 'flex items-center justify-center h-full text-gray-600';
-            placeholder.style.fontSize = '20px';
-            placeholder.textContent = '+';
-            slot.appendChild(placeholder);
         }
+        // Empty slots stay empty beveled squares, like the vault.
 
         grid.appendChild(slot);
     }

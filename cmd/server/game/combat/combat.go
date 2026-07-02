@@ -512,7 +512,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	// Ammo consumption — ranged weapons with the "ammunition" tag require ammo
 	if !isUnarmed && item != nil && !thrown {
 		if hasTag(item["tags"], "ammunition") {
-			if err := consumeAmmo(save, cs); err != nil {
+			if err := consumeAmmo(save, cs, item); err != nil {
 				return nil, err
 			}
 		}
@@ -718,43 +718,111 @@ func validateTwoWeaponFighting(db *sql.DB, save *types.SaveFile, cs *types.Comba
 
 // consumeAmmo removes one unit of ammo from the ammo gear slot and increments
 // the session's ammo-used counter. Returns an error if no ammo is equipped.
-func consumeAmmo(save *types.SaveFile, cs *types.CombatSession) error {
+func consumeAmmo(save *types.SaveFile, cs *types.CombatSession, weapon map[string]interface{}) error {
 	gearSlots, ok := save.Inventory["gear_slots"].(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("no ammunition equipped — equip arrows or bolts in the ammo slot")
+		return errNoAmmo()
 	}
 
-	var ammoMap map[string]interface{}
-	var ammoKey string
 	for _, key := range []string{"ammunition", "ammo"} {
-		if slotData, exists := gearSlots[key]; exists && slotData != nil {
-			if slotMap, ok := slotData.(map[string]interface{}); ok {
-				if itemID, _ := slotMap["item"].(string); itemID != "" {
-					ammoMap = slotMap
-					ammoKey = key
-					break
-				}
+		slotMap, ok := gearSlots[key].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		itemID, _ := slotMap["item"].(string)
+		if itemID == "" {
+			continue
+		}
+
+		// A quiver (or any container) in the ammo slot: draw one round from its
+		// contents rather than consuming the quiver itself.
+		if contents, ok := slotMap["contents"].([]interface{}); ok {
+			if consumeFromAmmoContents(contents, weapon) {
+				cs.AmmoUsedThisCombat++
+				return nil
 			}
+			continue // container present but has no usable ammo inside
+		}
+
+		// Raw ammo sitting directly in the slot.
+		if ammoMatchesWeapon(itemID, weapon) {
+			qty := slotQty(slotMap, "quantity")
+			if qty <= 1 {
+				gearSlots[key] = map[string]interface{}{"item": nil, "quantity": 0}
+			} else {
+				slotMap["quantity"] = qty - 1
+				gearSlots[key] = slotMap
+			}
+			cs.AmmoUsedThisCombat++
+			return nil
 		}
 	}
+	return errNoAmmo()
+}
 
-	if ammoMap == nil {
-		return fmt.Errorf("no ammunition equipped — equip arrows or bolts in the ammo slot")
-	}
+func errNoAmmo() error {
+	return fmt.Errorf("no ammunition — equip a quiver with ammo (or ammo) in the ammo slot")
+}
 
-	qty := slotQty(ammoMap, "quantity")
-	if qty <= 0 {
-		qty = 1
+// consumeFromAmmoContents removes one round from a container's contents: a first
+// pass prefers ammo matching the weapon, a second pass takes any ammo so a
+// mismatched-but-present round still fires. Returns false if the container is empty.
+func consumeFromAmmoContents(contents []interface{}, weapon map[string]interface{}) bool {
+	for _, matchOnly := range []bool{true, false} {
+		for _, c := range contents {
+			slotMap, ok := c.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			id, _ := slotMap["item"].(string)
+			if id == "" {
+				continue
+			}
+			qty := slotQty(slotMap, "quantity")
+			if qty <= 0 {
+				continue
+			}
+			if matchOnly && !ammoMatchesWeapon(id, weapon) {
+				continue
+			}
+			if qty <= 1 {
+				slotMap["item"] = nil
+				slotMap["quantity"] = 0
+			} else {
+				slotMap["quantity"] = qty - 1
+			}
+			return true
+		}
 	}
-	if qty <= 1 {
-		gearSlots[ammoKey] = map[string]interface{}{"item": nil, "quantity": 0}
-	} else {
-		ammoMap["quantity"] = qty - 1
-		gearSlots[ammoKey] = ammoMap
-	}
+	return false
+}
 
-	cs.AmmoUsedThisCombat++
-	return nil
+// ammoMatchesWeapon loosely matches an ammo item id against the weapon's
+// "ammunition" label (bows→"arrows", crossbows→"bolts", …). That label is
+// inconsistent in the data, so both are normalized and substring-matched; a
+// weapon with no label accepts any ammo.
+func ammoMatchesWeapon(ammoID string, weapon map[string]interface{}) bool {
+	if weapon == nil {
+		return true
+	}
+	want, _ := weapon["ammunition"].(string)
+	w := normalizeAmmoToken(want)
+	a := normalizeAmmoToken(ammoID)
+	if w == "" || a == "" {
+		return true
+	}
+	return strings.Contains(a, w) || strings.Contains(w, a)
+}
+
+func normalizeAmmoToken(s string) string {
+	s = strings.ToLower(s)
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		}
+	}
+	return strings.TrimSuffix(b.String(), "s")
 }
 
 // consumeFromGearSlot decrements a gear slot item by 1, clearing the slot when

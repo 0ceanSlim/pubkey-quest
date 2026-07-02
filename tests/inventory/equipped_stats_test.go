@@ -65,7 +65,7 @@ func TestEquippedStatsRangedAndAmmo(t *testing.T) {
 	setup(t)
 	s := newSave(4, 20)
 	gearSlots(s)["mainhand"] = map[string]interface{}{"item": "longbow", "quantity": float64(1)}
-	gearSlots(s)["ammunition"] = map[string]interface{}{"item": "arrows", "quantity": float64(12)}
+	gearSlots(s)["ammo"] = map[string]interface{}{"item": "arrows", "quantity": float64(12)}
 
 	es := combat.BuildEquippedStats(db.GetDB(), s, 1)
 
@@ -77,5 +77,23 @@ func TestEquippedStatsRangedAndAmmo(t *testing.T) {
 	}
 	if es.Ammo != 12 {
 		t.Errorf("Ammo = %d, want 12", es.Ammo)
+	}
+}
+
+func TestEquippedStatsAmmoSumsQuiverContents(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	gearSlots(s)["mainhand"] = map[string]interface{}{"item": "longbow", "quantity": float64(1)}
+	gearSlots(s)["ammo"] = map[string]interface{}{
+		"item": "quiver", "quantity": float64(1),
+		"contents": []interface{}{
+			map[string]interface{}{"item": "arrows", "quantity": float64(10), "slot": float64(0)},
+			map[string]interface{}{"item": "arrows", "quantity": float64(5), "slot": float64(1)},
+		},
+	}
+
+	es := combat.BuildEquippedStats(db.GetDB(), s, 1)
+	if es.Ammo != 15 {
+		t.Errorf("Ammo = %d, want 15 (summed from an equipped quiver)", es.Ammo)
 	}
 }

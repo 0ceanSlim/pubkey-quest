@@ -418,16 +418,46 @@ function ensureTip() {
     return tipEl;
 }
 
+// Default left-click/tap action shown before the item name, matching the old
+// bottom-corner action hint: label + color per action.
+const ACTION_LABELS = {
+    equip: 'Equip', unequip: 'Unequip', use: 'Use', open: 'Open',
+    examine: 'Info', drop: 'Drop', remove: 'Remove',
+};
+const ACTION_COLORS = {
+    equip: '#4a9eff',   // blue
+    unequip: '#ff8c00', // orange
+    use: '#00ff00',     // green
+    open: '#00ff00',    // green
+    examine: '#ff8c00', // orange
+    drop: '#ff0000',    // red
+    remove: '#ff8c00',  // orange
+};
+
 function onHoverMove(e) {
     // Don't fight a drag, and don't show on touch-driven synthetic mouse moves.
     if (pointerState && pointerState.dragging) { hideTip(); return; }
-    const el = e.target.closest && e.target.closest(SLOT_SELECTOR);
-    const itemId = el && el.getAttribute('data-item-id');
-    if (!el || !itemId) { hideTip(); return; }
-    const itemData = getItemById(itemId);
+    const desc = readDescriptor(e.target.closest && e.target.closest(SLOT_SELECTOR));
+    if (!desc || !desc.itemId) { hideTip(); return; }
+    const itemData = getItemById(desc.itemId);
     if (!itemData) { hideTip(); return; }
+
+    // What a tap will do: container slot → remove; otherwise the item's default.
+    const action = desc.surface === 'container'
+        ? 'remove'
+        : getDefaultAction(itemData, desc.surface === 'equipment');
+    const label = ACTION_LABELS[action] || 'Info';
+    const color = ACTION_COLORS[action] || '#ff8c00';
+
     const tip = ensureTip();
-    tip.textContent = itemData.name || itemId;
+    tip.textContent = '';
+    const verb = document.createElement('span');
+    verb.textContent = label;
+    verb.style.color = color;
+    verb.style.fontWeight = 'bold';
+    tip.appendChild(verb);
+    tip.appendChild(document.createTextNode(' ' + (itemData.name || desc.itemId)));
+
     tip.style.display = 'block';
     tip.style.left = `${e.clientX + 14}px`;
     tip.style.top = `${e.clientY + 14}px`;

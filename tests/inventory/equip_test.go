@@ -107,6 +107,53 @@ func TestEquipTwoHandedClearsBothHands(t *testing.T) {
 	}
 }
 
+// A quiver is a container that equips to the ammo slot and, like the backpack,
+// must keep its contents on equip AND unequip (unequip lands in a general slot,
+// never the backpack).
+func TestEquipContainerToAmmoPreservesContents(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	general(s)[0] = map[string]interface{}{
+		"item": "quiver", "quantity": float64(1), "slot": float64(0),
+		"contents": []interface{}{
+			map[string]interface{}{"item": "arrows", "quantity": float64(12), "slot": float64(0)},
+			map[string]interface{}{"item": nil, "quantity": float64(0), "slot": float64(1)},
+		},
+	}
+
+	equip(t, s, "quiver", 0, "general")
+
+	if got := gearItem(s, "ammo"); got != "quiver" {
+		t.Fatalf("ammo slot = %q, want quiver (not a phantom 'ammunition' slot)", got)
+	}
+	ammo := gearSlots(s)["ammo"].(map[string]interface{})
+	contents, ok := ammo["contents"].([]interface{})
+	if !ok || len(contents) == 0 {
+		t.Fatalf("equipped quiver lost its contents: %+v", ammo)
+	}
+	if inner, _ := contents[0].(map[string]interface{})["item"].(string); inner != "arrows" {
+		t.Errorf("quiver contents[0] = %q, want arrows", inner)
+	}
+
+	resp, err := inventory.HandleUnequipItemAction(s, p(map[string]interface{}{"equipment_slot": "ammo"}))
+	if err != nil || resp == nil || !resp.Success {
+		t.Fatalf("unequip: resp=%+v err=%v", resp, err)
+	}
+	gi := -1
+	for i := range general(s) {
+		if slotItem(general(s), i) == "quiver" {
+			gi = i
+			break
+		}
+	}
+	if gi < 0 {
+		t.Fatal("quiver not returned to a general slot after unequip (containers can't go to the backpack)")
+	}
+	if c, ok := general(s)[gi].(map[string]interface{})["contents"].([]interface{}); !ok || len(c) == 0 {
+		t.Errorf("unequipped quiver lost its contents")
+	}
+}
+
 func TestUnequipReturnsToInventory(t *testing.T) {
 	setup(t)
 	s := newSave(4, 20)

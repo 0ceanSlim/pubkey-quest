@@ -58,7 +58,7 @@ func HandleAddToContainerAction(state *types.SaveFile, params map[string]interfa
 		// Container is in general slots
 		for i, slot := range generalSlots {
 			if slotMap, ok := slot.(map[string]interface{}); ok {
-				if slotNum, ok := slotMap["slot"].(float64); ok && int(slotNum) == containerSlot {
+				if slotNum, ok := slotIndexOf(slotMap); ok && slotNum == containerSlot {
 					containerSlotMap = slotMap
 					containerIndex = i
 					log.Printf("📦 Found container in general slot %d", containerSlot)
@@ -246,7 +246,7 @@ func HandleAddToContainerAction(state *types.SaveFile, params map[string]interfa
 	// Find source item by matching slot index
 	for i, slot := range sourceInventory {
 		if slotMap, ok := slot.(map[string]interface{}); ok {
-			if slotNum, ok := slotMap["slot"].(float64); ok && int(slotNum) == fromSlot {
+			if slotNum, ok := slotIndexOf(slotMap); ok && slotNum == fromSlot {
 				if slotMap["item"] == itemID {
 					sourceItem = slotMap
 					sourceIndex = i
@@ -446,50 +446,54 @@ func HandleRemoveFromContainerAction(state *types.SaveFile, params map[string]in
 		}
 	}
 
-	// If no space in general slots, try backpack
+	// If no space in general slots, try the EQUIPPED backpack. Only if one is
+	// actually worn — if the bag is itself unequipped (e.g. you opened it from a
+	// general slot to empty it), there is no backpack to receive the item.
+	// Writing to the empty bag gear-slot would create phantom contents that get
+	// discarded when the bag is re-equipped, silently losing the item. When there
+	// is nowhere valid, leave the item in the container (removal happens below,
+	// only after a destination is found).
 	if !emptySlotFound {
-		gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("gear slots not found")
-		}
-		bag, ok := gearSlots["bag"].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("backpack not found")
-		}
-		backpackContents, ok := bag["contents"].([]interface{})
-		if !ok {
-			backpackContents = make([]interface{}, 0)
-		}
+		gearSlots, _ := state.Inventory["gear_slots"].(map[string]interface{})
+		bag, _ := gearSlots["bag"].(map[string]interface{})
+		bagEquipped := bag != nil && bag["item"] != nil && bag["item"] != ""
 
-		// Extend backpack if needed
-		for len(backpackContents) < 20 {
-			backpackContents = append(backpackContents, map[string]interface{}{
-				"item":     nil,
-				"quantity": 0,
-				"slot":     len(backpackContents),
-			})
-		}
-
-		// Find empty backpack slot
-		for i := 0; i < 20; i++ {
-			if backpackContents[i] == nil || backpackContents[i].(map[string]interface{})["item"] == nil {
-				backpackContents[i] = map[string]interface{}{
-					"item":     actualItemID,
-					"quantity": quantity,
-					"slot":     i,
-				}
-				emptySlotFound = true
-				break
+		if bagEquipped {
+			backpackContents, ok := bag["contents"].([]interface{})
+			if !ok {
+				backpackContents = make([]interface{}, 0)
 			}
-		}
 
-		if emptySlotFound {
-			bag["contents"] = backpackContents
+			// Extend backpack if needed
+			for len(backpackContents) < 20 {
+				backpackContents = append(backpackContents, map[string]interface{}{
+					"item":     nil,
+					"quantity": 0,
+					"slot":     len(backpackContents),
+				})
+			}
+
+			// Find empty backpack slot
+			for i := 0; i < 20; i++ {
+				if backpackContents[i] == nil || backpackContents[i].(map[string]interface{})["item"] == nil {
+					backpackContents[i] = map[string]interface{}{
+						"item":     actualItemID,
+						"quantity": quantity,
+						"slot":     i,
+					}
+					emptySlotFound = true
+					break
+				}
+			}
+
+			if emptySlotFound {
+				bag["contents"] = backpackContents
+			}
 		}
 	}
 
 	if !emptySlotFound {
-		return nil, fmt.Errorf("inventory is full - cannot remove from container")
+		return nil, fmt.Errorf("no room to take that out — free a general slot or equip a bag first")
 	}
 
 	// Remove item from container
@@ -526,6 +530,21 @@ func HandleRemoveFromContainerAction(state *types.SaveFile, params map[string]in
 		Message: fmt.Sprintf("Removed %dx %s from container", quantity, itemName),
 		Color:   "green",
 	}, nil
+}
+
+// slotIndexOf reads a slot map's "slot" index, tolerating both the float64 that
+// JSON decoding yields and the int that in-Go slot rewrites store. The container
+// remove handler writes the slot back as an int; a float64-only read then made
+// the freshly-removed item invisible to the next add ("item not found in source
+// inventory"), which broke all container interaction after the first remove.
+func slotIndexOf(slotMap map[string]interface{}) (int, bool) {
+	switch v := slotMap["slot"].(type) {
+	case float64:
+		return int(v), true
+	case int:
+		return v, true
+	}
+	return 0, false
 }
 
 // normalizeContainerType canonicalizes a type/tag string for allowed_types

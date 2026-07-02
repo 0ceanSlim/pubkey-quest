@@ -134,7 +134,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 			case "finger", "ring":
 				equipSlot = "ring"
 			case "ammunition", "ammo":
-				equipSlot = "ammunition"
+				equipSlot = "ammo"
 			case "clothes", "clothing":
 				equipSlot = "clothes"
 			case "bag", "backpack":
@@ -394,14 +394,15 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 			"quantity": itemData["quantity"],
 		}
 
-		if equipSlot == "bag" {
-			if contents, ok := itemData["contents"].([]interface{}); ok {
-				equippedItem["contents"] = contents
-				log.Printf("📦 Preserving bag contents when equipping (%d items)", len(contents))
-			} else {
-				equippedItem["contents"] = make([]interface{}, 0, 20)
-				log.Printf("📦 Initializing empty bag contents")
-			}
+		// Preserve a container's own contents when equipping it (backpack → bag,
+		// quiver → ammo, etc.). Without this a filled container dropped
+		// everything inside on equip.
+		if contents, ok := itemData["contents"].([]interface{}); ok {
+			equippedItem["contents"] = contents
+			log.Printf("📦 Preserving container contents on equip (%d slots)", len(contents))
+		} else if equipSlot == "bag" {
+			equippedItem["contents"] = make([]interface{}, 0, 20)
+			log.Printf("📦 Initializing empty bag contents")
 		}
 
 		gearSlots[equipSlot] = equippedItem
@@ -497,11 +498,31 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 
 	log.Printf("🛡️ Unequipping: %s (quantity: %d)", itemID, quantity)
 
+	// Containers (backpack, quiver, …) may only be unequipped into general
+	// slots — they can't live in the backpack — and must keep their contents.
+	itemIsContainer := false
+	if _, ok := itemMap["contents"]; ok {
+		itemIsContainer = true
+	} else if database := db.GetDB(); database != nil {
+		var tagsJSON string
+		if err := database.QueryRow("SELECT tags FROM items WHERE id = ?", itemID).Scan(&tagsJSON); err == nil {
+			var tags []interface{}
+			if json.Unmarshal([]byte(tagsJSON), &tags) == nil {
+				for _, t := range tags {
+					if ts, ok := t.(string); ok && ts == "container" {
+						itemIsContainer = true
+						break
+					}
+				}
+			}
+		}
+	}
+
 	emptySlotIndex := -1
 	emptySlotType := ""
 
-	if equipSlot == "bag" {
-		log.Printf("🎒 Special case: Unequipping bag - can ONLY go to general slots")
+	if equipSlot == "bag" || itemIsContainer {
+		log.Printf("🎒 Unequipping container %s → general slots only", itemID)
 
 		generalSlots, ok := state.Inventory["general_slots"].([]interface{})
 		if !ok {
@@ -537,7 +558,7 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		if emptySlotIndex == -1 {
 			return &types.GameActionResponse{
 				Success: false,
-				Error:   "There isn't enough room in your inventory to take off the bag",
+				Error:   "There isn't enough room in your general slots to take this off",
 				Color:   "red",
 			}, nil
 		}
@@ -581,7 +602,7 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		}
 	}
 
-	if emptySlotIndex == -1 && equipSlot != "bag" {
+	if emptySlotIndex == -1 && equipSlot != "bag" && !itemIsContainer {
 		generalSlots, ok := state.Inventory["general_slots"].([]interface{})
 		if !ok {
 			generalSlots = make([]interface{}, 0, 4)
@@ -624,10 +645,10 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		"slot":     emptySlotIndex,
 	}
 
-	if equipSlot == "bag" {
+	if itemIsContainer {
 		if contents, ok := itemMap["contents"].([]interface{}); ok {
 			newItem["contents"] = contents
-			log.Printf("📦 Preserving bag contents when unequipping (%d items)", len(contents))
+			log.Printf("📦 Preserving container contents on unequip (%d slots)", len(contents))
 		}
 	}
 

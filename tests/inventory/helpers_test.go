@@ -68,11 +68,11 @@ func newSave(general, backpack int) *types.SaveFile {
 			"general_slots": gen,
 			"gear_slots": map[string]interface{}{
 				"bag":        map[string]interface{}{"item": "backpack", "quantity": float64(1), "contents": bp},
-				"mainhand":   emptyGear(),
-				"offhand":    emptyGear(),
-				"chest":      emptyGear(),
-				"armor":      emptyGear(),
-				"ammunition": emptyGear(),
+				"mainhand": emptyGear(),
+				"offhand":  emptyGear(),
+				"chest":    emptyGear(),
+				"armor":    emptyGear(),
+				"ammo":     emptyGear(),
 			},
 		},
 	}

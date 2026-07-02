@@ -91,7 +91,8 @@ func isRangedWeapon(item map[string]interface{}) bool {
 	return strings.Contains(strings.ToLower(t), "ranged")
 }
 
-// equippedAmmoCount returns the quantity in the equipped ammunition slot.
+// equippedAmmoCount returns how much ammo is equipped — the quantity of raw ammo
+// in the ammo slot, or the sum of ammo inside an equipped quiver (container).
 func equippedAmmoCount(inv map[string]interface{}) int {
 	gs, ok := inv["gear_slots"].(map[string]interface{})
 	if !ok {
@@ -102,12 +103,19 @@ func equippedAmmoCount(inv map[string]interface{}) int {
 		if !ok || slot["item"] == nil || slot["item"] == "" {
 			continue
 		}
-		switch q := slot["quantity"].(type) {
-		case float64:
-			return int(q)
-		case int:
-			return q
+		// A quiver (container): sum the ammo across its contents.
+		if contents, ok := slot["contents"].([]interface{}); ok {
+			total := 0
+			for _, c := range contents {
+				if cm, ok := c.(map[string]interface{}); ok {
+					if id, _ := cm["item"].(string); id != "" {
+						total += slotQty(cm, "quantity")
+					}
+				}
+			}
+			return total
 		}
+		return slotQty(slot, "quantity")
 	}
 	return 0
 }
