@@ -22,23 +22,40 @@ run to keep decisions consistent across batches.
 
 ---
 
-## Material components
+## Component cost (homebrew rune-like — NOT D&D materials)
 
-**Cantrip convention:** Most cantrips have NO material components (matches D&D 5e).
-Only add when canonical D&D 5e lists a component AND a matching vocabulary id exists.
+Components are a **per-cast resource cost** on *certain* spells, like RuneScape runes —
+NOT D&D's material list. Most spells and most cantrips are free (`required: []`). Give a
+cost only to signature / impactful / substance-themed spells, and scale the component's
+`value` (cost tier) to the spell's power. Valid ids = the game's `spell_component` items
+only — enumerate live: `game-data/items/*.json` with tag `spell_component` (24 today,
+list grows) — never invent one. Scarcity is the point; don't decorate every spell.
 
-- Shillelagh: D&D material = mistletoe + shamrock leaf → `pollen` (qty 1); focus:
-  `sprig-of-mistletoe` provides pollen.
+**Domain map** (theme → components, cheap → pricey by value):
+- arcane/force → arcane-powder(75), ether-essence(100), mana-crystals(200)
+- fire → ash(15), elemental-sparks(150), sulfur(500), dragon-scale(500)
+- lightning → iron-filings(20)
+- nature/heal → bark-shavings(25), pollen(30), tree-sap(50)
+- poison/decay → mushroom-spores(45), tree-sap(50)
+- holy/divine → blessed-incense(100), sacred-oil(125), holy-water(150), starlight-essence(10000)
+- necrotic/dark → spirit-dust(75), bone-dust(200), demon-ichor(600), void-crystal(8000)
+- illusion/light → quartz-dust(50)
+- protection → salt(10)
+- binding → spider-silk(25)
+- rebirth → phoenix-feather(5000)
 
-**Flavor mapping (for reference in later levels):**
-- Fire/heat spells → `sulfur`, `ash`, `elemental-sparks`
-- Healing/nature spells → `pollen`, `bark-shavings`, `tree-sap`
-- Holy/divine spells → `holy-water`, `sacred-oil`, `blessed-incense`
-- Arcane/generic spells → `arcane-powder`, `quartz-dust`, `mana-crystals`
-- Necrotic/death spells → `bone-dust`, `spirit-dust`, `demon-ichor`
-- Illusion spells → `ether-essence`, `arcane-powder`
-- Cold spells → `quartz-dust`, `elemental-sparks`
-- Poison → `mushroom-spores`, `demon-ichor`
+**Focus = unlimited runes** (elemental-staff mechanic): the 12 focus-provided ids
+(wand→arcane-powder, staff→mana-crystals, wooden-staff→bark-shavings, amulet→blessed-incense,
+emblem→sacred-oil, orb→ether-essence, rod→sulfur, yew-wand→tree-sap, crystal→quartz-dust,
+reliquary→holy-water, sprig-of-mistletoe→pollen, totem→bone-dust) are free with the matching
+focus. The other 12 (ash, demon-ichor, dragon-scale, elemental-sparks, iron-filings,
+mushroom-spores, phoenix-feather, salt, spider-silk, spirit-dust, starlight-essence,
+void-crystal) always cost. The three single-stack legendaries (phoenix-feather 5000,
+void-crystal 8000, starlight-essence 10000) are for capstone spells ONLY.
+
+**Batch 1 (cantrips):** mostly free — correct under this framing. Shillelagh keeps
+`pollen` (focus: sprig-of-mistletoe). Re-audit any cantrip cost against the cost-tier rule
+on a later pass; cantrips should almost never carry a rune cost.
 
 ---
 

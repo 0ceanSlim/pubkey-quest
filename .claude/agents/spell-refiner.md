@@ -39,20 +39,59 @@ notes[], material_component { required: [{component, quantity}], focus_provided 
   unless an equipped focus provides them.
 - **Range** is a 0–6 grid number (0 = touch/self). Keep `range_long` ≥ `range`.
 
-## Valid component vocabulary — NEVER invent a component id
-Only these 25 spell-component item ids exist. Use them; do not reference any
-other id (the migration + validator will reject unknowns):
-`arcane-powder, ash, bark-shavings, blessed-incense, bone-dust, demon-ichor,
-dragon-scale, elemental-sparks, ether-essence, holy-water, iron-filings,
-mana-crystals, mushroom-spores, phoenix-feather, pollen, quartz-dust, sacred-oil,
-salt, spider-silk, spirit-dust, starlight-essence, sulfur, tree-sap, void-crystal`.
+## Components are a per-cast COST, not D&D flavor (homebrew, rune-like)
+This game does **not** copy D&D's material-component list. Components are a
+**resource cost paid per cast** — think RuneScape runes: *certain* spells burn one
+or more components every time they're cast, chosen to fit the spell's theme in THIS
+world. **Most spells cost nothing** (and most cantrips are free). Give a component
+cost only to spells that are impactful, signature, or thematically tied to a
+substance — it is a deliberate, selective cost, not a flavor tax on every spell.
 
-Focus items each supply ONE component unlimited (mirror this in `focus_provided`
-prose so it reads truthfully):
+**Use only real component items — NEVER invent an id.** The valid ids are the
+game's `spell_component` items; enumerate them live at the start of every run:
+every `game-data/items/*.json` whose `tags` include `spell_component` (24 today,
+and the catalog may grow — the list is "pretty big" by design). Read each item's
+own `description` and `value` to confirm its theme and cost tier. Never use a D&D
+material that isn't one of these items (migration + validator reject unknowns).
+
+**Domain map (theme → components, cheap → pricey by `value`):**
+
+| Theme | Components (value) |
+|---|---|
+| raw arcane / force | arcane-powder(75), ether-essence(100), mana-crystals(200) |
+| fire / explosion | ash(15), elemental-sparks(150), sulfur(500 "Fireball"), dragon-scale(500) |
+| lightning / metal | iron-filings(20) |
+| nature / life / heal | bark-shavings(25), pollen(30 charm), tree-sap(50) |
+| poison / decay | mushroom-spores(45), tree-sap(50) |
+| holy / divine | blessed-incense(100), sacred-oil(125), holy-water(150), starlight-essence(10000) |
+| necrotic / curse / dark | spirit-dust(75), bone-dust(200 "Bane"), demon-ichor(600), void-crystal(8000) |
+| illusion / light / scrying | quartz-dust(50) |
+| protection / warding | salt(10) |
+| binding / entangle | spider-silk(25) |
+| rebirth / resurrection | phoenix-feather(5000) |
+
+**Cost tier ↔ spell power.** Match a component's `value` to the spell's impact:
+cheap runes (salt 10, ash 15, iron-filings 20, spider-silk/bark-shavings 25,
+pollen 30) for L1; mid (quartz 50, tree-sap 50, spirit-dust/arcane-powder 75,
+blessed-incense/ether 100, sacred-oil 125, holy-water/elemental-sparks 150) for
+L2–L3; pricey (mana-crystals/bone-dust 200, dragon-scale/sulfur 500,
+demon-ichor 600) for signature high-impact spells. The three single-stack
+legendaries — phoenix-feather(5000), void-crystal(8000), starlight-essence(10000)
+— are reserved for capstone spells ONLY (resurrection, void/cosmic, wish-tier).
+`quantity` is usually 1–2 (small stacks for the cheap runes).
+
+**Focus = unlimited runes (the elemental-staff mechanic).** 12 components are
+supplied free while the matching focus is equipped, so a focus-provided cost reads
+"free with the right focus, else you spend the rune":
 `wand→arcane-powder, staff→mana-crystals, wooden-staff→bark-shavings,
 amulet→blessed-incense, emblem→sacred-oil, orb→ether-essence, rod→sulfur,
 yew-wand→tree-sap, crystal→quartz-dust, reliquary→holy-water,
-sprig-of-mistletoe→pollen, totem→bone-dust`.
+sprig-of-mistletoe→pollen, totem→bone-dust`. Prefer a focus-provided component for
+spells a class casts routinely with its focus; reserve the 12 non-focus components
+(ash, demon-ichor, dragon-scale, elemental-sparks, iron-filings, mushroom-spores,
+phoenix-feather, salt, spider-silk, spirit-dust, starlight-essence, void-crystal)
+for spells meant to always carry a consumable cost. Keep `focus_provided` prose
+truthful — name a focus only if it provides a required id.
 
 ## Refinement rules
 1. **Mana cost — de-flatten.** Scale with real power, not just level. Rough
@@ -60,14 +99,14 @@ sprig-of-mistletoe→pollen, totem→bone-dust`.
    Push UP for AoE, hard control, high damage, or strong buffs; push DOWN for
    minor utility/flavor. Keep within the band — you tune *relative* cost; the
    overall mana economy is the maintainer's to set, so don't blow past the bands.
-2. **Material components.** Add them where D&D 5e gives the spell a material
-   component, choosing the closest of the 25 ids by flavor (fire spell → sulfur/
-   ash/elemental-sparks; healing/nature → pollen/bark-shavings/tree-sap; holy →
-   holy-water/sacred-oil/blessed-incense; arcane → arcane-powder/quartz-dust;
-   necrotic → bone-dust/spirit-dust/demon-ichor; etc.). Set a sensible `quantity`
-   (1–3). Keep `focus_provided` prose consistent with the focus→component map
-   above (only name a focus that actually provides one of the required ids).
-   Cantrips usually have none — only add if canonical.
+2. **Component cost — homebrew rune-like, SELECTIVE.** A per-cast cost, NOT D&D's
+   material list — see "Components are a per-cast COST" above. Give a cost ONLY to
+   spells that warrant one (signature / impactful / substance-themed); leave minor
+   utility, flavor, and most cantrips free (`required: []`). When you do add one:
+   pick component(s) whose domain fits the spell AND whose `value` matches the
+   spell's power, set `quantity` 1–2, and keep `focus_provided` prose consistent
+   with the focus map. Do not sprinkle components on every spell — scarcity is the
+   point (it's a cost, like runes, not decoration).
 3. **Correctness.** Verify against D&D 5e and fix: `save_type` vs `spell_attack`
    (never both), `damage`/`damage_type`/`heal` dice, `concentration`, `duration`,
    `range`/`range_long`, `school`, `classes`. Keep `tags` accurate
