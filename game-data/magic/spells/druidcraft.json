@@ -1,22 +1,24 @@
 {
   "name": "Druidcraft",
-  "description": "You call upon nature's wrath to hinder enemies. Choose one: create difficult terrain in a 5-foot square, obscure vision with thick foliage, or cause plants to grasp at an enemy (target must make Dex save or speed reduced by 10 feet for 1 round).",
+  "description": "You call upon nature's subtle power. Choose one: cause a tiny flame to burst into existence; predict the weather for the next 24 hours; cause a flower to bloom or a seed to sprout; or create a sensory effect (rustling leaves, sound of wind, faint animal call).",
   "level": 0,
   "school": "transmutation",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
-  "duration": "1 round",
+  "range": "2",
+  "range_long": "2",
+  "duration": "instantaneous",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Minor nature cantrip — creates tiny flame, predicts weather, causes plant growth, or produces a nature sound/sensory effect.",
   "type": "Spell",
   "spell_attack": null,
-  "save_type": "dexterity",
+  "save_type": null,
   "tags": [
     "cantrip",
-    "control",
-    "terrain"
+    "utility",
+    "nature"
   ],
   "classes": [
     "druid"
@@ -25,6 +27,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Pure utility cantrip — no combat application; analogous to Prestidigitation but nature-flavored",
+    "Range 2 = 30 feet (D&D 5e: 30 feet)"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

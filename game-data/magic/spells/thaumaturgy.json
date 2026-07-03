@@ -1,15 +1,17 @@
 {
   "name": "Thaumaturgy",
-  "description": "You manifest a minor wonder, a sign of supernatural power, within range. You create one of several magical effects within range.",
+  "description": "You manifest a minor wonder, a sign of supernatural power, within range. You create one of the following magical effects within range: your voice booms; you cause flames to flicker or change color; you cause harmless tremors; you create an instantaneous sound; you instantaneously cause an unlocked door or window to fly open or slam shut; or you alter the appearance of your eyes for 1 minute.",
   "level": 0,
   "school": "transmutation",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 minute",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Creates a minor supernatural effect: booming voice, flickering flames, tremors, illusory sounds, door/window manipulation, or altered eye appearance.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -24,6 +26,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Pure flavor/utility — no combat application; 3 effects can be active at once",
+    "Range 2 = 30 feet (D&D 5e: 30 feet)"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

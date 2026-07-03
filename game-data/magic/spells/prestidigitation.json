@@ -1,35 +1,42 @@
 {
   "name": "Arcane Weapon",
-  "description": "You imbue a weapon you touch with magical energy. For the duration, the weapon deals an additional 1d4 force damage on hit and glows with faint magical light.",
+  "description": "You imbue a weapon you touch with magical energy. For the duration, the weapon deals an additional 1d4 force damage on each hit and glows with faint magical light.",
   "level": 0,
   "school": "transmutation",
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
   "duration": "1 minute",
-  "concentration": false,
-  "damage": "1d4",
-  "damage_type": "force",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Touched weapon deals an extra 1d4 force damage on each hit for 1 minute (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "cantrip",
     "buff",
-    "weapon"
+    "weapon",
+    "combat"
   ],
   "classes": [
     "wizard",
     "sorcerer",
     "warlock",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 1,
+  "mana_cost": 2,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
-    "Enhances weapon with magical damage",
-    "Touch range spell"
-  ]
+    "Concentration required — competing with other concentration spells",
+    "Mana 2: sustained damage buff lasting up to 10 combat rounds is stronger than a single-hit cantrip"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

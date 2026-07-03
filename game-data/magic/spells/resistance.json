@@ -1,6 +1,6 @@
 {
   "name": "Resistance",
-  "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice.",
+  "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice. It can roll the die before or after making the saving throw.",
   "level": 0,
   "school": "abjuration",
   "casting_time": "action",
@@ -10,6 +10,8 @@
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Target gains a +1d4 bonus to one saving throw of their choice before the spell ends.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -26,6 +28,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Touch range; concentration up to 1 minute",
+    "Bonus applies to saving throws — not attack rolls or ability checks (compare Guidance)"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

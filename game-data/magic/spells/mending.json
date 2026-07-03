@@ -1,6 +1,6 @@
 {
   "name": "Repair Armor",
-  "description": "You magically repair damaged armor or shields. Target regains 1d4+1 AC points if armor is damaged, or removes one level of equipment degradation.",
+  "description": "You magically repair damaged armor or shields. The spell takes 1 minute to cast and removes one level of equipment degradation or restores minor physical damage to worn armor.",
   "level": 0,
   "school": "transmutation",
   "casting_time": "1 minute",
@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Removes one level of degradation from touched armor or shield.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -22,14 +24,18 @@
     "wizard",
     "cleric",
     "druid",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
-  "action_cost": "1 minute",
+  "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
-    "Touch range spell",
-    "Repairs breaks and tears in objects"
-  ]
+    "Casting time is 1 minute — out-of-combat only; action_cost reflects combat cost if somehow cast in combat",
+    "Touch range; targets a piece of armor or shield"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

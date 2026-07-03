@@ -1063,6 +1063,7 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	log = append(log, actionLog...)
 	if dmg > 0 {
 		log = append(log, applyDamageToPlayer(cs, dmg)...)
+		log = append(log, checkConcentrationOnDamage(cs, save, dmg)...)
 	}
 
 	resetPlayerTurnState(cs, save)

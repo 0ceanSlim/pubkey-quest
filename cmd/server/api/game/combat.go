@@ -567,6 +567,114 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
 
+// ─── CombatCastHandler (M4 Phase B) ───────────────────────────────────────────
+
+// CombatCastRequest is the body sent to POST /combat/cast.
+// swagger:model CombatCastRequest
+type CombatCastRequest struct {
+	Npub    string `json:"npub"     example:"npub1..."`
+	SaveID  string `json:"save_id"  example:"save_1234567890"`
+	SpellID string `json:"spell_id" example:"fire-bolt"`
+}
+
+// CombatCastHandler resolves the player casting a prepared spell at the monster.
+// Like the attack handler it runs the cast, then auto-ends the turn if the player
+// has nothing left to do. Casting gates on known + prepared + mana + components;
+// a failure (e.g. missing component) returns 400 without spending the turn.
+func CombatCastHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req CombatCastRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" || req.SpellID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub, save_id, or spell_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	advancement, err := loadAdvancement()
+	if err != nil {
+		log.Printf("❌ CombatCast: failed to load advancement: %v", err)
+		writeCombatError(w, http.StatusInternalServerError, "Failed to load advancement data")
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerCast(serverdb.GetDB(), cs, &sess.SaveData, req.SpellID, advancement)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Cast error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatUseItemHandler (M4 Phase C) ─────────────────────────────────────────
+
+// CombatUseItemRequest is the body sent to POST /combat/use-item.
+// slot is the general-slot index (-1 = first match).
+// swagger:model CombatUseItemRequest
+type CombatUseItemRequest struct {
+	Npub   string `json:"npub"    example:"npub1..."`
+	SaveID string `json:"save_id" example:"save_1234567890"`
+	ItemID string `json:"item_id" example:"healing"`
+	Slot   int    `json:"slot"    example:"-1"`
+}
+
+// CombatUseItemHandler drinks a potion / uses a consumable during the fight and
+// auto-ends the turn if nothing meaningful remains. Healing lands on the combat
+// HP pool (see combat.ProcessPlayerUseItem).
+func CombatUseItemHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req CombatUseItemRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" || req.ItemID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub, save_id, or item_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID, req.Slot)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Use-item error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
 // ─── CombatMoveHandler ────────────────────────────────────────────────────────
 
 // CombatMoveHandler handles the player's movement sub-phase.

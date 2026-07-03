@@ -199,6 +199,15 @@ type InitiativeEntry struct {
 	DEXScore   int    `json:"dex_score"` // For tie-breaking
 }
 
+// ConcentrationState tracks a spell the player is concentrating on during combat.
+// Taking damage forces a Constitution save to keep it; failing drops the linked
+// ActiveEffect. Never persisted — it lives only inside the memory-only session.
+type ConcentrationState struct {
+	SpellID   string `json:"spell_id"`
+	SpellName string `json:"spell_name"`
+	EffectID  string `json:"effect_id"` // ActiveEffect to remove if concentration breaks ("" if none)
+}
+
 // CombatSession holds all in-memory state for an active combat encounter.
 // This is NEVER written to the save file — it lives only in GameSession memory.
 type CombatSession struct {
@@ -219,6 +228,10 @@ type CombatSession struct {
 	LevelUpPending     bool              `json:"level_up_pending"`
 	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`
 	AmmoUsedThisCombat int               `json:"ammo_used_this_combat"`
+
+	// Concentration is the spell the player is currently concentrating on (buff/
+	// control). Nil when not concentrating. Taking damage triggers a CON save.
+	Concentration *ConcentrationState `json:"concentration,omitempty"`
 
 	// MonsterSpawnPos is set only on the very first response for an encounter
 	// (combat start). When the monster wins initiative and runs an opening

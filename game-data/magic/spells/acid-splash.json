@@ -5,11 +5,13 @@
   "school": "conjuration",
   "casting_time": "action",
   "range": "4",
-  "range_long": "6",
+  "range_long": "4",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "1d6",
   "damage_type": "acid",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -21,14 +23,18 @@
   ],
   "classes": [
     "wizard",
-    "sorcerer"
+    "sorcerer",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
     "Can target 1 creature or 2 creatures within 5 feet of each other",
     "Requires Dexterity saving throw"
-  ]
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

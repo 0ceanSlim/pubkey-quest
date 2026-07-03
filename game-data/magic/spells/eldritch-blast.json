@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "1d10",
   "damage_type": "force",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
@@ -18,17 +20,20 @@
     "damage",
     "force",
     "cantrip",
-    "warlock"
+    "ranged"
   ],
   "classes": [
     "warlock"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 1,
+  "mana_cost": 2,
   "notes": [
-    "Warlock signature cantrip",
-    "Scales with character level",
-    "Can be enhanced with invocations"
-  ]
+    "Warlock signature cantrip — highest single-target damage among cantrips (1d10 force, no immunity)",
+    "Scales to multiple beams at higher character levels"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

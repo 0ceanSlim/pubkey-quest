@@ -4,12 +4,14 @@
   "level": 0,
   "school": "enchantment",
   "casting_time": "action",
-  "range": "2",
+  "range": "4",
   "range_long": "4",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "1d4",
   "damage_type": "psychic",
+  "heal": null,
+  "effect": "On failed save: target has disadvantage on its next attack roll.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "wisdom",
@@ -25,10 +27,14 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 1,
+  "mana_cost": 2,
   "notes": [
-    "Bard signature cantrip",
-    "Wisdom save or take damage + disadvantage",
-    "Target must be able to hear you"
-  ]
+    "Bard signature cantrip; wisdom save or take 1d4 psychic + disadvantage on next attack",
+    "Target must be able to hear you; mana 2: double effect (damage + attack debuff) makes it strongest debuff cantrip",
+    "Disadvantage-on-attack condition pending engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

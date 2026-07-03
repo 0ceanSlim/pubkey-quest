@@ -54,6 +54,22 @@ func HitDie(class string) int {
 	return 8
 }
 
+// SpellcastingAbility returns a class's spellcasting ability (lowercase, e.g.
+// "wisdom") and whether the class is a caster at all. Non-casters return ("",
+// false). This is the single source of truth for which stat drives a caster's
+// spell attack bonus and save DC.
+func SpellcastingAbility(class string) (string, bool) {
+	stat, ok := classCastingStat[class]
+	return stat, ok
+}
+
+// AbilityScore reads an ability score from a save's Stats map case-insensitively,
+// tolerating both float64 (JSON) and int. Defaults to 10 when absent. Exported
+// wrapper over the internal statScore reader for use by other game packages.
+func AbilityScore(stats map[string]interface{}, name string) int {
+	return statScore(stats, name)
+}
+
 // AbilityMod returns the D&D ability-score modifier using floor division
 // (9 → -1, 10 → 0, 14 → +2). This is the canonical modifier; some legacy
 // creation code truncates toward zero instead — since the derived stats here

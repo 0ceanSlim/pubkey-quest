@@ -4,19 +4,22 @@
   "level": 0,
   "school": "illusion",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "4",
+  "range_long": "4",
   "duration": "1 round",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "On failed save: target has disadvantage on their next attack roll.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "wisdom",
   "tags": [
     "cantrip",
     "illusion",
-    "debuff"
+    "debuff",
+    "control"
   ],
   "classes": [
     "wizard",
@@ -28,8 +31,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
-    "Can create sound or visual illusion",
-    "Investigation check to discern it's an illusion"
-  ]
+    "Wisdom save or disadvantage on next attack roll",
+    "Disadvantage-on-attack condition pending full engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

@@ -1,15 +1,17 @@
 {
   "name": "Produce Flame",
-  "description": "A flickering flame appears in your hand. The flame remains there for the duration and harms neither you nor your equipment. The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
+  "description": "A flickering flame appears in your hand. The flame remains there for the duration and harms neither you nor your equipment. The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet. As an action, you can hurl the flame at a creature within 30 feet, making a ranged spell attack. On a hit, the target takes 1d8 fire damage.",
   "level": 0,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "2",
   "duration": "10 minutes",
   "concentration": false,
   "damage": "1d8",
   "damage_type": "fire",
+  "heal": null,
+  "effect": "While held, sheds bright light in a 10-foot radius; can be thrown as a ranged spell attack (range_long) dealing 1d8 fire damage.",
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
@@ -17,7 +19,8 @@
     "damage",
     "fire",
     "cantrip",
-    "utility"
+    "utility",
+    "ranged"
   ],
   "classes": [
     "druid"
@@ -26,6 +29,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Dual use: light source (10-min) and throwable 1d8 fire attack (range 2 = 30 ft)",
+    "Primary shape = ranged spell attack; light is secondary utility effect"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

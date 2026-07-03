@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	serverdb "pubkey-quest/cmd/server/db"
@@ -539,22 +540,51 @@ func handlePickupItemAction(_ *SaveFile, params map[string]any) (*GameActionResp
 	}, nil
 }
 
-// handleCastSpellAction casts a spell
-func handleCastSpellAction(_ *SaveFile, params map[string]any) (*GameActionResponse, error) {
+// handleCastSpellAction casts a spell outside of combat (M4 Phase D).
+//
+// Out of combat only utility / heal / buff spells make sense — attack and save
+// shapes need an enemy, so the engine rejects them with a clear message. The
+// shared casting engine (spells.Cast) validates known + prepared + mana +
+// components and applies mana/component/effect costs; here we apply any healing
+// to the resting save HP. A failed cast returns Success=false with the reason
+// rather than a hard error so the UI can surface it inline.
+func handleCastSpellAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
 	spellID, ok := params["spell_id"].(string)
-	if !ok {
+	if !ok || spellID == "" {
 		return nil, fmt.Errorf("missing or invalid spell_id parameter")
 	}
 
-	// TODO: Validate spell is known
-	// TODO: Check mana cost
-	// TODO: Apply spell effects
-	// TODO: Reduce mana
+	advancement, err := loadAdvancement()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load advancement data: %w", err)
+	}
+	level := character.GetLevelFromXP(state.Experience, advancement)
 
-	return &GameActionResponse{
-		Success: true,
-		Message: fmt.Sprintf("Cast %s", spellID),
-	}, nil
+	deps := spells.Deps{
+		RollD20:              combat.RollD20,
+		RollDice:             combat.RollDice,
+		ResolveMonsterDamage: combat.ResolveDamageToMonster,
+	}
+
+	res, err := spells.Cast(serverdb.GetDB(), deps, state, spellID, level, nil)
+	if err != nil {
+		return &GameActionResponse{Success: false, Message: err.Error()}, nil
+	}
+
+	// Out-of-combat healing lands on the resting save HP (combat has its own pool).
+	if res.Heal > 0 {
+		state.HP += res.Heal
+		if state.HP > state.MaxHP {
+			state.HP = state.MaxHP
+		}
+	}
+
+	msg := strings.TrimSpace(strings.Join(res.Log, " "))
+	if msg == "" {
+		msg = fmt.Sprintf("You cast %s.", res.SpellName)
+	}
+
+	return &GameActionResponse{Success: true, Message: msg}, nil
 }
 
 // handleRestAction rests to restore HP/Mana

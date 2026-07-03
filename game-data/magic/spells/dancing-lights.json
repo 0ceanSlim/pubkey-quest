@@ -4,19 +4,22 @@
   "level": 0,
   "school": "evocation",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "6",
+  "range": "1",
+  "range_long": "1",
   "duration": "1 round",
-  "concentration": true,
+  "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Creatures that fail the save are blinded until the end of their next turn.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "constitution",
   "tags": [
     "cantrip",
     "control",
-    "blind"
+    "debuff",
+    "radiant"
   ],
   "classes": [
     "wizard",
@@ -25,10 +28,13 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 1,
+  "mana_cost": 2,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
-    "Creates up to 4 lights or 1 humanoid form",
-    "Can move lights as bonus action"
-  ]
+    "AoE: affects all creatures within 10 feet (range 1)",
+    "Blinded condition: disadvantage on attack rolls, advantage for attackers"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

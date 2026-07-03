@@ -4,12 +4,14 @@
   "level": 0,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "2",
-  "range_long": "2",
+  "range": "1",
+  "range_long": "1",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "1d12",
   "damage_type": "poison",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "constitution",
@@ -22,12 +24,19 @@
   "classes": [
     "druid",
     "sorcerer",
-    "warlock"
+    "warlock",
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Highest damage die of any cantrip (1d12) but extremely short range (10 feet) and many creatures resist poison",
+    "High risk/reward: close range + common resistance"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

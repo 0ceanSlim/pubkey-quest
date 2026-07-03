@@ -579,6 +579,29 @@ func LoadItemByID(database *sql.DB, id string) (map[string]interface{}, error) {
 	return item, nil
 }
 
+// LoadSpellByID returns the full spell object as a map. Like items, the whole
+// spell JSON is stored in the spells.properties column at migration time, so
+// this surfaces every field (spell_attack, save_type, heal, effect,
+// material_component, mana_cost, range, …) — not just the summary columns the
+// Spell struct exposes.
+func LoadSpellByID(database *sql.DB, id string) (map[string]interface{}, error) {
+	var propertiesJSON string
+	err := database.QueryRow("SELECT properties FROM spells WHERE id = ?", id).Scan(&propertiesJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("spell not found: %s", id)
+		}
+		return nil, fmt.Errorf("failed to query spell %s: %v", id, err)
+	}
+
+	var spell map[string]interface{}
+	if err := json.Unmarshal([]byte(propertiesJSON), &spell); err != nil {
+		return nil, fmt.Errorf("failed to parse spell %s: %v", id, err)
+	}
+
+	return spell, nil
+}
+
 func LoadAllMusicTracks(database *sql.DB) ([]MusicTrack, error) {
 	var dataJSON string
 	err := database.QueryRow("SELECT data FROM music_tracks WHERE id = 'music'").Scan(&dataJSON)

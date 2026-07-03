@@ -1,6 +1,6 @@
 {
   "name": "Guidance",
-  "description": "You touch one willing creature and guide their combat instincts. The target gains a +1d4 bonus to their next attack roll, damage roll, or saving throw (their choice).",
+  "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check.",
   "level": 0,
   "school": "divination",
   "casting_time": "action",
@@ -10,11 +10,13 @@
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Target gains a +1d4 bonus to one ability check of their choice before the spell ends.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
-    "combat",
+    "utility",
     "cantrip",
     "buff"
   ],
@@ -26,8 +28,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
-    "Touch range spell",
-    "Adds 1d4 to attack roll, damage roll, or saving throw"
-  ]
+    "Touch range; concentration lasts up to 1 minute",
+    "Bonus applies to ability checks (skills, tool checks) — not attack rolls or saves"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

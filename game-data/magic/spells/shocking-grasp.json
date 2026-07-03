@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "1d8",
   "damage_type": "lightning",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "melee",
   "save_type": null,
@@ -19,18 +21,22 @@
     "lightning",
     "cantrip",
     "touch",
-    "disable"
+    "debuff"
   ],
   "classes": [
     "sorcerer",
-    "wizard"
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Melee spell attack - must be adjacent",
-    "Advantage vs targets in metal armor",
-    "Prevents reactions until their next turn"
-  ]
+    "Advantage vs targets in metal armor; on hit: target loses reactions until start of their next turn",
+    "Reaction-suppression condition pending full engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

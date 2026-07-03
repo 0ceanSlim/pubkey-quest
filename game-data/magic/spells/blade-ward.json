@@ -4,12 +4,14 @@
   "level": 0,
   "school": "abjuration",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 round",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Gain resistance to bludgeoning, piercing, and slashing damage from weapon attacks until the end of your next turn.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -17,16 +19,22 @@
     "combat",
     "utility",
     "cantrip",
-    "protection"
+    "protection",
+    "buff"
   ],
   "classes": [
     "sorcerer",
-    "warlock"
+    "warlock",
+    "wizard"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Grants weapon-damage resistance for 1 round at the cost of your action — situationally useful near death or when tanking"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

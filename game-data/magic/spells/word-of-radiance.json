@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "1d6",
   "damage_type": "radiant",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "constitution",
@@ -24,9 +26,13 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 1,
+  "mana_cost": 2,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
+    "AoE: affects multiple chosen targets within 5 feet — best when surrounded",
+    "Mana 2: AoE warrants premium over single-target cantrips of same damage"
   ],
-  "material_component": null
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

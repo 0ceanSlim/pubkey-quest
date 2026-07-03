@@ -1,6 +1,6 @@
 {
   "name": "Shillelagh",
-  "description": "The wood of a club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon.",
+  "description": "The wood of a club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8.",
   "level": 0,
   "school": "transmutation",
   "casting_time": "bonus action",
@@ -10,21 +10,32 @@
   "concentration": true,
   "damage": "1d8",
   "damage_type": "bludgeoning",
+  "heal": null,
+  "effect": "Your held club or quarterstaff uses your spellcasting modifier for attack/damage rolls and deals 1d8 bludgeoning damage for 1 minute.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "buff",
-    "cantrip"
+    "cantrip",
+    "weapon"
   ],
   "classes": [
     "druid"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Bonus action cast + concentration — enables Wisdom-based melee for druids",
+    "Spellcasting-ability-to-weapon-attack substitution pending engine support",
+    "D&D 5e material: mistletoe and shamrock leaf; closest ids: pollen (druidic herb)"
+  ],
+  "material_component": {
+    "required": [
+      { "component": "pollen", "quantity": 1 }
+    ],
+    "focus_provided": "A sprig-of-mistletoe focus provides the pollen component."
+  }
 }

@@ -1,30 +1,39 @@
 {
   "name": "Thorn Whip",
-  "description": "You create a long, vine-like whip covered in thorns that lashes out at your command toward a creature in range. Make a melee spell attack against the target.",
+  "description": "You create a long, vine-like whip covered in thorns that lashes out at your command toward a creature in range. Make a melee spell attack against the target. If the attack hits, the creature takes 1d6 piercing damage and, if the creature is Large or smaller, you pull the creature up to 10 feet closer to you.",
   "level": 0,
   "school": "transmutation",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "1d6",
   "damage_type": "piercing",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "melee",
   "save_type": null,
   "tags": [
     "combat",
     "damage",
-    "cantrip"
+    "cantrip",
+    "control"
   ],
   "classes": [
-    "druid"
+    "druid",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Melee spell attack at 30-foot range — unusual reach",
+    "On hit: pull Large-or-smaller creature up to 10 feet closer — forced-movement mechanic pending engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

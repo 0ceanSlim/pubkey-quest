@@ -1,15 +1,17 @@
 {
   "name": "True Strike",
-  "description": "You extend your hand and point a finger at a target in range. Your magic grants you a brief insight into the target's defenses. On your next turn, you gain advantage on your first attack roll against the target.",
+  "description": "You extend your hand and point a finger at a target in range. Your magic grants you a brief insight into the target's defenses. On your next turn, your first attack roll against the target has advantage.",
   "level": 0,
   "school": "divination",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "4",
+  "range_long": "4",
   "duration": "1 round",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Gain advantage on your first attack roll against the target on your next turn.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,6 +31,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Generally weak: costs your action to gain advantage on the next action — break-even at best",
+    "Advantage-on-next-attack condition pending engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

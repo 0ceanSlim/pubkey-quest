@@ -4,12 +4,14 @@
   "level": 0,
   "school": "evocation",
   "casting_time": "action",
-  "range": "2",
+  "range": "4",
   "range_long": "4",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "1d8",
   "damage_type": "cold",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
@@ -18,18 +20,23 @@
     "damage",
     "cold",
     "cantrip",
-    "slow"
+    "slow",
+    "ranged"
   ],
   "classes": [
     "sorcerer",
-    "wizard"
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Ranged spell attack",
-    "Slows target movement",
-    "Good for kiting enemies"
-  ]
+    "On hit: target speed reduced by 10 feet until start of your next turn — speed-reduction condition pending full engine support",
+    "Ranged spell attack; cold damage less commonly resisted than fire"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

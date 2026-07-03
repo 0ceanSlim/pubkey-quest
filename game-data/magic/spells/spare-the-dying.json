@@ -10,13 +10,15 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Stabilizes a creature at 0 hit points, preventing further death saving throw rolls.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
-    "combat",
     "healing",
-    "cantrip"
+    "cantrip",
+    "utility"
   ],
   "classes": [
     "cleric"
@@ -25,6 +27,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "Stabilizes — does not restore hit points; touch range",
+    "No effect on undead or constructs"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

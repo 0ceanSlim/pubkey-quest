@@ -1,6 +1,6 @@
 {
   "name": "Chill Touch",
-  "description": "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave.",
+  "description": "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes 1d8 necrotic damage and cannot regain hit points until the start of your next turn.",
   "level": 0,
   "school": "necromancy",
   "casting_time": "action",
@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "1d8",
   "damage_type": "necrotic",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
@@ -17,7 +19,8 @@
     "combat",
     "damage",
     "necrotic",
-    "cantrip"
+    "cantrip",
+    "debuff"
   ],
   "classes": [
     "sorcerer",
@@ -28,6 +31,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots"
-  ]
+    "On hit: target cannot regain hit points until start of your next turn",
+    "Undead targets also have disadvantage on attack rolls against you"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

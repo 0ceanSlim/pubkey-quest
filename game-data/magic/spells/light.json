@@ -10,11 +10,14 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Emits bright light in a 20-foot radius, dim light for 20 feet beyond. Hidden or invisible creatures in the area have disadvantage on Stealth checks.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "cantrip",
+    "utility",
     "detection"
   ],
   "classes": [
@@ -27,8 +30,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Cantrip - can be cast without using spell slots",
-    "Touch range spell",
-    "Can target weapons or other objects for portable light source"
-  ]
+    "Illuminates a 20-foot radius for 1 hour; useful in dark dungeons",
+    "Penalizes Stealth for hidden creatures — effectively a detection tool"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }
