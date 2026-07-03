@@ -1,15 +1,17 @@
 {
   "name": "Guiding Bolt",
-  "description": "A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes 4d6 radiant damage.",
+  "description": "A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes 4d6 radiant damage, and the next attack roll made against this target before the end of your next turn has advantage.",
   "level": 1,
   "school": "evocation",
   "casting_time": "action",
-  "range": "24",
-  "range_long": "24",
+  "range": "4",
+  "range_long": "4",
   "duration": "1 round",
   "concentration": false,
   "damage": "4d6",
   "damage_type": "radiant",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
@@ -23,19 +25,21 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "prep_time": 55,
+  "notes": [
+    "Range: D&D 5e 120 ft; 4 grid (60 ft) for L1 range balance.",
+    "On-hit advantage-next-attack secondary effect requires a linked-attack-bonus engine mechanic — see proposals.",
+    "4d6 radiant is the highest L1 damage (avg 14). Mana 3 warranted.",
+    "Stub had blessed-incense×2+holy-water (three components, over-taxing). Reduced to blessed-incense×1; amulet provides it free for clerics."
+  ],
   "material_component": {
     "required": [
       {
         "component": "blessed-incense",
-        "quantity": 2
-      },
-      {
-        "component": "holy-water",
         "quantity": 1
       }
     ],
-    "focus_provided": "Amulet provides unlimited blessed-incense, Reliquary provides unlimited holy-water"
+    "focus_provided": "Amulet provides unlimited blessed-incense (free for clerics with amulet)."
   }
 }

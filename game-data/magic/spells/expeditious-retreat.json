@@ -1,31 +1,41 @@
 {
   "name": "Expeditious Retreat",
-  "description": "This spell allows you to move at an incredible pace. When you cast this spell, and then as a bonus action on each of your turns until the spell ends, you can take the Dash action.",
+  "description": "This spell allows you to move at an incredible pace. When you cast this spell, and then as a bonus action on each of your turns until the spell ends, you can take the Dash action, doubling your movement speed for that turn.",
   "level": 1,
   "school": "transmutation",
   "casting_time": "bonus action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "10 minutes",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Grants the ability to Dash as a bonus action each turn, effectively doubling movement speed per turn for 10 minutes.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
-    "combat",
     "utility",
-    "movement"
+    "movement",
+    "buff"
   ],
   "classes": [
     "wizard",
     "sorcerer",
-    "warlock"
+    "warlock",
+    "artificer"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 30,
+  "notes": [
+    "Movement speed increase requires a speed-modifier condition in the effects system — see proposals.",
+    "Minor utility movement buff; no substance theme — correctly free. 10-min conc self-buff, but simple enough for quick prep."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

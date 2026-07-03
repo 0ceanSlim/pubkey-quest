@@ -237,6 +237,58 @@ All distinct values; logic: quick utility/fast spells at low end, powerful/compl
 | `goodberry` | 65 | Nature transmutation, creates lasting items; pollen=free for druids |
 | `sleep` | 80 | Hardest control in L1 (1hr no-conc exhaustion); spirit-dust cost + mana 3; unique between 75 and 90 |
 
+## Level 1 component-cost decisions (batch 5)
+
+**Received a component (selective):**
+- `hex`: spirit-dust×1 (75gp) — necrotic/curse domain, signature warlock concentration curse, 1-hr duration. Stripped stub's ether-essence×2+mana-crystals (both focus-provided by orb/staff = not a real cost for warlocks). Spirit-dust is never focus-provided — always consumed. Mana 2 + prep 55 + spirit-dust: balanced.
+- `guiding-bolt`: blessed-incense×1 (100gp) — divine/radiant domain, amulet=free for clerics. 4d6 radiant (highest L1 damage) warrants a rune. Stripped stub's blessed-incense×2+holy-water (over-taxed with three total components).
+- `hellish-rebuke`: ash×1 (15gp) — fire domain, no focus provides ash, always consumed. Reaction-fire warrants cheapest fire rune. 2d10 fire but reaction window is a significant constraint. Stripped stub's sulfur×2+arcane-powder (500gp×2 Fireball-tier on a L1 reaction).
+- `ensnaring-strike`: spider-silk×1 (25gp) — binding domain, no focus provides spider-silk, always consumed. Thorn-vines binding fits perfectly. Stripped stub's tree-sap (yew-wand provides free = not a real ranger cost).
+- `entangle`: tree-sap×1 (50gp) — nature/vine domain, yew-wand provides free for druids. Reduced from stub's ×2. AoE hard control warrants one nature rune; free for druids, costs otherwise.
+
+**Left free (batch 5):**
+- `searing-smite`: fire theme but on-hit-rider buff — smite shape is buff/weapon-enhancement, not substance-caster. STRIPPED phoenix-feather×1 (5000gp LEGENDARY on a L1 paladin starter spell — catastrophically wrong).
+- `thunderous-smite`: no thunder rune in the catalog. STRIPPED elemental-sparks×2 (lightning/electricity domain mismatch + 150gp×2 over-tier on a L1 smite).
+- `wrathful-smite`: psychic/fear — no matching rune in catalog. Stripped spirit-dust (stub had wrong focus note: totem→bone-dust, NOT spirit-dust).
+- `hunters-mark`: divination tracking — stripped bone-dust×2+pollen (both focus-provided = not a real ranger cost; not substance-themed).
+- `faerie-fire`: light/illumination — not substance-themed. Stripped pollen×2 (stub "No focus provides" was WRONG — sprig-of-mistletoe provides pollen; also wrong domain for illumination).
+- `compelled-duel`: paladin enchantment, force of will — not substance-themed.
+- `expeditious-retreat`: transmutation movement utility — not substance-themed.
+- `longstrider`: transmutation touch buff — not substance-themed.
+
+## Level 1 prep_time rulings (batch 5)
+
+| Spell | prep_time | Rationale |
+|-------|-----------|-----------|
+| `wrathful-smite` | 35 | Smallest smite (1d6 psychic); free, mana 2; tie with magic-missile acceptable |
+| `searing-smite` | 40 | Instinctive fire smite; free (no rune); tie with false-life/detect-evil acceptable |
+| `hellish-rebuke` | 45 | Reaction fire; ash cost + reaction window keep it modest; tie with shield acceptable |
+| `thunderous-smite` | 45 | Highest-damage smite (2d6 + push+prone = mana 3); free; tie with hellish-rebuke acceptable |
+| `hunters-mark` | 50 | 1-hr concentration tracking buff; free; tie with compelled-duel/shield-of-faith acceptable |
+| `compelled-duel` | 50 | 1-min conc single-target control; free |
+| `guiding-bolt` | 55 | Ranged attack + on-hit advantage; incense=free for clerics; tie with witch-bolt/silent-image/hex acceptable |
+| `hex` | 55 | 1-hr conc curse; spirit-dust cost means modest prep; tie with guiding-bolt acceptable |
+| `faerie-fire` | 65 | AoE conc debuff (mana 3); free; unique between goodberry (65) and longstrider... actually tie with goodberry at 65 — acceptable at this tier; adjust to 67→round to 65 |
+| `ensnaring-strike` | 70 | On-hit-rider hard control + DoT; spider-silk cost; mana 3 |
+| `entangle` | 80 | AoE conc zone control (mana 3); tree-sap=free for druids with yew-wand; tie with sleep at 80 — adjust to 85; keep as 80 since sleep's spirit-dust adds more cost |
+| `expeditious-retreat` | 30 | Quick movement utility; tie with healing-word/command/comprehend-languages acceptable |
+| `longstrider` | 35 | Touch speed buff; free; tie with magic-missile/detect-magic acceptable |
+
+**Note on ties:** Many prep_time values naturally cluster — this is acceptable since different spells still occupy
+distinct roles (even if two sit at "35", one is magic-missile and one is longstrider — no confusion in practice).
+
+## Smite spells — shape convention
+
+All paladin/ranger smite-style bonus-action "next-hit riders" use the following shape:
+- `casting_time: "bonus action"` / `action_cost: "bonus_action"` (underscore)
+- `range: "0"` (self-buff)
+- `spell_attack: null`, `save_type: null` (shape is BUFF, not attack/save)
+- `effect: <prose describing the on-hit trigger and secondary save>`
+- Secondary save documented in `notes[]`, NOT in `save_type` field
+- All smites are `[~]` (need on-hit-rider engine mechanic)
+
+This applies to: searing-smite, thunderous-smite, wrathful-smite, ensnaring-strike.
+
 ## Homebrew content in the library
 
 Several spell FILES contain homebrew cantrips (non-D&D-5e spells). Treat them as

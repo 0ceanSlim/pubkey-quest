@@ -1,37 +1,39 @@
 {
   "name": "Searing Smite",
-  "description": "The next time you hit a creature with a melee weapon attack during the spell's duration, your weapon flares with white-hot intensity, and the attack deals an extra 1d6 fire damage to the target.",
+  "description": "The next time you hit a creature with a melee weapon attack during the spell's duration, your weapon flares with white-hot intensity, and the attack deals an extra 1d6 fire damage to the target. On hit, the target must succeed on a Constitution saving throw or ignite, taking 1d6 fire damage at the start of each of its turns until it or another creature extinguishes the flames.",
   "level": 1,
   "school": "evocation",
   "casting_time": "bonus action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 minute",
   "concentration": true,
   "damage": "1d6",
   "damage_type": "fire",
+  "heal": null,
+  "effect": "Empowers next melee weapon hit with 1d6 extra fire damage; on hit target must save CON or ignite (1d6 fire per turn).",
   "type": "Spell",
   "spell_attack": null,
-  "save_type": "constitution",
+  "save_type": null,
   "tags": [
     "combat",
     "damage",
-    "fire"
+    "fire",
+    "buff"
   ],
   "classes": [
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 40,
+  "notes": [
+    "On-hit rider: extra 1d6 fire on the triggering hit; secondary CON save or ignite (DoT) requires on-hit-rider + burning condition engine support — see proposals.",
+    "Shape: buff (no save on cast, no spell attack). Save_type removed from spell; secondary save noted here."
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "phoenix-feather",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "No focus provides this component - must be obtained"
+    "required": [],
+    "focus_provided": ""
   }
 }

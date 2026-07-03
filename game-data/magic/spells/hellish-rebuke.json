@@ -1,15 +1,17 @@
 {
   "name": "Hellish Rebuke",
-  "description": "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw.",
+  "description": "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw. It takes 2d10 fire damage on a failed save, or half as much on a successful one.",
   "level": 1,
   "school": "evocation",
   "casting_time": "reaction",
-  "range": "12",
-  "range_long": "12",
+  "range": "2",
+  "range_long": "2",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "2d10",
   "damage_type": "fire",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -24,18 +26,20 @@
   "rarity": "common",
   "action_cost": "reaction",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 45,
+  "notes": [
+    "Range: D&D 5e 60 ft; 2 grid for L1 range balance.",
+    "Reaction trigger (when damaged) requires a reaction-trigger engine mechanic — see proposals.",
+    "Mana 2: reaction fire — the reaction-cost and limited trigger window already constrain power significantly.",
+    "Ash×1 (fire domain, 15gp, no focus provides ash — always consumed). Sulfur (500gp) stripped from stub as Fireball-tier on a L1 reaction. Arcane-powder also stripped (arcane domain, wrong theme)."
+  ],
   "material_component": {
     "required": [
       {
-        "component": "sulfur",
-        "quantity": 2
-      },
-      {
-        "component": "arcane-powder",
+        "component": "ash",
         "quantity": 1
       }
     ],
-    "focus_provided": "Rod provides unlimited sulfur, Wand provides unlimited arcane-powder"
+    "focus_provided": "No focus provides ash — always consumed."
   }
 }

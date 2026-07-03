@@ -1,41 +1,45 @@
 {
   "name": "Ensnaring Strike",
-  "description": "The next time you hit a creature with a weapon attack before this spell ends, a writhing mass of thorny vines appears at the point of impact, and the target must succeed on a Strength saving throw or be restrained by the magical vines until the spell ends.",
+  "description": "The next time you hit a creature with a weapon attack before this spell ends, a writhing mass of thorny vines appears at the point of impact, and the target must succeed on a Strength saving throw or be restrained by the magical vines until the spell ends. A Large or larger creature has advantage on this saving throw. While restrained, the target takes 1d6 piercing damage at the start of each of its turns.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "bonus action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 minute",
   "concentration": true,
   "damage": "1d6",
   "damage_type": "piercing",
+  "heal": null,
+  "effect": "Empowers next weapon hit: on hit target saves STR or is restrained by vines (1d6 piercing/turn while restrained).",
   "type": "Spell",
   "spell_attack": null,
-  "save_type": "strength",
+  "save_type": null,
   "tags": [
     "combat",
     "control",
-    "damage"
+    "damage",
+    "buff"
   ],
   "classes": [
     "ranger"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
-  "mana_cost": 2,
-  "notes": [],
+  "action_cost": "bonus_action",
+  "mana_cost": 3,
+  "prep_time": 70,
+  "notes": [
+    "On-hit rider: secondary STR save vs. restrained (DoT while restrained) requires on-hit-rider + restrained condition engine support — see proposals.",
+    "Shape: buff (no save on cast, no spell attack). Mana 3: hard control (restrained) + DoT — strongest ranger L1 crowd control.",
+    "Spider-silk×1 (binding domain, 25gp, no focus provides it — always consumed). Tree-sap stripped: yew-wand provides it free, so it was not a real cost for rangers."
+  ],
   "material_component": {
     "required": [
-      {
-        "component": "tree-sap",
-        "quantity": 1
-      },
       {
         "component": "spider-silk",
         "quantity": 1
       }
     ],
-    "focus_provided": "Yew Wand provides unlimited tree-sap (still need spider-silk)"
+    "focus_provided": "No focus provides spider-silk — always consumed."
   }
 }

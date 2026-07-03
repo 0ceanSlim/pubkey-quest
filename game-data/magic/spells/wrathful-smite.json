@@ -1,38 +1,41 @@
 {
   "name": "Wrathful Smite",
-  "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be frightened of you until the spell ends.",
+  "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 psychic damage. If the target is a creature, it must make a Wisdom saving throw or be frightened of you until the spell ends. A frightened target can repeat the saving throw at the end of each of its turns, ending the effect on a success.",
   "level": 1,
   "school": "evocation",
   "casting_time": "bonus action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 minute",
   "concentration": true,
   "damage": "1d6",
   "damage_type": "psychic",
+  "heal": null,
+  "effect": "Empowers next melee weapon hit with 1d6 extra psychic damage; on hit target must save WIS or be frightened for the duration.",
   "type": "Spell",
   "spell_attack": null,
-  "save_type": "wisdom",
+  "save_type": null,
   "tags": [
     "combat",
     "damage",
     "psychic",
-    "fear"
+    "fear",
+    "buff"
   ],
   "classes": [
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 35,
+  "notes": [
+    "On-hit rider: 1d6 psychic + secondary WIS save vs. frightened requires on-hit-rider + frightened condition engine support — see proposals.",
+    "Shape: buff (no save on cast, no spell attack). Mana 2: lower-damage smite (1d6); frightened condition is the value.",
+    "Spirit-dust stripped from stub: totem→bone-dust (not spirit-dust); psychic/fear is not substance-themed at L1 minor smite tier."
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "spirit-dust",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Totem provides unlimited spirit-dust"
+    "required": [],
+    "focus_provided": ""
   }
 }

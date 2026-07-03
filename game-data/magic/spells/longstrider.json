@@ -1,6 +1,6 @@
 {
   "name": "Longstrider",
-  "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends.",
+  "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends. You can affect one additional creature for each spell slot level above 1st.",
   "level": 1,
   "school": "transmutation",
   "casting_time": "action",
@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Touch target gains +10 ft movement speed for 1 hour (no concentration required).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -22,11 +24,19 @@
     "wizard",
     "druid",
     "ranger",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 35,
+  "notes": [
+    "Speed increase requires a speed-modifier effect in the effects system (1 hour = 60 minutes timer).",
+    "Minor movement utility, no concentration, 1-hour duration — straightforward transmutation buff. Correctly free."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

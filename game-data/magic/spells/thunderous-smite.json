@@ -1,37 +1,40 @@
 {
   "name": "Thunderous Smite",
-  "description": "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet of you, and the attack deals an extra 2d6 thunder damage to the target.",
+  "description": "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet, and the attack deals an extra 2d6 thunder damage to the target. If the target is a creature or object, it is pushed 10 feet away from you and knocked prone if it fails a Strength saving throw.",
   "level": 1,
   "school": "evocation",
   "casting_time": "bonus action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 minute",
   "concentration": true,
   "damage": "2d6",
   "damage_type": "thunder",
+  "heal": null,
+  "effect": "Empowers next melee weapon hit with 2d6 extra thunder damage; on hit target must save STR or be pushed 10 ft and knocked prone.",
   "type": "Spell",
   "spell_attack": null,
-  "save_type": "strength",
+  "save_type": null,
   "tags": [
     "combat",
     "damage",
-    "thunder"
+    "thunder",
+    "buff"
   ],
   "classes": [
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
-  "mana_cost": 2,
-  "notes": [],
+  "action_cost": "bonus_action",
+  "mana_cost": 3,
+  "prep_time": 45,
+  "notes": [
+    "On-hit rider: 2d6 thunder + secondary STR save for push+prone requires on-hit-rider + forced-movement engine support — see proposals.",
+    "Shape: buff (no save on cast, no spell attack). Mana 3: highest L1 smite damage (2d6) plus on-hit hard control (push+prone).",
+    "No thunder rune in the component catalog — correctly free."
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "elemental-sparks",
-        "quantity": 2
-      }
-    ],
-    "focus_provided": "Rod provides unlimited elemental-sparks"
+    "required": [],
+    "focus_provided": ""
   }
 }

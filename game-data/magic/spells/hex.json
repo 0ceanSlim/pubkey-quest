@@ -1,15 +1,17 @@
 {
   "name": "Hex",
-  "description": "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 necrotic damage to the target whenever you hit it with an attack.",
+  "description": "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 necrotic damage to the target whenever you hit it with an attack. Also choose one ability when you cast the spell. The target has disadvantage on ability checks made with the chosen ability.",
   "level": 1,
   "school": "enchantment",
   "casting_time": "bonus action",
-  "range": "18",
-  "range_long": "18",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 hour",
   "concentration": true,
   "damage": "1d6",
   "damage_type": "necrotic",
+  "heal": null,
+  "effect": "Curses a target: +1d6 necrotic on each hit; also imposes disadvantage on a chosen ability check type.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -17,26 +19,28 @@
     "combat",
     "damage",
     "necrotic",
-    "curse"
+    "curse",
+    "debuff"
   ],
   "classes": [
     "warlock"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 55,
+  "notes": [
+    "Range 18 ft = 2 grid (30 ft approximation; D&D 5e is 90 ft = 6 grid but L1 range cap at 2 is balanced).",
+    "Ability-check disadvantage on chosen ability requires ability-selection-at-cast engine mechanic — see proposals.",
+    "Spirit-dust×1 is always consumed (no focus provides spirit-dust); fits necrotic/curse domain. Mana 2 + prep 55 + spirit-dust: balanced three-axis — rune cost keeps mana/prep modest."
+  ],
   "material_component": {
     "required": [
       {
-        "component": "ether-essence",
-        "quantity": 2
-      },
-      {
-        "component": "mana-crystals",
+        "component": "spirit-dust",
         "quantity": 1
       }
     ],
-    "focus_provided": "Orb provides unlimited ether-essence, Staff provides unlimited mana-crystals"
+    "focus_provided": "No focus provides spirit-dust — always consumed."
   }
 }

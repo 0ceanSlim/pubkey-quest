@@ -245,3 +245,128 @@ The item `goodberry` would be a new `game-data/items/goodberry.json` consumable 
 This reuses the existing inventory stack system with a time-to-live flag.
 
 ---
+
+## Level 1 spells (batch 5 additions)
+
+### searing-smite.json — on-hit rider + burning DoT condition
+**Missing mechanic:** (1) On-hit rider: extra damage triggers on the caster's NEXT weapon
+hit, not on the spell cast. (2) Secondary CON save on hit: failure starts a burning DoT
+(1d6 fire at start of each of the target's turns until extinguished).
+**Proposal:** Smites and similar bonus-action "next-hit" buffs need an `"on_next_hit"`
+buff type in the ActiveEffect system: `{ "trigger": "next_melee_hit", "damage": "1d6",
+"damage_type": "fire", "secondary_save": { "type": "constitution", "on_fail":
+"burning_1d6_per_turn" } }`. The "burning" condition is a new DoT condition consumed
+each turn at the start of the target's turn. An action can extinguish it. This mechanic
+is shared across all smite spells — implement once, reuse.
+
+---
+
+### thunderous-smite.json — on-hit rider + push + prone (secondary STR save)
+**Missing mechanic:** Same on-hit-rider mechanic as searing-smite. Secondary STR save
+forces push 10 ft + knocked prone on fail.
+**Proposal:** Extend `"on_next_hit"` buff mechanic (see searing-smite) with `"secondary_save":
+{ "type": "strength", "on_fail": ["push_10ft", "prone"] }`. The push/prone conditions
+reuse proposals from mage-hand/thunderwave. Knocked prone = speed 0 until creature uses
+half movement to stand (requires a `prone` condition in the combat engine).
+
+---
+
+### wrathful-smite.json — on-hit rider + frightened condition (secondary WIS save)
+**Missing mechanic:** On-hit-rider damage (same as above). Secondary WIS save: failure
+applies `frightened` condition — disadvantage on attacks/checks while the source of fear
+is visible, cannot willingly move closer. Repeatable save at end of each turn.
+**Proposal:** Add `"frightened"` as a named condition: `cannot_approach_source: true`,
+`attacks_at_disadvantage: true` while source is visible. `repeated_save: { "end_of_turn":
+"wisdom" }` — condition breaks on successful save. Reuses `on_next_hit` mechanic.
+
+---
+
+### hex.json — ability-check penalty (chosen at cast)
+**Missing mechanic:** Hex lets the caster choose one ability (STR/DEX/CON/INT/WIS/CHA)
+at cast time; the target has disadvantage on all checks with that ability for the duration.
+**Proposal:** Add a `"chosen_ability_debuff"` field to the ActiveEffect for Hex: `{
+"ability": "<player_choice>", "effect": "disadvantage_on_checks" }`. The engine prompts
+the caster for an ability choice when the spell is cast. The ActiveEffect stores the chosen
+ability and applies disadvantage-on-ability-checks against that ability throughout combat
+and exploration for the duration.
+
+---
+
+### hunters-mark.json — bonus-action target transfer on kill
+**Missing mechanic:** When the marked target drops to 0 HP, the caster can use a bonus
+action to move the mark to a new target (same spell duration, no new cast).
+**Proposal:** Add a `"transfer_on_kill"` flag to the ActiveEffect:
+`{ "action_cost": "bonus_action", "trigger": "marked_target_drops_to_zero" }`. The
+combat engine checks this at kill resolution and offers the caster a bonus-action
+"transfer mark" option if they have remaining concentration.
+
+---
+
+### guiding-bolt.json — advantage on next attack vs. target
+**Missing mechanic:** On a hit, the next attack roll made by any creature against the
+target before the end of the caster's next turn has advantage.
+**Proposal:** Apply a `"lit"` condition (or `"outlined"`) to the target for 1 round:
+`attackers_have_advantage: true`. This is the same condition proposed for faerie-fire
+below — share implementation. Cleared at end of caster's next turn, or after the first
+attack roll is made against the target (whichever comes first).
+
+---
+
+### hellish-rebuke.json — reaction trigger (cast when taking damage)
+**Missing mechanic:** Hellish Rebuke is cast AS a reaction to taking damage — the trigger
+is "when you take damage from a creature within range". This requires the combat engine
+to offer reactive spell casting as a response to incoming damage.
+**Proposal:** Add a `"reaction_trigger"` field to spell JSON: `{ "event": "take_damage",
+"source_range": 2 }`. During the attack resolution loop, if the caster has this spell
+prepped and takes damage from a creature within range, the engine offers a reaction prompt
+(spend mana + reaction to cast). On confirmation, the DEX save resolves against the source.
+This mechanic also covers Shield (reaction to being hit) and similar reactions.
+
+---
+
+### ensnaring-strike.json — on-hit rider + restrained condition
+**Missing mechanic:** On-hit-rider (same as smites); STR save on fail = `restrained`
+condition with DoT piercing damage each turn while restrained. Restrained: speed 0,
+disadvantage on DEX saves, attackers have advantage. Repeatable STR action to break free.
+**Proposal:** `"restrained"` condition: `speed: 0`, `dex_saves_at_disadvantage: true`,
+`attackers_have_advantage: true`. Add `"escape_action": { "check": "strength", "dc":
+"spell_dc" }` to the condition. The DoT while restrained uses an `"on_condition_tick":
+{ "condition": "restrained", "damage": "1d6", "damage_type": "piercing" }` per-turn
+trigger. Reuses `on_next_hit` mechanic from smites.
+
+---
+
+### faerie-fire.json — lit/outlined condition (AoE)
+**Missing mechanic:** Creatures that fail the DEX save are outlined in colored light:
+attack rolls against them have advantage, they can't benefit from invisibility. This is
+an AoE save (cube) applying a persistent per-creature condition.
+**Proposal:** Add `"outlined"` (or `"lit"`) as a named condition: `attackers_have_advantage:
+true`, `invisible_suppressed: true`. Applied per-creature that fails the DEX save in the
+AoE. Duration from spell's duration field (1 min conc). This condition also serves
+guiding-bolt's "next attacker advantage" — share the same condition with duration variant
+(round-limited vs. full duration). AoE cube targeting extends the AoE zone proposal from
+thunderwave/entangle.
+
+---
+
+### compelled-duel.json — attack-roll debuff vs. non-caster + movement restriction
+**Missing mechanic:** (1) Target has disadvantage on attacks against any creature other
+than the caster. (2) Each time target tries to move more than 30 ft from caster, must make
+a WIS save; on fail, movement toward-away is blocked for that turn.
+**Proposal:** Add a `"compelled"` condition: `attacks_against_non_caster_at_disadvantage:
+true` + a per-movement-check `{ "trigger": "move_away_from_caster", "distance_threshold":
+6, "save": { "type": "wisdom", "on_fail": "cancel_movement" } }`. Movement check requires
+the engine to evaluate per-step movement costs and conditional interrupts.
+
+---
+
+### expeditious-retreat.json + longstrider.json — speed modifier effect
+**Missing mechanic:** Both spells modify movement speed. Expeditious Retreat lets the
+caster Dash (double speed) as a bonus action each turn. Longstrider adds a flat +10 ft.
+**Proposal:** Add `"speed_bonus"` as an ActiveEffect modifier type with a flat value
+(`+10 ft`) for Longstrider, already partially proposed under ray-of-frost's speed_reduction.
+For Expeditious Retreat, add `"bonus_action_dash": true` as an ActiveEffect flag — the
+combat engine grants a bonus-action Dash option to the caster each turn while active.
+Both use the effects system with duration from the spell's duration field (timer in minutes).
+
+---

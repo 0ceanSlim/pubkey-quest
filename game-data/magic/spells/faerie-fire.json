@@ -1,15 +1,17 @@
 {
   "name": "Faerie Fire",
-  "description": "Each object in a 20-foot cube within range is outlined in blue, green, or violet light (your choice). Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw.",
+  "description": "Each object in a 20-foot cube within range is outlined in blue, green, or violet light. Any creature in the area when the spell is cast must succeed on a Dexterity saving throw or also be outlined in light for the duration. Outlined creatures do not benefit from the invisible condition. Attack rolls against an outlined creature have advantage.",
   "level": 1,
   "school": "evocation",
   "casting_time": "action",
-  "range": "12",
-  "range_long": "12",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 minute",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Outlines creatures in colored light on failed DEX save; attack rolls against outlined creatures have advantage and they cannot benefit from invisibility.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -24,15 +26,16 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "prep_time": 65,
+  "notes": [
+    "Range: D&D 5e 60 ft; 2 grid for L1 range balance.",
+    "AoE advantage-on-attacks for full minute: very strong combat debuff. Mana 3 warranted.",
+    "Outlined creature advantage-to-attackers requires a lit-condition or attack-roll-modifier engine mechanic — see proposals.",
+    "Pollen×2 stripped: sprig-of-mistletoe provides pollen free (stub note 'No focus provides this' was wrong). More importantly, faerie fire is light/illumination — not nature/charm themed. Correctly free."
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "pollen",
-        "quantity": 2
-      }
-    ],
-    "focus_provided": "No focus provides this component - must be obtained"
+    "required": [],
+    "focus_provided": ""
   }
 }

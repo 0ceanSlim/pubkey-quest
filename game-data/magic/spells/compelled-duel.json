@@ -1,15 +1,17 @@
 {
   "name": "Compelled Duel",
-  "description": "You attempt to compel a creature into a duel. One creature that you can see within range must make a Wisdom saving throw.",
+  "description": "You attempt to compel a creature into a duel. One creature that you can see within range must make a Wisdom saving throw. On a failed save, the creature is drawn to you, compelled by your divine demand. For the duration, it has disadvantage on attack rolls against creatures other than you, and must make a Wisdom saving throw each time it attempts to move to a space that is more than 30 feet away from you; if it fails this saving throw, it can't move away from you during that turn.",
   "level": 1,
   "school": "enchantment",
   "casting_time": "bonus action",
-  "range": "6",
-  "range_long": "6",
+  "range": "1",
+  "range_long": "1",
   "duration": "1 minute",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Compels one creature (WIS save) to focus combat on you: disadvantage on attacks vs. others, and movement away from you is limited.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "wisdom",
@@ -22,8 +24,16 @@
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 50,
+  "notes": [
+    "Range: D&D 5e 30 ft; 1 grid (10 ft approximation is conservative — 30 ft = 2 grid; set 1 grid for melee paladin theme).",
+    "Movement-restriction and attack-roll debuff require condition/linked-targeting engine mechanic — see proposals.",
+    "Not substance-themed; paladin force-of-will enchantment — correctly free."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

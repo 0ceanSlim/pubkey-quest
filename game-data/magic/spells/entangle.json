@@ -1,15 +1,17 @@
 {
   "name": "Entangle",
-  "description": "Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range. For the duration, these plants turn the ground in the area into difficult terrain.",
+  "description": "Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range. For the duration, these plants turn the ground in the area into difficult terrain. A creature in the area when you cast the spell must succeed on a Strength saving throw or be restrained by the entangling plants until the spell ends. On each of its turns, the creature can use its action to make another Strength check against your spell save DC, freeing itself on a success.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "18",
-  "range_long": "18",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 minute",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Creates a zone of difficult terrain; creatures in area save STR or be restrained. Restrained creatures can attempt to break free each turn.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "strength",
@@ -23,15 +25,21 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "prep_time": 80,
+  "notes": [
+    "Range: D&D 5e 90 ft; 2 grid for L1 range balance.",
+    "AoE difficult terrain + mass STR save: mana 3 warranted (hardest single-level druid control).",
+    "Persistent terrain zone requires AoE-zone engine mechanic — see proposals.",
+    "Tree-sap×1 (nature/vine domain); yew-wand provides it free for druids. Without yew-wand, costs 50gp per cast. Stub had ×2 — reduced to ×1 (one rune per AoE is enough)."
+  ],
   "material_component": {
     "required": [
       {
         "component": "tree-sap",
-        "quantity": 2
+        "quantity": 1
       }
     ],
-    "focus_provided": "Yew Wand provides unlimited tree-sap"
+    "focus_provided": "Yew Wand provides unlimited tree-sap (free for druids with yew-wand)."
   }
 }
