@@ -1,41 +1,43 @@
 {
   "name": "Arms of Hadar",
-  "description": "You invoke the power of Hadar, the Dark Hunger. Tendrils of dark energy erupt from you and batter all creatures within 10 feet of you.",
+  "description": "You invoke the power of Hadar, the Dark Hunger. Tendrils of dark energy erupt from you and batter all creatures within 10 feet of you. Each creature in range must make a Strength saving throw. On a failed save, a target takes 2d6 necrotic damage and can't take reactions until its next turn. On a successful save, the creature takes half the damage and doesn't lose its reactions.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "1",
+  "range_long": "1",
   "duration": "instantaneous",
   "concentration": false,
   "damage": "2d6",
   "damage_type": "necrotic",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "strength",
   "tags": [
     "combat",
     "damage",
-    "necrotic"
+    "necrotic",
+    "area_effect"
   ],
   "classes": [
     "warlock"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "notes": [
+    "AoE necrotic — all creatures within 10 ft (1 grid cell) of caster",
+    "Failed save also suppresses reactions — engine reaction suppression tracked in spell-mechanics-proposals.md"
+  ],
   "material_component": {
     "required": [
       {
-        "component": "void-crystal",
-        "quantity": 1
-      },
-      {
-        "component": "demon-ichor",
+        "component": "spirit-dust",
         "quantity": 1
       }
     ],
-    "focus_provided": "No focus provides these components - must be obtained"
+    "focus_provided": ""
   }
 }

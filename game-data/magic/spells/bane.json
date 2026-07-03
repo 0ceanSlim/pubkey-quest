@@ -4,14 +4,14 @@
   "level": 1,
   "school": "enchantment",
   "casting_time": "action",
-  "range": "1",
+  "range": "2",
   "range_long": "2",
   "duration": "1 minute",
   "concentration": true,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "-1d4 to enemy attack rolls and saves",
+  "effect": "-1d4 to attack rolls and saving throws for up to 3 enemies (Charisma save resists)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "charisma",
@@ -27,23 +27,19 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
+  "mana_cost": 3,
   "notes": [
-    "Affects up to 3 enemies",
-    "Charisma save to resist",
-    "-1d4 penalty to attacks and saves"
+    "Hard multi-target concentration debuff — affects up to 3 creatures",
+    "Charisma save to resist; concentration up to 1 minute",
+    "-1d4 penalty applies to every attack roll and saving throw while active"
   ],
   "material_component": {
     "required": [
       {
-        "component": "ether-essence",
-        "quantity": 2
-      },
-      {
-        "component": "arcane-powder",
+        "component": "spirit-dust",
         "quantity": 1
       }
     ],
-    "focus_provided": "Orb provides unlimited ether-essence, Wand provides unlimited arcane-powder"
+    "focus_provided": ""
   }
 }

@@ -107,3 +107,74 @@ the JSON models the attack (primary shape); the light effect lives in `effect` p
 True dual-action modeling may require a `follow_up_action` field.
 
 ---
+
+## Level 1 spells
+
+### witch-bolt.json — sustained concentration damage (auto-damage on subsequent turns)
+**Missing mechanic:** After the initial ranged spell attack hits, the caster can use their
+action on subsequent turns to deal 1d12 lightning damage automatically (no new attack roll
+needed) while concentration holds and the target is within range.
+**Proposal:** Add a `"concentration_followup"` field to the spell schema:
+`{ "action_cost": "action", "damage": "1d12", "damage_type": "lightning", "auto_hit": true }`.
+When the caster has this active concentration effect, the combat UI offers a "sustain" 
+action that triggers the auto-damage without a new attack roll. Alternatively model via an
+ActiveEffect on the target with a `"per_turn_damage"` modifier that the engine applies
+while the caster chooses to sustain (and expends an action).
+
+---
+
+### thunderwave.json — push on AoE save (extends mage-hand push proposal)
+**Missing mechanic:** AoE push — all creatures in a 15 ft radius that fail a Constitution
+save are pushed 10 ft away from the caster.
+**Proposal:** The `push_5ft` / `push_10ft` forced-movement mechanic proposed for
+mage-hand applies here but must support AoE (every creature that fails the save gets
+pushed, not just one). The combat engine should apply the push to all save-fail targets
+when the spell has `"on_save_fail": "push_10ft"` in a `secondary_effect` block. Extend
+the on_hit_save proposal to also support `on_save_fail` for save-primary spells.
+
+---
+
+### arms-of-hadar.json — reaction suppression on AoE save fail
+**Missing mechanic:** All creatures that fail the Strength save also can't take reactions
+until their next turn. This is the same `no_reactions` condition as shocking-grasp but
+applied to every save-fail target in the AoE.
+**Proposal:** Re-use the `no_reactions` condition proposed for shocking-grasp. For
+AoE spells, apply the condition to all save-fail targets. Add `"on_save_fail_condition":
+"no_reactions"` to the secondary_effect block, parallel to the push proposal above.
+
+---
+
+### armor-of-agathys.json — retaliatory damage on melee hit
+**Missing mechanic:** When a melee attacker hits you while Armor of Agathys temp HP are
+active, the attacker automatically takes 5 cold damage (no save, no attack roll).
+**Proposal:** Add a `"retaliate_on_melee_hit"` ActiveEffect trigger: while the effect is
+active, any melee attack that hits the caster causes the attacker to take `damage` cold
+damage. The combat engine checks for this after resolving the incoming attack. Field:
+`"retaliate": { "trigger": "melee_hit", "damage": "5", "damage_type": "cold" }` inside
+the effect block. Conditional on temp HP remaining.
+
+---
+
+### charm-person.json — charm condition
+**Missing mechanic:** The charmed condition: target treats the caster as a friendly
+acquaintance, cannot attack the caster, and the caster has advantage on social checks
+vs. the target.
+**Proposal:** Add `"charmed"` as a named condition in the effects system with:
+`cannot_attack_charmer: true`, `charmer_social_advantage: true`. Duration from the spell's
+`duration` field. The condition breaks immediately if the caster or allies harm the target.
+`on_harm_break: true` flag in the condition definition. Primarily a social/exploration
+mechanic — in combat, the target simply cannot attack the caster.
+
+---
+
+### command.json — specific command action variants
+**Missing mechanic:** The specific word commanded (Approach, Drop, Flee, Grovel, Halt)
+produces different behaviors on the target's next turn — these are distinct forced actions,
+not a generic debuff.
+**Proposal:** Model Command as a `"forced_action"` condition with a `"command_type"` field
+(flee / grovel / halt / approach / drop). Each type maps to a specific behavior the combat
+engine executes on the target's next turn (e.g. flee = move away at max speed; halt = no
+movement; grovel = fall prone). The caster selects command_type at cast time. For now,
+the JSON models the save shape; the specific command_type is in `effect` prose.
+
+---

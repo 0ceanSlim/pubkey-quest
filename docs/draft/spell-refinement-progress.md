@@ -39,18 +39,18 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 
 ---
 
-## Level 1 — 55 spells — TODO
+## Level 1 — 55 spells — Batch 2 in progress (12 done)
 
 - [ ] `alarm` — Alarm (ritual)
 - [ ] `animal-friendship` — Animal Friendship
-- [ ] `armor-of-agathys` — Armor of Agathys
-- [ ] `arms-of-hadar` — Arms of Hadar
-- [ ] `bane` — Bane
-- [ ] `bless` — Bless
-- [ ] `burning-hands` — Burning Hands
-- [ ] `charm-person` — Charm Person
+- [x] `armor-of-agathys` — Armor of Agathys: mana 2→3 (no-conc 1hr strong warlock self-buff); removed mana-crystals+quartz-dust (wrong tier/theme); now free (no thematic rune fit for cold/retaliation); fixed range "self"→"0"; added heal/effect null; **retaliatory-damage** in proposals
+- [~] `arms-of-hadar` — Arms of Hadar: mana 2→3 (AoE necrotic); removed void-crystal+demon-ichor (capstone components on L1!); added spirit-dust×1 (dark/necrotic, 75gp — correct L1 tier); fixed range "self"→"1" (10ft AoE); added area_effect tag; added heal/effect null; **reaction-suppression-AoE** in proposals
+- [x] `bane` — Bane: mana 2→3 (hard 3-target conc debuff); removed ether-essence+arcane-powder (wrong theme — arcane not dark); added spirit-dust×1 (dark curse, 75gp); fixed range 1→2 (30ft); added heal null; updated effect prose
+- [x] `bless` — Bless: mana 2→3 (strong 3-target conc buff); removed blessed-incense×2+sacred-oil (over-costed, two components); kept blessed-incense×1 only (divine theme, focus: amulet free); fixed range_long 2=range; added heal null; updated notes
+- [x] `burning-hands` — Burning Hands: mana 2→3 (AoE fire cone); removed sulfur×2+arcane-powder (sulfur 500gp×2 = Fireball-tier cost on L1!); added ash×1 (fire theme, 15gp — correct L1 tier); +artificer class; added heal/effect null
+- [~] `charm-person` — Charm Person: mana 2→3 (hour-long hard control); removed ether-essence+quartz-dust; now free (basic enchantment, not substance-themed); fixed range 6→2 (30ft); removed concentration (not conc in 5e); added heal/effect null; added charm/social tags; **charm-condition** in proposals
 - [ ] `color-spray` — Color Spray
-- [ ] `command` — Command
+- [~] `command` — Command: mana 2 (1-round, expires fast); free (not substance-themed); fixed range 12→4 (60ft); added heal/effect null; **command-action-variants** in proposals
 - [ ] `compelled-duel` — Compelled Duel
 - [ ] `comprehend-languages` — Comprehend Languages (ritual)
 - [ ] `create-water` — Create or Destroy Water
@@ -64,7 +64,7 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [ ] `entangle` — Entangle
 - [ ] `expeditious-retreat` — Expeditious Retreat
 - [ ] `faerie-fire` — Faerie Fire
-- [ ] `false-life` — False Life
+- [x] `false-life` — False Life: fixed range "self"→"0"; fixed material_component null→proper block; added heal "1d4+4" (models temp HP grant); added effect prose; removed combat tag (buff); mana 2 kept (minor no-conc buff); free (utility, not substance-themed)
 - [ ] `feather-fall` — Feather Fall
 - [ ] `find-familiar` — Find Familiar (ritual)
 - [ ] `fog-cloud` — Fog Cloud
@@ -77,11 +77,11 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [ ] `hex` — Hex
 - [ ] `hunters-mark` — Hunter's Mark
 - [ ] `identify` — **Analyze Weakness** (homebrew)
-- [ ] `inflict-wounds` — Inflict Wounds
+- [x] `inflict-wounds` — Inflict Wounds: mana 2→3 (3d10 highest single-target damage at L1); removed holy-water+blessed-incense (divine/healing domain — WRONG for necrotic); added spirit-dust×1 (necrotic dark, 75gp); added heal/effect null
 - [ ] `jump` — Jump
 - [ ] `longstrider` — Longstrider
 - [ ] `mage-armor` — Mage Armor
-- [ ] `magic-missile` — Magic Missile
+- [x] `magic-missile` — Magic Missile: mana 2 kept (reliable auto-hit, not signature/substance); now free (removed arcane-powder×3 — not substance-themed); +artificer class; removed stale D&D note; added heal/effect null
 - [ ] `protection-from-evil` — Protection from Evil and Good
 - [ ] `purify-food` — Purify Food and Drink (ritual)
 - [ ] `sanctuary` — Sanctuary
@@ -92,9 +92,9 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [ ] `sleep` — **Exhausting Hex** (homebrew)
 - [ ] `speak-with-animals` — Speak with Animals (ritual)
 - [ ] `thunderous-smite` — Thunderous Smite
-- [ ] `thunderwave` — Thunderwave
+- [~] `thunderwave` — Thunderwave: mana 2→3 (AoE + push); removed bone-dust+tree-sap (wrong theme — necrotic/nature, not thunder); now free (thunder has no substance rune); fixed range_long 1=range; added heal/effect null; **AoE-push** in proposals
 - [ ] `unseen-servant` — Unseen Servant (ritual)
-- [ ] `witch-bolt` — Witch Bolt
+- [~] `witch-bolt` — Witch Bolt: mana 2 kept (single-target conc); removed sulfur+arcane-powder (fire/arcane — wrong for lightning); added iron-filings×1 (lightning theme, 20gp); fixed range 6→2 (D&D 30ft); added heal/effect null
 - [ ] `wrathful-smite` — Wrathful Smite
 
 ---
@@ -117,15 +117,10 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 | Level | Total | Done | Needs-mechanic | TODO |
 |-------|-------|------|----------------|------|
 | 0     | 26    | 15   | 11             | 0    |
-| 1     | 55    | 0    | 0              | 55   |
-
+| 1     | 55    | 7    | 5              | 43   |
 | 2     | 2     | 0    | 0              | 2    |
 | 3     | 1     | 0    | 0              | 1    |
-| **Total** | **84** | **15** | **11** | **57** |
-
-Note: The actual level-1 count from `--validate` output: 55 files total minus 26 cantrips
-minus 2 level-2 minus 1 level-3 = 55 level-1 spells. (The 84 total is from the agent
-spec; actual file count is 84 — check with `ls game-data/magic/spells/*.json | wc -l`.)
+| **Total** | **84** | **22** | **16** | **46** |
 
 Note: "Done" = `[x]`, "Needs-mechanic" = `[~]` (shape is correct; engine mechanic
-pending). Both count as refined for the batch.
+pending). Both count as refined for the batch. Batch 2 refined 12 L1 spells.

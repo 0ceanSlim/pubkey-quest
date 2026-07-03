@@ -20,7 +20,8 @@ The 84 spells in `game-data/magic/spells/*.json` are stubbed: `mana_cost` is a
 flat `level + 1` (every cantrip 1, every level-1 spell 2, …), many spells that
 should require material components have none, and some fields (save vs. attack,
 damage dice, concentration, duration, range) may be wrong or missing. Prep time
-is derived (`level × 60 min`) and NOT stored per-spell — do not add a prep field.
+is a per-spell field `prep_time` (minutes) that YOU tune per spell — see the
+"Prep time" section. (The engine falls back to `level × 60` only when it's unset.)
 
 ## Spell JSON schema (keep this exact shape; JSON only, no schema drift)
 `name, description, level (0=cantrip), school, casting_time, range (number 0–6),
@@ -28,6 +29,7 @@ range_long, duration, concentration (bool), damage (dice string|null),
 damage_type, heal (dice string|null), effect (prose for buffs|null),
 spell_attack ("ranged"|"melee"|"automatic"|null), save_type (ability lowercase|null),
 type ("Spell"), tags[], classes[] (lowercase), rarity, action_cost, mana_cost (int),
+prep_time (int minutes — leveled spells only; omit for cantrips = instant),
 notes[], material_component { required: [{component, quantity}], focus_provided (prose) }`.
 
 ## This game's conventions
@@ -111,6 +113,23 @@ truthful — name a focus only if it provides a required id.
    (never both), `damage`/`damage_type`/`heal` dice, `concentration`, `duration`,
    `range`/`range_long`, `school`, `classes`. Keep `tags` accurate
    (combat/damage/healing/buff/utility/ranged/…) since filters/type-detection use them.
+4. **Prep time — per-spell, unique (`prep_time`, minutes).** Prep time is the
+   study/ritual time to ready a spell into a slot; tune it per spell so no two are
+   identical. **Cantrips: omit `prep_time`** (always instant). Leveled spells: set an
+   explicit value, anchored on `level × 60` but spread by the spell's nature —
+   faster (~0.5× anchor: L1 ≈ 30–45 min) for quick, simple, low-commitment spells
+   (minor utility, fast detections/buffs); around anchor (~1×: L1 ≈ 60 min) for
+   standard spells; slower (~1.5–2× anchor: L1 ≈ 75–120 min) for complex / powerful /
+   long-duration / ritual spells (summons, all-day buffs like mage-armor, find-familiar,
+   hard control). Round to 5- or 15-min steps. Scale the anchor by level (L2 = 120,
+   L3 = 180).
+
+**Balance the three cost axes together, focus-aware.** A spell's total cost is
+`mana_cost` + `prep_time` + component. Don't triple-tax the same spell: if it carries
+a real always-consumed rune (a material cost), keep its mana/prep modest; if its
+component is focus-provided (free for the class that routinely holds that focus) or it
+has none, its cost lives in mana + prep. Always weigh whether a component is *really* a
+cost for the intended caster given the focuses that class commonly carries.
 
 ## Cast time: combat turns vs. out-of-combat time
 Casting has two regimes — encode both, consistently:

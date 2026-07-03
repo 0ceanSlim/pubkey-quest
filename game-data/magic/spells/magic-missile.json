@@ -1,6 +1,6 @@
 {
   "name": "Magic Missile",
-  "description": "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals 1d4 + 1 force damage to its target.",
+  "description": "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals 1d4 + 1 force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.",
   "level": 1,
   "school": "evocation",
   "casting_time": "action",
@@ -8,8 +8,10 @@
   "range_long": "6",
   "duration": "instantaneous",
   "concentration": false,
-  "damage": "3d4 + 3",
+  "damage": "3d4+3",
   "damage_type": "force",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "automatic",
   "save_type": null,
@@ -21,23 +23,19 @@
   ],
   "classes": [
     "sorcerer",
-    "wizard"
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
   "notes": [
-    "Always hits target - no attack roll needed",
-    "Can split damage among multiple targets if desired",
-    "Requires spellcasting focus or component pouch"
+    "Always hits — no attack roll or saving throw",
+    "Three darts dealt as 3d4+3 total; can split among multiple targets",
+    "Reliable damage against low-AC or invisible targets"
   ],
   "material_component": {
-    "required": [
-      {
-        "component": "arcane-powder",
-        "quantity": 3
-      }
-    ],
-    "focus_provided": "Wand provides unlimited arcane-powder"
+    "required": [],
+    "focus_provided": ""
   }
 }

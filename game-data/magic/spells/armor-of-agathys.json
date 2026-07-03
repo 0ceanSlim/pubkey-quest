@@ -1,41 +1,39 @@
 {
   "name": "Armor of Agathys",
-  "description": "A protective magical force surrounds you, manifesting as a spectral frost that covers you and your gear. You gain 5 temporary hit points for the duration.",
+  "description": "A protective magical force surrounds you, manifesting as a spectral frost that covers you and your gear. You gain 5 temporary hit points for the duration. If a creature hits you with a melee attack while you have these hit points, the creature takes 5 cold damage.",
   "level": 1,
   "school": "abjuration",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 hour",
   "concentration": false,
   "damage": "5",
   "damage_type": "cold",
+  "heal": null,
+  "effect": "Gain 5 temporary HP; melee attackers who hit you while you have temp HP take 5 cold damage in return",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "protection",
-    "cold"
+    "cold",
+    "buff",
+    "self"
   ],
   "classes": [
     "warlock"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "notes": [
+    "No concentration — exceptional for a 1-hour self-buff at L1",
+    "Retaliatory cold damage (5 flat) modeled via effect prose; retaliatory-damage-on-hit mechanic tracked in spell-mechanics-proposals.md"
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "mana-crystals",
-        "quantity": 2
-      },
-      {
-        "component": "quartz-dust",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Staff provides unlimited mana-crystals, Crystal provides unlimited quartz-dust"
+    "required": [],
+    "focus_provided": ""
   }
 }

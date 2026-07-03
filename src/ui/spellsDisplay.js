@@ -131,7 +131,10 @@ function circleEl(stroke, dash, offset) {
 
 /** Live radial countdown ring over a preparing slot (reuses the hunger/fatigue pattern). */
 function prepRing(prep, spell) {
-    const total = Math.max((spell?.level || 1) * 60, 1);
+    // Total prep time mirrors the backend PrepMinutesForSpell: the spell's own
+    // tuned prep_time when set, else the level default (level×60).
+    const totalMins = (spell?.prep_time > 0) ? spell.prep_time : (spell?.level || 1) * 60;
+    const total = Math.max(totalMins, 1);
     const progress = Math.max(0, Math.min(1, 1 - (prep.mins / total)));
     const circ = 94.25; // 2πr, r=15
     const svg = document.createElementNS(SVGNS, 'svg');

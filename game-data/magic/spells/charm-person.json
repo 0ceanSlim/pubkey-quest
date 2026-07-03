@@ -1,22 +1,25 @@
 {
   "name": "Charm Person",
-  "description": "You attempt to charm a humanoid you can see within range. It must make a Wisdom saving throw, and it does so with advantage if you or your companions are fighting it.",
+  "description": "You attempt to charm a humanoid you can see within range. It must make a Wisdom saving throw, and it does so with advantage if you or your companions are fighting it. If it fails the saving throw, it is charmed by you until the spell ends or until you or your companions do anything harmful to it. The charmed creature regards you as a friendly acquaintance.",
   "level": 1,
   "school": "enchantment",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 hour",
-  "concentration": true,
+  "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Target humanoid is charmed — treats caster as friendly until harmed or duration ends (Wisdom save resists; advantage if in combat)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "wisdom",
   "tags": [
-    "combat",
     "control",
-    "enchantment"
+    "enchantment",
+    "charm",
+    "social"
   ],
   "classes": [
     "wizard",
@@ -27,19 +30,14 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "notes": [
+    "Not concentration — long duration (1 hour) makes this primarily a social/exploration spell",
+    "Target gets advantage on the save if in combat at time of casting",
+    "Charm condition — engine charm support tracked in spell-mechanics-proposals.md"
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "ether-essence",
-        "quantity": 1
-      },
-      {
-        "component": "quartz-dust",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Orb provides unlimited ether-essence, Crystal provides unlimited quartz-dust"
+    "required": [],
+    "focus_provided": ""
   }
 }

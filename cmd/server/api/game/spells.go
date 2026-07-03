@@ -83,6 +83,27 @@ func getSpellLevel(spellID string) int {
 	return -1
 }
 
+// getSpellPrepTime reads a spell's explicit per-spell prep_time (minutes) from the
+// full spell object. Returns 0 when absent — the caller falls back to the level
+// default via PrepMinutesForSpell.
+func getSpellPrepTime(spellID string) int {
+	database := db.GetDB()
+	if database == nil {
+		return 0
+	}
+	spell, err := data.LoadSpellByID(database, spellID)
+	if err != nil {
+		return 0
+	}
+	switch v := spell["prep_time"].(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	}
+	return 0
+}
+
 // getSessionAndValidate looks up a session and returns 404 if missing.
 func getSessionAndValidate(w http.ResponseWriter, npub, saveID string) *session.GameSession {
 	sess, err := session.GetSessionManager().GetSession(npub, saveID)
@@ -199,8 +220,9 @@ func PrepareSpellHandler(w http.ResponseWriter, r *http.Request) {
 		sess.PrepQueue = gameSpells.RemovePrepTask(sess.PrepQueue, idx)
 	}
 
-	// Queue the prep task
-	prepMins := gameSpells.PrepMinutes(spellLevel)
+	// Queue the prep task — use the spell's own tuned prep_time when set, else the
+	// level default.
+	prepMins := gameSpells.PrepMinutesForSpell(getSpellPrepTime(req.SpellID), spellLevel)
 	readyAt := gameSpells.AbsoluteMinutes(sess.SaveData.CurrentDay, sess.SaveData.TimeOfDay) + prepMins
 	task := types.SpellPrepTask{
 		SpellID:         req.SpellID,

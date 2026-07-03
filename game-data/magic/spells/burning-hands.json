@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "3d6",
   "damage_type": "fire",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -22,27 +24,24 @@
   ],
   "classes": [
     "sorcerer",
-    "wizard"
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
+  "mana_cost": 3,
   "notes": [
-    "Cone area effect",
+    "Cone area effect — hits all creatures in front of caster",
     "Dexterity save for half damage",
-    "Good for multiple close enemies"
+    "Strong opener against clustered enemies"
   ],
   "material_component": {
     "required": [
       {
-        "component": "sulfur",
-        "quantity": 2
-      },
-      {
-        "component": "arcane-powder",
+        "component": "ash",
         "quantity": 1
       }
     ],
-    "focus_provided": "Rod provides unlimited sulfur, Wand provides unlimited arcane-powder"
+    "focus_provided": ""
   }
 }

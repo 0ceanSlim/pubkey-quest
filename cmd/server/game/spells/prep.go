@@ -37,13 +37,29 @@ var SpellLevelToSlotLevel = map[int]string{
 	9: "level_9",
 }
 
-// PrepMinutes returns how long (in minutes) a spell takes to prepare.
-// Cantrips (level 0) are instant (0 minutes). Leveled spells take level×60 minutes.
+// PrepMinutes returns the default prep time (in minutes) for a spell level.
+// Cantrips (level 0) are instant (0 minutes). Leveled spells default to level×60
+// minutes — used as the fallback when a spell has no explicit per-spell prep_time.
 func PrepMinutes(spellLevel int) int {
 	if spellLevel <= 0 {
 		return 0
 	}
 	return spellLevel * 60
+}
+
+// PrepMinutesForSpell returns a spell's prep time in minutes: its explicit,
+// per-spell prep_time (minutes) when set (>0), otherwise the level default
+// (PrepMinutes). Cantrips (level 0) are always instant regardless of any stored
+// value. This is what lets each spell carry its own tuned prep time while
+// un-tuned spells still fall back sensibly by level.
+func PrepMinutesForSpell(prepTime, spellLevel int) int {
+	if spellLevel <= 0 {
+		return 0
+	}
+	if prepTime > 0 {
+		return prepTime
+	}
+	return PrepMinutes(spellLevel)
 }
 
 // AbsoluteMinutes converts (currentDay, timeOfDay) into an absolute minute counter.

@@ -4,14 +4,14 @@
   "level": 1,
   "school": "enchantment",
   "casting_time": "action",
-  "range": "1",
+  "range": "2",
   "range_long": "2",
   "duration": "1 minute",
   "concentration": true,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "+1d4 to attack rolls and saves",
+  "effect": "+1d4 to attack rolls and saving throws for up to 3 allies (concentration, 1 minute)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -27,23 +27,19 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
+  "mana_cost": 3,
   "notes": [
-    "Affects up to 3 targets",
-    "Requires concentration",
-    "+1d4 bonus to attacks and saves"
+    "Strong multi-target buff — affects up to 3 creatures; requires concentration",
+    "+1d4 bonus applies to every attack roll and saving throw while active",
+    "Amulet-equipped caster provides blessed-incense for free each cast"
   ],
   "material_component": {
     "required": [
       {
         "component": "blessed-incense",
-        "quantity": 2
-      },
-      {
-        "component": "sacred-oil",
         "quantity": 1
       }
     ],
-    "focus_provided": "Amulet provides unlimited blessed-incense, Emblem provides unlimited sacred-oil"
+    "focus_provided": "Amulet provides unlimited blessed-incense"
   }
 }

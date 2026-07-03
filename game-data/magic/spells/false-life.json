@@ -1,30 +1,40 @@
 {
   "name": "False Life",
-  "description": "Bolstering yourself with a necromantic facsimile of life, you gain 1d4 + 4 temporary hit points for the duration.",
+  "description": "Bolstering yourself with a necromantic facsimile of life, you gain 1d4 + 4 temporary hit points for the duration. These temporary hit points absorb damage before your real hit points, and vanish at the end of the duration.",
   "level": 1,
   "school": "necromancy",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 hour",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": "1d4+4",
+  "effect": "Gain 1d4+4 temporary hit points for 1 hour (no concentration required)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
-    "combat",
+    "buff",
     "protection",
-    "necromancy"
+    "necromancy",
+    "self"
   ],
   "classes": [
     "wizard",
-    "sorcerer"
+    "sorcerer",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "notes": [
+    "Temporary HP tracked separately — they vanish after 1 hour or when depleted",
+    "No concentration — stacks with other concentration spells"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

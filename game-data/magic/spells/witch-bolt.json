@@ -1,22 +1,25 @@
 {
   "name": "Witch Bolt",
-  "description": "A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of lightning between you and the target.",
+  "description": "A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of lightning between you and the target. On a hit, the target takes 1d12 lightning damage, and on each of your turns for the duration you can use your action to deal 1d12 lightning damage to the target automatically.",
   "level": 1,
   "school": "evocation",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 minute",
   "concentration": true,
   "damage": "1d12",
   "damage_type": "lightning",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
   "tags": [
     "combat",
     "damage",
-    "lightning"
+    "lightning",
+    "concentration"
   ],
   "classes": [
     "wizard",
@@ -26,18 +29,17 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
+  "notes": [
+    "Initial ranged spell attack; subsequent turns deal 1d12 automatically while concentration holds",
+    "Concentration breaks if target moves out of range or concentration is lost"
+  ],
   "material_component": {
     "required": [
       {
-        "component": "arcane-powder",
-        "quantity": 2
-      },
-      {
-        "component": "sulfur",
+        "component": "iron-filings",
         "quantity": 1
       }
     ],
-    "focus_provided": "Wand provides unlimited arcane-powder, Rod provides unlimited sulfur"
+    "focus_provided": ""
   }
 }

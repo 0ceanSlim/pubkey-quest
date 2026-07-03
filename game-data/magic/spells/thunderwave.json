@@ -1,6 +1,6 @@
 {
   "name": "Thunderwave",
-  "description": "A wave of thunderous force sweeps out from you. Each creature within range must make a Constitution saving throw. On a failed save, a creature takes 2d8 thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed.",
+  "description": "A wave of thunderous force sweeps out from you. Each creature within 15 feet must make a Constitution saving throw. On a failed save, a creature takes 2d8 thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed.",
   "level": 1,
   "school": "evocation",
   "casting_time": "action",
@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "2d8",
   "damage_type": "thunder",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "constitution",
@@ -28,23 +30,14 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
+  "mana_cost": 3,
   "notes": [
-    "Area effect around caster",
-    "Constitution save for half damage",
-    "Pushes enemies away on failed save"
+    "Area effect — all creatures within 15 ft (1 grid cell) of caster",
+    "Constitution save for half damage; full failure also pushes 10 ft away",
+    "Push mechanic noted — engine push support tracked in spell-mechanics-proposals.md"
   ],
   "material_component": {
-    "required": [
-      {
-        "component": "bone-dust",
-        "quantity": 2
-      },
-      {
-        "component": "tree-sap",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Totem provides unlimited bone-dust, Yew Wand provides unlimited tree-sap, OR Wand provides unlimited arcane-powder, Crystal provides unlimited quartz-dust (for wizards)"
+    "required": [],
+    "focus_provided": ""
   }
 }
