@@ -1,6 +1,6 @@
 {
   "name": "Spiritual Weapon",
-  "description": "You create a floating, spectral weapon within range that lasts for the duration. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes force damage equal to 1d8 + your spellcasting modifier. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack.",
+  "description": "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes force damage equal to 1d8 + your spellcasting ability modifier. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it.",
   "level": 2,
   "school": "evocation",
   "casting_time": "bonus_action",
@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "1d8 + 3",
   "damage_type": "force",
+  "heal": null,
+  "effect": "Summons a floating spectral weapon. Initial melee spell attack on cast. Each subsequent turn: bonus action to move it up to 20 feet and attack again. Does not require concentration.",
   "type": "Spell",
   "spell_attack": "melee",
   "save_type": null,
@@ -25,24 +27,22 @@
   ],
   "rarity": "common",
   "action_cost": "bonus_action",
-  "mana_cost": 3,
+  "mana_cost": 4,
+  "prep_time": 115,
   "notes": [
-    "Cast as bonus action",
-    "Attacks with bonus action each turn",
-    "Floating weapon that can be moved",
-    "Lasts 1 minute"
+    "Cast as a bonus action; attacks on subsequent turns also cost a bonus action",
+    "Does NOT require concentration — can maintain alongside concentration spells",
+    "Damage includes spellcasting modifier (modeled as +3 fixed)",
+    "Engine gap: persistent summoned attacker that acts on bonus action each turn needs engine support [~]",
+    "Modeled by primary melee spell_attack shape; full per-turn-bonus-action-attack requires engine support"
   ],
   "material_component": {
     "required": [
       {
         "component": "sacred-oil",
-        "quantity": 2
-      },
-      {
-        "component": "holy-water",
         "quantity": 1
       }
     ],
-    "focus_provided": "Emblem provides unlimited sacred-oil, Reliquary provides unlimited holy-water"
+    "focus_provided": "Emblem provides unlimited sacred-oil"
   }
 }

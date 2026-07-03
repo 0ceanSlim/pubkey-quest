@@ -1,21 +1,24 @@
 {
   "name": "Unseen Servant",
-  "description": "This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends.",
+  "description": "This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 hit point, a Strength of 2, and can't attack. If it drops to 0 hit points, the spell ends. The servant can move up to 15 feet on your turn. It can perform simple tasks a human servant could do: fetch, clean, mend, fold, open, pour, seal, and carry objects.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "12",
-  "range_long": "12",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 hour",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Summons an invisible, intangible force that follows simple commands for 1 hour: fetch, carry, open, pour, hold, clean. Cannot attack or perform complex tasks. Dismissed if it takes any damage.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "utility",
-    "summoning"
+    "summoning",
+    "ritual"
   ],
   "classes": [
     "wizard",
@@ -25,6 +28,15 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 60,
+  "notes": [
+    "Can be cast as a ritual (no mana cost, 10-minute casting time)",
+    "Servant is fragile — 1 HP, AC 10; any damage dismisses it",
+    "Cannot attack or interact with combat; purely for out-of-combat utility",
+    "Engine gap: persistent summoned entity that obeys simple task commands not yet implemented [~]"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

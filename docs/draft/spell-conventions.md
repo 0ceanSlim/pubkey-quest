@@ -334,6 +334,53 @@ in `notes[]` and tracked in `docs/draft/spell-mechanics-proposals.md`:
 
 ---
 
+## Level 2 mana rulings (batch 6)
+
+- **mana 4 (push up):** Scorching Ray (3-ray multi-attack fire, high burst potential), Spiritual Weapon (1-min no-conc bonus-action attacker per turn — strong sustained DPR for cleric)
+- **mana 3 (base L2):** (none in this library yet)
+- Rationale: both L2 spells are strong sustained outputs; L2 band is 3–4, both push to 4.
+
+## Level 3 mana rulings (batch 6)
+
+- **mana 5 (push up):** Fireball — AoE 8d6 DEX-save (half on success) hitting ALL creatures in 20-ft radius. The highest-impact spell in the current library; top of the L3 band (4–5).
+- L3 band is 4–5; Fireball is the only L3 spell and sits at the top of its band.
+
+## Level 2/3 component-cost decisions (batch 6)
+
+**Received a component (selective):**
+- `scorching-ray`: elemental-sparks×1 (150gp) — fire domain, multi-ray L2 signature. No focus provides elemental-sparks — always a real cost. At L2 power, mid-tier component fits.
+- `spiritual-weapon`: sacred-oil×1 (125gp, emblem=free) — divine conjuration L2; cleric signature. Reduced from stub's sacred-oil×2+holy-water×1 (double-component over-taxed). With emblem (standard cleric focus) it's free per cast.
+- `fireball`: sulfur×1 (500gp, rod=free) — the sulfur item description explicitly says "Required for casting Fireball." This IS the signature component. Rod provides it free (rod = fire mage focus); without it, 500gp per cast. Replaced stub's elemental-sparks×5+dragon-scale×1 (wrong ids, wrong quantity).
+
+**Key corrections from pre-existing stubs (batch 6):**
+- `fireball` had elemental-sparks×5+dragon-scale×1 (both wrong; the game's sulfur item is the canonical Fireball component, explicitly named in its description)
+- `spiritual-weapon` had sacred-oil×2+holy-water×1 (both focus-provided by emblem/reliquary = not a real cost for clerics; reduced to sacred-oil×1 which is emblem-provided)
+- `scorching-ray` had no material block at all — added elemental-sparks×1 for the L2 fire signature
+
+## Level 2/3 prep_time rulings (batch 6)
+
+Anchors: L2 = 120 min, L3 = 180 min.
+
+| Spell | Level | prep_time | Rationale |
+|-------|-------|-----------|-----------|
+| `scorching-ray` | 2 | 100 | Mid-L2; fire is instinctive but 3-ray multi-attack needs prep; elemental-sparks cost present so trim prep |
+| `spiritual-weapon` | 2 | 115 | L2 sustained divine weapon; sacred-oil=free for emblem clerics, so cost lives in mana+prep; distinct from scorching-ray |
+| `fireball` | 3 | 165 | Slightly below L3 anchor — fire magic is instinctive but this is a complex AoE; sulfur=free with rod; trim toward 1× not 2× |
+
+## Final batch (6) — last L1 prep_time rulings
+
+| Spell | prep_time | Rationale |
+|-------|-----------|-----------|
+| `jump` | 20 | Absolute simplest touch buff in the library; one-mechanic transmutation with narrow use; lowest L1 value |
+| `create-water` | 25 | Second-simplest — pure out-of-combat utility, no combat use at all |
+| `feather-fall` | 35 | Reaction spell, quick concept; tie with magic-missile/detect-magic acceptable |
+| `grease` | 55 | AoE control + save; mana 3; no component — cost in mana+prep; tie with silent-image/speak-with-animals acceptable |
+| `sanctuary` | 45 | Bonus action, 1-min ward; no component; tie with shield/divine-favor/hellish-rebuke acceptable |
+| `unseen-servant` | 60 | Ritual conjuration, 1hr; tie with heroism/inflict-wounds acceptable |
+| `fog-cloud` | 70 | AoE conc zone, 1hr; mana 3; no component — cost in mana+prep; between entangle(80) and ensnaring-strike(70) |
+| `alarm` | 110 | 8-hr ritual ward, complex setup, 1-min cast — highest non-familiar L1; below mage-armor(120) and find-familiar(120) |
+| `find-familiar` | 120 | 1-hr ritual summon, permanent companion; ties mage-armor at max L1 (both are major commitments) |
+
 ## Class list conventions
 
 Using lowercase class names. Known valid values (matches engine):

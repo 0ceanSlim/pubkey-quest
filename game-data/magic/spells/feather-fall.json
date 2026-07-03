@@ -1,15 +1,17 @@
 {
   "name": "Feather Fall",
-  "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends.",
+  "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If the creature lands before the spell ends, it takes no falling damage and can land on its feet.",
   "level": 1,
   "school": "transmutation",
   "casting_time": "reaction",
-  "range": "12",
-  "range_long": "12",
+  "range": "4",
+  "range_long": "4",
   "duration": "1 minute",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Up to five falling creatures within range descend safely — no falling damage and land on their feet. Duration 1 minute or until they land.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -20,11 +22,20 @@
   "classes": [
     "wizard",
     "sorcerer",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "reaction",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 35,
+  "notes": [
+    "Triggered as a reaction when you or a creature within range falls",
+    "Protects up to five creatures at once",
+    "No concentration required"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

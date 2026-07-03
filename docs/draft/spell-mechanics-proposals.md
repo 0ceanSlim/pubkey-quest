@@ -370,3 +370,124 @@ combat engine grants a bonus-action Dash option to the caster each turn while ac
 Both use the effects system with duration from the spell's duration field (timer in minutes).
 
 ---
+
+## Level 1 spells (batch 6 — final L1 additions)
+
+### fog-cloud.json — persistent AoE obscured zone
+**Missing mechanic:** A persistent spherical terrain zone that heavily obscures all creatures
+inside it (attacks from and into the zone have disadvantage; creatures inside can't see out
+and vice versa).
+**Proposal:** Extend the AoE zone mechanic proposed for thunderwave/entangle/grease (see
+Level 1 below) with an `"obscured"` terrain tag. Any cell marked `"obscured"` causes the
+combat engine to grant disadvantage on attack rolls that pass through or originate from it.
+Add a `"zone_shape"` field: `{ "type": "sphere", "radius_cells": 4, "terrain": "obscured" }`.
+Concentration dropping removes all zone cells. Reuses the persistent-zone engine component.
+
+---
+
+### grease.json — persistent terrain zone with per-entry save (prone)
+**Missing mechanic:** A persistent ground zone (10 ft square) that applies a DEX save to
+any creature entering or ending its turn in it; failure = prone condition. Distinct from
+fog-cloud's obscured zone — this is a save-and-condition zone, not a line-of-sight blocker.
+**Proposal:** Extend the AoE zone proposal with a `"zone_effect"` block: `{ "trigger":
+["on_enter", "end_of_turn"], "save": { "type": "dexterity", "dc": "spell_dc" },
+"on_fail": "prone" }`. The zone persists for the spell's full duration (no concentration).
+Prone condition: speed 0 until creature uses half movement to stand; melee attacks against
+prone have advantage; attacks by prone creature have disadvantage.
+
+---
+
+### jump.json — jump-distance tripling
+**Missing mechanic:** Triples a creature's jump distance (horizontal and vertical). In D&D
+5e, jump distance is derived from Strength score. No equivalent movement modifier exists
+in this engine.
+**Proposal:** Add a `"jump_multiplier"` ActiveEffect modifier with value `3`. Interacts
+with the movement/travel system's terrain-gap traversal: if a grid cell is flagged as a
+gap or chasm, the engine checks whether the player's effective jump distance clears it.
+For now, modeled as a utility effect prose only; engine support deferred until the
+traversal system is built.
+
+---
+
+### sanctuary.json — attacker-must-save ward
+**Missing mechanic:** Any creature that would target the warded creature with an attack or
+harmful spell must first make a Wisdom save; on failure, it must choose a new target.
+This requires intercepting the attacker's targeting decision before the attack resolves.
+**Proposal:** Add a `"ward"` effect type to ActiveEffects: `{ "type": "ward",
+"intercept": "before_attack", "save": { "type": "wisdom", "dc": "caster_spell_dc" },
+"on_fail": "retarget" }`. The combat engine checks for active ward effects on the target
+before resolving incoming attacks. `retarget` forces the attacker AI (or blocks player
+attack) and requires a new target selection. Ward breaks if the warded creature deals
+damage to another creature (tracked as a `"break_on": "warded_creature_attacks"` flag).
+
+---
+
+### unseen-servant.json — persistent summoned task entity
+**Missing mechanic:** A persistent intangible force entity that obeys simple commands
+(fetch, carry, pour, open, mend). Not a combat entity — AC 10, 1 HP, no attacks.
+**Proposal:** Add a lightweight `"task_entity"` summon type to the engine (distinct from
+the full NPC/familiar summon). Task entities have a list of allowed actions (fetch, carry,
+open, etc.) resolved by the engine's object-interaction system. They do not participate
+in combat rounds — they act on their own initiative slot between the caster's turns but
+cannot attack. If they reach 0 HP the spell ends. Persistent for duration; re-summon resets.
+
+---
+
+### find-familiar.json — persistent familiar summon
+**Missing mechanic:** A spirit companion in animal form that persists indefinitely (not a
+time-limited summon). The familiar acts on its own initiative, can relay sensory info
+telepathically, and can take the Help action in combat to grant advantage on the caster's
+attacks. It cannot attack on its own, but some forms have special utility abilities.
+**Proposal:** Extend the NPC/entity system with a `"familiar"` entity type: persists in
+the caster's save data (not just session-local), has its own stats derived from the chosen
+animal form, and participates in combat as a friendly non-attacking entity. The Help-action
+mechanic grants `advantage_next_attack` to the caster when the familiar is adjacent. On
+dismissal, the familiar's spirit is stored (not deleted) and re-summoned without re-casting.
+Full implementation deferred to M4 or M5 (requires save-file entity persistence).
+
+---
+
+## Level 2 spells (batch 6)
+
+### scorching-ray.json — multi-ray attack (3 independent rolls per cast)
+**Missing mechanic:** Three separate ranged spell attack rolls per cast, each independently
+hitting or missing, each dealing 2d6 fire on hit. Rays can be split between targets.
+**Proposal:** Add a `"multi_attack"` block to spell JSON: `{ "count": 3, "attack_type":
+"ranged", "damage": "2d6", "damage_type": "fire", "split_targets": true }`. The combat
+engine runs `count` independent attack rolls when this block is present, resolving each
+against the target's AC. With `split_targets: true`, the player UI allows assigning each
+ray to a different target before rolls. Damage field shows per-attack dice; total is
+reported per-roll. Shares the multi-attack resolution path with any future multi-projectile spells.
+
+---
+
+### spiritual-weapon.json — persistent summoned weapon (bonus-action attacker each turn)
+**Missing mechanic:** A persistent floating weapon entity that the caster moves (up to
+20 ft) and attacks with via a bonus action on each of the caster's turns for the spell's
+duration. No concentration. It is not a creature — just a persistent magic effect that
+generates melee spell attacks.
+**Proposal:** Add a `"bonus_action_repeating_attack"` ActiveEffect: on each turn where the
+caster uses their bonus action with this effect active, the engine resolves a melee spell
+attack from the weapon's current position. The weapon has a position in the grid (starts
+adjacent to target at cast, moves up to 4 cells per bonus action). The effect expires
+after 1 minute (10 combat rounds) regardless of concentration. For positioning, the
+weapon occupies a virtual grid cell tracked in the active effect's state. No AC/HP for
+the weapon itself — it cannot be targeted or destroyed by enemies.
+
+---
+
+## Level 3 spells (batch 6)
+
+### fireball.json — AoE-all-targets-in-radius (DEX save, half on success)
+**Missing mechanic:** Fireball hits ALL creatures and objects in a 20-foot-radius sphere
+(approximately 4 grid cells). Every creature in the radius makes a DEX save independently:
+fail = full 8d6 fire, success = half (4d6 fire). The caster can also harm allies.
+**Proposal:** The combat engine needs a `"radius_save_aoe"` resolution mode: (1) identify
+all creatures within N cells of the target point, (2) for each creature roll a DEX save
+vs. the caster's spell DC, (3) apply full damage on fail, half on success. This differs
+from single-target saves and from the zone mechanic — it's an instantaneous multi-target
+resolution not a persistent zone. Add `"aoe": { "type": "sphere", "radius_cells": 4,
+"save_type": "dexterity", "half_on_success": true }` to the spell schema. The caster
+must select a center point (not a creature) within range. Friendly fire is intentional
+and documented. This is the primary engine gap for classic blast spells; implement once,
+reuse for comparable spells (Ice Storm, Lightning Bolt, etc.).

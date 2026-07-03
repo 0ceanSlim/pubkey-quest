@@ -8,8 +8,10 @@
   "range_long": "6",
   "duration": "instantaneous",
   "concentration": false,
-  "damage": "6d6",
+  "damage": "2d6",
   "damage_type": "fire",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": "ranged",
   "save_type": null,
@@ -17,7 +19,7 @@
     "combat",
     "damage",
     "fire",
-    "multiple_attacks"
+    "ranged"
   ],
   "classes": [
     "sorcerer",
@@ -25,11 +27,22 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 3,
+  "mana_cost": 4,
+  "prep_time": 100,
   "notes": [
-    "Three separate ranged spell attacks",
-    "2d6 damage per ray that hits",
-    "Can target same enemy or split between enemies"
+    "Three separate ranged spell attacks, each dealing 2d6 fire on hit",
+    "Rays can target one creature or split between multiple targets",
+    "Damage field shows per-ray damage (2d6); total potential is 6d6 if all three hit",
+    "Engine gap: multi-ray attack (3 independent attack rolls per cast) not yet implemented [~]",
+    "Modeled by primary ranged spell_attack shape; engine support needed for multi-ray resolution"
   ],
-  "material_component": null
+  "material_component": {
+    "required": [
+      {
+        "component": "elemental-sparks",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": ""
+  }
 }

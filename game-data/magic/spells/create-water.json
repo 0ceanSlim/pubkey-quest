@@ -1,15 +1,17 @@
 {
   "name": "Create or Destroy Water",
-  "description": "You either create or destroy water. Create Water: You create up to 10 gallons of clean water within range in an open container.",
+  "description": "You either create or destroy water. Create Water: You create up to 10 gallons of clean water within range in an open container. Destroy Water: You destroy up to 10 gallons of water in an open container within range.",
   "level": 1,
   "school": "transmutation",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "instantaneous",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Creates or destroys up to 10 gallons of water in an open container within range. Useful for filling waterskins, dousing fires, or removing standing water.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -23,6 +25,14 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 25,
+  "notes": [
+    "Purely utilitarian — no combat application",
+    "Water created is clean and potable",
+    "Cannot create water inside a sealed container"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

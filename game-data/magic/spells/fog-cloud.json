@@ -1,22 +1,25 @@
 {
   "name": "Fog Cloud",
-  "description": "You create a 20-foot-radius sphere of fog centered on a point within range. The sphere spreads around corners, and its area is heavily obscured.",
+  "description": "You create a 20-foot-radius sphere of fog centered on a point within range. The sphere spreads around corners, and its area is heavily obscured. The fog lasts for the duration or until a wind of moderate or greater speed (at least 10 miles per hour) disperses it.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "24",
-  "range_long": "24",
+  "range": "4",
+  "range_long": "4",
   "duration": "1 hour",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Creates a heavily obscured fog zone in a 20-foot radius. Creatures inside are blinded to what is beyond it and vice versa. Heavily obscured terrain imposes disadvantage on attacks from and into the zone.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "utility",
-    "terrain"
+    "terrain",
+    "control"
   ],
   "classes": [
     "wizard",
@@ -26,7 +29,15 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "mana_cost": 3,
+  "prep_time": 70,
+  "notes": [
+    "Concentration — dropping concentration ends the fog immediately",
+    "Engine gap: persistent AoE terrain zones (heavily obscured, attack disadvantage within) not yet implemented [~]",
+    "Modeled currently as effect prose; full AoE zone mechanic requires engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

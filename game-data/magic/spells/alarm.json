@@ -1,28 +1,42 @@
 {
   "name": "Alarm",
-  "description": "You set an alarm against unwanted intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot cube. Until the spell ends, an alarm alerts you whenever a Tiny or larger creature touches or enters the warded area.",
+  "description": "You set an alarm against unwanted intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot cube. Until the spell ends, an alarm alerts you whenever a Tiny or larger creature touches or enters the warded area. You can designate creatures that won't set off the alarm. You also choose whether the alarm is mental (wakes you from sleep) or audible.",
   "level": 1,
   "school": "abjuration",
   "casting_time": "1 minute",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "8 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Wards a chosen area. You are alerted (mentally or audibly) when any Tiny or larger creature enters the warded zone. Lasts 8 hours without concentration.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "utility",
-    "protection"
+    "protection",
+    "ritual"
   ],
   "classes": [
-    "ranger"
+    "ranger",
+    "wizard",
+    "paladin"
   ],
   "rarity": "common",
-  "action_cost": "1 minute",
+  "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 110,
+  "notes": [
+    "Out-of-combat only — 1 minute casting time",
+    "Can be cast as a ritual (10 minutes, no slot/mana expended)",
+    "Mental alarm wakes you from sleep; audible alarm is a hand bell sound",
+    "You designate which creatures bypass the alarm"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

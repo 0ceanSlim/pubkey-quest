@@ -1,18 +1,20 @@
 {
   "name": "Sanctuary",
-  "description": "You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw.",
+  "description": "You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell. The spell doesn't protect the warded creature from area effects, such as the explosion of a fireball. If the warded creature makes an attack, casts a spell that affects an enemy, or deals damage to another creature, this spell ends.",
   "level": 1,
   "school": "abjuration",
   "casting_time": "bonus action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 minute",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "The warded creature is protected: any creature that would attack it or target it with a harmful spell must succeed on a Wisdom save or be forced to choose a different target. Ward ends if the protected creature attacks or harms another creature.",
   "type": "Spell",
   "spell_attack": null,
-  "save_type": "wisdom",
+  "save_type": null,
   "tags": [
     "combat",
     "protection",
@@ -23,8 +25,17 @@
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 45,
+  "notes": [
+    "The Wisdom save is made by the ATTACKER, not the warded creature — shape is buff/ward, not save on target",
+    "Ward breaks immediately if the warded creature attacks, damages, or harms another creature",
+    "Does not protect against area-effect spells that catch the warded creature in their radius",
+    "Engine gap: attacker-wisdom-save intercept (before attack resolution) not yet implemented [~]"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

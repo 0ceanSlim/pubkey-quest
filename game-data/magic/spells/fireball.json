@@ -1,6 +1,6 @@
 {
   "name": "Fireball",
-  "description": "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much damage on a successful one.",
+  "description": "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much damage on a successful one. The fire spreads around corners. It ignites flammable objects in the area that aren't being worn or carried.",
   "level": 3,
   "school": "evocation",
   "casting_time": "action",
@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": "8d6",
   "damage_type": "fire",
+  "heal": null,
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -25,24 +27,22 @@
   ],
   "rarity": "uncommon",
   "action_cost": "action",
-  "mana_cost": 4,
+  "mana_cost": 5,
+  "prep_time": 165,
   "notes": [
-    "Area of effect spell - can hit multiple enemies",
-    "Dexterity save for half damage",
-    "Classic high-damage spell",
-    "Requires material component (bat guano and sulfur)"
+    "Dexterity save: fail = 8d6 fire damage, success = half damage",
+    "Hits all creatures in a 20-foot-radius sphere — can harm allies",
+    "Fire spreads around corners; ignites unattended flammable objects",
+    "Engine gap: AoE-all-targets-in-radius (DEX save, half-on-success) not yet implemented [~]",
+    "Modeled by primary DEX save shape; full AoE radius resolution requires engine support"
   ],
   "material_component": {
     "required": [
       {
-        "component": "elemental-sparks",
-        "quantity": 5
-      },
-      {
-        "component": "dragon-scale",
+        "component": "sulfur",
         "quantity": 1
       }
     ],
-    "focus_provided": "Rod provides unlimited elemental-sparks (still need dragon-scale)"
+    "focus_provided": "Rod provides unlimited sulfur"
   }
 }

@@ -39,10 +39,10 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 
 ---
 
-## Level 1 — 55 spells — Batch 2 complete (12 refined); Batch 3 complete (10 done); Batch 4 complete (10 done); Batch 5 complete (13 done)
+## Level 1 — 55 spells — Batch 2 complete (12 refined); Batch 3 complete (10 done); Batch 4 complete (10 done); Batch 5 complete (13 done); Batch 6 FINAL (9 L1 + 2 L2 + 1 L3 done)
 
 ### Batch 2 — refined + prep_time backfilled
-- [ ] `alarm` — Alarm (ritual)
+- [~] `alarm` — Alarm (ritual): range 6→2 (30ft); action_cost "1 minute"→"action" (out-of-combat noted); +wizard+paladin classes; ritual tag; heal/effect added; material block added; mana 2 kept; **prep_time 110** (8-hr ward ritual, complex setup); ward-trigger in proposals
 - [x] `animal-friendship` — Animal Friendship: range "6"→2 (30ft); added bard to classes; pollen×1 (sprig-of-mistletoe=free for druids/rangers); added heal/effect; prep_time 50
 - [x] `armor-of-agathys` — Armor of Agathys: mana 2→3; free; range "self"→0; retaliatory-damage in proposals; **prep_time 90** (strong 1-hr no-conc self-buff)
 - [~] `arms-of-hadar` — Arms of Hadar: mana 2→3; spirit-dust×1; range "self"→1; reaction-suppression-AoE in proposals; **prep_time 75** (AoE + rune cost → not triple-taxed)
@@ -54,7 +54,7 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [~] `command` — Command: mana 2; free; range 12→4; command-variants in proposals; **prep_time 30** (1-round only, simplest control spell)
 - [~] `compelled-duel` — Compelled Duel: range "6"→1 (30ft→1grid for paladin melee theme); null material→proper block; heal/effect; action_cost "bonus action"→"bonus_action"; free; **prep_time 50**; compelled condition + movement-restriction in proposals
 - [x] `comprehend-languages` — Comprehend Languages: range "self"→0; null material→proper block; added sorcerer to classes; added heal/effect; added ritual tag; prep_time 30; mana 2 kept
-- [ ] `create-water` — Create or Destroy Water
+- [x] `create-water` — Create or Destroy Water: range 6→2 (30ft); heal/effect added; material block added; mana 2 kept; **prep_time 25** (simplest utility — no combat use)
 - [x] `cure-wounds` — → see Batch 3 section
 - [x] `detect-evil` — → see Batch 3 section
 - [x] `detect-magic` — → see Batch 3 section
@@ -66,11 +66,11 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [~] `expeditious-retreat` — Expeditious Retreat: null material→proper block; +artificer class; action_cost "bonus action"→"bonus_action"; heal/effect; **prep_time 30**; bonus-action dash speed modifier in proposals
 - [~] `faerie-fire` — Faerie Fire: mana 2→3 (AoE strong debuff); pollen×2 stripped (wrong domain + stub note "no focus provides" was false — sprig provides pollen); range "12"→2; heal/effect; **prep_time 65**; outlined/lit condition (AoE) in proposals
 - [x] `false-life` — False Life: range "self"→0; heal "1d4+4"; effect prose; free; **prep_time 40** (minor necromantic utility, quick)
-- [ ] `feather-fall` — Feather Fall
-- [ ] `find-familiar` — Find Familiar (ritual)
-- [ ] `fog-cloud` — Fog Cloud
+- [x] `feather-fall` — Feather Fall: range 12→4 (60ft); +artificer class; heal/effect added; material block added; mana 2 kept; **prep_time 35** (reaction, quick, minor utility)
+- [~] `find-familiar` — Find Familiar (ritual): action_cost "1 hour"→"action" (out-of-combat noted); ritual tag; heal/effect added; arcane-powder×1 (wand=free); mana 2 kept; **prep_time 120** (complex 1hr ritual summon); persistent familiar summon in proposals
+- [~] `fog-cloud` — Fog Cloud: range 24→4 (120ft); mana 2→3 (AoE conc 1hr hard-obstruct); +control tag; heal/effect added; material block added; **prep_time 70** (AoE zone, powerful; no component); obscured-zone AoE in proposals
 - [~] `goodberry` — Goodberry: damage field→heal field (1d4+1); removed tree-sap (double-tax); kept pollen×1 (sprig-of-mistletoe=free); effect prose; prep_time 65; mana 2 kept; spell-created-item mechanic in proposals
-- [ ] `grease` — Grease
+- [~] `grease` — Grease: range 12→2 (30ft); mana 2→3 (AoE control + save); +artificer class; heal/effect added; material block added; **prep_time 55** (no component; mana+prep carry cost); per-entry-save terrain zone in proposals
 - [~] `guiding-bolt` — Guiding Bolt: mana 2→3 (4d6 radiant = highest L1 damage); stripped blessed-incense×2+holy-water (over-costed double components); blessed-incense×1 (amulet=free for clerics); range "24"→4 (60ft); **prep_time 55**; on-hit advantage-next-attack (lit condition) in proposals
 - [x] `healing-word` — → see Batch 3 section
 - [~] `hellish-rebuke` — Hellish Rebuke: sulfur×2+arcane-powder stripped (both focus-provided, not a real warlock cost); ash×1 (fire domain, 15gp, no focus, always-consumed); range "12"→2; mana 2 (reaction fire is already limited); **prep_time 45**; reaction-trigger engine mechanic in proposals
@@ -79,13 +79,13 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [~] `hunters-mark` — Hunter's Mark: stripped bone-dust×2+pollen (both focus-provided=free for rangers, not a real cost); free; range "18"→2; action_cost "bonus action"→"bonus_action"; heal/effect; +tracking/buff tags; **prep_time 50**; bonus-action target-transfer on kill in proposals
 - [x] `identify` — **Analyze Weakness** (homebrew): removed quartz-dust×2+ether-essence×1 (over-costed utility); free; added artificer to classes; added divination tag; action_cost "1 minute"→"action" (out-of-combat noted); added heal/effect; prep_time 40; mana 2 kept
 - [x] `inflict-wounds` — Inflict Wounds: mana 2→3; spirit-dust×1; necrotic 3d10; **prep_time 60** (standard melee attack; rune cost makes it not triple-taxed)
-- [ ] `jump` — Jump
+- [~] `jump` — Jump: range "0" correct (touch); +artificer class; heal/effect added; material block added; mana 2 kept; **prep_time 20** (absolute simplest touch buff — lowest L1 value); jump-distance modifier in proposals
 - [~] `longstrider` — Longstrider: null material→proper block; +artificer class; heal/effect; **prep_time 35**; speed_bonus modifier effect in proposals (shared with expeditious-retreat)
 - [x] `mage-armor` — → see Batch 3 section
 - [x] `magic-missile` — Magic Missile: mana 2; free; +artificer; automatic hit; **prep_time 35** (fast classic evocation, no component)
 - [x] `protection-from-evil` — → see Batch 3 section
 - [x] `purify-food` — Purify Food and Drink: null material→proper block; added druid to classes; added ritual tag; added heal/effect; prep_time 25; mana 2 kept
-- [ ] `sanctuary` — Sanctuary
+- [~] `sanctuary` — Sanctuary: action_cost "bonus action"→"bonus_action"; range 6→2 (30ft); save_type removed (attacker saves, not target — shape is BUFF/ward); heal/effect added; material block added; mana 2 kept; **prep_time 45** (bonus action, 1-min ward; no component); attacker-wisdom-save-ward in proposals
 - [~] `searing-smite` — Searing Smite: STRIPPED phoenix-feather×1 (5000gp LEGENDARY on a L1 paladin smite!); free; range "self"→0; action_cost "bonus action"→"bonus_action"; save_type removed (on-hit buff shape); heal/effect; **prep_time 40**; on-hit-rider + burning DoT condition in proposals
 - [x] `shield` — → see Batch 3 section
 - [x] `shield-of-faith` — → see Batch 3 section
@@ -94,7 +94,7 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [~] `speak-with-animals` — Speak with Animals: range "self"→0; removed pollen×1 (wrong focus note + not substance-themed for ritual utility); null material→proper block; added ritual tag; added effect prose; prep_time 55; mana 2 kept; beast-command mechanic in proposals
 - [~] `thunderous-smite` — Thunderous Smite: mana 2→3 (2d6 + push+prone hard control); elemental-sparks×2 stripped (150gp×2 over-tier; no thunder rune exists); free; range "self"→0; action_cost "bonus action"→"bonus_action"; save_type removed (on-hit buff shape); heal/effect; **prep_time 45**; on-hit-rider + prone + push in proposals
 - [~] `thunderwave` — Thunderwave: mana 2→3; free; AoE-push in proposals; **prep_time 75** (AoE + push, powerful; no rune cost)
-- [ ] `unseen-servant` — Unseen Servant (ritual)
+- [~] `unseen-servant` — Unseen Servant (ritual): range 12→2 (within summoning range); heal/effect added; material block added; ritual tag confirmed; mana 2 kept; **prep_time 60** (ritual conjuration, 1hr utility summon); task-entity summon in proposals
 - [~] `witch-bolt` — Witch Bolt: mana 2; iron-filings×1; range 6→2; sustained-conc-damage in proposals; **prep_time 55** (conc lightning; rune cost modest)
 - [~] `wrathful-smite` — Wrathful Smite: spirit-dust stripped (totem→bone-dust, not spirit-dust — wrong focus note; fear/psychic not substance-themed at L1); free; range "self"→0; action_cost "bonus action"→"bonus_action"; save_type removed (on-hit buff shape); heal/effect; **prep_time 35**; on-hit-rider + frightened condition in proposals
 
@@ -113,16 +113,16 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 
 ---
 
-## Level 2 — 2 spells — TODO
+## Level 2 — 2 spells — DONE
 
-- [ ] `scorching-ray` — Scorching Ray
-- [ ] `spiritual-weapon` — Spiritual Weapon
+- [~] `scorching-ray` — Scorching Ray: damage "6d6"→"2d6" (per-ray, not total); mana 3→4 (multi-attack L2 fire); elemental-sparks×1 (150gp, always-consumed fire rune); +heal+effect null; **prep_time 100** (mid-L2; instinctive fire but 3-ray multi-attack); multi-ray attack in proposals
+- [~] `spiritual-weapon` — Spiritual Weapon: sacred-oil×2+holy-water reduced to sacred-oil×1 (emblem=free for clerics); mana 3→4 (sustained 1-min bonus-action attacker, no conc); casting_time confirmed "bonus_action"; concentration false verified; **prep_time 115**; persistent-weapon-attacker in proposals
 
 ---
 
-## Level 3 — 1 spell — TODO
+## Level 3 — 1 spell — DONE
 
-- [ ] `fireball` — Fireball
+- [~] `fireball` — Fireball: elemental-sparks×5+dragon-scale×1 REPLACED with sulfur×1 (item description says "Required for casting Fireball"; rod=free); mana 4→5 (AoE 8d6 fire L3 pinnacle); fixed note (removed D&D "bat guano" reference); +heal+effect null; **prep_time 165** (L3 anchor 180, slight reduction — fire is instinctive); AoE-radius-DEX-save in proposals
 
 ---
 
@@ -131,17 +131,22 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 | Level | Total | Done ([x]) | Needs-mechanic ([~]) | Refined total | TODO |
 |-------|-------|------------|----------------------|---------------|------|
 | 0     | 26    | 15         | 11                   | 26            | 0    |
-| 1     | 55    | ~20        | ~26                  | 46            | 9    |
-| 2     | 2     | 0          | 0                    | 0             | 2    |
-| 3     | 1     | 0          | 0                    | 0             | 1    |
-| **Total** | **84** | **~35** | **~37**          | **72**        | **12** |
+| 1     | 55    | 22         | 33                   | 55            | 0    |
+| 2     | 2     | 0          | 2                    | 2             | 0    |
+| 3     | 1     | 0          | 1                    | 1             | 0    |
+| **Total** | **84** | **37** | **47**           | **84**        | **0** |
 
 Note: "Done" = `[x]` (fully expressible in current schema), "Needs-mechanic" = `[~]`
 (shape correct; secondary effects need engine mechanic — tracked in spell-mechanics-proposals.md).
-Both count as refined. Approximate [x]/[~] split within L1 — exact counts in the checklist.
+Both count as refined.
 
-Level 1 remaining TODO (9): `alarm`, `create-water`, `feather-fall`, `find-familiar`,
-`fog-cloud`, `grease`, `jump`, `sanctuary`, `unseen-servant`.
+**LIBRARY COMPLETE — 2026-07-02.** All 84 spells refined across 6 batches:
+- Batch 1: 26 cantrips
+- Batch 2: 12 L1 core spells (+ prep_time backfill)
+- Batch 3: 10 L1 abjuration/healing group
+- Batch 4: 10 L1 illusion/utilities group
+- Batch 5: 13 L1 smites/warlock/ranger/nature group
+- Batch 6: 9 L1 remaining + 2 L2 + 1 L3 (final batch)
 
-Batches: 1=cantrips, 2=12 L1 core, 3=10 L1 abjuration/healing, 4=10 L1 illusion/utilities,
-5=13 L1 smites/warlock/ranger/nature group. DB rebuild needed after each batch (--migrate).
+Final split: 37 `[x]` (fully schema-expressible) / 47 `[~]` (shape correct, engine gaps documented).
+DB rebuild needed: `go run ./cmd/codex --migrate`.

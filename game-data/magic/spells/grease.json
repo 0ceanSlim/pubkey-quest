@@ -1,15 +1,17 @@
 {
   "name": "Grease",
-  "description": "Slick grease covers the ground in a 10-foot square centered on a point within range and turns it into difficult terrain for the duration.",
+  "description": "Slick grease covers the ground in a 10-foot square centered on a point within range and turns it into difficult terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall prone. A creature that enters the area or ends its turn there must also succeed on a Dexterity saving throw or fall prone.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "action",
-  "range": "12",
-  "range_long": "12",
+  "range": "2",
+  "range_long": "2",
   "duration": "1 minute",
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Creates a 10-ft-square zone of slick grease. On initial cast: Dexterity save or fall prone. Any creature entering or ending its turn in the zone must save or fall prone. The zone is difficult terrain for its duration.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -19,11 +21,21 @@
     "terrain"
   ],
   "classes": [
-    "wizard"
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "mana_cost": 3,
+  "prep_time": 55,
+  "notes": [
+    "Save applies on cast (for creatures already in zone) and on each entry or end-of-turn",
+    "Prone condition: disadvantage on attack rolls; melee attacks against prone target have advantage",
+    "Engine gap: persistent terrain zone with per-entry DEX save and prone condition not yet implemented [~]",
+    "Modeled by primary DEX save shape; full zone mechanic requires engine support"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

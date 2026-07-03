@@ -1,6 +1,6 @@
 {
   "name": "Find Familiar",
-  "description": "You gain the service of a familiar, a spirit that takes an animal form you choose. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form.",
+  "description": "You gain the service of a familiar, a spirit that takes an animal form you choose: bat, cat, crab, frog, hawk, lizard, octopus, owl, poisonous snake, quipper, rat, raven, sea horse, spider, or weasel. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form. Your familiar acts independently of you, but it always obeys your commands. While your familiar is within 100 feet of you, you can communicate with it telepathically.",
   "level": 1,
   "school": "conjuration",
   "casting_time": "1 hour",
@@ -10,19 +10,36 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Summons a spirit familiar in a chosen animal form. The familiar obeys your commands, provides telepathic communication within 100 feet, and can grant you advantage on attacks via the Help action while adjacent.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "utility",
-    "summoning"
+    "summoning",
+    "ritual"
   ],
   "classes": [
     "wizard"
   ],
   "rarity": "common",
-  "action_cost": "1 hour",
+  "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 120,
+  "notes": [
+    "Out-of-combat only — 1 hour casting time",
+    "Can be cast as a ritual (no mana cost, adds 10 min to casting time)",
+    "Familiar is a spiritual entity — dismissed and re-summoned rather than killed",
+    "Engine gap: summon system for persistent familiar companion not yet implemented [~]"
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "arcane-powder",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Wand provides unlimited arcane-powder"
+  }
 }

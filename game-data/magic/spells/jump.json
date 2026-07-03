@@ -10,6 +10,8 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "The touched creature's jump distance is tripled for 1 minute. Allows traversal of gaps, obstacles, and terrain features that would normally block movement.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -21,11 +23,20 @@
     "wizard",
     "sorcerer",
     "druid",
-    "ranger"
+    "ranger",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 20,
+  "notes": [
+    "Simplest touch buff — trivial transmutation with narrow use case",
+    "Engine gap: jump-distance modifier has no current movement system mechanic [~]",
+    "Modeled as utility effect prose; engine support needed for traversal bonus"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }
