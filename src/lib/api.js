@@ -229,6 +229,53 @@ class GameAPI {
     }
 
     // ========================================================================
+    // SPELL PREPARATION
+    // ========================================================================
+
+    /**
+     * Prepare a spell into a slot. Cantrips are instant; leveled spells queue a
+     * prep task (level×60 in-game minutes).
+     */
+    async prepareSpell(spellId, slotLevel, slotIndex) {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/spells/prepare`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: this.npub, save_id: this.saveID, spell_id: spellId, slot_level: slotLevel, slot_index: slotIndex })
+        });
+        if (!response.ok) {
+            let reason = `prepare failed: ${response.status}`;
+            try { reason = (await response.text()).trim() || reason; } catch { /* ignore */ }
+            throw new Error(reason);
+        }
+        return await response.json();
+    }
+
+    /** Fetch the in-progress spell prep queue (also lazily completes finished preps). */
+    async getPrepQueue() {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/spells/prep-queue?npub=${this.npub}&save_id=${this.saveID}`);
+        if (!response.ok) throw new Error(`prep-queue failed: ${response.status}`);
+        return await response.json();
+    }
+
+    /** Clear a slot (and cancel any in-progress prep for it). */
+    async unslotSpell(slotLevel, slotIndex) {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/spells/unslot`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: this.npub, save_id: this.saveID, slot_level: slotLevel, slot_index: slotIndex })
+        });
+        if (!response.ok) {
+            let reason = `unslot failed: ${response.status}`;
+            try { reason = (await response.text()).trim() || reason; } catch { /* ignore */ }
+            throw new Error(reason);
+        }
+        return await response.json();
+    }
+
+    // ========================================================================
     // CONVENIENCE METHODS FOR COMMON ACTIONS
     // ========================================================================
 

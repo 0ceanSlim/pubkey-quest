@@ -3,19 +3,14 @@
 <div id="spells-panel" class="tab-panel hidden w-full" style="overflow-y: auto; overflow-x: hidden;">
 
     <!-- CASTER VIEW (shown for caster classes) -->
-    <div id="caster-view" class="hidden space-y-2 p-1">
-        <!-- Spell Slots Section -->
-        <div class="text-xs font-bold text-yellow-400 mb-1" style="font-size: 8px;">SPELL SLOTS</div>
-        <div id="spell-slots-container" class="space-y-1" style="font-size: 7px;">
-            <!-- Rows: Cantrips, Level 1, Level 2, etc. - populated by JS -->
+    <div id="caster-view" class="hidden p-1">
+        <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-yellow-400" style="font-size: 9px;">Spell Slots</span>
+            <span class="text-gray-500" style="font-size: 7px;">click a slot to prepare</span>
         </div>
-
-        <!-- Known Spells List -->
-        <div class="text-xs font-bold text-yellow-400 mb-1 mt-2" style="font-size: 8px;">KNOWN SPELLS</div>
-        <div id="known-spells-list" style="font-size: 7px;">
-            <!-- Table rows: school icon | name | damage emoji + roll | component icons -->
-            <!-- Populated by spellsDisplay.js -->
-        </div>
+        <!-- Per-level: label line + horizontal row of numbered slots. Empty slot
+             opens the known-spells picker; filled slot opens the spell info. -->
+        <div id="spell-slots-container" style="font-size: 7px;"></div>
     </div>
 
     <!-- MARTIAL VIEW (shown for martial classes) -->

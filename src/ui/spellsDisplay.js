@@ -9,10 +9,12 @@
  */
 
 import { logger } from '../lib/logger.js';
-import { getGameStateSync } from '../state/gameState.js';
+import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { getSpellById } from '../state/staticData.js';
 import { getClassResourceSync } from '../data/classResources.js';
 import { getDamageEmoji } from '../lib/damageTypes.js';
+import { gameAPI } from '../lib/api.js';
+import { showActionText } from './messaging.js';
 
 // Cache fetched abilities
 let abilitiesCache = {};
@@ -51,12 +53,186 @@ export function updateSpellsDisplay() {
 
 function renderCasterView(character) {
     renderSpellSlots(character);
-    renderKnownSpellsList(character);
+    // Overlay live prep state (countdown rings) once the queue is fetched.
+    refreshPrepQueue(character);
+}
+
+// Map of "slotLevel:slotIndex" → { spell, mins } from the prep queue.
+let _prepMap = {};
+
+async function refreshPrepQueue(character) {
+    try {
+        const q = await gameAPI.getPrepQueue();
+        const next = {};
+        (q.tasks || []).forEach(t => { next[`${t.slot_level}:${t.slot_index}`] = { spell: t.spell_id, mins: t.ready_in_minutes }; });
+        _prepMap = next;
+    } catch {
+        _prepMap = {};
+    }
+    renderSpellSlots(character);
+    ensurePrepTicker();
 }
 
 /**
- * Render spell slots as rows (level label + slot cells)
+ * Unprepare a slot (clear it / cancel its prep), then refresh.
  */
+async function unprepareSlot(slotLevel, slotIndex) {
+    try {
+        await gameAPI.unslotSpell(slotLevel, slotIndex);
+        showActionText('Spell unprepared', 'green', 2000);
+        delete _prepMap[`${slotLevel}:${slotIndex}`];
+        updateSpellsDisplay();
+    } catch (err) {
+        showActionText(`Cannot unprepare: ${err.message}`, 'red', 3000);
+    }
+}
+
+/** Add a small "×" to a slot cell that unprepares it (stops the cell's click). */
+function addUnprepareX(cell, slotLevel, slotIndex) {
+    const x = document.createElement('span');
+    x.textContent = '×';
+    x.title = 'Unprepare';
+    x.style.cssText = 'position:absolute; top:-2px; right:2px; color:#f87171; font-size:9px; line-height:1; cursor:pointer;';
+    x.onclick = (e) => { e.stopPropagation(); unprepareSlot(slotLevel, slotIndex); };
+    cell.appendChild(x);
+}
+
+const SVGNS = 'http://www.w3.org/2000/svg';
+const SLOT_STYLE = 'position:relative; width:28px; height:28px; flex-shrink:0; background:#1a1a1a; ' +
+    'border-top:2px solid #000; border-left:2px solid #000; border-right:2px solid #3a3a3a; border-bottom:2px solid #3a3a3a; ' +
+    'clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);';
+
+function prettify(id) { return (id || '').replace(/-/g, ' '); }
+
+/** Full-slot spell school icon (like an inventory item image). */
+function spellIconFill(spell) {
+    const img = document.createElement('img');
+    img.src = `/res/img/spells/${spell?.school}.png`;
+    img.style.cssText = 'width:100%; height:100%; object-fit:contain; image-rendering:pixelated; padding:2px;';
+    img.onerror = () => { img.style.display = 'none'; };
+    return img;
+}
+
+/** Small slot number in the top-left corner. */
+function cornerNum(n) {
+    const el = document.createElement('span');
+    el.textContent = n;
+    el.style.cssText = 'position:absolute; top:0; left:1px; font-size:6px; color:#9ca3af; line-height:1; pointer-events:none; text-shadow:1px 1px 1px #000;';
+    return el;
+}
+
+function circleEl(stroke, dash, offset) {
+    const c = document.createElementNS(SVGNS, 'circle');
+    c.setAttribute('cx', '18'); c.setAttribute('cy', '18'); c.setAttribute('r', '15');
+    c.setAttribute('fill', 'none'); c.setAttribute('stroke', stroke); c.setAttribute('stroke-width', '2.5');
+    c.setAttribute('stroke-dasharray', String(dash)); c.setAttribute('stroke-dashoffset', String(offset));
+    return c;
+}
+
+/** Live radial countdown ring over a preparing slot (reuses the hunger/fatigue pattern). */
+function prepRing(prep, spell) {
+    const total = Math.max((spell?.level || 1) * 60, 1);
+    const progress = Math.max(0, Math.min(1, 1 - (prep.mins / total)));
+    const circ = 94.25; // 2πr, r=15
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 36 36');
+    svg.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); pointer-events:none;';
+    svg.appendChild(circleEl('rgba(255,255,255,0.15)', circ, circ));
+    svg.appendChild(circleEl('#f59e0b', circ, circ * (1 - progress)));
+    return svg;
+}
+
+// Cursor-following name tooltip for spell slots (mouse only).
+let _spellTip = null;
+function attachNameHover(el, text) {
+    el.addEventListener('mousemove', (e) => {
+        if (!_spellTip) {
+            _spellTip = document.createElement('div');
+            _spellTip.style.cssText = 'position:fixed; z-index:2100; pointer-events:none; background:#1a1a1a; color:#fff; border:1px solid #6a6a6a; padding:2px 6px; font-size:9px; white-space:nowrap; box-shadow:1px 1px 0 #000;';
+            document.body.appendChild(_spellTip);
+        }
+        _spellTip.textContent = text;
+        _spellTip.style.display = 'block';
+        _spellTip.style.left = `${e.clientX + 12}px`;
+        _spellTip.style.top = `${e.clientY + 12}px`;
+    });
+    el.addEventListener('mouseleave', () => { if (_spellTip) _spellTip.style.display = 'none'; });
+}
+
+// Right-click context menu for a filled/preparing slot: Info / Replace / Remove.
+let _slotMenu = null;
+function closeSlotMenu() { if (_slotMenu) { _slotMenu.remove(); _slotMenu = null; } }
+
+function openSlotMenu(e, slotLevel, slotIndex, spellId) {
+    e.preventDefault();
+    e.stopPropagation();
+    closeSlotMenu();
+    const menu = document.createElement('div');
+    menu.className = 'context-menu fixed bg-gray-800 border-2 border-gray-600 shadow-lg z-50';
+    menu.style.cssText = `left:${e.clientX}px; top:${e.clientY}px; min-width:100px;`;
+    const add = (label, fn) => {
+        const it = document.createElement('div');
+        it.textContent = label;
+        it.className = 'context-menu-item px-3 py-2 hover:bg-gray-700 cursor-pointer text-white';
+        it.style.fontSize = '9px';
+        it.onclick = (ev) => { ev.stopPropagation(); closeSlotMenu(); fn(); };
+        menu.appendChild(it);
+    };
+    add('Info', () => window.openSpellModal && window.openSpellModal(spellId));
+    add('Replace', () => window.openSpellPicker && window.openSpellPicker(slotLevel, slotIndex));
+    add('Remove', () => removeSlot(slotLevel, slotIndex));
+    document.body.appendChild(menu);
+    _slotMenu = menu;
+    setTimeout(() => document.addEventListener('click', closeSlotMenu, { once: true }), 0);
+}
+
+async function removeSlot(slotLevel, slotIndex) {
+    try {
+        await gameAPI.unslotSpell(slotLevel, slotIndex);
+        showActionText('Spell removed', 'green', 2000);
+        await refreshGameState(true);
+        updateSpellsDisplay();
+    } catch (err) {
+        showActionText(`Cannot remove: ${err.message}`, 'red', 3000);
+    }
+}
+
+/** Build one 28px spell-slot cell: empty (number) / preparing (icon + ring) / prepared (icon). */
+function makeSlotCell(level, slotData, displayNum) {
+    const prep = _prepMap[`${level}:${slotData.slot}`];
+    const cell = document.createElement('div');
+    cell.className = 'flex items-center justify-center cursor-pointer hover:brightness-125';
+    cell.style.cssText = SLOT_STYLE;
+
+    if (slotData.spell) {
+        const spell = getSpellById(slotData.spell);
+        cell.appendChild(spellIconFill(spell));
+        cell.appendChild(cornerNum(displayNum));
+        attachNameHover(cell, spell?.name || prettify(slotData.spell));
+        cell.onclick = () => window.openSpellModal && window.openSpellModal(slotData.spell); // info only
+        cell.oncontextmenu = (e) => openSlotMenu(e, level, slotData.slot, slotData.spell);
+    } else if (prep) {
+        const spell = getSpellById(prep.spell);
+        const icon = spellIconFill(spell);
+        icon.style.opacity = '0.4';
+        cell.appendChild(icon);
+        cell.appendChild(prepRing(prep, spell));
+        cell.appendChild(cornerNum(displayNum));
+        attachNameHover(cell, `Preparing ${spell?.name || prettify(prep.spell)} — ${prep.mins}m`);
+        cell.onclick = () => window.openSpellModal && window.openSpellModal(prep.spell); // info only
+        cell.oncontextmenu = (e) => openSlotMenu(e, level, slotData.slot, prep.spell);
+    } else {
+        const n = document.createElement('span');
+        n.textContent = displayNum;
+        n.style.cssText = 'font-size:11px; color:#4b5563;';
+        cell.appendChild(n);
+        cell.title = 'Prepare a spell';
+        cell.onclick = () => window.openSpellPicker && window.openSpellPicker(level, slotData.slot);
+    }
+    return cell;
+}
+
+/** Render spell slots grouped by level: a label line + a horizontal row of numbered slots. */
 function renderSpellSlots(character) {
     const container = document.getElementById('spell-slots-container');
     if (!container || !character?.spell_slots) return;
@@ -70,116 +246,46 @@ function renderSpellSlots(character) {
 
     sortedLevels.forEach(level => {
         const slots = character.spell_slots[level];
-        if (!slots || !Array.isArray(slots) || slots.length === 0) return;
+        if (!Array.isArray(slots) || slots.length === 0) return;
 
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-1';
+        const group = document.createElement('div');
+        group.className = 'mb-2';
 
-        // Level label
         const label = document.createElement('div');
-        label.className = 'text-gray-400 font-bold flex-shrink-0';
-        label.style.cssText = 'width: 52px; font-size: 6px;';
+        label.className = 'text-gray-300 mb-1';
+        label.style.fontSize = '8px';
         label.textContent = level === 'cantrips' ? 'Cantrips' : `Level ${level.split('_')[1]}`;
-        row.appendChild(label);
+        group.appendChild(label);
 
-        // Slot cells
-        const slotsContainer = document.createElement('div');
-        slotsContainer.className = 'flex gap-1 flex-wrap';
+        const rowEl = document.createElement('div');
+        rowEl.className = 'flex gap-1';
+        rowEl.style.cssText = 'overflow-x:auto; padding-bottom:2px;';
+        slots.forEach((slotData, i) => rowEl.appendChild(makeSlotCell(level, slotData, i + 1)));
+        group.appendChild(rowEl);
 
-        slots.forEach(slotData => {
-            const cell = document.createElement('div');
-            cell.className = 'flex items-center justify-center cursor-pointer hover:brightness-125';
-            cell.style.cssText = 'width: 60px; height: 20px; font-size: 6px; background: #1a1a2e; border: 1px solid #333; border-radius: 2px;';
+        container.appendChild(group);
+    });
+}
 
-            if (slotData.spell) {
-                const spell = getSpellById(slotData.spell);
-                const name = spell?.name || slotData.spell.replace(/-/g, ' ');
-                cell.innerHTML = `<span class="text-purple-300 truncate px-1">${name}</span>`;
-                cell.style.borderColor = '#7c3aed';
-                cell.onclick = () => window.openSpellModal && window.openSpellModal(slotData.spell);
-            } else {
-                cell.innerHTML = '<span class="text-gray-600">[ empty ]</span>';
+// Re-fetch the prep queue on an interval while a prep is active + the tab is
+// open, so the countdown rings tick down live.
+let _prepTicker = null;
+function ensurePrepTicker() {
+    const active = Object.keys(_prepMap).length > 0;
+    if (active && !_prepTicker) {
+        _prepTicker = setInterval(() => {
+            const cv = document.getElementById('caster-view');
+            if (cv && !cv.classList.contains('hidden')) {
+                const ch = getGameStateSync()?.character;
+                if (ch) refreshPrepQueue(ch);
             }
-
-            slotsContainer.appendChild(cell);
-        });
-
-        row.appendChild(slotsContainer);
-        container.appendChild(row);
-    });
-}
-
-/**
- * Render known spells as a list with columns:
- * school icon | name | damage emoji + roll | component icons
- */
-function renderKnownSpellsList(character) {
-    const container = document.getElementById('known-spells-list');
-    if (!container || !character?.spells) return;
-    container.innerHTML = '';
-
-    const spellsArray = Array.isArray(character.spells) ? character.spells : [];
-
-    if (spellsArray.length === 0) {
-        container.innerHTML = '<div class="text-gray-500 italic" style="font-size: 7px;">No spells known</div>';
-        return;
+        }, 3000);
+    } else if (!active && _prepTicker) {
+        clearInterval(_prepTicker);
+        _prepTicker = null;
     }
-
-    spellsArray.forEach(spellId => {
-        const spell = getSpellById(spellId);
-        if (!spell) return;
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-1 px-1 py-0.5 cursor-pointer hover:bg-white hover:bg-opacity-5';
-        row.style.cssText = 'border-bottom: 1px solid #222; min-height: 18px;';
-        row.onclick = () => window.openSpellModal && window.openSpellModal(spellId);
-
-        // School icon
-        const schoolIcon = document.createElement('img');
-        schoolIcon.src = `/res/img/spells/${spell.school}.png`;
-        schoolIcon.alt = spell.school;
-        schoolIcon.style.cssText = 'width: 14px; height: 14px; image-rendering: pixelated; flex-shrink: 0;';
-        schoolIcon.onerror = () => { schoolIcon.style.display = 'none'; };
-        row.appendChild(schoolIcon);
-
-        // Spell name
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'text-white flex-1 truncate';
-        nameSpan.style.fontSize = '7px';
-        nameSpan.textContent = spell.name;
-        row.appendChild(nameSpan);
-
-        // Damage/heal emoji + roll
-        if (spell.damage || spell.heal) {
-            const dmgSpan = document.createElement('span');
-            dmgSpan.style.cssText = 'font-size: 7px; flex-shrink: 0; white-space: nowrap;';
-            const isHealing = !!spell.heal;
-            const emoji = getDamageEmoji(spell.damage_type, isHealing);
-            const roll = spell.damage || spell.heal;
-            dmgSpan.className = isHealing ? 'text-green-400' : 'text-red-400';
-            dmgSpan.textContent = `${emoji} ${roll}`;
-            row.appendChild(dmgSpan);
-        }
-
-        // Material component icons
-        if (spell.material_component?.required) {
-            const compContainer = document.createElement('div');
-            compContainer.className = 'flex gap-0.5 flex-shrink-0';
-            spell.material_component.required.forEach(comp => {
-                const compIcon = document.createElement('img');
-                compIcon.src = `/res/img/items/${comp.component}.png`;
-                compIcon.alt = comp.component;
-                compIcon.title = `${comp.component} x${comp.quantity}`;
-                compIcon.style.cssText = 'width: 12px; height: 12px; image-rendering: pixelated;';
-                compIcon.onerror = () => { compIcon.style.display = 'none'; };
-                compContainer.appendChild(compIcon);
-            });
-            row.appendChild(compContainer);
-        }
-
-        container.appendChild(row);
-    });
 }
+
 
 // ============================================================
 // MARTIAL VIEW

@@ -11,16 +11,25 @@
 import { logger } from '../lib/logger.js';
 import { getSpellById } from '../state/staticData.js';
 import { getDamageEmoji } from '../lib/damageTypes.js';
+import { getGameStateSync, refreshGameState } from '../state/gameState.js';
+import { gameAPI } from '../lib/api.js';
+import { showActionText } from '../ui/messaging.js';
+import { updateSpellsDisplay } from './spellsDisplay.js';
 
 // Currently displayed data
 let currentSpellId = null;
 let currentAbility = null;
 let currentTierIndex = 0;
+// { slotLevel, slotIndex, mode: 'prepare' | 'unprepare' } — where the modal was
+// opened from, so the action button prepares into (or clears) that slot.
+let currentContext = null;
 
 /**
- * Open the modal for a spell
+ * Open the modal for a spell.
+ * @param {string} spellId
+ * @param {object|null} context - prepare/unprepare target slot context
  */
-export function openSpellModal(spellId) {
+export function openSpellModal(spellId, context = null) {
     const spell = getSpellById(spellId);
     if (!spell) {
         logger.error(`Spell not found for modal: ${spellId}`);
@@ -29,6 +38,7 @@ export function openSpellModal(spellId) {
 
     currentSpellId = spellId;
     currentAbility = null;
+    currentContext = context;
 
     const modal = document.getElementById('spell-ability-modal');
     if (!modal) return;
@@ -66,11 +76,16 @@ export function openSpellModal(spellId) {
     const statsGrid = document.getElementById('modal-stats-grid');
     if (statsGrid) {
         statsGrid.innerHTML = '';
+        const mechanic = spell.spell_attack
+            ? (spell.spell_attack === 'automatic' ? 'Auto-hit' : `${capitalize(spell.spell_attack)} attack`)
+            : (spell.save_type ? `${capitalize(spell.save_type)} save` : '—');
         const stats = [
             ['Range', spell.range || '—'],
             ['Cast Time', spell.casting_time || '—'],
             ['Duration', spell.duration || '—'],
-            ['Save', spell.save_type ? capitalize(spell.save_type) : '—'],
+            ['Attack / Save', mechanic],
+            ['Concentration', spell.concentration ? 'Yes' : 'No'],
+            ['Classes', (spell.classes || []).map(capitalize).join(', ') || '—'],
         ];
         stats.forEach(([label, value]) => {
             const statEl = document.createElement('div');
@@ -92,6 +107,12 @@ export function openSpellModal(spellId) {
             dmgSection.innerHTML = `
                 <div class="font-bold mb-1" style="color: ${color};">${emoji} ${typeLabel}</div>
                 <div class="text-white">${roll}</div>
+            `;
+            dmgSection.classList.remove('hidden');
+        } else if (spell.effect) {
+            dmgSection.innerHTML = `
+                <div class="font-bold mb-1" style="color: #a78bfa;">✨ Effect</div>
+                <div class="text-white">${spell.effect}</div>
             `;
             dmgSection.classList.remove('hidden');
         } else {
@@ -120,6 +141,13 @@ export function openSpellModal(spellId) {
                 `;
                 compList.appendChild(item);
             });
+            if (spell.material_component.focus_provided) {
+                const foc = document.createElement('div');
+                foc.className = 'text-gray-500 mt-1';
+                foc.style.cssText = 'font-size: 7px;';
+                foc.textContent = `Focus: ${spell.material_component.focus_provided}`;
+                compList.appendChild(foc);
+            }
             compSection.classList.remove('hidden');
         } else {
             compSection.classList.add('hidden');
@@ -137,13 +165,20 @@ export function openSpellModal(spellId) {
         }
     }
 
-    // Action button (Prepare - stubbed)
+    // Info-only when opened from a slot (prepare/replace/remove live on the slot
+    // menu). When opened from the picker (mode 'prepare'), show PREPARE and layer
+    // the modal above the picker so browsing doesn't close the list.
     const actionContainer = document.getElementById('modal-action-container');
     const actionButton = document.getElementById('modal-action-button');
     if (actionContainer && actionButton) {
-        actionButton.textContent = 'PREPARE';
-        actionContainer.classList.remove('hidden');
+        if (context && context.mode === 'prepare') {
+            actionButton.textContent = 'PREPARE';
+            actionContainer.classList.remove('hidden');
+        } else {
+            actionContainer.classList.add('hidden');
+        }
     }
+    modal.style.zIndex = (context && context.mode === 'prepare') ? '130' : '';
 
     modal.classList.remove('hidden');
 }
@@ -329,21 +364,91 @@ export function closeSpellAbilityModal() {
     if (modal) modal.classList.add('hidden');
     currentSpellId = null;
     currentAbility = null;
+    currentContext = null;
 }
 
 /**
- * Handle the modal action button (Prepare spell / Use ability)
- * Currently stubbed - will be implemented with combat system
+ * Handle the modal action button (Prepare / Unprepare spell, or Use ability).
  */
-export function handleModalAction() {
+export async function handleModalAction() {
     if (currentSpellId) {
-        logger.info(`[STUB] Prepare spell: ${currentSpellId}`);
-        // TODO: Show slot selection for spell preparation
-        closeSpellAbilityModal();
+        if (currentContext && currentContext.mode === 'unprepare') {
+            await unprepareCurrentSlot();
+        } else {
+            await prepareCurrentSpell();
+        }
     } else if (currentAbility) {
+        // Abilities are activated in combat (M5) — still a stub here.
         logger.info(`[STUB] Use ability: ${currentAbility.id}`);
-        // TODO: Execute ability through game action API
         closeSpellAbilityModal();
+    }
+}
+
+/** Clear the slot the modal was opened from (and cancel any in-progress prep). */
+async function unprepareCurrentSlot() {
+    const ctx = currentContext;
+    try {
+        await gameAPI.unslotSpell(ctx.slotLevel, ctx.slotIndex);
+        showActionText('Spell unprepared', 'green', 2000);
+        closeSpellAbilityModal();
+        updateSpellsDisplay();
+    } catch (err) {
+        showActionText(`Cannot unprepare: ${err.message}`, 'red', 3000);
+    }
+}
+
+/**
+ * Prepare the currently-open spell. Uses the slot the picker was opened from when
+ * it matches the spell's level; otherwise the first free slot of that level.
+ * Cantrips are instant; leveled spells queue a prep task (level×60 in-game min).
+ */
+async function prepareCurrentSpell() {
+    const spellId = currentSpellId;
+    const spell = getSpellById(spellId);
+    if (!spell) return;
+
+    const slotLevel = spell.level === 0 ? 'cantrips' : `level_${spell.level}`;
+    const levelLabel = spell.level === 0 ? 'cantrip' : `level ${spell.level}`;
+
+    const state = getGameStateSync();
+    const slots = state?.character?.spell_slots?.[slotLevel];
+    if (!Array.isArray(slots) || slots.length === 0) {
+        showActionText(`You have no ${levelLabel} slots`, 'red', 3000);
+        return;
+    }
+
+    let targetIndex = null;
+    // Prefer the slot the picker was opened from, if it fits this spell's level.
+    if (currentContext && currentContext.slotLevel === slotLevel && currentContext.slotIndex != null) {
+        targetIndex = currentContext.slotIndex;
+    } else {
+        // Auto-pick the first free slot (skip filled + in-progress).
+        const preparing = new Set();
+        try {
+            const q = await gameAPI.getPrepQueue();
+            (q.tasks || []).forEach(t => { if (t.slot_level === slotLevel) preparing.add(t.slot_index); });
+        } catch { /* fall back to the spell-null check below */ }
+        const free = slots.find(s => !s.spell && !preparing.has(s.slot));
+        if (!free) {
+            showActionText(`No free ${levelLabel} slot — unprepare one first`, 'red', 3500);
+            return;
+        }
+        targetIndex = free.slot;
+    }
+
+    try {
+        const res = await gameAPI.prepareSpell(spellId, slotLevel, targetIndex);
+        if (res.ready_in_minutes > 0) {
+            showActionText(`Preparing ${spell.name} — ready in ${res.ready_in_minutes} min`, 'yellow', 3500);
+        } else {
+            showActionText(`${spell.name} prepared`, 'green', 2500);
+        }
+        closeSpellAbilityModal();
+        if (window.closeSpellPicker) window.closeSpellPicker();
+        await refreshGameState(true);
+        updateSpellsDisplay();
+    } catch (err) {
+        showActionText(`Cannot prepare: ${err.message}`, 'red', 3500);
     }
 }
 
