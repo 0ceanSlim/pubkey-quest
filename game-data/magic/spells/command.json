@@ -27,6 +27,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
+  "prep_time": 30,
   "notes": [
     "1-round duration only — expires at end of target's next turn",
     "Specific command action modeled via effect prose; command variety tracked in spell-mechanics-proposals.md"

@@ -28,6 +28,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 90,
   "notes": [
     "No concentration — exceptional for a 1-hour self-buff at L1",
     "Retaliatory cold damage (5 flat) modeled via effect prose; retaliatory-damage-on-hit mechanic tracked in spell-mechanics-proposals.md"

@@ -39,63 +39,77 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 
 ---
 
-## Level 1 — 55 spells — Batch 2 in progress (12 done)
+## Level 1 — 55 spells — Batch 2 complete (12 refined); Batch 3 in progress (10 done)
 
+### Batch 2 — refined + prep_time backfilled
 - [ ] `alarm` — Alarm (ritual)
 - [ ] `animal-friendship` — Animal Friendship
-- [x] `armor-of-agathys` — Armor of Agathys: mana 2→3 (no-conc 1hr strong warlock self-buff); removed mana-crystals+quartz-dust (wrong tier/theme); now free (no thematic rune fit for cold/retaliation); fixed range "self"→"0"; added heal/effect null; **retaliatory-damage** in proposals
-- [~] `arms-of-hadar` — Arms of Hadar: mana 2→3 (AoE necrotic); removed void-crystal+demon-ichor (capstone components on L1!); added spirit-dust×1 (dark/necrotic, 75gp — correct L1 tier); fixed range "self"→"1" (10ft AoE); added area_effect tag; added heal/effect null; **reaction-suppression-AoE** in proposals
-- [x] `bane` — Bane: mana 2→3 (hard 3-target conc debuff); removed ether-essence+arcane-powder (wrong theme — arcane not dark); added spirit-dust×1 (dark curse, 75gp); fixed range 1→2 (30ft); added heal null; updated effect prose
-- [x] `bless` — Bless: mana 2→3 (strong 3-target conc buff); removed blessed-incense×2+sacred-oil (over-costed, two components); kept blessed-incense×1 only (divine theme, focus: amulet free); fixed range_long 2=range; added heal null; updated notes
-- [x] `burning-hands` — Burning Hands: mana 2→3 (AoE fire cone); removed sulfur×2+arcane-powder (sulfur 500gp×2 = Fireball-tier cost on L1!); added ash×1 (fire theme, 15gp — correct L1 tier); +artificer class; added heal/effect null
-- [~] `charm-person` — Charm Person: mana 2→3 (hour-long hard control); removed ether-essence+quartz-dust; now free (basic enchantment, not substance-themed); fixed range 6→2 (30ft); removed concentration (not conc in 5e); added heal/effect null; added charm/social tags; **charm-condition** in proposals
+- [x] `armor-of-agathys` — Armor of Agathys: mana 2→3; free; range "self"→0; retaliatory-damage in proposals; **prep_time 90** (strong 1-hr no-conc self-buff)
+- [~] `arms-of-hadar` — Arms of Hadar: mana 2→3; spirit-dust×1; range "self"→1; reaction-suppression-AoE in proposals; **prep_time 75** (AoE + rune cost → not triple-taxed)
+- [x] `bane` — Bane: mana 2→3; spirit-dust×1; range 1→2; effect prose; **prep_time 105** (3-target conc hard debuff, complex coordination)
+- [x] `bless` — Bless: mana 2→3; blessed-incense×1 (amulet=free); range_long fixed; **prep_time 90** (3-target conc buff; focus makes component free for clerics/paladins)
+- [x] `burning-hands` — Burning Hands: mana 2→3; ash×1; +artificer; **prep_time 45** (fast AoE, instinctive fire; cheapest rune)
+- [~] `charm-person` — Charm Person: mana 2→3; free; range 6→2; no conc; charm-condition in proposals; **prep_time 75** (hard control, 1-hour duration)
 - [ ] `color-spray` — Color Spray
-- [~] `command` — Command: mana 2 (1-round, expires fast); free (not substance-themed); fixed range 12→4 (60ft); added heal/effect null; **command-action-variants** in proposals
+- [~] `command` — Command: mana 2; free; range 12→4; command-variants in proposals; **prep_time 30** (1-round only, simplest control spell)
 - [ ] `compelled-duel` — Compelled Duel
 - [ ] `comprehend-languages` — Comprehend Languages (ritual)
 - [ ] `create-water` — Create or Destroy Water
-- [ ] `cure-wounds` — Cure Wounds
-- [ ] `detect-evil` — Detect Evil and Good
-- [ ] `detect-magic` — Detect Magic (ritual)
-- [ ] `detect-poison` — Detect Poison and Disease (ritual)
+- [ ] `cure-wounds` — → Batch 3
+- [ ] `detect-evil` — → Batch 3
+- [ ] `detect-magic` — → Batch 3
+- [ ] `detect-poison` — → Batch 3
 - [ ] `disguise-self` — Disguise Self
-- [ ] `divine-favor` — Divine Favor
+- [ ] `divine-favor` — → Batch 3
 - [ ] `ensnaring-strike` — Ensnaring Strike
 - [ ] `entangle` — Entangle
 - [ ] `expeditious-retreat` — Expeditious Retreat
 - [ ] `faerie-fire` — Faerie Fire
-- [x] `false-life` — False Life: fixed range "self"→"0"; fixed material_component null→proper block; added heal "1d4+4" (models temp HP grant); added effect prose; removed combat tag (buff); mana 2 kept (minor no-conc buff); free (utility, not substance-themed)
+- [x] `false-life` — False Life: range "self"→0; heal "1d4+4"; effect prose; free; **prep_time 40** (minor necromantic utility, quick)
 - [ ] `feather-fall` — Feather Fall
 - [ ] `find-familiar` — Find Familiar (ritual)
 - [ ] `fog-cloud` — Fog Cloud
 - [ ] `goodberry` — Goodberry
 - [ ] `grease` — Grease
 - [ ] `guiding-bolt` — Guiding Bolt
-- [ ] `healing-word` — Healing Word
+- [ ] `healing-word` — → Batch 3
 - [ ] `hellish-rebuke` — Hellish Rebuke
-- [ ] `heroism` — Heroism
+- [ ] `heroism` — → Batch 3
 - [ ] `hex` — Hex
 - [ ] `hunters-mark` — Hunter's Mark
 - [ ] `identify` — **Analyze Weakness** (homebrew)
-- [x] `inflict-wounds` — Inflict Wounds: mana 2→3 (3d10 highest single-target damage at L1); removed holy-water+blessed-incense (divine/healing domain — WRONG for necrotic); added spirit-dust×1 (necrotic dark, 75gp); added heal/effect null
+- [x] `inflict-wounds` — Inflict Wounds: mana 2→3; spirit-dust×1; necrotic 3d10; **prep_time 60** (standard melee attack; rune cost makes it not triple-taxed)
 - [ ] `jump` — Jump
 - [ ] `longstrider` — Longstrider
-- [ ] `mage-armor` — Mage Armor
-- [x] `magic-missile` — Magic Missile: mana 2 kept (reliable auto-hit, not signature/substance); now free (removed arcane-powder×3 — not substance-themed); +artificer class; removed stale D&D note; added heal/effect null
-- [ ] `protection-from-evil` — Protection from Evil and Good
+- [ ] `mage-armor` — → Batch 3
+- [x] `magic-missile` — Magic Missile: mana 2; free; +artificer; automatic hit; **prep_time 35** (fast classic evocation, no component)
+- [ ] `protection-from-evil` — → Batch 3
 - [ ] `purify-food` — Purify Food and Drink (ritual)
 - [ ] `sanctuary` — Sanctuary
 - [ ] `searing-smite` — Searing Smite
-- [ ] `shield` — Shield
-- [ ] `shield-of-faith` — Shield of Faith
+- [ ] `shield` — → Batch 3
+- [ ] `shield-of-faith` — → Batch 3
 - [ ] `silent-image` — Silent Image
 - [ ] `sleep` — **Exhausting Hex** (homebrew)
 - [ ] `speak-with-animals` — Speak with Animals (ritual)
 - [ ] `thunderous-smite` — Thunderous Smite
-- [~] `thunderwave` — Thunderwave: mana 2→3 (AoE + push); removed bone-dust+tree-sap (wrong theme — necrotic/nature, not thunder); now free (thunder has no substance rune); fixed range_long 1=range; added heal/effect null; **AoE-push** in proposals
+- [~] `thunderwave` — Thunderwave: mana 2→3; free; AoE-push in proposals; **prep_time 75** (AoE + push, powerful; no rune cost)
 - [ ] `unseen-servant` — Unseen Servant (ritual)
-- [~] `witch-bolt` — Witch Bolt: mana 2 kept (single-target conc); removed sulfur+arcane-powder (fire/arcane — wrong for lightning); added iron-filings×1 (lightning theme, 20gp); fixed range 6→2 (D&D 30ft); added heal/effect null
+- [~] `witch-bolt` — Witch Bolt: mana 2; iron-filings×1; range 6→2; sustained-conc-damage in proposals; **prep_time 55** (conc lightning; rune cost modest)
 - [ ] `wrathful-smite` — Wrathful Smite
+
+### Batch 3 — abjuration + healing + divination group
+- [x] `cure-wounds` — Cure Wounds: removed stub's 2-component cost (bark-shavings×2+pollen — not substance-themed); free; added heal null fix (1d8+3), effect null; prep_time 50; mana 2 kept
+- [x] `detect-evil` — Detect Evil and Good: range "self"→0; fixed null material→proper block; added heal/effect; added cleric to classes; prep_time 40; mana 2; free
+- [x] `detect-magic` — Detect Magic: range "self"→0; removed quartz-dust×2 (not substance-themed for basic divination); free; +artificer; prep_time 35; mana 2
+- [x] `detect-poison` — Detect Poison and Disease: range "self"→0; concentration fixed false→true (5e correctness); free; added heal/effect; prep_time 35; mana 2
+- [x] `divine-favor` — Divine Favor: removed starlight-essence×1 (LEGENDARY 10000gp on L1 paladin buff!); free; fixed action_cost/casting_time "bonus action"→"bonus_action"; range "self"→0; +concentration tag; added heal/effect; prep_time 45; mana 2
+- [x] `healing-word` — Healing Word: removed sacred-oil×1+holy-water×1 (150+125gp over-costed on bonus-action heal); free; added effect null; prep_time 30; mana 2
+- [x] `heroism` — Heroism: added heal/effect/damage nulls; effect prose; +bard class (5e); +concentration tag; free; prep_time 60; mana 2
+- [x] `mage-armor` — Mage Armor: mana 2→3 (8-hour no-conc all-day buff); mana-crystals×3→×1 (staff=free; reduced from triple-stack); removed "resistance" homebrew effect (reverted to D&D standard); added heal/effect; prep_time 120 (longest L1 — all-day buff)
+- [x] `protection-from-evil` — Protection from Evil and Good: added salt×1 (protection domain, 10gp, always-consumed); null material→proper block; added heal/effect; added wizard+warlock; prep_time 65; mana 2
+- [x] `shield` — Shield: range "self"→0; duration "1 turn"→"1 round"; removed mana-crystals (keep — reaction arcane, staff free); added damage null; refined effect prose; prep_time 45; mana 2
+- [x] `shield-of-faith` — Shield of Faith: range 12→4 (60ft = 4 grid); action_cost/casting_time "bonus action"→"bonus_action"; added heal/damage null; effect prose; free; prep_time 50; mana 2
 
 ---
 
@@ -117,10 +131,11 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 | Level | Total | Done | Needs-mechanic | TODO |
 |-------|-------|------|----------------|------|
 | 0     | 26    | 15   | 11             | 0    |
-| 1     | 55    | 7    | 5              | 43   |
+| 1     | 55    | 18   | 5              | 32   |
 | 2     | 2     | 0    | 0              | 2    |
 | 3     | 1     | 0    | 0              | 1    |
-| **Total** | **84** | **22** | **16** | **46** |
+| **Total** | **84** | **33** | **16** | **35** |
 
 Note: "Done" = `[x]`, "Needs-mechanic" = `[~]` (shape is correct; engine mechanic
-pending). Both count as refined for the batch. Batch 2 refined 12 L1 spells.
+pending). Both count as refined. Batch 2 refined 12 L1 spells (+prep_time backfilled).
+Batch 3 refined 10 more L1 spells (abjuration/healing/divination group).

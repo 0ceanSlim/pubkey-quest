@@ -10,7 +10,8 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "heal": "1d8 + 3",
+  "heal": "1d8+3",
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,22 +30,14 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
+  "prep_time": 50,
   "notes": [
-    "Requires touching the target",
-    "More powerful than Healing Word but takes full action",
-    "No effect on undead or constructs"
+    "Requires touching the target — caster must be adjacent",
+    "No effect on undead or constructs",
+    "Stronger single-target heal than Healing Word but costs your full action"
   ],
   "material_component": {
-    "required": [
-      {
-        "component": "bark-shavings",
-        "quantity": 2
-      },
-      {
-        "component": "pollen",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Wooden Staff provides unlimited bark-shavings, Sprig of Mistletoe provides unlimited pollen, OR Emblem provides unlimited sacred-oil, Amulet provides unlimited blessed-incense (for clerics)"
+    "required": [],
+    "focus_provided": ""
   }
 }

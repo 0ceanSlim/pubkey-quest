@@ -29,6 +29,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
+  "prep_time": 35,
   "notes": [
     "Always hits — no attack roll or saving throw",
     "Three darts dealt as 3d4+3 total; can split among multiple targets",

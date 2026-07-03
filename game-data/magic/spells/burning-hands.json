@@ -30,6 +30,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 45,
   "notes": [
     "Cone area effect — hits all creatures in front of caster",
     "Dexterity save for half damage",

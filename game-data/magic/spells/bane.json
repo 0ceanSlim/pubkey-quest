@@ -28,6 +28,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 105,
   "notes": [
     "Hard multi-target concentration debuff — affects up to 3 creatures",
     "Charisma save to resist; concentration up to 1 minute",

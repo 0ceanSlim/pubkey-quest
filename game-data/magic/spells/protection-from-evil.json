@@ -1,6 +1,6 @@
 {
   "name": "Protection from Evil and Good",
-  "description": "Until the spell ends, one willing creature you touch is protected against certain types of creatures: aberrations, celestials, elementals, fey, fiends, and undead.",
+  "description": "Until the spell ends, one willing creature you touch is protected against certain types of creatures: aberrations, celestials, elementals, fey, fiends, and undead. The protection grants several benefits: the target can't be charmed, frightened, or possessed by such creatures; attack rolls against the target from such creatures have disadvantage; and the target has advantage on saves against them.",
   "level": 1,
   "school": "abjuration",
   "casting_time": "action",
@@ -10,23 +10,39 @@
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Touch target is protected from aberrations, celestials, elementals, fey, fiends, and undead: immune to their charm/fear/possession; they attack at disadvantage; target saves at advantage against them",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "protection",
-    "buff"
+    "buff",
+    "concentration"
   ],
   "classes": [
-    "wizard",
     "cleric",
     "paladin",
+    "wizard",
     "warlock"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 65,
+  "notes": [
+    "Concentration up to 10 minutes",
+    "Touch range — must be adjacent; protects one creature",
+    "Salt circle drawn as part of casting — ward against extraplanar creatures"
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "salt",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": ""
+  }
 }

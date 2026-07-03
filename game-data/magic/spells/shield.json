@@ -1,17 +1,17 @@
 {
   "name": "Shield",
-  "description": "An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack.",
+  "description": "An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.",
   "level": 1,
   "school": "abjuration",
   "casting_time": "reaction",
-  "range": "self",
-  "range_long": "self",
-  "duration": "1 turn",
+  "range": "0",
+  "range_long": "0",
+  "duration": "1 round",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "+5 AC until next turn",
+  "effect": "+5 AC including against triggering attack; blocks magic missile damage; until start of next turn",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -19,19 +19,21 @@
     "combat",
     "defense",
     "reaction",
-    "ac_bonus"
+    "protection"
   ],
   "classes": [
     "sorcerer",
-    "wizard"
+    "wizard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "reaction",
   "mana_cost": 2,
+  "prep_time": 45,
   "notes": [
-    "Cast as reaction when hit by attack",
-    "+5 AC includes the triggering attack",
-    "Lasts until start of your next turn"
+    "Cast as reaction when hit by an attack or targeted by magic missile",
+    "+5 AC retroactively applies to the triggering hit — can turn a hit into a miss",
+    "Staff-equipped casters get mana-crystals free each cast"
   ],
   "material_component": {
     "required": [

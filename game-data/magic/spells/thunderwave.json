@@ -31,6 +31,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 75,
   "notes": [
     "Area effect — all creatures within 15 ft (1 grid cell) of caster",
     "Constitution save for half damage; full failure also pushes 10 ft away",

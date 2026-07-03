@@ -29,6 +29,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
+  "prep_time": 40,
   "notes": [
     "Temporary HP tracked separately — they vanish after 1 hour or when depleted",
     "No concentration — stacks with other concentration spells"

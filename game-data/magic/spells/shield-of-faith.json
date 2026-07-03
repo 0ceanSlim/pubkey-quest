@@ -3,28 +3,39 @@
   "description": "A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
   "level": 1,
   "school": "abjuration",
-  "casting_time": "bonus action",
-  "range": "12",
-  "range_long": "12",
+  "casting_time": "bonus_action",
+  "range": "4",
+  "range_long": "4",
   "duration": "10 minutes",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "+2 AC to one creature within range for 10 minutes (concentration)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "protection",
-    "buff"
+    "buff",
+    "concentration"
   ],
   "classes": [
     "cleric",
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 50,
+  "notes": [
+    "Cast as bonus action — allows attacking same turn",
+    "Range fixed from stub (12 grid cells was wrong; D&D 5e = 60 ft = 4 grid cells)",
+    "Concentration for 10 minutes — good sustained defensive buff for a frontliner"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

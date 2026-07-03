@@ -26,6 +26,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 60,
   "notes": [
     "Melee spell attack (touch range) — highest single-target damage at L1",
     "Requires moving adjacent to target; powerful but risky"

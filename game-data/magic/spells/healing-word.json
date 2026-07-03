@@ -1,6 +1,6 @@
 {
   "name": "Healing Word",
-  "description": "A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting modifier.",
+  "description": "A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting modifier. This spell has no effect on undead or constructs.",
   "level": 1,
   "school": "evocation",
   "casting_time": "bonus_action",
@@ -10,14 +10,16 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "heal": "1d4 + 2",
+  "heal": "1d4+2",
+  "effect": null,
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "healing",
-    "bonus_action"
+    "bonus_action",
+    "ranged"
   ],
   "classes": [
     "bard",
@@ -27,22 +29,14 @@
   "rarity": "common",
   "action_cost": "bonus_action",
   "mana_cost": 2,
+  "prep_time": 30,
   "notes": [
-    "Can be cast as bonus action",
-    "Useful for reviving unconscious allies",
-    "Only requires verbal component"
+    "Cast as bonus action — allows taking another action the same turn",
+    "Weaker heal than Cure Wounds but has range and frees your action",
+    "No effect on undead or constructs"
   ],
   "material_component": {
-    "required": [
-      {
-        "component": "sacred-oil",
-        "quantity": 1
-      },
-      {
-        "component": "holy-water",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Emblem provides unlimited sacred-oil, Reliquary provides unlimited holy-water"
+    "required": [],
+    "focus_provided": ""
   }
 }

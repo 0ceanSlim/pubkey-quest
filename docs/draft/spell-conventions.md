@@ -79,8 +79,7 @@ keep mana/prep modest; a focus-provided or component-free spell carries its cost
 mana + prep. Weigh whether a component is really a cost for the intended caster given
 the focus that class routinely holds.
 
-**TODO (backfill):** the 12 already-refined L1 spells (batch 2) and future batches need
-`prep_time` set. Cantrips need none.
+**Batch 2 backfill complete.** All 12 already-refined L1 spells now have `prep_time`.
 
 ---
 
@@ -140,6 +139,66 @@ the focus that class routinely holds.
 - `thunderwave` had bone-dust+tree-sap (necrotic/nature components — totally wrong theme)
 
 **Rule codified:** Pre-existing stubs had components on almost everything with mis-matched domains and wrong cost tiers. The correct approach: few components, right domain, L1 = cheap runes (ash 15, iron-filings 20, spider-silk/bark-shavings 25, pollen 30) or spirit-dust 75 for especially signature/powerful L1 dark spells. Mid-tier (100+) only if the spell is truly a signature and the class routinely uses the focus that provides it free.
+
+## Level 1 component-cost decisions (batch 3)
+
+**Received a component (selective):**
+- `mage-armor`: mana-crystals×1 (200gp, staff=free) — core arcane protection, all-day buff is signature for wizards/sorcerers. Reduced from stub's ×3. With staff equipped, free per cast.
+- `protection-from-evil`: salt×1 (10gp) — protection domain's cheapest rune; no focus provides salt so it's always a small cost. Fits the "salt circle" thematic perfectly.
+- `shield`: mana-crystals×1 (200gp, staff=free) — kept from stub. Reaction arcane force — warranted for a signature defensive spell. With staff, free.
+
+**Left free (batch 3 spells):**
+- `cure-wounds`: basic healing touch — not substance-themed
+- `detect-evil`: divine detection — not substance-themed
+- `detect-magic`: divination utility — removed stub's quartz-dust×2 (not warranted)
+- `detect-poison`: divination utility — not substance-themed
+- `divine-favor`: prayer empowerment — removed stub's starlight-essence×1 (LEGENDARY 10000gp on L1 paladin buff — catastrophically wrong)
+- `healing-word`: basic healing prayer — removed stub's sacred-oil+holy-water (150+125gp — over-costed on a minor bonus-action heal)
+- `heroism`: courage prayer — not substance-themed
+- `shield-of-faith`: faith prayer — not substance-themed; a small +2 AC buff doesn't warrant a rune
+
+**Key correction from pre-existing stubs (batch 3):**
+- `divine-favor` had starlight-essence×1 (10000gp LEGENDARY on L1 paladin buff!) — entirely wrong.
+- `cure-wounds` had bark-shavings×2+pollen (two components, mismatched — both nature not healing themed)
+- `detect-magic` had quartz-dust×2 (illusion/scrying domain, not appropriate for basic divination)
+- `mage-armor` had mana-crystals×3 (triple-stack per cast even with focus; reduced to ×1)
+- `healing-word` had sacred-oil×1+holy-water×1 (both components, 125+150=275gp on a bonus-action heal)
+
+## Level 1 prep_time rulings (batch 2 backfill)
+
+All distinct values; logic: quick utility/fast spells at low end, powerful/complex/long-duration at high end.
+
+| Spell | prep_time | Rationale |
+|-------|-----------|-----------|
+| `command` | 30 | Single-word, 1-round only — simplest possible control |
+| `magic-missile` | 35 | Classic fast evocation, no component, reliable but not exceptional |
+| `false-life` | 40 | Minor necromantic utility, quick self-buff |
+| `burning-hands` | 45 | Fast instinctive AoE; cheapest rune cost (ash 15gp) means no triple-tax |
+| `witch-bolt` | 55 | Conc sustained lightning; iron-filings cost already a tax — keep prep modest |
+| `inflict-wounds` | 60 | Standard melee attack; spirit-dust cost already a tax |
+| `arms-of-hadar` | 75 | AoE invocation; spirit-dust cost means we trim prep |
+| `charm-person` | 75 | Hard control, 1-hour; no component so cost lives in mana+prep |
+| `thunderwave` | 75 | AoE push, powerful; no component, mana 3 carries the cost |
+| `armor-of-agathys` | 90 | Strong 1-hr no-conc self-buff; warlock signature |
+| `bless` | 90 | 3-target conc buff; incense=free for amulet so prep is the main cost |
+| `bane` | 105 | 3-target conc hard debuff; complex multi-creature coordination |
+
+## Level 1 prep_time rulings (batch 3)
+
+| Spell | prep_time | Rationale |
+|-------|-----------|-----------|
+| `healing-word` | 30 | Bonus action, simplest heal, no component |
+| `command` | 30 | (batch 2 — same tier) |
+| `detect-magic` | 35 | Fast detection utility, also a ritual |
+| `detect-poison` | 35 | Fast detection utility, also a ritual |
+| `detect-evil` | 40 | Fast detection, slightly more complex aura |
+| `divine-favor` | 45 | Bonus action combat buff; no component, modest mana |
+| `shield` | 45 | Reaction prep; mana-crystals=free with staff |
+| `cure-wounds` | 50 | Touch heal, simple but single target; no component |
+| `shield-of-faith` | 50 | Bonus action, modest +2 AC; no component |
+| `heroism` | 60 | Conc touch buff, standard; no component |
+| `protection-from-evil` | 65 | Ward ritual feel; salt cost (always-consumed) means trim prep slightly |
+| `mage-armor` | 120 | 8-hour all-day no-conc buff — highest L1 prep; mana-crystals=free with staff |
 
 ## Homebrew content in the library
 

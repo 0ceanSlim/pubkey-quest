@@ -1,28 +1,40 @@
 {
   "name": "Detect Evil and Good",
-  "description": "For the duration, you know if there is an aberration, celestial, elemental, fey, fiend, or undead within 30 feet of you, as well as where the creature is located.",
+  "description": "For the duration, you know if there is an aberration, celestial, elemental, fey, fiend, or undead within 30 feet of you, as well as where the creature is located. You also know if there is a place or object that has been magically consecrated or desecrated within 30 feet.",
   "level": 1,
   "school": "divination",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "10 minutes",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Sense aberrations, celestials, elementals, fey, fiends, and undead within 30 feet; know their location while concentration holds",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "utility",
-    "detection"
+    "detection",
+    "concentration"
   ],
   "classes": [
+    "cleric",
     "paladin"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 40,
+  "notes": [
+    "Concentration — requires maintaining focus for up to 10 minutes",
+    "Primarily an exploration/dungeoneering spell — not typically cast in combat",
+    "Range is self; awareness extends 30 ft (6 grid cells) as an aura"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

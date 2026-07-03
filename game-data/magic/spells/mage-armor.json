@@ -1,6 +1,6 @@
 {
   "name": "Mage Armor",
-  "description": "You touch a willing creature not wearing armor. Their base AC becomes 13 + Dex modifier and they gain resistance to one damage type of your choice (fire, cold, lightning, or acid) for the duration.",
+  "description": "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 + their Dexterity modifier. The spell ends if the target dons armor.",
   "level": 1,
   "school": "abjuration",
   "casting_time": "action",
@@ -10,28 +10,35 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Touch target gains AC 13 + Dex modifier for 8 hours (no concentration, no armor allowed)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
-    "combat",
     "protection",
     "buff",
-    "resistance"
+    "self"
   ],
   "classes": [
+    "sorcerer",
     "wizard",
-    "sorcerer"
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
+  "mana_cost": 3,
+  "prep_time": 120,
+  "notes": [
+    "All-day no-concentration buff — highest prep cost of L1 spells",
+    "Only valid while the target wears no armor; spell ends if armor is donned",
+    "Staff-equipped casters get mana-crystals free each cast"
+  ],
   "material_component": {
     "required": [
       {
         "component": "mana-crystals",
-        "quantity": 3
+        "quantity": 1
       }
     ],
     "focus_provided": "Staff provides unlimited mana-crystals"

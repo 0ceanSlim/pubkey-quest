@@ -29,6 +29,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
+  "prep_time": 55,
   "notes": [
     "Initial ranged spell attack; subsequent turns deal 1d12 automatically while concentration holds",
     "Concentration breaks if target moves out of range or concentration is lost"

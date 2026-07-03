@@ -3,13 +3,15 @@
   "description": "Your prayer empowers you with divine radiance. Until the spell ends, your weapon attacks deal an extra 1d4 radiant damage on a hit.",
   "level": 1,
   "school": "evocation",
-  "casting_time": "bonus action",
-  "range": "self",
-  "range_long": "self",
+  "casting_time": "bonus_action",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 minute",
   "concentration": true,
   "damage": "1d4",
   "damage_type": "radiant",
+  "heal": null,
+  "effect": "+1d4 radiant damage on all weapon attacks for 1 minute (concentration)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -17,22 +19,23 @@
     "combat",
     "damage",
     "radiant",
-    "buff"
+    "buff",
+    "concentration"
   ],
   "classes": [
     "paladin"
   ],
   "rarity": "common",
-  "action_cost": "bonus action",
+  "action_cost": "bonus_action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 45,
+  "notes": [
+    "Cast as bonus action — allows attacking same turn",
+    "Concentration — pairs with weapon attacks, not spell damage",
+    "Radiant bonus damage applies to every weapon hit while concentration holds"
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "starlight-essence",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "No focus provides this component - must be obtained"
+    "required": [],
+    "focus_provided": ""
   }
 }

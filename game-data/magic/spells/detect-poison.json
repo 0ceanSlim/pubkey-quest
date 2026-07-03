@@ -1,21 +1,24 @@
 {
   "name": "Detect Poison and Disease",
-  "description": "For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you.",
+  "description": "For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you. You identify the kind of poison, poisonous creature, or disease in each case.",
   "level": 1,
   "school": "divination",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "10 minutes",
-  "concentration": false,
+  "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Sense presence, location, and type of poisons, poisonous creatures, and diseases within 30 feet",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "utility",
-    "detection"
+    "detection",
+    "concentration"
   ],
   "classes": [
     "cleric",
@@ -26,6 +29,14 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 35,
+  "notes": [
+    "Can also be cast as a ritual (10 minutes, no mana cost) — modeled as standard cast here",
+    "Concentration — fixed from stub (5e does require concentration)",
+    "Range is self; awareness extends 30 ft (6 grid cells) as an aura"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

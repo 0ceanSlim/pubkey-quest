@@ -1,21 +1,24 @@
 {
   "name": "Detect Magic",
-  "description": "For the duration, you sense the presence of magic within 30 feet. You also gain advantage on saves against magical effects for the duration.",
+  "description": "For the duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its school of magic, if any. You also gain advantage on saving throws against magical effects for the duration.",
   "level": 1,
   "school": "divination",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "10 minutes",
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Sense magical auras within 30 feet; identify school of magic on visible targets; advantage on saves vs. magical effects",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
+    "utility",
     "detection",
-    "buff"
+    "concentration"
   ],
   "classes": [
     "wizard",
@@ -23,19 +26,20 @@
     "druid",
     "paladin",
     "ranger",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 35,
+  "notes": [
+    "Can also be cast as a ritual (10 minutes, no mana cost) — modeled as standard cast here",
+    "Concentration — requires focus to maintain the magical sense",
+    "Range is self; awareness extends 30 ft (6 grid cells) as an aura"
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "quartz-dust",
-        "quantity": 2
-      }
-    ],
-    "focus_provided": "Crystal provides unlimited quartz-dust"
+    "required": [],
+    "focus_provided": ""
   }
 }

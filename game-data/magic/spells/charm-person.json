@@ -31,6 +31,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 75,
   "notes": [
     "Not concentration — long duration (1 hour) makes this primarily a social/exploration spell",
     "Target gets advantage on the save if in combat at time of casting",

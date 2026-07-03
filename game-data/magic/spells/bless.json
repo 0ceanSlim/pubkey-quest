@@ -28,6 +28,7 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 3,
+  "prep_time": 90,
   "notes": [
     "Strong multi-target buff — affects up to 3 creatures; requires concentration",
     "+1d4 bonus applies to every attack roll and saving throw while active",

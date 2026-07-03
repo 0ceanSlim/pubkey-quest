@@ -1,6 +1,6 @@
 {
   "name": "Heroism",
-  "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being frightened and gains temporary hit points equal to your spellcasting ability modifier at the start of each of its turns.",
+  "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being frightened and gains temporary hit points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining temporary hit points from this spell.",
   "level": 1,
   "school": "enchantment",
   "casting_time": "action",
@@ -10,20 +10,32 @@
   "concentration": true,
   "damage": null,
   "damage_type": null,
+  "heal": null,
+  "effect": "Touch target is immune to frightened; gains temp HP equal to spellcasting modifier at start of each turn (concentration, 1 minute)",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
   "tags": [
     "combat",
     "protection",
-    "buff"
+    "buff",
+    "concentration"
   ],
   "classes": [
+    "bard",
     "paladin"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 60,
+  "notes": [
+    "Concentration — the temp HP replenish each turn while you maintain focus",
+    "Frightened immunity is significant vs. fear-inducing enemies",
+    "Touch range — must be adjacent to the target"
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }
