@@ -147,13 +147,22 @@ function makeSelect(options, current, label, onChange) {
 }
 
 // Columns: key, label, value(spell) for sort + render.
+// School is shown as the icon in the name cell (hover for the name), not a text
+// column — keeps the table narrow enough to avoid horizontal scroll.
 const COLUMNS = [
     { key: 'name', label: 'Name', val: s => s.name },
-    { key: 'school', label: 'School', val: s => s.school },
     { key: 'mana', label: 'MP', val: s => s.mana_cost || 0 },
+    { key: 'range', label: 'Rng', val: s => rangeNum(s) },
+    { key: 'prep', label: 'Prep', val: s => prepNum(s) },
     { key: 'effect', label: 'Effect', val: s => s.damage || s.heal || '' },
     { key: 'comp', label: 'Comp', val: s => (s.material_component?.required?.length || 0) },
 ];
+
+// Range as an integer grid distance (0 = self/touch); Prep as minutes (0 = instant).
+function rangeNum(s) { const r = parseInt(s.range, 10); return Number.isNaN(r) ? 0 : r; }
+function prepNum(s)  { return Number(s.prep_time) || 0; }
+function rangeLabel(s) { return String(rangeNum(s)); }
+function prepLabel(s) { const p = prepNum(s); return p > 0 ? `${p}m` : '—'; }
 
 /** The spell level this picker is scoped to (from the origin slot), or null. */
 function targetLevel() {
@@ -213,8 +222,9 @@ function renderTable() {
         tr.title = 'Click for info, then Prepare';
 
         tr.appendChild(nameCell(s, slotted.has(s.id)));
-        tr.appendChild(td(cap(s.school)));
         tr.appendChild(td(s.mana_cost || '—', '#93c5fd'));
+        tr.appendChild(td(rangeLabel(s), '#cbd5e1'));
+        tr.appendChild(td(prepLabel(s), '#fcd34d'));
         tr.appendChild(effectCell(s));
         tr.appendChild(compCell(s));
         table.appendChild(tr);
@@ -243,7 +253,8 @@ function nameCell(spell, isPrepared) {
     }
     const icon = document.createElement('img');
     icon.src = `/res/img/spells/${spell.school}.png`;
-    icon.style.cssText = 'width:14px; height:14px; image-rendering:pixelated; flex-shrink:0;';
+    icon.title = cap(spell.school); // hover shows the school (replaces the text column)
+    icon.style.cssText = 'width:16px; height:16px; image-rendering:pixelated; flex-shrink:0; cursor:help;';
     icon.onerror = () => { icon.style.display = 'none'; };
     wrap.appendChild(icon);
     const nm = document.createElement('span');

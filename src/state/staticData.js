@@ -42,7 +42,17 @@ export function getSpellById(spellId) {
     }
 
     const allSpells = JSON.parse(element.textContent || '[]');
-    return allSpells.find(spell => spell.id === spellId);
+    const spell = allSpells.find(spell => spell.id === spellId);
+    if (!spell) return undefined;
+    // The /api/game-data shape nests most spell fields (material_component, range,
+    // prep_time, spell_attack, save_type, heal, effect, concentration, duration…)
+    // under `properties`; only id/name/level/school/damage/mana_cost/classes are
+    // top-level. Flatten so every caller can read fields at the top level. Top-level
+    // summary fields win over any stale copy inside properties.
+    if (spell.properties && typeof spell.properties === 'object') {
+        return { ...spell.properties, ...spell };
+    }
+    return spell;
 }
 
 /**
