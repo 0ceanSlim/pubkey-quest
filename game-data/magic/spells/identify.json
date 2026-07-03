@@ -10,32 +10,32 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "Your next attack against the studied target has advantage and deals +1d6 extra damage. Magic item properties are revealed instantly.",
   "spell_attack": null,
   "save_type": null,
+  "type": "Spell",
   "tags": [
     "utility",
-    "detection"
+    "detection",
+    "divination"
   ],
   "classes": [
     "wizard",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
-  "action_cost": "1 minute",
+  "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 40,
+  "notes": [
+    "1-minute casting time — out-of-combat only. Use before entering a room or after a short rest.",
+    "The +1d6 damage advantage buff lasts 1 round after casting completes.",
+    "Identifying a magic item requires touch (range 0) and reveals attunement requirements and properties."
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "quartz-dust",
-        "quantity": 2
-      },
-      {
-        "component": "ether-essence",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "Crystal provides unlimited quartz-dust, Orb provides unlimited ether-essence"
+    "required": [],
+    "focus_provided": ""
   }
 }

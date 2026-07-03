@@ -178,3 +178,70 @@ movement; grovel = fall prone). The caster selects command_type at cast time. Fo
 the JSON models the save shape; the specific command_type is in `effect` prose.
 
 ---
+
+## Level 1 spells (batch 4 additions)
+
+### sleep.json — "Exhausting Hex" — exhaustion condition
+**Missing mechanic:** Exhaustion levels (D&D 5e exhaustion is a stacking debuff with 6
+tiers: disadvantage on checks, halved speed, disadvantage attacks/saves, halved max HP,
+speed 0, death). This spell applies 1 exhaustion level and -10 ft movement for 1 hour.
+**Proposal:** Add `"exhaustion"` as a named condition in the effects system, supporting
+`level` (1–6) and a duration. Each level carries penalties: level 1 = disadvantage on
+ability checks + -10 ft speed. Add an `ActiveEffect` modifier type `"exhaustion_level"`
+with integer value. Duration from the spell's `duration` field. At level 6 the creature
+is incapacitated. For this spell: `{ "condition": "exhaustion", "level": 1,
+"speed_penalty": -10, "duration_minutes": 60 }`. Initial implementation can handle
+level 1 only (the most common case).
+
+---
+
+### color-spray.json — HP-threshold blind (AoE)
+**Missing mechanic:** Color Spray affects creatures based on HP totals rather than a save
+or attack roll — roll 6d10, blind creatures in order of proximity (lowest HP first)
+until the pool is exhausted. This is a unique "HP-threshold" targeting mechanic.
+**Proposal:** Add a `"hp_threshold_aoe"` targeting mode to the combat engine for spells
+with no `spell_attack` and no `save_type`: roll the specified dice pool (`"threshold_dice":
+"6d10"`), then auto-apply the `"blinded"` condition to eligible creatures (nearest first)
+while their HP <= remaining pool, decrementing the pool each time. Uses the `blinded`
+condition already proposed for dancing-lights. The cone shape (15 ft from self) maps to
+range 0 with an implicit 3-cell cone arc.
+
+---
+
+### silent-image.json — investigation-check interaction
+**Missing mechanic:** Creatures that succeed on an INT Investigation check (active
+perception while interacting with the illusion) see through Silent Image. This is a
+non-combat mechanic — creatures get a check, not a save during casting.
+**Proposal:** Add an `"investigation_dc"` field to illusion-school spells (DC = caster's
+spell save DC). When a creature interacts with the illusion in the engine's exploration
+context, it rolls an INT Investigation check vs. this DC. On success the creature is
+flagged as "seen through illusion" and the effect is suppressed for them. In combat,
+spending an action to investigate triggers the same check. For JSON: `"investigation_dc":
+"spell_dc"` (calculated from caster's INT).
+
+---
+
+### speak-with-animals.json — beast command action
+**Missing mechanic:** The homebrew version lets the caster spend an action to command a
+nearby beast NPC to make one attack. This requires the engine to recognize beast-type
+NPCs as commandable allies while this spell effect is active.
+**Proposal:** Add an `ActiveEffect` type `"beast_ally"` — while active, all beast-type
+NPCs within 2 grid cells of the caster are flagged as temporarily allied and the caster
+has a `"command_beast"` action in combat. The commanded beast uses its standard attack
+action (existing NPC attack resolution). The effect's `duration` from the spell. Beast
+NPCs with Intelligence 4+ ignore the command.
+
+---
+
+### goodberry.json — spell-created consumable items
+**Missing mechanic:** Goodberry creates 5 temporary consumable item instances (the
+berries) that exist as real inventory items for up to 1 hour, each usable as a bonus
+action for healing.
+**Proposal:** Add a `"creates_items"` block to the spell schema: `{ "item_id":
+"goodberry", "quantity": 5, "duration_minutes": 60 }`. The engine creates temporary
+inventory entries for these items on cast, flagged with an expiry timestamp (1 hour).
+The item `goodberry` would be a new `game-data/items/goodberry.json` consumable with
+`action_cost: "bonus_action"` and `heal: "1d4+1"`. Items past expiry are auto-removed.
+This reuses the existing inventory stack system with a time-to-live flag.
+
+---

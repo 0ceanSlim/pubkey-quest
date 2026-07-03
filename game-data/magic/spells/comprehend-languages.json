@@ -4,26 +4,37 @@
   "level": 1,
   "school": "divination",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 hour",
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "You comprehend all spoken and written languages for 1 hour. You can also read any cipher or code, though magical secrecy may still conceal the meaning.",
   "spell_attack": null,
   "save_type": null,
+  "type": "Spell",
   "tags": [
-    "utility"
+    "utility",
+    "ritual"
   ],
   "classes": [
     "wizard",
+    "sorcerer",
     "bard",
     "warlock"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 30,
+  "notes": [
+    "Can be cast as a ritual (add 10 minutes to casting time) — saves the mana cost.",
+    "You understand language but cannot speak it."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

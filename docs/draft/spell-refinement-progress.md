@@ -39,27 +39,27 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 
 ---
 
-## Level 1 — 55 spells — Batch 2 complete (12 refined); Batch 3 in progress (10 done)
+## Level 1 — 55 spells — Batch 2 complete (12 refined); Batch 3 complete (10 done); Batch 4 complete (10 done)
 
 ### Batch 2 — refined + prep_time backfilled
 - [ ] `alarm` — Alarm (ritual)
-- [ ] `animal-friendship` — Animal Friendship
+- [x] `animal-friendship` — Animal Friendship: range "6"→2 (30ft); added bard to classes; pollen×1 (sprig-of-mistletoe=free for druids/rangers); added heal/effect; prep_time 50
 - [x] `armor-of-agathys` — Armor of Agathys: mana 2→3; free; range "self"→0; retaliatory-damage in proposals; **prep_time 90** (strong 1-hr no-conc self-buff)
 - [~] `arms-of-hadar` — Arms of Hadar: mana 2→3; spirit-dust×1; range "self"→1; reaction-suppression-AoE in proposals; **prep_time 75** (AoE + rune cost → not triple-taxed)
 - [x] `bane` — Bane: mana 2→3; spirit-dust×1; range 1→2; effect prose; **prep_time 105** (3-target conc hard debuff, complex coordination)
 - [x] `bless` — Bless: mana 2→3; blessed-incense×1 (amulet=free); range_long fixed; **prep_time 90** (3-target conc buff; focus makes component free for clerics/paladins)
 - [x] `burning-hands` — Burning Hands: mana 2→3; ash×1; +artificer; **prep_time 45** (fast AoE, instinctive fire; cheapest rune)
 - [~] `charm-person` — Charm Person: mana 2→3; free; range 6→2; no conc; charm-condition in proposals; **prep_time 75** (hard control, 1-hour duration)
-- [ ] `color-spray` — Color Spray
+- [~] `color-spray` — Color Spray: mana 2→3 (AoE control); range "3"→0 (self-cone); no save/attack (HP-threshold mechanic — engine gap); removed null material→proper block; added heal/effect; prep_time 60; HP-threshold-blind proposal in proposals
 - [~] `command` — Command: mana 2; free; range 12→4; command-variants in proposals; **prep_time 30** (1-round only, simplest control spell)
 - [ ] `compelled-duel` — Compelled Duel
-- [ ] `comprehend-languages` — Comprehend Languages (ritual)
+- [x] `comprehend-languages` — Comprehend Languages: range "self"→0; null material→proper block; added sorcerer to classes; added heal/effect; added ritual tag; prep_time 30; mana 2 kept
 - [ ] `create-water` — Create or Destroy Water
 - [ ] `cure-wounds` — → Batch 3
 - [ ] `detect-evil` — → Batch 3
 - [ ] `detect-magic` — → Batch 3
 - [ ] `detect-poison` — → Batch 3
-- [ ] `disguise-self` — Disguise Self
+- [x] `disguise-self` — Disguise Self: range "self"→0; null material→proper block; added artificer to classes; added heal/effect; prep_time 45; mana 2 kept
 - [ ] `divine-favor` — → Batch 3
 - [ ] `ensnaring-strike` — Ensnaring Strike
 - [ ] `entangle` — Entangle
@@ -69,7 +69,7 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [ ] `feather-fall` — Feather Fall
 - [ ] `find-familiar` — Find Familiar (ritual)
 - [ ] `fog-cloud` — Fog Cloud
-- [ ] `goodberry` — Goodberry
+- [~] `goodberry` — Goodberry: damage field→heal field (1d4+1); removed tree-sap (double-tax); kept pollen×1 (sprig-of-mistletoe=free); effect prose; prep_time 65; mana 2 kept; spell-created-item mechanic in proposals
 - [ ] `grease` — Grease
 - [ ] `guiding-bolt` — Guiding Bolt
 - [ ] `healing-word` — → Batch 3
@@ -77,21 +77,21 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 - [ ] `heroism` — → Batch 3
 - [ ] `hex` — Hex
 - [ ] `hunters-mark` — Hunter's Mark
-- [ ] `identify` — **Analyze Weakness** (homebrew)
+- [x] `identify` — **Analyze Weakness** (homebrew): removed quartz-dust×2+ether-essence×1 (over-costed utility); free; added artificer to classes; added divination tag; action_cost "1 minute"→"action" (out-of-combat noted); added heal/effect; prep_time 40; mana 2 kept
 - [x] `inflict-wounds` — Inflict Wounds: mana 2→3; spirit-dust×1; necrotic 3d10; **prep_time 60** (standard melee attack; rune cost makes it not triple-taxed)
 - [ ] `jump` — Jump
 - [ ] `longstrider` — Longstrider
 - [ ] `mage-armor` — → Batch 3
 - [x] `magic-missile` — Magic Missile: mana 2; free; +artificer; automatic hit; **prep_time 35** (fast classic evocation, no component)
 - [ ] `protection-from-evil` — → Batch 3
-- [ ] `purify-food` — Purify Food and Drink (ritual)
+- [x] `purify-food` — Purify Food and Drink: null material→proper block; added druid to classes; added ritual tag; added heal/effect; prep_time 25; mana 2 kept
 - [ ] `sanctuary` — Sanctuary
 - [ ] `searing-smite` — Searing Smite
 - [ ] `shield` — → Batch 3
 - [ ] `shield-of-faith` — → Batch 3
-- [ ] `silent-image` — Silent Image
-- [ ] `sleep` — **Exhausting Hex** (homebrew)
-- [ ] `speak-with-animals` — Speak with Animals (ritual)
+- [~] `silent-image` — Silent Image: range "12"→4 (60ft); removed save_type "investigation" (not a save); null material→proper block; added heal/effect; added concentration tag; prep_time 55; mana 2 kept; investigation-check mechanic in proposals
+- [~] `sleep` — **Exhausting Hex** (homebrew): mana 2→3 (1hr no-conc hard control); range "12"→4 (60ft); removed ether-essence×2+mana-crystals×1 (focus-provided, not a real cost); added spirit-dust×1 (hex/curse domain, always-consumed); heal/effect null; prep_time 80; exhaustion-condition in proposals
+- [~] `speak-with-animals` — Speak with Animals: range "self"→0; removed pollen×1 (wrong focus note + not substance-themed for ritual utility); null material→proper block; added ritual tag; added effect prose; prep_time 55; mana 2 kept; beast-command mechanic in proposals
 - [ ] `thunderous-smite` — Thunderous Smite
 - [~] `thunderwave` — Thunderwave: mana 2→3; free; AoE-push in proposals; **prep_time 75** (AoE + push, powerful; no rune cost)
 - [ ] `unseen-servant` — Unseen Servant (ritual)
@@ -131,11 +131,12 @@ Total: 84 spells — 26 cantrips, 55 level-1, 2 level-2, 1 level-3.
 | Level | Total | Done | Needs-mechanic | TODO |
 |-------|-------|------|----------------|------|
 | 0     | 26    | 15   | 11             | 0    |
-| 1     | 55    | 18   | 5              | 32   |
+| 1     | 55    | 22   | 10             | 23   |
 | 2     | 2     | 0    | 0              | 2    |
 | 3     | 1     | 0    | 0              | 1    |
-| **Total** | **84** | **33** | **16** | **35** |
+| **Total** | **84** | **37** | **21** | **26** |
 
 Note: "Done" = `[x]`, "Needs-mechanic" = `[~]` (shape is correct; engine mechanic
 pending). Both count as refined. Batch 2 refined 12 L1 spells (+prep_time backfilled).
 Batch 3 refined 10 more L1 spells (abjuration/healing/divination group).
+Batch 4 refined 10 more L1 spells (illusion/enchantment/nature utilities group).

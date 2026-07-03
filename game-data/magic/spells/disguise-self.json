@@ -4,15 +4,17 @@
   "level": 1,
   "school": "illusion",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 hour",
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "You alter your height, weight, facial features, voice, hair, and clothing to appear as a different humanoid of the same size. Lasts 1 hour; a creature that physically interacts with or succeeds on an Investigation check can see through the illusion.",
   "spell_attack": null,
   "save_type": null,
+  "type": "Spell",
   "tags": [
     "utility",
     "illusion"
@@ -20,11 +22,19 @@
   "classes": [
     "wizard",
     "sorcerer",
-    "bard"
+    "bard",
+    "artificer"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 45,
+  "notes": [
+    "Does not change your scent, weight, or sounds — physical contact or Investigation check reveals the illusion.",
+    "Dismissed with an action before the 1-hour duration expires."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

@@ -4,18 +4,21 @@
   "level": 1,
   "school": "divination",
   "casting_time": "action",
-  "range": "self",
-  "range_long": "self",
+  "range": "0",
+  "range_long": "0",
   "duration": "10 minutes",
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "You gain advantage on Perception checks, beasts within range treat you as non-threatening, and once per round you may use an action to command a willing beast to attack. Lasts 10 minutes.",
   "spell_attack": null,
   "save_type": null,
+  "type": "Spell",
   "tags": [
+    "utility",
     "buff",
-    "summoning"
+    "ritual"
   ],
   "classes": [
     "druid",
@@ -25,14 +28,14 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 55,
+  "notes": [
+    "Can be cast as a ritual (add 10 minutes to casting time) — saves the mana cost.",
+    "The homebrew version adds tactical beast-command. Engine support for commanding allied NPCs/beasts is a mechanic gap — see spell-mechanics-proposals.md.",
+    "Beasts commanded to attack require an available beast NPC within range."
+  ],
   "material_component": {
-    "required": [
-      {
-        "component": "pollen",
-        "quantity": 1
-      }
-    ],
-    "focus_provided": "No focus provides this component - must be obtained"
+    "required": [],
+    "focus_provided": ""
   }
 }

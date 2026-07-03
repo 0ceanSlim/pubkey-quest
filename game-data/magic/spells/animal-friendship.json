@@ -4,26 +4,41 @@
   "level": 1,
   "school": "enchantment",
   "casting_time": "action",
-  "range": "6",
-  "range_long": "6",
+  "range": "2",
+  "range_long": "2",
   "duration": "24 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "The targeted beast regards you as a friendly creature for 24 hours (Wisdom save negates). If you or allies harm the beast the effect ends immediately.",
   "spell_attack": null,
   "save_type": "wisdom",
+  "type": "Spell",
   "tags": [
     "utility",
     "enchantment"
   ],
   "classes": [
     "druid",
-    "ranger"
+    "ranger",
+    "bard"
   ],
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 50,
+  "notes": [
+    "Fails automatically if the target has Intelligence 4 or higher — only works on true beasts.",
+    "The charm effect ends immediately if the caster or any ally harms the beast."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "pollen",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Sprig of Mistletoe provides unlimited pollen"
+  }
 }

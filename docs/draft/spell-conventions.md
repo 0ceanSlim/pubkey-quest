@@ -200,6 +200,43 @@ All distinct values; logic: quick utility/fast spells at low end, powerful/compl
 | `protection-from-evil` | 65 | Ward ritual feel; salt cost (always-consumed) means trim prep slightly |
 | `mage-armor` | 120 | 8-hour all-day no-conc buff — highest L1 prep; mana-crystals=free with staff |
 
+## Level 1 component-cost decisions (batch 4)
+
+**Received a component (selective):**
+- `animal-friendship`: pollen×1 (30gp) — charm/nature domain; sprig-of-mistletoe provides it free for druids/rangers. The 24-hour beast charm is signature enough for one cheap nature rune.
+- `goodberry`: pollen×1 (30gp) — nature/transmutation; sprig-of-mistletoe provides it free. Reduced from stub's tree-sap+pollen (double-taxing). One nature rune for a healing-utility transmutation.
+- `sleep` (Exhausting Hex): spirit-dust×1 (75gp) — hex/curse domain; no focus provides spirit-dust so it's always a cost. The 1-hour no-concentration exhaustion debuff is the most powerful L1 control spell — the rune cost is warranted alongside mana 3. Replaced stub's ether-essence×2+mana-crystals×1 (focus-provided orb/staff = not a real cost for wizards).
+
+**Left free (batch 4 spells):**
+- `identify` (Analyze Weakness): 1-minute cast utility divination — removed stub's quartz-dust×2+ether-essence×1 (two mid-tier components on a basic identification spell is wrong)
+- `disguise-self`: self-illusion utility — not substance-themed
+- `silent-image`: illusory image — not substance-themed
+- `comprehend-languages`: language utility — not substance-themed
+- `color-spray`: light flash AoE — not substance-themed (flash of light doesn't burn a physical rune)
+- `speak-with-animals`: communication ritual — removed stub's pollen×1 (stub had wrong focus note claiming no focus provides it; sprig-of-mistletoe does, but the spell is a utility ritual not substance-themed enough to warrant it)
+- `purify-food`: cleansing ritual — not substance-themed
+
+**Key corrections from pre-existing stubs (batch 4):**
+- `identify` had quartz-dust×2+ether-essence×1 (250gp per cast on a 1-min utility) — removed entirely
+- `sleep` (Exhausting Hex) had ether-essence×2+mana-crystals×1 — both focus-provided (orb/staff), meaning they cost nothing for a wizard/sorcerer anyway — replaced with spirit-dust×1 which IS always consumed
+- `goodberry` had tree-sap+pollen (double nature cost removed tree-sap; kept pollen only)
+- `speak-with-animals` had pollen with incorrect "No focus provides this component" note — sprig-of-mistletoe DOES provide pollen; removed entirely since not substance-themed enough
+
+## Level 1 prep_time rulings (batch 4)
+
+| Spell | prep_time | Rationale |
+|-------|-----------|-----------|
+| `purify-food` | 25 | Simplest ritual utility — pure cleansing, no combat use |
+| `comprehend-languages` | 30 | Pure language utility; ritual-eligible; tie with healing-word/command acceptable at this tier |
+| `identify` | 40 | Quick detection buff; 1-min cast is out-of-combat only |
+| `disguise-self` | 45 | Simple 1-hr self-illusion; tie with shield/divine-favor acceptable |
+| `animal-friendship` | 50 | 24-hr beast charm; pollen=free for druids; tie with shield-of-faith acceptable |
+| `silent-image` | 55 | Conc illusion utility; 10 min duration; tie with speak-with-animals acceptable |
+| `speak-with-animals` | 55 | Ritual utility; homebrew tactical element; tie with silent-image acceptable |
+| `color-spray` | 60 | AoE control (hp-threshold); mana 3 carries main cost; tie with inflict-wounds acceptable |
+| `goodberry` | 65 | Nature transmutation, creates lasting items; pollen=free for druids |
+| `sleep` | 80 | Hardest control in L1 (1hr no-conc exhaustion); spirit-dust cost + mana 3; unique between 75 and 90 |
+
 ## Homebrew content in the library
 
 Several spell FILES contain homebrew cantrips (non-D&D-5e spells). Treat them as

@@ -1,22 +1,25 @@
 {
   "name": "Color Spray",
-  "description": "A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is how many hit points of creatures this spell can affect.",
+  "description": "A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is how many hit points of creatures this spell can affect, starting with those closest to you.",
   "level": 1,
   "school": "illusion",
   "casting_time": "action",
-  "range": "3",
-  "range_long": "3",
+  "range": "0",
+  "range_long": "0",
   "duration": "1 round",
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "Roll 6d10 to determine the total HP pool affected. Starting from the nearest creature, each creature within a 15-foot cone is blinded until the end of your next turn, consuming HP from the pool until it is exhausted. Creatures with fewer HP than the remaining pool are blinded automatically.",
   "spell_attack": null,
   "save_type": null,
+  "type": "Spell",
   "tags": [
     "combat",
     "control",
-    "illusion"
+    "illusion",
+    "aoe"
   ],
   "classes": [
     "wizard",
@@ -24,7 +27,15 @@
   ],
   "rarity": "common",
   "action_cost": "action",
-  "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "mana_cost": 3,
+  "prep_time": 60,
+  "notes": [
+    "Affects creatures within a 15-foot cone (self-origin, range 0). No attack roll or save — uses HP threshold mechanic.",
+    "HP-threshold blind AoE requires engine support — see spell-mechanics-proposals.md.",
+    "Does not affect undead, constructs, or creatures that cannot be blinded."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }

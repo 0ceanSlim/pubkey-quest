@@ -8,14 +8,16 @@
   "range_long": "0",
   "duration": "1 hour",
   "concentration": false,
-  "damage": "1d4+1",
-  "damage_type": "healing",
-  "type": "Spell",
+  "damage": null,
+  "damage_type": null,
+  "heal": "1d4+1",
+  "effect": "Creates 5 goodberries. Each berry heals 1d4+1 HP when consumed as a bonus action (by self or adjacent ally). Unused berries lose potency after 1 hour.",
   "spell_attack": null,
   "save_type": null,
+  "type": "Spell",
   "tags": [
     "healing",
-    "combat",
+    "utility",
     "bonus_action"
   ],
   "classes": [
@@ -25,18 +27,19 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
+  "prep_time": 65,
+  "notes": [
+    "Creates 5 consumable berry items with 1-hour expiry. Each berry consumed as a bonus action heals 1d4+1 HP.",
+    "Inventoried berry mechanic (temporary consumables created by a spell) requires engine support — see spell-mechanics-proposals.md.",
+    "Each berry satisfies 1 day's sustenance need (D&D 5e)."
+  ],
   "material_component": {
     "required": [
-      {
-        "component": "tree-sap",
-        "quantity": 1
-      },
       {
         "component": "pollen",
         "quantity": 1
       }
     ],
-    "focus_provided": "Yew Wand provides unlimited tree-sap (still need pollen)"
+    "focus_provided": "Sprig of Mistletoe provides unlimited pollen"
   }
 }

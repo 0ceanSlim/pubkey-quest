@@ -4,18 +4,21 @@
   "level": 1,
   "school": "illusion",
   "casting_time": "action",
-  "range": "12",
-  "range_long": "12",
+  "range": "4",
+  "range_long": "4",
   "duration": "10 minutes",
   "concentration": true,
   "damage": null,
   "damage_type": null,
-  "type": "Spell",
+  "heal": null,
+  "effect": "A silent visual illusion of your choice appears within range. You can use your action to move it up to 20 feet. Creatures that succeed on an Investigation check (INT) realize the image is an illusion; physical interaction reveals it immediately.",
   "spell_attack": null,
-  "save_type": "investigation",
+  "save_type": null,
+  "type": "Spell",
   "tags": [
     "utility",
-    "illusion"
+    "illusion",
+    "concentration"
   ],
   "classes": [
     "wizard",
@@ -25,6 +28,13 @@
   "rarity": "common",
   "action_cost": "action",
   "mana_cost": 2,
-  "notes": [],
-  "material_component": null
+  "prep_time": 55,
+  "notes": [
+    "The illusion produces no sound, smell, or physical substance — touching it reveals nothing is there.",
+    "Creatures that succeed an INT Investigation check see through it; engine mechanic for investigation-check interaction pending — see spell-mechanics-proposals.md."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  }
 }
