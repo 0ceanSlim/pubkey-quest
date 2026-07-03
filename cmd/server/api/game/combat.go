@@ -627,13 +627,11 @@ func CombatCastHandler(w http.ResponseWriter, r *http.Request) {
 // ─── CombatUseItemHandler (M4 Phase C) ─────────────────────────────────────────
 
 // CombatUseItemRequest is the body sent to POST /combat/use-item.
-// slot is the general-slot index (-1 = first match).
 // swagger:model CombatUseItemRequest
 type CombatUseItemRequest struct {
 	Npub   string `json:"npub"    example:"npub1..."`
 	SaveID string `json:"save_id" example:"save_1234567890"`
 	ItemID string `json:"item_id" example:"healing"`
-	Slot   int    `json:"slot"    example:"-1"`
 }
 
 // CombatUseItemHandler drinks a potion / uses a consumable during the fight and
@@ -662,7 +660,7 @@ func CombatUseItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID, req.Slot)
+	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Use-item error: %v", err))
 		return

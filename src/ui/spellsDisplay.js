@@ -179,6 +179,12 @@ function openSlotMenu(e, slotLevel, slotIndex, spellId) {
         menu.appendChild(it);
     };
     add('Info', () => window.openSpellModal && window.openSpellModal(spellId));
+    // Cast is offered only for spells that resolve outside combat (heal / buff /
+    // utility). Attack and save shapes need an enemy, so they're combat-only.
+    const spell = getSpellById(spellId);
+    if (spell && !spell.spell_attack && !spell.save_type) {
+        add('Cast', () => castOutOfCombat(spellId));
+    }
     add('Replace', () => window.openSpellPicker && window.openSpellPicker(slotLevel, slotIndex));
     add('Remove', () => removeSlot(slotLevel, slotIndex));
     document.body.appendChild(menu);
@@ -194,6 +200,20 @@ async function removeSlot(slotLevel, slotIndex) {
         updateSpellsDisplay();
     } catch (err) {
         showActionText(`Cannot remove: ${err.message}`, 'red', 3000);
+    }
+}
+
+// Cast a prepared utility/heal/buff spell outside combat via the game-action API.
+// The backend engine spends mana + components and applies the effect; a rejected
+// cast (no mana, missing component) surfaces its reason inline.
+async function castOutOfCombat(spellId) {
+    try {
+        const res = await gameAPI.sendAction('cast_spell', { spell_id: spellId });
+        showActionText(res.message || 'Spell cast', 'green', 2500);
+        await refreshGameState(true);
+        updateSpellsDisplay();
+    } catch (err) {
+        showActionText(`Cannot cast: ${err.message}`, 'red', 3000);
     }
 }
 

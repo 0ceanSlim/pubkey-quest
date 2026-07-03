@@ -304,9 +304,196 @@ export async function doStep(dx, dy) {
     await doMoveToCell(x, y);
 }
 
-/** Placeholder for Spell / Use Item / Ability buttons until those systems ship. */
+/** Placeholder for Ability buttons until that system ships. */
 export function doStubAction(name) {
     _logInfo(`🚧 ${name} — coming soon.`);
+}
+
+// ─── Cast / Use-Item (M4 Phase E) ──────────────────────────────────────────────
+
+/** Cast a prepared spell at the monster. Mirrors doAttack. */
+export async function doCastSpell(spellId) {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    _closeCombatChooser();
+    try {
+        const resp = await combatPost('/api/combat/cast', { npub, save_id: saveID, spell_id: spellId });
+        const cs = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doCastSpell error:', err);
+        _logError('Network error — could not cast.');
+    }
+}
+
+/** Use a consumable during combat. Healing lands on the combat HP pool. */
+export async function doUseCombatItem(itemId) {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    _closeCombatChooser();
+    try {
+        const resp = await combatPost('/api/combat/use-item', { npub, save_id: saveID, item_id: itemId });
+        const cs = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doUseCombatItem error:', err);
+        _logError('Network error — could not use item.');
+    }
+}
+
+/** Shape glyph for a spell — mirrors the engine's shape resolution. */
+function _spellShapeIcon(spell) {
+    if (spell.spell_attack) return '⚔';
+    if (spell.save_type)    return '🎯';
+    if (spell.heal)         return '❤';
+    if (spell.effect)       return '✨';
+    return '•';
+}
+
+/** Open the combat spell menu: prepared spells, affordable ones clickable. */
+export function openCombatSpellMenu() {
+    const ch    = window.getGameStateSync?.()?.character ?? {};
+    const mana  = ch.mana ?? 0;
+    const slots = ch.spell_slots ?? {};
+    const seen  = new Set();
+    const entries = [];
+
+    for (const level of Object.keys(slots)) {
+        for (const s of (slots[level] ?? [])) {
+            const id = s?.spell;
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            const spell = window.getSpellById?.(id);
+            if (!spell) continue;
+            const cost = spell.mana_cost ?? 0;
+            const affordable = mana >= cost;
+            entries.push({
+                label: spell.name ?? id,
+                meta:  `${_spellShapeIcon(spell)} ${cost}◆`,
+                disabled: !affordable,
+                tip: affordable ? (spell.description ?? '') : `Not enough mana — need ${cost}, have ${mana}`,
+                onClick: () => window.doCastSpell(id),
+            });
+        }
+    }
+
+    if (entries.length === 0) {
+        _logInfo('No spells prepared — prepare one on the Spells tab first.');
+        return;
+    }
+    _openCombatChooser(`✨ Cast a spell — ${mana}◆ mana`, entries);
+}
+
+/** Open the combat item menu: reachable consumables (loose + in general-slot pouches). */
+export function openCombatItemMenu() {
+    const inv = window.getGameStateSync?.()?.character?.inventory ?? {};
+    const gen = inv.general_slots ?? [];
+    const counts = new Map();
+
+    const tally = (slot) => {
+        const id = slot?.item;
+        if (!id) return;
+        const item = window.getItemById?.(id);
+        const tags = (item?.tags ?? []).map(t => String(t).toLowerCase());
+        if (!tags.includes('consumable')) return;
+        counts.set(id, (counts.get(id) ?? 0) + (slot.quantity ?? 0));
+    };
+    for (const slot of gen) {
+        if (!slot) continue;
+        tally(slot);
+        for (const c of (slot.contents ?? [])) tally(c);
+    }
+
+    const entries = [];
+    for (const [id, qty] of counts) {
+        if (qty <= 0) continue;
+        const item = window.getItemById?.(id);
+        entries.push({
+            label: item?.name ?? id,
+            meta:  `×${qty}`,
+            disabled: false,
+            tip: item?.description ?? '',
+            onClick: () => window.doUseCombatItem(id),
+        });
+    }
+
+    if (entries.length === 0) {
+        _logInfo('No usable items within reach.');
+        return;
+    }
+    _openCombatChooser('🧪 Use an item', entries);
+}
+
+// ─── Combat chooser popup ──────────────────────────────────────────────────────
+
+/** Remove the combat chooser popup + backdrop if present. */
+function _closeCombatChooser() {
+    document.getElementById('combat-chooser-backdrop')?.remove();
+    document.getElementById('combat-chooser')?.remove();
+}
+
+/**
+ * Render a compact win95-dark chooser above the action bar.
+ * entries: [{ label, meta, disabled, tip, onClick }]
+ */
+function _openCombatChooser(title, entries) {
+    _closeCombatChooser();
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'combat-chooser-backdrop';
+    backdrop.style.cssText = 'position:fixed;inset:0;z-index:199;background:transparent;';
+    backdrop.addEventListener('click', _closeCombatChooser);
+    document.body.appendChild(backdrop);
+
+    const panel = document.createElement('div');
+    panel.id = 'combat-chooser';
+    panel.style.cssText = `position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
+        z-index:200;min-width:220px;max-width:340px;max-height:52vh;overflow-y:auto;
+        background:#1a1a1a;padding:6px;image-rendering:pixelated;
+        border-top:2px solid #4a4a4a;border-left:2px solid #4a4a4a;
+        border-right:2px solid #0a0a0a;border-bottom:2px solid #0a0a0a;
+        box-shadow:0 6px 24px rgba(0,0,0,0.6);`;
+
+    const head = document.createElement('div');
+    head.style.cssText = `display:flex;justify-content:space-between;align-items:center;
+        color:#fbbf24;font-size:9px;font-weight:bold;text-transform:uppercase;
+        margin-bottom:4px;padding:0 2px;`;
+    head.innerHTML = `<span>${title}</span>`;
+    const close = document.createElement('button');
+    close.textContent = '✕';
+    close.style.cssText = 'color:#9ca3af;background:none;border:none;cursor:pointer;font-size:11px;';
+    close.addEventListener('click', _closeCombatChooser);
+    head.appendChild(close);
+    panel.appendChild(head);
+
+    for (const e of entries) {
+        const btn = document.createElement('button');
+        btn.style.cssText = e.disabled ? _B_DISABLED : _B();
+        btn.style.display = 'flex';
+        btn.style.justifyContent = 'space-between';
+        btn.style.alignItems = 'center';
+        btn.style.marginBottom = '2px';
+        btn.title = e.tip ?? '';
+        btn.innerHTML = `<span>${e.label}</span><span style="opacity:0.8;margin-left:8px;">${e.meta ?? ''}</span>`;
+        if (e.disabled) {
+            btn.disabled = true;
+        } else {
+            btn.addEventListener('click', () => { e.onClick(); });
+        }
+        panel.appendChild(btn);
+    }
+
+    document.body.appendChild(panel);
 }
 
 export async function doFlee() {
@@ -1125,10 +1312,14 @@ function _renderCombatButtons(cs) {
         <div style="display:flex;flex-direction:column;gap:2px;overflow:hidden;">
             ${attackBtn}
             ${bonusBtn}
-            <button style="${_B('color:#c4b5fd;')}" onclick="window.doStubAction('Cast Spell')"
-                    title="Coming soon">✨ Cast Spell</button>
-            <button style="${_B('color:#fca5a5;')}" onclick="window.doStubAction('Use Item')"
-                    title="Coming soon">🧪 Use Item</button>
+            ${actionUsed
+                ? _B_GRAYED('✨ Cast Spell', 'Action used this turn')
+                : `<button style="${_B('color:#c4b5fd;')}" onclick="window.openCombatSpellMenu()"
+                    title="Cast a prepared spell">✨ Cast Spell</button>`}
+            ${actionUsed
+                ? _B_GRAYED('🧪 Use Item', 'Action used this turn')
+                : `<button style="${_B('color:#fca5a5;')}" onclick="window.openCombatItemMenu()"
+                    title="Use a consumable (potion, food)">🧪 Use Item</button>`}
             <button style="${_B('color:#fde047;')}" onclick="window.doStubAction('Ability')"
                     title="Coming soon">⚡ Ability</button>
         </div>`;

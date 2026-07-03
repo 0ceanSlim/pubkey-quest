@@ -3,6 +3,7 @@ package combat
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
@@ -158,12 +159,12 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 // ─── Combat consumables (M4 Phase C) ─────────────────────────────────────────
 
 // ProcessPlayerUseItem drinks a potion / eats food / uses a consumable mid-fight.
-// Consumables are reached from the general slots (the pack itself isn't reachable
-// in a fight — the frontend only offers loose general items). Healing and mana
-// route through the shared inventory use-item path, bridged onto the combat HP
-// pool so the heal lands on the live combatant rather than the resting save HP.
-// Uses the player's action.
-func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID string, slotIndex int) ([]string, error) {
+// Consumables are reached from the general slots — either loose in a slot or
+// stashed in a pouch/sack container occupying one (the equipped backpack itself
+// isn't reachable in a fight). Healing and mana route through the shared item
+// effect path, bridged onto the combat HP pool so the heal lands on the live
+// combatant rather than the resting save HP. Uses the player's action.
+func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID string) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot use an item: combat phase is %q", cs.Phase)
 	}
@@ -175,29 +176,95 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		return nil, fmt.Errorf("action already used this turn")
 	}
 
+	item, err := gamedata.LoadItemByID(db, itemID)
+	if err != nil {
+		return nil, fmt.Errorf("unknown item %q", itemID)
+	}
+	name := itemID
+	if n, _ := item["name"].(string); n != "" {
+		name = n
+	}
+	if !hasTag(item["tags"], "consumable") {
+		return nil, fmt.Errorf("%s can't be used in combat", name)
+	}
+
+	// Locate a stack of the item within reach (loose general slot or a general-
+	// slot container). Nil means the player isn't carrying one where they can grab
+	// it mid-fight.
+	slot := findReachableConsumable(save.Inventory, itemID)
+	if slot == nil {
+		return nil, fmt.Errorf("no %s within reach", name)
+	}
+
 	// Bridge: point save.HP at the combat HP pool so ApplyItemEffects (which heals
 	// save.HP and clamps to MaxHP) mends the live combatant. MaxHP is identical in
 	// both (combat snapshots save.MaxHP), so the clamp is correct.
 	prevHP := save.HP
 	save.HP = state.CurrentHP
-
-	params := map[string]interface{}{"item_id": itemID}
-	if slotIndex >= 0 {
-		params["slot"] = float64(slotIndex)
-	}
-	resp, err := gaminventory.HandleUseItemAction(save, params)
-
-	newHP := save.HP
+	msgs := gaminventory.ApplyItemEffects(save, itemID)
+	state.CurrentHP = save.HP
 	save.HP = prevHP // combat owns HP until the fight ends
-	if err != nil {
-		return nil, err
-	}
-	state.CurrentHP = newHP
+
+	// Consume one from the located stack.
+	decrementSlotStack(slot)
 	state.ActionUsed = true
 
-	msg := "  You use an item."
-	if resp != nil && resp.Message != "" {
-		msg = "  " + resp.Message
+	line := fmt.Sprintf("  You use %s.", name)
+	if len(msgs) > 0 {
+		line = fmt.Sprintf("  You use %s — %s.", name, strings.Join(msgs, ", "))
 	}
-	return []string{msg}, nil
+	return []string{line}, nil
+}
+
+// findReachableConsumable returns the slot map (a live reference) holding itemID,
+// searching loose general slots first, then the contents of any general-slot
+// container. Returns nil if none is reachable. The equipped backpack is excluded
+// on purpose — you can't rummage the pack mid-fight.
+func findReachableConsumable(inv map[string]interface{}, itemID string) map[string]interface{} {
+	gen, ok := inv["general_slots"].([]interface{})
+	if !ok {
+		return nil
+	}
+	for _, raw := range gen {
+		slot, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if id, _ := slot["item"].(string); id == itemID && slotQty(slot, "quantity") > 0 {
+			return slot
+		}
+	}
+	// Second pass: look inside general-slot containers (component pouch, sack, …).
+	for _, raw := range gen {
+		slot, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		contents, ok := slot["contents"].([]interface{})
+		if !ok {
+			continue
+		}
+		for _, craw := range contents {
+			cslot, ok := craw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if id, _ := cslot["item"].(string); id == itemID && slotQty(cslot, "quantity") > 0 {
+				return cslot
+			}
+		}
+	}
+	return nil
+}
+
+// decrementSlotStack removes one unit from a slot, clearing it to the empty shape
+// ({item:null, quantity:0}) when the last one is consumed.
+func decrementSlotStack(slot map[string]interface{}) {
+	q := slotQty(slot, "quantity")
+	if q <= 1 {
+		slot["item"] = nil
+		slot["quantity"] = 0
+		return
+	}
+	slot["quantity"] = q - 1
 }
