@@ -8,6 +8,16 @@ standardize it. No item JSON was edited.
 **Snapshot:** 209 item files, 84 spells, 216 item sprite PNGs. All 209 items parse as
 valid JSON; every `id` matches its filename.
 
+> **STATUS (2026-07-04):** Tier 1 (schema normalization) + Tier 2 reference fixes are
+> DONE (commit `7f2f50d`): `img` deleted, `substitues`/empty `substitutes` removed,
+> `damage-type`→`damage_type` + `range-long`→`range_long` (readers updated),
+> `bludgeon`→`bludgeoning`, 4 broken ammo ids fixed, `splint-greaves` set backref
+> added, `pouch`/`quiver` singleton keys dropped, `allowed_types` normalized to lists.
+> **Remaining for the item-refiner: Tier 3 (content + balance)** — price the zero-value
+> weapons (×100), rarity↔value coherence, the 63 descriptions, empty tags, dart/net/
+> blowgun remodel, `gear_slot:"hands"` audit, and the sprite gaps (art). The
+> `spellbook` `["spell-scroll"]` type still has no matching item type (needs a decision).
+
 ---
 
 ## 0. How items are actually loaded (context for the findings)
