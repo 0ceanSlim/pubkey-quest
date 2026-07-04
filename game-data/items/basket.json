@@ -3,7 +3,7 @@
     "Food"
   ],
   "container_slots": 4,
-  "description": "NEEDS DESCRIPTION",
+  "description": "A woven wicker basket, open-topped and light, best suited for carrying produce and other foodstuffs short distances.",
   "id": "basket",
   "image": "/res/img/items/basket.png",
   "name": "Basket",

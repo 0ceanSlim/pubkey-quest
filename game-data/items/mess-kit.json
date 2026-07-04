@@ -9,7 +9,9 @@
   "value": 20,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "camping"
+  ],
   "type": "Adventuring Gear",
   "weight": 1
 }

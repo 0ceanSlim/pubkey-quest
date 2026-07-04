@@ -68,12 +68,88 @@ reusable ruling is made.
 - [ ] `crossbow-bolts`
 - [ ] `sling-bullet` — currently `value: 0`, needs pricing too (flagged in report as part of the "37" but is Ammunition not Weapons — do in the Ammunition batch)
 
-### Adventuring Gear (0/64)
-Includes containers (`pouch`, `quiver`, `backpack`, `barrel`, `chest`, `sack`,
-`case-map-and-scroll`), `caltrops` (restraint — cross-ref net's proposal), `spellbook`
-(needs the `allowed_types: ["spell-scroll"]` type decision), `pole` (already has a good
-description, improvised-weapon tags present), and the bulk of "NEEDS DESCRIPTION" +
-empty-tags items live here.
+### Adventuring Gear (64/64 done — Batch 3)
+
+**Containers** (`gear_slot` present → keep `equipment` tag; schema-container fields
+present but no `gear_slot` → `container` tag only, per the validator's
+equipment-requires-gear_slot rule discovered this batch, see Conventions)
+- [x] `backpack` — value 1000→200 (2gp×100, was stale ×5 too high); rarity uncommon→common; `effects_when_worn:["backpack-capacity"]` confirmed wired (real effect file exists); tags already `container, equipment` (has `gear_slot: "bag"`)
+- [x] `pouch` — value 0→50 (5sp×100); description written; tags already `container, equipment` (has `gear_slot: "bag"`)
+- [x] `quiver` — value 0→100 (1gp×100); tags already `container, equipment` (has `gear_slot: "ammo"`)
+- [x] `sack` — value 50→1 (1cp×100, was stale ×50 too high); description written; tags: `container` (no gear_slot — not wearable)
+- [x] `chest` — value 5→500 (5gp raw, needed ×100); tags: `container`
+- [x] `barrel` — value 200 already correct (2gp×100); description written; tags: `container`
+- [x] `basket` — value 40 already correct (4sp×100); description written; tags: `container`
+- [x] `case-map-and-scroll` — value 1→100 (1gp×100); rarity rare→common (report's flagged contradiction); tags: `container`
+- [x] `component-pouch` — value 25→2500 (25gp×100, was stale raw-gp); tags: `container`
+- [~] `spellbook` — value 5000 already correct (50gp×100); description/tags already good (`container, equipment`, has `gear_slot: "hands"`); `allowed_types:["spell-scroll"]` flagged — no matching item type exists in the catalog, proposal filed in item-mechanics-proposals.md rather than inventing a type
+
+**Restraint / hazard items**
+- [~] `caltrops` — value 0→100 (1gp×100, bag of 20); tags unchanged (`restraint, thrown`); bespoke `restrain:"1d3"` key left as-is, cross-referenced to the existing `net` restraint proposal (not duplicated)
+- [x] `ball-bearings` — value 1→100 (1gp×100, bag of 1000, was stale); tags: `restraint` (unchanged)
+- [x] `chain` — value 5→500 (5gp×100, was stale raw-cp-scale error); tags: `restraint` (unchanged)
+- [x] `hunting-trap` — value 500 already correct (5gp×100); tags +`trap`
+
+**Light sources / fuel**
+- [x] `candle` — value 1 already correct (1cp); tags unchanged (`light-source`)
+- [x] `torch` — value 1 already correct (1cp); tags unchanged (`light-source`)
+- [x] `lamp` — value 50 already correct (5sp×100); tags unchanged (`light-source, oil-burning`)
+- [x] `lantern-hooded` — value 500 already correct (5gp×100); tags unchanged (`light-source, oil-burning`)
+- [x] `lantern-bullseye` — value 1000 already correct (10gp×100); tags unchanged (`light-source, directional, oil-burning`)
+- [x] `oil` — value 10 already correct (1sp×100); tags +`fuel`
+- [x] `tinderbox` — value 50 already correct (5sp×100); tags +`tool`
+
+**Consumables / thrown**
+- [x] `acid` — value 2500 already correct (25gp×100); description written; tags +`consumable` (kept thrown)
+- [x] `alchemists-fire` — value 5000 already correct (50gp×100); tags +`consumable` (kept thrown)
+- [x] `poison-basic` — value 10000 already correct (100gp×100); tags +`consumable` (kept poison)
+- [x] `healers-kit` — value 500 already correct (5gp×100); tags +`consumable` (kept healing)
+- [x] `soap` — value 2 already correct (2cp×100); tags +`consumable`
+
+**Camping / utility gear**
+- [x] `bedroll` — value 100 already correct (1gp×100); description written; tags +`camping`
+- [x] `blanket` — value 50 already correct (5sp×100); description written; tags +`camping`
+- [x] `waterskin` — value 20 already correct (2sp×100); description written; tags +`camping`
+- [x] `mess-kit` — value 20 already correct (2sp×100); tags +`camping`
+- [x] `pot-iron` — value 200 already correct (2gp×100); tags +`camping`
+- [x] `block-and-tackle` — value 100 already correct (1gp×100); description written; tags +`tool`
+- [x] `climbers-kit` — value 2500 already correct (25gp×100); tags unchanged (`pack`)
+- [x] `crowbar` — value 200 already correct (2gp×100); tags +`tool`
+- [x] `grappling-hook` — value 200 already correct (2gp×100); tags +`tool`
+- [x] `hammer-sledge` — value 200 already correct (2gp×100); tags +`tool` (kept two-handed)
+- [x] `ladder` — value 10 already correct (1sp×100); tags +`tool`
+- [x] `piton` — value 5 already correct (5cp×100); tags +`tool`
+- [x] `whetstone` — value 1 already correct (1cp×100); tags +`tool`
+- [x] `rope` — value 100 already correct (1gp×100); tags +`tool`
+- [x] `ram-portable` — value 400 already correct (4gp×100); added missing `damage_type: "bludgeoning"` (had `damage:"1d4"` with no type); tags +`tool`
+- [x] `pole` — value 0→5 (5cp×100); description/tags already good (has `gear_slot: "hands"` from batch 1, kept `equipment` tag)
+
+**Writing / office / misc**
+- [x] `book` — value 2500 already correct (25gp×100); description written; tags +`writing`
+- [x] `ink` — value 1000 already correct (10gp×100); tags +`writing`
+- [x] `ink-pen` — value 2 already correct (2cp×100); tags +`writing`
+- [x] `paper` — value 20 already correct (2sp×100); tags +`writing`
+- [x] `parchment` — value 10 already correct (1sp×100); tags +`writing`; weight 0→0.01 (report-flagged zero-weight gap)
+- [x] `sealing-wax` — value 50 already correct (5sp×100); tags +`writing`
+- [x] `chalk` — value 1 already correct (1cp×100); tags +`writing`
+- [x] `lock` — value 1000 already correct (10gp×100); tags +`tool`
+- [x] `magnifying-glass` — value 10000 already correct (100gp×100); tags +`tool`
+- [x] `mirror` — value 500 already correct (5gp×100); tags +`tool`
+- [x] `nail` — value 1 already correct (homebrew, no direct PHB entry, priced by analogy to piton); tags +`tool`
+- [x] `signet-ring` — value 500 already correct (5gp×100); tags +`jewelry`
+- [x] `signal-whistle` — value 5→50 (5sp×100, was stale); tags +`tool`
+- [x] `spyglass` — value 100000 already correct (1000gp×100); tags +`tool`
+- [x] `bell` — value 100 already correct (1gp×100); rarity uncommon→common; description written; tags +`tool`
+- [x] `hourglass` — value 2500 already correct (25gp×100); tags +`tool`
+- [x] `bottle-glass` — value 200 already correct (2gp×100); description written; tags +`vessel`
+- [x] `bucket` — value 5 already correct (5cp×100); tags +`vessel`
+- [x] `flask` — value 2 already correct (2cp×100); tags +`vessel`
+- [x] `jug-or-pitcher` — value 2 already correct (2cp×100); tags +`vessel`
+- [x] `vial` — value 100 already correct (1gp×100); tags +`vessel`
+- [x] `perfume-vial` — value 500 already correct (5gp×100); tags +`vessel`
+
+**Related fix outside Adventuring Gear (explicitly called out in the task):**
+- [x] `shovel` (Tools type) — value 2→200 (2gp raw, needed ×100); tags +`tool` (kept improvised-weapon)
 
 ### Musical Instrument (0/10)
 `bagpipe` missing `performance` field + has empty tags — the one gap the report called out.
@@ -188,6 +264,90 @@ across every multi-piece armor. `--validate`: 0 errors, 32 warnings (same
 pre-existing set as Batch 1 — no new warnings from this batch's edits).
 
 **Armor: 33/33 done (all `[x]`, no `[~]` — fully expressible in current schema).**
-**Overall catalog: 70/209 items refined so far (37 weapons + 33 armor); 139
-remaining** (Ammunition, Adventuring Gear, Musical Instrument, Pack, Tools, Gaming
-Set, foci×3, Potion, Food, Spell Component, currency).
+
+**Batch 3 (this batch) — Adventuring Gear (all 64):**
+Full type sweep in one batch (containers, restraint/hazard items, light sources/fuel,
+consumables/thrown, camping/utility gear, writing/office/misc) since every item's
+correct price had to be individually derived from its real D&D denomination (not a
+blanket ×100 on the stored number) — the type-internal consistency benefit of doing it
+as one pass outweighed splitting further. Also fixed `shovel` (Tools type, called out
+explicitly in the task) since it was a one-line, unambiguous, in-scope correction.
+
+**Pricing corrections found (both directions, verified per-item against real PHB
+denomination, not just multiplying the stored value):**
+- `backpack` 1000→200 (2gp — was stale ×5 too high)
+- `sack` 50→1 (1cp — was stale ×50 too high)
+- `chest` 5→500 (5gp raw, needed ×100)
+- `component-pouch` 25→2500 (25gp raw, needed ×100)
+- `chain` 5→500 (5gp raw, needed ×100 — NEW outlier found, not in the task's seed list)
+- `case-map-and-scroll` 1→100 (1gp×100) + rarity rare→common
+- `signal-whistle` 5→50 (5sp×100)
+- `pole` 0→5 (5cp×100)
+- `pouch` 0→50 (5sp×100)
+- `quiver` 0→100 (1gp×100)
+- `caltrops` 0→100 (1gp×100, bag of 20)
+- `ball-bearings` 1→100 (1gp×100, bag of 1000 — NEW outlier found)
+- `shovel` (Tools) 2→200 (2gp raw, needed ×100 — explicitly flagged in the task)
+
+Every other gear item's stored value was independently checked against its real PHB
+gp/sp/cp price and found already correct at the ×100/×10/×1 scale (see the
+per-item checklist above for each one's specific D&D anchor) — nothing was left at a
+stale value.
+
+**Homebrew (no direct PHB entry), priced by analogy:** `nail` kept at 1 (1cp-equivalent,
+analogous to `piton`/`chalk` bulk-fastener pricing — no PHB "nail" line item exists).
+
+**Validator-driven tag-vocabulary correction (significant mid-batch finding):** the
+codex validator enforces `Items with 'equipment' tag must have 'gear_slot' property`
+(and the inverse: items **with** a `gear_slot` should carry `equipment`). Adding a blanket
+`equipment` tag to every gear item (as an initial pass did) produced 60 new validator
+errors, because most Adventuring Gear (sacks, tools, vessels, writing supplies, camping
+gear) is **not equippable** — it has no `gear_slot` and shouldn't claim one. Corrected:
+`equipment` is now reserved for items that actually carry `gear_slot`
+(`backpack`/`pouch`/`quiver`/`spellbook`/`pole`, all pre-existing or fixed in earlier
+batches); every other gear item instead got a real classification tag: `container`
+(schema containers without a wearable slot), `tool`, `vessel` (glass/ceramic/metal
+liquid-holders — distinct from schema `container`s since they lack `container_slots`),
+`writing`, `camping`, `jewelry`, `fuel`, `consumable`, `restraint`, `trap`. Recorded as a
+new ruling in `item-conventions.md`.
+
+**Descriptions written (13):** `acid`, `barrel`, `basket`, `bedroll`, `bell`, `blanket`,
+`block-and-tackle`, `book`, `bottle-glass`, `pouch`, `sack`, `waterskin` (+ `case-map-
+and-scroll`/`component-pouch`/`spellbook` already had good descriptions, untouched).
+
+**Rarity fixes:** `case-map-and-scroll` rare→common (report's flagged rarity/value
+contradiction); `backpack` uncommon→common (mundane gear, no reason to sit above
+common — same ruling as Batch 2 armor); `bell` uncommon→common (same reasoning,
+found mid-batch, not in the report's original list).
+
+**Other fixes:** `ram-portable` was missing `damage_type` despite having `damage:"1d4"`
+— added `"bludgeoning"` (a real, already-used key on this schema, not invented).
+`parchment` weight 0→0.01 (report-flagged zero-weight gap, given a token non-zero
+value consistent with `paper`/other single-sheet items). Confirmed `backpack`'s
+`effects_when_worn: ["backpack-capacity"]` is genuinely wired (real effect file at
+`game-data/effects/backpack-capacity.json`, read by the equip pipeline) — no proposal
+needed, it already works.
+
+**`[~]` proposals filed (2 items, both cross-referenced to existing/new proposal
+entries in `item-mechanics-proposals.md`, not duplicated mechanics):**
+- `caltrops` — bespoke `restrain: "1d3"` key has no engine hook; cross-referenced to
+  the existing `net` restraint proposal (same missing "on-hit/on-trigger restrain"
+  mechanic).
+- `spellbook` — `allowed_types: ["spell-scroll"]` points at an item `type` that doesn't
+  exist in the catalog (no item has `type: "spell-scroll"`), so the container can never
+  accept anything by type match today. New proposal filed: either add a real
+  `Spell Scroll` item type with content, or otherwise resolve in a future spell-scroll
+  content pass — not fixed by repointing at a wrong-but-existing type.
+
+`--validate`: **0 errors**, 37 warnings (33 pre-existing unchanged: 28 sprite-not-found
++ 3 monster + 1 spell — none of this batch's doing) + 4 new informational-only
+warnings (`Items with 'consumable' tag should have 'effects' property (not yet
+enforced)` on `acid`/`alchemists-fire`/`healers-kit`/`poison-basic`/`soap` — the
+validator itself says "not yet enforced"; these are genuinely single-use consumables
+so the tag is correct, they just don't have a stat-effect payload like Potions/Food do).
+
+**Adventuring Gear: 64/64 done (62 `[x]` + 2 `[~]` = `caltrops`, `spellbook`).**
+
+**Overall catalog: 134/209 items refined so far (37 weapons + 33 armor + 64 gear);
+75 remaining** (Ammunition 4, Musical Instrument 10, Pack 7, Tools 7, Gaming Set 4,
+Arcane/Druidic/Holy foci 12, Potion 4, Food 2, Spell Component 24, currency 1).

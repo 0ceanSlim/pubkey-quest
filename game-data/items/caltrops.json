@@ -7,7 +7,7 @@
     "Can be scattered to create difficult terrain",
     "A bag holds 20 caltrops"
   ],
-  "value": 0,
+  "value": 100,
   "rarity": "common",
   "restrain": "1d3",
   "stack": 20,

@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A roll of padded canvas and wool, tied with leather straps, that unrolls into a passable bed on hard ground.",
   "id": "bedroll",
   "image": "/res/img/items/bedroll.png",
   "name": "Bedroll",
@@ -7,7 +7,9 @@
   "value": 100,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "camping"
+  ],
   "type": "Adventuring Gear",
   "weight": 7
 }

@@ -3,13 +3,13 @@
     "any"
   ],
   "container_slots": 20,
-  "description": "NEEDS DESCRIPTION",
+  "description": "A small drawstring pouch of soft leather, worn at the belt for keeping coin and trinkets close at hand.",
   "gear_slot": "bag",
   "id": "pouch",
   "image": "/res/img/items/pouch.png",
   "name": "Pouch",
   "notes": [],
-  "value": 0,
+  "value": 50,
   "rarity": "common",
   "stack": 1,
   "tags": [

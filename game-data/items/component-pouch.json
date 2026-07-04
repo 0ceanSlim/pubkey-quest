@@ -3,7 +3,7 @@
   "name": "Component Pouch",
   "description": "A small leather pouch containing various material components needed for spellcasting.",
   "rarity": "common",
-  "value": 25,
+  "value": 2500,
   "weight": 2,
   "stack": 1,
   "type": "Adventuring Gear",

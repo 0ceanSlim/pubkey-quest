@@ -10,7 +10,8 @@
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "two-handed"
+    "two-handed",
+    "tool"
   ],
   "type": "Adventuring Gear",
   "weight": 10

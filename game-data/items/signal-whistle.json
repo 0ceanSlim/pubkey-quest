@@ -6,10 +6,12 @@
   "notes": [
     "Can be used to summon a monster to fight."
   ],
-  "value": 5,
+  "value": 50,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "tool"
+  ],
   "type": "Adventuring Gear",
   "weight": 0.1
 }

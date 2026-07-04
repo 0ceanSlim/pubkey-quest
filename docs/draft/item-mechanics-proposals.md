@@ -43,8 +43,40 @@ save-or-restrain as a proper effect rather than the bespoke `restrain` key. Both
 could then share one `condition: "restrained"` status effect definition in the effects
 system (`game-data/effects/`), consistent with how other statuses are data-driven.
 
-**Status:** `net` flagged `[~]` in progress log. `caltrops` untouched this batch (not a
-weapon) — flag for the Adventuring Gear pass, cross-reference this same proposal rather
-than duplicating it.
+**Status:** `net` flagged `[~]` in progress log. `caltrops` priced (0→100, 1gp bag of 20
+per PHB) in the Adventuring Gear batch but its `restrain: "1d3"` bespoke key was left
+as-is (schema shape unchanged) — same missing mechanic as `net`, cross-referenced here
+rather than duplicated. Both items would share one `condition: "restrained"` effect once
+the `on_hit_effect`/save-or-restrain hook above is built.
+
+---
+
+## `spellbook.allowed_types` points at a non-existent item type
+
+**Item affected:** `spellbook` (Adventuring Gear, container).
+
+**Issue:** `allowed_types: ["spell-scroll"]` — no item in the catalog has
+`type: "spell-scroll"` (real types are `Potion`, `Spell Component`, `Ammunition`, etc.,
+Title Case). As shipped, this container can **never accept anything by type match**,
+because `allowed_types` is matched against the literal `type` string
+(`cmd/server/game/inventory/containers.go:122`). This is a real functional gap, not just
+a naming nit — a spellbook currently can't hold anything.
+
+**Not fixed this batch** (per the propose-don't-mangle rule: inventing a new item `type`
+value is a schema decision, not a data-authoring one). Two ways to close it, either is
+minimal:
+1. **Add a real `Spell Scroll` item type** (Title Case, matching convention) with its own
+   scroll items (`scroll-fireball`, etc.) — the "correct" 5e-flavored answer, but is new
+   content, not just a rename.
+2. **Repoint `spellbook.allowed_types` at an existing type** that already models
+   "a single spell recorded on a medium" — none currently exists; `Spell Component`
+   is the closest existing type but represents ingredients, not written spells, so this
+   would be a lossy fit.
+
+**Recommendation:** wait for a real `Spell Scroll` / consumable-scroll content pass (the
+spell-refiner's domain) rather than repoint `spellbook` at a wrong-but-existing type.
+Left `allowed_types` untouched this batch; `spellbook` flagged `[~]` in the progress log
+for this reason (fully priced/described/tagged otherwise — only this cross-type wiring
+is outstanding).
 
 ---

@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A treated leather skin that holds enough water for a day's travel, slung easily from a belt or pack strap.",
   "id": "waterskin",
   "image": "/res/img/items/waterskin.png",
   "name": "Waterskin",
@@ -7,7 +7,9 @@
   "value": 20,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "camping"
+  ],
   "type": "Adventuring Gear",
   "weight": 5
 }

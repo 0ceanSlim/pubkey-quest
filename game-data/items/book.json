@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A bound volume of handwritten pages, its subject anything from history to husbandry. Worth its price to the right reader.",
   "id": "book",
   "image": "/res/img/items/book.png",
   "name": "Book",
@@ -7,7 +7,9 @@
   "value": 2500,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "writing"
+  ],
   "type": "Adventuring Gear",
   "weight": 5
 }

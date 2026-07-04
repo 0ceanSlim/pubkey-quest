@@ -2,12 +2,12 @@
   "id": "backpack",
   "name": "Backpack",
   "description": "A sturdy leather backpack with multiple compartments for organizing gear and supplies.",
-  "value": 1000,
+  "value": 200,
   "type": "Adventuring Gear",
   "weight": 5,
   "stack": 1,
   "gear_slot": "bag",
-  "rarity": "uncommon",
+  "rarity": "common",
   "tags": [
     "container",
     "equipment"

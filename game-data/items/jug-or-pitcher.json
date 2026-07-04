@@ -9,7 +9,9 @@
   "value": 2,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "vessel"
+  ],
   "type": "Adventuring Gear",
   "weight": 4
 }

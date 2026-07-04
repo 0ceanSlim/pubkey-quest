@@ -9,7 +9,9 @@
   "value": 200,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "tool"
+  ],
   "type": "Adventuring Gear",
   "weight": 5
 }

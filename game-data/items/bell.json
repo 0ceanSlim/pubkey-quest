@@ -1,13 +1,15 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A small brass bell that rings with a clear, carrying tone. Useful for signaling, warding a doorway, or waking a sleepy watch.",
   "id": "bell",
   "image": "/res/img/items/bell.png",
   "name": "Bell",
   "notes": [],
   "value": 100,
-  "rarity": "uncommon",
+  "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "tool"
+  ],
   "type": "Adventuring Gear",
   "weight": 0.2
 }

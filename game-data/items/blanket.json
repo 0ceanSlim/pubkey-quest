@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A heavy woven blanket, warm enough to keep off the night chill on the road or in a drafty room.",
   "id": "blanket",
   "image": "/res/img/items/blanket.png",
   "name": "Blanket",
@@ -7,7 +7,9 @@
   "value": 50,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "camping"
+  ],
   "type": "Adventuring Gear",
   "weight": 3
 }

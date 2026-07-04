@@ -12,7 +12,8 @@
   "rarity": "common",
   "stack": 10,
   "tags": [
-    "healing"
+    "healing",
+    "consumable"
   ],
   "type": "Adventuring Gear",
   "weight": 3

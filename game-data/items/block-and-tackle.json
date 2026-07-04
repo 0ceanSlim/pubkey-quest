@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A set of pulleys strung with rope, letting one person haul or lift a weight that would otherwise take several.",
   "id": "block-and-tackle",
   "image": "/res/img/items/block-and-tackle.png",
   "name": "Block and Tackle",
@@ -7,7 +7,9 @@
   "value": 100,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "tool"
+  ],
   "type": "Adventuring Gear",
   "weight": 5
 }

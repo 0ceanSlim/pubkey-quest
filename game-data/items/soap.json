@@ -7,7 +7,9 @@
   "value": 2,
   "rarity": "common",
   "stack": 50,
-  "tags": [],
+  "tags": [
+    "consumable"
+  ],
   "type": "Adventuring Gear",
   "weight": 0.1
 }

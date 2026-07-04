@@ -7,7 +7,9 @@
   "value": 10,
   "rarity": "common",
   "stack": 10,
-  "tags": [],
+  "tags": [
+    "writing"
+  ],
   "type": "Adventuring Gear",
-  "weight": 0
+  "weight": 0.01
 }

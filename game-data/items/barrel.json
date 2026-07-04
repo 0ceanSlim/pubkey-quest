@@ -1,7 +1,7 @@
 {
   "id": "barrel",
   "name": "Barrel",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A large wooden cask bound with iron hoops, sized for storing bulk goods like grain, ale, or salted meat.",
   "rarity": "common",
   "value": 200,
   "weight": 70,

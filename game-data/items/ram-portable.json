@@ -1,5 +1,6 @@
 {
   "damage": "1d4",
+  "damage_type": "bludgeoning",
   "description": "You can use a portable ram to break down doors. When doing so, you gain a +4 bonus on the Strength check. One other character can help you use the ram, giving you advantage on this check.",
   "id": "ram-portable",
   "image": "/res/img/items/ram-portable.png",
@@ -8,7 +9,9 @@
   "value": 400,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "tool"
+  ],
   "type": "Adventuring Gear",
   "weight": 35
 }

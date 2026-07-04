@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A stoppered glass bottle, clear enough to see what's inside. Handy for potions, ink, or anything else better kept from spilling.",
   "id": "bottle-glass",
   "image": "/res/img/items/bottle-glass.png",
   "name": "Glass Bottle",
@@ -7,7 +7,9 @@
   "value": 200,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "vessel"
+  ],
   "type": "Adventuring Gear",
   "weight": 2
 }

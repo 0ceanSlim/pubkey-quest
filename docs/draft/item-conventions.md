@@ -246,3 +246,128 @@ Applied uniformly to every weapon touched in the zero-value pricing pass:
 
 Properties tag vocabulary drawn straight from PHB weapon property text (finesse,
 light, heavy, two-handed, versatile, thrown, reach, loading, ammunition, topple).
+
+---
+
+## Adventuring Gear pricing (Batch 3)
+
+**Rule reminder — derive per-item, don't just multiply the stored value.** Adventuring
+Gear is a mix of already-correct (×100/×10/×1 already applied) and stale (raw PHB
+number, or a wrong scale) values. Every item's `value` was checked against its **real
+PHB denomination** (gp/sp/cp) independently — not assumed from what was already
+stored. Most of the 64 were already correct; the actual corrections found:
+
+| id | PHB price | correct value | was |
+|---|---|---|---|
+| `backpack` | 2 gp | 200 | 1000 (stale ×5) |
+| `sack` | 1 cp | 1 | 50 (stale ×50) |
+| `chest` | 5 gp | 500 | 5 (raw gp, un-multiplied) |
+| `component-pouch` | 25 gp | 2500 | 25 (raw gp, un-multiplied) |
+| `chain` (10 ft) | 5 gp | 500 | 5 (raw gp, un-multiplied) |
+| `case-map-and-scroll` | 1 gp | 100 | 1 (raw gp, un-multiplied) |
+| `signal-whistle` | 5 sp | 50 | 5 (raw sp, un-multiplied) |
+| `pole` | 5 cp | 5 | 0 |
+| `pouch` | 5 sp | 50 | 0 |
+| `quiver` | 1 gp | 100 | 0 |
+| `caltrops` | 1 gp (bag of 20) | 100 | 0 |
+| `ball-bearings` | 1 gp (bag of 1000) | 100 | 1 (raw gp, un-multiplied) |
+| `shovel` (Tools type, not Gear, but same bug) | 2 gp | 200 | 2 (raw gp) |
+
+**Takeaway confirmed again:** stale un-multiplied or wrong-scale values hide among
+non-zero entries just as often in Adventuring Gear as they did in weapons/armor —
+`chest`, `component-pouch`, `chain`, `case-map-and-scroll`, `signal-whistle`, `ball-
+bearings` were all non-zero but wrong. Always check the real PHB denomination per
+item, never trust "non-zero = already priced."
+
+**Homebrew (no PHB entry) pricing by analogy:** `nail` — no PHB "nail" line item exists;
+priced at 1 (1cp-equivalent), analogous to other small bulk fasteners/consumables
+(`piton` 5cp/unit, `chalk` 1cp/piece) already in the catalog. Kept as-is (was already 1).
+
+**Everything else already correct at ×100/×10/×1** (confirmed per item, not
+listed exhaustively here — see the per-item checklist in
+`item-refinement-progress.md` for each one's specific D&D anchor): `acid` 2500 (25gp),
+`alchemists-fire` 5000 (50gp), `barrel` 200 (2gp), `basket` 40 (4sp), `bedroll` 100
+(1gp), `bell` 100 (1gp), `blanket` 50 (5sp), `block-and-tackle` 100 (1gp), `book` 2500
+(25gp), `bottle-glass` 200 (2gp), `bucket` 5 (5cp), `climbers-kit` 2500 (25gp),
+`crowbar` 200 (2gp), `flask` 2 (2cp), `grappling-hook` 200 (2gp), `hammer-sledge` 200
+(2gp), `healers-kit` 500 (5gp), `hourglass` 2500 (25gp), `hunting-trap` 500 (5gp),
+`ink` 1000 (10gp), `ink-pen` 2 (2cp), `jug-or-pitcher` 2 (2cp), `ladder` 10 (1sp),
+`lamp` 50 (5sp), `lantern-bullseye` 1000 (10gp), `lantern-hooded` 500 (5gp), `lock`
+1000 (10gp), `magnifying-glass` 10000 (100gp), `mess-kit` 20 (2sp), `mirror` 500 (5gp),
+`oil` 10 (1sp), `paper` 20 (2sp), `parchment` 10 (1sp), `perfume-vial` 500 (5gp),
+`piton` 5 (5cp), `poison-basic` 10000 (100gp), `pot-iron` 200 (2gp), `ram-portable` 400
+(4gp), `rope` 100 (1gp), `sealing-wax` 50 (5sp), `signet-ring` 500 (5gp), `soap` 2
+(2cp), `spellbook` 5000 (50gp), `spyglass` 100000 (1000gp), `tinderbox` 50 (5sp),
+`torch` 1 (1cp), `vial` 100 (1gp), `waterskin` 20 (2sp), `whetstone` 1 (1cp), `candle`
+1 (1cp), `chalk` 1 (1cp).
+
+## Rarity — mundane gear (Batch 3)
+
+Same ruling as Batch 2 armor: rarity tracks magical/exotic status, not price tier.
+Fixed 2 mundane-gear rarity errors this batch: `case-map-and-scroll` rare→common
+(report-flagged, value/rarity contradiction), `backpack` uncommon→common (no reason
+to sit above common — mundane gear). Also found and fixed mid-batch (not in the
+report's original list): `bell` uncommon→common.
+
+## Tags — the `equipment` tag is reserved for actually-equippable items (important, validator-enforced)
+
+**Discovered this batch via the validator, not the report:** `cmd/codex/validation/
+validation.go` enforces a hard rule — *"Items with 'equipment' tag must have
+'gear_slot' property"* (and the inverse warns if an item **has** `gear_slot` but lacks
+the `equipment` tag). Valid `gear_slot` values: `hands, mainhand, offhand, chest, head,
+legs, gloves, boots, neck, ring, ammo, bag`.
+
+**Ruling:** do **not** use `equipment` as a generic "this is gear you own" tag. Reserve
+it strictly for items that carry a real `gear_slot` (i.e. can actually be worn/wielded/
+socketed) — `backpack`, `pouch`, `quiver`, `spellbook`, `pole` (all pre-existing or
+fixed in earlier batches), plus all weapons/armor/foci which already have `gear_slot`.
+For everything else (tools, vessels, writing supplies, camping gear, restraint
+items, consumables with no equip slot), give a **real classification tag instead**,
+never `equipment`. New tag vocabulary introduced this batch for the previously-
+untagged bulk of Adventuring Gear:
+- `tool` — hand tools / utility devices with no wearable slot (`crowbar`, `lock`,
+  `whetstone`, `spyglass`, `mirror`, `hourglass`, `bell`, `signal-whistle`, `ladder`,
+  `piton`, `rope`, `ram-portable`, `hammer-sledge`, `grappling-hook`,
+  `block-and-tackle`, `magnifying-glass`, `nail`, `tinderbox`).
+- `vessel` — glass/ceramic/metal liquid-holding containers that are **not** schema
+  containers (no `container_slots`/`allowed_types`): `bottle-glass`, `bucket`,
+  `flask`, `jug-or-pitcher`, `vial`, `perfume-vial`. Kept distinct from the `container`
+  tag, which is reserved for items with real `container_slots` (`backpack`, `sack`,
+  `chest`, `barrel`, `basket`, `case-map-and-scroll`, `component-pouch`, `pouch`,
+  `quiver`, `spellbook`).
+- `writing` — office/scribing supplies: `book`, `ink`, `ink-pen`, `paper`, `parchment`,
+  `sealing-wax`, `chalk`.
+- `camping` — bedroll/cookware/travel-comfort gear: `bedroll`, `blanket`, `waterskin`,
+  `mess-kit`, `pot-iron`.
+- `jewelry` — `signet-ring` (not equippable via a modeled ring slot yet, so no
+  `gear_slot`; flavor-only for now).
+- `fuel` — `oil` (burns in lamps/lanterns).
+- Existing tags reused as-is: `consumable` (added to `acid`, `alchemists-fire`,
+  `healers-kit`, `poison-basic`, `soap` — all single-use), `restraint` (`ball-bearings`,
+  `chain`, already-tagged `caltrops`), `trap` (`hunting-trap`, new), `container`
+  (all schema containers, confirmed/backfilled), `light-source`/`oil-burning`/
+  `directional` (unchanged, already complete per the report), `thrown`/`poison`/
+  `healing`/`pack`/`two-handed`/`improvised-weapon` (all pre-existing, unchanged).
+
+**Container items keep `container` only, not `equipment`** — none of the 10 schema
+containers in this catalog (`backpack`/`pouch`/`quiver` excepted, which are wearable)
+have a `gear_slot`, so adding `equipment` to `sack`/`chest`/`barrel`/`basket`/
+`case-map-and-scroll`/`component-pouch` would fail validation. Only wearable
+containers (`gear_slot: "bag"` or `"ammo"`) get both `container` + `equipment`.
+
+## Adventuring Gear content fixes (Batch 3)
+
+- **`ram-portable`** was missing `damage_type` despite having `damage: "1d4"` (report
+  flagged this pattern generally for `pick-miners`/`ram-portable` in §3.4). Added
+  `"bludgeoning"` — a real, already-used key on this schema (not invented), matching
+  how every other improvised/weapon-shaped item in the catalog pairs `damage` +
+  `damage_type`.
+- **`parchment`** weighed `0` (report-flagged zero-weight gap, §1). Fixed to `0.01`
+  (a token non-zero weight consistent with `paper`'s 0.01).
+- **`backpack.effects_when_worn: ["backpack-capacity"]`** — confirmed genuinely wired,
+  not a dead key: `game-data/effects/backpack-capacity.json` exists and grants
+  `weight_capacity +25` on equip via the equip-effects pipeline
+  (`cmd/server/game/inventory/equipment.go`). No proposal needed. (Minor aside, not
+  fixed: the item's own `notes` claim "+35 lbs" but the effect grants +25 — a
+  pre-existing inconsistency in flavor text vs. the real effect value, out of scope
+  for a pricing/tagging pass; flagged here for whoever next touches this item.)
