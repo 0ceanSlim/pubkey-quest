@@ -1,20 +1,22 @@
 {
   "damage": "1d6",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
-  "gear_slot": "ammo",
+  "description": "A slender wooden spear balanced for throwing, favored by skirmishers who strike before the enemy closes.",
+  "gear_slot": "hands",
   "id": "javelin",
   "image": "/res/img/items/javelin.png",
   "name": "Javelin",
   "notes": [],
-  "value": 0,
+  "value": 50,
   "range": "1",
   "range_long": "3",
   "rarity": "common",
   "stack": 5,
   "tags": [
-    "thrown",
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-melee",
+    "thrown"
   ],
   "type": "Simple Melee Weapons",
   "weight": 2

@@ -1,19 +1,21 @@
 {
   "damage": "1d6",
   "damage_type": "slashing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A short, double-edged blade favored by rogues and duelists for its speed and ease of concealment.",
   "gear_slot": "hands",
   "id": "shortsword",
   "image": "/res/img/items/shortsword.png",
   "name": "Shortsword",
   "notes": [],
-  "value": 0,
+  "value": 1000,
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "finesse",
-    "light",
-    "equipment"
+    "light"
   ],
   "type": "Martial Melee Weapons",
   "weight": 2

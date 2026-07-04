@@ -12,17 +12,19 @@
     "Loading property requires action to reload",
     "Heavy weapon"
   ],
-  "value": 0,
+  "value": 5000,
   "range": "3",
   "range_long": "5",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-ranged",
     "ammunition",
     "loading",
     "two-handed",
-    "heavy",
-    "equipment"
+    "heavy"
   ],
   "type": "Martial Ranged Weapons",
   "weight": 18

@@ -1,21 +1,23 @@
 {
   "damage": "1d10",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "An unwieldy spear stretching nearly twenty feet, used by disciplined ranks to keep the enemy at bay before they can close.",
   "gear_slot": "mainhand",
   "id": "pike",
   "image": "/res/img/items/pike.png",
   "name": "Pike",
   "notes": [],
-  "value": 0,
+  "value": 500,
   "range": "1",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "heavy",
     "reach",
-    "two-handed",
-    "equipment"
+    "two-handed"
   ],
   "type": "Martial Melee Weapons",
   "weight": 18

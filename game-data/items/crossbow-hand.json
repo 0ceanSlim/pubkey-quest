@@ -3,7 +3,7 @@
   "name": "Crossbow hand",
   "description": "A small hand-held crossbow that can be fired with one hand.",
   "rarity": "common",
-  "value": 150,
+  "value": 7500,
   "weight": 3,
   "stack": 1,
   "type": "Martial Ranged Weapons",
@@ -14,10 +14,12 @@
   "range": "1",
   "range_long": "3",
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-ranged",
     "ammunition",
     "loading",
-    "light",
-    "equipment"
+    "light"
   ],
   "notes": [
     "Requires bolts to fire",

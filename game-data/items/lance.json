@@ -1,22 +1,24 @@
 {
   "damage": "1d12",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A long wooden shaft tipped with steel, built for a mounted charge that can knock a foe clean off their feet.",
   "gear_slot": "mainhand",
   "id": "lance",
   "image": "/res/img/items/lance.png",
   "name": "Lance",
   "notes": [],
-  "value": 0,
+  "value": 1000,
   "range": "1",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "reach",
     "topple",
     "heavy",
-    "two-handed",
-    "equipment"
+    "two-handed"
   ],
   "type": "Martial Melee Weapons",
   "weight": 6

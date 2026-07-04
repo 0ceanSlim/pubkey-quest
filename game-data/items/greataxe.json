@@ -1,19 +1,21 @@
 {
   "damage": "1d12",
   "damage_type": "slashing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A massive double-bladed axe that demands both hands and a strong back, capable of cleaving through bone and shield alike.",
   "gear_slot": "mainhand",
   "id": "greataxe",
   "image": "/res/img/items/greataxe.png",
   "name": "Greataxe",
   "notes": [],
-  "value": 0,
+  "value": 3000,
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "heavy",
-    "two-handed",
-    "equipment"
+    "two-handed"
   ],
   "type": "Martial Melee Weapons",
   "weight": 7

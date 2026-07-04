@@ -1,18 +1,20 @@
 {
   "damage": "1d4",
   "damage_type": "slashing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A curved farming blade repurposed as a weapon, quick to swing and easy to conceal.",
   "gear_slot": "hands",
   "id": "sickle",
   "image": "/res/img/items/sickle.png",
   "name": "Sickle",
   "notes": [],
-  "value": 0,
+  "value": 100,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "light",
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-melee",
+    "light"
   ],
   "type": "Simple Melee Weapons",
   "weight": 2

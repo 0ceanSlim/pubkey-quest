@@ -11,16 +11,18 @@
     "Requires bolts to fire",
     "Loading property requires action to reload"
   ],
-  "value": 0,
+  "value": 2500,
   "range": "2",
   "range_long": "4",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "simple-ranged",
     "ammunition",
     "loading",
-    "two-handed",
-    "equipment"
+    "two-handed"
   ],
   "type": "Simple Ranged Weapons",
   "weight": 5

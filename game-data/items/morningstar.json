@@ -1,17 +1,19 @@
 {
   "damage": "1d8",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A spiked steel ball fixed atop a sturdy haft, equally good at denting armor and puncturing whatever's underneath.",
   "gear_slot": "hands",
   "id": "morningstar",
   "image": "/res/img/items/morningstar.png",
   "name": "Morningstar",
   "notes": [],
-  "value": 15,
+  "value": 1500,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "equipment"
+    "weapon",
+    "equipment",
+    "martial-melee"
   ],
   "type": "Martial Melee Weapons",
   "weight": 4

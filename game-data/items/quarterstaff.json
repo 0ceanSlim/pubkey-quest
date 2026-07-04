@@ -1,18 +1,20 @@
 {
   "damage": "1d6,1d8",
   "damage_type": "bludgeoning",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A plain length of hardwood, worn smooth by travel. Favored by monks and wanderers for its reach and versatility.",
   "gear_slot": "hands",
   "id": "quarterstaff",
   "image": "/res/img/items/quarterstaff.png",
   "name": "Quarterstaff",
   "notes": [],
-  "value": 0,
+  "value": 20,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "versatile",
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-melee",
+    "versatile"
   ],
   "type": "Simple Melee Weapons",
   "weight": 5

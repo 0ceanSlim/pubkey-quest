@@ -1,20 +1,23 @@
 {
-  "ammunition": "arrows",
   "damage": "0",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A weighted mesh of tough cord, thrown to tangle a target's limbs rather than wound them.",
+  "gear_slot": "hands",
   "id": "net",
   "image": "/res/img/items/net.png",
   "name": "Net",
   "notes": [
-    "retrains target"
+    "Deals no damage; restrains the target on a hit until they escape or the net is cut away (engine mechanic not yet implemented — see item-mechanics-proposals.md)"
   ],
-  "value": 0,
+  "value": 100,
   "range": "1",
-  "range_long": "320",
+  "range_long": "3",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-ranged",
     "thrown",
     "restraint"
   ],

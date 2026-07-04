@@ -9,12 +9,14 @@
   "notes": [
     "Can be wielded with two hands for increased damage"
   ],
-  "value": 0,
+  "value": 1500,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "versatile",
-    "equipment"
+    "weapon",
+    "equipment",
+    "martial-melee",
+    "versatile"
   ],
   "type": "Martial Melee Weapons",
   "weight": 3

@@ -9,16 +9,18 @@
   "notes": [
     "Can be thrown at targets within 60 feet"
   ],
-  "value": 0,
+  "value": 200,
   "range": "1",
   "range_long": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "simple-melee",
     "finesse",
     "light",
-    "thrown",
-    "equipment"
+    "thrown"
   ],
   "type": "Simple Melee Weapons",
   "weight": 1

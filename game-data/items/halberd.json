@@ -1,21 +1,23 @@
 {
   "damage": "1d10",
   "damage_type": "slashing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "An axe blade, spike, and hook combined atop a long pole — equally suited to chopping, thrusting, and dragging riders from their mounts.",
   "gear_slot": "mainhand",
   "id": "halberd",
   "image": "/res/img/items/halberd.png",
   "name": "Halberd",
   "notes": [],
-  "value": 0,
+  "value": 2000,
   "range": "1",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "heavy",
     "reach",
-    "two-handed",
-    "equipment"
+    "two-handed"
   ],
   "type": "Martial Melee Weapons",
   "weight": 6

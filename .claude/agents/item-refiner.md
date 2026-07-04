@@ -36,15 +36,21 @@ dead. Only ever use keys that already exist for that item's type (see the report
 fields from the existing items before editing. Base fields on every item: `id, name,
 description, type, rarity, value, weight, stack, tags, notes, image`.
 
-## Pricing — D&D gp × 100 (the game's gold ≈ D&D copper)
-This world has no copper/silver; **1 game gold ≈ 1 D&D copper**, so **an item that
-exists in D&D 5e is priced at its PHB gp value × 100**, written to the `value` field.
-This is already how the priced items were set — verify against them and stay
-consistent:
-- plate armor 1500 gp → `plate-set` value **150000**; breastplate 400 gp → **40000**;
-  spyglass 1000 gp → **100000**; longsword 15 gp → **1500**; greatsword 50 gp →
-  **5000**; dagger 2 gp → **200**; shortbow 25 gp → **2500**; potion of healing
-  ~50 gp → **5000**.
+## Pricing — D&D cost → copper (the game's gold = D&D copper)
+This world has no copper/silver; **1 game gold = 1 D&D copper piece**. So an item that
+exists in D&D 5e is priced at its **full PHB cost converted to copper**, written to
+`value`: **gp × 100, sp × 10, cp × 1**. **Watch the PHB unit** — do NOT round everything
+to gp. Many simple weapons and cheap adventuring gear are priced in **silver or copper**,
+not gold, and must scale down accordingly:
+- gold items: plate 1500 gp → **150000**; breastplate 400 gp → **40000**; spyglass
+  1000 gp → **100000**; longsword 15 gp → **1500**; greatsword 50 gp → **5000**;
+  dagger 2 gp → **200**; shortbow 25 gp → **2500**; healing potion ~50 gp → **5000**;
+  rope/bedroll 1 gp → **100**.
+- **silver items** (× 10): club 1 sp → **10**; quarterstaff 2 sp → **20**; javelin
+  5 sp → **50**; sling 1 sp → **10**; rations 5 sp → **50**.
+- **copper items** (× 1): dart 5 cp → **5**; torch 1 cp → **1**; candle/chalk 1 cp →
+  **1**.
+Verify against items already priced correctly and stay consistent.
 - For items **not** in D&D 5e (homebrew, spell components already priced, set
   bundles): price by analogy to the nearest D&D item and by tier — a set bundle ≈
   the sum of its pieces (or a slight discount); a homebrew consumable ≈ a comparable

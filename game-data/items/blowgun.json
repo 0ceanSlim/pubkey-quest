@@ -1,11 +1,11 @@
 {
   "id": "blowgun",
   "name": "Blowgun",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A slender wooden tube that fires narrow needles on a sharp breath — nearly silent, though it barely scratches heavier prey.",
   "rarity": "common",
-  "value": 1,
+  "value": 1000,
   "weight": 1,
-  "stack": 25,
+  "stack": 1,
   "type": "Martial Ranged Weapons",
   "gear_slot": "hands",
   "damage": "1",
@@ -14,9 +14,11 @@
   "range": "1",
   "range_long": "3",
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-ranged",
     "ammunition",
-    "loading",
-    "equipment"
+    "loading"
   ],
   "notes": [
     "maybe add some poision effect later or another couple items poison to dip these in and a new poisoned dart, need to figure out poison effects mechanic first"

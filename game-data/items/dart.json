@@ -1,22 +1,23 @@
 {
-  "ammunition": "arrows",
   "damage": "1d4",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
-  "gear_slot": "ammo",
+  "description": "A small, weighted dart balanced for throwing accurately at close range.",
+  "gear_slot": "hands",
   "id": "dart",
   "image": "/res/img/items/dart.png",
   "name": "Dart",
   "notes": [],
-  "value": 0,
+  "value": 5,
   "range": "1",
   "range_long": "2",
   "rarity": "common",
   "stack": 10,
   "tags": [
+    "weapon",
+    "equipment",
+    "simple-ranged",
     "finesse",
-    "thrown",
-    "equipment"
+    "thrown"
   ],
   "type": "Simple Ranged Weapons",
   "weight": 0.25

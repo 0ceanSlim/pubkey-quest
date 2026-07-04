@@ -7,12 +7,14 @@
   "image": "/res/img/items/club.png",
   "name": "Club",
   "notes": [],
-  "value": 0,
+  "value": 10,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "light",
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-melee",
+    "light"
   ],
   "type": "Simple Melee Weapons",
   "weight": 2

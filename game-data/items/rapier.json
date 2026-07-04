@@ -1,18 +1,20 @@
 {
   "damage": "1d8",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A slender, elegant blade built for quick thrusts and precise footwork rather than brute force.",
   "gear_slot": "hands",
   "id": "rapier",
   "image": "/res/img/items/rapier.png",
   "name": "Rapier",
   "notes": [],
-  "value": 0,
+  "value": 2500,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "finesse",
-    "equipment"
+    "weapon",
+    "equipment",
+    "martial-melee",
+    "finesse"
   ],
   "type": "Martial Melee Weapons",
   "weight": 2

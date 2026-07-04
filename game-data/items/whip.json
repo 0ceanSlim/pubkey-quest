@@ -1,20 +1,22 @@
 {
   "damage": "1d4",
   "damage_type": "slashing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A long braided cord of leather that can lash out and cut from well beyond a blade's reach.",
   "gear_slot": "hands",
   "id": "whip",
   "image": "/res/img/items/whip.png",
   "name": "Whip",
   "notes": [],
-  "value": 0,
+  "value": 200,
   "range": "1",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "finesse",
-    "reach",
-    "equipment"
+    "reach"
   ],
   "type": "Martial Melee Weapons",
   "weight": 3

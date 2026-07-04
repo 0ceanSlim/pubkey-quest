@@ -1,17 +1,19 @@
 {
   "damage": "1d6",
   "damage_type": "bludgeoning",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A heavy metal head atop a sturdy shaft, built to crush through armor rather than cut.",
   "gear_slot": "hands",
   "id": "mace",
   "image": "/res/img/items/mace.png",
   "name": "Mace",
   "notes": [],
-  "value": 5,
+  "value": 500,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-melee"
   ],
   "type": "Simple Melee Weapons",
   "weight": 5

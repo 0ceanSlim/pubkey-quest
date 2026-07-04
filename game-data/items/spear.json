@@ -1,21 +1,23 @@
 {
   "damage": "1d4,1d8",
   "damage_type": "piercing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A straight wooden shaft tipped with a leaf-shaped point, equally suited to thrusting or throwing.",
   "gear_slot": "hands",
   "id": "spear",
   "image": "/res/img/items/spear.png",
   "name": "Spear",
   "notes": [],
-  "value": 0,
+  "value": 100,
   "range": "1",
   "range_long": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "simple-melee",
     "thrown",
-    "versatile",
-    "equipment"
+    "versatile"
   ],
   "type": "Simple Melee Weapons",
   "weight": 3

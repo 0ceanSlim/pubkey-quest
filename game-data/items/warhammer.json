@@ -1,18 +1,20 @@
 {
   "damage": "1d8,1d10",
   "damage_type": "bludgeoning",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A heavy hammerhead of forged steel, swung one-handed or two for a bone-crushing blow.",
   "gear_slot": "hands",
   "id": "warhammer",
   "image": "/res/img/items/warhammer.png",
   "name": "Warhammer",
   "notes": [],
-  "value": 0,
+  "value": 1500,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "versatile",
-    "equipment"
+    "weapon",
+    "equipment",
+    "martial-melee",
+    "versatile"
   ],
   "type": "Martial Melee Weapons",
   "weight": 2

@@ -2,20 +2,22 @@
   "ammunition": "sling-bullet",
   "damage": "1d4",
   "damage_type": "bludgeoning",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A leather strap and pouch for hurling a bullet with surprising force. Cheap, quiet, and easy to carry.",
   "gear_slot": "hands",
   "id": "sling",
   "image": "/res/img/items/sling.png",
   "name": "Sling",
   "notes": [],
-  "value": 0,
+  "value": 10,
   "range": "1",
   "range_long": "3",
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "ammunition",
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-ranged",
+    "ammunition"
   ],
   "type": "Simple Ranged Weapons",
   "weight": 0.1

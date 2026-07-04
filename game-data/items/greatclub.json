@@ -1,18 +1,20 @@
 {
   "damage": "1d8",
   "damage_type": "bludgeoning",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A crude, oversized club hewn from a single thick branch. It hits like a falling log, but its bulk demands both hands.",
   "gear_slot": "mainhand",
   "id": "greatclub",
   "image": "/res/img/items/greatclub.png",
   "name": "Greatclub",
   "notes": [],
-  "value": 0,
+  "value": 20,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "two-handed",
-    "equipment"
+    "weapon",
+    "equipment",
+    "simple-melee",
+    "two-handed"
   ],
   "type": "Simple Melee Weapons",
   "weight": 10

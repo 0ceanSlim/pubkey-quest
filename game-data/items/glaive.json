@@ -1,21 +1,23 @@
 {
   "damage": "1d10",
   "damage_type": "slashing",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A single-edged blade fixed to the end of a long pole, letting its wielder cut down foes before they close the distance.",
   "gear_slot": "mainhand",
   "id": "glaive",
   "image": "/res/img/items/glaive.png",
   "name": "Glaive",
   "notes": [],
-  "value": 0,
+  "value": 2000,
   "range": "1",
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
     "heavy",
     "reach",
-    "two-handed",
-    "equipment"
+    "two-handed"
   ],
   "type": "Martial Melee Weapons",
   "weight": 6
