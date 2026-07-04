@@ -119,6 +119,76 @@ tags (`simple-melee`, `two-handed`) are the convention for this concept.
 
 ---
 
+## Armor pricing (Batch 2)
+
+**PHB gp anchors → ×100 copper**, applied across Light/Medium/Heavy Armor + Armor Set:
+
+| Base armor | PHB gp | value |
+|---|---|---|
+| Padded | 5 | 500 |
+| Leather | 10 | 1000 |
+| Studded Leather | 45 | 4500 |
+| Hide | 10 | 1000 |
+| Chain Shirt | 50 | 5000 |
+| Scale Mail | 50 | 5000 |
+| Breastplate | 400 | 40000 |
+| Half Plate | 750 | 75000 |
+| Ring Mail | 30 | 3000 |
+| Chain Mail | 75 | 7500 |
+| Splint | 200 | 20000 |
+| Plate | 1500 | 150000 |
+| Shield | 10 | 1000 |
+
+**Piece-split rule:** this catalog splits full armors into a chest piece (`-cuirass`/
+`-vest`/`-gambeson`/`-hauberk`) + leg piece (`-greaves`/`-leggings`/`-chausses`/
+`-chaps`) plus a virtual `-set` bundle (weight 0, `contents: [[piece,1],[piece,1]]`).
+**Set value = sum of its pieces.** The chest/leg split ratio already established by
+`plate-set` (cuirass 90000 / greaves 60000 = 60/40 of 150000) turned out to hold
+**exactly** for every multi-piece armor already in the catalog once each was checked
+against the ×100 total — so no re-splitting was needed except chain mail (see below).
+Confirmed 60/40 chest/leg splits: `padded-set` (300/200 of 500), `leather-set`
+(600/400 of 1000), `studded-leather-set` (2700/1800 of 4500), `hide-set` (600/400 of
+1000), `scalemail-set` (3000/2000 of 5000), `ringmail-set` (1800/1200 of 3000),
+`splint-set` (12000/8000 of 20000), `halfplate-set` (45000/30000 of 75000),
+`plate-set` (90000/60000 of 150000).
+
+**Stale value fixed:** `chainmail-hauberk`/`chainmail-chausses`/`chainmail-set` held a
+raw ×1.6-inflated number (12000 for the set instead of 7500 = 75gp×100) — same
+"stale non-×100 value hiding in the non-zero set" pattern as Batch 1's weapons.
+Corrected to the 60/40 split of 7500: hauberk 4500, chausses 3000.
+
+**Standalone mundane armors** (no `-set` bundle, sold individually): `breastplate`
+40000, `chain-shirt` 5000, `shield` 1000 — all already correct at ×100, no set to
+sum against.
+
+## Armor rarity ↔ value (Batch 2 — resolves report §6 contradiction)
+
+**Ruling:** rarity in this catalog tracks *magical/exotic status*, not price tier —
+confirmed by existing precedent (`spyglass` 100000 common, `supreme-healing` 50000
+common). All PHB armor is **mundane** (D&D 5e assigns armor no rarity at all; rarity
+only applies to *magic* armor). So **every mundane armor piece/set is `common`**,
+regardless of value. This directly resolves the flagged `breastplate` common@40000 vs
+`halfplate-cuirass` rare@45000 contradiction — both are common now, and it also
+fixes the same value-tier-as-rarity mistake that had been applied to
+`chainmail-*`/`scalemail-*`/`splint-*` (all `uncommon`) and `halfplate-*`/`plate-*`
+(all `rare`). **Downgraded to `common` this batch:** `chainmail-hauberk`,
+`chainmail-chausses`, `chainmail-set`, `scalemail-cuirass`, `scalemail-greaves`,
+`scalemail-set`, `splint-cuirass`, `splint-greaves`, `splint-set`,
+`halfplate-cuirass`, `halfplate-greaves`, `halfplate-set`, `plate-cuirass`,
+`plate-greaves`, `plate-set`. Rarity should only bump above `common` for armor that's
+explicitly a *magic item* variant (none currently exist in the catalog) — future
+magic-armor content should follow D&D's real rarity assignment when added, not proxy
+off price.
+
+## Armor tags
+
+Every armor piece gets `equipment` + a weight-class tag: `light` / `medium` / `heavy`.
+`shield` (type `Heavy Armor` but not body armor) gets `equipment` + `shield` instead
+of `heavy`, since it's a distinct piece of gear, not a torso/leg armor material.
+Armor Set bundles keep their existing `pack, armor-set` tags (unchanged, already
+consistent). Fixed 3 armor pieces that only had a bare `equipment` tag with no
+weight-class tag: `breastplate`, `chain-shirt` → `+medium`; `shield` → `+shield`.
+
 ## gear_slot
 
 Confirmed by reading `cmd/server/game/inventory/equipment.go:99-148`: `gear_slot:

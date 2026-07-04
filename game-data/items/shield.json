@@ -1,6 +1,6 @@
 {
   "ac": "+2",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A sturdy wooden shield reinforced with a steel rim and boss, strapped to the forearm to catch blows meant for its bearer.",
   "gear_slot": "offhand",
   "id": "shield",
   "image": "/res/img/items/shield.png",
@@ -10,7 +10,8 @@
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "equipment"
+    "equipment",
+    "shield"
   ],
   "type": "Heavy Armor",
   "weight": 6

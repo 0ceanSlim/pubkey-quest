@@ -1,16 +1,19 @@
 {
   "ac": "13 + Dex(max2)",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A shirt of fine interlocking rings worn under clothing, offering discreet protection without the bulk of a full hauberk.",
   "gear_slot": "chest",
   "id": "chain-shirt",
   "image": "/res/img/items/chain-shirt.png",
   "name": "Chain Shirt",
-  "notes": [],
+  "notes": [
+    "Maximum Dexterity bonus of +2"
+  ],
   "value": 5000,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "equipment"
+    "equipment",
+    "medium"
   ],
   "type": "Medium Armor",
   "weight": 20

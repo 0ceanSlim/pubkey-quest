@@ -1,16 +1,19 @@
 {
   "ac": "14 + Dex(max2)",
-  "description": "NEEDS DESCRIPTION",
+  "description": "A fitted steel breastplate covering the torso, light enough to allow freedom of movement without sacrificing solid protection.",
   "gear_slot": "chest",
   "id": "breastplate",
   "image": "/res/img/items/breastplate.png",
   "name": "Breastplate",
-  "notes": [],
+  "notes": [
+    "Maximum Dexterity bonus of +2"
+  ],
   "value": 40000,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "equipment"
+    "equipment",
+    "medium"
   ],
   "type": "Medium Armor",
   "weight": 20

@@ -2,7 +2,7 @@
   "id": "splint-greaves",
   "name": "Splint Greaves",
   "description": "Leg armor made of vertical metal strips riveted to leather over chain mail.",
-  "rarity": "uncommon",
+  "rarity": "common",
   "value": 8000,
   "weight": 24,
   "stack": 1,

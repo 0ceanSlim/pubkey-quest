@@ -2,7 +2,7 @@
   "id": "scalemail-set",
   "name": "Scale Mail Set",
   "description": "A complete set of armor made from overlapping metal scales sewn to a leather backing.",
-  "rarity": "uncommon",
+  "rarity": "common",
   "value": 5000,
   "weight": 0,
   "stack": 1,

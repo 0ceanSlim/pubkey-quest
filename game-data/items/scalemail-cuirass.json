@@ -2,7 +2,7 @@
   "id": "scalemail-cuirass",
   "name": "Scale Mail Cuirass",
   "description": "A chest piece made from overlapping metal scales sewn to a leather backing.",
-  "rarity": "uncommon",
+  "rarity": "common",
   "value": 3000,
   "weight": 27,
   "stack": 1,

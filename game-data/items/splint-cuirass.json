@@ -2,7 +2,7 @@
   "id": "splint-cuirass",
   "name": "Splint Cuirass",
   "description": "A torso armor made of vertical metal strips riveted to leather over chain mail.",
-  "rarity": "uncommon",
+  "rarity": "common",
   "value": 12000,
   "weight": 36,
   "stack": 1,
