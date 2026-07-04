@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "bell",
   "image": "/res/img/items/bell.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Bell",
   "notes": [],
   "value": 100,

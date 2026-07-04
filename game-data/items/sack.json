@@ -1,10 +1,11 @@
 {
-  "allowed_types": "any",
+  "allowed_types": [
+    "any"
+  ],
   "container_slots": 4,
   "description": "NEEDS DESCRIPTION",
   "id": "sack",
   "image": "/res/img/items/sack.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Sack",
   "notes": [
     "adds 4 inventory slots, change to contain anything that weighs less than a certain weight to limit item size"

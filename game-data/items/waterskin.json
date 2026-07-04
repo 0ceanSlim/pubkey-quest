@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "waterskin",
   "image": "/res/img/items/waterskin.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Waterskin",
   "notes": [],
   "value": 20,

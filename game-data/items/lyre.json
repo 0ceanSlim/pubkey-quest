@@ -2,7 +2,6 @@
   "description": "A stringed musical instrument known for its use in ancient times. It has a sound box formed from a tortoise shell, two curved arms, and strings stretched between a crossbar and the sound box. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
   "id": "lyre",
   "image": "/res/img/items/lyre.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Lyre",
   "notes": [],
   "value": 3000,

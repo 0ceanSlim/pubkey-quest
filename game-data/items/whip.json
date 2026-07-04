@@ -1,11 +1,10 @@
 {
   "damage": "1d4",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "whip",
   "image": "/res/img/items/whip.png",
-  "img": "equipment/weapon.jpg",
   "name": "Whip",
   "notes": [],
   "value": 0,

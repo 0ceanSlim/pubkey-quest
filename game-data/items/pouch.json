@@ -1,17 +1,16 @@
 {
-  "allowed_types": "any",
+  "allowed_types": [
+    "any"
+  ],
   "container_slots": 20,
-  "contains": "any",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "bag",
   "id": "pouch",
   "image": "/res/img/items/pouch.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Pouch",
   "notes": [],
   "value": 0,
   "rarity": "common",
-  "slots": "4",
   "stack": 1,
   "tags": [
     "container",

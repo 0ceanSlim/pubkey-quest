@@ -2,7 +2,6 @@
   "description": "A glass timepiece that measures exactly one hour as sand falls from top to bottom.",
   "id": "hourglass",
   "image": "/res/img/items/hourglass.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Hourglass",
   "notes": [
     "Accurately measures one hour of time"

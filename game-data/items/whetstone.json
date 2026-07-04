@@ -2,7 +2,6 @@
   "description": "A fine-grained stone used for sharpening the edges of steel tools and weapons. Regular maintenance with a whetstone keeps bladed weapons in peak condition. Essential for any warrior or craftsperson.",
   "id": "whetstone",
   "image": "/res/img/items/whetstone.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Whetstone",
   "notes": [],
   "value": 1,

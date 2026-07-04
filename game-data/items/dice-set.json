@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "dice-set",
   "image": "/res/img/items/dice-set.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Dice set",
   "notes": [],
   "value": 10,

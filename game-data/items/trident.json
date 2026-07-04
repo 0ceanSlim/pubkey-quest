@@ -1,16 +1,15 @@
 {
   "damage": "1d6,1d8",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "trident",
   "image": "/res/img/items/trident.png",
-  "img": "equipment/weapon.jpg",
   "name": "Trident",
   "notes": [],
   "value": 0,
   "range": "1",
-  "range-long": "2",
+  "range_long": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [

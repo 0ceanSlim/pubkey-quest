@@ -1,11 +1,10 @@
 {
   "damage": "1d12",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "greataxe",
   "image": "/res/img/items/greataxe.png",
-  "img": "equipment/weapon.jpg",
   "name": "Greataxe",
   "notes": [],
   "value": 0,

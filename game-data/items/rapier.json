@@ -1,11 +1,10 @@
 {
   "damage": "1d8",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "rapier",
   "image": "/res/img/items/rapier.png",
-  "img": "equipment/weapon.jpg",
   "name": "Rapier",
   "notes": [],
   "value": 0,

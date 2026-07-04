@@ -1,11 +1,10 @@
 {
   "damage": "1d8,1d10",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "warhammer",
   "image": "/res/img/items/warhammer.png",
-  "img": "equipment/weapon.jpg",
   "name": "Warhammer",
   "notes": [],
   "value": 0,

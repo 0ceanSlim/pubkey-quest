@@ -4,7 +4,6 @@
   "gear_slot": "offhand",
   "id": "shield",
   "image": "/res/img/items/shield.png",
-  "img": "equipment/armor.jpg",
   "name": "Shield",
   "notes": [],
   "value": 1000,

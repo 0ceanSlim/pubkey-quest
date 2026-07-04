@@ -1,11 +1,10 @@
 {
   "damage": "1d8",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "greatclub",
   "image": "/res/img/items/greatclub.png",
-  "img": "equipment/weapon.jpg",
   "name": "Greatclub",
   "notes": [],
   "value": 0,

@@ -2,7 +2,6 @@
   "description": "A small telescope that magnifies objects that are far away. Objects viewed through a spyglass are magnified to twice their size, allowing you to see details at great distances. Essential for scouting and navigation.",
   "id": "spyglass",
   "image": "/res/img/items/spyglass.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Spyglass",
   "notes": [],
   "value": 100000,

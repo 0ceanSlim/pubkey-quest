@@ -1,11 +1,10 @@
 {
   "damage": "1d4",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "sickle",
   "image": "/res/img/items/sickle.png",
-  "img": "equipment/weapon.jpg",
   "name": "Sickle",
   "notes": [],
   "value": 0,

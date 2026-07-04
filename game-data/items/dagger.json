@@ -1,18 +1,17 @@
 {
   "damage": "1d4",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "A short, sharp blade perfect for close quarters combat or throwing at enemies.",
   "gear_slot": "hands",
   "id": "dagger",
   "image": "/res/img/items/dagger.png",
-  "img": "equipment/weapon.jpg",
   "name": "Dagger",
   "notes": [
     "Can be thrown at targets within 60 feet"
   ],
   "value": 0,
   "range": "1",
-  "range-long": "2",
+  "range_long": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [

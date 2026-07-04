@@ -2,7 +2,6 @@
   "description": "A convex lens in a handle that makes small objects appear larger for detailed examination.",
   "id": "magnifying-glass",
   "image": "/res/img/items/magnifying-glass.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Magnifying glass",
   "notes": [
     "Provides advantage on investigation checks involving small details"

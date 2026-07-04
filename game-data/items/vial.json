@@ -2,7 +2,6 @@
   "description": "A small glass container that can hold up to 4 ounces of liquid. Perfect for storing potions, oils, perfumes, or other valuable liquids. Has a cork stopper to prevent spills.",
   "id": "vial",
   "image": "/res/img/items/vial.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Vial",
   "notes": [],
   "value": 100,

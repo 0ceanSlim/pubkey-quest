@@ -4,7 +4,6 @@
   "gear_slot": "chest",
   "id": "breastplate",
   "image": "/res/img/items/breastplate.png",
-  "img": "equipment/armor.jpg",
   "name": "Breastplate",
   "notes": [],
   "value": 40000,

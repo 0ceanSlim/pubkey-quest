@@ -1302,11 +1302,12 @@ export function showItemDetails(itemId) {
     const combatRows = [];
     if (has(getProp('damage'))) {
         let dmg = esc(getProp('damage'));
-        if (has(getProp('damage-type'))) dmg += ` ${esc(getProp('damage-type'))}`;
+        const dtype = getProp('damage_type') || getProp('damage-type');
+        if (has(dtype)) dmg += ` ${esc(dtype)}`;
         combatRows.push(row('Damage', dmg, '#f87171'));
     }
     if (has(getProp('range'))) {
-        const long = getProp('range-long');
+        const long = getProp('range_long') || getProp('range-long');
         combatRows.push(row('Range', has(long) ? `${esc(getProp('range'))}/${esc(long)} ft` : `${esc(getProp('range'))} ft`, '#93c5fd'));
     }
     if (has(getProp('ac'))) combatRows.push(row('Armor Class', esc(getProp('ac')), '#93c5fd'));

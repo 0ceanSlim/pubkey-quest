@@ -2,7 +2,6 @@
   "description": "A ceramic vessel with a handle and spout for storing and pouring liquids.",
   "id": "jug-or-pitcher",
   "image": "/res/img/items/jug-or-pitcher.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Jug or pitcher",
   "notes": [
     "Can hold up to 1 gallon of liquid"

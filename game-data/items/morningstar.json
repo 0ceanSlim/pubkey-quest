@@ -1,11 +1,10 @@
 {
   "damage": "1d8",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "morningstar",
   "image": "/res/img/items/morningstar.png",
-  "img": "equipment/weapon.jpg",
   "name": "Morningstar",
   "notes": [],
   "value": 15,

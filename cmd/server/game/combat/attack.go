@@ -37,7 +37,11 @@ func getMeleeReach(item map[string]interface{}) int {
 // If normalRange parses as 0, a fallback of 3 is used.
 func getRangedReach(item map[string]interface{}) (normalRange, longRange int) {
 	normalRange = parseRangeInt(item["range"])
-	longRange = parseRangeInt(item["range-long"])
+	rl := item["range_long"]
+	if rl == nil {
+		rl = item["range-long"] // legacy hyphen fallback
+	}
+	longRange = parseRangeInt(rl)
 	if normalRange == 0 {
 		normalRange = 3 // fallback for weapons without explicit range
 	}
@@ -235,13 +239,13 @@ func WeaponDamageDice(item map[string]interface{}, offhandEmpty bool) string {
 	return oneH
 }
 
-// WeaponDamageType returns the damage type string from an item.
+// WeaponDamageType returns the damage type string from an item. Items use the
+// underscore key `damage_type`; the hyphen form is a legacy fallback.
 func WeaponDamageType(item map[string]interface{}) string {
-	// Items use "damage-type" as the key
-	if dt, ok := item["damage-type"].(string); ok && dt != "" {
+	if dt, ok := item["damage_type"].(string); ok && dt != "" {
 		return dt
 	}
-	if dt, ok := item["damage_type"].(string); ok && dt != "" {
+	if dt, ok := item["damage-type"].(string); ok && dt != "" {
 		return dt
 	}
 	return "bludgeoning"

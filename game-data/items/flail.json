@@ -1,11 +1,10 @@
 {
   "damage": "1d8",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "flail",
   "image": "/res/img/items/flail.png",
-  "img": "equipment/weapon.jpg",
   "name": "Flail",
   "notes": [],
   "value": 0,

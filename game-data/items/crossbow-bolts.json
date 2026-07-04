@@ -3,7 +3,6 @@
   "gear_slot": "ammo",
   "id": "crossbow-bolts",
   "image": "/res/img/items/crossbow-bolts.png",
-  "img": "equipment/ammunition.jpg",
   "name": "Crossbow Bolts",
   "notes": [],
   "value": 5,

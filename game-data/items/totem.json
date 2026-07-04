@@ -3,7 +3,6 @@
   "gear_slot": "hands",
   "id": "totem",
   "image": "/res/img/items/totem.png",
-  "img": "equipment/druidic-focus.jpg",
   "name": "Totem",
   "notes": [
     "Can be used as a spellcasting focus for druidic magic",
@@ -13,7 +12,6 @@
   "provides": "bone-dust",
   "rarity": "common",
   "stack": 1,
-  "substitutes": "",
   "tags": [
     "focus",
     "equipment"

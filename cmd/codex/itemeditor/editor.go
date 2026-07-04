@@ -27,11 +27,11 @@ type Item struct {
 	AllowedTypes   interface{}         `json:"allowed_types,omitempty"`
 	AC             interface{}         `json:"ac,omitempty"`
 	Damage         interface{}         `json:"damage,omitempty"`
-	DamageType     string              `json:"damage-type,omitempty"`
+	DamageType     string              `json:"damage_type,omitempty"`
 	Heal           interface{}         `json:"heal,omitempty"`
 	Ammunition     string              `json:"ammunition,omitempty"`
 	Range          string              `json:"range,omitempty"`
-	RangeLong      string              `json:"range-long,omitempty"`
+	RangeLong      string              `json:"range_long,omitempty"`
 	Effects         []interface{}          `json:"effects,omitempty"`
 	EffectsWhenWorn []string               `json:"effects_when_worn,omitempty"`
 	Tags            []string               `json:"tags,omitempty"`

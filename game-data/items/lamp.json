@@ -2,7 +2,6 @@
   "description": "An oil-burning lamp that provides steady light when fueled.",
   "id": "lamp",
   "image": "/res/img/items/lamp.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Lamp",
   "notes": [
     "Burns for 6 hours on one flask of oil",

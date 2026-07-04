@@ -1,7 +1,7 @@
 {
   "ammunition": "arrows",
   "damage": "1d4",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "ammo",
   "id": "dart",
@@ -10,7 +10,7 @@
   "notes": [],
   "value": 0,
   "range": "1",
-  "range-long": "2",
+  "range_long": "2",
   "rarity": "common",
   "stack": 10,
   "tags": [

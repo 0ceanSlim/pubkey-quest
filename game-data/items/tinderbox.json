@@ -2,7 +2,6 @@
   "description": "A small container holding flint, fire steel, and tinder (usually dry cloth soaked in oil) used to kindle fires. Lighting a torch with a tinderbox takes an action, and lighting any other fire takes 1 minute.",
   "id": "tinderbox",
   "image": "/res/img/items/tinderbox.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Tinderbox",
   "notes": [],
   "value": 50,

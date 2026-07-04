@@ -893,8 +893,8 @@ async function saveItem() {
     const isRanged = itemType.includes('ranged') || currentTags.includes('thrown') || currentTags.includes('ranged');
 
     if (!isArmor) delete item.ac;
-    if (!isWeapon && !isRanged) { delete item.damage; delete item['damage-type']; }
-    if (!isRanged) { delete item.ammunition; delete item.range; delete item['range-long']; }
+    if (!isWeapon && !isRanged) { delete item.damage; delete item.damage_type; delete item['damage-type']; }
+    if (!isRanged) { delete item.ammunition; delete item.range; delete item.range_long; delete item['range-long']; }
 
     const ac = document.getElementById('itemAC').value.trim();
     if (ac) item.ac = ac;
@@ -903,7 +903,7 @@ async function saveItem() {
     if (damage) item.damage = damage;
 
     const damageType = document.getElementById('damageType').value;
-    if (damageType) item['damage-type'] = damageType;
+    if (damageType) item.damage_type = damageType;
 
     // Ranged properties
     const ammunition = document.getElementById('ammunition').value.trim();
@@ -913,7 +913,7 @@ async function saveItem() {
     if (range) item.range = range;
 
     const rangeLong = document.getElementById('rangeLong').value.trim();
-    if (rangeLong) item['range-long'] = rangeLong;
+    if (rangeLong) item.range_long = rangeLong;
 
     // Consumable properties - heal is now just an hp effect
     delete item.heal;

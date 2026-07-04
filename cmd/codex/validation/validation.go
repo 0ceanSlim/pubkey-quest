@@ -478,24 +478,24 @@ func validateItemFile(filePath string, validItemIDs map[string]bool) []Issue {
 				Message:  "Ranged weapons must have 'range' property",
 			})
 		}
-		if rngLong, exists := item["range-long"]; !exists || rngLong == nil || rngLong == "" || rngLong == "null" {
+		if rngLong, exists := item["range_long"]; !exists || rngLong == nil || rngLong == "" || rngLong == "null" {
 			issues = append(issues, Issue{
 				Type:     "error",
 				Category: "items",
 				File:     filename,
-				Field:    "range-long",
-				Message:  "Ranged weapons must have 'range-long' property",
+				Field:    "range_long",
+				Message:  "Ranged weapons must have 'range_long' property",
 			})
 		}
 	} else {
 		// Non-ranged weapons should not have these properties
 		checkUnnecessaryField(item, "ammunition", filename, "Non-ranged item", &issues)
 		checkUnnecessaryField(item, "range", filename, "Non-ranged item", &issues)
-		checkUnnecessaryField(item, "range-long", filename, "Non-ranged item", &issues)
+		checkUnnecessaryField(item, "range_long", filename, "Non-ranged item", &issues)
 	}
 
 	// Check for unnecessary null/empty fields
-	unnecessaryIfNull := []string{"ac", "damage", "heal", "ammunition", "range", "range-long"}
+	unnecessaryIfNull := []string{"ac", "damage", "heal", "ammunition", "range", "range_long"}
 	for _, field := range unnecessaryIfNull {
 		checkUnnecessaryField(item, field, filename, "Item", &issues)
 	}

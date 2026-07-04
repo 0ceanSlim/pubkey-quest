@@ -2,7 +2,6 @@
   "description": "A stringed instrument with a rounded body and graceful neck, favored by bards and traveling musicians.",
   "id": "lute",
   "image": "/res/img/items/lute.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Lute",
   "notes": [
     "Can be used to perform music and entertain crowds"

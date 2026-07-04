@@ -1,11 +1,10 @@
 {
   "damage": "1d8,1d10",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "battleaxe",
   "image": "/res/img/items/battleaxe.png",
-  "img": "equipment/weapon.jpg",
   "name": "Battleaxe",
   "notes": [],
   "value": 0,

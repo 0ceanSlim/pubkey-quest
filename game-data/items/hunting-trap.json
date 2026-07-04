@@ -2,7 +2,6 @@
   "description": "A steel trap with sharp teeth designed to catch and hold small to medium creatures.",
   "id": "hunting-trap",
   "image": "/res/img/items/hunting-trap.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Hunting Trap",
   "notes": [
     "Can be set to catch creatures",

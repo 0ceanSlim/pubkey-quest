@@ -2,7 +2,6 @@
   "description": "A three-dimensional chess variant played on three 8×12 boards representing the sky, land, and underworld. Popular among scholars and strategists. Proficiency with dragonchess allows you to add your proficiency bonus to ability checks made to play the game.",
   "id": "dragonchess-set",
   "image": "/res/img/items/dragonchess-set.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Dragonchess set",
   "notes": [],
   "value": 100,

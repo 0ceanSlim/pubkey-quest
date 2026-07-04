@@ -130,7 +130,7 @@ export async function getItemStats(itemName) {
 
         if (props.damage) {
             statsHTML += `<div class="text-gray-300 text-sm">⚔️ Damage: ${props.damage
-                } ${props["damage-type"] || ""}</div>`;
+                } ${props.damage_type || props["damage-type"] || ""}</div>`;
         }
 
         if (props.ac) {

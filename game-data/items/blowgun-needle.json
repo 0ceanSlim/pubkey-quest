@@ -3,7 +3,6 @@
   "gear_slot": "ammo",
   "id": "blowgun-needle",
   "image": "/res/img/items/blowgun-needle.png",
-  "img": "equipment/ammunition.jpg",
   "name": "Blowgun Needle",
   "notes": [],
   "value": 2,

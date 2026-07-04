@@ -2,7 +2,6 @@
   "description": "A wax compound used to seal letters and documents. When heated and applied with a signet ring or seal, it creates an official mark that shows if a document has been tampered with.",
   "id": "sealing-wax",
   "image": "/res/img/items/sealing-wax.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Sealing wax",
   "notes": [],
   "value": 50,

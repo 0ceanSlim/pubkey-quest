@@ -1,16 +1,15 @@
 {
   "damage": "1d6",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "ammo",
   "id": "javelin",
   "image": "/res/img/items/javelin.png",
-  "img": "equipment/weapon.jpg",
   "name": "Javelin",
   "notes": [],
   "value": 0,
   "range": "1",
-  "range-long": "3",
+  "range_long": "3",
   "rarity": "common",
   "stack": 5,
   "tags": [

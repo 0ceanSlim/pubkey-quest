@@ -2,13 +2,11 @@
   "allowed_types": [
     "Ammunition"
   ],
-  "container": true,
   "container_slots": 4,
   "description": "A container for holding arrows, crossbow bolts, or javelins. A quiver can hold up to 20 arrows, 20 crossbow bolts, or 5 javelins. It can be worn on the back or at the hip for easy access during combat.",
   "gear_slot": "ammo",
   "id": "quiver",
   "image": "/res/img/items/quiver.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Quiver",
   "notes": [],
   "value": 0,

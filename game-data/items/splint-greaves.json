@@ -18,5 +18,6 @@
     "Requires Strength 15 to wear effectively",
     "Disadvantage on Stealth"
   ],
-  "image": "/res/img/items/splint-greaves.png"
+  "image": "/res/img/items/splint-greaves.png",
+  "set": "splint-set"
 }

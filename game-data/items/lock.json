@@ -2,7 +2,6 @@
   "description": "A sturdy padlock with a key, used to secure doors, chests, and containers.",
   "id": "lock",
   "image": "/res/img/items/lock.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Lock",
   "notes": [
     "Comes with a key",

@@ -9,10 +9,10 @@
   "type": "Martial Ranged Weapons",
   "gear_slot": "hands",
   "damage": "1d6",
-  "damage-type": "piercing",
-  "ammunition": "bolts",
+  "damage_type": "piercing",
+  "ammunition": "crossbow-bolts",
   "range": "1",
-  "range-long": "3",
+  "range_long": "3",
   "tags": [
     "ammunition",
     "loading",

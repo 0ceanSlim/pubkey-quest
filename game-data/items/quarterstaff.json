@@ -1,11 +1,10 @@
 {
   "damage": "1d6,1d8",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "quarterstaff",
   "image": "/res/img/items/quarterstaff.png",
-  "img": "equipment/weapon.jpg",
   "name": "Quarterstaff",
   "notes": [],
   "value": 0,

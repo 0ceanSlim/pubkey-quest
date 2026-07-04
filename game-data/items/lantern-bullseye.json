@@ -2,7 +2,6 @@
   "description": "A focused lantern that casts a bright cone of light in one direction.",
   "id": "lantern-bullseye",
   "image": "/res/img/items/lantern-bullseye.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Lantern Bullseye",
   "notes": [
     "Casts bright light in a 60-foot cone",

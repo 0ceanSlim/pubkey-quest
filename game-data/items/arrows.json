@@ -3,7 +3,6 @@
   "gear_slot": "ammo",
   "id": "arrows",
   "image": "/res/img/items/arrows.png",
-  "img": "equipment/ammunition.jpg",
   "name": "Arrows",
   "notes": [],
   "value": 5,

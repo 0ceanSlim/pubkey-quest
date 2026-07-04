@@ -1,11 +1,12 @@
 {
-  "allowed_types": "spell-scroll",
+  "allowed_types": [
+    "spell-scroll"
+  ],
   "container_slots": 20,
   "description": "A leather-bound tome with 100 blank vellum pages suitable for recording spells. Essential for wizards and other spellcasters who prepare spells from written sources. The book has brass fittings and a clasp.",
   "gear_slot": "hands",
   "id": "spellbook",
   "image": "/res/img/items/spellbook.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Spellbook",
   "notes": [
     "when equipped, should add a d3 to spell damages, maybe other bonuses"

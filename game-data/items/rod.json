@@ -3,7 +3,6 @@
   "gear_slot": "hands",
   "id": "rod",
   "image": "/res/img/items/rod.png",
-  "img": "equipment/arcane-focus.jpg",
   "name": "Rod",
   "notes": [
     "Can be used as a spellcasting focus for arcane magic",

@@ -2,7 +2,6 @@
   "description": "A discreet roll of lockpicks, fine files, skeleton keys, disguise paints, and a forger's pen — everything a rogue needs for delicate, deniable work. Used with the Thieving skill to pick locks, disarm traps, forge documents, brew poisons, and go unseen.",
   "id": "thieves-kit",
   "image": "/res/img/items/thieves-kit.png",
-  "img": "equipment/tool.jpg",
   "name": "Thieves' Kit",
   "notes": [
     "Used with the Thieving skill for lockpicking, traps, forgery, poisons, and disguise"

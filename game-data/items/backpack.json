@@ -13,9 +13,12 @@
     "equipment"
   ],
   "container_slots": 20,
-  "allowed_types": "any",
-  "effects_when_worn": ["backpack-capacity"],
-  "img": "equipment/adventuring-gear.jpg",
+  "allowed_types": [
+    "any"
+  ],
+  "effects_when_worn": [
+    "backpack-capacity"
+  ],
   "notes": [
     "Expands carrying capacity for adventuring",
     "adds 20 slots to inventory",

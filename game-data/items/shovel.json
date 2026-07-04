@@ -1,10 +1,9 @@
 {
   "damage": "1d6",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "A tool with a broad flat blade and typically upturned sides, used for moving earth, snow, or other material. Essential for digging holes, graves, or excavation work.",
   "id": "shovel",
   "image": "/res/img/items/shovel.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Shovel",
   "notes": [],
   "value": 2,

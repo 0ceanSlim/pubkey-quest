@@ -2,7 +2,6 @@
   "description": "A heavy two-handed hammer designed for breaking through walls and large objects.",
   "id": "hammer-sledge",
   "image": "/res/img/items/hammer-sledge.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Sledge Hammer",
   "notes": [
     "Effective for breaking down barriers"

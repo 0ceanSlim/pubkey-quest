@@ -1,11 +1,10 @@
 {
   "damage": "2d6",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "greatsword",
   "image": "/res/img/items/greatsword.png",
-  "img": "equipment/weapon.jpg",
   "name": "Greatsword",
   "notes": [],
   "value": 0,

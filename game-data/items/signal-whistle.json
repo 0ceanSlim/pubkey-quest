@@ -2,7 +2,6 @@
   "description": "A small whistle that produces a loud, sharp sound that can be heard up to 600 feet away. Essential for signaling allies, calling for help, or coordinating group movements.",
   "id": "signal-whistle",
   "image": "/res/img/items/signal-whistle.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Signal whistle",
   "notes": [
     "Can be used to summon a monster to fight."

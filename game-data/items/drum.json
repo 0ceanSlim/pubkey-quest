@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "drum",
   "image": "/res/img/items/drum.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Drum",
   "notes": [],
   "value": 600,

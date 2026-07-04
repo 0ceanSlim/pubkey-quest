@@ -2,7 +2,6 @@
   "description": "A musical instrument based on the principle of the closed tube, consisting of multiple pipes of gradually increasing length. Also known as panpipes. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
   "id": "pan-flute",
   "image": "/res/img/items/pan-flute.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Pan Flute",
   "notes": [],
   "value": 1200,

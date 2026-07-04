@@ -1,6 +1,6 @@
 {
   "damage": "1d6",
-  "damage-type": "fire",
+  "damage_type": "fire",
   "description": "A sticky, adhesive fluid that ignites when exposed to air, creating persistent flames.",
   "id": "alchemists-fire",
   "image": "/res/img/items/alchemists-fire.png",
@@ -8,7 +8,7 @@
   "notes": [],
   "value": 5000,
   "range": "1",
-  "range-long": "2",
+  "range_long": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [

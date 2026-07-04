@@ -2,7 +2,6 @@
   "description": "A standard hammer with a wooden handle, useful for construction and repairs.",
   "id": "hammer",
   "image": "/res/img/items/hammer.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Hammer",
   "notes": [
     "Useful for construction and basic repairs"

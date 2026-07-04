@@ -3,7 +3,6 @@
   "description": "A tool designed for breaking up rocks and hard surfaces. Consists of a wooden handle with a pointed metal head. Essential for mining operations and can be used to break through stone walls.",
   "id": "pick-miners",
   "image": "/res/img/items/pick-miners.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Pickaxe",
   "notes": [],
   "value": 200,

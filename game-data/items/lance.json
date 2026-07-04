@@ -1,11 +1,10 @@
 {
   "damage": "1d12",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "lance",
   "image": "/res/img/items/lance.png",
-  "img": "equipment/weapon.jpg",
   "name": "Lance",
   "notes": [],
   "value": 0,

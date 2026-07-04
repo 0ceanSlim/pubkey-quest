@@ -2,7 +2,6 @@
   "description": "A tin box containing a cup, fork, knife, spoon, and plate for eating meals.",
   "id": "mess-kit",
   "image": "/res/img/items/mess-kit.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Mess kit",
   "notes": [
     "Contains basic eating utensils"

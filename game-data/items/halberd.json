@@ -1,11 +1,10 @@
 {
   "damage": "1d10",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "halberd",
   "image": "/res/img/items/halberd.png",
-  "img": "equipment/weapon.jpg",
   "name": "Halberd",
   "notes": [],
   "value": 0,

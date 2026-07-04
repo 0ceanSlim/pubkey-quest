@@ -3,7 +3,6 @@
   "gear_slot": "hands",
   "id": "sprig-of-mistletoe",
   "image": "/res/img/items/sprig-of-mistletoe.png",
-  "img": "equipment/druidic-focus.jpg",
   "name": "Sprig of Mistletoe",
   "notes": [
     "Can be used as a spellcasting focus for druidic magic",
@@ -13,7 +12,6 @@
   "provides": "pollen",
   "rarity": "common",
   "stack": 1,
-  "substitutes": "",
   "tags": [
     "focus",
     "equipment"

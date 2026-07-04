@@ -8,7 +8,9 @@
   "stack": 1,
   "type": "Adventuring Gear",
   "container_slots": 16,
-  "allowed_types": "any",
+  "allowed_types": [
+    "any"
+  ],
   "tags": [
     "container"
   ],

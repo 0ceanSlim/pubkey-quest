@@ -4,7 +4,6 @@
   "heal": "4d4 + 4",
   "id": "greater-healing",
   "image": "/res/img/items/greater-healing.png",
-  "img": "equipment/potion.jpg",
   "name": "Greater healing",
   "notes": [
     "Single use item",

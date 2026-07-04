@@ -2,7 +2,6 @@
   "description": "A simple writing implement with a metal nib for dipping in ink.",
   "id": "ink-pen",
   "image": "/res/img/items/ink-pen.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Ink pen",
   "notes": [
     "Used for writing with ink"

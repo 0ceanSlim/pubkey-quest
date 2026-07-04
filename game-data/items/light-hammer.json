@@ -1,16 +1,15 @@
 {
   "damage": "1d4",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "light-hammer",
   "image": "/res/img/items/light-hammer.png",
-  "img": "equipment/weapon.jpg",
   "name": "Light hammer",
   "notes": [],
   "value": 0,
   "range": "1",
-  "range-long": "2",
+  "range_long": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [

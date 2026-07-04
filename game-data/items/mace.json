@@ -1,11 +1,10 @@
 {
   "damage": "1d6",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "hands",
   "id": "mace",
   "image": "/res/img/items/mace.png",
-  "img": "equipment/weapon.jpg",
   "name": "Mace",
   "notes": [],
   "value": 5,

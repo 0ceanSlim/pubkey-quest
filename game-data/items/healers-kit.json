@@ -2,7 +2,6 @@
   "description": "A collection of bandages, salves, and medical supplies for treating wounds.",
   "id": "healers-kit",
   "image": "/res/img/items/healers-kit.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Healer's kit",
   "notes": [
     "Can be used to stabilize dying creatures",

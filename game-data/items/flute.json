@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "flute",
   "image": "/res/img/items/flute.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Flute",
   "notes": [],
   "value": 200,

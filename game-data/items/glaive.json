@@ -1,11 +1,10 @@
 {
   "damage": "1d10",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "glaive",
   "image": "/res/img/items/glaive.png",
-  "img": "equipment/weapon.jpg",
   "name": "Glaive",
   "notes": [],
   "value": 0,

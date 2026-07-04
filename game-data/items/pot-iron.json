@@ -2,7 +2,6 @@
   "description": "A sturdy iron cooking pot with a lid. Can hold 1 gallon of liquid and is suitable for cooking meals over a fire. Essential for preparing hot meals during travel.",
   "id": "pot-iron",
   "image": "/res/img/items/pot-iron.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Iron Pot",
   "notes": [],
   "value": 200,

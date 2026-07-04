@@ -3,7 +3,6 @@
   "gear_slot": "hands",
   "id": "wand",
   "image": "/res/img/items/wand.png",
-  "img": "equipment/arcane-focus.jpg",
   "name": "Wand",
   "notes": [
     "Can be used as a spellcasting focus for arcane magic",
@@ -13,7 +12,6 @@
   "provides": "arcane-powder",
   "rarity": "common",
   "stack": 1,
-  "substitues": "",
   "tags": [
     "focus",
     "equipment"

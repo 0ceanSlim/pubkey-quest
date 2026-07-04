@@ -2,7 +2,6 @@
   "description": "A wind instrument, typically made of metal or horn, that produces sound from the vibration of the player's lips. Can also be used as a signaling device. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
   "id": "horn",
   "image": "/res/img/items/horn.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Horn",
   "notes": [],
   "value": 300,

@@ -2,7 +2,6 @@
   "description": "A ring bearing a seal or emblem used to stamp documents or sealing wax. Often indicates the bearer's identity, authority, or family lineage. Essential for official correspondence.",
   "id": "signet-ring",
   "image": "/res/img/items/signet-ring.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Signet ring",
   "notes": [],
   "value": 500,

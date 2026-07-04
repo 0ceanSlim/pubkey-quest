@@ -2,7 +2,6 @@
   "description": "A three-pronged metal hook attached to a length of rope, used for climbing.",
   "id": "grappling-hook",
   "image": "/res/img/items/grappling-hook.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Grappling Hook",
   "notes": [
     "Can be thrown to catch onto ledges for climbing"

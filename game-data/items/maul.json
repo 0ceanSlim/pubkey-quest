@@ -1,11 +1,10 @@
 {
   "damage": "2d6",
-  "damage-type": "bludgeon",
+  "damage_type": "bludgeoning",
   "description": "NEEDS DESCRIPTION",
   "gear_slot": "mainhand",
   "id": "maul",
   "image": "/res/img/items/maul.png",
-  "img": "equipment/weapon.jpg",
   "name": "Maul",
   "notes": [],
   "value": 0,

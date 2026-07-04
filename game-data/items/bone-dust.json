@@ -2,7 +2,6 @@
   "description": "Fine powder ground from the bones of cursed creatures. It feels cold and seems to absorb light around it. Required for casting Bane spells.",
   "id": "bone-dust",
   "image": "/res/img/items/bone-dust.png",
-  "img": "equipment/spell-component.jpg",
   "name": "Bone Dust",
   "notes": [
     "Used for necromancy and summoning magic",

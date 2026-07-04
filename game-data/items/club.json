@@ -1,6 +1,6 @@
 {
   "damage": "1d4",
-  "damage-type": "bludgeoning",
+  "damage_type": "bludgeoning",
   "description": "A simple wooden club, rough-hewn and heavy enough to deal damage in close combat.",
   "gear_slot": "hands",
   "id": "club",

@@ -4,7 +4,6 @@
   "heal": "8d4 + 8",
   "id": "superior-healing",
   "image": "/res/img/items/superior-healing.png",
-  "img": "equipment/potion.jpg",
   "name": "Superior healing",
   "notes": [
     "Single use item",

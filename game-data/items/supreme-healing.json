@@ -4,7 +4,6 @@
   "heal": "10d4 + 20",
   "id": "supreme-healing",
   "image": "/res/img/items/supreme-healing.png",
-  "img": "equipment/potion.jpg",
   "name": "Supreme healing",
   "notes": [
     "Single use item",

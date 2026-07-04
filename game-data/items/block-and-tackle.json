@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "block-and-tackle",
   "image": "/res/img/items/block-and-tackle.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Block and Tackle",
   "notes": [],
   "value": 100,

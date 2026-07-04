@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "blanket",
   "image": "/res/img/items/blanket.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Blanket",
   "notes": [],
   "value": 50,

@@ -9,10 +9,10 @@
   "type": "Martial Ranged Weapons",
   "gear_slot": "hands",
   "damage": "1",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "ammunition": "blowgun-needle",
   "range": "1",
-  "range-long": "3",
+  "range_long": "3",
   "tags": [
     "ammunition",
     "loading",

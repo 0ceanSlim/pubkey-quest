@@ -2,7 +2,6 @@
   "description": "A heavy iron bar with a flattened end, useful for prying open doors and containers.",
   "id": "crowbar",
   "image": "/res/img/items/crowbar.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Crowbar",
   "notes": [
     "Provides advantage when forcing open objects"

@@ -1,11 +1,10 @@
 {
   "damage": "1d8,1d10",
-  "damage-type": "slashing",
+  "damage_type": "slashing",
   "description": "A well-balanced blade with a long, straight edge. The signature weapon of knights and warriors.",
   "gear_slot": "hands",
   "id": "longsword",
   "image": "/res/img/items/longsword.png",
-  "img": "equipment/weapon.jpg",
   "name": "Longsword",
   "notes": [
     "Can be wielded with two hands for increased damage"

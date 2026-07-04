@@ -1,7 +1,7 @@
 {
   "ammunition": "arrows",
   "damage": "0",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "NEEDS DESCRIPTION",
   "id": "net",
   "image": "/res/img/items/net.png",
@@ -11,7 +11,7 @@
   ],
   "value": 0,
   "range": "1",
-  "range-long": "320",
+  "range_long": "320",
   "rarity": "common",
   "stack": 1,
   "tags": [

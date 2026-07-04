@@ -4,7 +4,6 @@
   "heal": "2d4 + 2",
   "id": "healing",
   "image": "/res/img/items/healing.png",
-  "img": "equipment/potion.jpg",
   "name": "Healing",
   "notes": [
     "Single use item",

@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "playing-card-set",
   "image": "/res/img/items/playing-card-set.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Playing card set",
   "notes": [],
   "value": 500,

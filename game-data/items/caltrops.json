@@ -2,7 +2,6 @@
   "description": "Sharp metal spikes designed to slow down pursuers by damaging feet and hooves.",
   "id": "caltrops",
   "image": "/res/img/items/caltrops.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Caltrops",
   "notes": [
     "Can be scattered to create difficult terrain",

@@ -6,7 +6,6 @@
   "weight": 2,
   "stack": 10,
   "id": "rations",
-  "img": "equipment/adventuring-gear.jpg",
   "rarity": "common",
   "tags": [
     "consumable"

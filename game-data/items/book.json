@@ -2,7 +2,6 @@
   "description": "NEEDS DESCRIPTION",
   "id": "book",
   "image": "/res/img/items/book.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Book",
   "notes": [],
   "value": 2500,

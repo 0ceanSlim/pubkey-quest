@@ -2,7 +2,6 @@
   "description": "A lantern with shutters that can be opened or closed to control the light.",
   "id": "lantern-hooded",
   "image": "/res/img/items/lantern-hooded.png",
-  "img": "equipment/adventuring-gear.jpg",
   "name": "Lantern hooded",
   "notes": [
     "Light can be dimmed or blocked by closing shutters",

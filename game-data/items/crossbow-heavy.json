@@ -1,12 +1,11 @@
 {
-  "ammunition": "bolts",
+  "ammunition": "crossbow-bolts",
   "damage": "1d10",
-  "damage-type": "piercing",
+  "damage_type": "piercing",
   "description": "A large, powerful crossbow that requires two hands to operate effectively.",
   "gear_slot": "mainhand",
   "id": "crossbow-heavy",
   "image": "/res/img/items/crossbow-heavy.png",
-  "img": "equipment/weapon.jpg",
   "name": "Crossbow heavy",
   "notes": [
     "Requires bolts to fire",
@@ -15,7 +14,7 @@
   ],
   "value": 0,
   "range": "3",
-  "range-long": "5",
+  "range_long": "5",
   "rarity": "common",
   "stack": 1,
   "tags": [

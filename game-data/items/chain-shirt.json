@@ -4,7 +4,6 @@
   "gear_slot": "chest",
   "id": "chain-shirt",
   "image": "/res/img/items/chain-shirt.png",
-  "img": "equipment/armor.jpg",
   "name": "Chain Shirt",
   "notes": [],
   "value": 5000,
