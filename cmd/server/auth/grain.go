@@ -25,11 +25,15 @@ func NewAuthHandler(cfg *utils.Config) *AuthHandler {
 	return &AuthHandler{config: cfg}
 }
 
-// LoginRequest represents a login request for Pubkey Quest
+// LoginRequest represents a login request for Pubkey Quest.
+//
+// As of grain 0.8 all signing happens client-side (mill installs a
+// window.nostr-compatible signer). The server never receives a private key —
+// it only records the authenticated hex public key and the signing method the
+// client chose.
 type LoginRequest struct {
 	PublicKey     string                         `json:"public_key,omitempty"`
-	PrivateKey    string                         `json:"private_key,omitempty"`  // nsec format
-	SigningMethod session.SigningMethod         `json:"signing_method"`
+	SigningMethod session.SigningMethod          `json:"signing_method"`
 	Mode          session.SessionInteractionMode `json:"mode,omitempty"`
 }
 
@@ -50,13 +54,6 @@ type SessionResponse struct {
 	Session  *session.UserSession `json:"session,omitempty"`
 	NPub     string              `json:"npub,omitempty"`
 	Error    string              `json:"error,omitempty"`
-}
-
-// KeyPairResponse represents a key generation response
-type KeyPairResponse struct {
-	Success bool           `json:"success"`
-	KeyPair *tools.KeyPair `json:"key_pair,omitempty"`
-	Error   string         `json:"error,omitempty"`
 }
 
 // HandleLogin handles user login/authentication using grain session system
@@ -83,74 +80,24 @@ func (auth *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		req.Mode = session.WriteMode
 	}
 
+	// The client (mill) does all signing and only ever sends us the resulting
+	// public key. Accept npub or hex and normalize to hex.
+	if req.PublicKey == "" {
+		auth.sendErrorResponse(w, "Public key is required", http.StatusBadRequest)
+		return
+	}
+
+	pubkeyHex, err := normalizePubkey(req.PublicKey)
+	if err != nil {
+		auth.sendErrorResponse(w, fmt.Sprintf("Invalid public key: %v", err), http.StatusBadRequest)
+		return
+	}
+
 	// Create session init request for grain
 	sessionReq := session.SessionInitRequest{
 		RequestedMode: req.Mode,
 		SigningMethod: req.SigningMethod,
-	}
-
-	// Handle different signing methods
-	switch req.SigningMethod {
-	case session.BrowserExtension:
-		if req.PublicKey == "" {
-			auth.sendErrorResponse(w, "Public key required for browser extension signing", http.StatusBadRequest)
-			return
-		}
-		sessionReq.PublicKey = req.PublicKey
-
-	case session.AmberSigning:
-		if req.PublicKey == "" {
-			auth.sendErrorResponse(w, "Public key required for Amber signing", http.StatusBadRequest)
-			return
-		}
-		sessionReq.PublicKey = req.PublicKey
-
-	case session.EncryptedKey:
-		if req.PrivateKey == "" {
-			auth.sendErrorResponse(w, "Private key required for encrypted key signing", http.StatusBadRequest)
-			return
-		}
-
-		var privateKeyHex string
-		var err error
-
-		// Handle both nsec and hex format
-		if strings.HasPrefix(req.PrivateKey, "nsec") {
-			// Decode nsec to get hex private key
-			privateKeyHex, err = tools.DecodeNsec(req.PrivateKey)
-			if err != nil {
-				auth.sendErrorResponse(w, fmt.Sprintf("Invalid nsec format: %v", err), http.StatusBadRequest)
-				return
-			}
-		} else if len(req.PrivateKey) == 64 {
-			// Assume it's already hex format
-			if matched, _ := regexp.MatchString("^[0-9a-fA-F]{64}$", req.PrivateKey); !matched {
-				auth.sendErrorResponse(w, "Invalid hex private key format", http.StatusBadRequest)
-				return
-			}
-			privateKeyHex = req.PrivateKey
-		} else {
-			auth.sendErrorResponse(w, "Private key must be nsec format or 64-character hex", http.StatusBadRequest)
-			return
-		}
-
-		pubkey, err := tools.DerivePublicKey(privateKeyHex)
-		if err != nil {
-			auth.sendErrorResponse(w, fmt.Sprintf("Failed to derive public key: %v", err), http.StatusBadRequest)
-			return
-		}
-
-		sessionReq.PublicKey = pubkey
-		sessionReq.PrivateKey = req.PrivateKey
-
-	default:
-		// For read-only mode or other cases
-		if req.PublicKey != "" {
-			sessionReq.PublicKey = req.PublicKey
-		} else {
-			auth.sendErrorResponse(w, "Either public key or private key must be provided", http.StatusBadRequest)
-			return
-		}
+		PublicKey:     pubkeyHex,
 	}
 
 	// Check whitelist access before creating session
@@ -250,90 +197,89 @@ func (auth *AuthHandler) HandleSession(w http.ResponseWriter, r *http.Request) {
 	auth.sendJSONResponse(w, response, http.StatusOK)
 }
 
-// HandleGenerateKeys handles key pair generation
-func (auth *AuthHandler) HandleGenerateKeys(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Generate new key pair using grain tools
-	keyPair, err := tools.GenerateKeyPair()
-	if err != nil {
-		auth.sendErrorResponse(w, fmt.Sprintf("Failed to generate keys: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("🎮 Generated new key pair for Pubkey Quest: %s", keyPair.Npub)
-
-	response := KeyPairResponse{
-		Success: true,
-		KeyPair: keyPair,
-	}
-
-	auth.sendJSONResponse(w, response, http.StatusOK)
-}
-
-// HandleAmberCallback processes callbacks from Amber app
+// HandleAmberCallback receives Amber's NIP-55 redirect and hands the resulting
+// public key back to the MILL modal running in the user's original tab. It
+// speaks MILL's amber-callback protocol (localStorage key "mill:amber:result"
+// plus a postMessage to window.opener); MILL's awaitAmberResult listener there
+// completes the connection, and the resulting pubkey then flows through the
+// normal HandleLogin path — which is where the session + whitelist check happen.
 func (auth *AuthHandler) HandleAmberCallback(w http.ResponseWriter, r *http.Request) {
-	log.Printf("🎮 Amber callback received: method=%s, url=%s", r.Method, r.URL.String())
+	log.Printf("🎮 Amber callback received: url=%s", r.URL.String())
 
-	// Parse query parameters
 	eventParam := r.URL.Query().Get("event")
+
+	var pubkeyHex, errMsg string
 	if eventParam == "" {
 		log.Printf("❌ Amber callback missing event parameter")
-		auth.renderAmberError(w, "Missing event data from Amber")
-		return
-	}
-
-	// URL decode the event parameter (Amber may send it encoded)
-	decodedEvent, err := url.QueryUnescape(eventParam)
-	if err != nil {
-		log.Printf("⚠️ Failed to URL decode event parameter, using raw value: %v", err)
-		decodedEvent = eventParam
-	}
-
-	log.Printf("📥 Amber event parameter: %s", decodedEvent)
-
-	// Extract public key from event parameter
-	publicKey, err := auth.extractPublicKeyFromAmber(decodedEvent)
-	if err != nil {
-		log.Printf("❌ Failed to extract public key from amber response: %v", err)
-		auth.renderAmberError(w, "Invalid response from Amber: "+err.Error())
-		return
-	}
-
-	log.Printf("✅ Amber callback processed successfully: %s...", publicKey[:16])
-
-	// Check whitelist access before creating session
-	if err := auth.checkWhitelistAccess(r, publicKey); err != nil {
-		log.Printf("❌ Whitelist check failed for Amber login: %v", err)
-		if whitelistErr, ok := err.(*WhitelistError); ok {
-			auth.renderAmberWhitelistError(w, whitelistErr)
-		} else {
-			auth.renderAmberError(w, "Access denied: "+err.Error())
+		errMsg = "Missing event data from Amber"
+	} else {
+		// Amber may URL-encode the event parameter.
+		decodedEvent, decErr := url.QueryUnescape(eventParam)
+		if decErr != nil {
+			decodedEvent = eventParam
 		}
-		return
+
+		pk, err := auth.extractPublicKeyFromAmber(decodedEvent)
+		if err != nil {
+			log.Printf("❌ Failed to extract public key from amber response: %v", err)
+			errMsg = "Invalid response from Amber"
+		} else {
+			pubkeyHex = pk
+			log.Printf("✅ Amber callback resolved pubkey: %s...", pubkeyHex[:16])
+		}
 	}
 
-	// Create session
-	sessionRequest := session.SessionInitRequest{
-		PublicKey:     publicKey,
-		RequestedMode: session.WriteMode, // Game requires write mode
-		SigningMethod: session.AmberSigning,
-	}
+	auth.renderAmberRelay(w, pubkeyHex, errMsg)
+}
 
-	_, err = session.CreateUserSession(w, sessionRequest)
-	if err != nil {
-		log.Printf("❌ Failed to create amber session: %v", err)
-		auth.renderAmberError(w, "Failed to create session")
-		return
-	}
+// renderAmberRelay returns a minimal page that writes the Amber result into
+// MILL's amber-callback channel and closes itself. It intentionally does not
+// create a session — that happens uniformly in HandleLogin once the MILL modal
+// reports the connection.
+func (auth *AuthHandler) renderAmberRelay(w http.ResponseWriter, pubkeyHex, errMsg string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
 
-	log.Printf("✅ Amber session created successfully: %s...", publicKey[:16])
+	// Marshal to JS string literals for safe embedding.
+	eventJSON, _ := json.Marshal(pubkeyHex)
+	errorJSON, _ := json.Marshal(errMsg)
 
-	// Render success page with auto-redirect
-	auth.renderAmberSuccess(w, publicKey)
+	html := `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Amber — Pubkey Quest</title>
+	<style>
+		body { font-family: 'Dogica Pixel', monospace; margin: 0; padding: 24px; background: #001100; color: #00ff41; text-align: center; }
+		.err { color: #ff4444; }
+	</style>
+</head>
+<body>
+	<p id="msg">Returning to Pubkey Quest…</p>
+	<script>
+		(function () {
+			var event = ` + string(eventJSON) + `;
+			var error = ` + string(errorJSON) + `;
+			try { localStorage.setItem('mill:amber:result', JSON.stringify({ event: event, error: error })); } catch (e) {}
+			try { if (window.opener) window.opener.postMessage({ amberEvent: event, amberError: error }, '*'); } catch (e) {}
+			if (error) {
+				var m = document.getElementById('msg');
+				m.className = 'err';
+				m.textContent = 'Amber error: ' + error;
+			}
+			setTimeout(function () {
+				try {
+					if (window.opener && !window.opener.closed) { window.close(); }
+					else { window.location.href = '/'; }
+				} catch (e) { window.location.href = '/'; }
+			}, 400);
+		})();
+	</script>
+</body>
+</html>`
+
+	w.Write([]byte(html))
 }
 
 // GetCurrentUser is a utility function to get the current authenticated user
@@ -500,10 +446,13 @@ func (auth *AuthHandler) isWhitelisted(pubkey string) bool {
 	return false
 }
 
-// WhitelistError represents a whitelist access denial with form URL
+// WhitelistError represents a whitelist access denial. Access is now requested
+// through the in-app form (POST /api/report/access), so no external form URL is
+// carried here. Pubkey is the denied key (hex), surfaced to the client so the
+// access-request form can auto-fill it.
 type WhitelistError struct {
 	Message string
-	FormURL string
+	Pubkey  string
 }
 
 func (e *WhitelistError) Error() string {
@@ -527,233 +476,12 @@ func (auth *AuthHandler) checkWhitelistAccess(r *http.Request, pubkey string) er
 		log.Printf("🚫 Access denied for non-whitelisted pubkey: %s...", pubkey[:16])
 		return &WhitelistError{
 			Message: "Access denied: Your public key is not whitelisted for this test server",
-			FormURL: auth.config.Server.WhitelistFormURL,
+			Pubkey:  pubkey,
 		}
 	}
 
 	log.Printf("✅ Whitelisted pubkey allowed: %s...", pubkey[:16])
 	return nil
-}
-
-func (auth *AuthHandler) renderAmberSuccess(w http.ResponseWriter, publicKey string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-
-	html := `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amber Login Success - Pubkey Quest</title>
-    <style>
-        body {
-            font-family: 'Pixelify Sans', monospace;
-            margin: 0;
-            padding: 20px;
-            background: #001100;
-            color: #00ff41;
-            text-align: center;
-        }
-        .success { color: #00ff41; margin: 20px 0; }
-        .loading { color: #888; }
-    </style>
-</head>
-<body>
-    <div class="success">
-        <h2>✅ Amber Login Successful!</h2>
-        <p>Connected successfully. Returning to Pubkey Quest...</p>
-    </div>
-    <div class="loading">
-        <p>Please wait...</p>
-    </div>
-
-    <script>
-        const amberResult = {
-            success: true,
-            publicKey: '` + publicKey + `',
-            timestamp: Date.now()
-        };
-
-        try {
-            localStorage.setItem('amber_callback_result', JSON.stringify(amberResult));
-            console.log('Stored Amber success result in localStorage');
-        } catch (error) {
-            console.error('Failed to store Amber result:', error);
-        }
-
-        if (window.opener && !window.opener.closed) {
-            try {
-                window.opener.postMessage({
-                    type: 'amber_success',
-                    publicKey: '` + publicKey + `'
-                }, window.location.origin);
-                console.log('Sent success message to opener window');
-            } catch (error) {
-                console.error('Failed to send message to opener:', error);
-            }
-        }
-
-        setTimeout(() => {
-            try {
-                if (window.opener && !window.opener.closed) {
-                    window.close();
-                } else {
-                    window.location.href = '/game?amber_login=success';
-                }
-            } catch (error) {
-                console.error('Failed to navigate:', error);
-                window.location.href = '/game';
-            }
-        }, 1500);
-    </script>
-</body>
-</html>`
-
-	w.Write([]byte(html))
-}
-
-func (auth *AuthHandler) renderAmberError(w http.ResponseWriter, errorMsg string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusBadRequest)
-
-	html := `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amber Login Error - Pubkey Quest</title>
-    <style>
-        body {
-            font-family: 'Pixelify Sans', monospace;
-            margin: 0;
-            padding: 20px;
-            background: #001100;
-            color: #ff4444;
-            text-align: center;
-        }
-        .error { color: #ff4444; margin: 20px 0; }
-        .retry { margin-top: 20px; }
-        .retry a { color: #00ff41; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <div class="error">
-        <h2>❌ Amber Login Failed</h2>
-        <p>` + errorMsg + `</p>
-    </div>
-    <div class="retry">
-        <a href="/game">← Return to game</a>
-    </div>
-
-    <script>
-        if (window.opener) {
-            window.opener.postMessage({
-                type: 'amber_error',
-                error: '` + errorMsg + `'
-            }, window.location.origin);
-            setTimeout(() => window.close(), 3000);
-        }
-    </script>
-</body>
-</html>`
-
-	w.Write([]byte(html))
-}
-
-func (auth *AuthHandler) renderAmberWhitelistError(w http.ResponseWriter, whitelistErr *WhitelistError) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusForbidden)
-
-	formLinkHTML := ""
-	if whitelistErr.FormURL != "" {
-		formLinkHTML = `<div class="form-link">
-            <a href="` + whitelistErr.FormURL + `" target="_blank">Request Access →</a>
-        </div>`
-	}
-
-	html := `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Access Denied - Pubkey Quest</title>
-    <style>
-        body {
-            font-family: 'Pixelify Sans', monospace;
-            margin: 0;
-            padding: 20px;
-            background: #001100;
-            color: #ff4444;
-            text-align: center;
-        }
-        .error { color: #ff4444; margin: 20px 0; }
-        .form-link { margin: 20px 0; }
-        .form-link a {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #00ff41;
-            color: #001100;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .retry { margin-top: 20px; }
-        .retry a { color: #888; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <div class="error">
-        <h2>🚫 Access Denied</h2>
-        <p>` + whitelistErr.Message + `</p>
-    </div>
-    ` + formLinkHTML + `
-    <div class="retry">
-        <a href="/game">← Return to game</a>
-    </div>
-
-    <script>
-        const whitelistDenialData = {
-            type: 'whitelist_denial',
-            error: '` + whitelistErr.Message + `',
-            formUrl: '` + whitelistErr.FormURL + `'
-        };
-
-        // Store in localStorage as fallback
-        try {
-            localStorage.setItem('amber_callback_result', JSON.stringify(whitelistDenialData));
-            console.log('Stored whitelist denial in localStorage');
-        } catch (error) {
-            console.error('Failed to store whitelist denial:', error);
-        }
-
-        // Send via postMessage
-        if (window.opener && !window.opener.closed) {
-            try {
-                window.opener.postMessage(whitelistDenialData, window.location.origin);
-                console.log('Sent whitelist denial via postMessage');
-            } catch (error) {
-                console.error('Failed to send postMessage:', error);
-            }
-        }
-
-        // Auto-close after 5 seconds
-        setTimeout(() => {
-            try {
-                if (window.opener && !window.opener.closed) {
-                    window.close();
-                } else {
-                    window.location.href = '/game';
-                }
-            } catch (error) {
-                console.error('Failed to close window:', error);
-                window.location.href = '/game';
-            }
-        }, 5000);
-    </script>
-</body>
-</html>`
-
-	w.Write([]byte(html))
 }
 
 func (auth *AuthHandler) sendJSONResponse(w http.ResponseWriter, data interface{}, statusCode int) {
@@ -771,11 +499,12 @@ func (auth *AuthHandler) sendErrorResponse(w http.ResponseWriter, message string
 }
 
 func (auth *AuthHandler) sendWhitelistErrorResponse(w http.ResponseWriter, whitelistErr *WhitelistError) {
+	npub, _ := tools.EncodePubkey(whitelistErr.Pubkey)
 	response := map[string]interface{}{
 		"success":          false,
 		"error":            whitelistErr.Message,
 		"whitelist_denial": true,
-		"form_url":         whitelistErr.FormURL,
+		"npub":             npub,
 	}
 	auth.sendJSONResponse(w, response, http.StatusForbidden)
 }

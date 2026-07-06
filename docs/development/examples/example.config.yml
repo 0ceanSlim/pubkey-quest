@@ -6,7 +6,19 @@ server:
     # - npub1example... # NPub format
     # - 1234567890abcdef... # Hex format
     # Connections from localhost/local network bypass whitelist
-  whitelist_form_url: "https://forms.example.com/request-access" # URL for users to request access
+    # Non-whitelisted users request access via the in-game form (see report: below)
+
+# In-game reporter: bug reports (🐛 button) + test-server access requests.
+# Every submission is appended to data/reports/*.jsonl (the log you own). When a
+# token + issue number are set, it's also posted as a comment on that pinned
+# GitHub issue, which is how you get notified by email. Leave the token or an
+# issue number empty/0 to log locally only (no GitHub post). config.yml is
+# gitignored — keep the PAT here, never in committed files.
+report:
+  github_token: "" # GitHub PAT with repo:issues (public_repo) scope
+  github_repo: "0ceanSlim/pubkey-quest" # owner/repo
+  bug_issue_number: 0 # pinned issue that collects bug reports
+  access_issue_number: 0 # pinned issue that collects access requests
 
 pixellab:
   api_key: "your-pixellab-api-key-here"

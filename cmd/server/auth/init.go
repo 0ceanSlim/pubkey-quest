@@ -1,29 +1,38 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/0ceanslim/grain/client"
-	cfgType "github.com/0ceanslim/grain/config/types"
+	"github.com/0ceanslim/grain/client/cache"
+	"github.com/0ceanslim/grain/client/connection"
 	"github.com/0ceanslim/grain/client/session"
+	cfgType "github.com/0ceanslim/grain/config/types"
 	"pubkey-quest/cmd/server/utils"
 )
 
-// InitializeGrainClient initializes grain client for Pubkey Quest
+// grainCancel cancels the background goroutines (session/cache cleanup, relay
+// health check, outbox eviction sweeper) started by InitializeGrainClient. It
+// is invoked by ShutdownGrainClient.
+var grainCancel context.CancelFunc
+
+// InitializeGrainClient initializes the grain client for Pubkey Quest.
+//
+// We deliberately do NOT import the top-level github.com/0ceanslim/grain/client
+// package: in grain 0.8 that package compiles the relay/admin web UI, which
+// pulls in the cgo-backed server/db/nostrdb store (needs nostrdb.h). Pubkey
+// Quest only needs the outbox-capable client core + session manager, so we wire
+// those subpackages directly — mirroring what client.InitializeClient does,
+// minus the server stack.
 func InitializeGrainClient(config *utils.Config) error {
 	log.Println("🎮 Initializing Grain client for Pubkey Quest...")
 
-	// Create minimal grain server config for session management only
+	// Minimal server config for the client core; ConfigFromServerConfig fills
+	// in sane defaults for anything left zero and validates the result.
 	grainConfig := &cfgType.ServerConfig{
-		Server: struct {
-			Port                      string `yaml:"port"`
-			ReadTimeout               int    `yaml:"read_timeout"`
-			WriteTimeout              int    `yaml:"write_timeout"`
-			IdleTimeout               int    `yaml:"idle_timeout"`
-			MaxSubscriptionsPerClient int    `yaml:"max_subscriptions_per_client"`
-			ImplicitReqLimit          int    `yaml:"implicit_req_limit"`
-		}{
+		Server: cfgType.ServerSettings{
 			Port:                      fmt.Sprintf("%d", config.Server.Port),
 			ReadTimeout:               30,
 			WriteTimeout:              30,
@@ -31,68 +40,52 @@ func InitializeGrainClient(config *utils.Config) error {
 			MaxSubscriptionsPerClient: 10,
 			ImplicitReqLimit:          10,
 		},
-		// Initialize other required fields with defaults
-		Client: cfgType.ClientConfig{
-			// Default client config
-		},
-		RateLimit: cfgType.RateLimitConfig{
-			// Default rate limit config
-		},
-		Blacklist: cfgType.BlacklistConfig{
-			// Default blacklist config
-		},
-		ResourceLimits: cfgType.ResourceLimits{
-			// Default resource limits
-		},
-		Auth: cfgType.AuthConfig{
-			// Default auth config
-		},
-		EventPurge: cfgType.EventPurgeConfig{
-			// Default event purge config
-		},
-		EventTimeConstraints: cfgType.EventTimeConstraints{
-			// Default event time constraints
-		},
 	}
 
-	// Initialize the grain client
-	if err := client.InitializeClient(grainConfig); err != nil {
-		log.Printf("❌ Failed to initialize Grain client: %v", err)
-		return fmt.Errorf("failed to initialize grain client: %w", err)
-	}
-
-	// Initialize the session manager
+	// Session manager (holds authenticated pubkey sessions).
 	session.SessionMgr = session.NewSessionManager()
 	if session.SessionMgr == nil {
 		log.Printf("❌ Failed to create session manager")
 		return fmt.Errorf("failed to create session manager")
 	}
 
+	// Outbox-capable core client (NIP-65 relay routing / mailbox resolution).
+	if err := connection.InitializeCoreClient(grainConfig); err != nil {
+		log.Printf("❌ Failed to initialize Grain core client: %v", err)
+		return fmt.Errorf("failed to initialize grain core client: %w", err)
+	}
+
+	// Indexer/seed relays used to resolve relay lists + profile metadata for
+	// arbitrary users (grain's built-in indexer seed set).
+	connection.SetIndexRelays([]string{
+		"wss://profiles.nostr1.com",
+		"wss://directory.yabu.me",
+		"wss://user.kindpag.es",
+		"wss://indexer.coracle.social",
+		"wss://purplepag.es",
+	})
+
+	// Background maintenance goroutines, bounded by grainCancel.
+	ctx, cancel := context.WithCancel(context.Background())
+	grainCancel = cancel
+	cache.StartCacheCleanup(ctx)
+	connection.StartRelayHealthCheck(ctx, 5*time.Minute)
+	connection.StartRelayEvictionSweeper(ctx, time.Minute)
+
 	log.Println("✅ Grain client ready for Pubkey Quest")
 	return nil
 }
 
-// ShutdownGrainClient gracefully shuts down the grain client
+// ShutdownGrainClient gracefully shuts down the grain client.
 func ShutdownGrainClient() error {
 	log.Println("🎮 Shutting down Grain client...")
-	return nil
-}
-
-// getDefaultRelays returns default Nostr relays for the game
-func getDefaultRelays(config *utils.Config) []string {
-	// You can configure these in your config file later
-	defaultRelays := []string{
-		"wss://relay.damus.io",
-		"wss://nos.lol",
-		"wss://relay.nostr.band",
-		"wss://nostr.happytavern.co",
-		"wss://relay.snort.social",
+	if grainCancel != nil {
+		grainCancel()
 	}
-
-	// TODO: Add config option to override default relays
-	// if config.Nostr.DefaultRelays != nil {
-	//     return config.Nostr.DefaultRelays
-	// }
-
-	return defaultRelays
+	if err := connection.CloseCoreClient(); err != nil {
+		log.Printf("⚠️ Error closing grain core client: %v", err)
+		return err
+	}
+	session.SessionMgr = nil
+	return nil
 }

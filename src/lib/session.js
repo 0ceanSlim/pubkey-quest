@@ -9,6 +9,10 @@
 
 import { logger } from './logger.js';
 import { API_BASE_URL } from '../config/constants.js';
+import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
+// Registers window.openMillLogin and exposes the signer-restore helper. All
+// interactive login now goes through MILL (see systems/millLogin.js).
+import { restoreSignerFromSession } from '../systems/millLogin.js';
 
 // Session status enum
 export const SessionStatus = {
@@ -55,6 +59,9 @@ class SessionManager {
 
             if (this.currentStatus === SessionStatus.ACTIVE) {
                 logger.info('Found active session');
+                // Rebuild the client-side signer (window.nostr) from MILL's
+                // persisted state so signing survives a page reload.
+                restoreSignerFromSession();
                 this.startSessionMonitoring();
                 this.isInitialized = true;
                 this.emit('sessionReady', this.sessionData);
@@ -222,214 +229,6 @@ class SessionManager {
     // AUTHENTICATION METHODS
     // ========================================================================
 
-    async loginWithExtension() {
-        try {
-            if (!window.nostr) {
-                throw new Error('No Nostr extension found. Please install Alby or nos2x.');
-            }
-
-            this.emit('authenticationStarted', 'extension');
-
-            // Add timeout for extension prompt (30 seconds)
-            const publicKeyPromise = window.nostr.getPublicKey();
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Extension request timed out. Please try again.')), 30000);
-            });
-
-            const publicKey = await Promise.race([publicKeyPromise, timeoutPromise]);
-            if (!publicKey) {
-                throw new Error('Failed to get public key from extension');
-            }
-
-            const loginRequest = {
-                public_key: publicKey,
-                signing_method: 'browser_extension',
-                mode: 'write'
-            };
-
-            return await this.performLogin(loginRequest);
-        } catch (error) {
-            this.emit('authenticationFailed', { method: 'extension', error: error.message });
-            throw error;
-        }
-    }
-
-    async loginWithPrivateKey(privateKey) {
-        try {
-            if (!privateKey) {
-                throw new Error('Private key is required');
-            }
-
-            this.emit('authenticationStarted', 'private_key');
-
-            const loginRequest = {
-                private_key: privateKey,
-                signing_method: 'encrypted_key',
-                mode: 'write'
-            };
-
-            return await this.performLogin(loginRequest);
-        } catch (error) {
-            this.emit('authenticationFailed', { method: 'private_key', error: error.message });
-            throw error;
-        }
-    }
-
-    async loginWithAmber() {
-        try {
-            this.emit('authenticationStarted', 'amber');
-
-            // Set up callback listener BEFORE opening Amber
-            this.setupAmberCallbackListener();
-
-            // Use proper NIP-55 nostrsigner URL format
-            const amberUrl = this.createAmberLoginURL();
-
-            logger.debug('Opening Amber with URL:', amberUrl);
-
-            // Try multiple approaches for opening the nostrsigner protocol (mobile-first)
-            let protocolOpened = false;
-
-            // Method 1: Create anchor element and click it (most reliable on mobile)
-            try {
-                const anchor = document.createElement('a');
-                anchor.href = amberUrl;
-                anchor.target = '_blank';
-                anchor.style.display = 'none';
-                document.body.appendChild(anchor);
-
-                anchor.click();
-                protocolOpened = true;
-
-                setTimeout(() => {
-                    if (document.body.contains(anchor)) {
-                        document.body.removeChild(anchor);
-                    }
-                }, 100);
-
-                logger.debug('Amber protocol opened via anchor click');
-            } catch (anchorError) {
-                logger.warn('Anchor method failed:', anchorError);
-            }
-
-            // Method 2: Fallback to window.location.href
-            if (!protocolOpened) {
-                try {
-                    window.location.href = amberUrl;
-                    protocolOpened = true;
-                    logger.debug('Amber protocol opened via window.location.href');
-                } catch (locationError) {
-                    logger.warn('Window location method failed:', locationError);
-                }
-            }
-
-            if (!protocolOpened) {
-                throw new Error('Unable to open Amber protocol');
-            }
-
-            return new Promise((resolve, reject) => {
-                // Store resolve/reject for callback handler
-                window._amberLoginPromise = { resolve, reject };
-
-                // Set timeout in case user doesn't complete the flow
-                setTimeout(() => {
-                    if (window._amberLoginPromise) {
-                        window._amberLoginPromise = null;
-                        reject(new Error('Amber connection timed out. Make sure Amber is installed and try again.'));
-                    }
-                }, 60000); // 60 seconds timeout
-            });
-        } catch (error) {
-            this.emit('authenticationFailed', { method: 'amber', error: error.message });
-            throw error;
-        }
-    }
-
-    setupAmberCallbackListener() {
-        const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                setTimeout(() => this.checkForAmberCallback(), 500);
-            }
-        };
-
-        const handleFocus = () => {
-            setTimeout(() => this.checkForAmberCallback(), 500);
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('focus', handleFocus);
-
-        setTimeout(() => this.checkForAmberCallback(), 1000);
-
-        // Clean up listeners after timeout
-        setTimeout(() => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('focus', handleFocus);
-        }, 65000);
-    }
-
-    async checkForAmberCallback() {
-        const currentUrl = new URL(window.location.href);
-
-        // Check if this is the amber-callback page or has event parameter
-        if (currentUrl.pathname === '/api/auth/amber-callback' || currentUrl.searchParams.has('event')) {
-            try {
-                const isActive = await this.checkExistingSession();
-                if (isActive && window._amberLoginPromise) {
-                    this.currentStatus = SessionStatus.ACTIVE;
-                    this.startSessionMonitoring();
-                    this.emit('authenticationSuccess', {
-                        method: 'amber',
-                        npub: this.sessionData.npub,
-                        pubkey: this.sessionData.publicKey,
-                        isNewAccount: false
-                    });
-                    window._amberLoginPromise.resolve(this.sessionData);
-                    window._amberLoginPromise = null;
-                }
-            } catch (error) {
-                if (window._amberLoginPromise) {
-                    window._amberLoginPromise.reject(error);
-                    window._amberLoginPromise = null;
-                }
-            }
-        }
-
-        // Check localStorage for callback result
-        const amberResult = localStorage.getItem('amber_callback_result');
-        if (amberResult && window._amberLoginPromise) {
-            try {
-                localStorage.removeItem('amber_callback_result');
-                const data = JSON.parse(amberResult);
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                const isActive = await this.checkExistingSession();
-                if (isActive) {
-                    this.currentStatus = SessionStatus.ACTIVE;
-                    this.startSessionMonitoring();
-                    this.emit('authenticationSuccess', {
-                        method: 'amber',
-                        npub: this.sessionData.npub,
-                        pubkey: this.sessionData.publicKey,
-                        isNewAccount: false
-                    });
-                    window._amberLoginPromise.resolve(this.sessionData);
-                    window._amberLoginPromise = null;
-                } else {
-                    throw new Error('Amber login succeeded but session not found');
-                }
-            } catch (error) {
-                if (window._amberLoginPromise) {
-                    window._amberLoginPromise.reject(error);
-                    window._amberLoginPromise = null;
-                }
-            }
-        }
-    }
-
     async performLogin(loginRequest) {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
@@ -446,12 +245,11 @@ class SessionManager {
             logger.warn('Whitelist denial during session manager login');
             // Show the whitelist popup if the function exists
             if (window.showWhitelistDenialPopup) {
-                window.showWhitelistDenialPopup(result.error, result.form_url);
+                window.showWhitelistDenialPopup(result.error, result.npub);
             }
             // Throw error with special marker so auth.js can handle it
             const error = new Error(result.error || 'Access denied');
             error.whitelistDenial = true;
-            error.formUrl = result.form_url;
             throw error;
         }
 
@@ -538,35 +336,25 @@ class SessionManager {
         this.emit('loggedOut');
     }
 
+    /**
+     * Generate a fresh Nostr keypair client-side. Used by the "discover
+     * character" preview flow; interactive account creation goes through MILL's
+     * new-identity flow instead. Returns { npub, nsec } to match the old
+     * server-generated shape.
+     */
     async generateKeys() {
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/generate-keys`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Key generation failed: ${response.status}`);
-            }
-
-            const result = await response.json();
-
-            if (!result.success) {
-                throw new Error(result.error || 'Key generation failed');
-            }
-
-            return result.key_pair;
+            const sk = generateSecretKey();
+            const pk = getPublicKey(sk);
+            return {
+                npub: nip19.npubEncode(pk),
+                nsec: nip19.nsecEncode(sk),
+                pubkey: pk,
+            };
         } catch (error) {
             logger.error('Key generation error:', error);
             throw error;
         }
-    }
-
-    createAmberLoginURL() {
-        const callbackUrl = encodeURIComponent(`${window.location.origin}/api/auth/amber-callback`);
-        return `intent://get_public_key?callback_url=${callbackUrl}#Intent;scheme=nostrsigner;package=com.greenart7c3.nostrsigner;end`;
     }
 
     // ========================================================================

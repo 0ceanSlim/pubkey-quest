@@ -121,7 +121,7 @@
 
       <div class="flex gap-3">
         <button
-          onclick="confirmBugReport()"
+          onclick="window.open('https://github.com/0ceanSlim/pubkey-quest/issues/new?template=bug_report.md', '_blank')"
           class="flex-1 py-3 font-medium text-white"
           style="background: #ca8a04; border-top: 2px solid #eab308; border-left: 2px solid #eab308; border-right: 2px solid #854d0e; border-bottom: 2px solid #854d0e;"
         >
@@ -136,16 +136,25 @@
         </button>
       </div>
       {{else}}
-      <!-- Production Mode: Standard bug report -->
+      <!-- Production Mode: In-game bug report -->
       <h3 class="text-2xl font-bold mb-4 text-center" style="color: #eab308;">🐛 Report Bug</h3>
-      <p class="text-center mb-6" style="color: #e5e7eb;">This button will open a new window to a GitHub issue. Please be as descriptive as you can and thank you for taking the time to make a report!</p>
+      <p class="text-center mb-4" style="color: #e5e7eb;">Found something broken or weird? Tell me as much or as little as you like — no account needed. Thanks for taking the time!</p>
+      <textarea
+        id="bug-report-text"
+        rows="5"
+        maxlength="4000"
+        placeholder="What happened? Where were you? What did you expect?"
+        class="w-full mb-3 px-3 py-2 text-white"
+        style="background: #1a1a1a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; resize: vertical; font-size: 14px;"
+      ></textarea>
       <div class="flex gap-3">
         <button
-          onclick="confirmBugReport()"
+          id="bug-report-submit"
+          onclick="submitBugReport()"
           class="flex-1 py-3 font-medium text-white"
           style="background: #ca8a04; border-top: 2px solid #eab308; border-left: 2px solid #eab308; border-right: 2px solid #854d0e; border-bottom: 2px solid #854d0e;"
         >
-          Open GitHub
+          Submit
         </button>
         <button
           onclick="hideBugReportModal()"
@@ -358,10 +367,48 @@
       document.getElementById('bug-report-modal').classList.add('hidden');
     }
 
-    function confirmBugReport() {
-      const bugReportUrl = "https://github.com/0ceanSlim/pubkey-quest/issues/new?template=bug_report.md";
-      showMessage("🐛 Opening bug report...", "info");
-      window.open(bugReportUrl, "_blank");
+    async function submitBugReport() {
+      const textarea = document.getElementById('bug-report-text');
+      const submitBtn = document.getElementById('bug-report-submit');
+      const message = (textarea?.value || '').trim();
+
+      if (!message) {
+        showMessage("⚠️ Please describe the bug before submitting.", "error");
+        textarea?.focus();
+        return;
+      }
+
+      if (!window.sessionManager || !window.sessionManager.isAuthenticated()) {
+        showMessage("❌ Not authenticated", "error");
+        return;
+      }
+
+      const session = window.sessionManager.getSession();
+      const saveID = new URLSearchParams(window.location.search).get('save') || '';
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+
+      try {
+        const response = await fetch('/api/report/bug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ npub: session.npub, save_id: saveID, message })
+        });
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          if (textarea) textarea.value = '';
+          hideBugReportModal();
+          showMessage("✅ " + (data.message || "Bug report received — thank you!"), "success");
+        } else {
+          showMessage("❌ " + (data.error || "Failed to submit report."), "error");
+        }
+      } catch (error) {
+        console.error('Failed to submit bug report:', error);
+        showMessage("❌ Failed to submit report: " + error.message, "error");
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
+      }
     }
 
     // Debug console functions

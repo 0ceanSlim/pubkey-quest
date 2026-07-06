@@ -26,6 +26,7 @@ import (
 	"pubkey-quest/cmd/server/api/character"
 	"pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/api/game"
+	"pubkey-quest/cmd/server/api/report"
 	"pubkey-quest/cmd/server/auth"
 	"pubkey-quest/cmd/server/utils"
 
@@ -56,6 +57,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 	registerProfileRoutes(mux)
 	registerSpellRoutes(mux)
 	registerProgressionRoutes(mux)
+	registerReportRoutes(mux)
 
 	if utils.AppConfig.Server.DebugMode {
 		registerDebugRoutes(mux)
@@ -227,14 +229,6 @@ func registerAuthRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/auth/session [get]
 	mux.HandleFunc("/api/auth/session", authHandler.HandleSession)
-
-	// @Summary Generate keys
-	// @Description Generate a new Nostr keypair
-	// @Tags Auth
-	// @Produce json
-	// @Success 200 {object} map[string]interface{}
-	// @Router /api/auth/generate-keys [post]
-	mux.HandleFunc("/api/auth/generate-keys", authHandler.HandleGenerateKeys)
 
 	// @Summary Amber callback
 	// @Description Handle Amber mobile auth callback
@@ -591,6 +585,20 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Success      200      {object}  game.RoomsResponse
 	// @Router       /api/rooms [get]
 	mux.HandleFunc("/api/rooms", game.GetRoomsHandler)
+}
+
+// ============================================================================
+// Report Routes - In-game reporter (bug reports + test-server access requests)
+// ============================================================================
+
+func registerReportRoutes(mux *http.ServeMux) {
+	// @Summary Submit a bug report (logged locally + mirrored to a pinned GitHub issue)
+	// @Router  /report/bug [post]
+	mux.HandleFunc("/api/report/bug", report.BugHandler)
+
+	// @Summary Request test-server access (logged locally + mirrored to a pinned GitHub issue)
+	// @Router  /report/access [post]
+	mux.HandleFunc("/api/report/access", report.AccessHandler)
 }
 
 // ============================================================================
