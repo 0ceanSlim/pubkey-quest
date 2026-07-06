@@ -51,6 +51,21 @@ not gold, and must scale down accordingly:
 - **copper items** (× 1): dart 5 cp → **5**; torch 1 cp → **1**; candle/chalk 1 cp →
   **1**.
 Verify against items already priced correctly and stay consistent.
+
+**Derive PER ITEM from the D&D reference — never scale the stored `value`.** For every
+item, look up its real D&D 5e price *in its actual denomination*, convert, and set that.
+The existing stored values are unreliable in **both** directions and you must correct
+outliers either way (and leave correct ones untouched):
+- too CHEAP (a raw gp number never ×100'd): `chest` 5 for a 5gp chest → **500**;
+  `shovel` 2 → **200**.
+- too EXPENSIVE (over-inflated): `sack` 50 for a 1cp sack → **1**; `backpack` 1000 for
+  a 2gp pack → **200**.
+- already correct — leave alone: `torch` 1, `rations` 50, `rope` 100, `lantern-hooded`
+  500. Do NOT blindly multiply these by 100.
+
+**No D&D equivalent → invent a sensible price.** For homebrew items with no PHB analog,
+set `value` by analogy to the nearest comparable D&D item and its tier — never leave a
+0 or an obviously-stale number.
 - For items **not** in D&D 5e (homebrew, spell components already priced, set
   bundles): price by analogy to the nearest D&D item and by tier — a set bundle ≈
   the sum of its pieces (or a slight discount); a homebrew consumable ≈ a comparable
