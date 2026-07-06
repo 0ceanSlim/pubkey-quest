@@ -178,29 +178,66 @@ function showWhitelistDenialPopup(errorMessage, npub) {
     const popup = document.createElement('div');
     popup.id = 'whitelist-denial-popup';
     popup.dataset.npub = npub || '';
-    popup.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    popup.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+    const npubDisplay = npub
+        ? `<code class="block w-full mb-4 px-3 py-2 bg-gray-800 text-green-400 rounded border border-gray-700 text-xs break-all">${npub}</code>`
+        : `<p class="mb-4 text-xs text-red-400">Could not read your public key — please close this and log in again.</p>`;
+
     popup.innerHTML = `
-        <div class="bg-gray-900 border-4 border-red-600 rounded-lg p-8 max-w-md mx-4 text-center">
-            <div class="text-6xl mb-4">🚫</div>
-            <h2 class="text-2xl font-bold text-red-500 mb-4">Access Denied</h2>
-            <p class="text-gray-300 mb-4">${errorMessage || 'Your public key is not whitelisted for this test server.'}</p>
-            <div id="access-request-form">
-                <p class="text-gray-400 text-sm mb-3 text-left">Want in? Send a request — no account needed. Add a contact (Nostr/email) if you'd like to be reached.</p>
-                <input id="access-contact" type="text" maxlength="200"
-                    placeholder="Contact (optional) — nostr / email"
-                    class="w-full mb-2 px-3 py-2 bg-gray-800 text-white rounded border border-gray-700" />
-                <textarea id="access-message" rows="3" maxlength="4000"
-                    placeholder="Anything you'd like me to know (optional)"
-                    class="w-full mb-3 px-3 py-2 bg-gray-800 text-white rounded border border-gray-700"></textarea>
-                <button id="access-submit" onclick="submitAccessRequest()"
-                    class="block w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors mb-3">
-                    📝 Request Access
+        <div class="bg-gray-900 border-4 border-red-600 rounded-lg w-full max-w-lg text-left flex flex-col" style="max-height: 90vh;">
+            <div class="p-6 overflow-y-auto">
+                <div class="text-center mb-5">
+                    <div class="text-5xl mb-2">🔑</div>
+                    <h2 class="text-2xl font-bold text-red-500">Test Server Access</h2>
+                    <p class="text-gray-400 text-sm mt-2">${errorMessage || 'Your public key is not whitelisted for this test server yet.'}</p>
+                </div>
+
+                <div class="bg-gray-800 border border-yellow-600 rounded p-3 mb-5 text-xs text-gray-300">
+                    <p class="text-yellow-500 font-bold mb-2">⚠️ Before you request access — read this</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>This server runs the <b>latest commit</b> and auto-deploys — things break often, on purpose.</li>
+                        <li>Character saves <b>may be wiped without notice</b> while I test database changes.</li>
+                        <li>The server may restart mid-session during a deploy.</li>
+                        <li>Want stability? Use the production server instead once it's live.</li>
+                    </ul>
+                </div>
+
+                <div id="access-request-form">
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Your Nostr public key</label>
+                    ${npubDisplay}
+
+                    <label class="block text-xs font-bold text-gray-400 mb-1">What do you want to test? <span class="font-normal text-gray-600">(optional)</span></label>
+                    <textarea id="access-interest" rows="2" maxlength="4000"
+                        placeholder="Combat, items, UI/UX, Nostr integration, performance, balance…"
+                        class="w-full mb-4 px-3 py-2 bg-gray-800 text-white rounded border border-gray-700 text-sm"></textarea>
+
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Anything else? <span class="font-normal text-gray-600">(optional)</span></label>
+                    <textarea id="access-message" rows="2" maxlength="4000"
+                        placeholder="Testing/QA experience, how often you'll play, or just say hi."
+                        class="w-full mb-4 px-3 py-2 bg-gray-800 text-white rounded border border-gray-700 text-sm"></textarea>
+
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Contact <span class="font-normal text-gray-600">(optional)</span></label>
+                    <input id="access-contact" type="text" maxlength="200"
+                        placeholder="Nostr, email, or GitHub username"
+                        class="w-full mb-4 px-3 py-2 bg-gray-800 text-white rounded border border-gray-700 text-sm" />
+
+                    <label class="flex items-start gap-2 mb-4 text-sm text-gray-200 cursor-pointer">
+                        <input id="access-ack" type="checkbox" class="mt-1 flex-shrink-0"
+                            onchange="const b=document.getElementById('access-submit'); b.disabled=!this.checked; b.style.opacity=this.checked?'1':'0.5';" />
+                        <span>I understand the test server is unstable and my character data may be wiped without notice.</span>
+                    </label>
+
+                    <button id="access-submit" onclick="submitAccessRequest()" disabled style="opacity:0.5;"
+                        class="block w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors mb-3">
+                        📝 Request Access
+                    </button>
+                </div>
+
+                <button onclick="closeWhitelistDenialPopup()"
+                        class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Close
                 </button>
             </div>
-            <button onclick="closeWhitelistDenialPopup()"
-                    class="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                Close
-            </button>
         </div>
     `;
 
@@ -217,10 +254,16 @@ async function submitAccessRequest() {
     const submitBtn = document.getElementById('access-submit');
     const npub = popup?.dataset.npub || '';
     const contact = document.getElementById('access-contact')?.value.trim() || '';
+    const interest = document.getElementById('access-interest')?.value.trim() || '';
     const message = document.getElementById('access-message')?.value.trim() || '';
+    const acknowledged = document.getElementById('access-ack')?.checked || false;
 
     if (!npub) {
         showMessage('❌ Could not determine your npub — please log in again.', 'error');
+        return;
+    }
+    if (!acknowledged) {
+        showMessage('⚠️ Please acknowledge the test-server terms first.', 'error');
         return;
     }
 
@@ -230,7 +273,7 @@ async function submitAccessRequest() {
         const response = await fetch('/api/report/access', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ npub, contact, message })
+            body: JSON.stringify({ npub, contact, interest, message, acknowledged })
         });
         const data = await response.json();
 

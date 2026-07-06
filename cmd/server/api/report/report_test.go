@@ -95,7 +95,7 @@ func TestBugHandler_EmptyMessage(t *testing.T) {
 func TestAccessHandler_HappyPath(t *testing.T) {
 	setup(t)
 
-	rec := post(t, AccessHandler, `{"npub":"npub1def","contact":"me@example.com","message":"please let me in"}`)
+	rec := post(t, AccessHandler, `{"npub":"npub1def","contact":"me@example.com","message":"please let me in","acknowledged":true}`)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
 	}
@@ -116,9 +116,21 @@ func TestAccessHandler_HappyPath(t *testing.T) {
 func TestAccessHandler_MissingNpub(t *testing.T) {
 	setup(t)
 
-	rec := post(t, AccessHandler, `{"contact":"me@example.com","message":"hi"}`)
+	rec := post(t, AccessHandler, `{"contact":"me@example.com","message":"hi","acknowledged":true}`)
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400", rec.Code)
+	}
+}
+
+func TestAccessHandler_NotAcknowledged(t *testing.T) {
+	setup(t)
+
+	rec := post(t, AccessHandler, `{"npub":"npub1def","message":"let me in"}`)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", rec.Code)
+	}
+	if lines := logLines(t, "access-requests.jsonl"); len(lines) != 0 {
+		t.Errorf("expected no log lines without acknowledgment, got %d", len(lines))
 	}
 }
 

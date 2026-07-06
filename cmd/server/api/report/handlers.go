@@ -141,17 +141,21 @@ func formatBugComment(rec bugRecord) string {
 // ---------------------------------------------------------------------------
 
 type accessRequest struct {
-	Npub    string `json:"npub"`
-	Contact string `json:"contact"`
-	Message string `json:"message"`
+	Npub         string `json:"npub"`
+	Contact      string `json:"contact"`
+	Interest     string `json:"interest"`
+	Message      string `json:"message"`
+	Acknowledged bool   `json:"acknowledged"`
 }
 
 type accessRecord struct {
-	Type      string `json:"type"`
-	Timestamp string `json:"timestamp"`
-	Npub      string `json:"npub"`
-	Contact   string `json:"contact,omitempty"`
-	Message   string `json:"message,omitempty"`
+	Type         string `json:"type"`
+	Timestamp    string `json:"timestamp"`
+	Npub         string `json:"npub"`
+	Contact      string `json:"contact,omitempty"`
+	Interest     string `json:"interest,omitempty"`
+	Message      string `json:"message,omitempty"`
+	Acknowledged bool   `json:"acknowledged"`
 }
 
 // AccessHandler godoc
@@ -186,13 +190,19 @@ func AccessHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"success": false, "error": "Missing npub."})
 		return
 	}
+	if !req.Acknowledged {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"success": false, "error": "Please acknowledge the test-server terms before submitting."})
+		return
+	}
 
 	rec := accessRecord{
-		Type:      "access",
-		Timestamp: nowFunc().UTC().Format(time.RFC3339),
-		Npub:      npub,
-		Contact:   sanitize(req.Contact),
-		Message:   sanitize(req.Message),
+		Type:         "access",
+		Timestamp:    nowFunc().UTC().Format(time.RFC3339),
+		Npub:         npub,
+		Contact:      sanitize(req.Contact),
+		Interest:     sanitize(req.Interest),
+		Message:      sanitize(req.Message),
+		Acknowledged: req.Acknowledged,
 	}
 
 	if err := appendLog("access-requests.jsonl", rec); err != nil {
@@ -213,8 +223,14 @@ func formatAccessComment(rec accessRecord) string {
 	if rec.Contact != "" {
 		body += fmt.Sprintf("\n**Contact:** %s\n", rec.Contact)
 	}
+	if rec.Interest != "" {
+		body += fmt.Sprintf("\n**Wants to test:** %s\n", rec.Interest)
+	}
 	if rec.Message != "" {
-		body += fmt.Sprintf("\n%s\n", rec.Message)
+		body += fmt.Sprintf("\n**Notes:** %s\n", rec.Message)
+	}
+	if rec.Acknowledged {
+		body += "\n✅ Acknowledged the unstable-test-server terms.\n"
 	}
 	return body
 }
