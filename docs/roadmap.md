@@ -1,10 +1,10 @@
 # Pubkey Quest — Release Roadmap (Pre-Alpha → Alpha → Beta → 1.0)
 
-**Written:** 2026-06-11. **Last status update:** 2026-07-02.
-**Progress (pre-alpha → alpha):** M0 ✅ · M1 ✅ (progression) · M2 ✅ (rooms) · **M3 ✅ (quest/POI/encounter runtime + daily roll)** · **M4 ⬜ ← active next (spells & items as real systems)** · M5 ⬜ (combat completion) · M6 ⬜ (presentation) · M7 ⬜ (content) · M8 ⬜ (release eng). Recent extras done off-milestone: item `value` economy + effect-aware pricing, death keep-3, inventory rarity, item-info redesign, debug/settings cleanup, and a **2026-07 equipment/inventory hardening pass** — unified pointer-events interaction core (click+drag+touch across grid/backpack/equipment/vault/containers), container/vault/quiver fixes, equipment stat panel, backend inventory test net (`docs/draft/ui-inventory-issues.md`). **Deferred backlog:** progression polish (level-up popup, spend-confirm), wait-stages, delta-engine sync (POI-loot lag / phantom heal), ground-item pickup stub, shop revamp (inventories + UI), mobile touch QA.
+**Written:** 2026-06-11. **Last status update:** 2026-07-06.
+**Progress (pre-alpha → alpha):** M0 ✅ · M1 ✅ (progression) · M2 ✅ (rooms) · M3 ✅ (quest/POI/encounter runtime + daily roll) · **M4 ✅ (spells & items as real systems)** · **M5 ⬜ ← active next (combat completion)** · M6 ⬜ (presentation) · M7 ⬜ (content) · M8 ⬜ (release eng). Recent extras done off-milestone: the **MILL login layer** replaced the bespoke Nostr auth (grain v0.8) + an in-game bug/access reporter; a **full item-data refinement pass** (all 209 items priced [game gold = D&D copper: gp×100/sp×10/cp×1], described, tagged — via the item-reporter/item-refiner agents, `docs/draft/item-*`); plus the earlier item `value` economy + effect-aware pricing, death keep-3, inventory rarity, item-info redesign, debug/settings cleanup, and the **2026-07 equipment/inventory hardening pass** (unified pointer-events core, container/vault/quiver fixes, equipment stat panel, backend inventory test net, `docs/draft/ui-inventory-issues.md`). **Deferred backlog:** progression polish (level-up popup, spend-confirm), wait-stages, delta-engine sync (POI-loot lag / phantom heal), ground-item pickup stub, shop revamp (inventories + UI), mobile touch QA.
 **How to read this:** §1 is an honest inventory of what exists. §3 is the detailed pre-alpha → alpha plan. §4 is the Nostr save & trust architecture that constrains everything else. §7 is the UI/UX critique. §8 is the content/liveness strategy.
 
-Known parallel infra track (not gameplay, planned separately): Grain client upgrade + login replaced with the mill library. The plan below assumes those land independently; the only hard constraint is they must be stable **before beta** (beta = saves become precious).
+Parallel infra track (not gameplay): Grain client upgrade + login replaced with the mill library — ✅ **landed (2026-07)**: grain v0.8, the **MILL (Multi-Interface Login Layer)** Web Component handling every signing method client-side (NIP-07/46/55, key, read-only, new identity), server only ever sees the hex pubkey. Remaining constraint is beta-stability (beta = saves become precious).
 
 **Core architectural premise (see §4):** saves are player-signed Nostr events on relays — portable across clients, owned by the player. That means: saves are *deliberate* (Pokemon/Fallout-style, no background autosave), the save schema must be hydration-first and byte-frugal from day one, and cheat-prevention is an official-server concern (event-ID validation), not a save-format concern. A modded ecosystem is a feature, not a threat.
 
@@ -32,7 +32,7 @@ Every system below works and is architecturally sound, but **all of it carries a
 | Inventory: equip/unequip, containers, move/stack/split, ground items, weight | `game/inventory/` |
 | Economy: shops w/ pricing + stock, vaults (racial storage w/ rites), inn rooms/sleep, bard shows | `game/shop/`, `world/merchant.go`, `game/vault/`, `game/npc/housing.go`, `entertainment.go` |
 | Combat core: initiative, two-phase turns, 0–6 range, full weapon properties, ammo, opportunity attacks, disengage, dash/charge, Hold&Ready/Dodge, flee, death saves, loot, defeat penalty | `game/combat/`, `combat-overlay.html`, `combatSystem.js` — feels okay, as you said |
-| Spell **prep** (slot queue, timers) | `game/spells/prep.go` + 4 endpoints |
+| Spell **prep + casting (M4)**: prep queue (per-spell timers), shared shape-driven casting engine (mana + rune components, focus, concentration), combat + out-of-combat cast, combat spell/item panels | `game/spells/{prep,cast}.go`, `game/combat/cast.go`, `api/game/{spells,combat}.go`, 4 prep endpoints + `/api/combat/{cast,use-item}` |
 | Skills: 8 derived skills computed server-side | `api/game/skills.go`, `game-data/systems/skills.json` |
 | Content tooling: Codex (item editor, char-gen tables editor, systems editor, pixellab, migration, validation, `--check-schema/--format-schema`) | `cmd/codex/` — the schemacheck/fmt/fix consolidation is done in the working tree. **Big gaps remain**: no editors for locations, monsters, spells, or NPCs (the "character editor" edits char-gen tables, not creatures; all of those are hand-edited JSON today — rooms will make locations worse), and no NPC-schedule→building cross-validation — see the Codex track in §3 |
 | POI/Encounter/Quest **schema**: canonical types, strict validation, 36 draft content files | `types/poi.go`, `types/quests.go`, `docs/poi-quest-{schema,design}.md` |
@@ -45,8 +45,8 @@ Every system below works and is architecturally sound, but **all of it carries a
 ### Half-baked (exists but doesn't actually work end-to-end)
 
 1. ✅ **RESOLVED (M1) — Level-up works.** Progression (level-up + ability-point earn/spend, re-derived MaxHP/MaxMana, journaling, save ritual) shipped; level is derived from XP (hydration-correct) and the top-bar number + XP bar track it. *Feats are slotted but not yet active (post-M5).*
-2. **Spell casting** — `cast_spell` in `api/game/actions.go:388` is a stub of TODOs (no validation, no mana cost, no effect). There is **no combat spell action at all** (`/api/combat/action` only takes weapon_slot/hand/thrown). Prep exists; casting doesn't.
-3. **Item usage in combat** — `use_item` works out of combat (food/potions through the effect system) but combat has no item action (plan §14 ❌).
+2. ✅ **RESOLVED (M4) — Spell casting is real.** Shared shape-driven engine (`game/spells/cast.go`): known+prepared+mana+components gates; attack / auto-hit / save / heal / buff resolved from the spell JSON; focus-provided rune components; concentration (CON save on damage). Combat cast (`POST /api/combat/cast`) + out-of-combat `cast_spell`; frontend combat spell panel + spells-tab cast. All 84 spells hand-refined (mana, per-spell prep time, homebrew rune components). *Remaining:* combat-integration tests + the M5 conditions the save-shape spells need.
+3. ✅ **RESOLVED (M4) — Items in combat.** `POST /api/combat/use-item` drinks potions/consumables mid-fight (loose general slots + general-slot pouches), bridged onto the combat HP pool; combat use-item UI shipped.
 4. **Martial class abilities** — abilities data + `/api/abilities` + the class-resource bar (Stamina/Rage/Ki/Cunning) exist in UI, but no ability is usable anywhere (plan §12 ❌).
 5. ✅ **RESOLVED (M3, 2026-06-29) — Quests / POIs / Encounters now run end-to-end.** Quest engine (availability, talk-to-NPC + innkeeper-daily start, event-fed objective tracking, stage rewards, derived QP), real quest-log journal + over-scene tracker chip, POI node-walker (playable, combat-bridged), authored-encounter scheduler (all 3 triggers, 9 vignettes), daily/weekly roll (schema v3). Save now carries quest fields (`QuestsActive`/`QuestsCompleted`/`POIStates`/`RepeatableQuests`). *Still open:* the 116 broken content refs (`docs/draft/poi-quest-followups.md`) are an M7 content job, not engine.
 6. **NPC dialogue presentation** — backend dialogue trees are genuinely good (greetings w/ first-time/returning/native-race, requirements, branching). But the *speech text renders as a transient toast in the top-right corner* (`locationDisplay.js:862` → `showMessage(msg,'warning')`) and options are 7px buttons in the bottom 125px strip. The single most-authored content in the game is shown in its least readable surface.
@@ -59,7 +59,7 @@ Every system below works and is architecturally sound, but **all of it carries a
 - ~~Encounter triggering~~ ✅ **DONE (M3)** — biome + authored encounters fire on context; debug-only path retired
 - **Codex content tooling** — no editors for locations (buildings live inside city JSON, so rooms raise the stakes), monsters, spells, or NPCs; no validation that NPC schedule slots point at real buildings/rooms; no derived world-map view (§3 Codex track)
 - Conditions (15 D&D conditions), saving throws vs. spells, stealth/surprise, monster difficulty scaling (M5)
-- Spell casting + items/abilities in combat (M4/M5 — see Half-baked #2–4)
+- ~~Spell casting + items in combat~~ ✅ **DONE (M4)** — class **abilities** in combat still missing (M5 — Half-baked #4)
 - Spell scrolls/crafting (fully drafted in `docs/draft/spell-scroll-system.md` — deferred to beta, scheduled in §5)
 - The official-server validation layer (§4): event-ID chain tracking, save plausibility checks. Note `POST /api/session/update` accepts a raw full-state overwrite today — fine solo, must be gated before strangers arrive
 
@@ -67,8 +67,8 @@ Every system below works and is architecturally sound, but **all of it carries a
 
 | Content | Count | Notes |
 |---|---|---|
-| Items | 209 | artisan/profession tools merged into 4 skill-kits; + ~38 quest items to author (followups §1a) |
-| Spells | 84 | data complete (concentration, tags, durations) |
+| Items | 209 | ✅ **fully refined** — all priced (game gold = D&D copper), described, tagged (item-refiner pass); artisan tools merged into 4 skill-kits; + ~38 quest items to author (followups §1a) |
+| Spells | 84 | ✅ **fully refined** — per-spell mana, prep time, homebrew rune components; casting engine live (M4) |
 | Monsters | **31** | all combat-ready; ~10 more needed by quest drafts |
 | Effects | 28 | + 4 net-new needed by drafts |
 | Cities | 9 | **only 5 have art** (missing: dusthaven, frosthold, goldenhaven⚠️, saltwind) |
@@ -212,7 +212,9 @@ Everything was designed (`docs/poi-quest-design.md`) and content existed; this w
 
 **Done when:** ✅ MET — dailies are acceptable (from **innkeepers**, not a board — user preference); a side quest can be taken from an NPC, progressed by killing/fetching, turned in for gold+XP; a POI is discovered while traveling and runs start-to-finish including its combat node; wolves (biome) and authored vignettes can jump you on the highway.
 
-### M4 — Spells and items as real systems (L)
+### M4 — Spells and items as real systems (L) — ✅ DONE (2026-07-02)
+
+> **✅ Done.** Shipped the shared **casting engine** (`game/spells/cast.go` — shape-driven from the spell JSON: attack / auto-hit / save / heal / buff, mana + material components, focus-provided runes, concentration), **combat cast** (`POST /api/combat/cast`) + **use-item** (`/api/combat/use-item`), **out-of-combat casting** (replaced the `cast_spell` stub), and the frontend combat spell/item choosers + spells-tab cast. The full **84-spell library was hand-refined** (per-spell mana, prep time, and a homebrew rune-component economy driven by the spell-refiner agent) and **all 209 items priced/described/tagged** (item-refiner agent). Committed + pushed (`ef6535c`…`39a1d0c`). **Resource model:** mana + material components (no per-cast slot consumption); prepared + known are the gates. **Deferred to M5:** the 47 spell + 3 item `[~]` mechanic proposals (conditions / summons / on-hit riders — `docs/draft/{spell,item}-mechanics-proposals.md`), plus combat-integration tests. Checkboxes below retained for historical detail.
 
 The "whole system that needs implementation."
 
