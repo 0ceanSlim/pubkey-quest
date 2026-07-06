@@ -1,13 +1,15 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A deck of illustrated cards, worn soft at the corners from years of shuffling. Good for a quiet hand of cards by the fire or a tavern wager.",
   "id": "playing-card-set",
   "image": "/res/img/items/playing-card-set.png",
   "name": "Playing card set",
   "notes": [],
-  "value": 500,
+  "value": 50,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "gaming-set"
+  ],
   "type": "Gaming Set",
   "weight": 0.01
 }

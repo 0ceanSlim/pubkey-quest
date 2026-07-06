@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A slender woodwind pipe with a bright, breathy tone, small enough to tuck into a traveler's pack. Simple to pick up and pleasant in a tavern corner or around a campfire.",
   "id": "flute",
   "image": "/res/img/items/flute.png",
   "name": "Flute",
@@ -7,7 +7,9 @@
   "value": 200,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "instrument"
+  ],
   "type": "Musical Instrument",
   "weight": 1,
   "performance": {

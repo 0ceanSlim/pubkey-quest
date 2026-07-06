@@ -1,15 +1,16 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A tiny, hollow-fletched dart no longer than a finger, made to be puffed silently from a blowgun. Barely scratches unarmored skin but can carry a poison coating.",
   "gear_slot": "ammo",
   "id": "blowgun-needle",
   "image": "/res/img/items/blowgun-needle.png",
   "name": "Blowgun Needle",
   "notes": [],
-  "value": 2,
+  "value": 100,
   "rarity": "common",
   "stack": 50,
   "tags": [
-    "equipment"
+    "equipment",
+    "ammunition"
   ],
   "type": "Ammunition",
   "weight": 0.01

@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A small handful of carved bone or ivory dice, rattled in a cupped palm before every roll. Common at every tavern table from the poorest tap-room to the finest guildhall.",
   "id": "dice-set",
   "image": "/res/img/items/dice-set.png",
   "name": "Dice set",
@@ -7,7 +7,9 @@
   "value": 10,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "gaming-set"
+  ],
   "type": "Gaming Set",
   "weight": 0.01
 }

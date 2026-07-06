@@ -62,11 +62,11 @@ reusable ruling is made.
 
 ## Remaining type groups (not started)
 
-### Ammunition (0/4)
-- [ ] `arrows` — value 5 may be stale (5gp per PHB is for 20 arrows = should check ×100 scale: 1gp/20 = 5cp/arrow bundle; verify against sling-bullet/blowgun-needle/crossbow-bolts together as one batch)
-- [ ] `blowgun-needle`
-- [ ] `crossbow-bolts`
-- [ ] `sling-bullet` — currently `value: 0`, needs pricing too (flagged in report as part of the "37" but is Ammunition not Weapons — do in the Ammunition batch)
+### Ammunition (4/4 done — Batch 4)
+- [x] `arrows` — value 5→100 (1gp per bundle of 20×100, was stale); description written; tags +`ammunition` (kept `equipment`)
+- [x] `blowgun-needle` — value 2→100 (1gp per bundle of 50×100, was stale); description written; tags +`ammunition` (kept `equipment`)
+- [x] `crossbow-bolts` — value 5→100 (1gp per bundle of 20×100, was stale); description written; tags +`ammunition` (kept `equipment`)
+- [x] `sling-bullet` — value 0→4 (4cp per bundle of 20×1); description/tags already good (`ammunition, equipment`)
 
 ### Adventuring Gear (64/64 done — Batch 3)
 
@@ -151,8 +151,17 @@ equipment-requires-gear_slot rule discovered this batch, see Conventions)
 **Related fix outside Adventuring Gear (explicitly called out in the task):**
 - [x] `shovel` (Tools type) — value 2→200 (2gp raw, needed ×100); tags +`tool` (kept improvised-weapon)
 
-### Musical Instrument (0/10)
-`bagpipe` missing `performance` field + has empty tags — the one gap the report called out.
+### Musical Instrument (10/10 done — Batch 4)
+- [x] `bagpipe` — rarity uncommon→common; added missing `performance` (base_success 55/charisma_modifier 6/difficulty hard, modeled between `viol` and `pan-flute`); tags empty→`instrument`; value 3000 already correct (30gp×100) — the one gap the report called out, now fully closed
+- [x] `lute` — value 3500 already correct (35gp×100); tags +`instrument`
+- [x] `lyre` — value 3000 already correct (30gp×100); tags +`instrument`
+- [x] `flute` — value 200 already correct (2gp×100); description written; tags +`instrument`
+- [x] `drum` — value 600 already correct (6gp×100); description written; tags +`instrument`
+- [x] `horn` — value 300 already correct (3gp×100); tags +`instrument`
+- [x] `pan-flute` — value 1200 already correct (12gp×100); tags +`instrument`
+- [x] `viol` — value 3000 already correct (30gp×100); tags +`instrument`
+- [x] `shawm` — value 200 already correct (2gp×100); tags +`instrument`
+- [x] `dulcimer` — value 2500 already correct (25gp×100); tags +`instrument`
 
 ### Armor Set (10/10 done — Batch 2)
 - [x] `chainmail-set` — value 12000→7500 (stale, was ×1.6 too high; 75gp×100); rarity uncommon→common; contents/set_bonus unchanged
@@ -191,13 +200,52 @@ equipment-requires-gear_slot rule discovered this batch, see Conventions)
 - [x] `studded-leather-leggings` — value 1800 already correct; rarity already common
 - [x] `studded-leather-vest` — value 2700 already correct; rarity already common
 
-### Pack (0/7)
-Bundle-price check against contents; sprite gaps already noted in report (all 7 packs
-missing sprites — ART, not data).
+### Pack (7/7 done — Batch 4)
+Value = sum of `contents` (item value × qty), verified every content ref resolves.
+Descriptions/tags (`pack`) were already complete on all 7 — only `value` needed fixing.
+- [x] `scholars-pack` — value 3902→4202 (sum: backpack 200 + book 2500 + ink 1000 +
+  ink-pen 2 + lamp 50 + parchment×10=100 + tinderbox 50 + dagger 200 + rope 100)
+- [x] `priests-pack` — value 2830→580 (sum: backpack 200 + blanket 50 + holy-water 150 +
+  rations×2=100 + tinderbox 50 + candle×10=10 + waterskin 20)
+- [x] `explorers-pack` — value 850→1000 (sum: backpack 200 + bedroll 100 +
+  rations×10=500 + rope 100 + tinderbox 50 + torch×10=10 + waterskin 20 + mess-kit 20)
+- [x] `entertainers-pack` — value 3300→2500 (sum: backpack 200 + bedroll 100 + bell 100 +
+  lantern-bullseye 1000 + mirror 500 + oil×8=80 + rations×9=450 + tinderbox 50 +
+  waterskin 20)
+- [x] `dungeoneers-pack` — value 1100→1200 (sum: backpack 200 + caltrops 100 +
+  crowbar 200 + oil×2=20 + rations×10=500 + rope 100 + tinderbox 50 + torch×10=10 +
+  waterskin 20)
+- [x] `diplomats-pack` — value 3402→2300 (sum: backpack 200 + case-map-and-scroll×2=200 +
+  rations×2=100 + ink 1000 + ink-pen×5=10 + lamp 50 + oil×4=40 + paper×5=100 +
+  parchment×5=50 + perfume-vial 500 + tinderbox 50)
+- [x] `burglars-pack` — value 1626→1725 (sum: backpack 200 + ball-bearings 100 + rope 100 +
+  bell 100 + candle×5=5 + crowbar 200 + hammer 100 + piton×10=50 + lantern-hooded 500 +
+  oil×5=50 + rations×5=250 + tinderbox 50 + waterskin 20)
 
-### Tools (0/7), Gaming Set (0/4)
-Mostly base-field-only; `pick-miners` (Tools, thrown-weapon-like fields) needs a look —
-missing sprite too (ART).
+All 7 pack sprites still confirmed missing (ART gap, unchanged from report — noted in
+Sprite section below).
+
+### Tools (7/7 done — Batch 4), Gaming Set (4/4 done — Batch 4)
+- [x] `thieves-kit` — value 2500 already correct (25gp×100); tags +`tool`
+- [x] `navigator-kit` — value 2500 already correct (25gp×100); tags +`tool`
+- [x] `herbalism-kit` — value 500 already correct (5gp×100); tags +`tool`
+- [x] `hammer` — value 100 already correct (homebrew, by analogy to `piton`/`crowbar`
+  tier — no standalone PHB "hammer" price outside artisan's-tools bundles); tags +`tool`
+- [x] `crafting-kit` — value 2000 already correct (homebrew consolidated artisan's-tools
+  kit, priced at the upper end of the PHB 5–30gp artisan's-tools range since it
+  replaces ~9 separate tool types); tags +`tool`
+- [x] `pick-miners` — value 200 already correct (homebrew "miner's pick", priced by
+  analogy to `shovel` 2gp×100 — both excavation tools, no direct PHB pick price); tags
+  +`tool` (kept `improvised-weapon`); missing sprite (ART, unchanged)
+- [x] `shovel` — already done in Batch 3 (value 200, tags `improvised-weapon, tool`) —
+  confirmed complete, no further action
+- [x] `dice-set` — value 10 already correct (1sp×100); description written; tags
+  +`gaming-set`
+- [x] `playing-card-set` — value 500→50 (5sp×100, was stale ×10 too high); description
+  written; tags +`gaming-set`
+- [x] `dragonchess-set` — value 100 already correct (1gp×100); tags +`gaming-set`
+- [x] `three-dragon-ante-set` — value 100 already correct (homebrew, priced by analogy
+  to `dragonchess-set`'s 1gp tier); tags +`gaming-set`; missing sprite (ART, unchanged)
 
 ### Arcane Focus (0/5), Druidic Focus (0/4), Holy Symbol (0/3)
 `substitues`→`substitutes` typo fix (4 Arcane Focus items) + decide fate of the
@@ -233,6 +281,13 @@ which is an ART decision not a data fix). Validator still flags these 10 plus 3 
 *piece* sprites that are genuinely missing on disk: `halfplate-greaves.png`,
 `hide-chaps.png`, `ringmail-hauberk.png` — these are real asset gaps (not path bugs;
 no `{id}.png` exists for them anywhere), noted for the maintainer, not fabricated.
+
+**Batch 4 (hard goods) sprite notes:** confirmed unchanged from report §5 — all 7 Packs
+(`burglars-pack`, `diplomats-pack`, `dungeoneers-pack`, `entertainers-pack`,
+`explorers-pack`, `priests-pack`, `scholars-pack`) plus `pick-miners` and
+`playing-card-set` are still missing `{id}.png` sprites (validator confirms these as
+pre-existing "Image file not found" warnings, all part of the report's original list
+of 28). No sprite work performed — ART gap, not data.
 
 ---
 
@@ -348,6 +403,68 @@ so the tag is correct, they just don't have a stat-effect payload like Potions/F
 
 **Adventuring Gear: 64/64 done (62 `[x]` + 2 `[~]` = `caltrops`, `spellbook`).**
 
-**Overall catalog: 134/209 items refined so far (37 weapons + 33 armor + 64 gear);
-75 remaining** (Ammunition 4, Musical Instrument 10, Pack 7, Tools 7, Gaming Set 4,
-Arcane/Druidic/Holy foci 12, Potion 4, Food 2, Spell Component 24, currency 1).
+**Batch 4 (this batch) — Hard Goods (Pack, Tools, Musical Instrument, Gaming Set,
+Ammunition):**
+Pack (7), Tools (7), Musical Instrument (10), Gaming Set (4), Ammunition (4) = 32 items.
+
+**Pricing corrections found (both directions, per-item PHB derivation):**
+- `arrows` 5→100 (1gp per 20-bundle×100, was stale)
+- `crossbow-bolts` 5→100 (1gp per 20-bundle×100, was stale)
+- `blowgun-needle` 2→100 (1gp per 50-bundle×100, was stale)
+- `sling-bullet` 0→4 (4cp per 20-bundle×1, was the one zero-value straggler in this
+  batch — flagged in the report as part of the original "37" but is Ammunition type,
+  deferred to this batch per the progress doc's earlier note)
+- `playing-card-set` 500→50 (5sp×100, was stale ×10 too high)
+- All 7 Packs recomputed as sum-of-contents (see Pack section above for each
+  breakdown) — `priests-pack` (2830→580), `entertainers-pack` (3300→2500),
+  `diplomats-pack` (3402→2300) dropped significantly (their stored values were stale
+  guesses, not sums); `scholars-pack` (3902→4202), `explorers-pack` (850→1000),
+  `dungeoneers-pack` (1100→1200), `burglars-pack` (1626→1725) rose slightly to match
+  the real sum now that every content item is correctly priced from prior batches.
+  No discount applied — task guidance said keep it simple (sum of contents) absent a
+  spotted discount, and none of the 7 packs' stored values suggested an intentional
+  discount pattern (they were simply wrong in both directions).
+- Everything else in this batch (`thieves-kit`, `navigator-kit`, `herbalism-kit`,
+  `hammer`, `crafting-kit`, `pick-miners`, `shovel`, `dice-set`, `dragonchess-set`,
+  `three-dragon-ante-set`, all 10 Musical Instruments) was already correctly priced —
+  verified per-item against its real PHB gp/sp/cp denomination, nothing left stale.
+
+**Homebrew prices invented/confirmed by analogy:** `hammer` (100, analogous to
+`piton`/`crowbar` tier — no standalone PHB "hammer" price, only bundled artisan's-tools
+sets); `crafting-kit` (2000, upper end of PHB artisan's-tools 5–30gp range since it
+consolidates ~9 separate tool types into one homebrew kit); `pick-miners` (200, by
+analogy to `shovel`'s 2gp — both excavation tools, no direct PHB pick price);
+`three-dragon-ante-set` (100, by analogy to `dragonchess-set`'s 1gp tier — both
+strategy/card games of similar complexity).
+
+**Descriptions written (5):** `flute`, `drum`, `dice-set`, `playing-card-set`, `arrows`,
+`crossbow-bolts`, `blowgun-needle` (7 total — all remaining "NEEDS DESCRIPTION" entries
+in this batch's scope).
+
+**Tags backfilled:** `instrument` added to all 10 Musical Instruments (all had empty
+tags); `gaming-set` added to all 4 Gaming Sets (all had empty tags); `tool` added to 6
+Tools that had empty tags (`thieves-kit`, `navigator-kit`, `herbalism-kit`, `hammer`,
+`crafting-kit`) + backfilled onto `pick-miners` (kept existing `improvised-weapon`);
+`ammunition` added to all 4 Ammunition items (kept existing `equipment`, which is
+correct since all 4 carry `gear_slot: "ammo"`).
+
+**Musical Instrument gap closed:** `bagpipe` was the one instrument missing
+`performance` + carrying empty tags (per report §3.6) — added `performance`
+(base_success 55, charisma_modifier 6, difficulty "hard", modeled between `viol`'s
+"hard" tier and `pan-flute`'s mid-range success rate) and `instrument` tag; also fixed
+rarity uncommon→common (same mundane-instrument-is-common ruling as armor/weapons).
+
+**No `[~]` proposals this batch** — every item in Pack/Tools/Musical
+Instrument/Gaming Set/Ammunition is fully expressible in the current schema; no
+engine-mechanic gaps encountered.
+
+`--validate`: **0 errors**, 37 warnings — identical set to Batch 3 (28 pre-existing
+sprite-not-found including all 7 packs + `pick-miners` + `playing-card-set`, 5
+informational consumable-effects warnings, 3 monster warnings, 1 spell warning). No
+new warnings introduced by this batch's edits.
+
+**Hard Goods: 32/32 done (all `[x]`, no `[~]`).**
+
+**Overall catalog: 166/209 items refined so far (37 weapons + 33 armor + 64 gear + 32
+hard goods); 43 remaining** (Arcane Focus 5, Druidic Focus 4, Holy Symbol 3, Potion 4,
+Food 2, Spell Component 24, currency 1).

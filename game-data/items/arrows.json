@@ -1,15 +1,16 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A bundle of fletched wooden shafts tipped with steel broadheads, fit for any bow. Sold and carried by the score in a quiver.",
   "gear_slot": "ammo",
   "id": "arrows",
   "image": "/res/img/items/arrows.png",
   "name": "Arrows",
   "notes": [],
-  "value": 5,
+  "value": 100,
   "rarity": "common",
   "stack": 25,
   "tags": [
-    "equipment"
+    "equipment",
+    "ammunition"
   ],
   "type": "Ammunition",
   "weight": 0.01

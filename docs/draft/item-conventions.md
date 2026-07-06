@@ -371,3 +371,85 @@ containers (`gear_slot: "bag"` or `"ammo"`) get both `container` + `equipment`.
   fixed: the item's own `notes` claim "+35 lbs" but the effect grants +25 — a
   pre-existing inconsistency in flavor text vs. the real effect value, out of scope
   for a pricing/tagging pass; flagged here for whoever next touches this item.)
+
+---
+
+## Pack pricing (Batch 4) — value = sum of contents
+
+**Rule:** a Pack's `value` = Σ(content item `value` × qty) across every `[item-id, qty]`
+entry in its `contents` list. No discount applied vs. buying pieces separately — task
+guidance was to keep it simple unless a pack's stored value clearly signaled an
+intentional discount, and none did (every pack's original value was simply wrong, in
+both directions, relative to the real sum). **Recompute this whenever a content item's
+own price changes** — pack values are derivative, not independently authored.
+
+All 7 packs recomputed once every content item was correctly priced (post Batches 1–3):
+`scholars-pack` 4202, `priests-pack` 580, `explorers-pack` 1000, `entertainers-pack`
+2500, `dungeoneers-pack` 1200, `diplomats-pack` 2300, `burglars-pack` 1725. Three of
+the seven (`priests-pack`, `entertainers-pack`, `diplomats-pack`) had stored values
+far *above* the real sum (stale over-estimates); the other four were close but still
+off by a small amount — none were correct as stored.
+
+## Ammunition pricing (Batch 4) — value = PHB bundle price, independent of `stack`
+
+**Rule:** Ammunition `value` is the PHB price for **one full bundle** (arrows/bolts/
+sling-bullets sold 20 to a bundle at 1gp, blowgun needles 50 to a bundle at 1gp,
+converted ×100/×10/×1 as usual). The item's own `stack` field (the inventory UI's max
+stack size, e.g. `arrows.stack: 25`) is a **separate, unrelated inventory-mechanic
+number** — do not try to make `value` scale with `stack`; they serve different
+purposes and don't need to match the real-world bundle count exactly.
+
+| id | PHB price (bundle) | value |
+|---|---|---|
+| arrows | 1 gp / 20 | 100 |
+| crossbow-bolts | 1 gp / 20 | 100 |
+| sling-bullet | 4 cp / 20 | 4 |
+| blowgun-needle | 1 gp / 50 | 100 |
+
+All 4 kept `gear_slot: "ammo"` (UNIV for the type) and got an `ammunition` tag added
+alongside the pre-existing `equipment` tag (correct per the equipment/gear_slot
+validator rule — ammo items do carry a real `gear_slot`).
+
+## Musical Instrument / Gaming Set / Tools tags (Batch 4)
+
+New tag vocabulary for these three previously-untagged types (all had empty `tags: []`
+across the board except `pick-miners`/`shovel` which had `improvised-weapon`):
+- **`instrument`** — all 10 Musical Instruments (`bagpipe`, `lute`, `lyre`, `flute`,
+  `drum`, `horn`, `pan-flute`, `viol`, `shawm`, `dulcimer`).
+- **`gaming-set`** — all 4 Gaming Sets (`dice-set`, `playing-card-set`,
+  `dragonchess-set`, `three-dragon-ante-set`).
+- **`tool`** — reused from the Batch 3 Adventuring Gear vocabulary, extended to cover
+  the Tools type proper: `thieves-kit`, `navigator-kit`, `herbalism-kit`, `hammer`,
+  `crafting-kit`, `pick-miners` (kept its pre-existing `improvised-weapon`), `shovel`
+  (already tagged in Batch 3).
+
+None of these three types carry a `gear_slot`, so none get `equipment` — consistent
+with the Batch 3 ruling that `equipment` is reserved for items with a real gear_slot.
+
+## Musical Instrument gap: `bagpipe.performance` (Batch 4, closes report §3.6/§6)
+
+`bagpipe` was the one instrument missing the UNIV `performance` object. Modeled by
+analogy to the two nearest "hard difficulty" instruments already in the catalog
+(`viol`: base_success 40/charisma_modifier 7; `shawm`: base_success 50/
+charisma_modifier 6) — bagpipes are a loud, technically demanding reed instrument, so
+placed at base_success 55/charisma_modifier 6/difficulty "hard", between the two.
+Also fixed rarity `uncommon`→`common` (mundane instrument, same ruling as armor/
+weapons: rarity tracks magical status not price/rarity-flavor).
+
+## Homebrew pricing by analogy (Batch 4)
+
+No direct PHB line item exists for these; priced by analogy to the nearest comparable
+item already in the catalog, at the same tier:
+- **`hammer`** (Tools) — 100 (1gp-equivalent), analogous to `piton`/`crowbar`-tier
+  simple hand tools; PHB only prices hammers bundled inside artisan's-tools sets, never
+  standalone.
+- **`crafting-kit`** (Tools) — 2000 (20gp-equivalent), placed at the upper end of the
+  PHB artisan's-tools range (5–30gp) since this homebrew kit consolidates ~9 separate
+  real-world tool types (smith's, carpenter's, mason's, leatherworker's, weaver's,
+  woodcarver's, glassblower's, potter's, +misc) into one item.
+- **`pick-miners`** (Tools) — 200 (2gp-equivalent), by analogy to `shovel`'s 2gp — both
+  are excavation tools with improvised-weapon `damage`, no direct PHB "pick" price
+  exists outside masonry/miner's-tools artisan bundles.
+- **`three-dragon-ante-set`** (Gaming Set) — 100 (1gp-equivalent), by analogy to
+  `dragonchess-set`'s 1gp — both are complex strategy/card games at the same PHB
+  gaming-set tier (distinct from the cheaper `dice-set`/`playing-card-set` tier).

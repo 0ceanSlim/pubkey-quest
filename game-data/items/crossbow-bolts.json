@@ -1,15 +1,16 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "Short, heavy-headed bolts machined to fit a crossbow's groove. Their stubby shafts pack a punch at close range but won't fit any bow.",
   "gear_slot": "ammo",
   "id": "crossbow-bolts",
   "image": "/res/img/items/crossbow-bolts.png",
   "name": "Crossbow Bolts",
   "notes": [],
-  "value": 5,
+  "value": 100,
   "rarity": "common",
   "stack": 20,
   "tags": [
-    "equipment"
+    "equipment",
+    "ammunition"
   ],
   "type": "Ammunition",
   "weight": 0.015

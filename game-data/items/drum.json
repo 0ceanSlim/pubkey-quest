@@ -1,5 +1,5 @@
 {
-  "description": "NEEDS DESCRIPTION",
+  "description": "A taut skin stretched over a wooden frame, struck by hand or mallet to keep time. Its steady beat carries over crowd noise and marching feet alike.",
   "id": "drum",
   "image": "/res/img/items/drum.png",
   "name": "Drum",
@@ -7,7 +7,9 @@
   "value": 600,
   "rarity": "common",
   "stack": 1,
-  "tags": [],
+  "tags": [
+    "instrument"
+  ],
   "type": "Musical Instrument",
   "weight": 3,
   "performance": {
