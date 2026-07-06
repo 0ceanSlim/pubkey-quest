@@ -36,6 +36,9 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		return nil, fmt.Errorf("no living target to cast at")
 	}
 	state := &cs.Party[0].CombatState
+	if IsIncapacitated(state.Conditions) {
+		return nil, fmt.Errorf("you are incapacitated and can't cast")
+	}
 
 	// Action economy — validated up front, before the engine spends any cost.
 	// A spell's combat cost is its action_cost ("action" | "bonus_action");
@@ -82,6 +85,12 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		applyHealToPlayer(cs, res.Heal)
 	}
 
+	// Control spells impose their condition on the target on a failed save
+	// (M5 §15): entangle → restrained, faerie-fire → outlined, …
+	if monster.IsAlive {
+		log = append(log, applySpellCondition(spellID, res, monster)...)
+	}
+
 	// Concentration — a maintained buff/control the player must now hold.
 	if res.Concentration {
 		cs.Concentration = &types.ConcentrationState{
@@ -103,6 +112,50 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	}
 
 	return log, nil
+}
+
+// spellConditionRider maps a control spell to the condition it imposes. saveStat
+// != "" means the condition re-saves each turn on that stat (entangle's STR check
+// to break free); "" means it lasts its full duration with no re-save (faerie-fire
+// is decided by the DEX save at cast time). More riders plug in here as the M5
+// conditions land more spells (docs/draft/spell-mechanics-proposals.md).
+type spellConditionRider struct {
+	condition string
+	saveStat  string
+	rounds    int
+}
+
+var spellConditionRiders = map[string]spellConditionRider{
+	"entangle":    {condition: "restrained", saveStat: "strength", rounds: 10},
+	"faerie-fire": {condition: "outlined", saveStat: "", rounds: 10},
+}
+
+// applySpellCondition applies a control spell's condition to the target. Save-
+// shaped spells land it only on a FAILED save (SaveMade == false); the recurring
+// save-to-end DC is the spell's own save DC. Returns a log line, or nil.
+func applySpellCondition(spellID string, res *spells.CastResult, monster *types.MonsterInstance) []string {
+	rider, ok := spellConditionRiders[spellID]
+	if !ok {
+		return nil
+	}
+	if res.Shape == "save" && res.SaveMade {
+		return nil // target resisted the spell
+	}
+	dc := res.SaveDC
+	if dc <= 0 {
+		dc = 10
+	}
+	saveDC := 0
+	if rider.saveStat != "" {
+		saveDC = dc
+	}
+	ApplyCondition(&monster.Conditions, types.CombatCondition{
+		Name:           rider.condition,
+		DurationRounds: rider.rounds,
+		SaveDC:         saveDC,
+		SaveStat:       rider.saveStat,
+	})
+	return []string{fmt.Sprintf("  %s is %s!", monster.Name, rider.condition)}
 }
 
 // spellActionCost reads a spell's combat action cost, defaulting to "action".

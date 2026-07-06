@@ -488,6 +488,9 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 
 	var log []string
 	state := &cs.Party[0].CombatState
+	if IsIncapacitated(state.Conditions) {
+		return nil, fmt.Errorf("you are incapacitated and can't act")
+	}
 	isOffHand := hand == "off"
 
 	if isOffHand {
@@ -533,6 +536,9 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 
 	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, thrown)
 	advantage := resolveAttackAdvantage(cs, item, isUnarmed, save.Race, thrown)
+	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
+	// the target monster's (restrained/blinded/outlined/…) grant advantage.
+	advantage += ConditionAttackAdvantage(state.Conditions, monster.Conditions)
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, advantage)
 
 	log = append(log, formatAttackRoll(save.D, item, isUnarmed, result), outcomeLine(result))
@@ -1014,6 +1020,12 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	playerAC := computePlayerAC(db, save)
 
 	var log []string
+
+	// At the top of the monster's turn it rolls saves to shake off conditions
+	// (restrained/stunned/…); freeing itself lets it act. ApplyMonsterAction
+	// re-checks incapacitation against the post-tick state.
+	log = append(log, TickCreatureConditions(monster.Name, &monster.Conditions,
+		func(stat string) int { return monsterSaveTotal(monster, stat) })...)
 
 	// Monster starting adjacent and trying to retreat? Use Disengage (consumes
 	// its action, but avoids the player's OA).

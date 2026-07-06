@@ -293,6 +293,10 @@ func clampInt(v, min, max int) int {
 // useReflex: when true, the player makes a reflex save (d20+reflexDEXMod vs DC 12)
 // before damage resolves — on success the attack misses entirely. Pass false normally.
 func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
+	// Stunned / paralyzed monsters lose their action entirely.
+	if IsIncapacitated(monster.Conditions) {
+		return 0, []string{fmt.Sprintf("  %s is %s and can't act.", monster.Name, incapacitatingConditionName(monster.Conditions))}
+	}
 	switch decision.Action {
 	case "retreat":
 		// Monster is wounded and scrambling for the grid edge; attack skipped this turn.
@@ -312,9 +316,16 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 
 		// If the player is dodging this turn, the monster attacks at disadvantage.
 		monsterAdvantage := 0
-		if len(cs.Party) > 0 && cs.Party[0].CombatState.Dodging {
-			monsterAdvantage = -1
+		var playerConds []types.CombatCondition
+		if len(cs.Party) > 0 {
+			if cs.Party[0].CombatState.Dodging {
+				monsterAdvantage = -1
+			}
+			playerConds = cs.Party[0].CombatState.Conditions
 		}
+		// Conditions: the monster's own (poisoned/frightened/…) impose disadvantage;
+		// the player's (prone/restrained/…) grant the monster advantage.
+		monsterAdvantage += ConditionAttackAdvantage(monster.Conditions, playerConds)
 		result := ResolveAttackRoll(action.AttackBonus, playerAC, monsterAdvantage)
 
 		logEntries = append(logEntries,
