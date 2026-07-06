@@ -1,8 +1,8 @@
 {
   "id": "reliquary",
   "name": "Reliquary",
-  "description": "NEEDS DESCRIPTION",
-  "rarity": "rare",
+  "description": "A small hinged case holding a fragment of bone said to belong to a saint. Its presence alone is enough to unsettle the undead.",
+  "rarity": "common",
   "value": 500,
   "weight": 2,
   "stack": 1,

@@ -453,3 +453,99 @@ item already in the catalog, at the same tier:
 - **`three-dragon-ante-set`** (Gaming Set) — 100 (1gp-equivalent), by analogy to
   `dragonchess-set`'s 1gp — both are complex strategy/card games at the same PHB
   gaming-set tier (distinct from the cheaper `dice-set`/`playing-card-set` tier).
+
+---
+
+## Foci pricing (Batch 5, FINAL) — Arcane / Druidic / Holy Symbol
+
+**PHB gp anchors → ×100 copper**, applied to all 12 focus items:
+
+| id | type | PHB gp | value |
+|---|---|---|---|
+| crystal | Arcane | 10 | 1000 |
+| orb | Arcane | 20 | 2000 |
+| rod | Arcane | 10 | 1000 |
+| staff | Arcane | 5 | 500 |
+| wand | Arcane | 10 | 1000 |
+| sprig-of-mistletoe | Druidic | 1 | 100 |
+| totem | Druidic | 1 | 100 |
+| wooden-staff | Druidic | 5 | 500 |
+| yew-wand | Druidic | 10 | 1000 |
+| amulet | Holy Symbol | 5 | 500 |
+| emblem | Holy Symbol | 5 | 500 |
+| reliquary | Holy Symbol | 5 | 500 |
+
+All 12 were **already stored at the correct value** when this batch started — no
+price corrections needed, only descriptions + one rarity fix (below). Note this is the
+first type group in the whole catalog where every value was already right; contrast
+with every prior batch, which always found at least one stale/un-multiplied straggler.
+
+## Foci rarity fix (Batch 5) — Holy Symbols were `rare`, should be `common`
+
+All 3 Holy Symbols (`amulet`, `emblem`, `reliquary`) were stored as `rare` at value
+500 — but several `common` Arcane/Druidic foci sit at the same or higher value (500
+for `staff`/`wooden-staff`, 1000 for `crystal`/`rod`/`wand`/`yew-wand`, 2000 for
+`orb`). Per the established ruling (rarity tracks magical/exotic status, not price
+tier — first established for armor in Batch 2, reapplied to weapons/instruments in
+Batches 1/4), downgraded all 3 Holy Symbols to `common`: mundane PHB holy symbols
+carry no special rarity in D&D 5e, and nothing in this catalog mechanically
+distinguishes them from the equally-priced common foci of the other two focus types.
+
+## Spell Components — DO NOT RE-PRICE (Batch 5 ruling, confirmed)
+
+The 24 Spell Component values (`salt` 10 through `starlight-essence` 10000) are a
+**deliberate homebrew rune economy**, not PHB-derived, and must never be touched by
+the ×100/×10/×1 pricing rule or "corrected" against a D&D price (none exists for most
+of them — they're original spell-fuel items). Batch 5 verified all 24 already had
+non-zero values, complete `spell_component` tags, and real descriptions — zero edits
+were made. **Rarity on Spell Components tracks in-world source-creature rarity**
+(per each item's own `notes`, e.g. "rarely drops from dragonlings"), a legitimate
+separate design axis from price — do not attempt to re-tier rarity to strict value
+monotonicity for this type; `starlight-essence`/`void-crystal` (both `legendary`) are
+correctly the two most valuable and rarest, which is what actually matters.
+
+## Potions / Food — homebrew tiers confirmed monotonic (Batch 5)
+
+`healing` 5000 (50gp×100, verified PHB anchor) → `greater-healing` 10000 →
+`superior-healing` 20000 → `supreme-healing` 50000: strictly monotonic, each roughly
+double the prior tier, and each `heal` die expression scales in step (`2d4+2` →
+`4d4+4` → `8d4+8` → `10d4+20`). No D&D analog exists above "Superior Healing Potion"
+(PHB tops out there), so `supreme-healing`'s 50000 is confirmed intentional
+homebrew top-tier pricing, not a stale outlier — despite being the single priciest
+`common`-rarity item in the whole catalog (per report §6), that's consistent with the
+catalog's rule that rarity ≠ price tier.
+
+`beer` (Food) — 5 (5cp-equivalent) confirmed correct by analogy to `soap`/`flask`/
+`ink-pen`-tier cheap consumables; no PHB "mug of ale" line item exists to anchor
+against directly. Its `effects: [{"apply_effect": "drunk", "chance": 50}]` shape is a
+**second, equally-valid effects-array format** distinct from the inline `{"type":
+"hunger", "value": 1}` shape used by `rations`/Potions — both are read by
+`cmd/server/game/inventory/inventory.go`'s `ApplyItemEffects`, confirmed live (not a
+proposal candidate). Use whichever shape fits: inline `type`/`value` for deterministic
+stat effects, `apply_effect`/`chance` for a chance-based named status effect from
+`game-data/effects/`.
+
+## currency type (Batch 5) — `gold-piece` one-off, left as designed
+
+`gold-piece.value: 1` is correct by definition — gold-piece IS the game's currency
+unit (1 game gold = 1 D&D copper piece, per the catalog-wide pricing rule), so a value
+of 1 means "this coin is worth itself." Not a bug, no fix applicable. `type: "currency"`
+remains the one lowercase type value in the whole catalog (every other type is Title
+Case) — flagged for the maintainer in the progress log but **not renamed**, since it's
+a live type-match string read elsewhere in the codebase and a casing change is a
+schema decision, not a data-content one (out of scope for this pass per the task's
+explicit instruction to leave it "unless trivial+safe" — a type-value rename touching
+every reader of `item.Type == "currency"` is not verifiably safe within this pass).
+`stack: 1000000000000` (1e12 sentinel) also left unchanged, already documented in
+report §3.11 as an intentional "effectively unlimited" stack cap.
+
+## FINAL — pricing/tag/rarity work is complete across the whole 209-item catalog
+
+Batch 5 was the last type group. Every item now has: a non-zero, individually-derived
+`value` (D&D×100 where an analog exists, deliberate homebrew where documented, sane
+analogy-priced where neither applies); a real, non-"NEEDS DESCRIPTION" description;
+monotonic rarity within its category (or a documented, deliberate homebrew exception —
+Spell Component drop-rarity); and a non-empty, classification-correct `tags` array. See
+`docs/draft/item-refinement-progress.md`'s "CATALOG COMPLETE" section for the full
+209/209 breakdown and the 3 `[~]` engine-mechanic proposals still open in
+`docs/draft/item-mechanics-proposals.md`.

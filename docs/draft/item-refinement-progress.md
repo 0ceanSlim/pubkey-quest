@@ -247,22 +247,65 @@ Sprite section below).
 - [x] `three-dragon-ante-set` — value 100 already correct (homebrew, priced by analogy
   to `dragonchess-set`'s 1gp tier); tags +`gaming-set`; missing sprite (ART, unchanged)
 
-### Arcane Focus (0/5), Druidic Focus (0/4), Holy Symbol (0/3)
-`substitues`→`substitutes` typo fix (4 Arcane Focus items) + decide fate of the
-(all-empty) substitutes/provides-adjacent key across all 12 foci — one convention
-across Arcane+Druidic+Holy.
+### Arcane Focus (5/5 done — Batch 5)
+- [x] `crystal` — value 1000 already correct (10gp×100); description already good; tags already `focus, equipment`
+- [x] `orb` — value 2000 already correct (20gp×100); description written; tags already `focus, equipment`
+- [x] `rod` — value 1000 already correct (10gp×100); description written; tags already `focus, equipment`
+- [x] `staff` — value 500 already correct (5gp×100); description written; tags already `focus, equipment`
+- [x] `wand` — value 1000 already correct (10gp×100); description written; tags already `focus, equipment`
 
-### Potion (0/4), Food (0/2)
-`healing` sprite missing (ART); `greater-healing`/`superior-healing`/`supreme-healing`
-value tier check (50000 for supreme — flagged as priciest "common" outlier in report §6).
+`substitues` typo confirmed already gone from all 4 Arcane Focus items (resolved in an
+earlier pass, not present in current files) — no fix needed this batch.
 
-### Spell Component (0/24)
-Cross-reference with spell-refiner per report §4 (11 unused components) before any
-value/tag changes — coordinate, don't just tag in isolation.
+### Druidic Focus (4/4 done — Batch 5)
+- [x] `sprig-of-mistletoe` — value 100 already correct (1gp×100); description written; tags already `focus, equipment`
+- [x] `totem` — value 100 already correct (1gp×100); description written; tags already `focus, equipment`
+- [x] `wooden-staff` — value 500 already correct (5gp×100); description written; tags already `focus, equipment`
+- [x] `yew-wand` — value 1000 already correct (10gp×100); description written; tags already `focus, equipment`
 
-### currency (0/1)
-`gold-piece` — the type-casing one-off (`currency` vs Title Case) and the 1e12 stack
-sentinel; likely leave as-is with a documented rationale, not a "fix."
+### Holy Symbol (3/3 done — Batch 5)
+- [x] `amulet` — value 500 already correct (5gp×100); description written; rarity rare→common (mundane-focus ruling, matched value tier of common Arcane/Druidic foci); tags already `focus, equipment`
+- [x] `emblem` — value 500 already correct (5gp×100); description written; rarity rare→common; tags already `focus, equipment`
+- [x] `reliquary` — value 500 already correct (5gp×100); description written; rarity rare→common; tags already `focus, equipment`
+
+### Potion (4/4 done — Batch 5)
+- [x] `healing` — value 5000 already correct (50gp×100); description/heal/effects/tags already complete, no changes
+- [x] `greater-healing` — value 10000 already correct, monotonic above `healing`; already complete, no changes
+- [x] `superior-healing` — value 20000 already correct, monotonic above `greater-healing`; already complete, no changes
+- [x] `supreme-healing` — value 50000 already correct, monotonic above `superior-healing`; already complete, no changes (flagged in report §6 as priciest "common" item — confirmed intentional top-tier homebrew potion, not a bug: rarity tracks magic-exoticness not price, and no D&D analog exists above "supreme" to compare against)
+
+All 4 healing Potion sprites confirmed still missing (ART gap, unchanged from report §5).
+
+### Food (2/2 done — Batch 5)
+- [x] `rations` — already fully complete from an earlier pass (value/description/effects/tags all present); confirmed no further action needed
+- [x] `beer` — value 5 already correct (5cp-equivalent, by analogy to `soap`/`flask`/`ink-pen` tier — no direct PHB "mug of ale" line item); description/tags (`consumable`) already good; `effects` confirmed genuinely wired (`apply_effect: "drunk"` + `chance: 50` resolves to a real `game-data/effects/drunk.json` read by `ApplyItemEffects` in `cmd/server/game/inventory/inventory.go`) — no proposal needed, this is a working, different-but-valid effects-array shape (chance-based named effect vs. inline type/value), not a bug
+
+### Spell Component (24/24 verified — Batch 5, values NOT re-priced per task instruction)
+All 24 already had non-zero, deliberate homebrew rune-economy values (salt 10 through
+starlight-essence 10000) and complete `spell_component` tags — left untouched per
+instruction. All 24 already had real descriptions (none were "NEEDS DESCRIPTION") — no
+description work needed. Rarity confirmed sensible: `starlight-essence`/`void-crystal`
+are the only 2 `legendary` items in the whole catalog (10000/8000, both far above every
+`rare` component) and every `rare`/`uncommon`/`common` component's rarity tracks its
+in-world source-creature rarity (per each item's own `notes`), not a strict value
+ladder — a legitimate, separate homebrew design axis from price, left as designed.
+No changes made to any of the 24 Spell Component items this batch (verify-only, as
+instructed).
+- [x] `salt`, `ash`, `bark-shavings`, `blessed-incense`, `bone-dust`, `demon-ichor`,
+  `dragon-scale`, `elemental-sparks`, `ether-essence`, `holy-water`, `iron-filings`,
+  `mana-crystals`, `mushroom-spores`, `phoenix-feather`, `pollen`, `quartz-dust`,
+  `sacred-oil`, `spider-silk`, `spirit-dust`, `starlight-essence`, `sulfur`,
+  `tree-sap`, `void-crystal`, `arcane-powder` — all verified complete, no edits.
+
+### currency (1/1 done — Batch 5)
+- [x] `gold-piece` — value 1 confirmed correct (it IS the currency unit, not a bug);
+  description already good; tags empty→`currency` (classification tag, matching the
+  pattern given to every other type this pass). Noted for the maintainer: `type:
+  "currency"` is a one-off lowercase type value vs every other type's Title Case
+  (`Potion`, `Food`, etc.) — left as-is per task instruction (not a trivial+safe rename
+  since it's a live type-match string, out of scope to touch without confirming every
+  reader). The `stack: 1000000000000` sentinel (1e12, "effectively unlimited") is also
+  unchanged — already documented as intentional in report §3.11.
 
 ---
 
@@ -288,6 +331,16 @@ no `{id}.png` exists for them anywhere), noted for the maintainer, not fabricate
 `playing-card-set` are still missing `{id}.png` sprites (validator confirms these as
 pre-existing "Image file not found" warnings, all part of the report's original list
 of 28). No sprite work performed — ART gap, not data.
+
+**Batch 5 (foci/consumables) sprite notes:** confirmed unchanged from report §5 — all
+4 healing Potions (`healing`, `greater-healing`, `superior-healing`, `supreme-healing`)
+are still missing `{id}.png` sprites (validator confirms these as pre-existing "Image
+file not found" warnings, part of the report's original list of 28). All 12 foci
+(Arcane/Druidic/Holy) and both Food items already have working sprites — no gaps
+found in this batch's scope beyond the pre-existing healing-potion cluster. No sprite
+work performed — ART gap, not data. **This closes out the full 28-item sprite gap
+list from report §5 as fully accounted for across all 5 batches** (still 28 missing on
+disk, none fabricated, all noted for the maintainer).
 
 ---
 
@@ -465,6 +518,99 @@ new warnings introduced by this batch's edits.
 
 **Hard Goods: 32/32 done (all `[x]`, no `[~]`).**
 
-**Overall catalog: 166/209 items refined so far (37 weapons + 33 armor + 64 gear + 32
-hard goods); 43 remaining** (Arcane Focus 5, Druidic Focus 4, Holy Symbol 3, Potion 4,
-Food 2, Spell Component 24, currency 1).
+**Batch 5 (FINAL) — Foci, Consumables, Spell Components, currency:**
+Arcane Focus (5), Druidic Focus (4), Holy Symbol (3), Potion (4), Food (2), Spell
+Component (24, verify-only), currency (1) = 43 items.
+
+**Pricing:** all 12 foci (Arcane/Druidic/Holy) were already stored at their correct
+PHB×100 anchor value (crystal 1000, orb 2000, rod 1000, staff 500, wand 1000,
+sprig-of-mistletoe 100, totem 100, wooden-staff 500, yew-wand 1000, amulet/emblem/
+reliquary 500 each) — no value corrections needed, only descriptions/rarity. Potions
+(healing 5000/greater 10000/superior 20000/supreme 50000) confirmed monotonic and
+already correct, no changes. Food (`rations` already complete; `beer` 5 confirmed
+correct by analogy, no change). **Spell Components (24) deliberately NOT re-priced**
+per task instruction — their homebrew rune-economy values were already all non-zero
+and left untouched. `gold-piece` value 1 confirmed correct (it's the currency unit
+itself).
+
+**Rarity fix:** all 3 Holy Symbols (`amulet`, `emblem`, `reliquary`) were `rare` at
+value 500 — the same tier as several `common` Arcane/Druidic foci at 500-1000. Per the
+established ruling (rarity tracks magical/exotic status, not price tier — same logic
+applied to armor in Batch 2 and weapons in Batch 1), downgraded all 3 to `common`:
+mundane PHB holy symbols have no special rarity in D&D, and nothing distinguishes them
+mechanically from the equally-priced common Arcane Focus items.
+
+**Descriptions written (11):** every foci item that still said "NEEDS DESCRIPTION" —
+`orb`, `rod`, `staff`, `wand` (Arcane); `sprig-of-mistletoe`, `totem`, `wooden-staff`,
+`yew-wand` (Druidic); `amulet`, `emblem`, `reliquary` (Holy Symbol). `crystal` already
+had a good description (untouched). This closes out the last of the report's original
+63 "NEEDS DESCRIPTION" items — **0 remain in the catalog.**
+
+**Tags:** no foci tag changes needed — all 12 already carried `focus` + `equipment`
+(validator-enforced pairing, both already correct) alongside a real `gear_slot`.
+`gold-piece` tags empty→`currency` (new classification tag, consistent with the
+per-type tag given to every other previously-untagged type this pass).
+
+**Spell Components:** confirmed all 24 already carry `spell_component`, all already
+have real descriptions, all already have non-zero deliberate homebrew values —
+**zero edits made**, verify-only per task instruction. Confirmed `starlight-essence`/
+`void-crystal` remain the catalog's only 2 `legendary` items and sit correctly above
+every `rare` component in value.
+
+**`substitues` typo (report §3.1):** confirmed already resolved on all Arcane Focus
+items in a prior pass — the key no longer exists on any of the 12 foci files. No
+action needed this batch.
+
+**No `[~]` proposals this batch** — every item in scope is fully expressible in the
+current schema (foci/potions/food/spell-components/currency all have real,
+already-existing engine hooks: `provides`, `heal`+`effects`, `apply_effect`+`chance`
+consumable effects). `beer`'s chance-based effect format was double-checked against
+`cmd/server/game/inventory/inventory.go` and confirmed genuinely wired to a real
+`drunk` effect file — not a gap.
+
+`--validate`: **0 errors**, 37 warnings — identical set to Batch 4 (28 pre-existing
+sprite-not-found, including all 4 healing Potions per report §5; 5 informational
+consumable-effects warnings; 3 monster warnings; 1 spell warning). No new warnings
+introduced by this batch's edits.
+
+**Batch 5: 43/43 done (all `[x]`, no `[~]`).**
+
+---
+
+## CATALOG COMPLETE — 209/209 items refined
+
+All five batches finished the full item catalog:
+
+| Batch | Scope | Count | `[x]` | `[~]` |
+|---|---|---|---|---|
+| 1 | All weapons (Simple/Martial Melee + Ranged) | 37 | 36 | 1 (`net`) |
+| 2 | All armor (Light/Medium/Heavy/Armor Set) | 33 | 33 | 0 |
+| 3 | Adventuring Gear (full type) | 64 | 62 | 2 (`caltrops`, `spellbook`) |
+| 4 | Hard Goods (Pack/Tools/Instrument/Gaming Set/Ammunition) | 32 | 32 | 0 |
+| 5 | Foci/Potion/Food/Spell Component/currency | 43 | 43 | 0 |
+| **Total** | **all 21 types** | **209** | **206** | **3** |
+
+**206 items fully refined (`[x]`)**, **3 items flagged `[~]` needs-mechanic**
+(`net` — restraint/entangle has no engine hook; `caltrops` — same restraint gap,
+cross-referenced not duplicated; `spellbook` — `allowed_types: ["spell-scroll"]`
+points at a non-existent item type). All 3 proposals are recorded in
+`docs/draft/item-mechanics-proposals.md` for the maintainer; none were faked or
+mangled to force a schema fit.
+
+**Catalog-wide outcomes:**
+- **0 items remain at `value: 0`** (the original 37 zero-value weapons, the highest
+  priority per the task, were the very first fix in Batch 1).
+- **0 items remain with `"NEEDS DESCRIPTION"`** (the original 63 are now all written,
+  finished off by this batch's 11 foci descriptions).
+- **0 items remain with empty `tags: []`** (the original 59 are now all backfilled;
+  the final one, `gold-piece`, closed this batch).
+- Rarity is monotonic with value within every category that isn't a deliberate
+  homebrew exception (Spell Components' rarity tracks in-world source-creature rarity,
+  a documented separate design axis, not a bug).
+- Sprite/asset gaps (28 missing PNGs, 10 Armor-Set path mismatches) are noted
+  throughout for the maintainer but were never fabricated — these are art-team work,
+  not data work, per the task's explicit instruction.
+
+See `docs/draft/item-conventions.md` for every reusable pricing/tag/rarity ruling made
+across all 5 batches, and `docs/draft/item-mechanics-proposals.md` for the 3 filed
+engine-mechanic proposals.

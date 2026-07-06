@@ -7,7 +7,9 @@
   "weight": 0.02,
   "stack": 1000000000000,
   "rarity": "common",
-  "tags": [],
+  "tags": [
+    "currency"
+  ],
   "notes": [],
   "image": "/res/img/items/gold-piece.png"
 }

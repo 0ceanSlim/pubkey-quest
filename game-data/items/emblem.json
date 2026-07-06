@@ -1,8 +1,8 @@
 {
   "id": "emblem",
   "name": "Emblem",
-  "description": "NEEDS DESCRIPTION",
-  "rarity": "rare",
+  "description": "A small metal emblem stamped with the sigil of a faith, kept polished by constant handling during prayer.",
+  "rarity": "common",
   "value": 500,
   "weight": 1,
   "stack": 1,

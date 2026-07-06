@@ -1,8 +1,8 @@
 {
   "id": "amulet",
   "name": "Amulet",
-  "description": "NEEDS DESCRIPTION",
-  "rarity": "rare",
+  "description": "A holy symbol of hammered silver worn close to the heart, warm to the touch when its bearer calls on divine power.",
+  "rarity": "common",
   "value": 500,
   "weight": 1,
   "stack": 1,
