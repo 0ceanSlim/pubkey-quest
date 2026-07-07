@@ -126,8 +126,9 @@ type spellConditionRider struct {
 }
 
 var spellConditionRiders = map[string]spellConditionRider{
-	"entangle":    {condition: "restrained", saveStat: "strength", rounds: 10},
-	"faerie-fire": {condition: "outlined", saveStat: "", rounds: 10},
+	"entangle":    {condition: "restrained", saveStat: "strength", rounds: 10}, // STR save each turn to break free
+	"faerie-fire": {condition: "outlined", saveStat: "", rounds: 10},           // DEX save at cast; no re-save
+	"command":     {condition: "prone", saveStat: "", rounds: 1},               // WIS save at cast; "Grovel" → prone for 1 round
 }
 
 // applySpellCondition applies a control spell's condition to the target. Save-

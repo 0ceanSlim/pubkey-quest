@@ -1021,12 +1021,6 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 
 	var log []string
 
-	// At the top of the monster's turn it rolls saves to shake off conditions
-	// (restrained/stunned/…); freeing itself lets it act. ApplyMonsterAction
-	// re-checks incapacitation against the post-tick state.
-	log = append(log, TickCreatureConditions(monster.Name, &monster.Conditions,
-		func(stat string) int { return monsterSaveTotal(monster, stat) })...)
-
 	// Monster starting adjacent and trying to retreat? Use Disengage (consumes
 	// its action, but avoids the player's OA).
 	if decision.Action == "retreat" && currentRange(cs) <= getPlayerMeleeReach(db, save) {
@@ -1077,6 +1071,12 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 		log = append(log, applyDamageToPlayer(cs, dmg)...)
 		log = append(log, checkConcentrationOnDamage(cs, save, dmg)...)
 	}
+
+	// End of the monster's turn: it rolls saves to shake off conditions
+	// (restrained/stunned/…) and timed conditions count down and expire — D&D
+	// resolves both at the end of the afflicted creature's turn.
+	log = append(log, TickCreatureConditions(monster.Name, &monster.Conditions,
+		func(stat string) int { return monsterSaveTotal(monster, stat) })...)
 
 	resetPlayerTurnState(cs, save)
 	return log

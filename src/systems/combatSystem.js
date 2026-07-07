@@ -131,6 +131,7 @@ export function renderCombatState(cs) {
     if (monster) {
         _setText('combat-monster-name', monster.name ?? 'Unknown');
         _setText('combat-monster-ac-badge', `AC ${monster.armor_class ?? '?'}`);
+        _renderConditions(monster.conditions || []);
 
         const img = $id('combat-monster-img');
         if (img && monster.instance_id) {
@@ -1427,6 +1428,29 @@ function _meleeReach(itemID) {
 }
 
 // ─── Side-panel sync ──────────────────────────────────────────────────────────
+
+// Glyphs for the combat condition badges.
+const _CONDITION_ICON = {
+    restrained: '🕸', blinded: '🌫', poisoned: '☠', frightened: '😱', prone: '⬇',
+    stunned: '💫', paralyzed: '❄', grappled: '✊', outlined: '✨', charmed: '💗',
+};
+
+// _renderConditions paints the active-condition badges under the monster panel.
+function _renderConditions(conditions) {
+    const el = $id('combat-monster-conditions');
+    if (!el) return;
+    el.innerHTML = '';
+    (conditions || []).forEach(name => {
+        const badge = document.createElement('span');
+        const icon = _CONDITION_ICON[String(name).toLowerCase()] || '●';
+        badge.textContent = `${icon} ${name}`;
+        badge.title = name;
+        badge.style.cssText =
+            'font-size:7px;font-weight:bold;color:#c4b5fd;text-transform:capitalize;' +
+            'border:1px solid #4a4a4a;background:rgba(0,0,0,0.85);padding:0 3px;';
+        el.appendChild(badge);
+    });
+}
 
 // _renderMonsterHP drains the monster HP bar to the cs values.
 function _renderMonsterHP(cs) {

@@ -69,6 +69,7 @@ type CombatPlayerView struct {
 	IsUnconscious      bool `json:"is_unconscious"       example:"false"`
 	IsStable           bool `json:"is_stable"            example:"false"`
 	Dodging            bool `json:"dodging"              example:"false"`
+	Conditions         []string `json:"conditions"`
 }
 
 // CombatMonsterView is the visible monster state returned in responses.
@@ -81,6 +82,7 @@ type CombatMonsterView struct {
 	MaxHP      int    `json:"max_hp"      example:"7"`
 	ArmorClass int    `json:"armor_class" example:"15"`
 	IsAlive    bool   `json:"is_alive"    example:"true"`
+	Conditions []string `json:"conditions"`
 }
 
 // CombatGridView describes the 2D combat grid dimensions.
@@ -157,6 +159,15 @@ func loadAdvancement() ([]types.AdvancementEntry, error) {
 }
 
 // buildStateResponse converts in-memory CombatSession into the API response shape.
+// conditionNames flattens combat conditions to their display names for the client.
+func conditionNames(conds []types.CombatCondition) []string {
+	out := make([]string, 0, len(conds))
+	for _, c := range conds {
+		out = append(out, c.Name)
+	}
+	return out
+}
+
 func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []string) CombatStateResponse {
 	player := CombatPlayerView{}
 	if len(cs.Party) > 0 {
@@ -169,6 +180,7 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 			IsUnconscious:      state.IsUnconscious,
 			IsStable:           state.IsStable,
 			Dodging:            state.Dodging,
+			Conditions:         conditionNames(state.Conditions),
 		}
 	}
 
@@ -181,6 +193,7 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 			MaxHP:      m.MaxHP,
 			ArmorClass: m.ArmorClass,
 			IsAlive:    m.IsAlive,
+			Conditions: conditionNames(m.Conditions),
 		})
 	}
 
