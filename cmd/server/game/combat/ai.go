@@ -292,7 +292,7 @@ func clampInt(v, min, max int) int {
 //
 // useReflex: when true, the player makes a reflex save (d20+reflexDEXMod vs DC 12)
 // before damage resolves — on success the attack misses entirely. Pass false normally.
-func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
+func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int, useReflex bool, reflexDEXMod int, save *types.SaveFile) (damageDealt int, logEntries []string) {
 	// Stunned / paralyzed monsters lose their action entirely.
 	if IsIncapacitated(monster.Conditions) {
 		return 0, []string{fmt.Sprintf("  %s is %s and can't act.", monster.Name, incapacitatingConditionName(monster.Conditions))}
@@ -361,6 +361,8 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 				"  %s deals %d %s damage.%s",
 				monster.Name, dmg, action.Hit.Type, critStr,
 			))
+			// On-hit condition rider: the player saves or gains the condition.
+			logEntries = append(logEntries, applyMonsterConditionRider(cs, save, action)...)
 		}
 	}
 	return damageDealt, logEntries
@@ -369,11 +371,11 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 // ExecuteMonsterTurn runs the monster's full turn (move + action).
 // Returns damage dealt and all log entries. No opportunity attacks are resolved
 // here (opening/death-save turns — player either hasn't started or is down).
-func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int, useReflex bool, reflexDEXMod int) (damageDealt int, logEntries []string) {
+func ExecuteMonsterTurn(cs *types.CombatSession, monster *types.MonsterInstance, playerAC int, useReflex bool, reflexDEXMod int, save *types.SaveFile) (damageDealt int, logEntries []string) {
 	decision := DecideMonsterAction(cs, monster)
 	logEntries = append(logEntries, ApplyMonsterMove(cs, monster, decision, 0, nil)...)
 	decision = RefreshAttackDecision(cs, monster, decision)
-	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, useReflex, reflexDEXMod)
+	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, useReflex, reflexDEXMod, save)
 	return dmg, append(logEntries, actionLog...)
 }
 

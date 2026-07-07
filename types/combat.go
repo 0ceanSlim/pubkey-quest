@@ -26,9 +26,22 @@ type MonsterSenses struct {
 
 // MonsterHit represents the damage roll for a monster attack
 type MonsterHit struct {
-	Dice string `json:"dice"`
-	Mod  int    `json:"mod"`
-	Type string `json:"type"`
+	Dice    string             `json:"dice"`
+	Mod     int                `json:"mod"`
+	Type    string             `json:"type"`
+	Special *MonsterHitSpecial `json:"special,omitempty"`
+}
+
+// MonsterHitSpecial is an on-hit rider authored in the monster data: a save the
+// player must make or suffer a condition (§15/§23). `type` is "save" (Effect
+// names the condition, e.g. "knocked_prone"/"restrained"/"paralyzed") or
+// "poison_save" (poisoned). Non-condition specials (pull, life_steal, …) are
+// ignored by the conditions engine.
+type MonsterHitSpecial struct {
+	Type    string `json:"type"`
+	Ability string `json:"ability,omitempty"`
+	DC      int    `json:"dc,omitempty"`
+	Effect  string `json:"effect,omitempty"`
 }
 
 // MonsterAction represents an action a monster can take in combat

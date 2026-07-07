@@ -214,7 +214,7 @@ func monsterHasFirstTurn(cs *types.CombatSession) bool {
 func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) []string {
 	playerAC := computePlayerAC(db, save)
 	dexMod := StatMod(GetStatFromMap(save.Stats, "dexterity"))
-	dmg, log := ExecuteMonsterTurn(cs, &cs.Monsters[0], playerAC, true, dexMod)
+	dmg, log := ExecuteMonsterTurn(cs, &cs.Monsters[0], playerAC, true, dexMod, save)
 	if dmg > 0 {
 		log = append(log, applyDamageToPlayer(cs, dmg)...)
 	}
@@ -1021,6 +1021,14 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 
 	var log []string
 
+	// End of the player's turn: their conditions save-to-end / count down before
+	// the monster acts. A condition the monster imposes later this turn persists to
+	// the player's next turn (it lands after this tick).
+	if len(cs.Party) > 0 {
+		log = append(log, TickCreatureConditions("You", &cs.Party[0].CombatState.Conditions,
+			func(stat string) int { return playerSaveTotal(save, stat) })...)
+	}
+
 	// Monster starting adjacent and trying to retreat? Use Disengage (consumes
 	// its action, but avoids the player's OA).
 	if decision.Action == "retreat" && currentRange(cs) <= getPlayerMeleeReach(db, save) {
@@ -1065,7 +1073,7 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	decision = RefreshAttackDecision(cs, monster, decision)
 
 	// Monster takes its action (no reflex save — player already chose their stance)
-	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, false, 0)
+	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, false, 0, save)
 	log = append(log, actionLog...)
 	if dmg > 0 {
 		log = append(log, applyDamageToPlayer(cs, dmg)...)

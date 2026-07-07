@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/types"
 )
 
@@ -179,6 +180,75 @@ func monsterSaveTotal(m *types.MonsterInstance, stat string) int {
 		return roll + v
 	}
 	return roll + StatMod(monsterAbilityScore(m.Data.Stats, stat))
+}
+
+// playerSaveTotal rolls a player's saving throw: d20 + the ability modifier for
+// the given stat.
+func playerSaveTotal(save *types.SaveFile, stat string) int {
+	return RollD20() + character.AbilityMod(character.AbilityScore(save.Stats, stat))
+}
+
+// monsterEffectCondition maps a monster hit-special `effect` string to a combat
+// condition name. Non-condition effects (max_hp_reduction, life_steal, …) are absent.
+var monsterEffectCondition = map[string]string{
+	"knocked_prone": "prone",
+	"prone":         "prone",
+	"paralyzed":     "paralyzed",
+	"restrained":    "restrained",
+	"poisoned":      "poisoned",
+	"blinded":       "blinded",
+	"frightened":    "frightened",
+	"stunned":       "stunned",
+}
+
+// applyMonsterConditionRider resolves a monster attack's on-hit rider from its
+// authored hit.special (§15/§23): the player saves vs the special's DC using the
+// named ability; on a failure they gain the mapped condition. A "save"-type
+// special names the condition in Effect; "poison_save" always inflicts poisoned.
+// restrained/paralyzed re-save each of the player's turns; prone is 1 round.
+// Non-condition specials (pull, life_steal, …) are ignored. Returns log lines.
+func applyMonsterConditionRider(cs *types.CombatSession, save *types.SaveFile, action types.MonsterAction) []string {
+	sp := action.Hit.Special
+	if sp == nil || save == nil || len(cs.Party) == 0 {
+		return nil
+	}
+
+	var cond, stat string
+	switch strings.ToLower(sp.Type) {
+	case "poison_save":
+		cond, stat = "poisoned", "constitution"
+	case "save":
+		cond, stat = monsterEffectCondition[strings.ToLower(sp.Effect)], sp.Ability
+	default:
+		return nil // pull / life_steal / max_hp_reduction / … not a simple condition
+	}
+	if cond == "" {
+		return nil
+	}
+	if stat == "" {
+		stat = "constitution"
+	}
+	dc := sp.DC
+	if dc <= 0 {
+		dc = 11
+	}
+
+	total := playerSaveTotal(save, stat)
+	if total >= dc {
+		return []string{fmt.Sprintf("  You resist %s (%s save %d vs DC %d).", cond, stat, total, dc)}
+	}
+
+	rounds, reSaveDC, reSaveStat := 3, 0, ""
+	switch cond {
+	case "prone":
+		rounds = 1
+	case "restrained", "paralyzed":
+		rounds, reSaveDC, reSaveStat = -1, dc, stat // save at the end of each of your turns
+	}
+	ApplyCondition(&cs.Party[0].CombatState.Conditions, types.CombatCondition{
+		Name: cond, DurationRounds: rounds, SaveDC: reSaveDC, SaveStat: reSaveStat,
+	})
+	return []string{fmt.Sprintf("  ✘ You are %s! (%s save %d vs DC %d)", cond, stat, total, dc)}
 }
 
 // monsterAbilityScore reads a named ability score off a monster stat block.
