@@ -72,6 +72,10 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 
 	cs := initCombatSession(npub, save, monsterData, environmentID)
 
+	// Seed the martial class resource pool (Rage/Stamina/Ki/Cunning) for the fight.
+	InitResourcePool(&cs.Party[0].CombatState, save.Class,
+		character.GetLevelFromXP(save.Experience, advancement), save.Stats)
+
 	playerDEXMod := StatMod(GetStatFromMap(save.Stats, "dexterity"))
 	monsterDEXMod := StatMod(monsterData.Stats.Dexterity)
 	playerInit := rollInitiative(playerDEXMod)
@@ -547,9 +551,14 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		if isOffHand {
 			state.BonusActionUsed = true
 		} else {
-			state.ActionUsed = true
+			consumePlayerAction(state)
 		}
 		return log, nil
+	}
+
+	// Landing a crit builds the rogue's Cunning pool.
+	if result.IsCrit && state.Resource != nil {
+		regenResource(state.Resource, state.Resource.PerCrit)
 	}
 
 	offhandEmpty := isOffhandEmpty(save.Inventory)
@@ -562,6 +571,10 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	}
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
 
+	// Ability riders: rage % bonus + a readied Sneak Attack (consumed on first hit).
+	dmg, riderLog := applyPlayerDamageRiders(state, dmg, result.IsCrit)
+	log = append(log, riderLog...)
+
 	applyDamageToMonster(monster, dmg)
 
 	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
@@ -572,7 +585,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	if isOffHand {
 		state.BonusActionUsed = true
 	} else {
-		state.ActionUsed = true
+		consumePlayerAction(state)
 	}
 
 	if !monster.IsAlive {
@@ -1045,6 +1058,8 @@ func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.Sav
 	if len(cs.Party) > 0 {
 		log = append(log, TickCreatureConditions("You", &cs.Party[0].CombatState.Conditions,
 			func(stat string) int { return playerSaveTotal(save, stat) })...)
+		// End of your turn: regen the class resource and count down rage.
+		log = append(log, tickPlayerAbilities(&cs.Party[0].CombatState)...)
 	}
 
 	// Monster starting adjacent and trying to retreat? Use Disengage (consumes
@@ -1193,6 +1208,10 @@ func resetPlayerTurnState(cs *types.CombatSession, save *types.SaveFile) {
 	state.HeldPosition = false
 	state.ReactionUsed = false
 	state.Disengaged = false
+	// Extra actions and a readied-but-unused sneak attack don't carry over.
+	// (Rage persists — it has its own duration countdown in tickPlayerAbilities.)
+	state.ExtraActions = 0
+	state.PendingSneakDice = ""
 }
 
 // PlayerMeleeReachForSave is an exported helper for the API layer to report the
@@ -1265,6 +1284,20 @@ func applyDamageToPlayer(cs *types.CombatSession, dmg int) []string {
 		return nil
 	}
 	state := &cs.Party[0].CombatState
+
+	var log []string
+	// Rage soaks a slice of incoming damage.
+	if state.RageResistPct > 0 && dmg > 0 {
+		if reduced := dmg * state.RageResistPct / 100; reduced > 0 {
+			dmg -= reduced
+			log = append(log, fmt.Sprintf("  🪓 Rage absorbs %d damage.", reduced))
+		}
+	}
+	// Taking a hit fuels the barbarian's Rage pool.
+	if dmg > 0 && state.Resource != nil {
+		regenResource(state.Resource, state.Resource.PerHitTaken)
+	}
+
 	state.CurrentHP -= dmg
 	if state.CurrentHP <= 0 {
 		state.CurrentHP = 0

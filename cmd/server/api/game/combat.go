@@ -70,6 +70,19 @@ type CombatPlayerView struct {
 	IsStable           bool `json:"is_stable"            example:"false"`
 	Dodging            bool `json:"dodging"              example:"false"`
 	Conditions         []string `json:"conditions"`
+	// Resource is the martial class ability pool (Rage/Stamina/Ki/Cunning); nil for casters.
+	Resource      *CombatResourceView `json:"resource,omitempty"`
+	RageTurnsLeft int                 `json:"rage_turns_left,omitempty"`
+	AbilitiesUsed []string            `json:"abilities_used,omitempty"` // once-per-combat abilities already spent
+}
+
+// CombatResourceView is the visible martial ability resource pool.
+// swagger:model CombatResourceView
+type CombatResourceView struct {
+	Type    string `json:"type"    example:"rage"`
+	Label   string `json:"label"   example:"Rage"`
+	Current int    `json:"current" example:"50"`
+	Max     int    `json:"max"     example:"100"`
 }
 
 // CombatMonsterView is the visible monster state returned in responses.
@@ -181,6 +194,16 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 			IsStable:           state.IsStable,
 			Dodging:            state.Dodging,
 			Conditions:         conditionNames(state.Conditions),
+			RageTurnsLeft:      state.RageTurnsLeft,
+			AbilitiesUsed:      state.AbilitiesUsed,
+		}
+		if state.Resource != nil {
+			player.Resource = &CombatResourceView{
+				Type:    state.Resource.Type,
+				Label:   state.Resource.Label,
+				Current: state.Resource.Current,
+				Max:     state.Resource.Max,
+			}
 		}
 	}
 
@@ -676,6 +699,63 @@ func CombatUseItemHandler(w http.ResponseWriter, r *http.Request) {
 	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Use-item error: %v", err))
+		return
+	}
+
+	cs.Log = append(cs.Log, roundLog...)
+	cs.Round++
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
+
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// ─── CombatAbilityHandler (M5 Slice 3) ─────────────────────────────────────────
+
+// CombatAbilityRequest is the body sent to POST /combat/ability.
+// swagger:model CombatAbilityRequest
+type CombatAbilityRequest struct {
+	Npub      string `json:"npub"       example:"npub1..."`
+	SaveID    string `json:"save_id"    example:"save_1234567890"`
+	AbilityID string `json:"ability_id" example:"enter-rage"`
+}
+
+// CombatAbilityHandler resolves a martial class ability (Rage, Second Wind, Flurry,
+// Sneak Attack, …), spending the class resource pool. Like the other combat
+// endpoints it auto-ends the turn once the player is out of options — buffs that
+// grant an extra action (Action Surge / Flurry) deliberately leave the turn open.
+func CombatAbilityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	var req CombatAbilityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" || req.AbilityID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub, save_id, or ability_id")
+		return
+	}
+
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	advancement, err := loadAdvancement()
+	if err != nil {
+		log.Printf("❌ CombatAbility: failed to load advancement: %v", err)
+		writeCombatError(w, http.StatusInternalServerError, "Failed to load advancement data")
+		return
+	}
+
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessPlayerAbility(serverdb.GetDB(), cs, &sess.SaveData, req.AbilityID, advancement)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Ability error: %v", err))
 		return
 	}
 

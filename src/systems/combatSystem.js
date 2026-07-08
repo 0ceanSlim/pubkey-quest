@@ -440,6 +440,91 @@ export function openCombatItemMenu() {
     _openCombatChooser('🧪 Use an item', entries);
 }
 
+// ─── Class abilities (M5 Slice 3) ──────────────────────────────────────────────
+
+// Abilities wired into the combat engine (must mirror abilityMechanics in the Go
+// backend). Others in the class list aren't usable in combat yet, so we hide them
+// rather than surface a button the server would reject.
+const _COMBAT_ABILITIES = new Set([
+    'enter-rage', 'intimidating-roar',      // barbarian
+    'second-wind', 'action-surge',          // fighter
+    'flurry-of-blows', 'patient-defense',   // monk
+    'sneak-attack', 'shadow-step',          // rogue
+]);
+
+/** Activate a class ability, spending the resource pool. Mirrors doCastSpell. */
+export async function doUseAbility(abilityId) {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    _closeCombatChooser();
+    try {
+        const resp = await combatPost('/api/combat/ability', { npub, save_id: saveID, ability_id: abilityId });
+        const cs = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error('doUseAbility error:', err);
+        _logError('Network error — could not use ability.');
+    }
+}
+
+/** Open the combat ability menu: unlocked, in-combat abilities gated by resource + cooldown. */
+export async function openCombatAbilityMenu() {
+    const pool = _lastState?.player?.resource;
+    if (!pool) {
+        _logInfo('Your class has no combat abilities.');
+        return;
+    }
+    const ch    = window.getGameStateSync?.()?.character ?? {};
+    const cls   = String(ch.class ?? '').toLowerCase();
+    const level = ch.level ?? 1;
+    const used  = new Set(_lastState?.player?.abilities_used ?? []);
+
+    let list = [];
+    try {
+        const resp = await fetch(`/api/abilities?class=${encodeURIComponent(cls)}&level=${level}`);
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+            _logError(data.error ?? `HTTP ${resp.status}`);
+            return;
+        }
+        list = data.abilities ?? [];
+    } catch (err) {
+        logger.error('openCombatAbilityMenu fetch error:', err);
+        _logError('Network error — could not load abilities.');
+        return;
+    }
+
+    const entries = [];
+    for (const a of list) {
+        if (!_COMBAT_ABILITIES.has(a.id) || !a.is_unlocked) continue;
+        const cost = a.current_tier?.override_cost ?? a.resource_cost ?? 0;
+        const spent = used.has(a.id);
+        const affordable = pool.current >= cost;
+        const disabled = spent || !affordable;
+        let tip = a.current_tier?.summary ?? a.description ?? '';
+        if (spent) tip = 'Already used this fight';
+        else if (!affordable) tip = `Not enough ${pool.label} — need ${cost}, have ${pool.current}`;
+        entries.push({
+            label: a.name ?? a.id,
+            meta:  spent ? '✓ used' : `${cost} ${pool.label}`,
+            disabled,
+            tip,
+            onClick: () => window.doUseAbility(a.id),
+        });
+    }
+
+    if (entries.length === 0) {
+        _logInfo('No abilities available right now.');
+        return;
+    }
+    _openCombatChooser(`✦ ${pool.label} — ${pool.current}/${pool.max}`, entries);
+}
+
 // ─── Combat chooser popup ──────────────────────────────────────────────────────
 
 /** Remove the combat chooser popup + backdrop if present. */
@@ -1220,6 +1305,19 @@ const _DPAD_BTN_DISABLED = `
     border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;
     border-right:2px solid #111;border-bottom:2px solid #111;padding:0;line-height:1;`;
 
+/**
+ * The martial-class ability launcher button. Hidden for casters (no resource
+ * pool — they use Cast Spell). Stays live even after the main action is spent so
+ * bonus-action abilities (Rage, Flurry) remain reachable; the menu and the server
+ * gate each ability by cost / cooldown / action economy.
+ */
+function _abilityButton(cs) {
+    const pool = cs?.player?.resource;
+    if (!pool) return '';
+    return `<button style="${_B('color:#fde047;')}" onclick="window.openCombatAbilityMenu()"
+                    title="Use a class ability">⚡ ${pool.label} ${pool.current}/${pool.max}</button>`;
+}
+
 function _renderCombatButtons(cs) {
     const navEl = $id('navigation-buttons');
     const bldEl = $id('building-buttons');
@@ -1329,8 +1427,7 @@ function _renderCombatButtons(cs) {
                 ? _B_GRAYED('🧪 Use Item', 'Action used this turn')
                 : `<button style="${_B('color:#fca5a5;')}" onclick="window.openCombatItemMenu()"
                     title="Use a consumable (potion, food)">🧪 Use Item</button>`}
-            <button style="${_B('color:#fde047;')}" onclick="window.doStubAction('Ability')"
-                    title="Coming soon">⚡ Ability</button>
+            ${_abilityButton(cs)}
         </div>`;
 
     // ── NPC column: Disengage / Hold / Flee / End Turn ───────────────────────

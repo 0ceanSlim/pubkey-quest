@@ -161,6 +161,21 @@ type Position struct {
 	Y int `json:"y"`
 }
 
+// ResourcePool is a martial class's combat-scoped resource (Rage/Stamina/Ki/
+// Cunning) used to pay for class abilities (M5 §12). Memory-only — the max is
+// re-derived from class + level each fight (mirrors game-data/systems/
+// class-resources.json), and the current value never persists to the save.
+// The regen rates are carried here so the combat loop needn't reload the config.
+type ResourcePool struct {
+	Type        string `json:"type"`  // rage / stamina / ki / cunning
+	Label       string `json:"label"` // display name ("Rage")
+	Current     int    `json:"current"`
+	Max         int    `json:"max"`
+	PerTurn     int    `json:"-"` // regained at the end of your turn
+	PerHitTaken int    `json:"-"` // regained when you take a hit (barbarian rage builds this way)
+	PerCrit     int    `json:"-"` // regained when you land a crit (rogue cunning)
+}
+
 // PlayerCombatState tracks per-turn resource usage and status for the player
 type PlayerCombatState struct {
 	CurrentHP          int               `json:"current_hp"`
@@ -178,6 +193,15 @@ type PlayerCombatState struct {
 	ReactionUsed       bool              `json:"reaction_used"` // Reaction consumed this round (OA)
 	Disengaged         bool              `json:"disengaged"`    // Used Disengage action this turn — no OAs provoked
 	Conditions         []CombatCondition `json:"conditions"`
+
+	// Class-ability state (M5 §12) — all memory-only, initialised at combat start.
+	Resource           *ResourcePool `json:"resource,omitempty"`             // martial resource pool; nil for casters
+	RageTurnsLeft      int           `json:"rage_turns_left,omitempty"`      // barbarian rage: turns remaining (0 = not raging)
+	RageDamageBonusPct int           `json:"rage_damage_bonus_pct,omitempty"` // % bonus to weapon damage while raging
+	RageResistPct      int           `json:"rage_resist_pct,omitempty"`       // % reduction to incoming damage while raging
+	ExtraActions       int           `json:"extra_actions,omitempty"`         // granted by Action Surge / Flurry — extra attack actions this turn
+	PendingSneakDice   string        `json:"pending_sneak_dice,omitempty"`    // rogue Sneak Attack rider ("2d6") applied to the next hit
+	AbilitiesUsed      []string      `json:"abilities_used,omitempty"`        // once-per-combat abilities already spent this fight
 }
 
 // MonsterInstance is a live monster in the current combat encounter
