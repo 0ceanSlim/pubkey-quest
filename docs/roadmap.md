@@ -1,7 +1,7 @@
 # Pubkey Quest — Release Roadmap (Pre-Alpha → Alpha → Beta → 1.0)
 
 **Written:** 2026-06-11. **Last status update:** 2026-07-06.
-**Progress (pre-alpha → alpha):** M0 ✅ · M1 ✅ (progression) · M2 ✅ (rooms) · M3 ✅ (quest/POI/encounter runtime + daily roll) · **M4 ✅ (spells & items as real systems)** · **M5 ⬜ ← active next (combat completion)** · M6 ⬜ (presentation) · M7 ⬜ (content) · M8 ⬜ (release eng). Recent extras done off-milestone: the **MILL login layer** replaced the bespoke Nostr auth (grain v0.8) + an in-game bug/access reporter; a **full item-data refinement pass** (all 209 items priced [game gold = D&D copper: gp×100/sp×10/cp×1], described, tagged — via the item-reporter/item-refiner agents, `docs/draft/item-*`); plus the earlier item `value` economy + effect-aware pricing, death keep-3, inventory rarity, item-info redesign, debug/settings cleanup, and the **2026-07 equipment/inventory hardening pass** (unified pointer-events core, container/vault/quiver fixes, equipment stat panel, backend inventory test net, `docs/draft/ui-inventory-issues.md`). **Deferred backlog:** progression polish (level-up popup, spend-confirm), wait-stages, delta-engine sync (POI-loot lag / phantom heal), ground-item pickup stub, shop revamp (inventories + UI), mobile touch QA.
+**Progress (pre-alpha → alpha):** M0 ✅ · M1 ✅ (progression) · M2 ✅ (rooms) · M3 ✅ (quest/POI/encounter runtime + daily roll) · **M4 ✅ (spells & items as real systems)** · **M5 ✅ (combat completion: abilities, conditions, saves, interaction matrix)** · **M6 ⬜ ← active next (presentation)** · M7 ⬜ (content) · M8 ⬜ (release eng). Recent extras done off-milestone: the **MILL login layer** replaced the bespoke Nostr auth (grain v0.8) + an in-game bug/access reporter; a **full item-data refinement pass** (all 209 items priced [game gold = D&D copper: gp×100/sp×10/cp×1], described, tagged — via the item-reporter/item-refiner agents, `docs/draft/item-*`); plus the earlier item `value` economy + effect-aware pricing, death keep-3, inventory rarity, item-info redesign, debug/settings cleanup, and the **2026-07 equipment/inventory hardening pass** (unified pointer-events core, container/vault/quiver fixes, equipment stat panel, backend inventory test net, `docs/draft/ui-inventory-issues.md`). **Deferred backlog:** progression polish (level-up popup, spend-confirm), wait-stages, delta-engine sync (POI-loot lag / phantom heal), ground-item pickup stub, shop revamp (inventories + UI), mobile touch QA.
 **How to read this:** §1 is an honest inventory of what exists. §3 is the detailed pre-alpha → alpha plan. §4 is the Nostr save & trust architecture that constrains everything else. §7 is the UI/UX critique. §8 is the content/liveness strategy.
 
 Parallel infra track (not gameplay): Grain client upgrade + login replaced with the mill library — ✅ **landed (2026-07)**: grain v0.8, the **MILL (Multi-Interface Login Layer)** Web Component handling every signing method client-side (NIP-07/46/55, key, read-only, new identity), server only ever sees the hex pubkey. Remaining constraint is beta-stability (beta = saves become precious).
@@ -47,7 +47,7 @@ Every system below works and is architecturally sound, but **all of it carries a
 1. ✅ **RESOLVED (M1) — Level-up works.** Progression (level-up + ability-point earn/spend, re-derived MaxHP/MaxMana, journaling, save ritual) shipped; level is derived from XP (hydration-correct) and the top-bar number + XP bar track it. *Feats are slotted but not yet active (post-M5).*
 2. ✅ **RESOLVED (M4) — Spell casting is real.** Shared shape-driven engine (`game/spells/cast.go`): known+prepared+mana+components gates; attack / auto-hit / save / heal / buff resolved from the spell JSON; focus-provided rune components; concentration (CON save on damage). Combat cast (`POST /api/combat/cast`) + out-of-combat `cast_spell`; frontend combat spell panel + spells-tab cast. All 84 spells hand-refined (mana, per-spell prep time, homebrew rune components). *Remaining:* combat-integration tests + the M5 conditions the save-shape spells need.
 3. ✅ **RESOLVED (M4) — Items in combat.** `POST /api/combat/use-item` drinks potions/consumables mid-fight (loose general slots + general-slot pouches), bridged onto the combat HP pool; combat use-item UI shipped.
-4. **Martial class abilities** — abilities data + `/api/abilities` + the class-resource bar (Stamina/Rage/Ki/Cunning) exist in UI, but no ability is usable anywhere (plan §12 ❌).
+4. ✅ **RESOLVED (M5) — Martial class abilities work.** `POST /api/combat/ability` spends a combat-scoped resource pool (Stamina/Rage/Ki/Cunning); two abilities per martial class are wired to real combat state, launched from an in-combat ability chooser. *Feats still slotted-but-inactive (post-M5).*
 5. ✅ **RESOLVED (M3, 2026-06-29) — Quests / POIs / Encounters now run end-to-end.** Quest engine (availability, talk-to-NPC + innkeeper-daily start, event-fed objective tracking, stage rewards, derived QP), real quest-log journal + over-scene tracker chip, POI node-walker (playable, combat-bridged), authored-encounter scheduler (all 3 triggers, 9 vignettes), daily/weekly roll (schema v3). Save now carries quest fields (`QuestsActive`/`QuestsCompleted`/`POIStates`/`RepeatableQuests`). *Still open:* the 116 broken content refs (`docs/draft/poi-quest-followups.md`) are an M7 content job, not engine.
 6. **NPC dialogue presentation** — backend dialogue trees are genuinely good (greetings w/ first-time/returning/native-race, requirements, branching). But the *speech text renders as a transient toast in the top-right corner* (`locationDisplay.js:862` → `showMessage(msg,'warning')`) and options are 7px buttons in the bottom 125px strip. The single most-authored content in the game is shown in its least readable surface.
 7. ✅ **RESOLVED (M1) — Save ritual** (win95 save modal, "last saved" awareness, deliberate save) + session journaling for crash recovery shipped.
@@ -58,8 +58,8 @@ Every system below works and is architecturally sound, but **all of it carries a
 - ~~Building rooms~~ ✅ **DONE (M2)** — NPCs placed per-room; inn flow; in-building bar rework
 - ~~Encounter triggering~~ ✅ **DONE (M3)** — biome + authored encounters fire on context; debug-only path retired
 - **Codex content tooling** — no editors for locations (buildings live inside city JSON, so rooms raise the stakes), monsters, spells, or NPCs; no validation that NPC schedule slots point at real buildings/rooms; no derived world-map view (§3 Codex track)
-- Conditions (15 D&D conditions), saving throws vs. spells, stealth/surprise, monster difficulty scaling (M5)
-- ~~Spell casting + items in combat~~ ✅ **DONE (M4)** — class **abilities** in combat still missing (M5 — Half-baked #4)
+- ~~Conditions, saving throws vs. spells, monster difficulty scaling~~ ✅ **DONE (M5)** — the 6 alpha conditions + saves both directions + deadly-fight guardrail. *Still deferred:* stealth/surprise, the other ~9 D&D conditions, and full CR scaling math (beta)
+- ~~Spell casting + items in combat~~ ✅ **DONE (M4)** · ~~class **abilities** in combat~~ ✅ **DONE (M5)** — 2 wired abilities per martial class off a combat resource pool
 - Spell scrolls/crafting (fully drafted in `docs/draft/spell-scroll-system.md` — deferred to beta, scheduled in §5)
 - The official-server validation layer (§4): event-ID chain tracking, save plausibility checks. Note `POST /api/session/update` accepts a raw full-state overwrite today — fine solo, must be gated before strangers arrive
 
@@ -239,18 +239,42 @@ The "whole system that needs implementation."
 
 **Done when:** a wizard can clear a wolf with fire-bolt + magic missile, concentrate on bless, drink a potion mid-fight, and cast light in a dark POI node.
 
-### M5 — Combat completion: abilities, conditions, saves, and the interaction matrix (M)
+### M5 — Combat completion: abilities, conditions, saves, and the interaction matrix (M) — ✅ DONE (2026-07-07)
 
-- [ ] **Combat interaction matrix** — the polish-debt poster child. Write the legality table and enforce it server-side, then make the UI reflect it:
-  - What counts as an attack source: only items typed/tagged as weapons (plus Unarmed). **Non-weapons in hand (spellbook, torch, tools) must not render as attack options** — fixes the current spellbook-attack no-op; decide improvised-weapon rules (1d4) or simply disallow
-  - Equip/unequip during combat: recommend weapon/shield swap = your action (or once-per-turn free, pick one), armor changes = blocked in combat; enforce in the equip handlers when `ActiveCombat != nil` (today it's undefined)
-  - Holding spellbook/focus = casting enabled but melee = Unarmed; two-handed weapon + focus conflicts surfaced clearly
-  - Pickup/loot mid-combat: blocked; container access: blocked; anything else currently reachable in combat gets an explicit allow/deny
-- [ ] **Class abilities** (plan §12): `POST /api/combat/ability` consuming class resources (Rage = damage bonus + resistance effect, Second Wind = heal, Ki: Flurry, Cunning Action: disengage/dash as bonus) — abilities data + resource bars already exist; pick 2–3 per martial class for alpha
-- [ ] **Conditions** (plan §15): implement the ~6 that alpha content actually uses (poisoned, prone, frightened, restrained, blinded, stunned) as combat-scoped effects with advantage/disadvantage hooks; skip the rest until needed
-- [ ] **Saving throws** (plan §23): generic save resolver (player + monster) — required by M4 save spells and monster abilities (wolf knockdown, snake poison)
-- [ ] **Difficulty guardrails** (plan §22 minimal): encounter tables already CR-gate by environment; add a "deadly fight" warning when monster CR ≫ level, and cap random-encounter CR by environment tier — full scaling math is beta
-- [ ] **Defeat outcome: keep the current mechanic** (keep top-3 items by value, warp away, full HP/mana restore) — decided after weighing save-revert. It self-balances: random-encounter deaths usually land well *after* the last save, so accepting the loss beats re-grinding; static/boss fights *will* be reloaded past, and that's accepted single-player freedom (§4); post-defeat, the retry friction is the walk back — players who can't win yet will adventure elsewhere and return stronger, which is exactly the loop we want. The vault is the balancing valve: gold is an inventory item, vault contents are untouchable by death, so informed players bank before adventuring and carry lean loadouts — intended play, taught explicitly by the M8 tutorial. **Open workshop item** (not a blocker): whether carried gold should get a flat-% return instead of riding the top-3-by-unit-cost rule — as written, a gold stack flattens to 1gp units and effectively always vanishes
+> **✅ Done.** Conditions engine (`game/combat/conditions.go` — the 6 alpha conditions
+> plus outlined/charmed/unconscious, with advantage/incapacitation/speed hooks and
+> save-to-end/duration ticks at end of turn), the generic **saving-throw resolver**
+> (player + monster; drives M4 save spells + monster on-hit riders authored in
+> `hit.special`), the **interaction matrix** (non-weapons strike Unarmed; a broad set
+> of out-of-combat actions blocked mid-fight), **class abilities** (`POST /api/combat/ability`
+> — a memory-only Rage/Stamina/Ki/Cunning pool + 2 wired abilities per martial class),
+> and the **difficulty guardrail** (`encounter.Difficulty` → deadly-fight warning + badge;
+> random encounters were already CR/level/biome-gated). Remaining spell riders
+> (color-spray/sleep/charm-person) landed too. Committed (`3dc5204`…`7f5cf7d`). Checkboxes
+> below retained for detail.
+
+- [x] **Combat interaction matrix** — enforced server-side (`processGameAction` blocks
+  equip/unequip/move/stack/drop/pickup/use_item/cast_spell/vault/rest/travel/npc while
+  `ActiveCombat != nil`), and non-weapons in hand (spellbook/torch/tools) fall back to
+  Unarmed in both the engine (`loadWeaponItem`/`isWeaponItem`) and the attack-label UI —
+  fixes the spellbook-attack no-op. *Deferred (not alpha-blocking):* in-combat weapon-swap
+  as an action and improvised-weapon 1d4 — equipping is simply blocked mid-fight for now.
+- [x] **Class abilities** (plan §12): `POST /api/combat/ability` spends a combat-scoped
+  resource pool (Rage/Stamina/Ki/Cunning, seeded from class+level, regen per turn / per hit
+  taken / per crit). Two per class, all wired to real state: barbarian rage (dmg%+resist) /
+  intimidating-roar (frighten); fighter second-wind (heal) / action-surge (extra action);
+  monk flurry (extra strikes) / patient-defense (dodge); rogue sneak-attack (bonus dice) /
+  shadow-step (disengage+dodge). Unwired abilities return a graceful "not usable yet".
+- [x] **Conditions** (plan §15): all 6 alpha conditions (poisoned, prone, frightened,
+  restrained, blinded, stunned) as combat-scoped conditions with advantage/disadvantage +
+  incapacitation hooks; plus outlined/charmed/unconscious for the control spells.
+- [x] **Saving throws** (plan §23): generic resolver (`playerSaveTotal`/`monsterSaveTotal`)
+  — drives M4 save spells both directions and monster on-hit riders (wolf knockdown → prone,
+  ghoul → paralyzed, giant-spider → restrained/poisoned) read from authored `hit.special`.
+- [x] **Difficulty guardrails** (plan §22 minimal): `encounter.Difficulty(cr, level)` rates
+  each fight; StartCombat warns in-log + the overlay shows a ⚠ Tough / ☠ Deadly badge for
+  authored/POI fights that outclass the player. Random encounters stay CR/level/biome-gated.
+- [x] **Defeat outcome: keep the current mechanic** (keep top-3 items by value, warp away, full HP/mana restore) — decided after weighing save-revert. It self-balances: random-encounter deaths usually land well *after* the last save, so accepting the loss beats re-grinding; static/boss fights *will* be reloaded past, and that's accepted single-player freedom (§4); post-defeat, the retry friction is the walk back — players who can't win yet will adventure elsewhere and return stronger, which is exactly the loop we want. The vault is the balancing valve: gold is an inventory item, vault contents are untouchable by death, so informed players bank before adventuring and carry lean loadouts — intended play, taught explicitly by the M8 tutorial. **Open workshop item** (not a blocker): whether carried gold should get a flat-% return instead of riding the top-3-by-unit-cost rule — as written, a gold stack flattens to 1gp units and effectively always vanishes
 
 **Done when:** every class has a button that isn't "attack," save spells work both directions, conditions visibly modify fights, and nothing clickable in combat is a no-op.
 
