@@ -40,12 +40,12 @@ func TestConditionAttackAdvantage(t *testing.T) {
 }
 
 func TestIsIncapacitated(t *testing.T) {
-	for _, n := range []string{"stunned", "paralyzed"} {
+	for _, n := range []string{"stunned", "paralyzed", "unconscious"} {
 		if !IsIncapacitated(cc(n)) {
 			t.Errorf("%s should incapacitate", n)
 		}
 	}
-	for _, n := range []string{"poisoned", "restrained", "blinded", "outlined"} {
+	for _, n := range []string{"poisoned", "restrained", "blinded", "outlined", "charmed"} {
 		if IsIncapacitated(cc(n)) {
 			t.Errorf("%s should NOT incapacitate", n)
 		}

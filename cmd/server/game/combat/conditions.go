@@ -36,9 +36,10 @@ var conditionRegistry = map[string]ConditionSpec{
 	"restrained": {AttacksAgainstAdvantage: true, OwnAttacksDisadvantage: true, Speed0: true},
 	"grappled":   {Speed0: true},
 	"stunned":    {AttacksAgainstAdvantage: true, Incapacitated: true},
-	"paralyzed":  {AttacksAgainstAdvantage: true, Incapacitated: true}, // auto-crit-in-melee nuance deferred
-	"outlined":   {AttacksAgainstAdvantage: true}, // faerie-fire: attackers see you clearly
-	"charmed":    {}, // "can't attack the charmer" is a targeting rule, no roll modifier in a 1v1
+	"paralyzed":   {AttacksAgainstAdvantage: true, Incapacitated: true}, // auto-crit-in-melee nuance deferred
+	"unconscious": {AttacksAgainstAdvantage: true, Incapacitated: true, Speed0: true}, // sleep etc.; wakes on the save-to-end
+	"outlined":    {AttacksAgainstAdvantage: true}, // faerie-fire: attackers see you clearly
+	"charmed":     {}, // no roll modifier; the "won't attack the charmer" rule is enforced in ApplyMonsterAction
 }
 
 func specFor(name string) ConditionSpec { return conditionRegistry[strings.ToLower(name)] }

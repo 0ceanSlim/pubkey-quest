@@ -293,9 +293,13 @@ func clampInt(v, min, max int) int {
 // useReflex: when true, the player makes a reflex save (d20+reflexDEXMod vs DC 12)
 // before damage resolves — on success the attack misses entirely. Pass false normally.
 func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerAC int, useReflex bool, reflexDEXMod int, save *types.SaveFile) (damageDealt int, logEntries []string) {
-	// Stunned / paralyzed monsters lose their action entirely.
+	// Stunned / paralyzed / unconscious monsters lose their action entirely.
 	if IsIncapacitated(monster.Conditions) {
 		return 0, []string{fmt.Sprintf("  %s is %s and can't act.", monster.Name, incapacitatingConditionName(monster.Conditions))}
+	}
+	// A charmed monster can't bring itself to attack the one who charmed it.
+	if decision.Action == "attack" && HasCondition(monster.Conditions, "charmed") {
+		return 0, []string{fmt.Sprintf("  %s is charmed and won't attack you.", monster.Name)}
 	}
 	switch decision.Action {
 	case "retreat":
