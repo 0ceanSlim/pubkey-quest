@@ -266,6 +266,11 @@ type CombatSession struct {
 	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`
 	AmmoUsedThisCombat int               `json:"ammo_used_this_combat"`
 
+	// Difficulty rates the fight against the player's level band at combat start
+	// ("trivial"…"deadly", see encounter.Difficulty). Surfaced so the client can
+	// warn on a fight that outclasses the player (M5 §22). Set once, memory-only.
+	Difficulty string `json:"difficulty,omitempty"`
+
 	// Concentration is the spell the player is currently concentrating on (buff/
 	// control). Nil when not concentrating. Taking damage triggers a CON save.
 	Concentration *ConcentrationState `json:"concentration,omitempty"`

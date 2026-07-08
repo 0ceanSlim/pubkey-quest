@@ -132,6 +132,7 @@ export function renderCombatState(cs) {
         _setText('combat-monster-name', monster.name ?? 'Unknown');
         _setText('combat-monster-ac-badge', `AC ${monster.armor_class ?? '?'}`);
         _renderConditionsInto('combat-monster-conditions', monster.conditions || [], '#c4b5fd');
+        _renderDifficultyBadge(cs.difficulty);
     }
 
     // Player conditions (things afflicting you) render over the scene, in red.
@@ -1568,6 +1569,25 @@ function _renderConditionsInto(elId, conditions, color) {
             'border:1px solid #4a4a4a;background:rgba(0,0,0,0.85);padding:0 3px;';
         el.appendChild(badge);
     });
+}
+
+// _renderDifficultyBadge shows a "tough"/"deadly" tag by the monster name when a
+// fight outclasses the player's level (M5 §22). Hidden for trivial…fair fights.
+const _DIFFICULTY_STYLE = {
+    tough:  { label: '⚠ Tough',  color: '#fbbf24', border: '#78350f', bg: 'rgba(40,25,0,0.85)' },
+    deadly: { label: '☠ Deadly', color: '#fca5a5', border: '#7f1d1d', bg: 'rgba(40,0,0,0.85)' },
+};
+function _renderDifficultyBadge(difficulty) {
+    const el = $id('combat-monster-difficulty');
+    if (!el) return;
+    const s = _DIFFICULTY_STYLE[String(difficulty || '').toLowerCase()];
+    if (!s) { el.style.display = 'none'; return; }
+    el.textContent = s.label;
+    el.title = `This fight is rated ${difficulty} for your level.`;
+    el.style.display = '';
+    el.style.color = s.color;
+    el.style.borderColor = s.border;
+    el.style.background = s.bg;
 }
 
 // _renderMonsterHP drains the monster HP bar to the cs values.

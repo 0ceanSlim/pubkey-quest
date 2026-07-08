@@ -40,6 +40,35 @@ func TestCRCapHasFloor(t *testing.T) {
 	}
 }
 
+func TestDifficultyBands(t *testing.T) {
+	// level 1 cap = 0.75.
+	cases := []struct {
+		cr    float64
+		level int
+		want  string
+	}{
+		{0.125, 1, "trivial"}, // rat: well under band
+		{0.25, 1, "trivial"},  // wolf: 0.33 of cap
+		{0.5, 1, "easy"},      // 0.67 of cap
+		{0.75, 1, "fair"},     // right at the band
+		{1, 1, "tough"},       // 1.33× the band
+		{3, 1, "deadly"},      // 4× the band → warn
+		{3, 5, "fair"},        // owlbear vs level 5 (cap 3.75) → in band
+		{20, 5, "deadly"},     // dragon vs level 5 → deadly
+	}
+	for _, c := range cases {
+		if got := encounter.Difficulty(c.cr, c.level); got != c.want {
+			t.Errorf("Difficulty(CR %v, lvl %d) = %q, want %q", c.cr, c.level, got, c.want)
+		}
+	}
+	if !encounter.IsDeadly(3, 1) {
+		t.Error("CR 3 at level 1 should be deadly")
+	}
+	if encounter.IsDeadly(0.25, 1) {
+		t.Error("a wolf at level 1 should not be deadly")
+	}
+}
+
 func TestTickChanceScalesAndCaps(t *testing.T) {
 	if encounter.TickChance(0) != 0 {
 		t.Error("no elapsed time should mean zero chance")

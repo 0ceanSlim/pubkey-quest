@@ -49,6 +49,33 @@ func CRCap(level int) float64 {
 	return cap
 }
 
+// Difficulty classifies a fight for the player relative to the CR band their
+// level is matched against (CRCap). Random encounters stay inside the band
+// (≤ "fair"); hand-authored / POI monsters can exceed it, which is exactly when
+// the "deadly fight" warning earns its keep (M5 §22). Bands are alpha-rough on
+// purpose — the roadmap defers full encounter math to beta.
+func Difficulty(cr float64, level int) string {
+	cap := CRCap(level)
+	if cap <= 0 {
+		cap = minCRCap
+	}
+	switch r := cr / cap; {
+	case r < 0.35:
+		return "trivial"
+	case r < 0.75:
+		return "easy"
+	case r <= 1.05:
+		return "fair"
+	case r <= 1.75:
+		return "tough"
+	default:
+		return "deadly"
+	}
+}
+
+// IsDeadly reports whether a monster meaningfully outclasses the player's level.
+func IsDeadly(cr float64, level int) bool { return Difficulty(cr, level) == "deadly" }
+
 // Eligible returns the candidates whose CR fits the player's level band.
 func Eligible(candidates []Candidate, level int) []Candidate {
 	cap := CRCap(level)

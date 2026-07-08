@@ -8,6 +8,7 @@ import (
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/events"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
@@ -72,9 +73,11 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 
 	cs := initCombatSession(npub, save, monsterData, environmentID)
 
+	level := character.GetLevelFromXP(save.Experience, advancement)
 	// Seed the martial class resource pool (Rage/Stamina/Ki/Cunning) for the fight.
-	InitResourcePool(&cs.Party[0].CombatState, save.Class,
-		character.GetLevelFromXP(save.Experience, advancement), save.Stats)
+	InitResourcePool(&cs.Party[0].CombatState, save.Class, level, save.Stats)
+	// Rate the fight against the player's level band (M5 §22 difficulty guardrail).
+	cs.Difficulty = encounter.Difficulty(monsterData.ChallengeRating, level)
 
 	playerDEXMod := StatMod(GetStatFromMap(save.Stats, "dexterity"))
 	monsterDEXMod := StatMod(monsterData.Stats.Dexterity)
@@ -86,6 +89,14 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 
 	cs.Log = append(cs.Log,
 		fmt.Sprintf("⚔️  Combat begins! %s appears at range %d.", cs.Monsters[0].Name, currentRange(cs)),
+	)
+	switch cs.Difficulty {
+	case "deadly":
+		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks deadly — you may want to flee.", cs.Monsters[0].Name))
+	case "tough":
+		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks like a tough fight.", cs.Monsters[0].Name))
+	}
+	cs.Log = append(cs.Log,
 		"⚡ Rolling initiative…",
 		fmt.Sprintf("  You rolled %d%s", playerInit.Face, formatModifier(playerInit.Mod)),
 		fmt.Sprintf("  %s rolled %d%s", cs.Monsters[0].Name, monsterInit.Face, formatModifier(monsterInit.Mod)),

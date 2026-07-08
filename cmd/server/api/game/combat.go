@@ -134,6 +134,7 @@ type CombatStateResponse struct {
 	LevelUpPending       bool                    `json:"level_up_pending"       example:"false"`
 	BonusAttackAvailable bool                    `json:"bonus_attack_available" example:"false"`
 	AmmoRemaining        int                     `json:"ammo_remaining"         example:"19"`
+	Difficulty           string                  `json:"difficulty,omitempty"   example:"tough"`
 }
 
 // CombatEndResponse is returned when the player calls POST /combat/end.
@@ -274,6 +275,7 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		LevelUpPending:       cs.LevelUpPending,
 		BonusAttackAvailable: bonusAvail,
 		AmmoRemaining:        ammoLeft,
+		Difficulty:           cs.Difficulty,
 	}
 }
 
