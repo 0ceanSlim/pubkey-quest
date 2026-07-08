@@ -157,8 +157,32 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // processGameAction routes to specific action handlers
+// combatBlockedActions are out-of-combat game actions that must not run during a
+// fight (M5 interaction matrix): rummaging the pack, re-arming, banking, resting,
+// travelling, chatting, or casting/using through the out-of-combat paths (combat
+// has its own /api/combat/{cast,use-item,action,end-turn}). The world tick
+// (update_time) and debug add_item are intentionally exempt.
+var combatBlockedActions = map[string]bool{
+	"equip_item": true, "unequip_item": true, "drop_item": true,
+	"remove_from_inventory": true, "pickup_item": true, "move_item": true,
+	"stack_item": true, "split_item": true, "add_to_container": true,
+	"remove_from_container": true, "use_item": true, "cast_spell": true,
+	"vault_deposit": true, "vault_withdraw": true, "register_vault": true,
+	"open_vault": true, "rest": true, "enter_building": true, "exit_building": true,
+	"move_to_room": true, "move": true, "talk_to_npc": true,
+	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
+}
+
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
 	state := &session.SaveData
+
+	// Can't do out-of-combat things mid-fight (interaction matrix).
+	if session.ActiveCombat != nil && combatBlockedActions[action.Type] {
+		return &GameActionResponse{
+			Success: false,
+			Message: "You can't do that during combat.",
+		}, nil
+	}
 
 	// Snapshot time before action (for travel progress calculation)
 	oldTimeOfDay := state.TimeOfDay

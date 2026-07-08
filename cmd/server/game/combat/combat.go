@@ -597,7 +597,25 @@ func loadWeaponItem(db *sql.DB, inventory map[string]interface{}, weaponSlot str
 	if err != nil {
 		return nil, false, fmt.Errorf("loadWeaponItem %s: %w", itemID, err)
 	}
+	// A non-weapon in hand (spellbook, torch, focus) is not a legal attack source —
+	// you strike unarmed instead. Fixes the "spellbook shows as an attack that
+	// no-ops" bug (M5 interaction matrix).
+	if !isWeaponItem(item) {
+		return nil, true, nil
+	}
 	return item, false, nil
+}
+
+// isWeaponItem reports whether an item is a real weapon (by type or tag) and thus
+// a legal attack source. Everything else held in hand falls back to Unarmed.
+func isWeaponItem(item map[string]interface{}) bool {
+	if item == nil {
+		return false
+	}
+	if t, ok := item["type"].(string); ok && strings.Contains(strings.ToLower(t), "weapon") {
+		return true
+	}
+	return hasTag(item["tags"], "weapon")
 }
 
 // resolveAttackBonus computes the player's total attack roll modifier.

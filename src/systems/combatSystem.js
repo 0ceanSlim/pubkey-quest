@@ -1289,10 +1289,13 @@ function _renderCombatButtons(cs) {
         </div>`;
 
     // ── Building column: Attack main / off, Spell / Item / Ability stubs ─────
-    const mainID    = _equippedWeaponID('mainHand');
+    // A non-weapon in hand (spellbook, torch, focus) isn't a legal attack source —
+    // you strike Unarmed, matching the server. No more spellbook-attack no-op.
+    const rawMainID = _equippedWeaponID('mainHand');
+    const mainID    = _isWeaponItem(rawMainID) ? rawMainID : null;
     const isRanged  = mainID ? _isRangedWeapon(mainID) : false;
     const maxMelee  = mainID ? _meleeReach(mainID) : 1;
-    const mainName  = _equippedWeaponName('mainHand') || 'Unarmed';
+    const mainName  = mainID ? (_equippedWeaponName('mainHand') || 'Unarmed') : 'Unarmed';
     const meleeBlocked  = !isRanged && range > maxMelee;
     const rangedBlocked = isRanged && ammo <= 0;
 
@@ -1412,6 +1415,17 @@ function _equippedWeaponName(slot) {
         const item = window.getItemById?.(id);
         return item?.name ?? id;
     } catch (_) { return id; }
+}
+
+// _isWeaponItem reports whether an equipped item is a real weapon (attack source).
+function _isWeaponItem(itemID) {
+    if (!itemID) return false;
+    try {
+        const item = window.getItemById?.(itemID);
+        if (!item) return false;
+        if (String(item.type || '').toLowerCase().includes('weapon')) return true;
+        return (item.tags || []).some(t => String(t).toLowerCase() === 'weapon');
+    } catch (_) { return false; }
 }
 
 function _isRangedWeapon(itemID) {
