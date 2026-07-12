@@ -3,7 +3,8 @@
  *
  * Drives a discovered point-of-interest as a node walk over the scene. The
  * server holds the walk (cmd/server/api/game/poi.go); this module renders each
- * node into the #poi-modal overlay and posts the player's choices back.
+ * node into the shared on-scene speech box (ui/sceneSpeech) and posts the
+ * player's choices back.
  *
  * The overlay pauses the world clock the same way combat does, so travel
  * progress holds while you explore and you return to the same spot on exit. A
@@ -20,10 +21,7 @@ import { eventBus } from '../lib/events.js';
 import { smoothClock } from '../systems/smoothClock.js';
 import { refreshGameState } from '../state/gameState.js';
 import { showMessage } from './messaging.js';
-
-const $ = (id) => document.getElementById(id);
-const esc = (s) =>
-    String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+import { showSceneSpeech, hideSceneSpeech } from './sceneSpeech.js';
 
 // Discovered POIs in the current environment (id, name, position, …), cached for
 // the travel-screen markers. Refreshed on entering a travel view and after a new
@@ -119,58 +117,41 @@ function renderStep(step) {
         closeOverlay();
         return;
     }
-    const textEl = $('poi-modal-text');
-    const outEl = $('poi-modal-outcome');
-    const btnEl = $('poi-modal-buttons');
 
-    if (textEl) textEl.innerHTML = step.text ? esc(step.text) : '';
-    if (outEl) {
-        outEl.innerHTML = (step.outcome || [])
-            .map((o) => `<div style="color:#fcd34d; font-size:10px; margin-bottom:2px;">${esc(o)}</div>`)
-            .join('');
-    }
-    if (!btnEl) return;
-
-    btnEl.innerHTML = '';
+    // Build the node's choices as in-box buttons (POI has no bottom strip to use).
+    const buttons = [];
     if (Array.isArray(step.choices) && step.choices.length) {
-        step.choices.forEach((ch) => btnEl.appendChild(makeButton(ch.label, () => advancePOI(ch.next))));
+        step.choices.forEach((ch) => buttons.push({ label: ch.label, onClick: () => advancePOI(ch.next) }));
     } else if (step.next) {
-        btnEl.appendChild(makeButton('Continue', () => advancePOI(step.next)));
+        buttons.push({ label: 'Continue', onClick: () => advancePOI(step.next) });
     } else {
         // Terminal (or a dead-end) — the walk is over server-side; just leave.
-        btnEl.appendChild(makeButton('Leave', () => closeOverlay()));
+        buttons.push({ label: 'Leave', onClick: () => closeOverlay() });
     }
-}
 
-// makeButton builds a win95-beveled action button matching the dialogue overlay.
-function makeButton(label, onClick) {
-    const b = document.createElement('button');
-    b.textContent = label;
-    b.style.cssText = [
-        'width:100%', 'text-align:left', 'color:#fff', 'font-size:9px', 'font-weight:bold',
-        'padding:3px 6px', 'cursor:pointer', 'background:#2f7d4f',
-        'border-top:1px solid #5fd98a', 'border-left:1px solid #5fd98a',
-        'border-right:1px solid #0b3d22', 'border-bottom:1px solid #0b3d22',
-    ].join(';');
-    b.addEventListener('click', onClick);
-    return b;
+    showSceneSpeech({
+        speaker: step.title || 'Exploring',
+        icon: '🗺️',
+        text: step.text || '',
+        outcomes: step.outcome || [],
+        buttons,
+    });
 }
 
 // ─── overlay open/close (clock pause mirrors combat) ────────────────────────────
 
 function openOverlay() {
     smoothClock.pause(); // freeze the world while exploring → travel progress holds
-    $('poi-modal')?.classList.remove('hidden');
 }
 
-// hideOverlay tucks the overlay away WITHOUT resuming the clock — used when
+// hideOverlay tucks the speech box away WITHOUT resuming the clock — used when
 // handing off to combat (the fight keeps the world frozen).
 function hideOverlay() {
-    $('poi-modal')?.classList.add('hidden');
+    hideSceneSpeech();
 }
 
 async function closeOverlay() {
-    $('poi-modal')?.classList.add('hidden');
+    hideSceneSpeech();
     smoothClock.unpause(); // resume the world tick now the walk is done
     await refreshGameState(true);
     // Re-render the scene we returned to so the travel markers/progress refresh.

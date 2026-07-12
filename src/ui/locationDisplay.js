@@ -14,6 +14,7 @@ import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { getLocationById, getNPCById } from '../state/staticData.js';
 import { updateTimeDisplay, formatTime } from './timeDisplay.js';
 import { showActionText, showMessage } from './messaging.js';
+import { showSceneSpeech, hideSceneSpeech } from './sceneSpeech.js';
 import { moveToLocation } from '../logic/mechanics.js';
 import { updateAllDisplays } from './displayCoordinator.js';
 import { eventBus } from '../lib/events.js';
@@ -1043,9 +1044,12 @@ export async function talkToNPC(npcId) {
 export function showNPCDialogue(dialogueData, npcMessage) {
     logger.debug('Showing NPC dialogue:', dialogueData);
 
-    // Show NPC message in yellow
+    // NPC speech goes into the on-scene speech box (M6), not the side log. The
+    // option buttons still swap into the bottom strip below (unchanged).
     if (npcMessage) {
-        showMessage(npcMessage, 'warning'); // warning = yellow
+        const speaker = getNPCById(dialogueData.npc_id)?.name
+            || String(dialogueData.npc_id || 'NPC').replace(/_/g, ' ');
+        showSceneSpeech({ speaker, text: npcMessage, portrait: true });
     }
 
     // Get the action-buttons container (parent of all three columns)
@@ -1263,6 +1267,9 @@ export async function selectDialogueOption(npcId, choice) {
  */
 export function closeNPCDialogue() {
     logger.debug('Closing NPC dialogue');
+
+    // Clear the on-scene speech box (M6).
+    hideSceneSpeech();
 
     // Hide dialogue overlay
     const dialogueOverlay = document.getElementById('npc-dialogue-overlay');
