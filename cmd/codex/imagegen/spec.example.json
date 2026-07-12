@@ -1,0 +1,30 @@
+{
+  "_comment": "Batch spec for: go run ./cmd/codex --config cmd/codex/config.yml --generate-images <this-file>. Writes N variants per job to www/res/img/items/_candidates/<id>/, then review/accept in the codex item editor. Top-level fields are defaults; per-job fields override them. 'anchor' = init_image (keeps silhouette, id or path), 'style' = style_image (bitforge only). FAMILY FLOW: generate a base member from text first (no anchor), promote your favourite in the gallery, THEN run the tier jobs with anchor set to that base id so they share its shape.",
+  "model": "bitforge",
+  "size": 32,
+  "count": 3,
+  "negative": "blurry, fuzzy, soft, antialiased, smooth, low quality, modern, realistic, photograph, 3d render, text, letters, words, people, faces",
+  "jobs": [
+    {
+      "id": "healing",
+      "prompt": "a small round glass potion vial with a cork stopper, filled with glowing crimson red liquid, fantasy RPG item icon, centered"
+    },
+    {
+      "id": "greater-healing",
+      "prompt": "the same glass potion vial filled with deeper glowing red liquid, slightly more ornate, brighter magical glow",
+      "anchor": "healing",
+      "init_strength": 250
+    },
+    {
+      "id": "superior-healing",
+      "prompt": "the same glass potion vial filled with radiant scarlet liquid, gold trim on the cork, strong magical aura",
+      "anchor": "healing",
+      "init_strength": 250
+    },
+    {
+      "id": "explorers-pack",
+      "prompt": "a brown leather adventurer's backpack, bedroll strapped on top, fantasy RPG item icon, centered",
+      "count": 4
+    }
+  ]
+}

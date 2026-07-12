@@ -11,6 +11,7 @@ import (
 
 	"pubkey-quest/cmd/codex/charactereditor"
 	"pubkey-quest/cmd/codex/config"
+	"pubkey-quest/cmd/codex/imagegen"
 	"pubkey-quest/cmd/codex/itemeditor"
 	"pubkey-quest/cmd/codex/migration"
 	"pubkey-quest/cmd/codex/pixellab"
@@ -40,6 +41,7 @@ func main() {
 	cleanupEffectsFlag := flag.Bool("cleanup-effects", false, "Migrate effects to new schema and exit")
 	dryRunFlag := flag.Bool("dry-run", false, "When used with cleanup flags, preview changes without modifying files")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
+	generateImagesFlag := flag.String("generate-images", "", "Generate sprite candidates from a batch spec JSON and exit (dev tool)")
 	configFlag := flag.String("config", "", "Path to config file (default: ./codex-config.yml)")
 	flag.Parse()
 
@@ -280,6 +282,19 @@ func main() {
 		log.Printf("✅ PixelLab client initialized")
 	}
 
+	// Standalone image-generation batch (dev tool): generate candidates and exit.
+	if *generateImagesFlag != "" {
+		if editor.PixelLabClient == nil {
+			log.Fatal("❌ pixellab.api_key not configured — cannot generate images")
+		}
+		fmt.Printf("🎨 Generating sprite candidates from %s...\n", *generateImagesFlag)
+		if err := imagegen.RunBatch(editor.PixelLabClient, *generateImagesFlag); err != nil {
+			fmt.Printf("❌ %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
+
 	// Initialize character editor
 	charEditor = charactereditor.NewEditor(cfg)
 	if err := charEditor.LoadAll(); err != nil {
@@ -352,6 +367,11 @@ func main() {
 	r.HandleFunc("/api/items/{filename}/generate-image", editor.HandleGenerateImage).Methods("POST")
 	r.HandleFunc("/api/items/{filename}/image", editor.HandleGetImage).Methods("GET")
 	r.HandleFunc("/api/items/{filename}/accept-image", editor.HandleAcceptImage).Methods("POST")
+	// Sprite upload + candidate gallery (upload-only editor path; PixelLab is separate)
+	r.HandleFunc("/api/items/{filename}/upload-image", editor.HandleUploadImage).Methods("POST")
+	r.HandleFunc("/api/items/{filename}/candidates", editor.HandleListCandidates).Methods("GET")
+	r.HandleFunc("/api/items/{filename}/accept-candidate", editor.HandleAcceptCandidate).Methods("POST")
+	r.HandleFunc("/api/items/{filename}/candidates/{name}", editor.HandleDeleteCandidate).Methods("DELETE")
 
 	// Database migration routes
 	r.HandleFunc("/tools/database-migration", handleDatabaseMigration).Methods("GET")

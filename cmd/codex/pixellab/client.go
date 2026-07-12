@@ -2,6 +2,7 @@ package pixellab
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -68,35 +69,95 @@ func (c *Client) GetBalance() (*Balance, error) {
 	return &balance, nil
 }
 
-// GenerateImage generates a pixel art image
-func (c *Client) GenerateImage(description, negativePrompt string, model string) (*Response, error) {
-	var endpoint string
-	var payload map[string]interface{}
+// base64Image is the wire shape PixelLab expects for init/style/mask images.
+type base64Image struct {
+	Type   string `json:"type"`
+	Base64 string `json:"base64"`
+	Format string `json:"format"`
+}
 
-	basePayload := map[string]interface{}{
-		"description": description,
-		"image_size": map[string]int{
-			"width":  32,
-			"height": 32,
-		},
+func newBase64Image(pngBytes []byte) *base64Image {
+	return &base64Image{
+		Type:   "base64",
+		Base64: base64.StdEncoding.EncodeToString(pngBytes),
+		Format: "png",
+	}
+}
+
+// GenerateOptions are the knobs for a single image generation. Zero values fall
+// back to sensible sprite defaults (32×32, transparent, black outline).
+type GenerateOptions struct {
+	Description         string
+	NegativeDescription string
+	Model               string // "bitforge" (supports style) or "pixflux"
+	Width               int    // default 32
+	Height              int    // default 32
+
+	// InitImage seeds generation from an existing sprite (raw PNG bytes) so the
+	// result keeps its silhouette — the mechanism for uniform families. Strength
+	// is 0–1000 (higher = closer to the init). Supported by both models.
+	InitImage         []byte
+	InitImageStrength int // default 300 when InitImage set
+
+	// StyleImage transfers the look of a reference sprite (raw PNG bytes).
+	// bitforge only. StyleStrength is 0–100; ExtraGuidanceScale ~0–20.
+	StyleImage         []byte
+	StyleStrength      float64
+	ExtraGuidanceScale float64
+
+	Seed int // 0 = random per call
+}
+
+// Generate creates one pixel-art image with full control over init/style images.
+func (c *Client) Generate(opts GenerateOptions) (*Response, error) {
+	w, h := opts.Width, opts.Height
+	if w == 0 {
+		w = 32
+	}
+	if h == 0 {
+		h = 32
+	}
+
+	var endpoint string
+	switch opts.Model {
+	case "bitforge":
+		endpoint = "/generate-image-bitforge"
+	case "pixflux":
+		endpoint = "/generate-image-pixflux"
+	default:
+		return nil, fmt.Errorf("unsupported model: %s", opts.Model)
+	}
+
+	payload := map[string]interface{}{
+		"description":   opts.Description,
+		"image_size":    map[string]int{"width": w, "height": h},
 		"no_background": true,
 		"detail":        "highly detailed",
 		"outline":       "single color black outline",
 	}
-
-	if negativePrompt != "" {
-		basePayload["negative_description"] = negativePrompt
+	if opts.NegativeDescription != "" {
+		payload["negative_description"] = opts.NegativeDescription
 	}
-
-	switch model {
-	case "bitforge":
-		endpoint = "/generate-image-bitforge"
-		payload = basePayload
-	case "pixflux":
-		endpoint = "/generate-image-pixflux"
-		payload = basePayload
-	default:
-		return nil, fmt.Errorf("unsupported model: %s", model)
+	if opts.Seed != 0 {
+		payload["seed"] = opts.Seed
+	}
+	if len(opts.InitImage) > 0 {
+		strength := opts.InitImageStrength
+		if strength == 0 {
+			strength = 300
+		}
+		payload["init_image"] = newBase64Image(opts.InitImage)
+		payload["init_image_strength"] = strength
+	}
+	// style_image is a bitforge-only feature; silently skip it for pixflux.
+	if len(opts.StyleImage) > 0 && opts.Model == "bitforge" {
+		payload["style_image"] = newBase64Image(opts.StyleImage)
+		if opts.StyleStrength != 0 {
+			payload["style_strength"] = opts.StyleStrength
+		}
+		if opts.ExtraGuidanceScale != 0 {
+			payload["extra_guidance_scale"] = opts.ExtraGuidanceScale
+		}
 	}
 
 	jsonData, err := json.Marshal(payload)
@@ -108,7 +169,6 @@ func (c *Client) GenerateImage(description, negativePrompt string, model string)
 	if err != nil {
 		return nil, err
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.APIKey)
 
@@ -128,6 +188,16 @@ func (c *Client) GenerateImage(description, negativePrompt string, model string)
 		return nil, err
 	}
 	return &result, nil
+}
+
+// GenerateImage is the original text-only entry point, preserved for the codex
+// editor's existing generate/accept flow.
+func (c *Client) GenerateImage(description, negativePrompt string, model string) (*Response, error) {
+	return c.Generate(GenerateOptions{
+		Description:         description,
+		NegativeDescription: negativePrompt,
+		Model:               model,
+	})
 }
 
 // GeneratePrompt creates a fantasy prompt from item properties
