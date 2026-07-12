@@ -71,15 +71,25 @@ func UpdateSystemStatusEffects(state *types.SaveFile, category string) (*types.E
 		}
 	}
 
-	// Remove all effects from this category
+	// Remove every effect in this category EXCEPT the one that should be active.
+	// Leaving the active one untouched is critical: re-applying it (below) rebuilds
+	// the ActiveEffect with TickAccumulator = 0, and this runs on every ~1-minute
+	// world tick — so a periodic modifier like starving's "1 HP per 240 min" would
+	// have its accumulator reset before it could ever reach the interval, and never
+	// fire. Preserving the active effect lets its accumulator carry across ticks.
 	for _, effectData := range categoryEffects {
+		if effectToApply != nil && effectData.ID == effectToApply.ID {
+			continue // this one should stay active — don't disturb its accumulator
+		}
 		if effects.HasActiveEffect(state, effectData.ID) {
 			effects.RemoveEffect(state, effectData.ID)
 		}
 	}
 
-	// Apply the one effect that should be active
-	if effectToApply != nil {
+	// Apply the target effect only on a genuine transition (it isn't already active).
+	// A fresh application resets the accumulator, which is correct only when the
+	// player actually crosses into this state, not every tick they remain in it.
+	if effectToApply != nil && !effects.HasActiveEffect(state, effectToApply.ID) {
 		msg, err := effects.ApplyEffectWithMessage(state, effectToApply.ID)
 		if err != nil {
 			log.Printf("⚠️ Failed to apply %s effect '%s': %v", category, effectToApply.Name, err)
