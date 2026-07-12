@@ -112,8 +112,10 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 
 	// Only process if time actually advanced
 	if minutesElapsed > 0 {
-		// Use AdvanceTime to properly process effects
-		AdvanceTime(state, minutesElapsed)
+		// Use AdvanceTime to properly process effects. Ambient time accrues fatigue
+		// normally, EXCEPT while stopped to rest mid-travel — then the clock keeps
+		// moving (hunger, arrival timers) but fatigue is frozen.
+		AdvanceTime(state, minutesElapsed, !state.TravelStopped)
 	}
 
 	// Check for missed shows (session-only data) and apply penalty
@@ -232,12 +234,12 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 		return nil, fmt.Errorf("hours or minutes parameter is required")
 	}
 
-	// Track fatigue/hunger before wait
-	oldFatigue := state.Fatigue
+	// Track hunger before wait (fatigue is intentionally frozen while waiting)
 	oldHunger := state.Hunger
 
-	// Advance time and process all effects (effects system handles fatigue/hunger)
-	timeMessages := AdvanceTime(state, minutesToAdvance)
+	// Advance time and process all effects. Waiting does NOT accrue fatigue — you're
+	// deliberately resting — but hunger, durations, and starvation still progress.
+	timeMessages := AdvanceTime(state, minutesToAdvance, false)
 
 	// Update building states and NPCs after time jump
 	if session != nil {
@@ -282,16 +284,7 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 		message = fmt.Sprintf("You waited %d minute%s.", mins, gameutil.Pluralize(mins))
 	}
 
-	// Add explicit fatigue/hunger change messages
-	if state.Fatigue != oldFatigue {
-		fatigueChange := state.Fatigue - oldFatigue
-		if fatigueChange > 0 {
-			message += fmt.Sprintf("\n\n💤 Your fatigue increased by %d (now %d/10)", fatigueChange, state.Fatigue)
-		} else {
-			message += fmt.Sprintf("\n\n✨ Your fatigue decreased by %d (now %d/10)", -fatigueChange, state.Fatigue)
-		}
-	}
-
+	// Waiting doesn't change fatigue anymore (it's frozen), so only surface hunger.
 	if state.Hunger != oldHunger {
 		hungerChange := state.Hunger - oldHunger
 		hungerNames := map[int]string{0: "Famished", 1: "Hungry", 2: "Satisfied", 3: "Full"}
@@ -309,7 +302,7 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 		}
 	}
 
-	log.Printf("⏱️ Waited %d minutes - Time: %d, Fatigue: %d→%d, Hunger: %d→%d", minutesToAdvance, state.TimeOfDay, oldFatigue, state.Fatigue, oldHunger, state.Hunger)
+	log.Printf("⏱️ Waited %d minutes - Time: %d, Fatigue: %d (frozen), Hunger: %d→%d", minutesToAdvance, state.TimeOfDay, state.Fatigue, oldHunger, state.Hunger)
 
 	// Calculate delta for UI updates
 	var deltaMap map[string]interface{}
@@ -351,8 +344,12 @@ func HandleResetIdleTimerAction(session IdleResetSessionProvider, currentUnixTim
 }
 
 // AdvanceTime advances the game time by the specified minutes and ticks all time-based systems
-// Returns messages from any effects that triggered (like starvation damage)
-func AdvanceTime(state *types.SaveFile, minutes int) []types.EffectMessage {
+// Returns messages from any effects that triggered (like starvation damage).
+//
+// accrueFatigue is passed through to the effect tick: pass false when the player is
+// deliberately waiting or resting (stopped mid-travel) so time advances without
+// building fatigue; pass true for normal time passing (ambient city clock, travel).
+func AdvanceTime(state *types.SaveFile, minutes int, accrueFatigue bool) []types.EffectMessage {
 	oldTime := state.TimeOfDay
 	oldDay := state.CurrentDay
 
@@ -367,7 +364,7 @@ func AdvanceTime(state *types.SaveFile, minutes int) []types.EffectMessage {
 	}
 
 	// Tick active effects (includes fatigue/hunger accumulation effects)
-	messages := effects.TickEffects(state, minutes)
+	messages := effects.TickEffects(state, minutes, accrueFatigue)
 
 	// Update penalty effects based on current fatigue/hunger levels
 	fatigueMsg, _ := status.UpdateFatiguePenaltyEffects(state)

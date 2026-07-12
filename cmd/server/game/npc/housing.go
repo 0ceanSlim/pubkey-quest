@@ -250,8 +250,9 @@ func HandleRestAction(state *types.SaveFile, _ map[string]interface{}) (*types.G
 		state.TimeOfDay = state.TimeOfDay % 1440
 	}
 
-	// Tick active effects (includes fatigue/hunger accumulation effects)
-	timeMessages := effects.TickEffects(state, sleepMinutes)
+	// Tick active effects (includes fatigue/hunger accumulation effects). Sleeping
+	// is rest — no fatigue accrual (it's zeroed on wake anyway); hunger still ticks.
+	timeMessages := effects.TickEffects(state, sleepMinutes, false)
 
 	// Update penalty effects based on current fatigue/hunger levels
 	fatigueMsg, _ := status.UpdateFatiguePenaltyEffects(state)

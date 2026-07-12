@@ -164,7 +164,7 @@ type PerformShowSessionProvider interface {
 }
 
 // HandlePlayShowAction performs a booked show
-func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvider, advanceTimeFunc func(*types.SaveFile, int) []types.EffectMessage) (*types.GameActionResponse, error) {
+func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvider, advanceTimeFunc func(*types.SaveFile, int, bool) []types.EffectMessage) (*types.GameActionResponse, error) {
 	log.Printf("🎭 handlePlayShowAction called - building: %s, day: %d, time: %d", state.Building, state.CurrentDay, state.TimeOfDay)
 
 	venueID := state.Building
@@ -328,9 +328,10 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 		log.Printf("❌ Performance failure! Earned %d gold (no XP)", totalGold)
 	}
 
-	// Advance time by 60 minutes (1 hour performance)
+	// Advance time by 60 minutes (1 hour performance). Watching a show is normal
+	// city time passing, so fatigue accrues as usual (true).
 	oldTime := state.TimeOfDay
-	timeMessages := advanceTimeFunc(state, 60)
+	timeMessages := advanceTimeFunc(state, 60, true)
 	log.Printf("⏰ Time advanced from %d to %d (60 minutes)", oldTime, state.TimeOfDay)
 
 	// Append any time-based messages (like starvation damage) to result

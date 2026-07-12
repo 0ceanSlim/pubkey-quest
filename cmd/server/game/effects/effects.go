@@ -276,8 +276,13 @@ func GetEffectTemplate(effectID string, effectIndex int) (stat string, value int
 }
 
 // TickEffects processes all active effects, applying stat modifiers and ticking down durations
-// Returns a slice of messages from effects that triggered (like starvation damage)
-func TickEffects(state *types.SaveFile, minutesElapsed int) []types.EffectMessage {
+// Returns a slice of messages from effects that triggered (like starvation damage).
+//
+// accrueFatigue gates the passive fatigue-accumulation effect only: when false (the
+// player is waiting in a city, or resting while stopped mid-travel) time still passes
+// for hunger, durations, and starvation, but fatigue is frozen — you don't get more
+// tired sitting still.
+func TickEffects(state *types.SaveFile, minutesElapsed int, accrueFatigue bool) []types.EffectMessage {
 	if len(state.ActiveEffects) == 0 {
 		return nil
 	}
@@ -334,6 +339,13 @@ func TickEffects(state *types.SaveFile, minutesElapsed int) []types.EffectMessag
 			// Apply skill scaling to tick interval (e.g., Athletics slows fatigue)
 			if scaling := GetEffectSkillScaling(activeEffect.EffectID); scaling != nil {
 				tickInterval = applySkillScaling(tickInterval, scaling, state.Stats)
+			}
+
+			// Freeze fatigue while waiting / resting: skip its tick so the accumulator
+			// doesn't advance and no fatigue is applied (time still flows for everything
+			// else, including hunger and starvation).
+			if activeEffect.EffectID == "fatigue-accumulation" && !accrueFatigue {
+				tickInterval = 0
 			}
 
 			if tickInterval > 0 {
