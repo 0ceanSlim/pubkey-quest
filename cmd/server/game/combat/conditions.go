@@ -186,7 +186,7 @@ func monsterSaveTotal(m *types.MonsterInstance, stat string) int {
 // playerSaveTotal rolls a player's saving throw: d20 + the ability modifier for
 // the given stat.
 func playerSaveTotal(save *types.SaveFile, stat string) int {
-	return RollD20() + character.AbilityMod(character.AbilityScore(save.Stats, stat))
+	return RollD20() + character.AbilityMod(character.AbilityScore(effectiveStats(save), stat))
 }
 
 // monsterEffectCondition maps a monster hit-special `effect` string to a combat

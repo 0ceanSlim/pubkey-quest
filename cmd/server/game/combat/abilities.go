@@ -225,7 +225,7 @@ var abilityMechanics = map[string]abilityMechanic{
 			return []string{"  You roar, but there's nothing left to frighten."}
 		}
 		m := &cs.Monsters[0]
-		dc := 8 + proficiencyBonus(level) + StatMod(GetStatFromMap(save.Stats, "strength"))
+		dc := 8 + proficiencyBonus(level) + StatMod(GetStatFromMap(effectiveStats(save), "strength"))
 		total := monsterSaveTotal(m, "wisdom")
 		if total >= dc {
 			return []string{fmt.Sprintf("  You roar! %s holds its nerve (WIS save %d vs DC %d).", m.Name, total, dc)}

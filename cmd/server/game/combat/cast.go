@@ -198,7 +198,7 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 	if half := dmg / 2; half > dc {
 		dc = half
 	}
-	conMod := character.AbilityMod(character.AbilityScore(save.Stats, "constitution"))
+	conMod := character.AbilityMod(character.AbilityScore(effectiveStats(save), "constitution"))
 	roll := RollD20()
 	if roll+conMod >= dc {
 		return []string{fmt.Sprintf("  You hold concentration on %s (CON save %d%s vs DC %d).",

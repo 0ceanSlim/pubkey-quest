@@ -8,6 +8,7 @@ import (
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/events"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
@@ -16,6 +17,15 @@ import (
 
 const combatGridWidth  = 9
 const combatGridHeight = 7
+
+// effectiveStats returns the player's ability scores with active-effect modifiers
+// (buffs, plus fatigue/exhaustion penalties) folded in — the stat block every
+// combat roll reads from, so being tired or buffed actually changes attack, AC,
+// saving throws, and ability DCs. This mirrors the effective stats the
+// out-of-combat skill checks already use (effects.EffectiveStats).
+func effectiveStats(save *types.SaveFile) map[string]interface{} {
+	return effects.EffectiveStats(save)
+}
 
 // chebyshev returns the Chebyshev distance between two grid positions.
 // This maps directly to D&D range: 0 = contact, 1 = adjacent, 2+ = ranged.
@@ -79,12 +89,13 @@ func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentI
 	// Rate the fight against the player's level band (M5 §22 difficulty guardrail).
 	cs.Difficulty = encounter.Difficulty(monsterData.ChallengeRating, level)
 
-	playerDEXMod := StatMod(GetStatFromMap(save.Stats, "dexterity"))
+	effStats := effectiveStats(save)
+	playerDEXMod := StatMod(GetStatFromMap(effStats, "dexterity"))
 	monsterDEXMod := StatMod(monsterData.Stats.Dexterity)
 	playerInit := rollInitiative(playerDEXMod)
 	monsterInit := rollInitiative(monsterDEXMod)
 
-	playerDEX := GetStatFromMap(save.Stats, "dexterity")
+	playerDEX := GetStatFromMap(effStats, "dexterity")
 	cs.Initiative = buildInitiativeOrder(npub, playerDEX, playerInit.Total, monsterData.Stats.Dexterity, monsterInit.Total, cs.Monsters[0])
 
 	cs.Log = append(cs.Log,
@@ -228,7 +239,7 @@ func monsterHasFirstTurn(cs *types.CombatSession) bool {
 // The player hasn't chosen a stance yet, so they get a reflex save to potentially dodge.
 func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) []string {
 	playerAC := computePlayerAC(db, save)
-	dexMod := StatMod(GetStatFromMap(save.Stats, "dexterity"))
+	dexMod := StatMod(GetStatFromMap(effectiveStats(save), "dexterity"))
 	dmg, log := ExecuteMonsterTurn(cs, &cs.Monsters[0], playerAC, true, dexMod, save)
 	if dmg > 0 {
 		log = append(log, applyDamageToPlayer(cs, dmg)...)
@@ -425,10 +436,11 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 
 	monster := &cs.Monsters[0]
 
+	fleeStats := effectiveStats(save)
 	playerAth := athleticsScore(
-		GetStatFromMap(save.Stats, "strength"),
-		GetStatFromMap(save.Stats, "constitution"),
-		GetStatFromMap(save.Stats, "dexterity"),
+		GetStatFromMap(fleeStats, "strength"),
+		GetStatFromMap(fleeStats, "constitution"),
+		GetStatFromMap(fleeStats, "dexterity"),
 	)
 	monsterAth := athleticsScore(
 		monster.Data.Stats.Strength,
@@ -549,7 +561,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	monster := &cs.Monsters[0]
 	level := character.GetLevelFromXP(save.Experience, advancement)
 
-	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, thrown)
+	attackBonus := resolveAttackBonus(item, effectiveStats(save), save.Class, level, isUnarmed, thrown)
 	advantage := resolveAttackAdvantage(cs, item, isUnarmed, save.Race, thrown)
 	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
 	// the target monster's (restrained/blinded/outlined/…) grant advantage.
@@ -578,7 +590,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		// Two-weapon fighting bonus attack: no ability score modifier to damage
 		dmg = resolvePlayerDamageNoMod(item, monster, offhandEmpty, result.IsCrit)
 	} else {
-		dmg = resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit, thrown)
+		dmg = resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, thrown)
 	}
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
 
@@ -1165,7 +1177,7 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 	}
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
-	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, false)
+	attackBonus := resolveAttackBonus(item, effectiveStats(save), save.Class, level, isUnarmed, false)
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, 0)
 
 	weaponName := "Unarmed Strike"
@@ -1185,7 +1197,7 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 		return log
 	}
 	offhandEmpty := isOffhandEmpty(save.Inventory)
-	dmg := resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit, false)
+	dmg := resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, false)
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
 	applyDamageToMonster(monster, dmg)
 
@@ -1258,7 +1270,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	}
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
-	attackBonus := resolveAttackBonus(item, save.Stats, save.Class, level, isUnarmed, false)
+	attackBonus := resolveAttackBonus(item, effectiveStats(save), save.Class, level, isUnarmed, false)
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, 1) // Advantage: player was ready
 
 	log := []string{formatAttackRoll(save.D, item, isUnarmed, result), outcomeLine(result)}
@@ -1267,7 +1279,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	}
 
 	offhandEmpty := isOffhandEmpty(save.Inventory)
-	dmg := resolvePlayerDamage(item, save.Stats, monster, isUnarmed, offhandEmpty, result.IsCrit, false)
+	dmg := resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, false)
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
 	applyDamageToMonster(monster, dmg)
 
@@ -1285,7 +1297,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 
 // computePlayerAC queries the player's current AC from equipped items.
 func computePlayerAC(db *sql.DB, save *types.SaveFile) int {
-	return CalculatePlayerAC(db, save.Inventory, save.Stats)
+	return CalculatePlayerAC(db, save.Inventory, effectiveStats(save))
 }
 
 // applyDamageToPlayer deducts HP and transitions to death_saves if HP reaches zero.
@@ -1420,7 +1432,7 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile) []st
 
 	action := monster.Data.Actions[decision.ActionIndex]
 	isMeleeAtContact := action.Type == "melee_attack" && currentRange(cs) == 0
-	playerAC := 10 + StatMod(GetStatFromMap(save.Stats, "dexterity"))
+	playerAC := 10 + StatMod(GetStatFromMap(effectiveStats(save), "dexterity"))
 	result := resolveDeathSaveAttack(action, playerAC, isMeleeAtContact)
 
 	log := []string{
