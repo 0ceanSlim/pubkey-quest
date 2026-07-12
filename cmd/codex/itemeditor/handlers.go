@@ -1,9 +1,11 @@
 package itemeditor
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +19,9 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
+// itemsImgDir is the on-disk home of item sprites.
+const itemsImgDir = "www/res/img/items"
 
 // HandleItemEditor renders the item editor UI
 func (e *Editor) HandleItemEditor(w http.ResponseWriter, r *http.Request) {
@@ -453,4 +458,170 @@ func (e *Editor) HandleAcceptImage(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"path":    mainImagePath,
 	})
+}
+
+// backupSprite copies the current live sprite (if any) into the item's _history
+// dir so upload/accept operations are never destructive.
+func backupSprite(itemID string) {
+	data, err := os.ReadFile(filepath.Join(itemsImgDir, itemID+".png"))
+	if err != nil {
+		return // nothing live to back up
+	}
+	histDir := filepath.Join(itemsImgDir, "_history", itemID)
+	if err := os.MkdirAll(histDir, 0755); err != nil {
+		log.Printf("⚠️ Could not create history dir for %s: %v", itemID, err)
+		return
+	}
+	dst := filepath.Join(histDir, time.Now().Format("20060102_150405")+"_replaced.png")
+	if err := os.WriteFile(dst, data, 0644); err != nil {
+		log.Printf("⚠️ Could not back up sprite for %s: %v", itemID, err)
+	}
+}
+
+// candidatePath resolves a candidate filename to a path inside the item's
+// candidate dir, rejecting empty names, path traversal, and non-PNGs.
+func candidatePath(itemID, name string) (string, bool) {
+	if name == "" || name != filepath.Base(name) || !strings.HasSuffix(strings.ToLower(name), ".png") {
+		return "", false
+	}
+	return filepath.Join(itemsImgDir, "_candidates", itemID, name), true
+}
+
+// HandleUploadImage replaces an item's live sprite with an uploaded PNG. This is
+// the durable, keep-forever path — no external API involved.
+func (e *Editor) HandleUploadImage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	item, exists := e.Items[vars["filename"]]
+	if !exists {
+		http.Error(w, "Item not found", http.StatusNotFound)
+		return
+	}
+
+	var req struct {
+		ImageData string `json:"imageData"` // base64 PNG, with or without a data: prefix
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	if i := strings.Index(req.ImageData, ","); strings.HasPrefix(req.ImageData, "data:") && i >= 0 {
+		req.ImageData = req.ImageData[i+1:]
+	}
+	data, err := base64.StdEncoding.DecodeString(strings.TrimSpace(req.ImageData))
+	if err != nil {
+		http.Error(w, "Invalid image data", http.StatusBadRequest)
+		return
+	}
+	cfg, err := png.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		http.Error(w, "Uploaded file is not a valid PNG", http.StatusBadRequest)
+		return
+	}
+
+	backupSprite(item.ID)
+	if err := os.WriteFile(filepath.Join(itemsImgDir, item.ID+".png"), data, 0644); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Printf("✅ Uploaded sprite for %s (%dx%d)", item.ID, cfg.Width, cfg.Height)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"path":    "/res/img/items/" + item.ID + ".png",
+		"width":   cfg.Width,
+		"height":  cfg.Height,
+	})
+}
+
+// HandleListCandidates lists sprite candidates staged under _candidates/<id>/.
+func (e *Editor) HandleListCandidates(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	item, exists := e.Items[vars["filename"]]
+	if !exists {
+		http.Error(w, "Item not found", http.StatusNotFound)
+		return
+	}
+	type candidate struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	}
+	candidates := []candidate{}
+	dir := filepath.Join(itemsImgDir, "_candidates", item.ID)
+	if entries, err := os.ReadDir(dir); err == nil {
+		for _, entry := range entries {
+			if entry.IsDir() || !strings.HasSuffix(strings.ToLower(entry.Name()), ".png") {
+				continue
+			}
+			candidates = append(candidates, candidate{
+				Name: entry.Name(),
+				URL:  "/www/res/img/items/_candidates/" + item.ID + "/" + entry.Name(),
+			})
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":    true,
+		"candidates": candidates,
+	})
+}
+
+// HandleAcceptCandidate promotes a staged candidate to the live sprite (backing
+// up the current one first).
+func (e *Editor) HandleAcceptCandidate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	item, exists := e.Items[vars["filename"]]
+	if !exists {
+		http.Error(w, "Item not found", http.StatusNotFound)
+		return
+	}
+	var req struct {
+		File string `json:"file"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	src, ok := candidatePath(item.ID, req.File)
+	if !ok {
+		http.Error(w, "Invalid candidate name", http.StatusBadRequest)
+		return
+	}
+	data, err := os.ReadFile(src)
+	if err != nil {
+		http.Error(w, "Candidate not found", http.StatusNotFound)
+		return
+	}
+	backupSprite(item.ID)
+	if err := os.WriteFile(filepath.Join(itemsImgDir, item.ID+".png"), data, 0644); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Printf("✅ Accepted candidate %s for %s", req.File, item.ID)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"path":    "/res/img/items/" + item.ID + ".png",
+	})
+}
+
+// HandleDeleteCandidate discards a single staged candidate sprite.
+func (e *Editor) HandleDeleteCandidate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	item, exists := e.Items[vars["filename"]]
+	if !exists {
+		http.Error(w, "Item not found", http.StatusNotFound)
+		return
+	}
+	path, ok := candidatePath(item.ID, vars["name"])
+	if !ok {
+		http.Error(w, "Invalid candidate name", http.StatusBadRequest)
+		return
+	}
+	if err := os.Remove(path); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }

@@ -1103,265 +1103,143 @@ async function checkImage() {
     img.src = imagePath.startsWith('/res/') ? `/www${imagePath}` : imagePath;
 }
 
-// ===== IMAGE GENERATION =====
-let generatedImageData = null;
-let pixelLabBalance = null;
+// ===== IMAGE UPLOAD =====
+// Codex is upload-only: pick a PNG and it replaces the live sprite (the old one
+// is backed up server-side). AI generation lives in the separate PixelLab tool.
+async function uploadSelectedImage(event) {
+    const file = event.target.files && event.target.files[0];
+    event.target.value = ''; // let the same file be re-picked later
+    if (!file) return;
 
-async function generateImage() {
-    // Deprecated - use openImageGenerator() instead
-    openImageGenerator();
-}
-
-async function openImageGenerator() {
-    try {
-        console.log('openImageGenerator: starting');
-
-        if (!currentItem && !isNewItem) {
-            showStatus('Please select or create an item first', 'error');
-            return;
-        }
-        console.log('openImageGenerator: item check passed');
-
-        // Reset state
-        generatedImageData = null;
-        document.getElementById('generatedImagePreview').innerHTML = '<span style="color: #6272a4; font-size: 12px;">Click Generate</span>';
-        document.getElementById('acceptBtn').style.display = 'none';
-        document.getElementById('imageGenStatus').textContent = '';
-        console.log('openImageGenerator: reset state done');
-
-        // Load balance
-        await loadPixelLabBalance();
-        console.log('openImageGenerator: balance loaded');
-
-        // Generate prompt preview
-        const name = document.getElementById('itemNameInput').value || 'Unknown Item';
-        const description = document.getElementById('itemDescription').value || '';
-        const rarity = document.getElementById('itemRarity').value || 'common';
-
-        const prompt = generatePromptPreview(name, description, rarity);
-        document.getElementById('imageGenPrompt').value = prompt;
-        console.log('openImageGenerator: prompt generated');
-
-        // Load current image
-        const itemId = document.getElementById('itemId').value;
-        const currentImageDiv = document.getElementById('currentImagePreview');
-        if (itemId) {
-            const img = new Image();
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            img.style.imageRendering = 'pixelated';
-            img.onload = () => {
-                currentImageDiv.innerHTML = '';
-                currentImageDiv.appendChild(img);
-            };
-            img.onerror = () => {
-                currentImageDiv.innerHTML = '<span style="color: #6272a4; font-size: 12px;">No image</span>';
-            };
-            img.src = `/www/res/img/items/${itemId}.png`;
-        } else {
-            currentImageDiv.innerHTML = '<span style="color: #6272a4; font-size: 12px;">No image</span>';
-        }
-        console.log('openImageGenerator: image preview set');
-
-        // Update generate button cost
-        updateGenerateButtonCost();
-        console.log('openImageGenerator: button cost updated');
-
-        // Show modal
-        console.log('openImageGenerator: showing modal');
-        document.getElementById('image-gen-modal').style.display = 'flex';
-        console.log('openImageGenerator: modal should be visible now');
-    } catch (error) {
-        console.error('openImageGenerator ERROR:', error);
-        showStatus('Error opening image generator: ' + error.message, 'error');
+    const itemId = document.getElementById('itemId').value;
+    const statusEl = document.getElementById('uploadStatus');
+    if (!itemId) {
+        showStatus('Set an item ID first', 'error');
+        return;
     }
-}
+    if (!file.type.includes('png')) {
+        statusEl.textContent = '❌ Please choose a .png file';
+        statusEl.style.color = 'var(--codex-red)';
+        return;
+    }
 
-function closeImageGenModal() {
-    document.getElementById('image-gen-modal').style.display = 'none';
-}
-
-async function loadPixelLabBalance() {
+    statusEl.textContent = '⏳ Uploading…';
+    statusEl.style.color = 'var(--codex-cyan)';
     try {
-        const response = await fetch('/api/balance');
-        const imageGenBalanceEl = document.getElementById('imageGenBalance');
-
+        const dataUrl = await fileToDataURL(file);
+        const base64 = dataUrl.split(',')[1];
+        const response = await fetch(`/api/items/${itemId}/upload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageData: base64 })
+        });
         if (response.ok) {
             const data = await response.json();
-            pixelLabBalance = data.usd ?? data.balance ?? 0;
-
-            if (imageGenBalanceEl) {
-                imageGenBalanceEl.textContent = `$${pixelLabBalance.toFixed(4)}`;
-                imageGenBalanceEl.style.color = pixelLabBalance > 0.1 ? 'var(--codex-green)' : 'var(--codex-orange)';
+            statusEl.textContent = `✅ Uploaded (${data.width}×${data.height})`;
+            statusEl.style.color = 'var(--codex-green)';
+            if (data.width !== 32 || data.height !== 32) {
+                statusEl.textContent += ' — note: sprites are usually 32×32';
+                statusEl.style.color = 'var(--codex-orange)';
             }
-
-            // Also update the small balance display in editor
-            const balanceDisplay = document.getElementById('balanceDisplay');
-            if (balanceDisplay) {
-                balanceDisplay.textContent = `PixelLab Balance: $${pixelLabBalance.toFixed(4)}`;
-            }
+            checkImage();
         } else {
-            if (imageGenBalanceEl) {
-                imageGenBalanceEl.textContent = 'API Error';
-                imageGenBalanceEl.style.color = 'var(--codex-red)';
-            }
+            const error = await response.text();
+            statusEl.textContent = `❌ ${error}`;
+            statusEl.style.color = 'var(--codex-red)';
         }
     } catch (error) {
-        const imageGenBalanceEl = document.getElementById('imageGenBalance');
-        if (imageGenBalanceEl) {
-            imageGenBalanceEl.textContent = 'Not configured';
-            imageGenBalanceEl.style.color = '#6272a4';
-        }
-        // Silently fail for balance display in editor - API may not be configured
-        const balanceDisplay = document.getElementById('balanceDisplay');
-        if (balanceDisplay) {
-            balanceDisplay.textContent = '';
-        }
+        statusEl.textContent = `❌ ${error.message}`;
+        statusEl.style.color = 'var(--codex-red)';
     }
 }
 
-function generatePromptPreview(name, description, rarity) {
-    // Match the server-side prompt generation logic
-    let baseDescription = description || name;
-
-    // Add rarity-based styling hints
-    let rarityHint = '';
-    switch (rarity) {
-        case 'uncommon':
-            rarityHint = ', subtle magical glow';
-            break;
-        case 'rare':
-            rarityHint = ', magical blue aura, enchanted appearance';
-            break;
-        case 'legendary':
-            rarityHint = ', radiant golden glow, legendary artifact';
-            break;
-        case 'mythical':
-            rarityHint = ', otherworldly radiance, divine craftsmanship';
-            break;
-    }
-
-    return `32x32 pixel art game item icon, ${baseDescription}${rarityHint}, centered on transparent background, highly detailed, single color black outline, fantasy RPG style`;
+function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
-function updateGenerateButtonCost() {
-    const model = document.getElementById('imageGenModel').value;
-    const cost = model === 'bitforge' ? '0.03' : '0.05';
-    document.getElementById('generateBtn').textContent = `🎨 Generate ($${cost})`;
-}
-
-async function generateNewImage() {
+// ===== CANDIDATE GALLERY =====
+async function openCandidates() {
     const itemId = document.getElementById('itemId').value;
     if (!itemId) {
-        showStatus('Please set an item ID first', 'error');
+        showStatus('Select or create an item first', 'error');
         return;
     }
+    document.getElementById('candidateGrid').innerHTML = '<span style="color: #6272a4;">Loading…</span>';
+    document.getElementById('candidate-modal').style.display = 'flex';
+    await refreshCandidates(itemId);
+}
 
-    const model = document.getElementById('imageGenModel').value;
-    const statusDiv = document.getElementById('imageGenStatus');
-    const generateBtn = document.getElementById('generateBtn');
-    const previewDiv = document.getElementById('generatedImagePreview');
-
-    // Show loading state
-    generateBtn.disabled = true;
-    generateBtn.textContent = '⏳ Generating...';
-    statusDiv.textContent = 'Generating image with PixelLab AI...';
-    statusDiv.style.color = 'var(--codex-cyan)';
-    previewDiv.innerHTML = '<span style="color: var(--codex-cyan);">⏳ Generating...</span>';
-
+async function refreshCandidates(itemId) {
+    const grid = document.getElementById('candidateGrid');
     try {
-        const response = await fetch(`/api/items/${itemId}/generate-image`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            generatedImageData = data.imageData;
-
-            // Display generated image
-            const img = new Image();
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            img.style.imageRendering = 'pixelated';
-            img.onload = () => {
-                previewDiv.innerHTML = '';
-                previewDiv.appendChild(img);
-            };
-            img.src = `data:image/png;base64,${data.imageData}`;
-
-            // Update status
-            statusDiv.textContent = `✅ Generated successfully! Cost: $${data.cost.toFixed(4)}`;
-            statusDiv.style.color = 'var(--codex-green)';
-
-            // Show accept button
-            document.getElementById('acceptBtn').style.display = 'inline-block';
-
-            // Refresh balance
-            await loadPixelLabBalance();
-        } else {
-            const error = await response.text();
-            statusDiv.textContent = `❌ Error: ${error}`;
-            statusDiv.style.color = 'var(--codex-red)';
-            previewDiv.innerHTML = '<span style="color: var(--codex-red);">Generation failed</span>';
+        const response = await fetch(`/api/items/${itemId}/candidates`);
+        const data = await response.json();
+        const candidates = data.candidates || [];
+        if (!candidates.length) {
+            grid.innerHTML = `<span style="color: #6272a4;">No candidates staged for <b>${itemId}</b>. Generate some with the PixelLab dev tool, then reopen this.</span>`;
+            return;
+        }
+        grid.innerHTML = '';
+        for (const c of candidates) {
+            const card = document.createElement('div');
+            card.style.cssText = 'text-align: center; width: 150px;';
+            card.innerHTML = `
+                <div style="width: 128px; height: 128px; margin: 0 auto; background: #1a1a2e; border: 2px solid #44475a; display: flex; align-items: center; justify-content: center;">
+                    <img src="${c.url}" style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;" />
+                </div>
+                <div style="font-size: 10px; color: #6272a4; margin: 4px 0; word-break: break-all;">${c.name}</div>
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                    <button class="codex-btn pixel-clip-sm" style="background: #50fa7b; color: #000;" data-accept="1">✅ Use</button>
+                    <button class="codex-btn pixel-clip-sm" data-discard="1">🗑️</button>
+                </div>`;
+            card.querySelector('[data-accept]').addEventListener('click', () => acceptCandidate(itemId, c.name));
+            card.querySelector('[data-discard]').addEventListener('click', () => discardCandidate(itemId, c.name));
+            grid.appendChild(card);
         }
     } catch (error) {
-        statusDiv.textContent = `❌ Error: ${error.message}`;
-        statusDiv.style.color = 'var(--codex-red)';
-        previewDiv.innerHTML = '<span style="color: var(--codex-red);">Generation failed</span>';
-    } finally {
-        generateBtn.disabled = false;
-        updateGenerateButtonCost();
+        grid.innerHTML = `<span style="color: var(--codex-red);">Error: ${error.message}</span>`;
     }
 }
 
-async function acceptGeneratedImage() {
-    if (!generatedImageData) {
-        showStatus('No generated image to accept', 'error');
-        return;
-    }
-
-    const itemId = document.getElementById('itemId').value;
-    const statusDiv = document.getElementById('imageGenStatus');
-    const acceptBtn = document.getElementById('acceptBtn');
-
-    acceptBtn.disabled = true;
-    acceptBtn.textContent = '⏳ Saving...';
-
+async function acceptCandidate(itemId, name) {
     try {
-        const response = await fetch(`/api/items/${itemId}/accept-image`, {
+        const response = await fetch(`/api/items/${itemId}/accept-candidate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageData: generatedImageData })
+            body: JSON.stringify({ file: name })
         });
-
         if (response.ok) {
-            statusDiv.textContent = '✅ Image saved successfully!';
-            statusDiv.style.color = 'var(--codex-green)';
-
-            // Update the main image preview
             checkImage();
-
-            // Close modal after short delay
-            setTimeout(() => {
-                closeImageGenModal();
-                showStatus('Image generated and saved!', 'success');
-            }, 1000);
+            showStatus(`Sprite set from ${name}`, 'success');
+            closeCandidateModal();
         } else {
-            const error = await response.text();
-            statusDiv.textContent = `❌ Failed to save: ${error}`;
-            statusDiv.style.color = 'var(--codex-red)';
+            showStatus('Accept failed: ' + await response.text(), 'error');
         }
     } catch (error) {
-        statusDiv.textContent = `❌ Error: ${error.message}`;
-        statusDiv.style.color = 'var(--codex-red)';
-    } finally {
-        acceptBtn.disabled = false;
-        acceptBtn.textContent = '✅ Accept & Save';
+        showStatus('Accept failed: ' + error.message, 'error');
     }
+}
+
+async function discardCandidate(itemId, name) {
+    try {
+        const response = await fetch(`/api/items/${itemId}/candidates/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        if (response.ok) {
+            await refreshCandidates(itemId);
+        } else {
+            showStatus('Discard failed: ' + await response.text(), 'error');
+        }
+    } catch (error) {
+        showStatus('Discard failed: ' + error.message, 'error');
+    }
+}
+
+function closeCandidateModal() {
+    document.getElementById('candidate-modal').style.display = 'none';
 }
 
 // ===== UTILITY =====
@@ -1411,11 +1289,9 @@ window.removeEffect = removeEffect;
 window.previewNamedEffect = previewNamedEffect;
 window.addWornEffect = addWornEffect;
 window.removeWornEffect = removeWornEffect;
-window.generateImage = generateImage;
-window.openImageGenerator = openImageGenerator;
-window.closeImageGenModal = closeImageGenModal;
-window.generateNewImage = generateNewImage;
-window.acceptGeneratedImage = acceptGeneratedImage;
+window.uploadSelectedImage = uploadSelectedImage;
+window.openCandidates = openCandidates;
+window.closeCandidateModal = closeCandidateModal;
 
 // ===== INIT =====
 window.addEventListener('DOMContentLoaded', () => {
@@ -1443,12 +1319,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Setup effect mode toggle (flat/dice)
     setupEffectModeToggle();
-
-    // Update generate button cost when model changes
-    document.getElementById('imageGenModel')?.addEventListener('change', updateGenerateButtonCost);
-
-    // Load PixelLab balance on startup
-    loadPixelLabBalance();
 });
 
 // ===== STAGING FUNCTIONS =====
