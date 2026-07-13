@@ -1,0 +1,7 @@
+{
+  "id": "durable",
+  "name": "Durable",
+  "description": "You are hard to wear down and recover readily from your wounds.",
+  "stat_grant": { "amount": 1, "choices": ["constitution"] },
+  "effects": ["+1 Constitution", "You recover more readily from wounds"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "resilient",
+  "name": "Resilient",
+  "description": "Focused training shores up a weakness of your choosing.",
+  "stat_grant": { "amount": 1, "choices": ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"] },
+  "effects": ["+1 to a chosen ability", "Steadier saving throws with that ability"]
+}

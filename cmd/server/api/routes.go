@@ -567,6 +567,10 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Success      200      {object}  game.SpendAbilityPointResponse
 	// @Router       /api/progression/spend-point [post]
 	mux.HandleFunc("/api/progression/spend-point", game.SpendAbilityPointHandler)
+	// @Router       /api/progression/feats [get]
+	mux.HandleFunc("/api/progression/feats", game.GetFeatsHandler)
+	// @Router       /api/progression/choose-feat [post]
+	mux.HandleFunc("/api/progression/choose-feat", game.ChooseFeatHandler)
 
 	// @Summary      Level-up progression guide
 	// @Description  Returns the character's full 1→20 path (XP, ability points, feats, abilities, spell slots)

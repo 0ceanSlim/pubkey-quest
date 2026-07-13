@@ -1,0 +1,7 @@
+{
+  "id": "observant",
+  "name": "Observant",
+  "description": "Quick to notice the details of your environment, little escapes your attention.",
+  "stat_grant": { "amount": 1, "choices": ["intelligence", "wisdom"] },
+  "effects": ["+1 Intelligence or Wisdom", "Sharp, watchful senses"]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "keen-mind",
+  "name": "Keen Mind",
+  "description": "A mind that never forgets — you always know which way is north and recall anything you have seen.",
+  "stat_grant": { "amount": 1, "choices": ["intelligence"] },
+  "effects": ["+1 Intelligence", "Perfect recall and orientation"]
+}

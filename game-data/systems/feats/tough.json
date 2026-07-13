@@ -1,0 +1,7 @@
+{
+  "id": "tough",
+  "name": "Tough",
+  "description": "Your body is unusually resilient — you can take a beating that would fell others.",
+  "hp_per_level": 2,
+  "effects": ["+2 maximum HP per level"]
+}

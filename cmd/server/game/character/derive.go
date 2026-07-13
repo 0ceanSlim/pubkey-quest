@@ -163,7 +163,7 @@ func Hydrate(save *types.SaveFile, advancement []types.AdvancementEntry) {
 		return
 	}
 	level := GetLevelFromXP(save.Experience, advancement)
-	save.MaxHP = DeriveMaxHP(save.Class, level, save.Stats)
+	save.MaxHP = DeriveMaxHP(save.Class, level, save.Stats) + featMaxHPBonus(save, level)
 	save.MaxMana = DeriveMaxMana(save.Class, level, save.Stats)
 	if save.HP > save.MaxHP {
 		save.HP = save.MaxHP

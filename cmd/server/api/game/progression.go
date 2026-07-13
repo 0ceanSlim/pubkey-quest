@@ -11,6 +11,7 @@ import (
 	"pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/types"
 )
 
 // ============================================================================
@@ -301,4 +302,147 @@ func loadClassSpellSlots(class string) (map[int]map[string]int, error) {
 		}
 	}
 	return out, nil
+}
+
+// ── Feats (M5.5) ─────────────────────────────────────────────────────────────
+
+// FeatView is a feat definition plus whether this character has taken it.
+type FeatView struct {
+	types.Feat
+	Taken  bool   `json:"taken"`
+	Choice string `json:"choice,omitempty"` // the chosen stat, if already taken as a half-feat
+}
+
+// FeatsResponse lists the feats a character can see, plus their remaining feat slots.
+type FeatsResponse struct {
+	Success        bool       `json:"success"`
+	SlotsAvailable int        `json:"slots_available"`
+	EligibleLevels []int      `json:"eligible_levels"`
+	Feats          []FeatView `json:"feats"`
+}
+
+// GetFeatsHandler godoc
+// @Summary      List feats + this character's feat slots
+// @Tags         Progression
+// @Produce      json
+// @Param        npub     query     string  true  "Nostr public key"
+// @Param        save_id  query     string  true  "Save ID"
+// @Success      200      {object}  FeatsResponse
+// @Router       /api/progression/feats [get]
+func GetFeatsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	npub := r.URL.Query().Get("npub")
+	saveID := r.URL.Query().Get("save_id")
+	if npub == "" || saveID == "" {
+		http.Error(w, "Missing query params: npub, save_id", http.StatusBadRequest)
+		return
+	}
+	sess := getSessionAndValidate(w, npub, saveID)
+	if sess == nil {
+		return
+	}
+	adv, err := character.LoadAdvancement(serverdb.GetDB())
+	if err != nil {
+		http.Error(w, "Failed to load advancement data", http.StatusInternalServerError)
+		return
+	}
+	feats, err := data.LoadFeats()
+	if err != nil {
+		http.Error(w, "Failed to load feats", http.StatusInternalServerError)
+		return
+	}
+	save := sess.GetSaveData()
+
+	taken := make(map[string]string, len(save.FeatsChosen))
+	for _, f := range save.FeatsChosen {
+		id, choice := character.FeatBaseID(f)
+		taken[id] = choice
+	}
+	views := make([]FeatView, 0, len(feats))
+	for _, ft := range feats {
+		choice, isTaken := taken[ft.ID]
+		views = append(views, FeatView{Feat: ft, Taken: isTaken, Choice: choice})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(FeatsResponse{
+		Success:        true,
+		SlotsAvailable: character.FeatSlotsAvailable(save, adv),
+		EligibleLevels: character.FeatLevelsSorted(save.Class),
+		Feats:          views,
+	})
+}
+
+// ChooseFeatRequest picks a feat, with a stat choice for half-feats.
+type ChooseFeatRequest struct {
+	Npub   string `json:"npub"`
+	SaveID string `json:"save_id"`
+	FeatID string `json:"feat_id"`
+	Choice string `json:"choice,omitempty"` // stat for half-feats (e.g. "constitution")
+}
+
+// ChooseFeatHandler godoc
+// @Summary      Take a feat (spends a feat slot instead of an ability point)
+// @Tags         Progression
+// @Accept       json
+// @Produce      json
+// @Param        request  body      ChooseFeatRequest  true  "Feat to take"
+// @Success      200      {object}  map[string]interface{}
+// @Failure      400      {string}  string  "No slot, already taken, prereq, or bad choice"
+// @Failure      409      {string}  string  "In active combat"
+// @Router       /api/progression/choose-feat [post]
+func ChooseFeatHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var req ChooseFeatRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if req.Npub == "" || req.SaveID == "" || req.FeatID == "" {
+		http.Error(w, "Missing required fields: npub, save_id, feat_id", http.StatusBadRequest)
+		return
+	}
+	sess := getSessionAndValidate(w, req.Npub, req.SaveID)
+	if sess == nil {
+		return
+	}
+	if sess.ActiveCombat != nil {
+		http.Error(w, "Cannot choose a feat during combat", http.StatusConflict)
+		return
+	}
+	adv, err := character.LoadAdvancement(serverdb.GetDB())
+	if err != nil {
+		http.Error(w, "Failed to load advancement data", http.StatusInternalServerError)
+		return
+	}
+	feat, err := data.LoadFeatByID(req.FeatID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	save := sess.GetSaveData()
+	if err := character.ChooseFeat(save, feat, req.Choice, adv); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("✨ Feat taken: %s (choice=%q) for %s — %d slots left, %d unspent points",
+		feat.Name, req.Choice, req.Npub, character.FeatSlotsAvailable(save, adv), character.UnspentAbilityPoints(save, adv))
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":         true,
+		"feat":            feat.Name,
+		"chosen":          save.FeatsChosen,
+		"slots_available": character.FeatSlotsAvailable(save, adv),
+		"unspent":         character.UnspentAbilityPoints(save, adv),
+		"scores":          character.AbilityScores(save),
+		"max_hp":          save.MaxHP,
+	})
 }

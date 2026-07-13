@@ -1,0 +1,7 @@
+{
+  "id": "athlete",
+  "name": "Athlete",
+  "description": "Rigorous training has honed your body for feats of agility and strength.",
+  "stat_grant": { "amount": 1, "choices": ["strength", "dexterity"] },
+  "effects": ["+1 Strength or Dexterity", "Climb and jump with ease"]
+}

@@ -282,6 +282,15 @@ func createTables() error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
 
+		// Feats table (selectable feats — the feat-or-ability-point choice)
+		`CREATE TABLE IF NOT EXISTS feats (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			description TEXT,
+			properties TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
+
 		// Systems table (system configurations)
 		`CREATE TABLE IF NOT EXISTS systems (
 			id TEXT PRIMARY KEY,
@@ -402,6 +411,14 @@ func migrateFromJSON(callback StatusCallback) error {
 	}
 	if err := migrateAbilities(callback); err != nil {
 		return fmt.Errorf("failed to migrate abilities: %v", err)
+	}
+
+	// Migrate feats
+	if callback != nil {
+		callback(Status{Step: "feats", Message: "Migrating feats"})
+	}
+	if err := migrateFeats(callback); err != nil {
+		return fmt.Errorf("failed to migrate feats: %v", err)
 	}
 
 	// Migrate narrative content (quests, POIs, encounters) — M3 runtime
@@ -1002,6 +1019,60 @@ func migrateAbilityFile(filePath string) error {
 	stmt := `INSERT INTO abilities (id, name, class, unlock_level, resource_cost, resource_type, cooldown, description, properties)
 	         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err = database.Exec(stmt, id, name, class, unlockLevel, resourceCost, resourceType, cooldown, description, string(propertiesJSON))
+	return err
+}
+
+// migrateFeats loads selectable feats from the flat game-data/systems/feats/ dir.
+func migrateFeats(callback StatusCallback) error {
+	featsPath := "game-data/systems/feats"
+
+	if _, err := database.Exec("DELETE FROM feats"); err != nil {
+		return fmt.Errorf("failed to clear feats table: %v", err)
+	}
+
+	count := 0
+	err := filepath.WalkDir(featsPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, ".json") {
+			if err := migrateFeatFile(path); err != nil {
+				log.Printf("Warning: failed to migrate feat file %s: %v", path, err)
+			} else {
+				count++
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to walk feats directory: %v", err)
+	}
+
+	log.Printf("Migrated %d feats", count)
+	return nil
+}
+
+// migrateFeatFile migrates a single feat JSON file. The whole JSON is stored in the
+// properties column (stat_grant, hp_per_level, effects, prerequisite).
+func migrateFeatFile(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	var feat map[string]interface{}
+	if err := json.Unmarshal(data, &feat); err != nil {
+		return err
+	}
+	id, _ := feat["id"].(string)
+	if id == "" {
+		id = strings.TrimSuffix(filepath.Base(filePath), ".json")
+	}
+	name, _ := feat["name"].(string)
+	description, _ := feat["description"].(string)
+	propertiesJSON, _ := json.Marshal(feat)
+
+	stmt := `INSERT INTO feats (id, name, description, properties) VALUES (?, ?, ?, ?)`
+	_, err = database.Exec(stmt, id, name, description, string(propertiesJSON))
 	return err
 }
 

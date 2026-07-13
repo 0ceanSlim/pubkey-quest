@@ -1,0 +1,7 @@
+{
+  "id": "actor",
+  "name": "Actor",
+  "description": "You have mastered the art of impersonation and your presence commands a room.",
+  "stat_grant": { "amount": 1, "choices": ["charisma"] },
+  "effects": ["+1 Charisma", "Skilled at deception and performance"]
+}
