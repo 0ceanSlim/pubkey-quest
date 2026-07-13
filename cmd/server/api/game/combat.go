@@ -64,6 +64,8 @@ type CombatBaseRequest struct {
 type CombatPlayerView struct {
 	CurrentHP          int  `json:"current_hp"           example:"8"`
 	MaxHP              int  `json:"max_hp"               example:"10"`
+	Mana               int  `json:"mana"                 example:"6"`
+	MaxMana            int  `json:"max_mana"             example:"12"`
 	DeathSaveSuccesses int  `json:"death_save_successes" example:"0"`
 	DeathSaveFailures  int  `json:"death_save_failures"  example:"0"`
 	IsUnconscious      bool `json:"is_unconscious"       example:"false"`
@@ -206,6 +208,13 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 				Max:     state.Resource.Max,
 			}
 		}
+	}
+	// Mana lives on the save, not the combat state — surface it so casting spends
+	// visibly update the mana bar during the fight (the clock is frozen, so the
+	// normal tick can't refresh it).
+	if save != nil {
+		player.Mana = save.Mana
+		player.MaxMana = save.MaxMana
 	}
 
 	monsters := make([]CombatMonsterView, 0, len(cs.Monsters))

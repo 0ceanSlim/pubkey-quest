@@ -367,12 +367,52 @@ function _spellShapeIcon(spell) {
     return '•';
 }
 
-/** Open the combat spell menu: prepared spells, affordable ones clickable. */
+/** Read a possibly-nested item field (getItemById does NOT flatten .properties). */
+function _itemField(item, name) {
+    return item?.[name] ?? item?.properties?.[name];
+}
+
+/**
+ * Count how many of a component item the player holds across loose general slots
+ * and every worn container's contents. Mirrors the Go engine's countComponent.
+ */
+function _countComponent(inv, itemId) {
+    if (!inv || !itemId) return 0;
+    let n = 0;
+    const tally = (slot) => {
+        if (!slot) return;
+        if (slot.item === itemId) n += slot.quantity ?? 0;
+        for (const c of (slot.contents ?? [])) if (c?.item === itemId) n += c.quantity ?? 0;
+    };
+    for (const slot of (inv.general_slots ?? [])) tally(slot);
+    for (const slot of Object.values(inv.gear_slots ?? {})) tally(slot);
+    return n;
+}
+
+/**
+ * True if an equipped focus grants unlimited of componentId. Mirrors the Go
+ * engine's equippedFocusProvides (a focus is tagged 'focus' with provides === id).
+ */
+function _equippedFocusProvides(inv, componentId) {
+    for (const slot of Object.values(inv?.gear_slots ?? {})) {
+        const id = slot?.item;
+        if (!id) continue;
+        const item = window.getItemById?.(id);
+        if (!item) continue;
+        const tags = (_itemField(item, 'tags') ?? []).map((t) => String(t).toLowerCase());
+        if (tags.includes('focus') && _itemField(item, 'provides') === componentId) return true;
+    }
+    return false;
+}
+
+/** Open the combat spell menu: prepared spells with mana + component have/need. */
 export function openCombatSpellMenu() {
-    const ch    = window.getGameStateSync?.()?.character ?? {};
-    const mana  = ch.mana ?? 0;
-    const slots = ch.spell_slots ?? {};
-    const seen  = new Set();
+    const ch      = window.getGameStateSync?.()?.character ?? {};
+    const mana    = ch.mana ?? 0;
+    const maxMana = ch.max_mana ?? mana;
+    const inv     = ch.inventory ?? {};
+    const slots   = ch.spell_slots ?? {};
+    const seen    = new Set();
     const entries = [];
 
     for (const level of Object.keys(slots)) {
@@ -382,13 +422,47 @@ export function openCombatSpellMenu() {
             seen.add(id);
             const spell = window.getSpellById?.(id);
             if (!spell) continue;
+
             const cost = spell.mana_cost ?? 0;
-            const affordable = mana >= cost;
+            const manaOK = mana >= cost;
+
+            // Components: per requirement show have/need, or */need when a focus
+            // provides it unlimited (mirrors the cast engine's gating).
+            const required = spell.material_component?.required ?? [];
+            const compParts = [];   // compact meta, e.g. "1/2" or "*/1"
+            const compTips = [];    // named breakdown for the tooltip
+            let compsOK = true;
+            for (const req of required) {
+                const compId = req.component;
+                const need = req.quantity ?? 1;
+                const name = window.getItemById?.(compId)?.name || String(compId).replace(/[-_]/g, ' ');
+                if (_equippedFocusProvides(inv, compId)) {
+                    compParts.push(`*/${need}`);
+                    compTips.push(`${name}: */${need} (focus — unlimited)`);
+                } else {
+                    const have = _countComponent(inv, compId);
+                    if (have < need) compsOK = false;
+                    compParts.push(`${have}/${need}`);
+                    compTips.push(`${name}: ${have}/${need}`);
+                }
+            }
+
+            const usable = manaOK && compsOK;
+            let meta = `${_spellShapeIcon(spell)} ${cost}◆`;
+            if (compParts.length) meta += ` 🜂${compParts.join(' ')}`;
+
+            const tip = [
+                spell.description ?? '',
+                `Mana: ${mana}/${cost}${manaOK ? '' : ' — short'}`,
+                ...compTips,
+                !usable ? '⚠ Can’t cast: ' + (!manaOK ? 'not enough mana' : 'missing components') : '',
+            ].filter(Boolean).join('\n');
+
             entries.push({
                 label: spell.name ?? id,
-                meta:  `${_spellShapeIcon(spell)} ${cost}◆`,
-                disabled: !affordable,
-                tip: affordable ? (spell.description ?? '') : `Not enough mana — need ${cost}, have ${mana}`,
+                meta,
+                disabled: !usable,
+                tip,
                 onClick: () => window.doCastSpell(id),
             });
         }
@@ -398,7 +472,7 @@ export function openCombatSpellMenu() {
         _logInfo('No spells prepared — prepare one on the Spells tab first.');
         return;
     }
-    _openCombatChooser(`✨ Cast a spell — ${mana}◆ mana`, entries);
+    _openCombatChooser(`✨ Cast a spell — ${mana}/${maxMana}◆ mana`, entries);
 }
 
 /** Open the combat item menu: reachable consumables (loose + in general-slot pouches). */
@@ -1602,13 +1676,17 @@ function _renderMonsterHP(cs) {
     _setText('combat-monster-hp-text', `${monster.current_hp} / ${monster.max_hp} HP`);
 }
 
-// _renderPlayerHP writes player HP from combat state into the side panel.
+// _renderPlayerHP writes player HP (and mana) from combat state into the side
+// panel. Mana matters because the clock is frozen in combat, so this is the only
+// path that repaints the mana bar as spells spend it.
 function _renderPlayerHP(cs) {
     const state = window.getGameStateSync?.();
     if (!state?.character) return;
     if (cs.player) {
         state.character.hp     = cs.player.current_hp;
         state.character.max_hp = cs.player.max_hp;
+        if (cs.player.mana     !== undefined) state.character.mana     = cs.player.mana;
+        if (cs.player.max_mana !== undefined) state.character.max_mana = cs.player.max_mana;
     }
     window.updateCharacterDisplay?.();
 }
