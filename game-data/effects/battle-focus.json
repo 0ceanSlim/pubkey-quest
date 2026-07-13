@@ -1,0 +1,12 @@
+{
+  "id": "battle-focus",
+  "name": "Battle Focus",
+  "description": "Heightened combat awareness (+2 DEX) that lasts until you rest.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": { "type": "action", "action": "rest" },
+  "modifiers": [
+    { "stat": "dexterity", "value": 2, "type": "constant" }
+  ],
+  "visible": true
+}

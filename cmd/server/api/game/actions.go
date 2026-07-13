@@ -671,10 +671,11 @@ func handleRestAction(state *SaveFile, params map[string]any) (*GameActionRespon
 	}
 	resp, err := npc.HandleRestAction(state, paramsIface)
 	if resp != nil {
-		return &GameActionResponse{
-			Success: resp.Success,
-			Message: resp.Message,
-		}, err
+		msg := resp.Message
+		if cleared := effects.RemoveEffectsByAction(state, "rest"); len(cleared) > 0 {
+			msg += fmt.Sprintf("\nRest clears: %s.", strings.Join(cleared, ", "))
+		}
+		return &GameActionResponse{Success: resp.Success, Message: msg}, err
 	}
 	return nil, err
 }
@@ -1083,9 +1084,16 @@ func handleRentRoomAction(session *GameSession, params map[string]any) (*GameAct
 func handleSleepAction(session *GameSession, _ map[string]any) (*GameActionResponse, error) {
 	resp, err := npc.HandleSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
 	if resp != nil {
+		msg := resp.Message
+		// Sleeping is a rest, so it clears both "sleep"- and "rest"-removal effects.
+		cleared := append(effects.RemoveEffectsByAction(&session.SaveData, "sleep"),
+			effects.RemoveEffectsByAction(&session.SaveData, "rest")...)
+		if len(cleared) > 0 {
+			msg += fmt.Sprintf("\nYou wake refreshed — cleared: %s.", strings.Join(cleared, ", "))
+		}
 		return &GameActionResponse{
 			Success: resp.Success,
-			Message: resp.Message,
+			Message: msg,
 			Color:   resp.Color,
 			Delta:   resp.Delta,
 			Data:    resp.Data,

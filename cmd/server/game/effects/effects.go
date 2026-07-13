@@ -629,6 +629,33 @@ func RemoveEffect(state *types.SaveFile, effectID string) {
 	state.ActiveEffects = remaining
 }
 
+// RemoveEffectsByAction clears every active effect whose removal is
+// `type:"action"` with a matching `removal.action` (e.g. "rest", "sleep",
+// "consume-antidote"). This is the consumer the `action` removal type was missing:
+// it's invoked at the rest/sleep/use-item sites so an effect authored to "last
+// until you rest" or "cured by an antidote" actually goes away. Returns the display
+// names of what was removed, for a log line.
+func RemoveEffectsByAction(state *types.SaveFile, action string) []string {
+	if state == nil || action == "" || len(state.ActiveEffects) == 0 {
+		return nil
+	}
+	var toRemove, names []string
+	for _, ae := range state.ActiveEffects {
+		data, err := LoadEffectData(ae.EffectID)
+		if err != nil || data == nil {
+			continue
+		}
+		if data.Removal.Type == "action" && strings.EqualFold(data.Removal.Action, action) {
+			toRemove = append(toRemove, ae.EffectID)
+			names = append(names, data.Name)
+		}
+	}
+	for _, id := range toRemove {
+		RemoveEffect(state, id)
+	}
+	return names
+}
+
 // EnrichActiveEffects adds template data (name, category, stat_modifiers) to active effects
 // Used when sending active_effects to the frontend for display.
 // State is used to apply skill scaling and hunger-level dynamic tick intervals for accurate UI display.
