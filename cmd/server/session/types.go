@@ -32,6 +32,11 @@ type GameSession struct {
 	// Session-only.
 	LastEncounterTime int `json:"-"`
 
+	// LastEncounterMonster is the previous biome-encounter monster id, so the
+	// roller can avoid an immediate repeat when the biome has alternatives.
+	// Session-only.
+	LastEncounterMonster string `json:"-"`
+
 	// Authored-encounter firing log: encounter id → absolute in-game minute it
 	// last fired, for per-encounter cooldown + non-repeatable one-shots. Session-
 	// only (M1: LastFired lives in memory, not the save).

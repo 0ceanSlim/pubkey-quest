@@ -279,11 +279,12 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	level := character.GetLevelFromXP(state.Experience, advancement)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	monster, ok := encounter.Roll(candidates, level, minutesElapsed, rng)
+	monster, ok := encounter.Roll(candidates, level, minutesElapsed, rng, sess.LastEncounterMonster)
 	if !ok {
 		return
 	}
 	sess.LastEncounterTime = nowAbs
+	sess.LastEncounterMonster = monster.ID
 
 	cs, err := combat.StartCombat(serverdb.GetDB(), state, sess.Npub, monster.ID, state.Location, advancement)
 	if err != nil {

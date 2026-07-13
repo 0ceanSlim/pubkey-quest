@@ -105,13 +105,29 @@ func TickChance(minutesElapsed int) float64 {
 // monster the player meets. It returns ok=false when no CR-eligible monster
 // exists for the biome or the chance roll misses. rng is injected so callers
 // can seed it and tests can make it deterministic.
-func Roll(candidates []Candidate, level, minutesElapsed int, rng *rand.Rand) (Candidate, bool) {
+//
+// avoidID is the previous encounter's monster id: when the eligible pool has
+// alternatives, it's excluded so you don't fight the exact same monster twice in
+// a row (the biggest driver of "same fight over and over"). With only one
+// eligible monster it's ignored — there's nothing else to pick.
+func Roll(candidates []Candidate, level, minutesElapsed int, rng *rand.Rand, avoidID string) (Candidate, bool) {
 	eligible := Eligible(candidates, level)
 	if len(eligible) == 0 {
 		return Candidate{}, false
 	}
 	if rng.Float64() >= TickChance(minutesElapsed) {
 		return Candidate{}, false
+	}
+	if avoidID != "" && len(eligible) > 1 {
+		var fresh []Candidate
+		for _, c := range eligible {
+			if c.ID != avoidID {
+				fresh = append(fresh, c)
+			}
+		}
+		if len(fresh) > 0 {
+			eligible = fresh
+		}
 	}
 	return eligible[rng.Intn(len(eligible))], true
 }
