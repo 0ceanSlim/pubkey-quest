@@ -80,23 +80,38 @@ func Cast(db *sql.DB, deps Deps, save *types.SaveFile, spellID string, level int
 		return nil, err
 	}
 	focus := func(component string) bool { return equippedFocusProvides(db, save, component) }
-	return resolveCast(deps, save, spell, spellID, level, target, focus)
+	return resolveCast(deps, save, spell, spellID, level, target, focus, false)
+}
+
+// CastFromScroll casts a spell off a scroll. The scroll IS the spell, so it
+// bypasses the known + prepared + material-component gates, but still spends mana
+// and resolves by the same shape as a normal cast. The caller consumes the scroll.
+func CastFromScroll(db *sql.DB, deps Deps, save *types.SaveFile, spellID string, level int, target *types.MonsterInstance) (*CastResult, error) {
+	spell, err := gamedata.LoadSpellByID(db, spellID)
+	if err != nil {
+		return nil, err
+	}
+	return resolveCast(deps, save, spell, spellID, level, target, func(string) bool { return false }, true)
 }
 
 // resolveCast is the pure casting resolver: no database access. Components that
-// need a focus are checked via focusProvides. See Cast for the DB-backed wrapper.
-func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, spellID string, level int, target *types.MonsterInstance, focusProvides func(string) bool) (*CastResult, error) {
+// need a focus are checked via focusProvides. fromScroll skips the known/prepared/
+// component gates (the scroll carries the spell). See Cast for the DB-backed wrapper.
+func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, spellID string, level int, target *types.MonsterInstance, focusProvides func(string) bool, fromScroll bool) (*CastResult, error) {
 	name := stringField(spell, "name")
 	if name == "" {
 		name = spellID
 	}
 
 	// ── Validation (no state is mutated until every check passes) ──
-	if !knowsSpell(save, spellID) {
-		return nil, fmt.Errorf("you have not learned %s", name)
-	}
-	if !IsSpellPrepared(save, spellID) {
-		return nil, fmt.Errorf("%s is not prepared", name)
+	// A scroll bypasses the known + prepared gates — the scroll carries the spell.
+	if !fromScroll {
+		if !knowsSpell(save, spellID) {
+			return nil, fmt.Errorf("you have not learned %s", name)
+		}
+		if !IsSpellPrepared(save, spellID) {
+			return nil, fmt.Errorf("%s is not prepared", name)
+		}
 	}
 
 	shape := spellShape(spell)
@@ -110,9 +125,15 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 		return nil, fmt.Errorf("not enough mana to cast %s (need %d, have %d)", name, manaCost, save.Mana)
 	}
 
-	plan, err := resolveComponents(save, spell, focusProvides)
-	if err != nil {
-		return nil, err
+	// Scrolls skip material components (paid at craft time); a normal cast resolves
+	// them (consuming from the pouch, or free if a focus provides them).
+	var plan []componentUse
+	if !fromScroll {
+		p, err := resolveComponents(save, spell, focusProvides)
+		if err != nil {
+			return nil, err
+		}
+		plan = p
 	}
 
 	// ── Commit costs ──

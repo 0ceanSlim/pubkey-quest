@@ -66,6 +66,51 @@ func testDeps(d20, dice int) Deps {
 
 func noFocus(string) bool { return false }
 
+// A scroll casts its spell even when the caster hasn't learned/prepared it and
+// lacks its components — but still pays mana and resolves by shape.
+func TestCast_FromScrollBypassesGates(t *testing.T) {
+	unprepared := func() *types.SaveFile {
+		return &types.SaveFile{
+			Class: "Druid", Mana: 5, MaxMana: 10, HP: 20, MaxHP: 30,
+			Stats:     map[string]interface{}{"wisdom": float64(16)},
+			Inventory: map[string]interface{}{"general_slots": []interface{}{}, "gear_slots": map[string]interface{}{}},
+		}
+	}
+	spell := map[string]interface{}{
+		"name": "Fire Bolt", "spell_attack": "ranged", "mana_cost": float64(2),
+		"damage": "1d10", "damage_type": "fire",
+		"material_component": map[string]interface{}{
+			"required": []interface{}{map[string]interface{}{"component": "sulfur", "quantity": float64(1)}},
+		},
+	}
+
+	// A normal cast fails — the spell isn't learned.
+	if _, err := resolveCast(testDeps(20, 0), unprepared(), spell, "fire-bolt", 1, testMonster(10, 10), noFocus, false); err == nil {
+		t.Error("a normal cast should fail when the spell isn't learned")
+	}
+
+	// A scroll cast succeeds despite unknown/unprepared + missing component, and
+	// still spends mana.
+	s := unprepared()
+	res, err := resolveCast(testDeps(20, 0), s, spell, "fire-bolt", 1, testMonster(10, 10), noFocus, true)
+	if err != nil {
+		t.Fatalf("scroll cast should bypass the gates: %v", err)
+	}
+	if res.ManaSpent != 2 || s.Mana != 3 {
+		t.Errorf("scroll should still spend mana (2): spent %d, left %d", res.ManaSpent, s.Mana)
+	}
+	if res.Damage <= 0 {
+		t.Errorf("scroll Fire Bolt should deal damage, got %d", res.Damage)
+	}
+
+	// A scroll still requires mana.
+	poor := unprepared()
+	poor.Mana = 0
+	if _, err := resolveCast(testDeps(20, 0), poor, spell, "fire-bolt", 1, testMonster(10, 10), noFocus, true); err == nil {
+		t.Error("scroll cast should still require mana")
+	}
+}
+
 // ─── Shape resolution ────────────────────────────────────────────────────────
 
 func TestCast_AttackCritHit(t *testing.T) {
@@ -73,7 +118,7 @@ func TestCast_AttackCritHit(t *testing.T) {
 	spell := map[string]interface{}{
 		"name": "Zap", "spell_attack": "ranged", "damage": "1d10", "damage_type": "fire", "mana_cost": float64(2),
 	}
-	res, err := resolveCast(testDeps(20, 0), save, spell, "atk", 1, testMonster(15, 10), noFocus)
+	res, err := resolveCast(testDeps(20, 0), save, spell, "atk", 1, testMonster(15, 10), noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -94,7 +139,7 @@ func TestCast_AttackMiss(t *testing.T) {
 		"name": "Zap", "spell_attack": "ranged", "damage": "1d10", "mana_cost": float64(2),
 	}
 	// d20=2, bonus = prof(2)+wis(+3)=5 → total 7 < AC 20 → miss.
-	res, err := resolveCast(testDeps(2, 0), save, spell, "atk", 1, testMonster(20, 10), noFocus)
+	res, err := resolveCast(testDeps(2, 0), save, spell, "atk", 1, testMonster(20, 10), noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -114,7 +159,7 @@ func TestCast_AutoHit(t *testing.T) {
 	spell := map[string]interface{}{
 		"name": "Missiles", "spell_attack": "automatic", "damage": "3d4+3", "mana_cost": float64(2),
 	}
-	res, err := resolveCast(testDeps(1, 0), save, spell, "mm", 1, testMonster(30, 10), noFocus)
+	res, err := resolveCast(testDeps(1, 0), save, spell, "mm", 1, testMonster(30, 10), noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -129,7 +174,7 @@ func TestCast_SaveFail_FullDamage(t *testing.T) {
 		"name": "Spray", "save_type": "constitution", "damage": "1d12", "mana_cost": float64(1),
 	}
 	// DC 13; monster con mod 0; d20=1 → 1 < 13 → fail → full 6.
-	res, err := resolveCast(testDeps(1, 0), save, spell, "spray", 1, testMonster(15, 10), noFocus)
+	res, err := resolveCast(testDeps(1, 0), save, spell, "spray", 1, testMonster(15, 10), noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -150,7 +195,7 @@ func TestCast_SaveMade_HalfDamage(t *testing.T) {
 		"name": "Spray", "save_type": "constitution", "damage": "1d12", "mana_cost": float64(1),
 	}
 	// d20=20 → 20 >= 13 → save made → half of 6 = 3.
-	res, err := resolveCast(testDeps(20, 0), save, spell, "spray", 1, testMonster(15, 10), noFocus)
+	res, err := resolveCast(testDeps(20, 0), save, spell, "spray", 1, testMonster(15, 10), noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -168,7 +213,7 @@ func TestCast_Heal(t *testing.T) {
 		"name": "Cure", "heal": "1d8", "mana_cost": float64(2),
 	}
 	// RollDice=5 + wis mod(+3) = 8 heal. Out of combat: target nil.
-	res, err := resolveCast(testDeps(0, 5), save, spell, "cure", 1, nil, noFocus)
+	res, err := resolveCast(testDeps(0, 5), save, spell, "cure", 1, nil, noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -182,7 +227,7 @@ func TestCast_Buff_UnmappedIsNarrative(t *testing.T) {
 	spell := map[string]interface{}{
 		"name": "Bravado", "effect": "You feel bold.", "mana_cost": float64(1), "concentration": true,
 	}
-	res, err := resolveCast(testDeps(0, 0), save, spell, "buffx", 1, nil, noFocus)
+	res, err := resolveCast(testDeps(0, 0), save, spell, "buffx", 1, nil, noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -202,7 +247,7 @@ func TestCast_Buff_UnmappedIsNarrative(t *testing.T) {
 func TestCast_NotKnown(t *testing.T) {
 	save := saveWith("known", 5)
 	spell := map[string]interface{}{"name": "X", "mana_cost": float64(1)}
-	if _, err := resolveCast(testDeps(10, 0), save, spell, "unknown", 1, nil, noFocus); err == nil {
+	if _, err := resolveCast(testDeps(10, 0), save, spell, "unknown", 1, nil, noFocus, false); err == nil {
 		t.Errorf("expected error for unknown spell")
 	}
 	if save.Mana != 5 {
@@ -214,7 +259,7 @@ func TestCast_NotPrepared(t *testing.T) {
 	save := saveWith("prepared", 5)
 	save.KnownSpells = append(save.KnownSpells, "unprepped")
 	spell := map[string]interface{}{"name": "X", "heal": "1d8", "mana_cost": float64(1)}
-	if _, err := resolveCast(testDeps(0, 5), save, spell, "unprepped", 1, nil, noFocus); err == nil {
+	if _, err := resolveCast(testDeps(0, 5), save, spell, "unprepped", 1, nil, noFocus, false); err == nil {
 		t.Errorf("expected error for unprepared spell")
 	}
 	if save.Mana != 5 {
@@ -225,7 +270,7 @@ func TestCast_NotPrepared(t *testing.T) {
 func TestCast_InsufficientMana(t *testing.T) {
 	save := saveWith("cure", 1)
 	spell := map[string]interface{}{"name": "Cure", "heal": "1d8", "mana_cost": float64(2)}
-	if _, err := resolveCast(testDeps(0, 5), save, spell, "cure", 1, nil, noFocus); err == nil {
+	if _, err := resolveCast(testDeps(0, 5), save, spell, "cure", 1, nil, noFocus, false); err == nil {
 		t.Errorf("expected error for insufficient mana")
 	}
 	if save.Mana != 1 {
@@ -236,7 +281,7 @@ func TestCast_InsufficientMana(t *testing.T) {
 func TestCast_AttackNeedsTarget(t *testing.T) {
 	save := saveWith("atk", 5)
 	spell := map[string]interface{}{"name": "Zap", "spell_attack": "ranged", "damage": "1d10", "mana_cost": float64(2)}
-	if _, err := resolveCast(testDeps(20, 0), save, spell, "atk", 1, nil, noFocus); err == nil {
+	if _, err := resolveCast(testDeps(20, 0), save, spell, "atk", 1, nil, noFocus, false); err == nil {
 		t.Errorf("attack spell with no target should error")
 	}
 	if save.Mana != 5 {
@@ -271,7 +316,7 @@ func TestCast_ConsumesComponent(t *testing.T) {
 			},
 		},
 	}
-	res, err := resolveCast(testDeps(1, 0), save, spell, "burn", 1, testMonster(15, 10), noFocus)
+	res, err := resolveCast(testDeps(1, 0), save, spell, "burn", 1, testMonster(15, 10), noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -294,7 +339,7 @@ func TestCast_MissingComponent(t *testing.T) {
 			},
 		},
 	}
-	if _, err := resolveCast(testDeps(1, 0), save, spell, "burn", 1, testMonster(15, 10), noFocus); err == nil {
+	if _, err := resolveCast(testDeps(1, 0), save, spell, "burn", 1, testMonster(15, 10), noFocus, false); err == nil {
 		t.Errorf("expected error for missing component")
 	}
 	if save.Mana != 5 {
@@ -320,7 +365,7 @@ func TestCast_FocusProvidesComponent(t *testing.T) {
 		},
 	}
 	focus := func(c string) bool { return c == "sulfur" } // a rod is equipped
-	if _, err := resolveCast(testDeps(1, 0), save, spell, "burn", 1, testMonster(15, 10), focus); err != nil {
+	if _, err := resolveCast(testDeps(1, 0), save, spell, "burn", 1, testMonster(15, 10), focus, false); err != nil {
 		t.Errorf("focus should satisfy the component, got error: %v", err)
 	}
 }

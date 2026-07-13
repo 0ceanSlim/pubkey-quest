@@ -1,0 +1,14 @@
+{
+  "id": "scroll-of-fire-bolt",
+  "name": "Scroll of Fire Bolt",
+  "description": "A single-use vellum scroll inscribed with the Fire Bolt cantrip. Reading it hurls a mote of fire at a foe. Still costs mana; consumed on use.",
+  "type": "Spell Scroll",
+  "spell_id": "fire-bolt",
+  "value": 2500,
+  "rarity": "common",
+  "stack": 5,
+  "weight": 0.1,
+  "image": "/res/img/items/scroll-of-fire-bolt.png",
+  "tags": ["consumable", "spell-scroll"],
+  "notes": ["Combat only (attack spell)", "Costs mana; consumed on use"]
+}

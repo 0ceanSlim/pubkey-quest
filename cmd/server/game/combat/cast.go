@@ -257,6 +257,12 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	if n, _ := item["name"].(string); n != "" {
 		name = n
 	}
+
+	// A spell scroll casts the spell it carries (bypassing prepared/known/components).
+	if spellID, _ := item["spell_id"].(string); spellID != "" {
+		return processScrollUse(db, cs, save, itemID, spellID, name)
+	}
+
 	if !hasTag(item["tags"], "consumable") {
 		return nil, fmt.Errorf("%s can't be used in combat", name)
 	}
@@ -287,6 +293,51 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		line = fmt.Sprintf("  You use %s — %s.", name, strings.Join(msgs, ", "))
 	}
 	return []string{line}, nil
+}
+
+// processScrollUse resolves a spell scroll in combat: it casts the scroll's spell
+// at the monster (bypassing prepared/known/components; mana still applies), applies
+// the same consequences as a normal cast, then consumes one scroll. Uses the action.
+func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, spellID, itemName string) ([]string, error) {
+	state := &cs.Party[0].CombatState
+	slot := findReachableConsumable(save.Inventory, itemID)
+	if slot == nil {
+		return nil, fmt.Errorf("no %s within reach", itemName)
+	}
+	monster := &cs.Monsters[0]
+	adv, _ := character.LoadAdvancement(db)
+	level := character.GetLevelFromXP(save.Experience, adv)
+
+	deps := spells.Deps{RollD20: RollD20, RollDice: RollDice, ResolveMonsterDamage: ResolveDamageToMonster}
+	res, err := spells.CastFromScroll(db, deps, save, spellID, level, monster)
+	if err != nil {
+		return nil, err
+	}
+
+	log := append([]string{fmt.Sprintf("  You read the %s.", itemName)}, res.Log...)
+	if res.Damage > 0 {
+		applyDamageToMonster(monster, res.Damage)
+		if xp := awardDamageXP(cs, monster, res.Damage, save.TimeOfDay, level, adv); xp > 0 {
+			log = append(log, fmt.Sprintf("  +%d XP", xp))
+		}
+	}
+	if res.Heal > 0 {
+		applyHealToPlayer(cs, res.Heal)
+	}
+	if monster.IsAlive {
+		log = append(log, applySpellCondition(res.SpellID, res, monster)...)
+	}
+	if res.Concentration {
+		cs.Concentration = &types.ConcentrationState{SpellID: res.SpellID, SpellName: res.SpellName, EffectID: res.EffectID}
+	}
+
+	decrementSlotStack(slot)
+	state.ActionUsed = true
+
+	if !monster.IsAlive {
+		log = append(log, handleMonsterKill(cs, monster, save, adv)...)
+	}
+	return log, nil
 }
 
 // findReachableConsumable returns the slot map (a live reference) holding itemID,

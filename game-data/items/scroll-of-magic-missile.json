@@ -1,0 +1,14 @@
+{
+  "id": "scroll-of-magic-missile",
+  "name": "Scroll of Magic Missile",
+  "description": "A single-use scroll bearing Magic Missile. Reading it looses unerring darts of force at an enemy. Still costs mana; consumed on use.",
+  "type": "Spell Scroll",
+  "spell_id": "magic-missile",
+  "value": 5000,
+  "rarity": "common",
+  "stack": 5,
+  "weight": 0.1,
+  "image": "/res/img/items/scroll-of-magic-missile.png",
+  "tags": ["consumable", "spell-scroll"],
+  "notes": ["Combat only", "Costs mana; consumed on use"]
+}

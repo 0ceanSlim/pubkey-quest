@@ -1,0 +1,14 @@
+{
+  "id": "scroll-of-cure-wounds",
+  "name": "Scroll of Cure Wounds",
+  "description": "A single-use scroll of Cure Wounds. Reading it knits flesh and closes wounds — usable in or out of a fight. Still costs mana; consumed on use.",
+  "type": "Spell Scroll",
+  "spell_id": "cure-wounds",
+  "value": 5000,
+  "rarity": "common",
+  "stack": 5,
+  "weight": 0.1,
+  "image": "/res/img/items/scroll-of-cure-wounds.png",
+  "tags": ["consumable", "spell-scroll"],
+  "notes": ["Usable in and out of combat (heals)", "Costs mana; consumed on use"]
+}

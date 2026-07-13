@@ -522,15 +522,65 @@ func handleMoveAction(state *SaveFile, params map[string]any) (*GameActionRespon
 
 // handleUseItemAction uses a consumable item
 func handleUseItemAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	// A spell scroll casts its spell (out of combat: heal/buff/utility only —
+	// attack/save spells error out via the resolver's no-target check). Cast first;
+	// only consume the scroll if the cast succeeds.
+	scrollMsg := ""
+	if itemID, _ := params["item_id"].(string); itemID != "" {
+		if item, err := data.LoadItemByID(serverdb.GetDB(), itemID); err == nil {
+			if spellID, _ := item["spell_id"].(string); spellID != "" {
+				msg, cerr := castFromScrollOutOfCombat(state, spellID)
+				if cerr != nil {
+					return &GameActionResponse{Success: false, Message: cerr.Error()}, nil
+				}
+				scrollMsg = msg
+			}
+		}
+	}
+
 	paramsIface := make(map[string]interface{}, len(params))
 	for k, v := range params {
 		paramsIface[k] = v
 	}
 	resp, err := inventory.HandleUseItemAction(state, paramsIface)
 	if resp != nil {
-		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, err
+		msg := resp.Message
+		if scrollMsg != "" {
+			msg = scrollMsg // the scroll's cast line reads better than "you used a scroll"
+		}
+		return &GameActionResponse{Success: resp.Success, Message: msg}, err
 	}
 	return nil, err
+}
+
+// castFromScrollOutOfCombat casts a scroll's spell with no target (heal/buff/
+// utility). Attack/save spells return an error so the scroll isn't consumed.
+func castFromScrollOutOfCombat(state *SaveFile, spellID string) (string, error) {
+	advancement, err := loadAdvancement()
+	if err != nil {
+		return "", fmt.Errorf("failed to load advancement data: %w", err)
+	}
+	level := character.GetLevelFromXP(state.Experience, advancement)
+	deps := spells.Deps{
+		RollD20:              combat.RollD20,
+		RollDice:             combat.RollDice,
+		ResolveMonsterDamage: combat.ResolveDamageToMonster,
+	}
+	res, err := spells.CastFromScroll(serverdb.GetDB(), deps, state, spellID, level, nil)
+	if err != nil {
+		return "", err
+	}
+	if res.Heal > 0 {
+		state.HP += res.Heal
+		if state.HP > state.MaxHP {
+			state.HP = state.MaxHP
+		}
+	}
+	msg := strings.TrimSpace(strings.Join(res.Log, " "))
+	if msg == "" {
+		msg = fmt.Sprintf("You read the scroll and cast %s.", res.SpellName)
+	}
+	return msg, nil
 }
 
 // Equipment handlers are now in equipment.go
