@@ -255,9 +255,14 @@ async function routeClick(src) {
         return;
     }
 
-    // Shop sell tab: click stages an item for sale.
-    if (isShopOpen() && getCurrentTab() === 'sell') {
-        if (src.surface === 'general' || src.surface === 'inventory') addItemToSell(src.itemId, src.index, src.surface);
+    // Shop open: inventory clicks must never fall through to open/equip/use (which
+    // would open a container behind the shop, or equip mid-trade). On the sell tab
+    // a click stages the item for sale; on the buy tab (the default, and the state
+    // after every buy/sell) it's a no-op.
+    if (isShopOpen()) {
+        if (getCurrentTab() === 'sell' && (src.surface === 'general' || src.surface === 'inventory')) {
+            addItemToSell(src.itemId, src.index, src.surface);
+        }
         return;
     }
 
