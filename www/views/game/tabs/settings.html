@@ -15,6 +15,20 @@
             <p class="mt-1 text-gray-500" style="font-size: 9px;">Save writes to disk (Ctrl+S). Reload discards unsaved changes and restores your last save.</p>
         </div>
 
+        <!-- Text Section -->
+        <div class="border border-gray-600 p-2" style="background: #1a1a1a;">
+            <h3 class="font-bold text-yellow-400 mb-2">Text</h3>
+            <label for="text-speed-select" class="block mb-1" style="font-size: 10px;">Dialogue text speed</label>
+            <select id="text-speed-select" onchange="window.setTextSpeed && window.setTextSpeed(this.value)"
+                    class="w-full py-1 px-2 text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
+                <option value="slow">Slow</option>
+                <option value="normal">Normal</option>
+                <option value="fast">Fast</option>
+                <option value="instant">Instant</option>
+            </select>
+            <p class="mt-1 text-gray-500" style="font-size: 9px;">How fast NPC and exploration text types out. Click the speech box to skip to the full line.</p>
+        </div>
+
         <!-- Debug Section -->
         <div class="border border-gray-600 p-2" style="background: #1a1a1a;">
             <h3 class="font-bold text-yellow-400 mb-2">Debug</h3>

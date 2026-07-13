@@ -1044,13 +1044,9 @@ export async function talkToNPC(npcId) {
 export function showNPCDialogue(dialogueData, npcMessage) {
     logger.debug('Showing NPC dialogue:', dialogueData);
 
-    // NPC speech goes into the on-scene speech box (M6), not the side log. The
-    // option buttons still swap into the bottom strip below (unchanged).
-    if (npcMessage) {
-        const speaker = getNPCById(dialogueData.npc_id)?.name
-            || String(dialogueData.npc_id || 'NPC').replace(/_/g, ' ');
-        showSceneSpeech({ speaker, text: npcMessage, portrait: true });
-    }
+    // NPC speech goes into the on-scene speech box (M6), not the side log. It types
+    // out and the option strip is withheld until it finishes — see the end of this
+    // function, after the strip is built.
 
     // Get the action-buttons container (parent of all three columns)
     const actionButtonsArea = document.getElementById('action-buttons');
@@ -1136,7 +1132,21 @@ export function showNPCDialogue(dialogueData, npcMessage) {
         dialogueOverlay.appendChild(questWrap);
     }
 
-    dialogueOverlay.style.display = 'block';
+    // Type the NPC's line first; hold the option strip back until the text lands
+    // (or the player clicks the box to skip it). No line → options appear at once.
+    if (npcMessage) {
+        dialogueOverlay.style.display = 'none';
+        const speaker = getNPCById(dialogueData.npc_id)?.name
+            || String(dialogueData.npc_id || 'NPC').replace(/_/g, ' ');
+        showSceneSpeech({
+            speaker,
+            text: npcMessage,
+            portrait: true,
+            onReady: () => { dialogueOverlay.style.display = 'block'; },
+        });
+    } else {
+        dialogueOverlay.style.display = 'block';
+    }
 
     logger.debug('Dialogue overlay created with', dialogueData.options?.length || 0, 'options');
 }

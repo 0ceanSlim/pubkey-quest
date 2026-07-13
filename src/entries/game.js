@@ -36,6 +36,7 @@ import * as combatSystem from '../systems/combatSystem.js';
 import { updateTimeDisplay } from '../ui/timeDisplay.js';
 import { updateCharacterDisplay } from '../ui/characterDisplay.js';
 import { displayCurrentLocation } from '../ui/locationDisplay.js';
+import { setTextSpeed, getTextSpeed } from '../ui/sceneSpeech.js';
 import { updateSpellsDisplay } from '../ui/spellsDisplay.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
 import { showMessage, showActionText, addGameLog } from '../ui/messaging.js';
@@ -109,12 +110,22 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initSlotInteractions();
         initTimeClock();
+        initTextSpeedSelect();
         // Music system will be initialized after game data loads
     });
 } else {
     initSlotInteractions();
     initTimeClock();
+    initTextSpeedSelect();
     // Music system will be initialized after game data loads
+}
+
+// Text-speed preference (Settings → Text): expose the setter for the tab's
+// onchange, and reflect the saved value in the dropdown on load.
+window.setTextSpeed = setTextSpeed;
+function initTextSpeedSelect() {
+    const sel = document.getElementById('text-speed-select');
+    if (sel) sel.value = getTextSpeed();
 }
 
 // Initialize music system after game data is loaded
