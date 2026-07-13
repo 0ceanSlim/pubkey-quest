@@ -1,0 +1,7 @@
+{
+  "id": "war-caster",
+  "name": "War Caster",
+  "prerequisite": "spellcaster",
+  "description": "You have learned to maintain your spells even while taking a beating.",
+  "effects": ["Advantage on concentration saving throws"]
+}

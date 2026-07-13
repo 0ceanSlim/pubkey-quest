@@ -79,6 +79,21 @@ func HasFeat(save *types.SaveFile, baseID string) bool {
 	return false
 }
 
+// FeatChoice returns the stored choice for a taken feat (the stat for a half-feat,
+// or the damage type for Elemental Adept), or "" if the feat isn't taken / has no
+// choice.
+func FeatChoice(save *types.SaveFile, baseID string) string {
+	if save == nil {
+		return ""
+	}
+	for _, f := range save.FeatsChosen {
+		if id, choice := FeatBaseID(f); id == baseID {
+			return choice
+		}
+	}
+	return ""
+}
+
 // featMaxHPBonus is the extra max HP granted by feats (Tough: +2 per level). Kept
 // derived from FeatsChosen so MaxHP stays a pure derivation (§4 hydration).
 func featMaxHPBonus(save *types.SaveFile, level int) int {
@@ -134,6 +149,16 @@ func ChooseFeat(save *types.SaveFile, feat *types.Feat, choice string, advanceme
 			setStatScore(save, canon, next)
 		}
 		stored = feat.ID + ":" + strings.ToLower(canon)
+	} else if feat.Choice != nil && len(feat.Choice.Options) > 0 {
+		// A non-stat pick (e.g. Elemental Adept's damage type) — validated + stored
+		// on the id, nothing baked into Stats; the effect hook reads FeatChoice.
+		if choice == "" {
+			return fmt.Errorf("%s requires a %s choice (%v)", feat.Name, feat.Choice.Kind, feat.Choice.Options)
+		}
+		if !containsFold(feat.Choice.Options, choice) {
+			return fmt.Errorf("%s cannot choose %q", feat.Name, choice)
+		}
+		stored = feat.ID + ":" + strings.ToLower(choice)
 	}
 
 	save.FeatsChosen = append(save.FeatsChosen, stored)

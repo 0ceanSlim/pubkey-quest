@@ -1,0 +1,8 @@
+{
+  "id": "elemental-adept",
+  "name": "Elemental Adept",
+  "prerequisite": "spellcaster",
+  "description": "Your mastery of one element lets your spells cut through resistance to it.",
+  "choice": { "kind": "damage_type", "options": ["fire", "cold", "lightning", "acid", "thunder"] },
+  "effects": ["Your spells of the chosen type ignore the target's resistance", "Treat any 1 on its damage dice as a 2"]
+}

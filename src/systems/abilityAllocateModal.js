@@ -152,16 +152,20 @@ function renderFeats(data) {
     list.innerHTML = '';
     for (const f of feats) {
         const effects = (f.effects || []).join(' · ');
-        const choices = f.stat_grant?.choices || [];
-        const needsChoice = choices.length > 1;
+        // A choice can be a half-feat stat (stat_grant.choices) or a non-stat pick
+        // like Elemental Adept's damage type (choice.options).
+        const statChoices = f.stat_grant?.choices || [];
+        const options = statChoices.length > 1 ? statChoices : (f.choice?.options || []);
+        const needsChoice = options.length > 0;
         const canTake = slots > 0 && !f.taken && !busy;
+        const label = (c) => c.charAt(0).toUpperCase() + c.slice(1);
 
         let controls;
         if (f.taken) {
-            controls = `<span style="font-size:8px; color:#4ade80;">✓ taken${f.choice ? ` (${f.choice.slice(0, 3).toUpperCase()})` : ''}</span>`;
+            controls = `<span style="font-size:8px; color:#4ade80;">✓ taken${f.choice ? ` (${label(f.choice)})` : ''}</span>`;
         } else if (canTake) {
             const sel = needsChoice
-                ? `<select class="feat-choice" style="font-size:8px; background:#222; color:#fff; border:1px solid #444;">${choices.map((c) => `<option value="${c}">${c.slice(0, 3).toUpperCase()}</option>`).join('')}</select>`
+                ? `<select class="feat-choice" style="font-size:8px; background:#222; color:#fff; border:1px solid #444;">${options.map((c) => `<option value="${c}">${label(c)}</option>`).join('')}</select>`
                 : '';
             controls = `${sel}<button class="feat-take" data-feat="${f.id}" style="font-size:8px; color:#fff; background:#4c1d95; border-top:1px solid #a78bfa; border-left:1px solid #a78bfa; border-right:1px solid #2e1065; border-bottom:1px solid #2e1065; padding:1px 6px; cursor:pointer;">Take</button>`;
         } else {

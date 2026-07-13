@@ -185,6 +185,50 @@ func ResolveDamageToMonster(diceExpr string, modifier int, damageType string, is
 	return raw
 }
 
+// resolveElementalAdeptDamage is ResolveDamageToMonster for a caster with Elemental
+// Adept on this damage type: the target's RESISTANCE is ignored (immunity and
+// vulnerability still apply), and every damage die that rolls a 1 counts as a 2.
+func resolveElementalAdeptDamage(diceExpr string, modifier int, damageType string, isCrit bool, monster *types.MonsterInstance) int {
+	raw := rollDiceMinTwo(diceExpr, isCrit) + modifier
+	if raw < 1 {
+		raw = 1
+	}
+	dtLower := strings.ToLower(damageType)
+	for _, imm := range monster.Data.DamageImmunities {
+		if strings.EqualFold(imm, dtLower) {
+			return 0
+		}
+	}
+	for _, vuln := range monster.Data.DamageVulnerabilities {
+		if strings.EqualFold(vuln, dtLower) {
+			return raw * 2
+		}
+	}
+	// Resistance is intentionally NOT applied (that's the whole point of the feat).
+	return raw
+}
+
+// rollDiceMinTwo rolls a dice expression with every die counting at least 2
+// (Elemental Adept). Doubles the dice count on a crit, mirroring RollDice.
+func rollDiceMinTwo(diceExpr string, isCrit bool) int {
+	count, sides, err := ParseDice(diceExpr)
+	if err != nil {
+		return 2
+	}
+	if isCrit {
+		count *= 2
+	}
+	total := 0
+	for i := 0; i < count; i++ {
+		if r := RollD(sides); r < 2 {
+			total += 2
+		} else {
+			total += r
+		}
+	}
+	return total
+}
+
 // ResolveDamageToPlayer rolls damage dealt to the player (minimum 1).
 func ResolveDamageToPlayer(diceExpr string, modifier int, isCrit bool) int {
 	raw := RollDice(diceExpr, isCrit) + modifier

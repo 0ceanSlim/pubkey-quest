@@ -119,6 +119,45 @@ func TestToughRaisesMaxHP(t *testing.T) {
 	}
 }
 
+func TestChooseFeatGenericChoiceAndPrereq(t *testing.T) {
+	adv := testAdvancement()
+	elemAdept := &types.Feat{ID: "elemental-adept", Name: "Elemental Adept", Prerequisite: "spellcaster",
+		Choice: &types.FeatChoice{Kind: "damage_type", Options: []string{"fire", "cold", "lightning"}}}
+	warCaster := &types.Feat{ID: "war-caster", Name: "War Caster", Prerequisite: "spellcaster"}
+
+	// A non-caster can't take a spellcaster-gated feat.
+	if err := character.ChooseFeat(featSave("Fighter", 4), warCaster, "", adv); err == nil {
+		t.Error("a Fighter shouldn't meet the spellcaster prerequisite")
+	}
+	// A caster taking a choice-feat with no / bad choice → error.
+	if err := character.ChooseFeat(featSave("Wizard", 4), elemAdept, "", adv); err == nil {
+		t.Error("Elemental Adept needs a damage-type choice")
+	}
+	if err := character.ChooseFeat(featSave("Wizard", 4), elemAdept, "psychic", adv); err == nil {
+		t.Error("Elemental Adept can't pick an option outside its list")
+	}
+
+	// A valid choice stores id:choice and bakes NO stat.
+	s := featSave("Wizard", 4)
+	before := character.AbilityScores(s)
+	if err := character.ChooseFeat(s, elemAdept, "fire", adv); err != nil {
+		t.Fatalf("Elemental Adept fire: %v", err)
+	}
+	if got := character.FeatChoice(s, "elemental-adept"); got != "fire" {
+		t.Errorf("FeatChoice = %q, want fire", got)
+	}
+	for k, v := range character.AbilityScores(s) {
+		if v != before[k] {
+			t.Errorf("a non-stat feat must not change %s (%d→%d)", k, before[k], v)
+		}
+	}
+
+	// War Caster (no choice) works for a caster.
+	if err := character.ChooseFeat(featSave("Wizard", 4), warCaster, "", adv); err != nil {
+		t.Errorf("a Wizard should be able to take War Caster: %v", err)
+	}
+}
+
 func TestFeatBaseID(t *testing.T) {
 	if id, choice := character.FeatBaseID("resilient:constitution"); id != "resilient" || choice != "constitution" {
 		t.Errorf("FeatBaseID split wrong: %q %q", id, choice)

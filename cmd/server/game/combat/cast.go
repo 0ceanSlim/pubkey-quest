@@ -65,6 +65,16 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		RollDice:             RollDice,
 		ResolveMonsterDamage: ResolveDamageToMonster,
 	}
+	// Elemental Adept: for the chosen damage type, the player's spells ignore the
+	// target's resistance and treat any damage die that rolls 1 as a 2.
+	if elem := character.FeatChoice(save, "elemental-adept"); elem != "" {
+		deps.ResolveMonsterDamage = func(dice string, mod int, dtype string, crit bool, m *types.MonsterInstance) int {
+			if strings.EqualFold(dtype, elem) {
+				return resolveElementalAdeptDamage(dice, mod, dtype, crit, m)
+			}
+			return ResolveDamageToMonster(dice, mod, dtype, crit, m)
+		}
+	}
 	res, err := spells.Cast(db, deps, save, spellID, level, monster)
 	if err != nil {
 		return nil, err
@@ -200,9 +210,15 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 	}
 	conMod := character.AbilityMod(character.AbilityScore(effectiveStats(save), "constitution"))
 	roll := RollD20()
+	advNote := ""
+	if character.HasFeat(save, "war-caster") { // advantage on concentration saves
+		r, r1, r2 := RollAdvantage()
+		roll = r
+		advNote = fmt.Sprintf(" [War Caster adv %d/%d]", r1, r2)
+	}
 	if roll+conMod >= dc {
-		return []string{fmt.Sprintf("  You hold concentration on %s (CON save %d%s vs DC %d).",
-			cs.Concentration.SpellName, roll, formatModifier(conMod), dc)}
+		return []string{fmt.Sprintf("  You hold concentration on %s (CON save %d%s vs DC %d%s).",
+			cs.Concentration.SpellName, roll, formatModifier(conMod), dc, advNote)}
 	}
 	name := cs.Concentration.SpellName
 	if cs.Concentration.EffectID != "" {

@@ -32,6 +32,7 @@ func LoadFeats() ([]types.Feat, error) {
 			if json.Unmarshal([]byte(props), &full) == nil {
 				feat.Prerequisite = full.Prerequisite
 				feat.StatGrant = full.StatGrant
+				feat.Choice = full.Choice
 				feat.HPPerLevel = full.HPPerLevel
 				feat.Effects = full.Effects
 			}
