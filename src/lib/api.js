@@ -228,6 +228,42 @@ class GameAPI {
         return await response.json();
     }
 
+    /**
+     * List feats + this character's feat slots.
+     * @returns {Promise<Object>} { slots_available, eligible_levels, feats: [{id,name,description,stat_grant,hp_per_level,effects,taken,choice}] }
+     */
+    async getFeats() {
+        this.ensureInitialized();
+        const response = await fetch(
+            `${API_BASE_URL}/progression/feats?npub=${this.npub}&save_id=${this.saveID}`
+        );
+        if (!response.ok) throw new Error(`Failed to fetch feats: ${response.status}`);
+        const result = await response.json();
+        if (!result.success) throw new Error('Failed to fetch feats');
+        return result;
+    }
+
+    /**
+     * Take a feat (spends a feat slot instead of an ability point).
+     * @param {string} featId
+     * @param {string} [choice] - stat for half-feats (e.g. "constitution")
+     * @returns {Promise<Object>} { feat, chosen, slots_available, unspent, scores, max_hp }
+     */
+    async chooseFeat(featId, choice = '') {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/progression/choose-feat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: this.npub, save_id: this.saveID, feat_id: featId, choice })
+        });
+        if (!response.ok) {
+            let reason = `choose-feat failed: ${response.status}`;
+            try { reason = (await response.text()).trim() || reason; } catch { /* ignore */ }
+            throw new Error(reason);
+        }
+        return await response.json();
+    }
+
     // ========================================================================
     // SPELL PREPARATION
     // ========================================================================

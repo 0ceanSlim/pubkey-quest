@@ -17,6 +17,12 @@
         <!-- Ability rows (populated by abilityAllocateModal.js) -->
         <div id="ability-allocate-list" style="padding: 4px 8px;"></div>
 
+        <!-- Feats section (populated by abilityAllocateModal.js; hidden when no feat slot / no feats) -->
+        <div id="feat-allocate-section" class="hidden" style="border-top: 1px solid #444;">
+            <div id="feat-allocate-slots" class="px-2 py-1 text-center font-bold" style="font-size: 9px; color: #c4b5fd; background: #241f33; border-bottom: 1px solid #444;"></div>
+            <div id="feat-allocate-list" style="padding: 4px 8px; max-height: 160px; overflow-y: auto;"></div>
+        </div>
+
         <!-- Footer -->
         <div class="px-2 py-1" style="font-size: 6px; color: #9ca3af; border-top: 1px solid #444; line-height: 1.5;">
             Max 20 per ability. Allocations are permanent and saved with your game.

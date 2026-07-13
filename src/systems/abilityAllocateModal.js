@@ -44,6 +44,7 @@ export async function openAbilityAllocate() {
         logger.error('Failed to load ability points:', error);
         if (header) header.textContent = 'Could not load ability points.';
     }
+    loadFeats();
 }
 
 /** Close the modal and resync the rest of the UI if anything was allocated. */
@@ -110,6 +111,99 @@ function setText(id, val) {
     if (val == null) return;
     const el = document.getElementById(id);
     if (el) el.textContent = val;
+}
+
+// ── Feats: take a feat instead of an ability point at a feat-eligible level ──────
+
+/** Load + render the feats section. */
+async function loadFeats() {
+    const section = document.getElementById('feat-allocate-section');
+    if (!section) return;
+    try {
+        renderFeats(await gameAPI.getFeats());
+    } catch (error) {
+        logger.debug('feats load skipped:', error);
+        section.classList.add('hidden');
+    }
+}
+
+function renderFeats(data) {
+    const section = document.getElementById('feat-allocate-section');
+    const slotsEl = document.getElementById('feat-allocate-slots');
+    const list = document.getElementById('feat-allocate-list');
+    if (!section || !list) return;
+
+    const slots = data.slots_available ?? 0;
+    const feats = data.feats ?? [];
+    const anyTaken = feats.some((f) => f.taken);
+
+    // Nothing to do yet — no slot and nothing taken → keep it out of the way.
+    if (slots <= 0 && !anyTaken) {
+        section.classList.add('hidden');
+        return;
+    }
+    section.classList.remove('hidden');
+    if (slotsEl) {
+        slotsEl.textContent = slots > 0
+            ? `${slots} feat${slots === 1 ? '' : 's'} available — take one instead of a point`
+            : 'Feats taken';
+    }
+
+    list.innerHTML = '';
+    for (const f of feats) {
+        const effects = (f.effects || []).join(' · ');
+        const choices = f.stat_grant?.choices || [];
+        const needsChoice = choices.length > 1;
+        const canTake = slots > 0 && !f.taken && !busy;
+
+        let controls;
+        if (f.taken) {
+            controls = `<span style="font-size:8px; color:#4ade80;">✓ taken${f.choice ? ` (${f.choice.slice(0, 3).toUpperCase()})` : ''}</span>`;
+        } else if (canTake) {
+            const sel = needsChoice
+                ? `<select class="feat-choice" style="font-size:8px; background:#222; color:#fff; border:1px solid #444;">${choices.map((c) => `<option value="${c}">${c.slice(0, 3).toUpperCase()}</option>`).join('')}</select>`
+                : '';
+            controls = `${sel}<button class="feat-take" data-feat="${f.id}" style="font-size:8px; color:#fff; background:#4c1d95; border-top:1px solid #a78bfa; border-left:1px solid #a78bfa; border-right:1px solid #2e1065; border-bottom:1px solid #2e1065; padding:1px 6px; cursor:pointer;">Take</button>`;
+        } else {
+            controls = '';
+        }
+
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:3px 2px; border-bottom:1px solid #2f2f2f;';
+        row.innerHTML =
+            `<div style="display:flex; align-items:center; gap:4px;">` +
+            `<span style="flex:1; font-size:8px; color:#e5e7eb; font-weight:bold;">${f.name}</span>` +
+            `<span style="display:flex; align-items:center; gap:3px;">${controls}</span></div>` +
+            `<div style="font-size:6px; color:#9ca3af; line-height:1.3;">${effects}</div>`;
+
+        const btn = row.querySelector('.feat-take');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const selEl = row.querySelector('.feat-choice');
+                takeFeat(f.id, selEl ? selEl.value : '');
+            });
+        }
+        list.appendChild(row);
+    }
+}
+
+async function takeFeat(featId, choice) {
+    if (busy) return;
+    busy = true;
+    try {
+        const res = await gameAPI.chooseFeat(featId, choice);
+        dirty = true;
+        setText('max-hp', res.max_hp);
+        // A feat consumes a point, so refresh both the ability list and the feats.
+        renderAllocate(await gameAPI.getAbilityPoints());
+        renderFeats(await gameAPI.getFeats());
+    } catch (error) {
+        logger.error('Failed to take feat:', error);
+        const slotsEl = document.getElementById('feat-allocate-slots');
+        if (slotsEl) slotsEl.textContent = error.message || 'Could not take feat.';
+    } finally {
+        busy = false;
+    }
 }
 
 async function resyncDisplays() {
