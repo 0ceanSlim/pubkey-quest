@@ -1333,6 +1333,15 @@ export function showItemDetails(itemId) {
     if (getProp('weight') > 0) detailRows.push(row('⚖️ Weight', `${esc(getProp('weight'))} lb`, '#9ca3af'));
     if (getProp('stack') > 1) detailRows.push(row('Stack', `up to ${esc(getProp('stack'))}`, '#9ca3af'));
 
+    // Focus — the spell component this focus provides an unlimited amount of while
+    // equipped (elemental-staff style). `provides` is the component's item id.
+    const focusRows = [];
+    const provides = getProp('provides');
+    if (has(provides)) {
+        const compName = getItemById(provides)?.name || String(provides).replace(/[-_]/g, ' ');
+        focusRows.push(row('Provides', `∞ ${esc(compName)} (unlimited when equipped)`, '#c4b5fd'));
+    }
+
     // Tags as describable chips.
     const tags = (itemData.tags || props.tags || []).filter((t) => typeof t === 'string' && !HIDDEN_ITEM_TAGS.has(t));
     let tagsHtml = '';
@@ -1349,6 +1358,7 @@ export function showItemDetails(itemId) {
         + section('Combat', combatRows)
         + section('Consumable', consumeRows)
         + section('Container', containRows)
+        + section('Focus', focusRows)
         + section('Details', detailRows)
         + tagsHtml
         + `<button class="item-detail-close" style="width:100%; padding:5px; background:#0e7490; color:#fff; font-size:10px; border:none; border-top:1px solid #155e75; cursor:pointer;">Close</button>`;
