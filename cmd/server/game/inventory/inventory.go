@@ -334,10 +334,14 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 }
 
 // HandleDropItemAction drops an item from inventory
-func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
+// HandleDropItemAction removes an item (or a partial stack) from inventory and
+// returns how many units were dropped, so the caller can put them on the ground.
+// The item is NOT destroyed here — the caller (session-aware) moves the returned
+// quantity into the per-location ground store.
+func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, int, error) {
 	itemID, ok := params["item_id"].(string)
 	if !ok {
-		return nil, fmt.Errorf("missing or invalid item_id parameter")
+		return nil, 0, fmt.Errorf("missing or invalid item_id parameter")
 	}
 
 	slot, _ := params["slot"].(float64)
@@ -356,13 +360,14 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 
 	// Find item in appropriate inventory
 	var itemFound bool
+	var droppedQty int
 	var inventory []interface{}
 
 	switch slotType {
 	case "general":
 		generalSlots, ok := state.Inventory["general_slots"].([]interface{})
 		if !ok {
-			return nil, fmt.Errorf("invalid inventory structure")
+			return nil, 0, fmt.Errorf("invalid inventory structure")
 		}
 		inventory = generalSlots
 	case "inventory":
@@ -370,11 +375,11 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 		bag, _ := gearSlots["bag"].(map[string]interface{})
 		backpackContents, ok := bag["contents"].([]interface{})
 		if !ok {
-			return nil, fmt.Errorf("invalid backpack structure")
+			return nil, 0, fmt.Errorf("invalid backpack structure")
 		}
 		inventory = backpackContents
 	default:
-		return nil, fmt.Errorf("invalid slot_type: %s", slotType)
+		return nil, 0, fmt.Errorf("invalid slot_type: %s", slotType)
 	}
 
 	// Search for item
@@ -393,11 +398,13 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 			// Determine how much to drop
 			if dropQuantity <= 0 || dropQuantity >= currentQty {
 				// Drop entire stack
+				droppedQty = currentQty
 				slotMap["item"] = nil
 				slotMap["quantity"] = 0
 				log.Printf("✅ Dropped entire stack of %s (%d items)", itemID, currentQty)
 			} else {
 				// Drop partial stack (store as int)
+				droppedQty = dropQuantity
 				slotMap["quantity"] = currentQty - dropQuantity
 				log.Printf("✅ Dropped %d %s (keeping %d)", dropQuantity, itemID, currentQty-dropQuantity)
 			}
@@ -406,13 +413,13 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 	}
 
 	if !itemFound {
-		return nil, fmt.Errorf("item not found: %s", itemID)
+		return nil, 0, fmt.Errorf("item not found: %s", itemID)
 	}
 
 	return &types.GameActionResponse{
 		Success: true,
 		Message: fmt.Sprintf("Dropped %s", itemID),
-	}, nil
+	}, droppedQty, nil
 }
 
 // HandleRemoveFromInventoryAction removes an item from inventory (for sell staging)

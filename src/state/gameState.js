@@ -253,96 +253,31 @@ export async function refreshGameState(silent = false) {
 // Ground Items System (Session-only storage)
 // ========================================
 
-// Ground items storage: { "locationId-districtKey": [{item, droppedAt, droppedDay}, ...] }
-const groundItems = {};
+// Ground items are SERVER-AUTHORITATIVE (a per-location, session-scoped store on
+// the backend — see world/ground.go). The client keeps only a mirror of "what's on
+// the ground where I'm standing", refreshed from every game-action / tick response's
+// `data.ground`. Drop and pickup go through the server, which owns the truth — the
+// old client-only store lost items on reload and let pickup spawn anything via the
+// debug add_item action.
+let _serverGround = [];
 
-/**
- * Get location key for ground storage
- * @returns {string} Location key in format "locationId-districtKey"
- */
-function getGroundLocationKey() {
-    const state = getGameStateSync();
-    const cityId = state.location?.current || 'unknown';
-    const districtKey = state.location?.district || 'center';
-    return `${cityId}-${districtKey}`;
+/** Replace the ground mirror with the server's list for the current location. */
+export function setGroundItems(list) {
+    _serverGround = Array.isArray(list) ? list : [];
 }
 
 /**
- * Add item to ground at current location
- * @param {string} itemId - Item ID
- * @param {number} quantity - Quantity to drop
- */
-export function addItemToGround(itemId, quantity = 1) {
-    const locationKey = getGroundLocationKey();
-    const state = getGameStateSync();
-    const currentDay = state.character?.current_day || 1;
-
-    if (!groundItems[locationKey]) {
-        groundItems[locationKey] = [];
-    }
-
-    groundItems[locationKey].push({
-        item: itemId,
-        quantity: quantity,
-        droppedAt: Date.now(),
-        droppedDay: currentDay
-    });
-
-    logger.debug(`Item ${itemId} dropped at ${locationKey}`);
-    cleanupOldGroundItems();
-}
-
-/**
- * Remove item from ground at current location
- * @param {string} itemId - Item ID to pick up
- * @returns {Object|null} Removed item object or null
- */
-export function removeItemFromGround(itemId) {
-    const locationKey = getGroundLocationKey();
-
-    if (!groundItems[locationKey]) {
-        return null;
-    }
-
-    const index = groundItems[locationKey].findIndex(ground => ground.item === itemId);
-    if (index === -1) {
-        return null;
-    }
-
-    const removed = groundItems[locationKey].splice(index, 1)[0];
-    logger.debug(`Picked up ${itemId} from ${locationKey}`);
-    return removed;
-}
-
-/**
- * Get all items on ground at current location
- * @returns {Array} Array of ground item objects
+ * Items on the ground at the player's current spot (server-provided).
+ * @returns {Array<{item:string, quantity:number}>}
  */
 export function getGroundItems() {
-    const locationKey = getGroundLocationKey();
-    cleanupOldGroundItems();
-    return groundItems[locationKey] || [];
+    return _serverGround;
 }
 
-/**
- * Clean up items older than 1 game day
- */
-function cleanupOldGroundItems() {
-    const state = getGameStateSync();
-    const currentDay = state.character?.current_day || 1;
-
-    for (const locationKey in groundItems) {
-        groundItems[locationKey] = groundItems[locationKey].filter(ground => {
-            const daysPassed = currentDay - ground.droppedDay;
-            return daysPassed < 1; // Keep items for less than 1 day
-        });
-
-        // Remove empty locations
-        if (groundItems[locationKey].length === 0) {
-            delete groundItems[locationKey];
-        }
-    }
-}
+// Deprecated client-side ground mutators — the server owns the ground now. Kept as
+// no-ops so existing imports keep resolving; drop/pickup flow through the backend.
+export function addItemToGround() { /* server-authoritative — no-op */ }
+export function removeItemFromGround() { return null; }
 
 /**
  * Initialize the game with fresh state or from save

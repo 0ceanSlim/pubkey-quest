@@ -28,6 +28,7 @@ import (
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -151,6 +152,8 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	response.Data["enriched_effects"] = effects.EnrichActiveEffects(session.SaveData.ActiveEffects, &session.SaveData)
 	response.Data["total_weight"] = status.CalculateTotalWeight(&session.SaveData)
 	response.Data["weight_capacity"] = status.CalculateWeightCapacity(&session.SaveData)
+	// Server-authoritative ground items at the player's current spot (drives the GROUND modal).
+	response.Data["ground"] = session.Ground.List(world.GroundKey(&session.SaveData))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
@@ -389,11 +392,11 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 	case "unequip_item":
 		return inventory.HandleUnequipItemAction(state, action.Params)
 	case "drop_item":
-		return handleDropItemAction(state, action.Params)
+		return handleDropItemAction(session, state, action.Params)
 	case "remove_from_inventory":
 		return handleRemoveFromInventoryAction(state, action.Params)
 	case "pickup_item":
-		return handlePickupItemAction(state, action.Params)
+		return handlePickupItemAction(session, state, action.Params)
 	case "cast_spell":
 		return handleCastSpellAction(state, action.Params)
 	case "rest":
@@ -532,17 +535,26 @@ func handleUseItemAction(state *SaveFile, params map[string]any) (*GameActionRes
 
 // Equipment handlers are now in equipment.go
 
-// handleDropItemAction drops an item from inventory
-func handleDropItemAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+// handleDropItemAction drops an item from inventory ONTO THE GROUND (session-scoped
+// ground store) — it is no longer destroyed. The dropped quantity is added to the
+// per-location ground pile so it can be picked back up.
+func handleDropItemAction(session *GameSession, state *SaveFile, params map[string]any) (*GameActionResponse, error) {
 	paramsIface := make(map[string]interface{}, len(params))
 	for k, v := range params {
 		paramsIface[k] = v
 	}
-	resp, err := inventory.HandleDropItemAction(state, paramsIface)
-	if resp != nil {
-		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, err
+	resp, dropped, err := inventory.HandleDropItemAction(state, paramsIface)
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	if resp != nil && resp.Success && dropped > 0 {
+		itemID, _ := params["item_id"].(string)
+		session.Ground.Add(world.GroundKey(state), itemID, dropped)
+	}
+	if resp != nil {
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, nil
+	}
+	return nil, nil
 }
 
 // handleRemoveFromInventoryAction removes an item from inventory (for sell staging)
@@ -558,21 +570,50 @@ func handleRemoveFromInventoryAction(state *SaveFile, params map[string]any) (*G
 	return nil, err
 }
 
-// handlePickupItemAction picks up an item from the ground
-func handlePickupItemAction(_ *SaveFile, params map[string]any) (*GameActionResponse, error) {
+// handlePickupItemAction picks an item up off the ground (server-authoritative):
+// it must actually be in the per-location ground store, then it's added back to the
+// inventory. Anything that won't fit stays on the ground, so nothing is ever lost.
+func handlePickupItemAction(session *GameSession, state *SaveFile, params map[string]any) (*GameActionResponse, error) {
 	itemID, ok := params["item_id"].(string)
 	if !ok {
 		return nil, fmt.Errorf("missing or invalid item_id parameter")
 	}
 
-	// TODO: Validate item is on the ground at current location
-	// TODO: Find empty inventory slot
-	// TODO: Add item to inventory
+	key := world.GroundKey(state)
 
-	return &GameActionResponse{
-		Success: true,
-		Message: fmt.Sprintf("Picked up %s", itemID),
-	}, nil
+	// How much to pick up: an explicit quantity, else the whole pile of that item.
+	want := -1
+	if q, ok := params["quantity"].(float64); ok {
+		want = int(q)
+	}
+	if want <= 0 {
+		for _, d := range session.Ground.List(key) {
+			if d.Item == itemID {
+				want = d.Quantity
+				break
+			}
+		}
+	}
+
+	taken := session.Ground.Take(key, itemID, want)
+	if taken <= 0 {
+		return nil, fmt.Errorf("%s is not on the ground here", itemID)
+	}
+
+	added, err := inventory.AddItemToInventory(state, itemID, taken)
+	if err != nil {
+		session.Ground.Add(key, itemID, taken) // roll back — never lose it
+		return nil, err
+	}
+	if added < taken {
+		session.Ground.Add(key, itemID, taken-added) // inventory full — leave the rest
+	}
+
+	msg := fmt.Sprintf("Picked up %s", itemID)
+	if added < taken {
+		msg = fmt.Sprintf("Picked up %d %s (inventory full — %d left on the ground)", added, itemID, taken-added)
+	}
+	return &GameActionResponse{Success: true, Message: msg}, nil
 }
 
 // handleCastSpellAction casts a spell outside of combat (M4 Phase D).

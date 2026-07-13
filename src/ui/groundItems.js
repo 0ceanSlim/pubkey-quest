@@ -8,7 +8,7 @@
  */
 
 import { logger } from '../lib/logger.js';
-import { refreshGameState, getGroundItems, removeItemFromGround, addItemToGround } from '../state/gameState.js';
+import { refreshGameState, getGroundItems, setGroundItems } from '../state/gameState.js';
 import { showMessage, showActionText } from './messaging.js';
 import { getItemById } from '../state/staticData.js';
 
@@ -159,48 +159,32 @@ export function refreshGroundModal() {
  * @param {string} itemId - Item ID to pick up
  */
 export async function pickupGroundItem(itemId) {
-    const groundItem = removeItemFromGround(itemId);
-
-    if (!groundItem) {
-        showMessage('Item not found on ground', 'error');
+    if (!window.gameAPI || !window.gameAPI.initialized) {
+        logger.error('Game API not initialized');
+        showMessage('❌ Game not initialized', 'error');
         return;
     }
 
     const itemData = getItemById(itemId);
 
-    // Check if Game API is initialized
-    if (!window.gameAPI || !window.gameAPI.initialized) {
-        logger.error('Game API not initialized');
-        // Put back on ground
-        addItemToGround(itemId, groundItem.quantity);
-        showMessage('❌ Game not initialized', 'error');
-        return;
-    }
-
     try {
-        // Use new game API
-        const result = await window.gameAPI.sendAction('add_item', {
-            item_id: itemId,
-            quantity: groundItem.quantity
-        });
+        // Server-authoritative pickup: the backend validates the item is actually on
+        // the ground here and moves it into the inventory (no quantity → the whole
+        // pile). Nothing is removed client-side until the server confirms.
+        const result = await window.gameAPI.sendAction('pickup_item', { item_id: itemId });
 
         if (result.success) {
-            showActionText(`Picked up ${itemData?.name || itemId}`, 'green');
-
-            // Refresh game state from Go memory
-            await refreshGameState();
-
-            // Refresh modal
+            showActionText(result.message || `Picked up ${itemData?.name || itemId}`, 'green');
+            if (result.data && result.data.ground !== undefined) {
+                setGroundItems(result.data.ground);
+            }
+            await refreshGameState(); // inventory changed
             closeGroundModal();
-            openGroundModal();
+            openGroundModal();        // re-render with the updated ground
         } else {
-            // Failed to add - put back on ground
-            addItemToGround(itemId, groundItem.quantity);
             showMessage(result.error || 'Failed to pick up item', 'error');
         }
     } catch (error) {
-        // Failed to add - put back on ground
-        addItemToGround(itemId, groundItem.quantity);
         showMessage('Error picking up item: ' + error.message, 'error');
     }
 }

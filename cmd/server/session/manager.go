@@ -12,6 +12,7 @@ import (
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/status"
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -152,6 +153,7 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 		LastActionTime:     currentTimestamp(),
 		LastActionGameTime: saveData.TimeOfDay,
 		BuildingStates:     make(map[string]bool),
+		Ground:             world.NewGroundStore(),
 	}
 
 	// Initialize building states and NPCs for current location
@@ -212,6 +214,7 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 		LastActionTime:     currentTimestamp(),
 		LastActionGameTime: saveData.TimeOfDay,
 		BuildingStates:     make(map[string]bool),
+		Ground:             world.NewGroundStore(),
 	}
 
 	// Initialize building states and NPCs for current location

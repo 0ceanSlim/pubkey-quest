@@ -9,7 +9,7 @@
 
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
-import { getGameStateSync, refreshGameState } from '../state/gameState.js';
+import { getGameStateSync, refreshGameState, setGroundItems } from '../state/gameState.js';
 import { getItemById } from '../state/staticData.js';
 import { updateCharacterDisplay } from '../ui/characterDisplay.js';
 import { showMessage } from '../ui/messaging.js';
@@ -848,14 +848,13 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
                 }
             }
 
-            // If this was a drop action, NOW add to ground (after successful API call)
-            if (action === 'drop' && dropInfo && addItemToGround) {
-                addItemToGround(dropInfo.itemId, dropInfo.quantity);
-
-                // Refresh ground modal if it's open
-                if (refreshGroundModal) {
-                    refreshGroundModal();
-                }
+            // Ground is server-authoritative now: mirror the server's list from the
+            // response (drop moved the item onto the ground server-side).
+            if (result.data && result.data.ground !== undefined) {
+                setGroundItems(result.data.ground);
+            }
+            if (action === 'drop' && refreshGroundModal) {
+                refreshGroundModal(); // refresh the modal if it's open
             }
         } else {
             logger.error('Action failed:', result.error);

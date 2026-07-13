@@ -2,6 +2,7 @@ package session
 
 import (
 	"pubkey-quest/cmd/server/game/poi"
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -26,6 +27,10 @@ type GameSession struct {
 	// Nil when the player is not inside a discovered POI. A monster node inside a
 	// POI sets ActiveCombat too and stashes the resume node here (poi.Session).
 	ActivePOI *poi.Session `json:"-"`
+
+	// Ground holds items dropped on the ground per location — server-authoritative,
+	// memory-only. Drop moves an item here; pickup takes it back. Nil-safe.
+	Ground *world.GroundStore `json:"-"`
 
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.

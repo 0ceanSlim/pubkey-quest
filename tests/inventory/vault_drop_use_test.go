@@ -45,7 +45,7 @@ func TestDropRemovesEntireStack(t *testing.T) {
 	s := newSave(4, 20)
 	general(s)[0] = slot(0, "longsword", 1)
 
-	resp, err := inventory.HandleDropItemAction(s, p(map[string]interface{}{
+	resp, _, err := inventory.HandleDropItemAction(s, p(map[string]interface{}{
 		"item_id": "longsword", "slot": float64(0), "slot_type": "general",
 	}))
 	if err != nil || resp == nil || !resp.Success {
@@ -61,7 +61,7 @@ func TestDropPartialStackKeepsRemainder(t *testing.T) {
 	s := newSave(4, 20)
 	general(s)[0] = slot(0, "rations", 5)
 
-	resp, err := inventory.HandleDropItemAction(s, p(map[string]interface{}{
+	resp, _, err := inventory.HandleDropItemAction(s, p(map[string]interface{}{
 		"item_id": "rations", "slot": float64(0), "slot_type": "general", "quantity": float64(2),
 	}))
 	if err != nil || resp == nil || !resp.Success {

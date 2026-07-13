@@ -19,7 +19,7 @@ import { deltaApplier } from './deltaApplier.js';
 import { gameAPI } from '../lib/api.js';
 import { eventBus } from '../lib/events.js';
 import { effectsDisplay } from '../ui/effectsDisplay.js';
-import { refreshGameState } from '../state/gameState.js';
+import { refreshGameState, setGroundItems } from '../state/gameState.js';
 
 // Constants
 const TICK_INTERVAL_MS = 417; // 1 in-game minute at 144x speed
@@ -251,6 +251,11 @@ class TickManager {
      * @param {object} data - Backend response data
      */
     updateLocalState(data) {
+        // Keep the ground mirror fresh so the GROUND modal shows the current spot.
+        if (data.ground !== undefined) {
+            setGroundItems(data.ground);
+        }
+
         // Use enriched_effects if available (has name, category, stat_modifiers)
         // Falls back to active_effects for backward compatibility
         const effects = data.enriched_effects || data.active_effects;
