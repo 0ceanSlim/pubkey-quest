@@ -1,0 +1,83 @@
+{
+  "id": "buried-strongbox",
+  "name": "Buried Strongbox",
+  "category": "utility",
+  "parent_environment": "windswept-hills",
+  "position": 0.6,
+  "description": "Half-sunk in the hillside, an iron strongbox pokes from the loose earth. Someone hid it here — and its lock is still fast.",
+  "discovery": {
+    "chance": 0.4,
+    "message": "Something metal glints in the disturbed earth of the hillside — a buried strongbox."
+  },
+  "start_node": "strongbox",
+  "nodes": {
+    "strongbox": {
+      "text": "The strongbox is bound in rusted iron and secured by a heavy tumbler lock. It won't open easily.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Thieves' Kit] Pick the lock.",
+          "next": "pick-check",
+          "requirements": [
+            { "type": "item", "id": "thieves-kit", "consumed": false }
+          ]
+        },
+        {
+          "label": "[Athletics 15] Force it open.",
+          "next": "force-check",
+          "requirements": [
+            { "type": "skill", "id": "athletics", "min": 15 }
+          ]
+        },
+        {
+          "label": "Leave it buried.",
+          "next": "leave"
+        }
+      ]
+    },
+    "pick-check": {
+      "text": "You work the picks into the tumbler, feeling for the pins.",
+      "type": "check",
+      "skill": "thieving",
+      "dc": 13,
+      "success_text": "The last pin gives with a soft click. The lid swings free.",
+      "success_next": "clean-open",
+      "failure_text": "A pin slips and the mechanism resets. The lock holds — try again.",
+      "failure_next": "strongbox"
+    },
+    "force-check": {
+      "text": "You wedge a bar under the lid and heave.",
+      "type": "check",
+      "skill": "athletics",
+      "dc": 15,
+      "success_text": "Metal shrieks and the hasp tears loose — but the jolt shatters something inside.",
+      "success_next": "forced-open",
+      "failure_text": "The lid won't budge, and the strain leaves you winded.",
+      "failure_next": "strongbox"
+    },
+    "clean-open": {
+      "text": "Inside: a purse of coin and a gemstone wrapped in oilcloth, untouched.",
+      "type": "reward",
+      "reward": {
+        "xp": 25,
+        "gold": 150,
+        "items": [ { "id": "rough-gem", "quantity": 1 } ]
+      },
+      "is_terminal": true
+    },
+    "forced-open": {
+      "text": "Inside: a purse of coin. Whatever fragile thing was packed beside it is now so much glittering dust.",
+      "type": "reward",
+      "reward": {
+        "xp": 15,
+        "gold": 150
+      },
+      "is_terminal": true
+    },
+    "leave": {
+      "text": "You leave the strongbox where it lies.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

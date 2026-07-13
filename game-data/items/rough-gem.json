@@ -1,0 +1,13 @@
+{
+  "id": "rough-gem",
+  "name": "Rough Gemstone",
+  "description": "An uncut gemstone still crusted in matrix rock. A jeweller could make something of it — a lucky find in any seam.",
+  "type": "Material",
+  "value": 500,
+  "rarity": "uncommon",
+  "stack": 20,
+  "weight": 0.1,
+  "image": "/res/img/items/rough-gem.png",
+  "tags": ["material", "gem", "valuable"],
+  "notes": ["Rare drop from mining nodes"]
+}

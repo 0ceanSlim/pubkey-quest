@@ -1,0 +1,13 @@
+{
+  "id": "fishing-rod",
+  "name": "Fishing Rod",
+  "description": "A supple wooden rod strung with waxed line and a bone hook. Required to work a fishing node — cast, wait, and reel in whatever bites.",
+  "type": "Tools",
+  "value": 100,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 2,
+  "image": "/res/img/items/fishing-rod.png",
+  "tags": ["tool", "gathering"],
+  "notes": ["Gates fishing nodes (POI requirement)"]
+}

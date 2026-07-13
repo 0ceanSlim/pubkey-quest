@@ -1,0 +1,13 @@
+{
+  "id": "copper-ore",
+  "name": "Copper Ore",
+  "description": "A dull green-brown lump of copper ore. Common in the shallow seams, easy to chip free with a pick.",
+  "type": "Material",
+  "value": 25,
+  "rarity": "common",
+  "stack": 50,
+  "weight": 1,
+  "image": "/res/img/items/copper-ore.png",
+  "tags": ["material", "ore"],
+  "notes": ["Gathered from mining nodes"]
+}

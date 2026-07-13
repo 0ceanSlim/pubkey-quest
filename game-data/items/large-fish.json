@@ -1,0 +1,16 @@
+{
+  "id": "large-fish",
+  "name": "Large Fish",
+  "description": "A heavy, fat-bellied fish that bent the rod double bringing it in. A real meal — or a good sale at the market.",
+  "type": "Food",
+  "value": 60,
+  "rarity": "uncommon",
+  "stack": 10,
+  "weight": 2,
+  "image": "/res/img/items/large-fish.png",
+  "effects": [
+    { "type": "hunger", "value": 2 }
+  ],
+  "tags": ["consumable", "material", "fish"],
+  "notes": ["Rare catch from fishing nodes"]
+}

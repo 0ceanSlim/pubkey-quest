@@ -1,0 +1,16 @@
+{
+  "id": "raw-fish",
+  "name": "Raw Fish",
+  "description": "A slick, silver-scaled fish, fresh from the water. Edible raw in a pinch, but far better cooked.",
+  "type": "Food",
+  "value": 15,
+  "rarity": "common",
+  "stack": 20,
+  "weight": 0.5,
+  "image": "/res/img/items/raw-fish.png",
+  "effects": [
+    { "type": "hunger", "value": 1 }
+  ],
+  "tags": ["consumable", "material", "fish"],
+  "notes": ["Gathered from fishing nodes", "Cooking is a follow-up"]
+}

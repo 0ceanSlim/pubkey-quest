@@ -1,0 +1,62 @@
+{
+  "id": "still-waters-fishing",
+  "name": "Still Waters",
+  "category": "utility",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.35,
+  "description": "A quiet backwater where the reeds part over deep, dark water. Fish rise to snap at the surface — a good spot to cast a line.",
+  "discovery": {
+    "chance": 0.55,
+    "message": "The water here is deep and still, dimpled with rising fish."
+  },
+  "start_node": "bank",
+  "nodes": {
+    "bank": {
+      "text": "The water is deep and slow. Fish are rising — but you'll need a rod to reach them.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Fishing Rod] Cast a line.",
+          "next": "fish-check",
+          "requirements": [
+            { "type": "item", "id": "fishing-rod", "consumed": false }
+          ]
+        },
+        {
+          "label": "Leave the water.",
+          "next": "leave"
+        }
+      ]
+    },
+    "fish-check": {
+      "text": "You cast out and wait for a bite.",
+      "type": "check",
+      "skill": "survival",
+      "dc": 9,
+      "success_text": "The line goes taut — you've hooked something.",
+      "success_next": "fish-loot",
+      "failure_text": "The float bobs and stills. Nothing takes the hook. You recast.",
+      "failure_next": "bank"
+    },
+    "fish-loot": {
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          { "item": "raw-fish", "quantity": [1, 2] }
+        ],
+        "rolls": 1,
+        "tiers": [
+          { "name": "big-catch", "weight": 18, "entries": [ { "item": "large-fish", "quantity": 1 } ] },
+          { "name": "extra", "weight": 40, "entries": [ { "item": "raw-fish", "quantity": [1, 2] } ] },
+          { "name": "nothing", "weight": 42, "entries": [] }
+        ]
+      },
+      "next": "bank"
+    },
+    "leave": {
+      "text": "You reel in, break down the rod, and move on.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

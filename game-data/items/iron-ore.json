@@ -1,0 +1,13 @@
+{
+  "id": "iron-ore",
+  "name": "Iron Ore",
+  "description": "A chunk of raw iron ore, streaked with rust-red veins. Worthless until smelted, but a smith will take it off your hands.",
+  "type": "Material",
+  "value": 40,
+  "rarity": "common",
+  "stack": 50,
+  "weight": 1,
+  "image": "/res/img/items/iron-ore.png",
+  "tags": ["material", "ore"],
+  "notes": ["Gathered from mining nodes", "Smelting/crafting is a follow-up"]
+}

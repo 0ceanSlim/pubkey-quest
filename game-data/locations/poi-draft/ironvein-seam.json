@@ -1,0 +1,62 @@
+{
+  "id": "ironvein-seam",
+  "name": "Ironvein Seam",
+  "category": "utility",
+  "parent_environment": "cragspire-mountains",
+  "position": 0.45,
+  "description": "A rust-streaked vein of ore runs through an exposed rock face, glittering where the light catches it. Good pickings for anyone carrying a pick.",
+  "discovery": {
+    "chance": 0.55,
+    "message": "The rock face ahead is streaked with ore — a workable seam."
+  },
+  "start_node": "seam",
+  "nodes": {
+    "seam": {
+      "text": "The ore vein runs deep into the rock. Working it will take a pickaxe and a strong back.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Pickaxe] Work the seam.",
+          "next": "mine-check",
+          "requirements": [
+            { "type": "item", "id": "pick-miners", "consumed": false }
+          ]
+        },
+        {
+          "label": "Move on.",
+          "next": "leave"
+        }
+      ]
+    },
+    "mine-check": {
+      "text": "You set the pick against the stone and swing.",
+      "type": "check",
+      "skill": "athletics",
+      "dc": 10,
+      "success_text": "The rock splits and a good haul comes loose.",
+      "success_next": "mine-loot",
+      "failure_text": "The pick skips off the hard stone. You catch your breath and try again.",
+      "failure_next": "seam"
+    },
+    "mine-loot": {
+      "type": "loot",
+      "loot_table": {
+        "guaranteed": [
+          { "item": "iron-ore", "quantity": [1, 2] }
+        ],
+        "rolls": 1,
+        "tiers": [
+          { "name": "copper", "weight": 60, "entries": [ { "item": "copper-ore", "quantity": [1, 3] } ] },
+          { "name": "gem", "weight": 8, "entries": [ { "item": "rough-gem", "quantity": 1 } ] },
+          { "name": "nothing", "weight": 32, "entries": [] }
+        ]
+      },
+      "next": "seam"
+    },
+    "leave": {
+      "text": "You shoulder your pack and leave the seam behind.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

@@ -124,3 +124,45 @@ func TestEffectLootMonsterExit(t *testing.T) {
 		t.Error("exit should be terminal")
 	}
 }
+
+// TestTieredLoot: guaranteed always drops; tiers roll Rolls times against
+// weighted buckets. With one always-hit tier we get exactly Rolls tier drops.
+func TestTieredLoot(t *testing.T) {
+	counts := map[string]int{}
+	deps := poi.Deps{Ctx: fakeCtx{}, Rng: rng(),
+		AddItem: func(_ *types.SaveFile, id string, qty int) { counts[id] += qty },
+	}
+
+	loot := types.POIStep{Type: types.POIStepLoot, LootTable: &types.POILootTable{
+		Guaranteed: []types.POILootEntry{{Item: "iron-ore", Quantity: []any{float64(1), float64(3)}}},
+		Rolls:      3,
+		Tiers: []types.POILootTier{
+			{Name: "common", Weight: 90, Entries: []types.POILootEntry{{Item: "stone", Quantity: float64(1)}}},
+			{Name: "rare", Weight: 10, Entries: []types.POILootEntry{{Item: "rough-gem", Quantity: float64(1)}}},
+		},
+	}}
+	poi.Resolve(loot, "l", &types.SaveFile{}, deps)
+
+	if counts["iron-ore"] < 1 || counts["iron-ore"] > 3 {
+		t.Errorf("guaranteed range [1,3] out of bounds: %d", counts["iron-ore"])
+	}
+	tierDrops := counts["stone"] + counts["rough-gem"]
+	if tierDrops != 3 {
+		t.Errorf("expected 3 tier rolls, got %d (%v)", tierDrops, counts)
+	}
+}
+
+// TestLootRangeQuantity: a [min,max] quantity stays within bounds across draws.
+func TestLootRangeQuantity(t *testing.T) {
+	for seed := int64(0); seed < 20; seed++ {
+		var got int
+		deps := poi.Deps{Ctx: fakeCtx{}, Rng: rand.New(rand.NewSource(seed)),
+			AddItem: func(_ *types.SaveFile, _ string, qty int) { got = qty }}
+		loot := types.POIStep{Type: types.POIStepLoot, LootTable: &types.POILootTable{
+			Guaranteed: []types.POILootEntry{{Item: "raw-fish", Quantity: []any{float64(2), float64(5)}}}}}
+		poi.Resolve(loot, "l", &types.SaveFile{}, deps)
+		if got < 2 || got > 5 {
+			t.Fatalf("seed %d: qty %d outside [2,5]", seed, got)
+		}
+	}
+}
