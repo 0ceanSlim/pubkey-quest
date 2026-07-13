@@ -364,7 +364,17 @@ func discoveryRoll(poi types.POIData, state *SaveFile, rng *rand.Rand) bool {
 			return true
 		}
 	}
-	return rng.Float64() < poi.Discovery.Chance
+	// The crossing fires exactly once per traversal, so a single coin-flip at the
+	// flat chance whiffs ~(1-chance) of the time — brutal when a biome has one POI.
+	// Treat the passing-by as a few effective attempts: eff = 1-(1-chance)^N. A
+	// decent chance (0.6) then reliably lands (~0.94), while a genuinely rare POI
+	// (0.05) stays rare (~0.14).
+	const discoveryAttempts = 3
+	eff := 0.0
+	for i := 0; i < discoveryAttempts; i++ {
+		eff += (1 - eff) * poi.Discovery.Chance
+	}
+	return rng.Float64() < eff
 }
 
 // processActionSwitch dispatches to specific action handlers
