@@ -7,6 +7,16 @@
     <!-- CSS bundled by Vite -->
     <link href="/dist/index.css" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="/res/img/favicon.ico" />
+
+    <!-- PWA: installable to the home screen -->
+    <meta name="theme-color" content="#1a1a1a" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/res/img/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pubkey Quest" />
+    <script src="/pwa.js" defer></script>
     <style>
       body {
         font-family: "Dogica", monospace;

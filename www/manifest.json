@@ -1,0 +1,17 @@
+{
+  "name": "Pubkey Quest",
+  "short_name": "Pubkey Quest",
+  "description": "Your Nostr identity becomes a D&D adventure — a deterministic character from your npub, grid combat, spells, and a living world.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "/res/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/res/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/res/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
