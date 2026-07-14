@@ -54,11 +54,11 @@
       <!-- Logged In Section -->
       <div id="home-cta-loggedin" class="hidden text-center mb-8 px-2">
         <div class="win95-outset p-4 sm:p-8 rounded-lg inline-block w-full max-w-lg">
-          <p class="text-lg sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6" style="color: var(--color-textHighlighted);">
+          <p class="text-base sm:text-xl md:text-2xl font-bold mb-4 sm:mb-6" style="color: var(--color-textHighlighted);">
             Welcome back, <span id="home-username">Hero</span>!
           </p>
-          <a href="/saves" class="action-button-primary pixel-clip p-3 sm:p-4 text-sm sm:text-base inline-block hover:opacity-90 transition w-full sm:w-auto">
-            Continue Adventure
+          <a href="/saves" class="play-button-yellow pixel-clip px-8 py-4 sm:px-12 sm:py-5 text-2xl sm:text-3xl inline-flex items-center justify-center gap-2 w-full sm:w-auto">
+            ▶ Play!
           </a>
         </div>
       </div>
@@ -134,6 +134,20 @@
   // Listen for auth changes
   window.addEventListener('auth-changed', updateHomeAuthUI);
   window.addEventListener('profile-updated', updateHomeAuthUI);
+
+  // The homepage login now happens in-place via the MILL modal (no redirect), so
+  // the CTA must swap the moment auth state changes. sessionManager isn't defined
+  // when this inline script parses (the ES module bundle loads after), so wire its
+  // events on window 'load' and re-check.
+  function wireHomeAuthEvents() {
+    const sm = window.sessionManager;
+    if (!sm || typeof sm.on !== 'function' || sm._homeAuthWired) return;
+    sm._homeAuthWired = true;
+    ['authenticationSuccess', 'sessionReady', 'sessionRestored', 'loggedOut', 'sessionExpired']
+      .forEach((evt) => sm.on(evt, updateHomeAuthUI));
+    updateHomeAuthUI();
+  }
+  window.addEventListener('load', wireHomeAuthEvents);
 
   // Initial check
   if (document.readyState === 'loading') {

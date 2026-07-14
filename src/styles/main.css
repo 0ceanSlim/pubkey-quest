@@ -517,6 +517,33 @@
     border-bottom: 2px solid var(--color-textSecondary);
   }
 
+  /* Big bright-yellow "Play!" CTA — theme-independent (always yellow), win95 bevel.
+     Used for the logged-in homepage Play button and the Start-New-Adventure card. */
+  .play-button-yellow {
+    background: rgb(250, 204, 21);
+    border-top: 3px solid rgb(254, 240, 138);
+    border-left: 3px solid rgb(254, 240, 138);
+    border-right: 3px solid rgb(202, 138, 4);
+    border-bottom: 3px solid rgb(202, 138, 4);
+    color: rgb(41, 30, 0);
+    font-weight: 800;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  .play-button-yellow:hover {
+    background: rgb(253, 224, 71);
+    filter: brightness(1.06);
+  }
+
+  .play-button-yellow:active {
+    background: rgb(234, 179, 8);
+    border-top: 3px solid rgb(202, 138, 4);
+    border-left: 3px solid rgb(202, 138, 4);
+    border-right: 3px solid rgb(254, 240, 138);
+    border-bottom: 3px solid rgb(254, 240, 138);
+  }
+
   /* Muted action button (for less important actions) */
   .action-button-muted {
     background: var(--color-bgSecondary);

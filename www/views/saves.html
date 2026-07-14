@@ -413,17 +413,18 @@ function createSaveSlot(slot, saveData, isUnlocked) {
       </div>
     `;
   } else if (!saveData && slot.id === 1) {
-    // First slot - New Adventure
-    div.className = 'win95-button rounded-lg p-6 transition-all cursor-pointer hover:scale-105';
+    // First slot - New Adventure. Bright-yellow so it stands out from the grey
+    // save slots as the primary "create a save" call to action.
+    div.className = 'play-button-yellow rounded-lg p-6 transition-all cursor-pointer hover:scale-105';
     div.onclick = () => startNewGame(slot.id);
     div.innerHTML = `
       <div class="flex items-center space-x-4">
-        <div class="w-16 h-16 rounded-full win95-inset flex items-center justify-center">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background: rgba(0, 0, 0, 0.16); border: 2px solid rgba(0, 0, 0, 0.28);">
           <span class="text-3xl">✨</span>
         </div>
-        <div class="flex-1">
-          <h3 class="text-xl font-bold mb-1" style="color: var(--color-textHighlighted);">Start New Adventure</h3>
-          <p class="text-sm" style="color: var(--color-textSecondary);">Begin a fresh journey with a newly generated character</p>
+        <div class="flex-1 text-left">
+          <h3 class="text-xl font-extrabold mb-1" style="color: rgb(41, 30, 0);">▶ Start New Adventure</h3>
+          <p class="text-sm font-semibold" style="color: rgba(41, 30, 0, 0.78);">Begin a fresh journey with a newly generated character</p>
         </div>
       </div>
     `;
