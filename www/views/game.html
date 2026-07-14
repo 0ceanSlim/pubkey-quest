@@ -119,6 +119,44 @@
         <button onclick="window.debugStartCombat()" class="w-full py-1.5 text-xs font-bold text-white" style="background: #7f1d1d; border-top: 1px solid #b91c1c; border-left: 1px solid #b91c1c; border-right: 1px solid #450a0a; border-bottom: 1px solid #450a0a;">⚔ Start Test Combat</button>
       </div>
 
+      <!-- Spawn Item (uses the debug add_item action) -->
+      <div class="mb-3 p-2" style="border: 1px solid #4a4a4a; background: #1a1a1a;">
+        <p class="text-xs text-gray-400 mb-1">Spawn Item</p>
+        <input id="debug-item-input" list="debug-item-list" placeholder="type to search items…" autocomplete="off" class="w-full mb-1 px-2 py-1 text-white text-xs" style="background: #1a1a1a; border: 1px solid #4a4a4a;">
+        <datalist id="debug-item-list"></datalist>
+        <div class="flex gap-2">
+          <input id="debug-item-qty" type="number" min="1" value="1" class="px-2 py-1 text-white text-xs" style="width: 68px; background: #1a1a1a; border: 1px solid #4a4a4a;">
+          <button onclick="debugSpawnItem()" class="flex-1 py-1.5 text-xs font-bold text-white" style="background: #15803d; border-top: 1px solid #22c55e; border-left: 1px solid #22c55e; border-right: 1px solid #166534; border-bottom: 1px solid #166534;">＋ Spawn</button>
+        </div>
+      </div>
+
+      <!-- Grant XP -->
+      <div class="mb-3 p-2" style="border: 1px solid #4a4a4a; background: #1a1a1a;">
+        <p class="text-xs text-gray-400 mb-1">Grant XP</p>
+        <div class="flex gap-2">
+          <input id="debug-xp-amount" type="number" min="1" value="100" class="flex-1 px-2 py-1 text-white text-xs" style="background: #1a1a1a; border: 1px solid #4a4a4a;">
+          <button onclick="debugGrantXP()" class="py-1.5 px-3 text-xs font-bold text-white" style="background: #1d4ed8; border-top: 1px solid #3b82f6; border-left: 1px solid #3b82f6; border-right: 1px solid #1e40af; border-bottom: 1px solid #1e40af;">✦ Grant</button>
+        </div>
+      </div>
+
+      <!-- Teleport to a town -->
+      <div class="mb-3 p-2" style="border: 1px solid #4a4a4a; background: #1a1a1a;">
+        <p class="text-xs text-gray-400 mb-1">Teleport to Town</p>
+        <div class="flex gap-2">
+          <select id="debug-teleport-select" class="flex-1 px-2 py-1 text-white text-xs" style="background: #1a1a1a; border: 1px solid #4a4a4a;">
+            <option value="">— select town —</option>
+          </select>
+          <button onclick="debugTeleport()" class="py-1.5 px-3 text-xs font-bold text-white" style="background: #6d28d9; border-top: 1px solid #a78bfa; border-left: 1px solid #a78bfa; border-right: 1px solid #4c1d95; border-bottom: 1px solid #4c1d95;">➤ Go</button>
+        </div>
+      </div>
+
+      <!-- Report a Bug (available in debug builds too, not just prod) -->
+      <div class="mb-3 p-2" style="border: 1px solid #4a4a4a; background: #1a1a1a;">
+        <p class="text-xs text-gray-400 mb-1">Report a Bug</p>
+        <textarea id="bug-report-text" rows="3" maxlength="4000" placeholder="What happened? Where were you? What did you expect?" class="w-full mb-2 px-2 py-1 text-white text-xs" style="background: #1a1a1a; border: 1px solid #4a4a4a; resize: vertical;"></textarea>
+        <button id="bug-report-submit" onclick="submitBugReport()" class="w-full py-1.5 text-xs font-bold text-white" style="background: #ca8a04; border-top: 1px solid #eab308; border-left: 1px solid #eab308; border-right: 1px solid #854d0e; border-bottom: 1px solid #854d0e;">🐛 Submit Bug Report</button>
+      </div>
+
       <div class="flex gap-3">
         <button
           onclick="window.open('https://github.com/0ceanSlim/pubkey-quest/issues/new?template=bug_report.md', '_blank')"
@@ -357,9 +395,10 @@
     async function showBugReportModal() {
       document.getElementById('bug-report-modal').classList.remove('hidden');
 
-      // If in debug mode, load the current state
+      // If in debug mode, load the current state + populate the dev-tool pickers
       if (DEBUG_MODE) {
         await refreshDebugState();
+        debugPopulateToolOptions();
       }
     }
 
@@ -459,6 +498,125 @@
       } catch (error) {
         console.error('Failed to copy to clipboard:', error);
         showMessage('❌ Failed to copy to clipboard', 'error');
+      }
+    }
+
+    // ── Debug dev tools (item spawner / XP granter / teleporter) ──────────────
+    // All are debug-only conveniences. Session + save are sourced the same way as
+    // the other console helpers (sessionManager + ?save=). The server is
+    // authoritative; these just hit debug endpoints / the add_item action.
+
+    function debugSession() {
+      if (!window.sessionManager || !window.sessionManager.isAuthenticated()) {
+        showMessage('❌ Not authenticated', 'error');
+        return null;
+      }
+      const session = window.sessionManager.getSession();
+      const saveID = new URLSearchParams(window.location.search).get('save') || '';
+      return { npub: session.npub, save_id: saveID };
+    }
+
+    // Fill the item datalist + teleport town dropdown from static game data.
+    async function debugPopulateToolOptions() {
+      try {
+        const items = await (await fetch('/api/items')).json();
+        const dl = document.getElementById('debug-item-list');
+        if (dl && Array.isArray(items) && !dl.dataset.loaded) {
+          dl.innerHTML = items
+            .map((it) => `<option value="${it.id}">${(it.name || it.id).replace(/"/g, '')}</option>`)
+            .join('');
+          dl.dataset.loaded = '1';
+        }
+      } catch (error) {
+        console.error('Failed to load items for spawner:', error);
+      }
+
+      try {
+        const locs = await (await fetch('/api/locations')).json();
+        const sel = document.getElementById('debug-teleport-select');
+        if (sel && Array.isArray(locs) && !sel.dataset.loaded) {
+          // Settlements are the locations that have districts; environments don't.
+          const towns = locs.filter((l) => l.properties && l.properties.districts && Object.keys(l.properties.districts).length);
+          sel.innerHTML = '<option value="">— select town —</option>' +
+            towns.map((l) => `<option value="${l.id}">${l.name || l.id}</option>`).join('');
+          sel.dataset.loaded = '1';
+        }
+      } catch (error) {
+        console.error('Failed to load locations for teleport:', error);
+      }
+    }
+
+    async function debugSpawnItem() {
+      const ses = debugSession();
+      if (!ses) return;
+      const itemId = (document.getElementById('debug-item-input')?.value || '').trim();
+      const qty = parseInt(document.getElementById('debug-item-qty')?.value || '1', 10) || 1;
+      if (!itemId) { showMessage('⚠️ Pick an item to spawn.', 'error'); return; }
+      try {
+        const res = await fetch('/api/game/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...ses, action: { type: 'add_item', params: { item_id: itemId, quantity: qty } } })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showMessage(`✅ Spawned ${qty}× ${itemId}`, 'success');
+          if (window.refreshGameState) await window.refreshGameState(true);
+          await refreshDebugState();
+        } else {
+          showMessage('❌ ' + (data.error || data.message || 'Spawn failed'), 'error');
+        }
+      } catch (error) {
+        showMessage('❌ Spawn failed: ' + error.message, 'error');
+      }
+    }
+
+    async function debugGrantXP() {
+      const ses = debugSession();
+      if (!ses) return;
+      const amount = parseInt(document.getElementById('debug-xp-amount')?.value || '0', 10) || 0;
+      if (amount <= 0) { showMessage('⚠️ Enter an XP amount.', 'error'); return; }
+      try {
+        const res = await fetch('/api/debug/grant-xp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...ses, amount })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const leveled = data.data && data.data.level_up && data.data.level_up.leveled;
+          showMessage(`✅ Granted ${amount} XP` + (leveled ? ' — level up!' : ''), 'success');
+          if (window.refreshGameState) await window.refreshGameState(true);
+          await refreshDebugState();
+        } else {
+          showMessage('❌ ' + (data.error || 'Grant failed'), 'error');
+        }
+      } catch (error) {
+        showMessage('❌ Grant failed: ' + error.message, 'error');
+      }
+    }
+
+    async function debugTeleport() {
+      const ses = debugSession();
+      if (!ses) return;
+      const location = document.getElementById('debug-teleport-select')?.value || '';
+      if (!location) { showMessage('⚠️ Pick a town.', 'error'); return; }
+      try {
+        const res = await fetch('/api/debug/teleport', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...ses, location })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showMessage(`✅ Teleporting to ${location}…`, 'success');
+          // Reload into the new location so the scene re-renders from scratch.
+          window.location.href = `/game?save=${encodeURIComponent(ses.save_id)}`;
+        } else {
+          showMessage('❌ ' + (data.error || 'Teleport failed'), 'error');
+        }
+      } catch (error) {
+        showMessage('❌ Teleport failed: ' + error.message, 'error');
       }
     }
 

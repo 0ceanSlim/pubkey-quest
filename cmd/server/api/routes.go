@@ -644,4 +644,20 @@ func registerDebugRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} game.CombatStateResponse
 	// @Router /api/combat/debug/start [post]
 	mux.HandleFunc("/api/combat/debug/start", game.DebugCombatStartHandler)
+
+	// @Summary Grant XP (debug)
+	// @Description Adds XP to the character and re-derives level/HP/mana (debug only)
+	// @Tags Debug
+	// @Router /api/debug/grant-xp [post]
+	mux.HandleFunc("/api/debug/grant-xp", func(w http.ResponseWriter, r *http.Request) {
+		game.DebugGrantXPHandler(w, r, true)
+	})
+
+	// @Summary Teleport (debug)
+	// @Description Moves the player to any settlement and clears travel/building state (debug only)
+	// @Tags Debug
+	// @Router /api/debug/teleport [post]
+	mux.HandleFunc("/api/debug/teleport", func(w http.ResponseWriter, r *http.Request) {
+		game.DebugTeleportHandler(w, r, true)
+	})
 }
