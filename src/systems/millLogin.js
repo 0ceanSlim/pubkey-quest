@@ -117,16 +117,64 @@ async function finishLogin(result) {
 }
 
 /**
+ * MILL ships no responsive CSS: fixed-px font sizes, a 480px modal, and no media
+ * queries — all inside a shadow root, so page CSS can't reach it. With our wide
+ * pixel font that overflows the modal on phones. MILL mounts one persistent
+ * <nostr-signer> element with an OPEN shadow root, so inject a small mobile
+ * stylesheet there once. The @media rules re-evaluate on resize/rotate, so this
+ * adapts even if the modal was opened on desktop first.
+ */
+function injectMillResponsiveStyles() {
+    const apply = () => {
+        try {
+            const host = document.querySelector('nostr-signer');
+            const root = host && host.shadowRoot;
+            if (!root || root.getElementById('pq-mill-mobile')) return;
+            const style = document.createElement('style');
+            style.id = 'pq-mill-mobile';
+            style.textContent = `
+                /* Long npub / bunker:// strings must wrap, never overflow the box. */
+                .mill-modal, .mill-modal * { overflow-wrap: anywhere; }
+                @media (max-width: 480px) {
+                    .mill-overlay { padding: 10px !important; }
+                    /* Reflow-shrink the fixed-px layout so the pixel font fits a phone. */
+                    .mill-modal { zoom: 0.9; max-height: 94vh !important; }
+                }
+                @media (max-width: 360px) {
+                    .mill-modal { zoom: 0.82; }
+                }
+            `;
+            root.appendChild(style);
+        } catch (err) {
+            logger.debug('MILL responsive style injection skipped:', err?.message || err);
+        }
+    };
+    // The element is appended synchronously by open(), but guard with rAF in case
+    // a future MILL version defers the mount.
+    apply();
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(apply);
+}
+
+/**
  * Open the MILL login modal, themed to the active Pubkey Quest palette.
  */
 export function openMillLogin() {
+    // Compact density (smaller padding, descriptions hidden) keeps the modal
+    // from overflowing narrow phone screens; comfortable stays on desktop.
+    const isMobile = typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 480px)').matches;
+
     MILL.open({
         appName: 'Pubkey Quest',
         theme: pubkeyQuestTheme(),
         methods: LOGIN_METHODS,
+        density: isMobile ? 'compact' : 'comfortable',
         amberCallback: `${window.location.origin}/api/auth/amber-callback`,
         onConnected: (result) => finishLogin(result),
     });
+
+    injectMillResponsiveStyles();
 }
 
 /**
