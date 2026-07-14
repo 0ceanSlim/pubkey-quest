@@ -24,7 +24,7 @@
               <span class="font-bold" style="color: var(--color-textHighlighted);">Nostr Authentication</span>
             </div>
             <div class="text-sm pl-6" style="color: var(--color-textMuted);">
-              NIP-07 browser extensions, Amber mobile login, new key generation. Full session management and profile integration.
+              One MILL sign-in modal for every method — NIP-07 extensions, Amber, remote bunkers (NIP-46), private keys, and brand-new identities. All signing happens in your browser; the server only ever sees your public key.
             </div>
           </div>
 
@@ -150,9 +150,39 @@
             <span class="text-green-500">✓</span>
             <span>Music System (location-based tracks, in-game player)</span>
           </div>
+          <!-- Spellcasting -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Spellcasting</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Prepare and cast spells in and out of combat, paying mana and material components (or using a focus). Drink potions, throw items, and read spell scrolls mid-fight.
+            </div>
+          </div>
+
+          <!-- Class Abilities, Conditions & Saves -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Class Abilities, Conditions &amp; Saves</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Class abilities (Rage, Second Wind, Ki…), status conditions (poisoned, prone, frightened…), and saving throws round out every class's turn.
+            </div>
+          </div>
+
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
-            <span>Abilities/Spells Stubs (UI framework for spell and martial class abilities)</span>
+            <span>Feats (take a feat instead of ability points at level-up)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Gathering &amp; Lockpicking (mining/fishing nodes and locked chests — tool-gated skill checks with tiered loot)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Installable Web App (add Pubkey Quest to your home screen)</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-green-500">✓</span>
@@ -249,37 +279,30 @@
           <span>🔥</span> Current Focus: Road to Alpha
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          The core loop — explore, fight, quest, level up — is in. These are the systems still
-          being built before the alpha release:
+          The core loop — explore, fight, cast, quest, level up — is in, and combat is complete.
+          These are the last pieces before the alpha release:
         </p>
         <div class="space-y-3 win95-inset p-4 rounded-lg">
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Spells &amp; Items as Real Systems</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Presentation Pass</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Cast spells in and out of combat, drink potions and throw items mid-fight, and use spell scrolls. (Spell <em>preparation</em> already works; casting is next.)</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">NPC dialogue now types out on the scene itself; still to come — sharper scaling and fonts, richer equipment/stat readouts, and a general UI polish sweep.</div>
           </div>
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Combat Completion</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Crafting &amp; Minigames</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Class abilities (Rage, Second Wind, Ki…), conditions (poisoned, prone, frightened…), and saving throws — so every class has more than just "attack."</div>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-orange-500">⟳</span>
-              <span class="font-bold" style="color: var(--color-textHighlighted);">Presentation Overhaul</span>
-            </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">NPC dialogue moved onto the scene with animated text, sharper scaling and fonts, richer equipment/stat readouts, and a general UI pass.</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Craft spell scrolls at a workbench, and play little mining, fishing, and lockpicking minigames at the gathering nodes and locked chests.</div>
           </div>
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
               <span class="font-bold" style="color: var(--color-textHighlighted);">Content &amp; Release Pass</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Author the missing quest items, monsters, and quest NPCs; fix content references; final release engineering and a guided tutorial.</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Author the remaining quest NPCs, items, and monsters, wire up a guided tutorial, and do the final release engineering.</div>
           </div>
         </div>
       </div>
@@ -290,7 +313,7 @@
           <span>🎯</span> Alpha to Beta
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          Once spells/items/abilities round out combat and the presentation pass lands, it's alpha. Road to beta:
+          Once the presentation pass, crafting &amp; minigames, and content pass land, it's alpha. Road to beta:
         </p>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
@@ -378,8 +401,8 @@
 
       <div class="win95-inset p-4 rounded-lg">
         <p class="text-sm" style="color: var(--color-textMuted);">
-          <strong>Current Phase:</strong> Pre-Alpha — core loop complete (explore, fight, quest, level up); finishing spells/abilities, combat depth, and a presentation pass.<br>
-          <strong>Next Milestone:</strong> Alpha release (spells &amp; items in combat, class abilities, dialogue/UI overhaul).<br>
+          <strong>Current Phase:</strong> Pre-Alpha — the full core loop is playable (explore, fight, cast, quest, level up), and combat, spellcasting, and progression are complete.<br>
+          <strong>Next Milestone:</strong> Alpha — a presentation/UI polish pass, scroll crafting and gathering minigames, and a content + tutorial pass.<br>
           <strong>Contributions Welcome!</strong> See the Contribute tab to help build Pubkey Quest.
         </p>
       </div>
