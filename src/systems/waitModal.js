@@ -217,10 +217,39 @@ export async function confirmWait() {
     }
 }
 
+/**
+ * Sleep the night through. The backend routes this: an inn bed when indoors (needs
+ * a rented room), or making camp when out in a travel environment (a bedroll makes
+ * it comfier; without one it's a rough sleep). Restores HP/mana by how long you
+ * sleep and fatigue by comfort; only an inn's fee includes breakfast (hunger).
+ */
+export async function confirmSleep() {
+    logger.debug('Confirming sleep');
+    try {
+        const result = await gameAPI.sendAction('sleep', {});
+
+        if (result.delta) {
+            deltaApplier.applyDelta(result.delta);
+        }
+        if (result.data && result.data.time_of_day !== undefined) {
+            smoothClock.syncFromBackend(result.data.time_of_day, result.data.current_day || 1, true);
+        }
+        showMessage(result.message || 'You sleep until dawn.', 'success');
+        closeWaitModal();
+        await refreshGameState(true);
+    } catch (error) {
+        // A rejected sleep (wrong place / too early) surfaces its reason here; keep
+        // the modal open so the player can wait or move instead.
+        logger.debug('Sleep not available:', error);
+        showMessage(error?.message || "You can't sleep here right now.", 'error');
+    }
+}
+
 // Export functions to window for onclick handlers
 if (typeof window !== 'undefined') {
     window.openWaitModal = openWaitModal;
     window.closeWaitModal = closeWaitModal;
     window.updateWaitDisplay = updateWaitDisplay;
     window.confirmWait = confirmWait;
+    window.confirmSleep = confirmSleep;
 }

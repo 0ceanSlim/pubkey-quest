@@ -241,6 +241,10 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 	// deliberately resting — but hunger, durations, and starvation still progress.
 	timeMessages := AdvanceTime(state, minutesToAdvance, false)
 
+	// Waiting is light rest: recover HP/mana proportional to the time waited (a
+	// full ~8h restores all; percentage-of-Max so it scales with level).
+	hpGain, manaGain := status.RestoreVitalsForRest(state, minutesToAdvance)
+
 	// Update building states and NPCs after time jump
 	if session != nil {
 		database := db.GetDB()
@@ -293,6 +297,10 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 		}
 	}
 
+	if hpGain > 0 || manaGain > 0 {
+		message += fmt.Sprintf("\n\n💤 You recover %d HP and %d mana.", hpGain, manaGain)
+	}
+
 	// Append any time-based messages (like starvation damage)
 	if len(timeMessages) > 0 {
 		for _, msg := range timeMessages {
@@ -324,6 +332,9 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 			"fatigue":     state.Fatigue,
 			"hunger":      state.Hunger,
 			"hp":          state.HP,
+			"max_hp":      state.MaxHP,
+			"mana":        state.Mana,
+			"max_mana":    state.MaxMana,
 		},
 	}, nil
 }

@@ -3,6 +3,7 @@ package npc
 import (
 	"fmt"
 	"log"
+	"math"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
@@ -120,101 +121,154 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 		return &types.GameActionResponse{Success: false, Message: "It's too early to sleep — come back after 9 PM.", Color: "yellow"}, nil
 	}
 
-	// Going to bed after midnight means a short night → poor sleep.
-	poorSleep := state.TimeOfDay < sleepWakeTime
+	// Inn/tavern: a real bed and breakfast in the fee — best comfort, hunger restored.
+	return applySleep(state, comfortInn, true, session, npcIdsFunc)
+}
 
-	// Calculate how many minutes will be slept
+// comfort tiers for sleeping — bed quality drives how much fatigue a night restores.
+const (
+	comfortInn     = 1.0  // a real bed at an inn (breakfast is in the fee)
+	comfortBedroll = 0.75 // camping with a bedroll
+	comfortRough   = 0.5  // no gear — a rough night on hard ground
+)
+
+// HandleWildernessSleepAction lets a player bed down for the night out in a travel
+// environment (not a town). A bedroll makes for a decent camp; without one it's a
+// rough sleep that recovers less fatigue. No breakfast out here, so hunger isn't
+// restored — you wake a little hungrier. Same night-time gate as an inn.
+func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+	if state.Building != "" {
+		return &types.GameActionResponse{Success: false, Message: "You're indoors — rent a room to sleep here.", Color: "yellow"}, nil
+	}
+	if !isEnvironmentLocation(state.Location) {
+		return &types.GameActionResponse{Success: false, Message: "You can't bed down in the middle of town — find an inn, or make camp out in the wild.", Color: "yellow"}, nil
+	}
+	if !CanSleepNow(state.TimeOfDay) {
+		return &types.GameActionResponse{Success: false, Message: "It's not time to sleep yet — make camp after 9 PM.", Color: "yellow"}, nil
+	}
+
+	comfort := comfortRough
+	if gameutil.PlayerHasItem(state, "bedroll") {
+		comfort = comfortBedroll
+	}
+	return applySleep(state, comfort, false, session, npcIdsFunc)
+}
+
+// applySleep is the shared sleep resolution: sleep until the 6 AM wake time,
+// restore HP/mana in proportion to how long was slept (so it scales with level),
+// restore fatigue scaled by bed comfort × bedtime × hours, optionally restore
+// hunger (paid lodging only), then advance time and refresh the world.
+func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	oldTime := state.TimeOfDay
-	targetTime := 360 // 6 AM
+
+	// Sleep until 6 AM (next day if already past it).
 	var minutesSlept int
-	if oldTime >= targetTime {
-		// Already past 6 AM, sleep until 6 AM next day (e.g., 10 PM = 1320 mins, sleep 8h40m)
-		minutesSlept = (1440 - oldTime) + targetTime
+	if oldTime >= sleepWakeTime {
+		minutesSlept = (1440 - oldTime) + sleepWakeTime
 		state.CurrentDay++
 	} else {
-		// Before 6 AM, sleep until 6 AM same day
-		minutesSlept = targetTime - oldTime
+		minutesSlept = sleepWakeTime - oldTime
 	}
-	state.TimeOfDay = targetTime
+	state.TimeOfDay = sleepWakeTime
 
-	// Tick down duration-based effects for the time slept
-	// This handles buffs/debuffs like performance-high that expire over time
+	// Fraction of a full night actually slept (0..1) — drives restore amounts.
+	frac := float64(minutesSlept) / float64(status.FullRestMinutes)
+	if frac > 1 {
+		frac = 1
+	}
+
+	// Bedtime modifier: bedding down in daylight (roughly 6 AM–8 PM) rests poorly.
+	bedtime := 1.0
+	if oldTime >= sleepWakeTime && oldTime < 1200 {
+		bedtime = 0.7
+	}
+
+	// Duration-based buffs/debuffs expire over the time slept.
 	effects.TickDownEffectDurations(state, minutesSlept)
 
-	// Reset fatigue based on sleep quality
-	if poorSleep {
-		state.Fatigue = 1 // Poor sleep - still a bit tired
-		log.Printf("😴 Poor sleep due to late bedtime (fatigue level 1)")
-	} else {
-		state.Fatigue = 0 // Good sleep - fully rested
-		log.Printf("😴 Good sleep (fully rested)")
+	// HP/mana — proportional to time slept, scaled to Max (so it scales with level).
+	hpGain, manaGain := status.RestoreVitalsForRest(state, minutesSlept)
+
+	// Fatigue — restored by comfort × bedtime × hours (a comfy full night clears it).
+	fatigueRestored := int(math.Round(10.0 * comfort * bedtime * frac))
+	state.Fatigue -= fatigueRestored
+	if state.Fatigue < 0 {
+		state.Fatigue = 0
 	}
 	status.ResetFatigueAccumulator(state)
 	status.UpdateFatiguePenaltyEffects(state)
 
-	// Reset hunger (well fed after waking up)
-	state.Hunger = 2
-	status.ResetHungerAccumulator(state)
-	status.UpdateHungerPenaltyEffects(state)
-	status.EnsureHungerAccumulation(state)
-
-	// Restore HP and Mana fully
-	state.HP = state.MaxHP
-	state.Mana = state.MaxMana
-
-	sleepMessage := "You wake up refreshed at 6 AM."
-	if poorSleep {
-		sleepMessage = "You wake up at 6 AM, but didn't sleep well due to going to bed late."
+	// Hunger — only paid lodging includes breakfast. Out in the wild the night's
+	// calorie burn leaves you a step hungrier.
+	if restoreHunger {
+		state.Hunger = 2 // Satisfied
+		status.ResetHungerAccumulator(state)
+		status.UpdateHungerPenaltyEffects(state)
+		status.EnsureHungerAccumulation(state)
+	} else if minutesSlept >= 240 && state.Hunger > 0 {
+		state.Hunger--
+		status.UpdateHungerPenaltyEffects(state)
+		status.EnsureHungerAccumulation(state)
 	}
+	log.Printf("😴 slept %dm (comfort=%.2f bedtime=%.2f) → +%d HP +%d mana, fatigue=%d hunger=%d",
+		minutesSlept, comfort, bedtime, hpGain, manaGain, state.Fatigue, state.Hunger)
 
-	// Update building states and NPCs after sleep (time jump)
-	database := db.GetDB()
-	if database != nil {
+	// Refresh building states + NPCs after the time jump.
+	if database := db.GetDB(); database != nil {
 		newTime := state.TimeOfDay
-		currentHour := newTime / 60
-
-		// Refresh building states
-		buildingStates, err := building.GetAllBuildingStatesForDistrict(
-			database,
-			state.Location,
-			state.District,
-			newTime,
-		)
-		if err == nil && len(buildingStates) > 0 {
+		if buildingStates, err := building.GetAllBuildingStatesForDistrict(database, state.Location, state.District, newTime); err == nil && len(buildingStates) > 0 {
 			session.UpdateBuildingStates(buildingStates, newTime)
 		}
-
-		// Refresh NPCs
-		npcIDs := npcIdsFunc(
-			state.Location,
-			state.District,
-			state.Building,
-			state.Room,
-			newTime,
-		)
-		session.UpdateNPCsAtLocation(npcIDs, currentHour)
+		npcIDs := npcIdsFunc(state.Location, state.District, state.Building, state.Room, newTime)
+		session.UpdateNPCsAtLocation(npcIDs, newTime/60)
 	}
 
-	// Calculate delta for frontend updates
 	delta := session.UpdateSnapshotAndCalculateDeltaProvider()
+
+	msg := fmt.Sprintf("You sleep %dh and wake at 6 AM", minutesSlept/60)
+	switch {
+	case comfort >= comfortInn:
+		msg += ", warm and rested."
+	case comfort >= comfortBedroll:
+		msg += ", stiff but recovered from your camp."
+	default:
+		msg += " on the hard ground — better than nothing."
+	}
+	if hpGain > 0 || manaGain > 0 {
+		msg += fmt.Sprintf(" (+%d HP, +%d mana)", hpGain, manaGain)
+	}
 
 	return &types.GameActionResponse{
 		Success: true,
-		Message: sleepMessage,
+		Message: msg,
 		Color:   "green",
 		Delta:   delta.ToMap(),
 		Data: map[string]interface{}{
-			"time_of_day":  state.TimeOfDay,
-			"current_day":  state.CurrentDay,
-			"fatigue":      state.Fatigue,
-			"hunger":       state.Hunger,
-			"hp":           state.HP,
-			"max_hp":       state.MaxHP,
-			"mana":         state.Mana,
-			"max_mana":     state.MaxMana,
-			"rentals":      state.Rentals,
+			"time_of_day": state.TimeOfDay,
+			"current_day": state.CurrentDay,
+			"fatigue":     state.Fatigue,
+			"hunger":      state.Hunger,
+			"hp":          state.HP,
+			"max_hp":      state.MaxHP,
+			"mana":        state.Mana,
+			"max_mana":    state.MaxMana,
+			"rentals":     state.Rentals,
 		},
 	}, nil
+}
+
+// isEnvironmentLocation reports whether the location id is a travel environment
+// (the wilderness) rather than a town — used to gate camping.
+func isEnvironmentLocation(location string) bool {
+	database := db.GetDB()
+	if database == nil {
+		return false
+	}
+	var lt string
+	if err := database.QueryRow("SELECT COALESCE(location_type,'') FROM locations WHERE id = ?", location).Scan(&lt); err != nil {
+		return false
+	}
+	return lt == "environment"
 }
 
 // HandleRestAction rests to restore HP/Mana (sleep in rented room)

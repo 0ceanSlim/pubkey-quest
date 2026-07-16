@@ -1144,9 +1144,16 @@ func handleRentRoomAction(session *GameSession, params map[string]any) (*GameAct
 	return nil, err
 }
 
-// handleSleepAction sleeps in a rented room
+// handleSleepAction sleeps for the night — in a rented inn room when indoors, or
+// out in the wild (bedroll or rough) when outside a town.
 func handleSleepAction(session *GameSession, _ map[string]any) (*GameActionResponse, error) {
-	resp, err := npc.HandleSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
+	var resp *GameActionResponse
+	var err error
+	if session.SaveData.Building != "" {
+		resp, err = npc.HandleSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
+	} else {
+		resp, err = npc.HandleWildernessSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
+	}
 	if resp != nil {
 		msg := resp.Message
 		// Sleeping is a rest, so it clears both "sleep"- and "rest"-removal effects.
