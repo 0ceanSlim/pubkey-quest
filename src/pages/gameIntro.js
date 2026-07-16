@@ -1160,7 +1160,16 @@ function showSpellTooltip(spell, containerElement) {
 /**
  * Start the adventure - save character and redirect
  */
+// Guards against the "Begin Journey" button being clicked more than once — each
+// click used to POST /api/character/create-save and mint a brand-new save file,
+// so an impatient double-click during the (~1 min) game build made duplicate saves.
+let adventureStarting = false;
+
 async function startAdventure() {
+  if (adventureStarting) return; // one save, no matter how many clicks
+  adventureStarting = true;
+  showJourneyLoader();
+
   try {
     logger.debug("🎮 Starting adventure...");
     logger.debug("playerName:", playerName);
@@ -1243,17 +1252,73 @@ async function startAdventure() {
         .play()
         .catch((e) => logger.debug("Game music autoplay blocked:", e));
 
-      // Redirect to game using the save_id from backend response
+      // Fill the loading bar, then fade into the game.
+      completeJourneyLoader();
       setTimeout(() => {
         window.location.href = "/game?save=" + result.save_id;
-      }, 3000);
+      }, 1400);
     } else {
       const error = await response.json();
       throw new Error(error.error || "Failed to create save file");
     }
   } catch (error) {
     logger.error("❌ Failed to start adventure:", error);
+    adventureStarting = false; // let them retry after a failure
+    hideJourneyLoader();
     alert("Failed to start adventure: " + error.message);
+  }
+}
+
+// ── Begin-Journey loading overlay ───────────────────────────────────────────
+// A full-screen bar + fade that covers the ~minute of game build, so the player
+// gets feedback (and can't re-click) instead of a dead button that invites spam.
+
+function showJourneyLoader() {
+  let el = document.getElementById("journey-loader");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "journey-loader";
+    el.style.cssText =
+      "position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity 0.6s ease;font-family:inherit;";
+
+    const label = document.createElement("div");
+    label.textContent = "Beginning your journey…";
+    label.style.cssText =
+      "color:#facc15;font-size:20px;font-weight:800;letter-spacing:0.04em;text-align:center;padding:0 16px;";
+
+    const track = document.createElement("div");
+    track.style.cssText =
+      "width:min(70vw,360px);height:16px;background:#1a1a1a;overflow:hidden;border-top:2px solid #000;border-left:2px solid #000;border-right:2px solid #3a3a3a;border-bottom:2px solid #3a3a3a;";
+
+    const fill = document.createElement("div");
+    fill.id = "journey-loader-fill";
+    fill.style.cssText = "width:4%;height:100%;background:#facc15;transition:width 2.8s ease-out;";
+
+    track.appendChild(fill);
+    el.appendChild(label);
+    el.appendChild(track);
+    document.body.appendChild(el);
+  }
+  requestAnimationFrame(() => {
+    el.style.opacity = "1";
+    const fill = document.getElementById("journey-loader-fill");
+    if (fill) requestAnimationFrame(() => { fill.style.width = "88%"; });
+  });
+}
+
+function completeJourneyLoader() {
+  const fill = document.getElementById("journey-loader-fill");
+  if (fill) {
+    fill.style.transition = "width 0.4s ease-out";
+    fill.style.width = "100%";
+  }
+}
+
+function hideJourneyLoader() {
+  const el = document.getElementById("journey-loader");
+  if (el) {
+    el.style.opacity = "0";
+    setTimeout(() => el.remove(), 600);
   }
 }
 

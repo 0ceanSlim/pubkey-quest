@@ -336,6 +336,11 @@
     animation-delay: 1s;
     position: relative;
     z-index: 1;
+    /* Cap the height so a long backstory scrolls within the viewport instead of
+       running off the bottom of the page. */
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9),
       -1px -1px 4px rgba(0, 0, 0, 0.8);
   }
