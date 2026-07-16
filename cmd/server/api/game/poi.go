@@ -67,6 +67,24 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 
 	res := poi.Resolve(node, nodeID, state, deps)
 
+	// A POI/environment damage node can take HP to 0. Death is otherwise a
+	// combat-only concept, so without this the walk (and travel) would keep going
+	// with the player dead. Trigger the shared death flow and end the walk here —
+	// the single choke point for all POI damage.
+	if state.HP <= 0 {
+		kept := ApplyDeath(state)
+		sess.ActivePOI = nil
+		res.Terminal = true
+		res.Combat = ""
+		res.Next = ""
+		res.Outcome = append(res.Outcome, fmt.Sprintf(
+			"You have fallen. You wake in %s, stripped of your belongings — but your experience endures.",
+			state.Location,
+		))
+		data["death"] = map[string]any{"outcome": "defeat", "location": state.Location, "loot_kept": kept}
+		return res, nil
+	}
+
 	// A passing check feeds the event recorder so quest "check" objectives tick.
 	if res.CheckSkill != "" && res.CheckSuccess {
 		events.Record(state, events.SkillCheckPassed, res.CheckSkill, 1)

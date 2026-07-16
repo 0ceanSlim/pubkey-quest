@@ -344,8 +344,11 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 		return nil, 0, fmt.Errorf("missing or invalid item_id parameter")
 	}
 
-	slot, _ := params["slot"].(float64)
-	slotType, _ := params["slot_type"].(string)
+	// The frontend (and every other inventory handler) sends from_slot/from_slot_type;
+	// drop was the lone outlier reading slot/slot_type, so it defaulted to general[0]
+	// and silently no-op'd for backpack items or any slot but 0.
+	slot, _ := params["from_slot"].(float64)
+	slotType, _ := params["from_slot_type"].(string)
 	if slotType == "" {
 		slotType = "general" // Default to general slots
 	}

@@ -1214,19 +1214,8 @@ func applyDefeatOutcome(sess *session.GameSession, cs *types.CombatSession) Comb
 	// Apply XP earned before death (plan: XP and level are kept on death)
 	save.Experience += cs.XPEarnedThisFight
 
-	// Strip inventory — keep top 3 most valuable individual items
-	kept := stripInventoryForDeath(save.Inventory)
-
-	// Restore HP and mana to full
-	save.HP = save.MaxHP
-	save.Mana = save.MaxMana
-
-	// Return to starting location
-	save.Location = deathReturnLocation(save)
-	save.District = ""
-	save.Building = ""
-	save.TravelProgress = 0
-	save.TravelStopped = false
+	// Strip inventory + restore vitals + return home (shared with non-combat deaths).
+	kept := ApplyDeath(save)
 
 	msg := fmt.Sprintf(
 		"You have fallen. You wake in %s, stripped of your belongings. XP and level are preserved.",
@@ -1240,6 +1229,22 @@ func applyDefeatOutcome(sess *session.GameSession, cs *types.CombatSession) Comb
 		LootAdded: kept,
 		Message:   msg,
 	}
+}
+
+// ApplyDeath runs the on-death consequences on the save alone (no combat session):
+// keep the 3 most valuable items, restore vitals to full, and return the player to
+// their racial starting city. Shared by combat defeat and out-of-combat deaths
+// (POI/environment damage, starvation) so death behaves identically everywhere.
+func ApplyDeath(save *types.SaveFile) []types.LootDrop {
+	kept := stripInventoryForDeath(save.Inventory)
+	save.HP = save.MaxHP
+	save.Mana = save.MaxMana
+	save.Location = deathReturnLocation(save)
+	save.District = ""
+	save.Building = ""
+	save.TravelProgress = 0
+	save.TravelStopped = false
+	return kept
 }
 
 // deathReturnLocation returns the player's racial starting city.
@@ -1460,7 +1465,15 @@ func collectItemUnits(inventory map[string]interface{}) []itemUnit {
 	// Equipped gear, including the bag itself — a backpack is an item with a value
 	// and competes for the kept slots like anything else (unitsFromSlot reads the
 	// bag's own "item"/"quantity"; its contents are gathered separately below).
-	for _, val := range gearSlots {
+	// A two-handed weapon is stored duplicated across BOTH hands under one id;
+	// count it once, or death accounting doubles it and respawns a phantom copy
+	// (and the count re-doubles every subsequent death). Two identical one-handers
+	// dual-wielded are NOT deduped — each hand is a real separate weapon.
+	dupTwoHand := twoHandedDuplicateID(gearSlots)
+	for slotName, val := range gearSlots {
+		if slotName == "offhand" && dupTwoHand != "" {
+			continue // the mainhand copy already accounts for this two-hander
+		}
 		units = append(units, unitsFromSlot(val)...)
 	}
 
@@ -1562,22 +1575,58 @@ func clearEntireInventory(inventory map[string]interface{}) {
 	}
 }
 
-// placeItemsInGeneralSlots writes the kept items into the first N general slots.
+// placeItemsInGeneralSlots writes the kept items into the general slots, respecting
+// each item's stack limit so a repeated unstackable item (e.g. two daggers or a
+// mis-counted two-hander) spills into separate slots instead of forming an illegal
+// over-stack that then can't be equipped/unequipped.
 func placeItemsInGeneralSlots(inventory map[string]interface{}, drops []types.LootDrop) {
 	slots, ok := inventory["general_slots"].([]interface{})
 	if !ok {
 		return
 	}
-	for i, drop := range drops {
-		if i >= len(slots) {
-			break
-		}
-		slots[i] = map[string]interface{}{
-			"item":     drop.Item,
-			"quantity": drop.Quantity,
-		}
+	for _, drop := range drops {
+		limit := lookupItemStackLimit(drop.Item)
+		placeInEmpty(slots, drop.Item, drop.Quantity, limit) // spills overflow across slots
 	}
 	inventory["general_slots"] = slots
+}
+
+// isTwoHandedItem reports whether the item carries the "two-handed" tag.
+func isTwoHandedItem(itemID string) bool {
+	database := serverdb.GetDB()
+	if database == nil {
+		return false
+	}
+	var tagsJSON string
+	if err := database.QueryRow("SELECT tags FROM items WHERE id = ?", itemID).Scan(&tagsJSON); err != nil {
+		return false
+	}
+	var tags []interface{}
+	if err := json.Unmarshal([]byte(tagsJSON), &tags); err != nil {
+		return false
+	}
+	for _, t := range tags {
+		if s, ok := t.(string); ok && s == "two-handed" {
+			return true
+		}
+	}
+	return false
+}
+
+// twoHandedDuplicateID returns the id shared by mainhand+offhand when it's a
+// genuine two-handed weapon (stored duplicated across both hands), else "".
+func twoHandedDuplicateID(gearSlots map[string]interface{}) string {
+	mh, _ := gearSlots["mainhand"].(map[string]interface{})
+	oh, _ := gearSlots["offhand"].(map[string]interface{})
+	if mh == nil || oh == nil {
+		return ""
+	}
+	mhID, _ := mh["item"].(string)
+	ohID, _ := oh["item"].(string)
+	if mhID != "" && mhID == ohID && isTwoHandedItem(mhID) {
+		return mhID
+	}
+	return ""
 }
 
 // slotFloat safely reads a float64 value from a slot map.

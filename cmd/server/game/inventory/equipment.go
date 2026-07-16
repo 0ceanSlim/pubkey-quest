@@ -691,26 +691,31 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		"quantity": 0,
 	}
 
-	// Check if this is a two-handed weapon
-	switch equipSlot {
-	case "mainhand":
-		if offhandSlot, ok := gearSlots["offhand"].(map[string]interface{}); ok {
-			if offhandSlot["item"] == itemID {
-				gearSlots["offhand"] = map[string]interface{}{
-					"item":     nil,
-					"quantity": 0,
+	// Only clear the paired hand for a GENUINE two-handed weapon (which occupies
+	// both hands under the same id). Two identical one-handers dual-wielded — e.g.
+	// two daggers — also match id-in-both-hands, so the old id-only test wrongly
+	// destroyed the second dagger on unequip. Verify the tag before clearing.
+	if isTwoHandedWeapon(itemID) {
+		switch equipSlot {
+		case "mainhand":
+			if offhandSlot, ok := gearSlots["offhand"].(map[string]interface{}); ok {
+				if offhandSlot["item"] == itemID {
+					gearSlots["offhand"] = map[string]interface{}{
+						"item":     nil,
+						"quantity": 0,
+					}
+					log.Printf("✅ Also cleared offhand (two-handed weapon)")
 				}
-				log.Printf("✅ Also cleared offhand (two-handed weapon)")
 			}
-		}
-	case "offhand":
-		if mainhandSlot, ok := gearSlots["mainhand"].(map[string]interface{}); ok {
-			if mainhandSlot["item"] == itemID {
-				gearSlots["mainhand"] = map[string]interface{}{
-					"item":     nil,
-					"quantity": 0,
+		case "offhand":
+			if mainhandSlot, ok := gearSlots["mainhand"].(map[string]interface{}); ok {
+				if mainhandSlot["item"] == itemID {
+					gearSlots["mainhand"] = map[string]interface{}{
+						"item":     nil,
+						"quantity": 0,
+					}
+					log.Printf("✅ Also cleared mainhand (two-handed weapon)")
 				}
-				log.Printf("✅ Also cleared mainhand (two-handed weapon)")
 			}
 		}
 	}
@@ -719,4 +724,29 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		Success: true,
 		Message: fmt.Sprintf("Unequipped %s", itemID),
 	}, nil
+}
+
+// isTwoHandedWeapon reports whether the item carries the "two-handed" tag in the
+// item DB. A two-handed weapon is stored duplicated across both hand slots, so
+// unequip clears the pair — but only for a real two-hander, never for two
+// identical one-handers held in each hand.
+func isTwoHandedWeapon(itemID string) bool {
+	database := db.GetDB()
+	if database == nil {
+		return false
+	}
+	var tagsJSON string
+	if err := database.QueryRow("SELECT tags FROM items WHERE id = ?", itemID).Scan(&tagsJSON); err != nil {
+		return false
+	}
+	var tags []interface{}
+	if err := json.Unmarshal([]byte(tagsJSON), &tags); err != nil {
+		return false
+	}
+	for _, tag := range tags {
+		if s, ok := tag.(string); ok && s == "two-handed" {
+			return true
+		}
+	}
+	return false
 }

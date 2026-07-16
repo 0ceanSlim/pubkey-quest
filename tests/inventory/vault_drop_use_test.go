@@ -46,7 +46,7 @@ func TestDropRemovesEntireStack(t *testing.T) {
 	general(s)[0] = slot(0, "longsword", 1)
 
 	resp, _, err := inventory.HandleDropItemAction(s, p(map[string]interface{}{
-		"item_id": "longsword", "slot": float64(0), "slot_type": "general",
+		"item_id": "longsword", "from_slot": float64(0), "from_slot_type": "general",
 	}))
 	if err != nil || resp == nil || !resp.Success {
 		t.Fatalf("drop: resp=%+v err=%v", resp, err)
@@ -62,7 +62,7 @@ func TestDropPartialStackKeepsRemainder(t *testing.T) {
 	general(s)[0] = slot(0, "rations", 5)
 
 	resp, _, err := inventory.HandleDropItemAction(s, p(map[string]interface{}{
-		"item_id": "rations", "slot": float64(0), "slot_type": "general", "quantity": float64(2),
+		"item_id": "rations", "from_slot": float64(0), "from_slot_type": "general", "quantity": float64(2),
 	}))
 	if err != nil || resp == nil || !resp.Success {
 		t.Fatalf("drop: resp=%+v err=%v", resp, err)
@@ -81,7 +81,7 @@ func TestUseConsumableDecrementsStack(t *testing.T) {
 	general(s)[0] = slot(0, "rations", 3)
 
 	resp, err := inventory.HandleUseItemAction(s, p(map[string]interface{}{
-		"item_id": "rations", "slot": float64(0),
+		"item_id": "rations", "from_slot": float64(0),
 	}))
 	if err != nil || resp == nil || !resp.Success {
 		t.Fatalf("use: resp=%+v err=%v", resp, err)
@@ -101,7 +101,7 @@ func TestUseSingleConsumableClearsSlotAndHeals(t *testing.T) {
 	general(s)[0] = slot(0, "healing", 1)
 
 	resp, err := inventory.HandleUseItemAction(s, p(map[string]interface{}{
-		"item_id": "healing", "slot": float64(0),
+		"item_id": "healing", "from_slot": float64(0),
 	}))
 	if err != nil || resp == nil || !resp.Success {
 		t.Fatalf("use: resp=%+v err=%v", resp, err)
@@ -130,7 +130,7 @@ func TestSplitThenUseKeepsStack(t *testing.T) {
 
 	// general[0] now holds an int quantity of 3.
 	resp, err := inventory.HandleUseItemAction(s, p(map[string]interface{}{
-		"item_id": "rations", "slot": float64(0),
+		"item_id": "rations", "from_slot": float64(0),
 	}))
 	if err != nil || resp == nil || !resp.Success {
 		t.Fatalf("use after split: resp=%+v err=%v", resp, err)

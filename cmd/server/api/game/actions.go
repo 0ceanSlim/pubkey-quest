@@ -118,6 +118,20 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	// Update encumbrance effects if this action modified inventory
 	updateEncumbranceIfNeeded(&session.SaveData, request.Action.Type, response)
 
+	// Non-combat death: an action that advances time (the world tick, waiting,
+	// travel) can drop HP to 0 via starvation or an environment hazard. Death is
+	// otherwise a combat-only check — combat runs on a separate PlayerCombatState,
+	// so save.HP only reaches 0 out of combat — so catch a lethal HP here and run
+	// the shared death flow. Skipped while a fight is active.
+	if session.ActiveCombat == nil && session.SaveData.HP <= 0 {
+		kept := ApplyDeath(&session.SaveData)
+		if response.Data == nil {
+			response.Data = make(map[string]interface{})
+		}
+		response.Data["death"] = map[string]any{"outcome": "defeat", "location": session.SaveData.Location, "loot_kept": kept}
+		response.Message = fmt.Sprintf("You have fallen. You wake in %s, stripped of your belongings — but your experience endures.", session.SaveData.Location)
+	}
+
 	// Update session in memory
 	if err := sessionMgr.UpdateSession(request.Npub, request.SaveID, session.SaveData); err != nil {
 		log.Printf("❌ Failed to update session: %v", err)
