@@ -12,7 +12,7 @@ import { API_BASE_URL } from '../config/constants.js';
 import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 // Registers window.openMillLogin and exposes the signer-restore helper. All
 // interactive login now goes through MILL (see systems/millLogin.js).
-import { restoreSignerFromSession } from '../systems/millLogin.js';
+import { restoreSignerFromSession, clearMillSigner } from '../systems/millLogin.js';
 
 // Session status enum
 export const SessionStatus = {
@@ -61,7 +61,7 @@ class SessionManager {
                 logger.info('Found active session');
                 // Rebuild the client-side signer (window.nostr) from MILL's
                 // persisted state so signing survives a page reload.
-                restoreSignerFromSession();
+                restoreSignerFromSession(this.sessionData);
                 this.startSessionMonitoring();
                 this.isInitialized = true;
                 this.emit('sessionReady', this.sessionData);
@@ -332,6 +332,7 @@ class SessionManager {
         }
 
         localStorage.removeItem('pubkey_quest_session_meta');
+        clearMillSigner();
 
         this.emit('loggedOut');
     }

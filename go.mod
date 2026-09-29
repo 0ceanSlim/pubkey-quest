@@ -43,7 +43,7 @@ require (
 )
 
 require (
-	github.com/0ceanslim/grain v0.8.0-rc1
+	github.com/0ceanslim/grain v0.8.0-rc4
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-isatty v0.0.20 // indirect

@@ -111,7 +111,12 @@ export default defineConfig({
   // Resolve configuration
   resolve: {
     alias: {
-      '@': resolve(rootDir, 'src')
+      '@': resolve(rootDir, 'src'),
+      // nostr-mill >= 1.8's ESM build inlines the pomegranate (JSR) dependency
+      // but leaves its @noble/hashes v1 subpath imports external, which then
+      // resolve against mill's own @noble/hashes v2 and fail. The UMD build is
+      // self-contained (it's what grain serves), so bundle that instead.
+      'nostr-mill': resolve(rootDir, 'node_modules/nostr-mill/dist/mill.umd.js')
     }
   }
 });

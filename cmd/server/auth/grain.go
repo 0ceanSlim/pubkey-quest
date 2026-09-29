@@ -261,7 +261,7 @@ func (auth *AuthHandler) renderAmberRelay(w http.ResponseWriter, pubkeyHex, errM
 		(function () {
 			var event = ` + string(eventJSON) + `;
 			var error = ` + string(errorJSON) + `;
-			try { localStorage.setItem('mill:amber:result', JSON.stringify({ event: event, error: error })); } catch (e) {}
+			try { localStorage.setItem('mill:amber:result', JSON.stringify({ event: event, error: error, ts: Date.now() })); } catch (e) {}
 			try { if (window.opener) window.opener.postMessage({ amberEvent: event, amberError: error }, '*'); } catch (e) {}
 			if (error) {
 				var m = document.getElementById('msg');
