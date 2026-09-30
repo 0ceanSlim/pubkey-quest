@@ -168,6 +168,11 @@ function injectMillResponsiveStyles() {
             style.textContent = `
                 /* Long npub / bunker:// strings must wrap, never overflow the box. */
                 .mill-modal, .mill-modal * { overflow-wrap: anywhere; }
+                /* ...but buttons break only between words, and the pixel font
+                   needs real line-height or wrapped labels overlap. Short
+                   secondary buttons (Back) keep their width. */
+                .mill-btn { overflow-wrap: normal; line-height: 1.4; }
+                .mill-btn.ghost { flex-shrink: 0; white-space: nowrap; }
                 @media (max-width: 480px) {
                     .mill-overlay { padding: 10px !important; }
                     /* Reflow-shrink the fixed-px layout so the pixel font fits a phone. */
