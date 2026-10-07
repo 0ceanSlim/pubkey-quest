@@ -166,7 +166,7 @@ function render() {
             <div style="display:flex; flex-direction:column; gap:5px;">${unlocksHTML}</div>
         </div>
         <div style="padding:4px 8px; border-top:1px solid #444; display:flex; justify-content:space-between; align-items:center;">
-            <button onclick="window.jumpToCurrentLevel()" style="font-size:6px; color:#22d3ee; background:none; border:none; cursor:pointer; text-decoration:underline;">↩ jump to current</button>
+            ${row.is_current ? '<span></span>' : `<button onclick="window.jumpToCurrentLevel()" style="font-size:7px; color:#22d3ee; background:none; border:none; cursor:pointer; text-decoration:underline;">↩ jump to current</button>`}
             <span style="font-size:6px; color:#666;">← → keys to flip</span>
         </div>`;
 }

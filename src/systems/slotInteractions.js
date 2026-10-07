@@ -41,7 +41,7 @@ import {
     vaultOpen,
 } from './inventoryInteractions.js';
 
-const SLOT_SELECTOR = '[data-item-slot], [data-slot], [data-vault-slot], [data-container-slot]';
+const SLOT_SELECTOR = '[data-item-slot], [data-slot], [data-vault-entry], [data-container-slot]';
 const DRAG_THRESHOLD = 6;   // px of movement before a press becomes a drag
 const LONG_PRESS_MS = 500;  // touch long-press → context menu
 
@@ -92,11 +92,12 @@ export function initSlotInteractions() {
 function readDescriptor(el) {
     if (!el) return null;
     const itemId = el.getAttribute('data-item-id') || '';
-    if (el.hasAttribute('data-vault-slot')) {
+    if (el.hasAttribute('data-vault-entry')) {
+        // The vault has no slots — an entry is addressed by item id. The index is
+        // display order only, kept so drop targeting and no-op checks still work.
         return {
             surface: 'vault',
-            index: parseInt(el.getAttribute('data-vault-slot'), 10),
-            buildingId: el.getAttribute('data-vault-building'),
+            index: parseInt(el.getAttribute('data-vault-entry'), 10),
             itemId, el,
         };
     }
@@ -189,7 +190,6 @@ function beginDrag(src) {
     inventoryDragState.itemId = src.itemId;
     inventoryDragState.fromSlot = src.surface === 'equipment' ? src.slotName : src.index;
     inventoryDragState.fromType = src.surface;
-    if (src.surface === 'vault') inventoryDragState.vaultBuilding = src.buildingId;
 }
 
 function clearLegacyDragState() {
@@ -250,8 +250,8 @@ async function routeClick(src) {
 
     // Vault open: click moves between inventory and vault.
     if (vaultOpen) {
-        if (src.surface === 'vault') await withdrawFromVault(src.itemId, src.index);
-        else if (src.surface === 'general' || src.surface === 'inventory') await storeInVault(src.itemId, src.index, src.surface);
+        if (src.surface === 'vault') await withdrawFromVault(src.itemId);
+        else if (src.surface === 'general' || src.surface === 'inventory') await storeInVault(src.index, src.surface);
         return;
     }
 
@@ -308,9 +308,13 @@ async function routeDrop(src, tgt) {
         return;
     }
 
-    // Vault deposit / withdraw both run through move_item.
-    if (tgt.surface === 'vault') { await vaultMove(src, tgt.index, tgt.buildingId, 'vault'); return; }
-    if (src.surface === 'vault') { await vaultMove(src, tgt.index, src.buildingId, tgt.surface); return; }
+    // Vault deposit / withdraw. Where you drop inside the vault doesn't matter —
+    // it's one unordered pool — and a withdrawal lands wherever it fits.
+    if (tgt.surface === 'vault') {
+        if (src.surface === 'general' || src.surface === 'inventory') await storeInVault(src.index, src.surface);
+        return;
+    }
+    if (src.surface === 'vault') { await withdrawFromVault(src.itemId); return; }
 
     // Unequip by dropping equipment onto an inventory slot.
     if (src.surface === 'equipment') {
@@ -332,28 +336,6 @@ async function routeDrop(src, tgt) {
         await performAction('stack', src.itemId, src.index, tgt.index, src.surface, tgt.surface, showMessage, showVaultUI, showActionText);
     } else {
         await performAction('move', src.itemId, src.index, tgt.index, src.surface, tgt.surface, showMessage, showVaultUI, showActionText);
-    }
-}
-
-/** Vault transfer via move_item, with surgical delta + vault UI refresh. */
-async function vaultMove(src, toIndex, buildingId, toSurface) {
-    const params = src.surface === 'vault'
-        ? { item_id: src.itemId, from_slot: src.index, from_slot_type: 'vault', to_slot: toIndex, to_slot_type: toSurface === 'inventory' ? 'inventory' : 'general', vault_building: buildingId }
-        : { item_id: src.itemId, from_slot: src.index, from_slot_type: src.surface, to_slot: toIndex, to_slot_type: 'vault', vault_building: buildingId };
-    try {
-        const result = await gameAPI.sendAction('move_item', params);
-        if (result.success) {
-            if (result.delta) deltaApplier.applyDelta(result.delta);
-            await refreshGameState(true);
-            await updateCharacterDisplay();
-            const vaultData = result.delta?.vault_data;
-            if (vaultData) showVaultUI(vaultData);
-        } else {
-            showMessage(result.error || result.message || 'Failed to move item', 'error');
-        }
-    } catch (err) {
-        logger.error('vaultMove failed:', err);
-        showMessage('Failed to move item', 'error');
     }
 }
 
@@ -464,8 +446,14 @@ function onHoverMove(e) {
     tip.appendChild(document.createTextNode(' ' + (itemData.name || desc.itemId)));
 
     tip.style.display = 'block';
-    tip.style.left = `${e.clientX + 14}px`;
-    tip.style.top = `${e.clientY + 14}px`;
+    // The inventory hugs the right edge, so flip to the cursor's other side
+    // whenever the label would run off-screen.
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + w > window.innerWidth - 4) x = Math.max(4, e.clientX - 14 - w);
+    if (y + h > window.innerHeight - 4) y = Math.max(4, e.clientY - 14 - h);
+    tip.style.left = `${x}px`;
+    tip.style.top = `${y}px`;
 }
 
 function hideTip() {

@@ -191,9 +191,11 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		startingCity = "millhaven"
 	}
 
-	// 10. Generate starting vault
-	startingVault := generateStartingVault(startingCity)
-	vaults := []map[string]interface{}{startingVault}
+	// 10. The vault is one shared store (schema v4), so there is nothing to
+	// generate — it starts empty. What a new character does get is the home
+	// keeper's acceptance: your own city's keeper knows you, so that door opens
+	// from the start. Every other city's keeper must still be won over.
+	vaultKeepers := startingVaultKeepers(database, startingCity)
 
 	// 12. Use location IDs directly (not display names)
 	// startingCity is already an ID like "millhaven", "verdant", etc.
@@ -242,7 +244,7 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		CurrentDay:          1,
 		TimeOfDay:           720, // Noon (12 PM) - stored in minutes (720 = 12*60)
 		Inventory:           inventory,
-		Vaults:              vaults,
+		VaultKeepers:        vaultKeepers,
 		KnownSpells:         knownSpells,
 		SpellSlots:          spellSlots,
 		LocationsDiscovered: []string{startingCity}, // Only the city ID, not districts

@@ -967,7 +967,14 @@ function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval
                 // settle phase) so the visual lands as the user reads the
                 // damage number. Guard against stale renders.
                 const drainAt = atAbsolute + DICE_TUMBLE_MS;
-                const isPlayerAttack = /^\s*You deal/i.test(line);
+                // Damage the PLAYER dealt (drain the monster bar) vs. damage the
+                // monster dealt (drain the player bar). Player damage lines:
+                //   weapon      "You deal N damage"
+                //   auto spell  "You cast X — it strikes automatically for N damage"
+                //   attack spell "💥 X strikes for N damage"
+                //   save spell  "✔ X resists — N damage (half)" / "✘ X fails — N damage"
+                // A monster hit reads "<Name> deals N damage", which matches none.
+                const isPlayerAttack = /^(You |💥|✔|✘)/.test(line);
                 const ctxCs = gridCtx?.cs ?? null;
                 setTimeout(() => {
                     if (ctxCs && _lastState !== ctxCs) return;

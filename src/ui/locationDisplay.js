@@ -1044,6 +1044,10 @@ export async function talkToNPC(npcId) {
 export function showNPCDialogue(dialogueData, npcMessage) {
     logger.debug('Showing NPC dialogue:', dialogueData);
 
+    // The People list stays clickable under the vault overlay — starting a
+    // conversation closes the vault rather than typing the NPC's line behind it.
+    if (window.vaultOpen) closeVaultUI();
+
     // NPC speech goes into the on-scene speech box (M6), not the side log. It types
     // out and the option strip is withheld until it finishes — see the end of this
     // function, after the strip is built.
@@ -1516,8 +1520,14 @@ async function bookShow(showId, npcId) {
 }
 
 /**
- * Show vault UI overlay (40 slots over main scene)
- * @param {Object} vaultData - Vault data with slots
+ * Show the vault overlay.
+ *
+ * The vault is one shared store reached from any keeper's door, and it has no
+ * slots: contents are a flat list of {item_id, quantity} entries with no stack
+ * ceiling and no capacity limit. So the grid is drawn from the entries the
+ * server sent and grows as they do — it scrolls rather than running out of room.
+ *
+ * @param {Object} vaultData - { entries: [{item_id, quantity}], keepers: [] }
  */
 export function showVaultUI(vaultData) {
     // Get scene container to overlay on top of it
@@ -1560,26 +1570,33 @@ export function showVaultUI(vaultData) {
     header.appendChild(closeButton);
     vaultContainer.appendChild(header);
 
-    // Vault slots grid (40 slots in 8x5 grid)
-    const slotsGrid = document.createElement('div');
-    slotsGrid.className = 'grid grid-cols-8 gap-1 flex-1';
-    slotsGrid.id = 'vault-slots-grid';
-    slotsGrid.style.gridAutoRows = '1fr';
+    // Entry grid. Fixed-size cells in a scrolling area, so an ever-growing vault
+    // never squeezes the cells down to nothing.
+    const entriesGrid = document.createElement('div');
+    entriesGrid.className = 'grid grid-cols-8 gap-1 flex-1 overflow-y-auto content-start';
+    entriesGrid.id = 'vault-entries-grid';
+    entriesGrid.style.gridAutoRows = 'min-content';
 
-    const slots = vaultData.slots || [];
-    for (let i = 0; i < 40; i++) {
-        const slotData = slots[i] || { slot: i, item: null, quantity: 0 };
-        const slotElement = createVaultSlot(slotData, i, vaultData.building || vaultData.location);
-        slotsGrid.appendChild(slotElement);
+    const entries = vaultData?.entries || [];
+    entries.forEach((entry, i) => {
+        entriesGrid.appendChild(createVaultEntry(entry, i));
+    });
+
+    if (entries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-gray-500 text-center';
+        empty.style.cssText = 'grid-column: 1 / -1; font-size: 8px; padding: 16px 0;';
+        empty.textContent = 'The vault is empty.';
+        entriesGrid.appendChild(empty);
     }
 
-    vaultContainer.appendChild(slotsGrid);
+    vaultContainer.appendChild(entriesGrid);
 
     // Instructions
     const instructions = document.createElement('div');
     instructions.className = 'text-gray-400 text-center mt-1';
     instructions.style.fontSize = '8px';
-    instructions.textContent = 'Click inventory items to store. Click vault items to withdraw.';
+    instructions.textContent = 'Click inventory items to store. Click vault items to withdraw. Containers must be empty.';
     vaultContainer.appendChild(instructions);
 
     vaultOverlay.appendChild(vaultContainer);
@@ -1596,65 +1613,53 @@ export function showVaultUI(vaultData) {
         }
     });
 
-    // Force DOM to update before binding events
-    requestAnimationFrame(() => {
-        if (window.inventoryInteractions && window.inventoryInteractions.bindInventoryEvents) {
-            window.inventoryInteractions.bindInventoryEvents();
-        }
-    });
-
-    logger.debug('showVaultUI: Vault UI refreshed with', vaultData?.slots?.length || 0, 'slots');
+    logger.debug('showVaultUI: refreshed with', entries.length, 'entries');
 }
 
 /**
- * Create a single vault slot element (styled like backpack slots)
- * @param {Object} slotData - Slot data with item and quantity
- * @param {number} slotIndex - Slot index (0-39)
- * @param {string} buildingId - Building ID for vault
- * @returns {HTMLElement} Vault slot element
+ * Create one vault entry cell (styled like backpack slots).
+ *
+ * Entries are addressed by item ID, not position — the index is display order
+ * only. Quantities are unbounded, so the count is always shown, even at 1.
+ *
+ * @param {Object} entry - { item_id, quantity }
+ * @param {number} index - Display position
+ * @returns {HTMLElement}
  */
-export function createVaultSlot(slotData, slotIndex, buildingId) {
-    const slot = document.createElement('div');
-    slot.className = 'vault-slot relative cursor-pointer hover:bg-gray-800 flex items-center justify-center';
+export function createVaultEntry(entry, index) {
+    const cell = document.createElement('div');
+    cell.className = 'vault-slot relative cursor-pointer hover:bg-gray-800 flex items-center justify-center';
     // Match backpack slot styling exactly
-    slot.style.cssText = `aspect-ratio: 1; background: #1a1a1a; border-top: 2px solid #000000; border-left: 2px solid #000000; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);`;
+    cell.style.cssText = `aspect-ratio: 1; background: #1a1a1a; border-top: 2px solid #000000; border-left: 2px solid #000000; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);`;
 
-    // Data attributes for drag-and-drop
-    slot.setAttribute('data-vault-slot', slotIndex);
-    slot.setAttribute('data-vault-building', buildingId);
-    slot.setAttribute('data-slot-type', 'vault');
+    // Data attributes for the pointer-interaction core (slotInteractions.js)
+    cell.setAttribute('data-vault-entry', index);
+    cell.setAttribute('data-slot-type', 'vault');
+    cell.setAttribute('data-item-id', entry.item_id);
 
-    if (slotData.item && slotData.quantity > 0) {
-        slot.setAttribute('data-item-id', slotData.item);
-
-        // Create image container
-        const imgDiv = document.createElement('div');
-        imgDiv.className = 'w-full h-full flex items-center justify-center p-1';
-        const img = document.createElement('img');
-        img.src = `/res/img/items/${slotData.item}.png`;
-        img.alt = slotData.item;
-        img.className = 'w-full h-full object-contain';
-        img.style.imageRendering = 'pixelated';
-        img.onerror = function() {
-            if (!this.dataset.fallbackAttempted) {
-                this.dataset.fallbackAttempted = 'true';
-                this.src = '/res/img/items/unknown.png';
-            }
-        };
-        imgDiv.appendChild(img);
-        slot.appendChild(imgDiv);
-
-        // Add quantity label if > 1
-        if (slotData.quantity > 1) {
-            const quantityLabel = document.createElement('div');
-            quantityLabel.className = 'absolute bottom-0 right-0 text-white';
-            quantityLabel.style.fontSize = '10px';
-            quantityLabel.textContent = `${slotData.quantity}`;
-            slot.appendChild(quantityLabel);
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'w-full h-full flex items-center justify-center p-1';
+    const img = document.createElement('img');
+    img.src = `/res/img/items/${entry.item_id}.png`;
+    img.alt = entry.item_id;
+    img.className = 'w-full h-full object-contain';
+    img.style.imageRendering = 'pixelated';
+    img.onerror = function() {
+        if (!this.dataset.fallbackAttempted) {
+            this.dataset.fallbackAttempted = 'true';
+            this.src = '/res/img/items/unknown.png';
         }
-    }
+    };
+    imgDiv.appendChild(img);
+    cell.appendChild(imgDiv);
 
-    return slot;
+    const quantityLabel = document.createElement('div');
+    quantityLabel.className = 'absolute bottom-0 right-0 text-white';
+    quantityLabel.style.cssText = 'font-size: 10px; text-shadow: 1px 1px 0 #000;';
+    quantityLabel.textContent = `${entry.quantity}`;
+    cell.appendChild(quantityLabel);
+
+    return cell;
 }
 
 /**

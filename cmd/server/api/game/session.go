@@ -8,6 +8,7 @@ import (
 
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/status"
+	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
@@ -205,7 +206,7 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"current_day":           sess.SaveData.CurrentDay,
 		"time_of_day":           sess.SaveData.TimeOfDay,
 		"inventory":             sess.SaveData.Inventory,
-		"vaults":                sess.SaveData.Vaults,
+		"vault":                 vault.Response(&sess.SaveData),
 		"known_spells":          sess.SaveData.KnownSpells,
 		"spell_slots":           sess.SaveData.SpellSlots,
 		"locations_discovered":  sess.SaveData.LocationsDiscovered,

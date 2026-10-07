@@ -156,8 +156,13 @@ function attachNameHover(el, text) {
         }
         _spellTip.textContent = text;
         _spellTip.style.display = 'block';
-        _spellTip.style.left = `${e.clientX + 12}px`;
-        _spellTip.style.top = `${e.clientY + 12}px`;
+        // Flip to the cursor's other side when the label would run off-screen.
+        const w = _spellTip.offsetWidth, h = _spellTip.offsetHeight;
+        let x = e.clientX + 12, y = e.clientY + 12;
+        if (x + w > window.innerWidth - 4) x = Math.max(4, e.clientX - 12 - w);
+        if (y + h > window.innerHeight - 4) y = Math.max(4, e.clientY - 12 - h);
+        _spellTip.style.left = `${x}px`;
+        _spellTip.style.top = `${y}px`;
     });
     el.addEventListener('mouseleave', () => { if (_spellTip) _spellTip.style.display = 'none'; });
 }

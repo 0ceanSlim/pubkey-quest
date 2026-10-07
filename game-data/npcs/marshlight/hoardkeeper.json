@@ -29,13 +29,14 @@
     "about_service": {
       "text": "The Warhoard holds the spoils of every battle our clan has won. Every orc of Marshlight may claim their share of storage—it is our right by blood and steel. But outsiders must prove themselves worthy. You will pay the Tribute of Iron, or you will store nothing here.",
       "options": [
+        "claim_birthright",
         "ask_about_tribute",
         "use_storage",
         "goodbye"
       ]
     },
     "ask_about_tribute": {
-      "text": "The Tribute of Iron is 65 gold. It is high because trust must be earned among warriors. Pay it, and I will grant you a cache in the hoard. Betray that trust, and you will learn why I am called Ironhide. Do we have an understanding?",
+      "text": "Tribute. Not coin — coin is what weak clans give. Bring steel. A battleaxe, whole and keen, for the war hoard. Buy it, loot it, take it off something that wanted it more — Grommash does not ask which.",
       "requirements": {
         "not_native": true,
         "not_registered": true
@@ -46,22 +47,32 @@
       ]
     },
     "pay_tribute": {
-      "text": "You have coin and courage. Good. *stamps iron marker* This mark is your claim. Your cache is in the lower vaults. Guard your key well—I do not replace what is lost.",
+      "text": "Hah! Good weight. It hangs with the others. You are in the hoard now, and here is what the hoard is: not a hole in my swamp. Every keeper's hoard is the one hoard, warded and shared. Leave your spoils with me, collect them in the golden city if that is where your feet go. Keys, not holes.",
       "action": "register_storage",
-      "cost": 65,
       "requirements": {
-        "gold": 65,
+        "items": [
+          {
+            "id": "battleaxe",
+            "quantity": 1
+          }
+        ],
         "not_registered": true
       },
-      "success": "Your tribute has been accepted. You may now store items in the Warhoard.",
-      "failure": "Your purse is light. Return with 65 gold if you wish to store here.",
+      "success": "Grommash accepted your tribute at the War Hoard. You may store items here.",
+      "failure": "No steel, no tribute. Bring Grommash a battleaxe.",
       "options": [
         "use_storage",
         "goodbye"
+      ],
+      "consume_items": [
+        {
+          "id": "battleaxe",
+          "quantity": 1
+        }
       ]
     },
     "use_storage": {
-      "text": "Follow. Do not touch what is not yours.",
+      "text": "Follow. Do not touch what is not yours. And know this of the hoard: it is not a pit in my swamp. It is the one hoard, warded, and every keeper holds a key — even the gold-counting lizard in his harbor. Leave your spoils. They will find you wherever you walk.",
       "action": "open_storage",
       "requirements": {
         "registered": true
@@ -79,6 +90,29 @@
     "goodbye": {
       "text": "Strength and steel. May your enemies fall swiftly.",
       "action": "end_dialogue"
+    },
+    "claim_birthright": {
+      "text": "You are of the clan. Then you have already paid, in blood that was not yours to give twice. No tribute. Your share of the hoard has waited for you.",
+      "action": "register_storage",
+      "requirements": {
+        "native": true,
+        "not_registered": true
+      },
+      "success": "Grommash granted your share of the War Hoard by right of blood.",
+      "failure": "There seems to be some irregularity. Speak with me again.",
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     }
+  },
+  "storage_config": {
+    "registration_fee": 0,
+    "registration_items": [
+      {
+        "id": "battleaxe",
+        "quantity": 1
+      }
+    ]
   }
 }

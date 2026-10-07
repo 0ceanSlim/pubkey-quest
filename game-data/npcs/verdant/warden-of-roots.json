@@ -29,13 +29,14 @@
     "about_service": {
       "text": "The Glade of Safekeeping is blessed by the eldest trees of this enclave. They store belongings within their hollow roots, keeping them safe from fire, rot, and thieves. Those born under the green canopy may use this gift freely. Others must offer a binding to attune a new hollow to their essence.",
       "options": [
+        "claim_birthright",
         "ask_about_offering",
         "use_storage",
         "goodbye"
       ]
     },
     "ask_about_offering": {
-      "text": "The Offering of Binding requires a gift of 60 gold or an equivalent in mana crystals. With this offering, I will sing the old songs and the trees will hollow a space for you, bound to your spirit alone. Once bound, you may return whenever the need arises.",
+      "text": "We take no coin here. The grove does not eat gold. Bring instead an offering the roots will recognise: a sprig of mistletoe, a measure of sap, and gathered pollen. Give these to the grove and it will know your scent, and open for you.",
       "requirements": {
         "not_native": true,
         "not_registered": true
@@ -46,22 +47,48 @@
       ]
     },
     "pay_offering": {
-      "text": "The trees accept your offering. Listen... can you hear them? They sing your name now. A hollow has been prepared. Come, I will show you.",
+      "text": "The roots take your offering... and hold. It is done. Understand what you have joined: the glade does not keep your goods here, in this soil. Every warden's grove draws from the same hollow beneath the world. Leave a thing with me and a keeper in the far mountains will hand it back to you.",
       "action": "register_storage",
-      "cost": 60,
       "requirements": {
-        "gold": 60,
+        "items": [
+          {
+            "id": "sprig-of-mistletoe",
+            "quantity": 1
+          },
+          {
+            "id": "tree-sap",
+            "quantity": 1
+          },
+          {
+            "id": "pollen",
+            "quantity": 1
+          }
+        ],
         "not_registered": true
       },
-      "success": "The trees have bound a hollow to your spirit. You may store items in the Glade of Safekeeping.",
-      "failure": "I sense your pockets are light. The offering requires 60 gold, friend.",
+      "success": "The grove accepted your offering. You may store items here.",
+      "failure": "The roots want mistletoe, sap and pollen. Return when you have gathered them.",
       "options": [
         "use_storage",
         "goodbye"
+      ],
+      "consume_items": [
+        {
+          "id": "sprig-of-mistletoe",
+          "quantity": 1
+        },
+        {
+          "id": "tree-sap",
+          "quantity": 1
+        },
+        {
+          "id": "pollen",
+          "quantity": 1
+        }
       ]
     },
     "use_storage": {
-      "text": "Place your hand upon the bark. The tree will open for you.",
+      "text": "Place your hand upon the bark. The tree will open for you. Do not be troubled that the hollow seems deeper than the trunk — it is. Every warden's grove reaches the same hollow beneath the world. What you leave in these roots, you may draw from any keeper's keeping.",
       "action": "open_storage",
       "requirements": {
         "registered": true
@@ -79,6 +106,37 @@
     "goodbye": {
       "text": "May the canopy shelter you, and may your path be ever green.",
       "action": "end_dialogue"
+    },
+    "claim_birthright": {
+      "text": "You were born under the green canopy. The roots know your scent already — they have known it since your first season. No offering is asked of you. Place your hand, child of the forest.",
+      "action": "register_storage",
+      "requirements": {
+        "native": true,
+        "not_registered": true
+      },
+      "success": "The grove opened for you; the roots knew you already.",
+      "failure": "There seems to be some irregularity. Speak with me again.",
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     }
+  },
+  "storage_config": {
+    "registration_fee": 0,
+    "registration_items": [
+      {
+        "id": "sprig-of-mistletoe",
+        "quantity": 1
+      },
+      {
+        "id": "tree-sap",
+        "quantity": 1
+      },
+      {
+        "id": "pollen",
+        "quantity": 1
+      }
+    ]
   }
 }

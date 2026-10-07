@@ -30,7 +30,7 @@ Every system below works and is architecturally sound, but **all of it carries a
 | Travel: start/stop/resume/turn back, progress %, arrival discovery, music unlock, travel fatigue | `game/travel/` |
 | Survival loop: hunger, fatigue, encumbrance — all data-driven through the effect system | `game/status/`, 28 effect JSONs |
 | Inventory: equip/unequip, containers, move/stack/split, weight | `game/inventory/` — ⚠️ **ground drop/pickup is NOT real**: drop destroys the item (no ground store), pickup is a no-op that lies. Fixed in M5.5 |
-| Economy: shops w/ pricing + stock, vaults (racial storage w/ rites), inn rooms/sleep, bard shows | `game/shop/`, `world/merchant.go`, `game/vault/`, `game/npc/housing.go`, `entertainment.go` |
+| Economy: shops w/ pricing + stock, the shared vault (one store, many keepers' doors — per-city registration by coin/goods/birthright), inn rooms/sleep, bard shows | `game/shop/`, `world/merchant.go`, `game/vault/`, `game/npc/housing.go`, `entertainment.go` |
 | Combat core: initiative, two-phase turns, 0–6 range, full weapon properties, ammo, opportunity attacks, disengage, dash/charge, Hold&Ready/Dodge, flee, death saves, loot, defeat penalty | `game/combat/`, `combat-overlay.html`, `combatSystem.js` — feels okay, as you said |
 | Spell **prep + casting (M4)**: prep queue (per-spell timers), shared shape-driven casting engine (mana + rune components, focus, concentration), combat + out-of-combat cast, combat spell/item panels | `game/spells/{prep,cast}.go`, `game/combat/cast.go`, `api/game/{spells,combat}.go`, 4 prep endpoints + `/api/combat/{cast,use-item}` |
 | Skills: 8 derived skills computed server-side | `api/game/skills.go`, `game-data/systems/skills.json` |

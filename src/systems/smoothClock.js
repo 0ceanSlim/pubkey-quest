@@ -13,6 +13,7 @@
  */
 
 import { logger } from '../lib/logger.js';
+import { eventBus } from '../lib/events.js';
 
 // Constants
 const TIME_MULTIPLIER = 144; // 144x real-time speed
@@ -247,6 +248,9 @@ class SmoothClock {
      */
     pause() {
         this.isPaused = true;
+        // Many systems pause the clock directly (combat, POI/encounter overlays,
+        // auto-pause) — announce it so the play/pause button can follow.
+        eventBus.emit('clock:pauseChanged', true);
         logger.debug('Clock paused');
     }
 
@@ -259,6 +263,7 @@ class SmoothClock {
         this.lastSyncRealTime = performance.now();
         this.lastSyncDay = this.gameDay;
         this.isPaused = false;
+        eventBus.emit('clock:pauseChanged', false);
         logger.debug('Clock unpaused');
     }
 

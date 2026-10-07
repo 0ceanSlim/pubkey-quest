@@ -9,14 +9,13 @@ import { logger } from '../lib/logger.js';
 import '../lib/session.js'; // Auto-initializes as window.sessionManager
 import { NostrCharacterGenerator } from '../logic/characterGenerator.js';
 import { getItemById } from '../state/staticData.js';
-import { generateStartingVault, getDisplayNamesForLocation } from '../data/characters.js';
+import { getDisplayNamesForLocation } from '../data/characters.js';
 import { createInventoryFromItems, addItemWithStacking } from '../data/inventory.js';
 import * as newGame from '../pages/newGame.js';
 
 // Make functions globally available
 window.characterGenerator = new NostrCharacterGenerator();
 window.getItemById = getItemById;
-window.generateStartingVault = generateStartingVault;
 window.getDisplayNamesForLocation = getDisplayNamesForLocation;
 window.createInventoryFromItems = createInventoryFromItems;
 window.addItemWithStacking = addItemWithStacking;

@@ -32,6 +32,7 @@
         {
           "id": "ember_vault",
           "name": "The Ember Vault",
+          "type": "vault",
           "description": "A place of fire and honor where dragonborn clan relics are preserved in magically sealed chests heated by dragonfire. The vaults are guarded by ancient draconic magic.",
           "open": "always",
           "close": null

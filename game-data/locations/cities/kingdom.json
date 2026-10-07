@@ -33,6 +33,7 @@
         {
           "id": "vault_of_crowns",
           "name": "The Vault of Crowns",
+          "type": "vault",
           "description": "The kingdom's official storage facility, funded by the crown to encourage trade and travel. Citizens and allies store goods freely as a royal right.",
           "open": "always",
           "close": null

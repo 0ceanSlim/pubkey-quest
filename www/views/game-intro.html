@@ -414,6 +414,23 @@
     transform: translate(2px, 2px);
   }
 
+  /* Disabled (e.g. "Confirm Choice" before a pick): the wipeIn animation fills
+     opacity to 1, so dimming has to beat it here rather than via a utility class. */
+  .pixel-continue-btn:disabled {
+    opacity: 0.4 !important;
+    filter: grayscale(1);
+    cursor: not-allowed;
+  }
+
+  .pixel-continue-btn:disabled:hover {
+    background: #ffd700;
+  }
+
+  .pixel-continue-btn:disabled:active {
+    box-shadow: none;
+    transform: none;
+  }
+
   /* Back Button - uses Win95 button from input.css */
   .pixel-back-btn {
     padding: 0.5rem 1rem;

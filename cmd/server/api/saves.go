@@ -45,7 +45,8 @@ type SaveListItem struct {
 	District            string                 `json:"district" example:"center"`
 	Building            string                 `json:"building" example:""`
 	Inventory           map[string]interface{} `json:"inventory"`
-	Vaults              []interface{}          `json:"vaults"`
+	Vault               []types.VaultEntry     `json:"vault"`
+	VaultKeepers        []string               `json:"vault_keepers"`
 	KnownSpells         []string               `json:"known_spells"`
 	SpellSlots          map[string]interface{} `json:"spell_slots"`
 	LocationsDiscovered []string               `json:"locations_discovered"`
@@ -170,7 +171,8 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 		saveMap["district"] = save.District
 		saveMap["building"] = save.Building
 		saveMap["inventory"] = save.Inventory
-		saveMap["vaults"] = save.Vaults
+		saveMap["vault"] = save.Vault
+		saveMap["vault_keepers"] = save.VaultKeepers
 		saveMap["known_spells"] = save.KnownSpells
 		saveMap["spell_slots"] = save.SpellSlots
 		saveMap["locations_discovered"] = save.LocationsDiscovered

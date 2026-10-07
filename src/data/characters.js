@@ -1,61 +1,17 @@
 /**
  * Character & Vault Data Module
  *
- * Handles character-related data operations including vault management
- * and location display name lookups.
+ * Handles character-related data operations and location display name lookups.
+ *
+ * Vault setup is not here: the vault is one shared, server-owned store, and a
+ * new character's home keeper is registered server-side at creation
+ * (cmd/server/api/character/create.go).
  *
  * @module data/characters
  */
 
 import { logger } from '../lib/logger.js';
 import { API_BASE_URL } from '../config/constants.js';
-
-/**
- * Generate empty starting vault for a location
- * @param {string} location - Location ID
- * @returns {Object} Vault object with 40 empty slots
- */
-export function generateStartingVault(location) {
-    const vaultSlots = [];
-    for (let i = 0; i < 40; i++) {
-        vaultSlots.push({
-            slot: i,
-            item: null,
-            quantity: 0
-        });
-    }
-
-    return {
-        location: location,
-        building: getVaultBuildingForLocation(location),
-        slots: vaultSlots
-    };
-}
-
-/**
- * Get vault building ID for a given location
- * @param {string} location - Location ID
- * @returns {string} Building ID for the vault
- */
-export function getVaultBuildingForLocation(location) {
-    const vaultBuildings = {
-        'kingdom': 'vault_of_crowns',
-        'village-west': 'burrowlock',
-        'village-south': 'halfling_burrows',
-        'village-southeast': 'secure_cellars',
-        'village-southwest': 'stone_vaults',
-        'town-north': 'northwatch_vault',
-        'town-northeast': 'stormhold_storage',
-        'city-east': 'shadowhaven_vaults',
-        'city-south': 'coastal_storage',
-        'forest-kingdom': 'silverwood_treasury',
-        'hill-kingdom': 'ironforge_vaults',
-        'mountain-northeast': 'draconis_hoard',
-        'swamp-kingdom': 'mire_keep_storage'
-    };
-
-    return vaultBuildings[location] || 'vault_of_crowns';
-}
 
 /**
  * Convert location/district/building IDs to display names

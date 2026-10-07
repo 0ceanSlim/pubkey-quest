@@ -30,6 +30,7 @@
         {
           "id": "war_hoard",
           "name": "The Warhoard",
+          "type": "vault",
           "description": "Communal caches where orcs store spoils of war. Battle-scarred vaults in the lower levels, guarded fiercely by the clan's most trusted warriors.",
           "open": "always",
           "close": null

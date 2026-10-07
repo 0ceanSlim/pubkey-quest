@@ -4,39 +4,192 @@ import (
 	"testing"
 
 	"pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/game/vault"
+	"pubkey-quest/types"
 )
 
-// Vault deposit/withdraw are really HandleMoveItemAction with a vault endpoint.
+// The vault is one shared, slot-less pool that ignores stack limits, reached
+// through any keeper who has accepted the player (schema v4). Deposit and
+// withdraw are their own actions, not slot swaps.
 func TestVaultRoundTrip(t *testing.T) {
 	setup(t)
 	s := newSave(4, 20)
-	makeVault(s, "bank", 40)
+	registerVault(s, "bank")
 	general(s)[0] = slot(0, "longsword", 1)
 
-	deposit := func(fromType, toType string, from, to int) {
-		t.Helper()
-		resp, err := inventory.HandleMoveItemAction(s, p(map[string]interface{}{
-			"item_id": "longsword", "from_slot": float64(from), "to_slot": float64(to),
-			"from_slot_type": fromType, "to_slot_type": toType, "vault_building": "bank",
-		}))
-		if err != nil || resp == nil || !resp.Success {
-			t.Fatalf("move %s->%s: resp=%+v err=%v", fromType, toType, resp, err)
-		}
+	if _, err := inventory.HandleVaultDeposit(s, "general", 0, 0); err != nil {
+		t.Fatalf("deposit: %v", err)
 	}
-
-	// Deposit general[0] -> vault[0]
-	deposit("general", "vault", 0, 0)
-	if got := slotItem(vaultSlots(s, "bank"), 0); got != "longsword" {
-		t.Errorf("vault[0] = %q, want longsword after deposit", got)
+	if got := vaultQty(s, "longsword"); got != 1 {
+		t.Errorf("vault holds %d longswords, want 1 after deposit", got)
 	}
 	if got := slotItem(general(s), 0); got != "" {
 		t.Errorf("general[0] = %q, want empty after deposit", got)
 	}
 
-	// Withdraw vault[0] -> general[0]
-	deposit("vault", "general", 0, 0)
-	if got := slotItem(general(s), 0); got != "longsword" {
-		t.Errorf("general[0] = %q, want longsword after withdraw", got)
+	if _, err := inventory.HandleVaultWithdraw(s, "longsword", 1); err != nil {
+		t.Fatalf("withdraw: %v", err)
+	}
+	if got := vaultQty(s, "longsword"); got != 0 {
+		t.Errorf("vault holds %d longswords, want 0 after withdraw", got)
+	}
+	// Placement is AddItemToInventory's business (it fills the backpack first
+	// for anything that may nest), so assert it came back, not where it sits.
+	if !carrying(s, "longsword") {
+		t.Error("longsword is not in the inventory after withdraw")
+	}
+}
+
+// carrying reports whether the player holds itemID in a general slot or the
+// backpack.
+func carrying(s *types.SaveFile, itemID string) bool {
+	for _, arr := range [][]interface{}{general(s), backpack(s)} {
+		for _, raw := range arr {
+			m, ok := raw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if id, _ := m["item"].(string); id == itemID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// The whole point of the rework: the vault ignores per-item stack limits, so
+// deposits of the same item pile into one unbounded entry.
+func TestVaultStacksBeyondItemStackLimit(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	registerVault(s, "bank")
+
+	// Rations cap well below this in inventory; the vault should not care.
+	for i := 0; i < 3; i++ {
+		general(s)[i] = slot(i, "rations", 20)
+		if _, err := inventory.HandleVaultDeposit(s, "general", i, 0); err != nil {
+			t.Fatalf("deposit %d: %v", i, err)
+		}
+	}
+
+	if got := vaultQty(s, "rations"); got != 60 {
+		t.Errorf("vault holds %d rations, want 60 merged into one entry", got)
+	}
+	if got := len(s.Vault); got != 1 {
+		t.Errorf("vault has %d entries, want 1 (same item merges)", got)
+	}
+}
+
+// Depositing part of a stack leaves the remainder in the slot.
+func TestVaultPartialDepositKeepsRemainder(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	registerVault(s, "bank")
+	general(s)[0] = slot(0, "rations", 5)
+
+	if _, err := inventory.HandleVaultDeposit(s, "general", 0, 2); err != nil {
+		t.Fatalf("deposit: %v", err)
+	}
+	if got := vaultQty(s, "rations"); got != 2 {
+		t.Errorf("vault holds %d rations, want 2", got)
+	}
+	if got := slotQty(general(s), 0); got != 3 {
+		t.Errorf("general[0] qty = %d, want 3 left behind", got)
+	}
+}
+
+// A withdrawal bigger than the carrying room comes back partial, and only what
+// was actually carried leaves the vault.
+func TestVaultWithdrawPartialWhenInventoryTight(t *testing.T) {
+	setup(t)
+	s := newSave(1, 0) // one general slot, no backpack
+	registerVault(s, "bank")
+	if err := vault.Deposit(s, "longsword", 5); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	resp, err := inventory.HandleVaultWithdraw(s, "longsword", 5)
+	if err != nil || resp == nil || !resp.Success {
+		t.Fatalf("withdraw: resp=%+v err=%v", resp, err)
+	}
+	carried := 5 - vaultQty(s, "longsword")
+	if carried <= 0 || carried >= 5 {
+		t.Errorf("carried %d of 5, want a partial withdrawal", carried)
+	}
+	if resp.Message == "" {
+		t.Error("want a message explaining the partial withdrawal")
+	}
+}
+
+// Vault containers are stored flat, so a container still holding things is
+// refused rather than silently unpacked.
+func TestVaultRefusesFullContainer(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	registerVault(s, "bank")
+	pouch := slot(0, "pouch", 1)
+	pouch["contents"] = []interface{}{slot(0, "rations", 1)}
+	general(s)[0] = pouch
+
+	resp, err := inventory.HandleVaultDeposit(s, "general", 0, 0)
+	if err != nil {
+		t.Fatalf("deposit: %v", err)
+	}
+	if resp.Success {
+		t.Error("deposit succeeded, want refusal for a full container")
+	}
+	if got := vaultQty(s, "pouch"); got != 0 {
+		t.Errorf("vault holds %d pouches, want 0 (refused)", got)
+	}
+	if got := slotItem(general(s), 0); got != "pouch" {
+		t.Errorf("general[0] = %q, want the pouch left alone", got)
+	}
+}
+
+// An emptied container deposits fine, and empty containers stack like anything
+// else in the vault.
+func TestVaultAcceptsEmptyContainersAndStacksThem(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	registerVault(s, "bank")
+	general(s)[0] = slot(0, "pouch", 1)
+	general(s)[1] = slot(1, "pouch", 1)
+
+	for i := 0; i < 2; i++ {
+		resp, err := inventory.HandleVaultDeposit(s, "general", i, 0)
+		if err != nil || !resp.Success {
+			t.Fatalf("deposit %d: resp=%+v err=%v", i, resp, err)
+		}
+	}
+	if got := vaultQty(s, "pouch"); got != 2 {
+		t.Errorf("vault holds %d pouches, want 2 stacked", got)
+	}
+}
+
+// Withdrawing a container must not smuggle it into the backpack — containers
+// never nest.
+func TestVaultWithdrawnContainerAvoidsBackpack(t *testing.T) {
+	setup(t)
+	s := newSave(4, 20)
+	registerVault(s, "bank")
+	if err := vault.Deposit(s, "pouch", 1); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	if _, err := inventory.HandleVaultWithdraw(s, "pouch", 1); err != nil {
+		t.Fatalf("withdraw: %v", err)
+	}
+	for i, raw := range backpack(s) {
+		m, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if id, _ := m["item"].(string); id == "pouch" {
+			t.Fatalf("pouch landed in backpack[%d]; containers must not nest", i)
+		}
+	}
+	if got := slotItem(general(s), 0); got != "pouch" {
+		t.Errorf("general[0] = %q, want the withdrawn pouch in a general slot", got)
 	}
 }
 

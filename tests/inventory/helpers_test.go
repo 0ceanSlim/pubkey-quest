@@ -13,8 +13,9 @@ import (
 	"testing"
 
 	"pubkey-quest/cmd/server/db"
-	"pubkey-quest/types"
+	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/tests/helpers"
+	"pubkey-quest/types"
 )
 
 // setup chdirs to the project root and opens the migrated www/game.db. The
@@ -67,7 +68,7 @@ func newSave(general, backpack int) *types.SaveFile {
 		Inventory: map[string]interface{}{
 			"general_slots": gen,
 			"gear_slots": map[string]interface{}{
-				"bag":        map[string]interface{}{"item": "backpack", "quantity": float64(1), "contents": bp},
+				"bag":      map[string]interface{}{"item": "backpack", "quantity": float64(1), "contents": bp},
 				"mainhand": emptyGear(),
 				"offhand":  emptyGear(),
 				"chest":    emptyGear(),
@@ -135,26 +136,17 @@ func slotQty(slots []interface{}, i int) int {
 	return 0
 }
 
-// makeVault appends a registered vault (loaded shape: slots as []interface{})
-// to the save and returns the building id.
-func makeVault(s *types.SaveFile, building string, slots int) {
-	vs := make([]interface{}, slots)
-	for i := range vs {
-		vs[i] = slot(i, "", 0)
-	}
-	if s.Vaults == nil {
-		s.Vaults = []map[string]interface{}{}
-	}
-	s.Vaults = append(s.Vaults, map[string]interface{}{"building": building, "slots": vs})
+// registerVault records a keeper who has accepted the player and stands them in
+// that building, which is what the vault actions require. There is only ever one
+// vault — registering a door does not create storage (schema v4).
+func registerVault(s *types.SaveFile, building string) {
+	vault.RegisterVault(s, building)
+	s.Building = building
 }
 
-func vaultSlots(s *types.SaveFile, building string) []interface{} {
-	for _, v := range s.Vaults {
-		if b, _ := v["building"].(string); b == building {
-			return v["slots"].([]interface{})
-		}
-	}
-	return nil
+// vaultQty is how many of itemID the shared vault holds.
+func vaultQty(s *types.SaveFile, itemID string) int {
+	return vault.Quantity(s, itemID)
 }
 
 // p is a tiny constructor for action param maps.

@@ -773,6 +773,21 @@ func handleUpdateTimeAction(state *SaveFile, params map[string]any) (*GameAction
 		log.Printf("⚠️ Session not found for delta: %s:%s", npub, saveID)
 	}
 
+	// Combat freezes the world clock, so a tick should never arrive mid-fight —
+	// unless the combat:started handoff was missed and the client's clock never
+	// paused (the "I'm in combat but it never showed" bug). Reconcile: don't
+	// advance time, and hand the live combat state back so the client drops into
+	// the fight on the very next tick, whatever caused the original miss.
+	if session != nil && session.ActiveCombat != nil {
+		return &GameActionResponse{
+			Success: true,
+			Data: map[string]interface{}{
+				"combat_started": true,
+				"combat":         buildStateResponse(session.ActiveCombat, state, session.ActiveCombat.Log),
+			},
+		}, nil
+	}
+
 	resp, err := gametime.HandleUpdateTimeAction(state, paramsIface, session, data.GetNPCIDsAtLocation)
 
 	// Resolve any spell prep tasks that finished during this time tick
@@ -791,24 +806,76 @@ func handleUpdateTimeAction(state *SaveFile, params map[string]any) (*GameAction
 	return nil, err
 }
 
-// handleVaultDepositAction deposits items into vault (uses existing move_item action for vault transfers)
-func handleVaultDepositAction(_ *SaveFile, _ map[string]any) (*GameActionResponse, error) {
-	// Vaults work like containers - use the container system
-	// This is handled by frontend calling move_item or add_to_container with vault as destination
+// handleVaultDepositAction moves a stack out of an inventory slot and into the
+// shared vault. The vault ignores stack limits, so the whole slot always fits —
+// the one thing it refuses is a container with anything still inside it, since
+// vault containers are stored flat.
+func handleVaultDepositAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	if !vault.IsVaultRegistered(state, state.Building) {
+		return nil, fmt.Errorf("no vault keeper here will open the vault for you")
+	}
+	slotType, _ := params["from_slot_type"].(string)
+	slotIndex, ok := paramInt(params["from_slot"])
+	if !ok {
+		return nil, fmt.Errorf("missing from_slot")
+	}
+
+	resp, err := inventory.HandleVaultDeposit(state, slotType, slotIndex, paramIntOr(params["quantity"], 0))
+	if err != nil {
+		return nil, err
+	}
 	return &GameActionResponse{
-		Success: true,
-		Message: "Item deposited to vault",
+		Success: resp.Success,
+		Message: resp.Message,
+		Error:   resp.Error,
+		Color:   resp.Color,
+		Delta:   resp.Delta,
 	}, nil
 }
 
-// handleVaultWithdrawAction withdraws items from vault (uses existing move_item action for vault transfers)
-func handleVaultWithdrawAction(_ *SaveFile, _ map[string]any) (*GameActionResponse, error) {
-	// Vaults work like containers - use the container system
-	// This is handled by frontend calling move_item or remove_from_container with vault as source
+// handleVaultWithdrawAction takes a quantity of one item back out of the shared
+// vault and into the player's inventory. Carrying capacity still applies, so a
+// withdrawal can come back partial — or be refused outright when there is no
+// room at all.
+func handleVaultWithdrawAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	if !vault.IsVaultRegistered(state, state.Building) {
+		return nil, fmt.Errorf("no vault keeper here will open the vault for you")
+	}
+	itemID, _ := params["item_id"].(string)
+	if itemID == "" {
+		return nil, fmt.Errorf("missing item_id")
+	}
+
+	resp, err := inventory.HandleVaultWithdraw(state, itemID, paramIntOr(params["quantity"], 1))
+	if err != nil {
+		return nil, err
+	}
 	return &GameActionResponse{
-		Success: true,
-		Message: "Item withdrawn from vault",
+		Success: resp.Success,
+		Message: resp.Message,
+		Error:   resp.Error,
+		Color:   resp.Color,
+		Delta:   resp.Delta,
 	}, nil
+}
+
+// paramInt reads a JSON-decoded number that may arrive as float64 or int.
+func paramInt(raw any) (int, bool) {
+	switch v := raw.(type) {
+	case float64:
+		return int(v), true
+	case int:
+		return v, true
+	}
+	return 0, false
+}
+
+// paramIntOr is paramInt with a fallback for an absent or unreadable value.
+func paramIntOr(raw any, fallback int) int {
+	if n, ok := paramInt(raw); ok {
+		return n
+	}
+	return fallback
 }
 
 // handleMoveItemAction moves/swaps items between inventory slots
@@ -947,7 +1014,7 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"current_day":           session.SaveData.CurrentDay,
 			"time_of_day":           session.SaveData.TimeOfDay,
 			"inventory":             session.SaveData.Inventory,
-			"vaults":                session.SaveData.Vaults,
+			"vault":                 vault.Response(&session.SaveData),
 			"known_spells":          session.SaveData.KnownSpells,
 			"spell_slots":           session.SaveData.SpellSlots,
 			"locations_discovered":  session.SaveData.LocationsDiscovered,
@@ -1081,8 +1148,7 @@ func handleOpenVaultAction(state *SaveFile, _ map[string]any) (*GameActionRespon
 		return nil, fmt.Errorf("not in a building")
 	}
 
-	vaultData := vault.GetVaultForLocation(state, buildingID)
-	if vaultData == nil {
+	if !vault.IsVaultRegistered(state, buildingID) {
 		return nil, fmt.Errorf("no vault registered at this location")
 	}
 
@@ -1090,7 +1156,7 @@ func handleOpenVaultAction(state *SaveFile, _ map[string]any) (*GameActionRespon
 		Success: true,
 		Message: "Vault opened",
 		Delta: map[string]any{
-			"vault": vaultData,
+			"vault": vault.Response(state),
 		},
 	}, nil
 }

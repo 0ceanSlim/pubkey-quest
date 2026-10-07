@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/types"
 )
 
@@ -831,20 +832,18 @@ func getAutoUnlockMusicTracks(database *sql.DB) []string {
 // VAULT GENERATION
 // ============================================================================
 
-func generateStartingVault(locationID string) map[string]interface{} {
-	slots := []map[string]interface{}{}
-	for i := 0; i < 40; i++ {
-		slots = append(slots, map[string]interface{}{
-			"slot":     i,
-			"item":     nil,
-			"quantity": 0,
-		})
+// startingVaultKeepers returns the vault doors a new character can already open:
+// just the one in their home city, whose keeper counts them a local. The vault
+// behind it is shared and starts empty (schema v4). Returns nil when the city
+// has no vault building, which simply means the player registers elsewhere.
+func startingVaultKeepers(database *sql.DB, locationID string) []string {
+	buildingID, err := building.FindBuildingIDByType(database, locationID, "vault")
+	if err != nil {
+		log.Printf("⚠️ No vault building in starting city %s: %v", locationID, err)
+		return nil
 	}
-
-	return map[string]interface{}{
-		"location": locationID,
-		"slots":    slots,
-	}
+	log.Printf("✅ Home vault keeper registered for new character: %s", buildingID)
+	return []string{buildingID}
 }
 
 // ============================================================================

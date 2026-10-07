@@ -11,7 +11,6 @@ import (
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/status"
-	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/types"
 )
 
@@ -530,21 +529,11 @@ func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) 
 	fromSlotType, _ := params["from_slot_type"].(string)
 	toSlotType, _ := params["to_slot_type"].(string)
 
-	// Get the appropriate slot arrays
+	// Get the appropriate slot arrays. The vault is deliberately absent here:
+	// it has no slots to swap into (schema v4 stores it as a flat, infinitely
+	// stacking pool), so deposits and withdrawals go through the dedicated
+	// vault_deposit / vault_withdraw actions instead.
 	var fromSlots, toSlots []interface{}
-	var vaultBuilding string
-
-	// Get vault building ID if dealing with vault
-	if params["vault_building"] != nil {
-		vaultBuilding, _ = params["vault_building"].(string)
-	}
-	// Fall back to the building the player is standing in. The client reads the
-	// id from a data attribute that can be empty for some vaults (e.g. a vault
-	// stored in the legacy location format), which silently broke deposits in
-	// any town that wasn't the one whose vault first registered.
-	if (fromSlotType == "vault" || toSlotType == "vault") && vaultBuilding == "" {
-		vaultBuilding = state.Building
-	}
 
 	// Get from slots
 	switch fromSlotType {
@@ -562,16 +551,6 @@ func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) 
 			return nil, fmt.Errorf("invalid backpack")
 		}
 		fromSlots = contents
-	case "vault":
-		vaultData := vault.GetVaultForLocation(state, vaultBuilding)
-		if vaultData == nil {
-			return nil, fmt.Errorf("vault not found for building: %s", vaultBuilding)
-		}
-		slots, ok := vaultData["slots"].([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid vault slots")
-		}
-		fromSlots = slots
 	}
 
 	// Get to slots
@@ -590,16 +569,6 @@ func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) 
 			return nil, fmt.Errorf("invalid backpack")
 		}
 		toSlots = contents
-	case "vault":
-		vaultData := vault.GetVaultForLocation(state, vaultBuilding)
-		if vaultData == nil {
-			return nil, fmt.Errorf("vault not found for building: %s", vaultBuilding)
-		}
-		slots, ok := vaultData["slots"].([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid vault slots")
-		}
-		toSlots = slots
 	}
 
 	// CRITICAL VALIDATION: Containers cannot go into backpack
@@ -730,28 +699,10 @@ func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) 
 		log.Printf("✅ Swapped slots: %s[%d] ↔ %s[%d]", fromSlotType, fromSlot, toSlotType, toSlot)
 	}
 
-	// If vault was involved, return updated vault data
-	delta := map[string]interface{}{}
-	if fromSlotType == "vault" || toSlotType == "vault" {
-		log.Printf("🏦 Vault involved: from=%s, to=%s, building=%s", fromSlotType, toSlotType, vaultBuilding)
-		vaultData := vault.GetVaultForLocation(state, vaultBuilding)
-		if vaultData != nil {
-			delta["vault_data"] = vaultData
-			log.Printf("✅ Returning updated vault data with %d slots", len(vaultData["slots"].([]interface{})))
-		} else {
-			log.Printf("⚠️ Vault not found for building: %s", vaultBuilding)
-		}
-	}
-
-	response := &types.GameActionResponse{
+	return &types.GameActionResponse{
 		Success: true,
 		Message: "", // Suppressed - no need to show success message for moves
-	}
-	if len(delta) > 0 {
-		response.Delta = delta
-	}
-
-	return response, nil
+	}, nil
 }
 
 // HandleStackItemAction stacks items together

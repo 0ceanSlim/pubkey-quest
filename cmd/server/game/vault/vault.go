@@ -1,149 +1,121 @@
+// Package vault is the player's shared store. There is exactly one vault per
+// character, reached from any keeper's door the player has been accepted at:
+// the keepers hold keys to the same warded space, so what you leave in Ironpeak
+// you collect in Goldenhaven.
+//
+// Two facts live in the save and neither is derivable (roadmap §4):
+//   - SaveFile.Vault — the contents, one entry per item ID, quantity unbounded.
+//     The vault deliberately ignores per-item stack limits; stacks are an
+//     inventory-carrying constraint, not a storage one.
+//   - SaveFile.VaultKeepers — the building IDs whose keeper has accepted the
+//     player. Access is per-city (you still have to make amends with each
+//     keeper); the contents behind every door are the same.
 package vault
 
 import (
+	"fmt"
 	"log"
+	"slices"
 
 	"pubkey-quest/types"
 )
 
-// IsVaultRegistered checks if a vault is registered at the specified building
+// IsVaultRegistered reports whether the keeper at buildingID has accepted the
+// player, i.e. whether this door opens onto the shared vault.
 func IsVaultRegistered(state *types.SaveFile, buildingID string) bool {
-	if state.Vaults == nil {
-		return false
-	}
-	for _, vault := range state.Vaults {
-		// Check new format (building field)
-		if building, ok := vault["building"].(string); ok {
-			if building == buildingID {
-				return true
-			}
-		} else if location, ok := vault["location"].(string); ok {
-			// Check old format (location field) - match if we're at that location
-			if location == state.Location {
-				return true
-			}
-		}
-	}
-	return false
+	return buildingID != "" && slices.Contains(state.VaultKeepers, buildingID)
 }
 
-// RegisterVault registers a new vault at the specified building
+// RegisterVault records that the keeper at buildingID has accepted the player.
+// Registering a second door does not create a second vault — it just adds
+// another way into the one that already exists.
 func RegisterVault(state *types.SaveFile, buildingID string) {
-	if state.Vaults == nil {
-		state.Vaults = []map[string]interface{}{}
+	if buildingID == "" || IsVaultRegistered(state, buildingID) {
+		return
 	}
-
-	// Check if already registered
-	for _, vault := range state.Vaults {
-		if building, ok := vault["building"].(string); ok && building == buildingID {
-			return // Already registered
-		}
-	}
-
-	// Create new vault with 40 empty slots
-	slots := make([]map[string]interface{}, 40)
-	for i := range 40 {
-		slots[i] = map[string]interface{}{
-			"slot":     i,
-			"item":     nil,
-			"quantity": 0,
-		}
-	}
-
-	vault := map[string]interface{}{
-		"building": buildingID,
-		"slots":    slots,
-	}
-
-	state.Vaults = append(state.Vaults, vault)
-	log.Printf("✅ Registered vault at %s", buildingID)
+	state.VaultKeepers = append(state.VaultKeepers, buildingID)
+	log.Printf("✅ Vault keeper at %s accepted the player (%d door(s) now open)", buildingID, len(state.VaultKeepers))
 }
 
-// GetVaultForLocation returns the vault for the specified building
-func GetVaultForLocation(state *types.SaveFile, buildingID string) map[string]interface{} {
-	if state.Vaults == nil {
-		return nil
-	}
-
-	for _, vault := range state.Vaults {
-		// Check new format (building field)
-		if building, ok := vault["building"].(string); ok && building == buildingID {
-			return vault
-		}
-		// Check old format (location field) - return if we're at that location
-		if location, ok := vault["location"].(string); ok && location == state.Location {
-			return vault
+// Contents returns the shared vault's entries, skipping anything that decayed
+// to a non-positive quantity.
+func Contents(state *types.SaveFile) []types.VaultEntry {
+	out := make([]types.VaultEntry, 0, len(state.Vault))
+	for _, e := range state.Vault {
+		if e.ItemID != "" && e.Quantity > 0 {
+			out = append(out, e)
 		}
 	}
+	return out
+}
 
+// Quantity returns how many of itemID the vault holds.
+func Quantity(state *types.SaveFile, itemID string) int {
+	for _, e := range state.Vault {
+		if e.ItemID == itemID {
+			return e.Quantity
+		}
+	}
+	return 0
+}
+
+// Deposit adds qty of itemID to the shared vault, merging into the existing
+// entry when there is one. There is no capacity limit and no stack ceiling, so
+// this only fails on nonsense input.
+func Deposit(state *types.SaveFile, itemID string, qty int) error {
+	if itemID == "" {
+		return fmt.Errorf("no item to deposit")
+	}
+	if qty <= 0 {
+		return fmt.Errorf("cannot deposit %d of %s", qty, itemID)
+	}
+	for i := range state.Vault {
+		if state.Vault[i].ItemID == itemID {
+			state.Vault[i].Quantity += qty
+			return nil
+		}
+	}
+	state.Vault = append(state.Vault, types.VaultEntry{ItemID: itemID, Quantity: qty})
 	return nil
 }
 
-// HandleVaultDepositAction deposits items into vault (uses existing move_item action for vault transfers)
-func HandleVaultDepositAction(_ *types.SaveFile, _ map[string]interface{}) (*types.GameActionResponse, error) {
-	// Vaults work like containers - use the container system
-	// This is handled by frontend calling move_item or add_to_container with vault as destination
-	return &types.GameActionResponse{
-		Success: true,
-		Message: "Item deposited to vault",
-	}, nil
+// Withdraw removes qty of itemID from the shared vault, dropping the entry when
+// it empties. It fails rather than partially withdrawing when the vault holds
+// less than asked.
+func Withdraw(state *types.SaveFile, itemID string, qty int) error {
+	if qty <= 0 {
+		return fmt.Errorf("cannot withdraw %d of %s", qty, itemID)
+	}
+	for i := range state.Vault {
+		if state.Vault[i].ItemID != itemID {
+			continue
+		}
+		if state.Vault[i].Quantity < qty {
+			return fmt.Errorf("vault holds only %d of %s", state.Vault[i].Quantity, itemID)
+		}
+		state.Vault[i].Quantity -= qty
+		if state.Vault[i].Quantity == 0 {
+			state.Vault = slices.Delete(state.Vault, i, i+1)
+		}
+		return nil
+	}
+	return fmt.Errorf("vault holds no %s", itemID)
 }
 
-// HandleVaultWithdrawAction withdraws items from vault (uses existing move_item action for vault transfers)
-func HandleVaultWithdrawAction(_ *types.SaveFile, _ map[string]interface{}) (*types.GameActionResponse, error) {
-	// Vaults work like containers - use the container system
-	// This is handled by frontend calling move_item or remove_from_container with vault as source
-	return &types.GameActionResponse{
-		Success: true,
-		Message: "Item withdrawn from vault",
-	}, nil
-}
-
-// HandleRegisterVaultAction registers a vault (called after payment)
-func HandleRegisterVaultAction(state *types.SaveFile, _ map[string]interface{}) (*types.GameActionResponse, error) {
-	buildingID := state.Building
-	if buildingID == "" {
-		return &types.GameActionResponse{
-			Success: false,
-			Error:   "not in a building",
-			Color:   "red",
-		}, nil
+// Response is the wire shape the client renders: the shared contents plus the
+// doors that open onto them. There are no slots — the UI grows to fit.
+func Response(state *types.SaveFile) map[string]interface{} {
+	entries := Contents(state)
+	wire := make([]map[string]interface{}, 0, len(entries))
+	for _, e := range entries {
+		wire = append(wire, map[string]interface{}{
+			"item_id":  e.ItemID,
+			"quantity": e.Quantity,
+		})
 	}
-
-	RegisterVault(state, buildingID)
-
-	return &types.GameActionResponse{
-		Success: true,
-		Message: "Vault registered successfully",
-		Color:   "green",
-	}, nil
-}
-
-// HandleOpenVaultAction returns vault data for UI
-func HandleOpenVaultAction(state *types.SaveFile, _ map[string]interface{}) (*types.GameActionResponse, error) {
-	buildingID := state.Building
-	if buildingID == "" {
-		return &types.GameActionResponse{
-			Success: false,
-			Error:   "not in a building",
-			Color:   "red",
-		}, nil
+	return map[string]interface{}{
+		"entries":  wire,
+		"keepers":  state.VaultKeepers,
+		"building": state.Building,
 	}
-
-	vault := GetVaultForLocation(state, buildingID)
-	if vault == nil {
-		return &types.GameActionResponse{
-			Success: false,
-			Error:   "no vault registered at this location",
-			Color:   "red",
-		}, nil
-	}
-
-	return &types.GameActionResponse{
-		Success: true,
-		Message: "Vault opened",
-		Delta: map[string]interface{}{
-			"vault": vault,
-		},
-	}, nil
 }

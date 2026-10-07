@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"slices"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/types"
@@ -33,7 +34,12 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 		}
 	}
 
-	log.Printf("📦 Adding %dx %s to inventory (max stack: %d)", quantity, itemID, maxStack)
+	// Containers never nest: a backpack can't go inside the backpack. move_item
+	// enforces this for drags, so honour it here too — otherwise withdrawing a
+	// pouch from the vault (or looting one) smuggles it into the bag.
+	isContainer := itemHasTag(itemData.Tags, "container")
+
+	log.Printf("📦 Adding %dx %s to inventory (max stack: %d, container: %t)", quantity, itemID, maxStack, isContainer)
 
 	// Get inventory slots
 	generalSlots, ok := inventory["general_slots"].([]interface{})
@@ -55,7 +61,7 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 	log.Printf("🔍 Inventory state: %d general slots, %d backpack slots", len(generalSlots), len(backpackSlots))
 
 	// STEP 1: Try to stack with existing items in backpack first
-	if backpackSlots != nil {
+	if backpackSlots != nil && !isContainer {
 		log.Printf("🔍 Checking backpack for existing %s stacks...", itemID)
 		for i, slotData := range backpackSlots {
 			if remaining <= 0 {
@@ -119,9 +125,9 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 		log.Printf("  ✅ Stacked %d in general[%d] (now %d)", canAdd, i, currentQty+canAdd)
 	}
 
-	// STEP 3: Fill empty backpack slots
+	// STEP 3: Fill empty backpack slots (never for containers — see above)
 	for i, slotData := range backpackSlots {
-		if remaining <= 0 {
+		if remaining <= 0 || isContainer {
 			break
 		}
 
@@ -201,4 +207,17 @@ func GetSlotQuantity(slot map[string]interface{}) int {
 	default:
 		return 0
 	}
+}
+
+// itemHasTag reports whether an item's tags JSON (as stored in the items table)
+// contains tag. A tags blob that won't parse is treated as untagged.
+func itemHasTag(tagsJSON, tag string) bool {
+	if tagsJSON == "" {
+		return false
+	}
+	var tags []string
+	if err := json.Unmarshal([]byte(tagsJSON), &tags); err != nil {
+		return false
+	}
+	return slices.Contains(tags, tag)
 }

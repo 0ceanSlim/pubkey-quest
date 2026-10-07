@@ -257,3 +257,94 @@ func AddGoldToInventory(inventory map[string]interface{}, goldAmount int) error 
 	log.Printf("❌ No empty slots available for gold")
 	return fmt.Errorf("no empty slots available for gold")
 }
+
+// CountItem returns how many of itemID the player is carrying, across general
+// slots and the backpack. Unlike PlayerHasItem it reads quantities, so it can
+// answer "do you have five of these?" — what an item turn-in needs.
+func CountItem(state *types.SaveFile, itemID string) int {
+	total := 0
+	for _, slots := range carriedSlotArrays(state) {
+		for _, raw := range slots {
+			slot, ok := raw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if id, _ := slot["item"].(string); id != itemID {
+				continue
+			}
+			switch v := slot["quantity"].(type) {
+			case float64:
+				total += int(v)
+			case int:
+				total += v
+			}
+		}
+	}
+	return total
+}
+
+// ConsumeItem removes quantity of itemID from the player's inventory, spending
+// whole or partial stacks as needed. It takes nothing unless the full amount is
+// available, so a failed turn-in never half-eats the player's goods.
+func ConsumeItem(state *types.SaveFile, itemID string, quantity int) bool {
+	if quantity <= 0 {
+		return true
+	}
+	if CountItem(state, itemID) < quantity {
+		return false
+	}
+
+	remaining := quantity
+	for _, slots := range carriedSlotArrays(state) {
+		for _, raw := range slots {
+			if remaining <= 0 {
+				return true
+			}
+			slot, ok := raw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if id, _ := slot["item"].(string); id != itemID {
+				continue
+			}
+			var held int
+			switch v := slot["quantity"].(type) {
+			case float64:
+				held = int(v)
+			case int:
+				held = v
+			default:
+				continue
+			}
+			if held <= 0 {
+				continue
+			}
+			if held > remaining {
+				slot["quantity"] = held - remaining
+				remaining = 0
+			} else {
+				remaining -= held
+				slot["item"] = nil
+				slot["quantity"] = 0
+			}
+		}
+	}
+	return remaining == 0
+}
+
+// carriedSlotArrays returns the slot arrays the player carries items in: the
+// general slots and the equipped backpack's contents.
+func carriedSlotArrays(state *types.SaveFile) [][]interface{} {
+	var out [][]interface{}
+	if generalSlots, ok := state.Inventory["general_slots"].([]interface{}); ok {
+		out = append(out, generalSlots)
+	}
+	if gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{}); ok {
+		if bag, ok := gearSlots["bag"].(map[string]interface{}); ok {
+			if contents, ok := bag["contents"].([]interface{}); ok {
+				out = append(out, contents)
+			}
+		}
+	}
+	return out
+}

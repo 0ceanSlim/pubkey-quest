@@ -11,7 +11,7 @@ import { logger } from '../lib/logger.js';
 import { showMessage } from '../ui/messaging.js';
 import { getItemById } from '../state/staticData.js';
 import { createInventoryFromItems, addItemWithStacking } from '../data/inventory.js';
-import { generateStartingVault, getDisplayNamesForLocation } from '../data/characters.js';
+import { getDisplayNamesForLocation } from '../data/characters.js';
 
 // Module state
 let generatedCharacter = null;
@@ -555,10 +555,7 @@ async function startAdventure() {
 
         logger.debug('Final character:', finalCharacter);
 
-        // Generate starting vault (40 slots, empty, city-based)
         const startingCity = generatedCharacter.city || 'kingdom';
-        const startingVault = generateStartingVault(startingCity);
-        logger.info('Generated vault for', startingCity, ':', startingVault);
 
         // Convert location IDs to display names for save file
         const displayNames = await getDisplayNamesForLocation(startingCity, 'center', '');
@@ -584,7 +581,6 @@ async function startAdventure() {
             district: displayNames.district,
             building: displayNames.building || '',
             inventory: inventory,
-            vault: startingVault,
             known_spells: generatedCharacter.spells || [],
             spell_slots: {},
             locations_discovered: [startingCity],

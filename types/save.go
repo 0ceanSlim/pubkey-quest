@@ -45,7 +45,10 @@ type SaveFile struct {
 	CurrentDay          int                      `json:"current_day"`
 	TimeOfDay           int                      `json:"time_of_day"` // Minutes in current day (0-1439, where 720=noon, 0=midnight)
 	Inventory           map[string]interface{}   `json:"inventory"`
-	Vaults              []map[string]interface{} `json:"vaults"`
+	// LegacyVaults is the pre-v4 per-building vault grid. Read only by the
+	// schema-v4 migration shim, which folds it into Vault/VaultKeepers and
+	// clears it. Never write it.
+	LegacyVaults        []map[string]interface{} `json:"vaults,omitempty"`
 	KnownSpells         []string                 `json:"known_spells"`
 	SpellSlots          map[string]interface{}   `json:"spell_slots"`
 	LocationsDiscovered []string                 `json:"locations_discovered"`
@@ -66,6 +69,12 @@ type SaveFile struct {
 	// so they never enter QuestsCompleted; this is the non-derivable runtime fact
 	// that gates "already done this period" (schema v3).
 	RepeatableQuests map[string]int `json:"repeatable_quests,omitempty"`
+
+	// Schema v4 fields: the vault is one shared store reached from every
+	// keeper's door (the keepers hold keys to the same space), replacing the
+	// pre-v4 per-building slot grids.
+	Vault        []VaultEntry `json:"vault,omitempty"`         // Shared vault contents; quantities are unbounded and ignore item stack limits
+	VaultKeepers []string     `json:"vault_keepers,omitempty"` // Building IDs whose keeper has accepted you; access is per-city, contents are shared
 	SchemaVersion   int             `json:"schema_version,omitempty"`   // Save schema version (see CurrentSchemaVersion)
 
 	InternalID          string                   `json:"-"`                        // Not serialized, used internally for file naming
@@ -75,7 +84,15 @@ type SaveFile struct {
 // CurrentSchemaVersion is the save schema version this build writes. The load
 // path stamps older saves up to this value (see the migration shim in the
 // session package).
-const CurrentSchemaVersion = 3
+const CurrentSchemaVersion = 4
+
+// VaultEntry is one kind of item in the shared vault. The vault deliberately
+// ignores per-item stack limits — one entry per item ID, quantity unbounded —
+// so Quantity is the only thing that grows as you deposit more.
+type VaultEntry struct {
+	ItemID   string `json:"item_id"`
+	Quantity int    `json:"quantity"`
+}
 
 // QuestProgress is one in-progress quest. ObjectiveCounts indexes the current
 // stage's objectives (e.g. slay 3 of 5). Completed quests live in

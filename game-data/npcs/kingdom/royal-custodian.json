@@ -29,6 +29,7 @@
     "about_service": {
       "text": "The Vault of Crowns is funded by the crown to encourage trade and prosperity. Citizens of the kingdom—Humans, Half-Elves, Half-Orcs, and Tieflings—may store their belongings here freely. Others must pay a one-time Royal Seal Fee to register their chest.",
       "options": [
+        "claim_birthright",
         "ask_about_fee",
         "use_storage",
         "goodbye"
@@ -46,7 +47,7 @@
       ]
     },
     "pay_fee": {
-      "text": "Excellent. Let me inscribe your name in the royal ledger... There. You are now registered. Your chest awaits in the vault. May it serve you well.",
+      "text": "Excellent. Let me inscribe your name in the royal ledger... There. You are now registered. And a word of explanation, since you have paid for it: the Vault of Crowns is one warded space, not a row of chests. Every custodian in the realm holds a key to the same space. Pay once here, and what you store reaches you anywhere a keeper will open their door — though each keeper does expect to be squared with first. Professional courtesy.",
       "action": "register_storage",
       "cost": 50,
       "requirements": {
@@ -61,7 +62,7 @@
       ]
     },
     "use_storage": {
-      "text": "Right this way. Your chest is secure and waiting.",
+      "text": "Right this way. And since you've not asked but every traveler eventually does: the Vault of Crowns is not a room full of chests. It is one warded space, and every custodian in the realm holds a key to it. Deposit here, withdraw in Ironpeak if that is where the road takes you. The crown finds it reduces paperwork.",
       "action": "open_storage",
       "requirements": {
         "registered": true
@@ -79,6 +80,20 @@
     "goodbye": {
       "text": "May the crown's protection follow you on your journey.",
       "action": "end_dialogue"
+    },
+    "claim_birthright": {
+      "text": "Of course — you are a citizen. No fee applies; the royal ledger already counts you. Let me simply inscribe the date... there. Your storage rights are confirmed, as the decree promises.",
+      "action": "register_storage",
+      "requirements": {
+        "native": true,
+        "not_registered": true
+      },
+      "success": "You claimed your storage rights at the Vault of Crowns by royal decree.",
+      "failure": "There seems to be some irregularity. Speak with me again.",
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     }
   },
   "storage_config": {
@@ -89,7 +104,6 @@
       "Tiefling"
     ],
     "registration_fee": 50,
-    "storage_slots": 40,
     "slot_type": "standard"
   }
 }

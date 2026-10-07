@@ -196,19 +196,44 @@ func HandleNPCDialogueChoiceActionWithSession(state *types.SaveFile, params map[
 	var actionResult string
 	switch action {
 	case "register_storage":
+		// What a keeper wants to let you in varies by city: coin, goods, or a
+		// favour already done (gated by requirements on the node). Gold and
+		// goods are both taken here, and only once everything checks out — so a
+		// short player never loses half the price.
 		cost, _ := choiceNode["cost"].(float64)
-		goldAmount := gameutil.GetGoldQuantity(state)
-		if goldAmount >= int(cost) {
-			if gameutil.DeductGold(state, int(cost)) {
-				vault.RegisterVault(state, state.Building)
-				actionResult, _ = choiceNode["success"].(string)
-			} else {
-				log.Printf("⚠️ Failed to deduct gold even though we had enough")
-				actionResult, _ = choiceNode["failure"].(string)
+		goods := ParseItemRequirements(choiceNode["consume_items"])
+
+		affordable := gameutil.GetGoldQuantity(state) >= int(cost)
+		for _, g := range goods {
+			if gameutil.CountItem(state, g.ID) < g.Quantity {
+				affordable = false
+				break
 			}
-		} else {
-			actionResult, _ = choiceNode["failure"].(string)
 		}
+
+		if !affordable {
+			actionResult, _ = choiceNode["failure"].(string)
+			break
+		}
+		if !gameutil.DeductGold(state, int(cost)) {
+			log.Printf("⚠️ Failed to deduct gold even though we had enough")
+			actionResult, _ = choiceNode["failure"].(string)
+			break
+		}
+		taken := true
+		for _, g := range goods {
+			if !gameutil.ConsumeItem(state, g.ID, g.Quantity) {
+				log.Printf("⚠️ Failed to take %dx %s even though the player had them", g.Quantity, g.ID)
+				taken = false
+				break
+			}
+		}
+		if !taken {
+			actionResult, _ = choiceNode["failure"].(string)
+			break
+		}
+		vault.RegisterVault(state, state.Building)
+		actionResult, _ = choiceNode["success"].(string)
 
 	case "rent_room":
 		cost, _ := choiceNode["cost"].(float64)
@@ -224,24 +249,23 @@ func HandleNPCDialogueChoiceActionWithSession(state *types.SaveFile, params map[
 		}
 
 	case "open_storage":
-		// Return vault data
-		vaultData := vault.GetVaultForLocation(state, state.Building)
-		if vaultData == nil {
-			log.Printf("❌ Vault not found for building: %s (Location: %s)", state.Building, state.Location)
-			log.Printf("📦 Available vaults: %+v", state.Vaults)
+		// One shared vault, many doors — this keeper just has to have accepted
+		// the player (see package vault).
+		if !vault.IsVaultRegistered(state, state.Building) {
+			log.Printf("❌ Keeper at %s has not accepted this player (registered: %v)", state.Building, state.VaultKeepers)
 			return &types.GameActionResponse{
 				Success: false,
-				Message: "Vault not found for this building",
+				Message: "This keeper won't open the vault for you yet",
 				Color:   "error",
 			}, nil
 		}
-		log.Printf("✅ Opening vault for building: %s", state.Building)
+		log.Printf("✅ Opening the shared vault via %s", state.Building)
 		return &types.GameActionResponse{
 			Success: true,
 			Message: responseText,
 			Color:   "yellow",
 			Delta: map[string]interface{}{
-				"open_vault": vaultData,
+				"open_vault": vault.Response(state),
 				"npc_dialogue": map[string]interface{}{
 					"action": "close",
 				},

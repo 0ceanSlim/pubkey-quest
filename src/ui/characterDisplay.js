@@ -24,8 +24,11 @@ import {
 let advancementDataCache = null;
 
 // ── Item rarity indicators ──────────────────────────────────────────────────
-// Common / uncommon / rare get an inner (inset) glow of the rarity color across
-// the slot; legendary / mythic get an outer glow border. Colors per the palette.
+// Uncommon and up recolor the slot's border in the rarity color; legendary /
+// mythic add a crisp inner ring. Hard edges only: a blurred box-shadow is a
+// rectangle, so it pokes past the slot's clip-path corner cutouts and reads as a
+// gradient smudge. Borders are clipped with the slot, so they follow the bevel.
+// Common items keep the plain bevel. Colors per the palette.
 const RARITY_COLORS = {
     common: '#c2bbb2',    // grey
     uncommon: '#336b3e',  // green
@@ -33,7 +36,8 @@ const RARITY_COLORS = {
     legendary: '#4f3663', // purple
     mythic: '#cdad36',    // yellow
 };
-const GLOW_RARITIES = new Set(['legendary', 'mythic']);
+const RING_RARITIES = new Set(['legendary', 'mythic']);
+const BEVEL_SIDES = ['borderTopColor', 'borderLeftColor', 'borderRightColor', 'borderBottomColor'];
 
 // Cached {itemId → rarity} map, built once from the static #all-items blob so the
 // inventory render doesn't re-parse the whole item list per slot.
@@ -55,18 +59,23 @@ function getItemRarity(itemId) {
     return (_rarityMap && _rarityMap[itemId]) || 'common';
 }
 
-// applyRarityIndicator tints a filled inventory slot by rarity: legendary/mythic
-// get an outer glow border around the whole slot; everything else gets an inner
-// (inset) glow of the rarity color across the slot.
+// applyRarityIndicator marks a filled slot by rarity (see the block comment
+// above). Equipment slots persist across renders, so the slot's own bevel is
+// remembered on first use and restored for common items.
 function applyRarityIndicator(slotDiv, itemId) {
     const rarity = getItemRarity(itemId);
-    const color = RARITY_COLORS[rarity] || RARITY_COLORS.common;
-    if (GLOW_RARITIES.has(rarity)) {
-        slotDiv.style.borderColor = color;
-        slotDiv.style.boxShadow = `0 0 6px 1px ${color}, inset 0 0 4px ${color}`;
-    } else {
-        slotDiv.style.boxShadow = `inset 0 0 6px 1px ${color}`;
+    if (!slotDiv.dataset.bevel) {
+        slotDiv.dataset.bevel = BEVEL_SIDES.map((side) => slotDiv.style[side]).join('|');
     }
+    if (rarity === 'common' || !RARITY_COLORS[rarity]) {
+        const bevel = slotDiv.dataset.bevel.split('|');
+        BEVEL_SIDES.forEach((side, i) => { slotDiv.style[side] = bevel[i]; });
+        slotDiv.style.boxShadow = '';
+        return;
+    }
+    const color = RARITY_COLORS[rarity];
+    slotDiv.style.borderColor = color;
+    slotDiv.style.boxShadow = RING_RARITIES.has(rarity) ? `inset 0 0 0 1px ${color}` : '';
 }
 
 /**

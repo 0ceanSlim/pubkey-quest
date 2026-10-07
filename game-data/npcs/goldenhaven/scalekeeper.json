@@ -29,13 +29,14 @@
     "about_service": {
       "text": "The Ember Vault was forged in dragonfire and sealed by the ancient pact. Those who carry dragonborn blood may claim a vault here by birthright—it is our heritage, passed down through flame and scale. Outsiders seeking to use our vaults must undergo the Flamebinding Rite and pay the appropriate tribute.",
       "options": [
+        "claim_birthright",
         "ask_about_rite",
         "use_storage",
         "goodbye"
       ]
     },
     "ask_about_rite": {
-      "text": "The Flamebinding Rite is a solemn ceremony. You must offer 70 gold as tribute to the ancestral flames. In return, I will bind a vault to your essence using dragonfire. Once bound, your possessions will be protected by the same magic that guards our clan relics. Few outsiders have earned this honor. Will you?",
+      "text": "The rite is simple and the rite is expensive, as all good rites are. Forty gold for the ember-wax, and two uncut gems — uncut, mind, I will know — to set in the seal. The hoard respects what glitters. It is not personal.",
       "requirements": {
         "not_native": true,
         "not_registered": true
@@ -46,22 +47,34 @@
       ]
     },
     "pay_rite": {
-      "text": "You have paid the tribute. Approach the flames. *breathes a controlled gout of golden fire* It is done. The vault recognizes you now. Your belongings will be safe here, guarded by dragonfire itself. Use this honor wisely.",
+      "text": "Ssss... the wax takes the gems, and the seal takes your name. Welcome to the Ember Vault, which is a grand name for something I should tell you plainly: it is not a room. It is the same warded hollow every keeper opens. I hold a key. So does the orc in his swamp, unfortunately. Your treasures are safe from all of us.",
       "action": "register_storage",
-      "cost": 70,
+      "cost": 40,
       "requirements": {
-        "gold": 70,
+        "gold": 40,
+        "items": [
+          {
+            "id": "rough-gem",
+            "quantity": 2
+          }
+        ],
         "not_registered": true
       },
-      "success": "The Flamebinding Rite is complete. You may now store items in the Ember Vault.",
-      "failure": "You lack the tribute required. The rite demands 70 gold.",
+      "success": "Zarithax sealed your rite at the Ember Vault. You may store items here.",
+      "failure": "Forty gold and two uncut gems. The hoard does not haggle.",
       "options": [
         "use_storage",
         "goodbye"
+      ],
+      "consume_items": [
+        {
+          "id": "rough-gem",
+          "quantity": 2
+        }
       ]
     },
     "use_storage": {
-      "text": "The flames will part for you. Enter, and know that your possessions are secure.",
+      "text": "The flames will part for you. Enter, and know that your possessions are secure — though not, strictly, here. The Ember Vault is a key, not a chamber. Every keeper turns the same lock. Your hoard follows you across the realm, which is either a marvel or a filing convenience, depending on your temperament.",
       "action": "open_storage",
       "requirements": {
         "registered": true
@@ -79,6 +92,29 @@
     "goodbye": {
       "text": "May the fire within you burn eternal. Farewell.",
       "action": "end_dialogue"
+    },
+    "claim_birthright": {
+      "text": "Ahh — scale and ember, you are kin. Then the rite was performed for you at hatching and the seal bears your bloodline already. Keep your gems. Even I do not charge the hoard's own children.",
+      "action": "register_storage",
+      "requirements": {
+        "native": true,
+        "not_registered": true
+      },
+      "success": "Your bloodline's seal was already set in the Ember Vault.",
+      "failure": "There seems to be some irregularity. Speak with me again.",
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     }
+  },
+  "storage_config": {
+    "registration_fee": 40,
+    "registration_items": [
+      {
+        "id": "rough-gem",
+        "quantity": 2
+      }
+    ]
   }
 }

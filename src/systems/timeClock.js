@@ -29,6 +29,12 @@ export function initTimeClock() {
 
     initDeltaSystem();
 
+    // Keep the play/pause button in step with the clock, however it was paused.
+    eventBus.on('clock:pauseChanged', (paused) => {
+        isPaused = paused;
+        updatePlayPauseButton();
+    });
+
     // Update button state
     updatePlayPauseButton();
 

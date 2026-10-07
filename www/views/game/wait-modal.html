@@ -1,9 +1,9 @@
 {{define "game/wait-modal.html"}}
 <!-- Wait Modal Overlay -->
-<div id="wait-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
-    <div class="relative bg-win95-bgDark m-2" style="border: 2px solid #808080; max-width: 300px; margin-left: auto; margin-right: auto; margin-top: 50px; pointer-events: auto;">
+<div id="wait-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none; overflow: hidden;">
+    <div class="relative bg-win95-bgDark m-2" style="border: 2px solid #808080; max-width: 300px; max-height: calc(100% - 16px); overflow-y: auto; margin: 8px auto 0; pointer-events: auto;">
         <!-- Title Bar -->
-        <div class="bg-gradient-to-r from-blue-900 to-blue-700 px-2 py-1 flex items-center justify-between">
+        <div class="bg-blue-800 px-2 py-1 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <span style="font-size: 12px;">🕐</span>
                 <span class="text-white font-bold" style="font-size: 9px;">Wait</span>
@@ -12,9 +12,9 @@
         </div>
 
         <!-- Wait Content -->
-        <div class="p-4 bg-win95-bgDark">
+        <div class="p-3 bg-win95-bgDark">
             <!-- Wait Duration Display -->
-            <div class="text-center mb-4">
+            <div class="text-center mb-3">
                 <div class="text-gray-400" style="font-size: 8px;">Wait Duration</div>
                 <div class="text-white font-bold" style="font-size: 14px;">
                     <span id="wait-duration-display">15 minutes</span>
@@ -25,7 +25,7 @@
             </div>
 
             <!-- Slider (15-360 minutes in 15 minute steps) -->
-            <div class="mb-4">
+            <div class="mb-3">
                 <input
                     type="range"
                     id="wait-slider"
@@ -49,7 +49,7 @@
             </div>
 
             <!-- Effects Preview -->
-            <div class="mb-4 p-2 bg-black bg-opacity-30 rounded" style="font-size: 7px;">
+            <div class="mb-3 p-2 bg-black bg-opacity-30 rounded" style="font-size: 7px;">
                 <div class="text-gray-400 mb-1">Expected effects:</div>
                 <div class="flex justify-between text-white">
                     <span>💤 Fatigue:</span>

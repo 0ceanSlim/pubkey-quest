@@ -133,6 +133,60 @@ func withinHours(open, close, t int) bool {
 }
 
 // findBuilding locates a building's raw JSON object within a location's districts.
+// FindBuildingIDByType returns the ID of the first building in locationID whose
+// resolved type is buildingType (e.g. the city's "vault"). Used where the caller
+// knows the kind of building it wants but not its name — the vault keeper's
+// door differs per city (vault_of_crowns, burrow_lock, war_hoard, …).
+func FindBuildingIDByType(db *sql.DB, locationID, buildingType string) (string, error) {
+	buildings, err := listBuildings(db, locationID)
+	if err != nil {
+		return "", err
+	}
+	for _, b := range buildings {
+		id, _ := b["id"].(string)
+		if id == "" {
+			continue
+		}
+		if t, _ := b["type"].(string); t == buildingType {
+			return id, nil
+		}
+	}
+	return "", fmt.Errorf("no %s building in %s", buildingType, locationID)
+}
+
+// listBuildings returns every building across every district of a location.
+func listBuildings(db *sql.DB, locationID string) ([]map[string]interface{}, error) {
+	var propertiesJSON string
+	if err := db.QueryRow("SELECT properties FROM locations WHERE id = ?", locationID).Scan(&propertiesJSON); err != nil {
+		return nil, fmt.Errorf("location not found: %s", locationID)
+	}
+	var locationData map[string]interface{}
+	if err := json.Unmarshal([]byte(propertiesJSON), &locationData); err != nil {
+		return nil, fmt.Errorf("failed to parse location data: %v", err)
+	}
+	districts, ok := locationData["districts"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("location has no districts")
+	}
+	var out []map[string]interface{}
+	for _, dd := range districts {
+		district, ok := dd.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		buildings, ok := district["buildings"].([]interface{})
+		if !ok {
+			continue
+		}
+		for _, bd := range buildings {
+			if b, ok := bd.(map[string]interface{}); ok {
+				out = append(out, b)
+			}
+		}
+	}
+	return out, nil
+}
+
 func findBuilding(db *sql.DB, locationID, buildingID string) (map[string]interface{}, error) {
 	var propertiesJSON string
 	if err := db.QueryRow("SELECT properties FROM locations WHERE id = ?", locationID).Scan(&propertiesJSON); err != nil {

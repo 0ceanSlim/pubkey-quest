@@ -29,13 +29,14 @@
     "about_service": {
       "text": "The Stonevault is clan heritage, carved deep into the mountain by the first dwarves who settled these peaks. Every dwarf has a vault here by birthright. But outsiders... well, ye'll need a vaultstone carved and keyed to ye personally. It's ancient work, precise work.",
       "options": [
+        "claim_birthright",
         "ask_about_engraving",
         "use_storage",
         "goodbye"
       ]
     },
     "ask_about_engraving": {
-      "text": "The Vaultstone Engraving Fee is 55 gold. I'll carve ye a personal stone, inscribed with your name and sealed with a lock only ye can open. Once it's done, your vault is yours for life. Dwarven stonework lasts forever, ye know.",
+      "text": "Coin? Bah. A name-plate's cut from honest metal, and the metal's yours to bring. Three measures of iron ore, a whetstone to true the chisel, and fifteen gold for the smith's coal. Mine it yourself if you've the arms for it — the Ironvein seam's not far.",
       "requirements": {
         "not_native": true,
         "not_registered": true
@@ -46,22 +47,42 @@
       ]
     },
     "pay_engraving": {
-      "text": "Good! Let me fetch my tools... *sound of hammer on stone* ...There! Your vaultstone is ready. She'll guard your treasures well. Come, I'll show ye to your vault.",
+      "text": "Hold still while I cut it... Thorin Ironledger's hand, your name, in the ledger-stone. Now mark this, since the deep confuses outsiders: the stone behind this door is the same stone behind every keeper's door. We vaultwrights hold the keys, not the hoards. Your gear follows you, not the mountain.",
       "action": "register_storage",
-      "cost": 55,
+      "cost": 15,
       "requirements": {
-        "gold": 55,
+        "gold": 15,
+        "items": [
+          {
+            "id": "iron-ore",
+            "quantity": 3
+          },
+          {
+            "id": "whetstone",
+            "quantity": 1
+          }
+        ],
         "not_registered": true
       },
-      "success": "Your vaultstone has been engraved. You may now store items in the Stonevault.",
-      "failure": "Ah, ye're short on coin. Come back when ye have 55 gold, friend.",
+      "success": "Thorin engraved your name at the Stonevault. You may store items here.",
+      "failure": "Three iron ore, a whetstone, fifteen gold. Come back when you've got them.",
       "options": [
         "use_storage",
         "goodbye"
+      ],
+      "consume_items": [
+        {
+          "id": "iron-ore",
+          "quantity": 3
+        },
+        {
+          "id": "whetstone",
+          "quantity": 1
+        }
       ]
     },
     "use_storage": {
-      "text": "Right this way. Mind the stairs—they're steep, but solid as the mountain itself.",
+      "text": "Right this way. Mind the stairs — they're steep, but solid as the mountain itself. And don't go thinking yer goods are buried in my mountain. One vault, lad, and every keeper's got a key to it. Stow yer pack here, pull it out in the elf-wood. We hold keys, not hoards.",
       "action": "open_storage",
       "requirements": {
         "registered": true
@@ -79,6 +100,33 @@
     "goodbye": {
       "text": "Stone and steel keep ye safe, friend. Until next time.",
       "action": "end_dialogue"
+    },
+    "claim_birthright": {
+      "text": "Ye're clan, aren't ye. Then yer name's already cut in the ledger-stone — yer grandmother's hand, by the look of it. No ore, no coin. The mountain doesn't charge its own.",
+      "action": "register_storage",
+      "requirements": {
+        "native": true,
+        "not_registered": true
+      },
+      "success": "Your name was already cut in the Stonevault's ledger-stone.",
+      "failure": "There seems to be some irregularity. Speak with me again.",
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     }
+  },
+  "storage_config": {
+    "registration_fee": 15,
+    "registration_items": [
+      {
+        "id": "iron-ore",
+        "quantity": 3
+      },
+      {
+        "id": "whetstone",
+        "quantity": 1
+      }
+    ]
   }
 }

@@ -29,13 +29,14 @@
     "about_service": {
       "text": "Every family in Millhaven has a storage burrow beneath their home—been that way for generations! Halflings and gnomes who live here use them freely, of course. But if you're from out of town, I'll need to carve you a new lock and key. Can't be too careful, you know, though I'm sure you're perfectly trustworthy!",
       "options": [
+        "claim_birthright",
         "ask_about_key",
         "use_storage",
         "goodbye"
       ]
     },
     "ask_about_key": {
-      "text": "The Burrow Key Fee is just 45 gold—very reasonable! I'll carve you a beautiful brass key, unique as a snowflake, and prepare a cozy little burrow just for you. Once you have your key, you can come and go as you please. I keep everything organized and tidy!",
+      "text": "Oh, it's no fee really — more a matter of fittings. Every burrow needs its own brass lock, and a pair of candles so you can see what you're reaching for. Bring me a lock and two candles, and ten gold for the cutting of the key, and I'll have your burrow fitted by supper.",
       "requirements": {
         "not_native": true,
         "not_registered": true
@@ -46,22 +47,42 @@
       ]
     },
     "pay_key_fee": {
-      "text": "Wonderful! Let me just... *tinkering sounds* ...there we are! One perfectly fitted key, and here's your burrow number. I've lined it with fresh cedar—keeps everything smelling nice. Come on, I'll show you!",
+      "text": "Lovely. Let me just... there. Your key, and the lock's twin stays with me on the ring. Mind, it's not really a different burrow to the others — all us keywardens' rings open onto the same deep cellar. Old magic, that. Your things'll be waiting wherever you find one of us.",
       "action": "register_storage",
-      "cost": 45,
+      "cost": 10,
       "requirements": {
-        "gold": 45,
+        "gold": 10,
+        "items": [
+          {
+            "id": "lock",
+            "quantity": 1
+          },
+          {
+            "id": "candle",
+            "quantity": 2
+          }
+        ],
         "not_registered": true
       },
-      "success": "Your burrow key has been crafted. You may now store items at the Burrowlock.",
-      "failure": "Oh dear, you're a bit short, love. You'll need 45 gold for the key fee.",
+      "success": "Rosie fitted your lock at the Burrowlock. You may store items here.",
+      "failure": "I'd need a lock, two candles and ten gold to fit your burrow, dear.",
       "options": [
         "use_storage",
         "goodbye"
+      ],
+      "consume_items": [
+        {
+          "id": "lock",
+          "quantity": 1
+        },
+        {
+          "id": "candle",
+          "quantity": 2
+        }
       ]
     },
     "use_storage": {
-      "text": "Right this way! Watch your head on the doorframe, dear—we halflings don't build for tall folk!",
+      "text": "Right this way! Watch your head on the doorframe, dear — we halflings don't build for tall folk! And don't fret about which burrow is yours. Every keywarden's ring opens the same deep cellar. Leave your bundle with me and Rosie's cousin in the swamp will hand it straight back.",
       "action": "open_storage",
       "requirements": {
         "registered": true
@@ -79,6 +100,33 @@
     "goodbye": {
       "text": "Safe travels, dear! Come back anytime—there's always a warm meal and a friendly face in Millhaven!",
       "action": "end_dialogue"
+    },
+    "claim_birthright": {
+      "text": "Oh, you're a Millhaven soul! No lock to buy, no key to cut — your family's burrow has been on my ring since before you were knee-high. Here. It's always been yours, dear.",
+      "action": "register_storage",
+      "requirements": {
+        "native": true,
+        "not_registered": true
+      },
+      "success": "Rosie handed over your family's burrow key. It was always yours.",
+      "failure": "There seems to be some irregularity. Speak with me again.",
+      "options": [
+        "use_storage",
+        "goodbye"
+      ]
     }
+  },
+  "storage_config": {
+    "registration_fee": 10,
+    "registration_items": [
+      {
+        "id": "lock",
+        "quantity": 1
+      },
+      {
+        "id": "candle",
+        "quantity": 2
+      }
+    ]
   }
 }

@@ -32,6 +32,7 @@
         {
           "id": "glade_of_safekeeping",
           "name": "The Glade of Safekeeping",
+          "type": "vault",
           "description": "Enchanted trees store belongings within hollow roots, kept safe by ancient elven magic. The eldest trees of the enclave offer this blessing to their kin and those who earn it.",
           "open": "always",
           "close": null
