@@ -2,7 +2,7 @@
   "id": "flooded-mine",
   "name": "The Flooded Mine",
   "category": "dungeon",
-  "parent_environment": "mountain-pass",
+  "parent_environment": "cragspire-mountains",
   "position": 0.65,
   "description": "An old iron mine that has partially filled with groundwater. The entrance is a vertical shaft disappearing into the dark.",
   "discovery": {

@@ -4,7 +4,7 @@
   "type": "city",
   "image": "/res/img/locations/kingdom.png",
   "music": "God of Dreams",
-  "description": "A prosperous trading city where merchant ships dock at busy harbors and exotic goods from distant lands fill the markets. Golden banners flutter from tall buildings built with wealth from maritime commerce.",
+  "description": "A prosperous trading city built where a river spills down out of the Cragspire Mountains. Barges laden with ore and goods crowd its river port, and exotic wares from distant lands fill the markets. Golden banners flutter from tall buildings raised on the wealth of the river trade.",
   "starting_races": ["Dragonborn"],
   "racial_entry_fees": {
     "Human": 5,
@@ -128,7 +128,7 @@
     "east": {
       "id": "goldenhaven-east",
       "name": "Eastern Port",
-      "description": "The bustling harbor district where ships from distant lands dock. The salty air carries the sounds of creaking rigging and merchant auctions.",
+      "description": "The bustling river port where the mountain river leaves the foothills. Barges and riverboats crowd the wharves, and the air carries the rush of water, creaking rigging, and the calls of merchant auctions.",
       "connections": {
         "center": "goldenhaven-center",
         "east": "sunscorch-desert"
@@ -137,34 +137,34 @@
         {
           "id": "harbor_master",
           "name": "Harbor Master's Office",
-          "description": "Where ship passages are booked and cargo is registered.",
+          "description": "Where river passages are booked and barge cargo is registered.",
           "open": 360,
           "close": 1200
         },
         {
           "id": "sailors_tavern",
           "name": "The Salty Anchor",
-          "description": "A rowdy port tavern run by Captain Reylia Stormwave, where sailors, merchants, and adventurers gather for drinks, lodging, and loud music that carries over the harbor.",
+          "description": "A rowdy port tavern run by Captain Reylia Stormwave, where bargemen, merchants, and adventurers gather for drinks, lodging, and loud music that carries across the river.",
           "open": 1020,
           "close": 120,
           "default_room": "taproom",
           "rooms": [
-            { "id": "taproom", "name": "Taproom", "description": "The rowdy main floor where the bar runs the length of one wall and sea-shanties drown out the gulls." },
+            { "id": "taproom", "name": "Taproom", "description": "The rowdy main floor where the bar runs the length of one wall and river shanties drown out the rush of the water." },
             { "id": "galley", "name": "Galley", "description": "A cramped, steamy kitchen behind the bar where fish stew bubbles in iron pots." },
-            { "id": "cellar", "name": "Dock Cellar", "description": "A dim store room below the waterline, stacked with barrels of ale and crates hauled off the ships." },
+            { "id": "cellar", "name": "Dock Cellar", "description": "A dim store room below the waterline, stacked with barrels of ale and crates hauled off the barges." },
             { "id": "hammock_deck", "name": "Hammock Below Deck", "description": "A low room strung with hammocks that rock you to sleep like a ship at anchor.", "access": { "state": "rented" } }
           ],
           "shows": {
             "show_time": 1260,
             "booking_deadline": 1200,
             "shows_by_day": {
-              "0": [{"id": "drum-ocean", "name": "Ocean Drums", "description": "Rhythmic beats like crashing waves", "required_instruments": ["drum"], "base_gold": 13, "base_xp": 10, "charisma_gold_bonus": 2}],
-              "1": [{"id": "horn-sailors", "name": "Sailor's Fanfare", "description": "Horn calls across the harbor", "required_instruments": ["horn"], "base_gold": 12, "base_xp": 9, "charisma_gold_bonus": 2}],
-              "2": [{"id": "lute-shanty", "name": "Sea Shanties", "description": "Traditional sailor songs on lute", "required_instruments": ["lute"], "base_gold": 14, "base_xp": 11, "charisma_gold_bonus": 2}],
-              "3": [{"id": "drum-harbor", "name": "Harbor Rhythms", "description": "Drums echoing off the docks", "required_instruments": ["drum"], "base_gold": 13, "base_xp": 10, "charisma_gold_bonus": 2}],
+              "0": [{"id": "drum-ocean", "name": "River Drums", "description": "Rhythmic beats like rushing rapids", "required_instruments": ["drum"], "base_gold": 13, "base_xp": 10, "charisma_gold_bonus": 2}],
+              "1": [{"id": "horn-sailors", "name": "Sailor's Fanfare", "description": "Horn calls across the wharves", "required_instruments": ["horn"], "base_gold": 12, "base_xp": 9, "charisma_gold_bonus": 2}],
+              "2": [{"id": "lute-shanty", "name": "River Shanties", "description": "Traditional bargemen's songs on lute", "required_instruments": ["lute"], "base_gold": 14, "base_xp": 11, "charisma_gold_bonus": 2}],
+              "3": [{"id": "drum-harbor", "name": "Wharf Rhythms", "description": "Drums echoing off the docks", "required_instruments": ["drum"], "base_gold": 13, "base_xp": 10, "charisma_gold_bonus": 2}],
               "4": [{"id": "horn-voyage", "name": "Voyage Horns", "description": "Horn melodies of distant lands", "required_instruments": ["horn"], "base_gold": 12, "base_xp": 9, "charisma_gold_bonus": 2}],
-              "5": [{"id": "drum-horn-storm", "name": "Storm at Sea", "description": "Drums and horns like a tempest", "required_instruments": ["drum", "horn"], "base_gold": 25, "base_xp": 19, "charisma_gold_bonus": 3}],
-              "6": [{"id": "lute-tales", "name": "Tales of the Deep", "description": "Epic lute ballads of ocean adventures", "required_instruments": ["lute"], "base_gold": 14, "base_xp": 11, "charisma_gold_bonus": 2}]
+              "5": [{"id": "drum-horn-storm", "name": "Spring Flood", "description": "Drums and horns like the river in full spate", "required_instruments": ["drum", "horn"], "base_gold": 25, "base_xp": 19, "charisma_gold_bonus": 3}],
+              "6": [{"id": "lute-tales", "name": "Tales of the River", "description": "Epic lute ballads of adventures up and down the river", "required_instruments": ["lute"], "base_gold": 14, "base_xp": 11, "charisma_gold_bonus": 2}]
             }
           }
         },

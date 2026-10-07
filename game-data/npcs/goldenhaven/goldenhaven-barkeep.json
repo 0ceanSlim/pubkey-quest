@@ -3,7 +3,7 @@
   "name": "Captain Reylia Stormwave",
   "title": "Innkeeper & Barkeep",
   "race": "Dragonborn",
-  "description": "A boisterous dragonborn sea captain who runs The Salty Anchor with the energy of a storm. She loves loud music, strong drinks, and the company of sailors and adventurers from distant lands.",
+  "description": "A boisterous dragonborn river captain who runs The Salty Anchor with the energy of a storm. She loves loud music, strong drinks, and the company of bargemen and adventurers from distant lands.",
   "primary_home": "goldenhaven",
   "schedule": [
     {
@@ -58,7 +58,7 @@
     }
   ],
   "greeting": {
-    "first_time": "Ahoy! Welcome to The Salty Anchor! I'm Captain Reylia Stormwave. We've got cold beer, warm beds, and the loudest, rowdiest music in the harbor! What brings ye here, sailor?",
+    "first_time": "Ahoy! Welcome to The Salty Anchor! I'm Captain Reylia Stormwave. We've got cold beer, warm beds, and the loudest, rowdiest music on the river! What brings ye here, sailor?",
     "returning": "Back again, are ye? What'll it be today?",
     "tired": "Ye look like ye been through a storm! Get yerself a room and some rest!"
   },
@@ -85,7 +85,7 @@
       ]
     },
     "buy_drink": {
-      "text": "Best beer this side of the ocean, brewed strong like the sea! Take a look!",
+      "text": "Best beer this side of the mountains, brewed strong as the spring flood! Take a look!",
       "action": "open_shop",
       "options": [
         "main_menu"
@@ -112,7 +112,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "Every night at 9 PM, we have the loudest music in the harbor! Sea shanties, drums, horns—music that carries over the waves! Ye need yer instruments and book before 8 PM. Want to see what's on tonight?",
+      "text": "Every night at 9 PM, we have the loudest music on the river! River shanties, drums, horns—music that carries across the water! Ye need yer instruments and book before 8 PM. Want to see what's on tonight?",
       "options": [
         "see_available_shows",
         "main_menu"

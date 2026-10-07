@@ -80,7 +80,7 @@ Many of these are *intended* to be quest-bound trash items (`worthless-trinket`,
   1. Use the city ID and treat district as flavor text.
   2. Extend `EncounterTrigger`/`POIData` to support district refs (would need a districts model).
 - `goldenhaven-temple` — same, this is a building inside Goldenhaven.
-- `mountain-pass` — should likely be `cragspire-mountains` or a new sub-region.
+- ~~`mountain-pass`~~ — resolved: `flooded-mine` now sits in `cragspire-mountains`.
 - `shadow-alley-den` — being referenced as a `location`; it's a POI, not a location. Either fix the ref to use `parent_environment` or extend POIs to be valid `start_condition.location` targets.
 
 ### 1f. Locations referenced as POI/location targets in objectives (8 IDs)
