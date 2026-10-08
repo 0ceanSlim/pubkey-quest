@@ -33,6 +33,26 @@ Running list while the maintainer plays from a new character. Investigate only w
    - **Fixed:** `enterCombatMode` closes an open NPC dialogue and un-hides the bar before
      drawing the combat buttons.
 
+## Quests
+
+4. **Dailies/weeklies should come from vault keepers, not innkeepers**, so they can be
+   picked up at any hour. **Fixed:** offers now come from `storage_config` NPCs (all six
+   vault keepers work 0–1440); repeatable drafts use start type `vault_keeper` and a new
+   hint.
+5. **Rats of Goldenhaven: the cellar is empty after accepting.** Stage 0 is "slay 5
+   giant-rat" in the tavern cellar, but nothing spawns rats there. Quests have no way to
+   place monsters in a room, and the later stages' sewer locations
+   (`sewer-tunnels-entry`, `sewer-junction-a`, `sewer-drainage-chamber`) don't exist.
+   Needs an engine piece (quest-stage-gated room encounters) plus content.
+6. **Accepting a quest is a bare button**: "📜 Accept: …" sits above the NPC's options;
+   clicking accepts and the dialogue restarts. Wanted: the offer as a normal dialogue
+   option that leads through a short tree ending in Accept / Not now.
+7. **"Can't really abandon quests."** Server abandon works (removes it from active). To
+   clarify the symptom: does the button do nothing, or does the quest come straight back
+   as Not started (re-offerable), or after a reload without saving?
+8. **Track should change the over-scene quest notes** to the tracked quest, and the
+   over-scene tracker may need tuning.
+
 ## Data check (asked: did Codex break game data / migration?)
 
 No. A from-scratch `--migrate` succeeds and `--validate` reports 0 errors (the warnings are

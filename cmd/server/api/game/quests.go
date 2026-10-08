@@ -352,10 +352,11 @@ func injectQuestOffers(resp *types.GameActionResponse, npcID string, state *type
 		}
 	}
 
-	// Innkeepers (the room-renting NPC, marked by inn_config) hand out the day's
-	// daily and week's weekly bounty — the current pick from each pool, if the
-	// player hasn't done it this period and meets its requirements.
-	if npcData, err := serverdb.GetNPCByID(npcID); err == nil && len(npcData.InnConfig) > 0 {
+	// Vault keepers (marked by storage_config) hand out the day's daily and the
+	// week's weekly bounty — the current pick from each pool, if the player hasn't
+	// done it this period and meets its requirements. Vault keepers are on duty
+	// around the clock, so a bounty can be picked up at any hour.
+	if npcData, err := serverdb.GetNPCByID(npcID); err == nil && len(npcData.StorageConfig) > 0 {
 		now := time.Now()
 		for _, cat := range []types.QuestCategory{types.QuestDaily, types.QuestWeekly} {
 			if q, ok := quest.CurrentRepeatable(all, cat, now); ok &&

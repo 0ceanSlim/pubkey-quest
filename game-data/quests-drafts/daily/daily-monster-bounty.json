@@ -8,9 +8,9 @@
   "is_randomized": true,
   "description": "A bounty posted on the town board for the removal of local pests.",
   "start_condition": {
-    "type": "innkeeper",
+    "type": "vault_keeper",
     "target": "",
-    "start_hint": "Ask the innkeeper at any inn or tavern."
+    "start_hint": "Ask the vault keeper in any town — bounties are posted there day and night."
   },
   "requirements": [],
   "stages": [
