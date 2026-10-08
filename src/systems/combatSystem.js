@@ -10,7 +10,7 @@ import { logger }     from '../lib/logger.js';
 import { eventBus }   from '../lib/events.js';
 import { gameAPI }    from '../lib/api.js';
 import { smoothClock } from './smoothClock.js';
-import { restoreActionButtonsLayout, displayCurrentLocation } from '../ui/locationDisplay.js';
+import { restoreActionButtonsLayout, displayCurrentLocation, closeNPCDialogue } from '../ui/locationDisplay.js';
 
 // ─── Range descriptions ────────────────────────────────────────────────────────
 const RANGE_LABELS = {
@@ -97,10 +97,19 @@ export function enterCombatMode(cs) {
     _shownPos = {};
     _hpByID = {};
     _replaceGameText();
+    // A fight can start mid-conversation (an encounter firing in a tavern while you
+    // talk to the innkeeper). NPC dialogue hides the whole action bar behind its
+    // option strip, so close it first or the combat buttons render into a hidden
+    // bar. Only when it's actually open: closing forces the grid layout, which
+    // must not clobber the travel bar's flex layout handled just below.
+    const dialogue = document.getElementById('npc-dialogue-overlay');
+    if (dialogue && dialogue.style.display !== 'none') closeNPCDialogue();
     // If we entered from a travel encounter, the action bar is the travel flex
     // layout (no navigation/building/npc sub-elements). Rebuild the normal grid
     // first so the combat buttons have somewhere to render. No-op outside travel.
     restoreActionButtonsLayout();
+    const bar = document.getElementById('action-buttons');
+    if (bar && bar.style.display === 'none') bar.style.display = '';
     _replaceActionButtons(cs);
     _show('combat-overlay');
     renderCombatState(cs);

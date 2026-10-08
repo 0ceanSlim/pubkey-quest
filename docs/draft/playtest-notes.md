@@ -25,6 +25,14 @@ Running list while the maintainer plays from a new character. Investigate only w
    - **Fixed:** `renderStats` treated the gold card's dark-text flag as "muted". It now has
      a `gold` tone with dark stats; the TOTAL inset keeps light text.
 
+3. **Combat started from an encounter shows no combat buttons** (tavern brawler: failed
+   the Resolve check → fight). Reload shows them.
+   - Cause (likely): NPC dialogue hides the whole `#action-buttons` bar behind its option
+     strip. A fight that starts while a conversation is open (or before the bar is shown
+     again) renders its buttons into the hidden bar.
+   - **Fixed:** `enterCombatMode` closes an open NPC dialogue and un-hides the bar before
+     drawing the combat buttons.
+
 ## Data check (asked: did Codex break game data / migration?)
 
 No. A from-scratch `--migrate` succeeds and `--validate` reports 0 errors (the warnings are
