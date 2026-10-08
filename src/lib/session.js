@@ -12,7 +12,7 @@ import { API_BASE_URL } from '../config/constants.js';
 import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 // Registers window.openMillLogin and exposes the signer-restore helper. All
 // interactive login now goes through MILL (see systems/millLogin.js).
-import { restoreSignerFromSession, clearMillSigner } from '../systems/millLogin.js';
+import { restoreSignerFromSession, clearMillSigner, getActiveSigner } from '../systems/millLogin.js';
 
 // Session status enum
 export const SessionStatus = {
@@ -59,7 +59,7 @@ class SessionManager {
 
             if (this.currentStatus === SessionStatus.ACTIVE) {
                 logger.info('Found active session');
-                // Rebuild the client-side signer (window.nostr) from MILL's
+                // Rebuild the client-side signer from MILL's
                 // persisted state so signing survives a page reload.
                 restoreSignerFromSession(this.sessionData);
                 this.startSessionMonitoring();
@@ -236,7 +236,8 @@ class SessionManager {
     /**
      * Prove we hold the key: fetch a single-use challenge from the server and
      * sign it as a NIP-98 HTTP-auth event (kind 27235) for POST /api/auth/login,
-     * using the signer MILL installed as window.nostr. The server refuses a
+     * with the player's MILL signer (never window.nostr — an extension there
+     * may hold a different key than the one logging in). The server refuses a
      * login without this, so nobody can claim someone else's pubkey.
      * @returns {Promise<object>} the signed proof event
      */
@@ -244,10 +245,11 @@ class SessionManager {
         // After a page reload the signer is rebuilt asynchronously (and NIP-07
         // extensions inject late) — give it a few seconds to appear.
         for (const delay of [0, 250, 500, 1000, 2000]) {
-            if (window.nostr?.signEvent) break;
+            if (getActiveSigner()?.signEvent) break;
             await new Promise((r) => setTimeout(r, delay));
         }
-        if (!window.nostr?.signEvent) {
+        const signer = getActiveSigner();
+        if (!signer?.signEvent) {
             throw new Error('No signer available to prove your key — log in again');
         }
         const resp = await fetch(`${API_BASE_URL}/auth/challenge`);
@@ -255,7 +257,7 @@ class SessionManager {
         if (!resp.ok || !ch?.success || !ch.challenge) {
             throw new Error(ch?.error || `Could not get a login challenge (${resp.status})`);
         }
-        return window.nostr.signEvent({
+        return signer.signEvent({
             kind: ch.kind ?? 27235,
             created_at: Math.floor(Date.now() / 1000),
             tags: [

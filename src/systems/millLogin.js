@@ -7,11 +7,16 @@
  * pomegranate/FROST). It replaces the hand-rolled login modals that used to
  * live in nav-play.html / auth.js. Modeled on grain's mill-bridge.js.
  *
- * All signing happens in the browser — the server only ever receives the
- * resulting hex public key (see cmd/server/auth/grain.go). On a successful
- * connect we install the signer as window.nostr (so the rest of the app, and
- * future save-signing, can use it) and hand the pubkey to the session manager,
- * which POSTs /api/auth/login and enforces the whitelist uniformly.
+ * All signing happens in the browser — the server only ever receives signed
+ * events and the hex public key (see cmd/server/auth/grain.go). On a successful
+ * connect we keep MILL's signer (getActiveSigner, also window.pqSigner) and hand
+ * the pubkey to the session manager, which signs the login proof with it, POSTs
+ * /api/auth/login and enforces the whitelist uniformly.
+ *
+ * Like grain's mill-bridge, we deliberately do NOT install the signer as
+ * window.nostr: MILL's NIP-07 signer forwards to window.nostr, so wrapping it
+ * there makes it call itself, and a browser extension that owns window.nostr
+ * would sign with its own key instead of the one the player logged in with.
  *
  * @module systems/millLogin
  */
@@ -58,9 +63,14 @@ const LOGIN_LAYOUT = {
     },
 };
 
-// The signer MILL produced (or restored) for this page. Kept separately from
-// window.nostr so logout can disconnect it without poking a NIP-07 extension.
+// The signer MILL produced (or restored) for this page — the only thing that
+// signs for the player. Never installed as window.nostr (see the module doc).
 let activeSigner = null;
+
+/** The logged-in player's MILL signer, or null before login / restore. */
+export function getActiveSigner() {
+    return activeSigner;
+}
 
 /**
  * Build a MILL theme object from the currently-active Pubkey Quest palette.
@@ -103,23 +113,18 @@ function pubkeyQuestTheme() {
 }
 
 /**
- * Install a signer as the page-wide window.nostr (extension is already global;
- * bunker / private-key / new-key / pomegranate are not).
+ * Keep the signer MILL produced for the player.
  * @param {object} signer
  */
 function installSigner(signer) {
     activeSigner = signer;
-    try {
-        MILL.installAsWindowNostr(signer);
-    } catch (err) {
-        logger.warn('Failed to install signer as window.nostr:', err);
-    }
+    window.pqSigner = signer;
 }
 
 /**
- * Complete login after MILL produces a signer + pubkey. Installs the signer as
- * window.nostr and defers to the session manager for the /api/auth/login POST
- * (which handles the whitelist gate and fires authentication events).
+ * Complete login after MILL produces a signer + pubkey. Keeps the signer and
+ * defers to the session manager for the proof + /api/auth/login POST (which
+ * handles the whitelist gate and fires authentication events).
  * @param {{ method: string, pubkey: string, signer?: object }} result
  */
 async function finishLogin(result) {
@@ -145,8 +150,14 @@ async function finishLogin(result) {
             mode: 'write',
         });
     } catch (err) {
-        // performLogin already surfaces whitelist denials + failure events.
         logger.error('Login failed after MILL connect:', err);
+        // Whitelist denials already showed their own popup; anything else (a
+        // declined signature, a rejected proof) must not fail silently.
+        if (!err?.whitelistDenial) {
+            const msg = `Login failed: ${err?.message || err}`;
+            if (typeof window.showMessage === 'function') window.showMessage(msg, 'error');
+            else window.alert(msg);
+        }
     }
 }
 
@@ -255,7 +266,7 @@ async function tryRestore(session) {
 }
 
 /**
- * After a page reload with an active server session, rebuild window.nostr so
+ * After a page reload with an active server session, rebuild the signer so
  * signing keeps working without re-opening the picker. The session cookie
  * survives the reload and knows the signing method + pubkey. NIP-07 extensions
  * inject window.nostr asynchronously, so that method retries for ~3s; every
@@ -268,7 +279,7 @@ export async function restoreSignerFromSession(session) {
     if (session.signingMethod === 'none') return;
 
     if (await tryRestore(session)) {
-        logger.debug('Restored window.nostr signer from session');
+        logger.debug('Restored signer from session');
         return;
     }
     if (session.signingMethod !== 'browser_extension') return;
@@ -292,6 +303,7 @@ export function clearMillSigner() {
         activeSigner?.disconnect?.();
     } catch (_) { /* best effort */ }
     activeSigner = null;
+    window.pqSigner = null;
     try {
         MILL.clearRestoreState();
     } catch (_) { /* best effort */ }
