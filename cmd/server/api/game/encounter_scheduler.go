@@ -7,6 +7,7 @@ import (
 	"time"
 
 	serverdb "pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/requirement"
@@ -21,10 +22,50 @@ import (
 // cooldown + non-repeatable one-shots, and the shared encounter cooldown so
 // vignettes and biome fights don't bunch.
 
+// noteLocation records where the player is standing, resetting the dwell timer
+// and the once-per-arrival roll whenever they move somewhere new. Called on
+// every action that can change place, so the work is skipped unless it did.
+func noteLocation(sess *session.GameSession) {
+	state := &sess.SaveData
+	key := state.Location + "|" + state.District + "|" + state.Building + "|" + state.Room
+	if key == sess.PlaceKey {
+		return
+	}
+	sess.PlaceKey = key
+	sess.PlaceSince = state.CurrentDay*1440 + state.TimeOfDay
+	sess.PlaceRolled = false
+	sess.PlaceInCity = isCityLocation(state.Location)
+	sess.PlaceBuildingType = ""
+	if state.Building != "" {
+		if btype, err := building.GetBuildingType(serverdb.GetDB(), state.Location, state.Building); err == nil {
+			sess.PlaceBuildingType = btype
+		}
+	}
+}
+
+// isCityLocation reports whether a location is a city rather than a travel
+// environment. Guards the place-based triggers: an authored encounter with no
+// valid_locations matches everywhere, and "everywhere" must not include the open
+// road, where the travel trigger belongs. Resolved once per move, not per action.
+func isCityLocation(locationID string) bool {
+	database := serverdb.GetDB()
+	if database == nil {
+		return false
+	}
+	var locationType string
+	if err := database.QueryRow("SELECT location_type FROM locations WHERE id = ?", locationID).Scan(&locationType); err != nil {
+		return false
+	}
+	return locationType != "environment"
+}
+
 // maybeFireEncounter rolls the authored encounters whose trigger + context match
 // the player's situation and fires the first success. No-op when a walk or fight
 // is already active, or while the shared encounter cooldown is in effect.
-func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []string, response *types.GameActionResponse) {
+//
+// minutesElapsed is the in-game time this check covers; pass 0 for an
+// event-driven check (arriving somewhere), which is gated by dwell time instead.
+func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []string, minutesElapsed int, response *types.GameActionResponse) {
 	if sess.ActivePOI != nil || sess.ActiveCombat != nil {
 		return
 	}
@@ -33,12 +74,27 @@ func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []st
 	if sess.LastEncounterTime > 0 && nowAbs-sess.LastEncounterTime < encounter.CooldownMinutes {
 		return
 	}
+
+	// Event-driven triggers roll once per arrival, and only after the player has
+	// been here a little while — no doorway ambushes, and no farming them by
+	// pacing between two districts.
+	eventDriven := minutesElapsed <= 0
+	if eventDriven {
+		if sess.PlaceRolled || nowAbs-sess.PlaceSince < encounter.PlaceDwellMinutes {
+			return
+		}
+	}
+
 	encs, err := serverdb.GetEncountersByTrigger(trigger)
 	if err != nil || len(encs) == 0 {
 		return
 	}
 	ctx := buildQuestContext(state)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	if eventDriven {
+		sess.PlaceRolled = true // this arrival has had its one chance
+	}
 
 	for _, enc := range encs {
 		if !encounterContextMatches(enc, contexts) {
@@ -55,7 +111,11 @@ func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []st
 				continue // still cooling down
 			}
 		}
-		if rng.Float64() >= enc.Chance {
+		chance := enc.Chance
+		if !eventDriven {
+			chance = encounter.VignetteChance(chance, minutesElapsed)
+		}
+		if rng.Float64() >= chance {
 			continue
 		}
 		fireEncounter(sess, enc, response)

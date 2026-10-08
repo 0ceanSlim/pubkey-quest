@@ -143,3 +143,50 @@ func TestRollAvoidsImmediateRepeat(t *testing.T) {
 		t.Error("expected the single-monster pool to fire at least once")
 	}
 }
+
+// Authored vignettes used to roll their raw Chance on every tick. Ticks arrive
+// many times a minute, so the 15% peddler was a near-certainty the moment you
+// left town — "going off right on entrance". VignetteChance spreads those odds
+// over elapsed in-game time instead.
+
+func TestVignetteChanceSpreadsOverTime(t *testing.T) {
+	// Over the full window, an authored chance comes through roughly intact.
+	if got := encounter.VignetteChance(0.15, encounter.ChanceWindow); got < 0.149 || got > 0.151 {
+		t.Errorf("VignetteChance(0.15, window) = %v, want ~0.15", got)
+	}
+	// Over a single minute it must be a small fraction of that — the actual fix.
+	oneMinute := encounter.VignetteChance(0.15, 1)
+	if oneMinute >= 0.01 {
+		t.Errorf("VignetteChance(0.15, 1) = %v, want well under 1%% for one minute", oneMinute)
+	}
+	// And it scales with the time covered.
+	if encounter.VignetteChance(0.15, 60) <= oneMinute {
+		t.Error("a longer stretch should carry a higher chance than one minute")
+	}
+}
+
+func TestVignetteChanceZeroWithoutElapsedTime(t *testing.T) {
+	if got := encounter.VignetteChance(0.15, 0); got != 0 {
+		t.Errorf("VignetteChance with no elapsed time = %v, want 0", got)
+	}
+	if got := encounter.VignetteChance(0.15, -30); got != 0 {
+		t.Errorf("VignetteChance with negative time = %v, want 0", got)
+	}
+}
+
+func TestVignetteChanceCapsOneRoll(t *testing.T) {
+	// Resuming travel after a long idle hands one tick many hours of time; it
+	// must not become a guaranteed meeting.
+	if got := encounter.VignetteChance(0.15, 100*encounter.ChanceWindow); got != encounter.MaxVignetteChance {
+		t.Errorf("VignetteChance over a huge jump = %v, want the %v cap", got, encounter.MaxVignetteChance)
+	}
+}
+
+// The shared cooldown is in-game minutes, and in-game time runs 144x real time.
+// It has to be long enough to actually separate encounters in play.
+func TestSharedCooldownIsMeaningfulInRealTime(t *testing.T) {
+	realSeconds := float64(encounter.CooldownMinutes) * 60 / 144
+	if realSeconds < 120 {
+		t.Errorf("cooldown is only %.0fs of real play; encounters will bunch", realSeconds)
+	}
+}

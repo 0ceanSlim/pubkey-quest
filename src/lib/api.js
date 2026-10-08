@@ -9,6 +9,7 @@
 
 import { logger } from './logger.js';
 import { API_BASE_URL } from '../config/constants.js';
+import { handleWorldHandoff } from '../systems/worldHandoff.js';
 
 class GameAPI {
     constructor() {
@@ -86,6 +87,15 @@ class GameAPI {
             if (result.data?.level_up?.leveled && typeof window !== 'undefined') {
                 window.showLevelUpModal?.(result.data.level_up);
             }
+
+            // Same reasoning for the world interrupting you: the server can start
+            // a fight or an encounter on the back of ANY action (walking into a
+            // district, entering a tavern, a world tick), and it has already
+            // committed that state server-side. Handing off here means every
+            // trigger path shows up, instead of only the ones a given caller
+            // remembered to check — a district pickpocket and a tavern brawler
+            // used to fire invisibly and strand the session mid-encounter.
+            result.handledWorldHandoff = handleWorldHandoff(result.data);
 
             // Return the updated state
             return result;

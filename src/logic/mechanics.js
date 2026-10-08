@@ -50,7 +50,11 @@ export async function moveToLocation(locationId) {
 
     try {
         // Send move action to Go backend (handles time, hunger, fatigue automatically)
-        await gameAPI.move(cityId, districtKey, '');
+        const result = await gameAPI.move(cityId, districtKey, '');
+
+        // Something was waiting for you here: the encounter overlay is already up
+        // (it lives in the scene speech box), so don't rebuild the scene over it.
+        if (result?.handledWorldHandoff) return;
 
         // Refresh UI from Go memory
         await refreshGameState();

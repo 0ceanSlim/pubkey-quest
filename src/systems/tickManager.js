@@ -132,24 +132,10 @@ class TickManager {
                     .catch(() => {});
             }
 
-            // A biome travel encounter fired server-side this tick — hand off to
-            // the combat UI (enterCombatMode pauses the clock) and stop here; the
-            // rest of the tick (delta, travel progress) is irrelevant now.
-            if (data && data.combat_started && data.combat) {
-                logger.info('⚔️ Travel encounter — entering combat');
-                eventBus.emit('combat:started', data.combat);
-                return;
-            }
-
-            // An authored encounter (vignette) fired this tick — open the
-            // exploration overlay on its first node (pauses the clock). The walk
-            // is already active server-side; advances flow through /poi/advance.
-            if (data && data.encounter_started && data.poi_step) {
-                logger.info('✨ Encounter — opening exploration overlay');
-                window.showMessage?.(`✨ ${data.encounter_name || 'Something happens…'}`, 'info');
-                import('../ui/poiExplore.js')
-                    .then((m) => m.openFromStep(data.poi_step))
-                    .catch((e) => logger.error('encounter overlay open failed:', e));
+            // A fight or encounter fired server-side this tick. gameAPI.sendAction
+            // already opened the overlay (see systems/worldHandoff.js); stop here,
+            // because the rest of the tick — delta, travel progress — is stale now.
+            if (response.handledWorldHandoff) {
                 return;
             }
 

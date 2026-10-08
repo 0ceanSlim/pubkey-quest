@@ -47,6 +47,20 @@ type GameSession struct {
 	// only (M1: LastFired lives in memory, not the save).
 	EncountersFired map[string]int `json:"-"`
 
+	// Where the player is standing and when they got there, in absolute in-game
+	// minutes. Event-driven encounters (a district pickpocket, a tavern brawler)
+	// roll once per arrival after a short dwell, so they read as "something
+	// happened while you were here" instead of ambushing the doorway — and so
+	// pacing back and forth can't farm them. Session-only.
+	PlaceKey    string `json:"-"`
+	PlaceSince  int    `json:"-"`
+	PlaceRolled bool   `json:"-"`
+	// PlaceInCity caches whether the current location is a city rather than a
+	// travel environment, and PlaceBuildingType the current building's resolved
+	// type — both looked up once per move instead of once per action.
+	PlaceInCity       bool   `json:"-"`
+	PlaceBuildingType string `json:"-"`
+
 	// Spell preparation queue — lives in server memory only, cleared on session unload.
 	// Each entry tracks a spell being prepared for a specific slot.
 	PrepQueue []types.SpellPrepTask `json:"-"`

@@ -19,17 +19,33 @@ type Candidate struct {
 // math to beta, so these are meant to be adjusted by feel after playtesting;
 // they should season travel, not dominate it.
 const (
-	// CooldownMinutes is the minimum in-game time between biome encounters, so
-	// they can't fire back-to-back after a fight. The roll is skipped within this
-	// window of the last encounter (enforced at the call site, which has the
-	// session timing).
-	CooldownMinutes = 90
+	// CooldownMinutes is the minimum in-game time between encounters of any kind
+	// — biome fights and authored vignettes share it — so they can't land
+	// back-to-back. The roll is skipped within this window of the last encounter
+	// (enforced at the call site, which has the session timing). In-game time
+	// runs 144x real time, so this is about four real minutes of quiet.
+	CooldownMinutes = 360
 	// chancePerMinute is the per-in-game-minute encounter probability. At ~0.006
 	// (with the cooldown above) travel averages a couple of fights per crossing.
 	chancePerMinute = 0.006
 	// maxTickChance caps a single tick so one large time jump can't guarantee a
 	// fight (e.g. resuming travel after a long idle).
 	maxTickChance = 0.5
+	// ChanceWindow is the in-game stretch an *authored* encounter Chance
+	// describes. A vignette's Chance is the odds of meeting it over a span of
+	// travel, not per server tick — ticks arrive many times a minute, so rolling
+	// the raw value each one made a 15% peddler near-certain the moment you left
+	// town. Over this many minutes, Chance 0.15 is roughly a 15% shot.
+	ChanceWindow = 240
+	// MaxVignetteChance caps a single authored roll, so resuming travel after a
+	// long idle (one tick carrying hours of elapsed time) can't guarantee a
+	// meeting. Same role as maxTickChance for biome fights.
+	MaxVignetteChance = 0.25
+	// PlaceDwellMinutes is how long the player must have been in a district or
+	// building before an event-driven encounter there can roll. Long enough that
+	// walking in is never instantly interrupted; short enough to still catch
+	// someone who lingers.
+	PlaceDwellMinutes = 20
 	// crBudgetPerLevel sets the upper CR a level-L player is matched against
 	// (0.75 → level 1 faces CR ≤ ~0.75, level 5 ≤ ~3.75).
 	crBudgetPerLevel = 0.75
@@ -130,4 +146,22 @@ func Roll(candidates []Candidate, level, minutesElapsed int, rng *rand.Rand, avo
 		}
 	}
 	return eligible[rng.Intn(len(eligible))], true
+}
+
+// VignetteChance scales an authored encounter's Chance by how much in-game time
+// the check covers, so a long crossing meets people at a steady rate instead of
+// front-loading them all into the first tick after you leave town. Returns 0
+// when no time passed, and never exceeds MaxVignetteChance.
+//
+// This is the authored-vignette counterpart to TickChance: same reasoning, but
+// keyed off each encounter's own authored odds rather than one global rate.
+func VignetteChance(authored float64, minutesElapsed int) float64 {
+	if minutesElapsed <= 0 || authored <= 0 {
+		return 0
+	}
+	ch := authored * float64(minutesElapsed) / ChanceWindow
+	if ch > MaxVignetteChance {
+		ch = MaxVignetteChance
+	}
+	return ch
 }

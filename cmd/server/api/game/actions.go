@@ -11,7 +11,6 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/api/data"
-	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
@@ -236,24 +235,28 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					// for an authored travel encounter, and for discovering any POI
 					// we just travelled past.
 					maybeRollTravelEncounter(session, state, minutesElapsed, response)
-					maybeFireEncounter(session, "travel", []string{state.Location}, response)
+					maybeFireEncounter(session, "travel", []string{state.Location}, minutesElapsed, response)
 					maybeDiscoverPOIs(state, oldProgress, response)
 				}
 			}
 		}
 
-		// Moving into a city district can trigger a location-scoped encounter
-		// (e.g. a pickpocket). District ids are "{location}-{district}".
-		if action.Type == "move" {
-			maybeFireEncounter(session, "location", []string{state.Location + "-" + state.District}, response)
+		// Keep the dwell timer honest: any action can have moved the player, and
+		// event-driven encounters roll once per arrival after a short stay.
+		noteLocation(session)
+
+		// Being in a city district can trigger a location-scoped encounter (e.g.
+		// a pickpocket). District ids are "{location}-{district}". The roll is
+		// gated on having been here a while, so it fires as you go about your
+		// business rather than the instant you arrive.
+		if state.Building == "" && state.District != "" && session.PlaceInCity {
+			maybeFireEncounter(session, "location", []string{state.Location + "-" + state.District}, 0, response)
 		}
 
-		// Entering a building can trigger a building_type encounter (e.g. a tavern
-		// brawler in any tavern/inn).
-		if action.Type == "enter_building" && state.Building != "" {
-			if btype, err := building.GetBuildingType(serverdb.GetDB(), state.Location, state.Building); err == nil && btype != "" {
-				maybeFireEncounter(session, "building_type", []string{btype}, response)
-			}
+		// Likewise inside a building: a tavern brawler starts a brawl while
+		// you're drinking, not as you push the door open.
+		if session.PlaceBuildingType != "" {
+			maybeFireEncounter(session, "building_type", []string{session.PlaceBuildingType}, 0, response)
 		}
 	}
 
