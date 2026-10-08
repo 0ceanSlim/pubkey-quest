@@ -61,6 +61,13 @@ type GameSession struct {
 	PlaceInCity       bool   `json:"-"`
 	PlaceBuildingType string `json:"-"`
 
+	// Quest-stage encounters (a cellar full of rats): the place the last one was
+	// checked at, and how many kills were still owed when it last fired there.
+	// A fight starts again only when that number changes (the next wave after a
+	// win) or after the player leaves and comes back (a retry after fleeing).
+	QuestEncounterPlace string `json:"-"`
+	QuestEncounterOwed  int    `json:"-"`
+
 	// Spell preparation queue — lives in server memory only, cleared on session unload.
 	// Each entry tracks a spell being prepared for a specific slot.
 	PrepQueue []types.SpellPrepTask `json:"-"`

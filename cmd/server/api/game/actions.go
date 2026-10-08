@@ -245,6 +245,10 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 		// event-driven encounters roll once per arrival after a short stay.
 		noteLocation(session)
 
+		// A quest stage's monsters waiting where you now stand (the rats in the
+		// tavern cellar) take priority over the random encounters below.
+		maybeStartQuestEncounter(session, response)
+
 		// Being in a city district can trigger a location-scoped encounter (e.g.
 		// a pickpocket). District ids are "{location}-{district}". The roll is
 		// gated on having been here a while, so it fires as you go about your

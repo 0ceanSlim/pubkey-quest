@@ -360,6 +360,10 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 		if st.UnlocksPOI != "" {
 			c.checkRef("poi", st.UnlocksPOI, c.idx.pois)
 		}
+		if enc := st.Encounter; enc != nil {
+			c.checkRef("location", enc.Location, c.idx.locations)
+			c.checkRef("monster", enc.MonsterID, c.idx.monsters)
+		}
 		c.checkReward(st.Rewards)
 		for oi, o := range st.Objectives {
 			oc := c.context

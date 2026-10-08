@@ -23,6 +23,15 @@
     {
       "id": "clear-cellar",
       "description": "Defeat the giant rats in the tavern's cellar.",
+      "encounter": {
+        "location": "goldenhaven",
+        "district": "east",
+        "building": "sailors_tavern",
+        "room": "cellar",
+        "monster_id": "giant-rat",
+        "count": 3,
+        "text": "Something squeals behind the ale casks — then a dozen eyes glint in the lamplight."
+      },
       "objectives": [
         {
           "type": "slay",

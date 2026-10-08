@@ -43,7 +43,13 @@ Running list while the maintainer plays from a new character. Investigate only w
    giant-rat" in the tavern cellar, but nothing spawns rats there. Quests have no way to
    place monsters in a room, and the later stages' sewer locations
    (`sewer-tunnels-entry`, `sewer-junction-a`, `sewer-drainage-chamber`) don't exist.
-   Needs an engine piece (quest-stage-gated room encounters) plus content.
+   **Fixed (stage 0):** quest stages can now declare an `encounter` (location / district /
+   building / room, monster, per-fight count, opening line). Standing there on that stage
+   starts a fight sized to the kills still owed, in waves; a flee doesn't loop it until
+   you leave and come back. The Salty Anchor cellar now holds the rats (3 then 2).
+   **Still open:** stages 1–3 need the sewer content (`sewer-tunnels-entry`,
+   `sewer-junction-a`, `sewer-drainage-chamber`) — likely a POI under the cellar, plus
+   the `rat-king-boss` monster.
 6. **Accepting a quest is a bare button**: "📜 Accept: …" sits above the NPC's options;
    clicking accepts and the dialogue restarts. Wanted: the offer as a normal dialogue
    option that leads through a short tree ending in Accept / Not now.

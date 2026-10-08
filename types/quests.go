@@ -41,6 +41,28 @@ type QuestStage struct {
 	Objectives  []QuestObjective `json:"objectives"`
 	Rewards     *POIReward       `json:"rewards,omitempty"`
 	UnlocksPOI  string           `json:"unlocks_poi,omitempty"`
+	// Encounter puts this stage's monsters somewhere in the world: while the stage
+	// is active and the player stands in that place, a fight starts (see
+	// api/game/quest_encounters.go). Nil for stages that don't spawn anything.
+	Encounter *QuestStageEncounter `json:"encounter,omitempty"`
+}
+
+// QuestStageEncounter places a quest stage's fight. Location is required; empty
+// District/Building/Room match anywhere within it (an empty Room means the
+// building's default room is NOT required — any room matches).
+//
+// The fight holds as many of MonsterID as the stage's slay objective for it still
+// needs, capped at Count per fight (0 = all remaining at once). A stage needing
+// more kills than one fight allows comes in waves.
+type QuestStageEncounter struct {
+	Location  string `json:"location"`
+	District  string `json:"district,omitempty"`
+	Building  string `json:"building,omitempty"`
+	Room      string `json:"room,omitempty"`
+	MonsterID string `json:"monster_id"`
+	Count     int    `json:"count,omitempty"`
+	Surprise  bool   `json:"surprise,omitempty"`
+	Text      string `json:"text,omitempty"` // opening line in the combat log
 }
 
 // QuestStartCondition tells the player how to begin the quest.
