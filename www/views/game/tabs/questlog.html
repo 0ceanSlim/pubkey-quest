@@ -14,7 +14,9 @@
 .qj-subtab.on { color: #fff; background: #3a3a3a; border-color: #0f0f0f #4a4a4a #4a4a4a #0f0f0f; }
 .qj-tools { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; color: var(--qj-muted); }
 .qj-tools > div { display: flex; align-items: center; gap: 6px; }
-.qj-tools select { font: inherit; color: #e5e7eb; background: #2a2a2a; border: 1px solid #4a4a4a; padding: 0 2px; flex: 1; min-width: 0; }
+.qj-tools select { font: inherit; color: #e5e7eb; background: #2a2a2a; border: 1px solid #4a4a4a; flex: 1; min-width: 0;
+                   /* Dogica's line is taller than the browser's default select box — size it explicitly. */
+                   height: 14px; line-height: 12px; padding: 0 2px; box-sizing: border-box; }
 .qj-tools label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
 .qj-tools input { margin: 0; width: 7px; height: 7px; }
 .qj-legend { display: flex; justify-content: space-between; margin-bottom: 3px; color: var(--qj-muted); font-size: 6px; }
