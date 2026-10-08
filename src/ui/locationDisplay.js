@@ -20,9 +20,25 @@ import { updateAllDisplays } from './displayCoordinator.js';
 import { eventBus } from '../lib/events.js';
 import { loadEnvPOIs, getEnvPOIs, enterPOI } from './poiExplore.js';
 
-// How close (in 0–1 travel progress) the player must be to a discovered POI's
-// marker for its Enter button to appear on the travel screen.
-const POI_ENTER_WINDOW = 0.04;
+// How close the player must be to a discovered POI's marker for its Enter
+// button to appear. Expressed in in-game minutes of travel rather than a flat
+// slice of the bar: a fixed fraction is both too generous on a long route (4%
+// of a two-day crossing is hours of "arriving") and too mean on a short one,
+// where a single tick can advance further than the window and skip the POI
+// entirely. Clamped so it stays reachable on any route length.
+const POI_ENTER_MINUTES = 12;
+const POI_ENTER_WINDOW_MIN = 0.012;
+const POI_ENTER_WINDOW_MAX = 0.04;
+
+// poiEnterWindow converts POI_ENTER_MINUTES into a 0–1 progress window for the
+// route being travelled. Falls back to the minimum when the route length is
+// unknown.
+function poiEnterWindow() {
+    const travelTime = _travelViewMeta?.travelTime;
+    if (!travelTime || travelTime <= 0) return POI_ENTER_WINDOW_MIN;
+    const reach = POI_ENTER_MINUTES / travelTime;
+    return Math.min(Math.max(reach, POI_ENTER_WINDOW_MIN), POI_ENTER_WINDOW_MAX);
+}
 
 // Module-level state
 let lastDisplayedLocation = null;
@@ -638,20 +654,24 @@ function paintPOIMarkers() {
         const pct = Math.min(Math.max(p.position * 100, 0), 100);
         const dot = document.createElement('div');
         dot.className = 'poi-marker';
+        // Name the place on hover. The title was always set here, but
+        // pointer-events:none meant the browser could never show it — the marker
+        // has to be hoverable for a tooltip to exist at all.
         dot.title = p.name;
         dot.style.cssText =
             `position:absolute; top:-3px; left:${pct}%; transform:translateX(-50%); width:5px; height:16px; ` +
-            'background:#fbbf24; border:1px solid #000; pointer-events:none; box-shadow:0 0 3px rgba(251,191,36,0.8);';
+            'background:#fbbf24; border:1px solid #000; cursor:help; box-shadow:0 0 3px rgba(251,191,36,0.8);';
         container.appendChild(dot);
     });
 }
 
 // paintPOIEnterButtons shows an Enter button for each discovered POI within
-// POI_ENTER_WINDOW of the current progress, and hides the row when none are near.
+// reach of the current progress, and hides the row when none are near.
 function paintPOIEnterButtons(progress) {
     const row = document.getElementById('poi-enter-row');
     if (!row) return;
-    const near = getEnvPOIs().filter((p) => Math.abs(progress - p.position) <= POI_ENTER_WINDOW);
+    const reach = poiEnterWindow();
+    const near = getEnvPOIs().filter((p) => Math.abs(progress - p.position) <= reach);
     row.innerHTML = '';
     if (!near.length) {
         row.style.display = 'none';
@@ -952,7 +972,10 @@ export async function enterBuilding(buildingId) {
     logger.debug('Entering building:', buildingId);
 
     try {
-        await gameAPI.sendAction('enter_building', { building_id: buildingId });
+        const result = await gameAPI.sendAction('enter_building', { building_id: buildingId });
+        // Something met you on the way in: the encounter overlay is already up
+        // (it lives in the scene speech box), so don't rebuild the scene over it.
+        if (result?.handledWorldHandoff) return;
         await refreshGameState();
         await updateAllDisplays();
     } catch (error) {
@@ -968,7 +991,8 @@ export async function exitBuilding() {
     logger.debug('Exiting building');
 
     try {
-        await gameAPI.sendAction('exit_building', {});
+        const result = await gameAPI.sendAction('exit_building', {});
+        if (result?.handledWorldHandoff) return;
         await refreshGameState();
         await updateAllDisplays();
     } catch (error) {
@@ -1006,7 +1030,8 @@ export async function moveToRoom(roomId, accessible, lockedReason) {
         return;
     }
     try {
-        await gameAPI.sendAction('move_to_room', { room_id: roomId });
+        const result = await gameAPI.sendAction('move_to_room', { room_id: roomId });
+        if (result?.handledWorldHandoff) return;
         await refreshGameState();
         await updateAllDisplays();
     } catch (error) {
