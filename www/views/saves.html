@@ -228,7 +228,7 @@ function renderOccupied(saveData) {
       </div>
       <div class="flex-shrink-0 text-xs" style="color: var(--color-textMuted);">Continue →</div>
     </div>
-    ${renderStats(stats, false)}
+    ${renderStats(stats, 'normal')}
   `;
 }
 
@@ -267,7 +267,7 @@ function renderStartable(slot, preview, custom) {
         ` : `<p class="text-sm" style="${body}">Begin a fresh journey</p>`}
       </div>
     </div>
-    ${preview ? renderStats(preview.stats, dark) : ''}
+    ${preview ? renderStats(preview.stats, dark ? 'gold' : 'normal') : ''}
   `;
 }
 
@@ -301,7 +301,7 @@ function renderUpcoming(slot, preview, custom) {
       </div>
       <div class="flex-shrink-0 text-xl">🔒</div>
     </div>
-    ${preview ? renderStats(preview.stats, true) : ''}
+    ${preview ? renderStats(preview.stats, 'muted') : ''}
   `;
 }
 
@@ -319,7 +319,10 @@ const ABILITY_ORDER = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 
  * @param {Object} stats - Ability name → score
  * @param {boolean} muted - Dim styling, for locked slots
  */
-function renderStats(stats, muted) {
+// tone: 'normal' (theme colours), 'muted' (locked slot), or 'gold' — the
+// highlighted first slot, whose yellow face needs dark text to stay readable.
+// The TOTAL box is a dark inset in every tone, so it keeps the theme colours.
+function renderStats(stats, tone = 'normal') {
   if (!stats) return '';
 
   const entries = ABILITY_ORDER
@@ -328,8 +331,11 @@ function renderStats(stats, muted) {
   if (!entries.length) return '';
 
   const total = entries.reduce((sum, [, value]) => sum + (Number(value) || 0), 0);
-  const label = muted ? 'color: var(--color-textMuted);' : 'color: var(--color-textSecondary);';
-  const value = muted ? 'color: var(--color-textSecondary);' : 'color: var(--color-textHighlighted);';
+  const muted = tone === 'muted';
+  const totalLabel = muted ? 'color: var(--color-textMuted);' : 'color: var(--color-textSecondary);';
+  const totalValue = muted ? 'color: var(--color-textSecondary);' : 'color: var(--color-textHighlighted);';
+  const label = tone === 'gold' ? 'color: rgba(41, 30, 0, 0.72);' : totalLabel;
+  const value = tone === 'gold' ? 'color: rgb(41, 30, 0);' : totalValue;
 
   const cells = entries.map(([name, score]) => `
     <div class="text-center">
@@ -342,8 +348,8 @@ function renderStats(stats, muted) {
     <div class="flex items-center gap-2 mt-2">
       <div class="grid grid-cols-6 gap-1 flex-1">${cells}</div>
       <div class="flex-shrink-0 text-center px-2 win95-inset rounded" title="All six abilities added together">
-        <div style="${label}; font-size: 9px;">TOTAL</div>
-        <div class="font-bold" style="${value}; font-size: 12px;">${total}</div>
+        <div style="${totalLabel}; font-size: 9px;">TOTAL</div>
+        <div class="font-bold" style="${totalValue}; font-size: 12px;">${total}</div>
       </div>
     </div>
   `;

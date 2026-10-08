@@ -945,6 +945,31 @@ async function vaultTransfer(action, params, failureText) {
     }
 }
 
+/**
+ * Page-wide listeners the context menu relies on. Live code — not part of the
+ * old drag layer: it closes an open item menu on any click elsewhere, and stops
+ * the browser's own right-click menu over item slots (slotInteractions.js opens
+ * ours there instead).
+ */
+function initializeInventoryInteractions() {
+    logger.info('Initializing inventory interactions');
+
+    document.addEventListener('click', (e) => {
+        // The container modal manages its own menu.
+        if (e.target.closest('#container-context-menu')) return;
+        if (activeContextMenu && !e.target.closest('.context-menu')) {
+            closeContextMenu();
+        }
+    });
+
+    document.addEventListener('contextmenu', (e) => {
+        if (e.target.closest('#container-modal')) return; // container handles its own
+        if (e.target.closest('[data-item-slot]') || e.target.closest('[data-slot]')) {
+            e.preventDefault();
+        }
+    });
+}
+
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeInventoryInteractions);
