@@ -31,13 +31,24 @@ type ProfileMetadata struct {
 	Website     string `json:"website"`
 }
 
-// ProfileResponse represents the response from the profile endpoint
+// ProfileResponse represents the response from the profile endpoint.
+//
+// Profile is a convenience view of the fields the game cares about. Fields and
+// Tags are the event as it actually is — every content key and every tag,
+// including ones this client knows nothing about. An editor MUST merge onto
+// those rather than onto Profile: kind 0 is replaceable, so publishing a subset
+// deletes the rest. NIP-39 identity claims live in tags, and losing them
+// un-verifies somebody's GitHub or Twitter.
+//
 // swagger:model ProfileResponse
 type ProfileResponse struct {
-	Npub    string          `json:"npub"`
-	Pubkey  string          `json:"pubkey"`
-	Profile ProfileMetadata `json:"profile"`
-	Found   bool            `json:"found"`
+	Npub      string          `json:"npub"`
+	Pubkey    string          `json:"pubkey"`
+	Profile   ProfileMetadata `json:"profile"`
+	Fields    map[string]any  `json:"fields"`
+	Tags      [][]string      `json:"tags"`
+	CreatedAt int64           `json:"created_at,omitempty"`
+	Found     bool            `json:"found"`
 }
 
 // ProfileHandler godoc
@@ -69,36 +80,43 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	// of players arrive having never published a kind 0, and the UI falls back
 	// to a shortened npub. Answering 404/500 here only made the client log
 	// errors over something ordinary.
-	profile, found := fetchProfileMetadata(pubKey)
-
-	writeJSON(w, ProfileResponse{
-		Npub:    npub,
-		Pubkey:  pubKey,
-		Profile: profile,
-		Found:   found,
-	})
+	resp := fetchProfile(pubKey)
+	resp.Npub = npub
+	resp.Pubkey = pubKey
+	writeJSON(w, resp)
 }
 
-// fetchProfileMetadata returns the parsed kind 0 for a pubkey, and whether one
-// was actually found.
-func fetchProfileMetadata(pubKey string) (ProfileMetadata, bool) {
-	var profile ProfileMetadata
+// fetchProfile returns a pubkey's kind 0, both as the typed view the game reads
+// and as the raw fields and tags an editor needs in order not to destroy the
+// parts it does not understand.
+func fetchProfile(pubKey string) ProfileResponse {
+	resp := ProfileResponse{Fields: map[string]any{}, Tags: [][]string{}}
 
 	event, _, err := data.GetUserDataForSession(pubKey)
 	if err != nil {
 		log.Printf("⚠️ No profile for %s...: %v", shortKey(pubKey), err)
-		return profile, false
+		return resp
 	}
 	if event == nil || event.Content == "" {
-		return profile, false
+		return resp
 	}
+
+	resp.CreatedAt = event.CreatedAt
+	if event.Tags != nil {
+		resp.Tags = event.Tags
+	}
+
 	// A kind 0 whose content isn't the object we expect is the author's
 	// business, not an error of ours — report it as absent.
-	if err := json.Unmarshal([]byte(event.Content), &profile); err != nil {
+	if err := json.Unmarshal([]byte(event.Content), &resp.Fields); err != nil {
 		log.Printf("⚠️ Unparseable profile content for %s...: %v", shortKey(pubKey), err)
-		return ProfileMetadata{}, false
+		return ProfileResponse{Fields: map[string]any{}, Tags: [][]string{}}
 	}
-	return profile, true
+	if err := json.Unmarshal([]byte(event.Content), &resp.Profile); err != nil {
+		log.Printf("⚠️ Profile content has unexpected field types for %s...: %v", shortKey(pubKey), err)
+	}
+	resp.Found = true
+	return resp
 }
 
 // shortKey abbreviates a pubkey for logging.

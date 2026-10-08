@@ -77,43 +77,60 @@ async function publish(event) {
  * @returns {Promise<{profile: object, found: boolean}>}
  */
 export async function loadProfile(npub) {
+    const empty = { profile: {}, fields: {}, tags: [], found: false };
     try {
         const response = await fetch(`${API_BASE_URL}/profile?npub=${encodeURIComponent(npub)}`);
-        if (!response.ok) return { profile: {}, found: false };
+        if (!response.ok) return empty;
         const data = await response.json();
-        return { profile: data.profile || {}, found: Boolean(data.found) };
+        return {
+            profile: data.profile || {},
+            fields: data.fields || {},
+            tags: data.tags || [],
+            found: Boolean(data.found),
+        };
     } catch (error) {
         logger.warn('Could not load profile:', error);
-        return { profile: {}, found: false };
+        return empty;
     }
 }
 
 /**
  * Publish an edited profile.
  *
- * Merges onto the profile currently published, so fields this editor does not
- * show — and fields set by some other client — survive the edit instead of
- * being wiped. kind 0 is replaceable: whatever we publish *becomes* the profile.
+ * kind 0 is replaceable: whatever we publish *becomes* the profile, so anything
+ * omitted is deleted. That makes a naive "write the fields in my form" editor
+ * destructive — it would quietly strip whatever the player set in another
+ * client. So we merge onto the event as it actually is:
+ *
+ *   - every content field is carried over, including ones this editor has no
+ *     box for and ones it has never heard of;
+ *   - every tag is carried over. NIP-39 identity claims (["i", "github:...",
+ *     proof]) live there, and dropping them un-verifies the player's accounts.
+ *
+ * Only the client tag is replaced, since the old one names whoever published
+ * last.
  *
  * @param {string} npub
- * @param {object} edits - Any of PROFILE_FIELDS
+ * @param {object} edits - Any of PROFILE_FIELDS; "" clears a field
  * @returns {Promise<object>} publish result
  */
 export async function saveProfile(npub, edits) {
-    const { profile: existing } = await loadProfile(npub);
+    const { fields, tags } = await loadProfile(npub);
 
-    const merged = { ...existing };
-    for (const field of PROFILE_FIELDS) {
-        if (field in edits) {
-            const value = (edits[field] ?? '').trim();
-            if (value) merged[field] = value;
-            else delete merged[field]; // cleared on purpose
-        }
+    const merged = { ...fields };
+    for (const [field, raw] of Object.entries(edits)) {
+        const value = typeof raw === 'string' ? raw.trim() : raw;
+        if (value) merged[field] = value;
+        else delete merged[field]; // cleared on purpose
     }
 
-    const signed = await sign({ kind: 0, content: JSON.stringify(merged) });
+    // Keep every tag except a previous client tag, which sign() re-adds as us.
+    const keptTags = tags.filter((t) => !(Array.isArray(t) && t[0] === 'client'));
+
+    const signed = await sign({ kind: 0, content: JSON.stringify(merged), tags: keptTags });
     const result = await publish(signed);
-    logger.info(`Profile published to ${result.accepted}/${result.relays?.length ?? 0} relays`);
+    logger.info(`Profile published to ${result.accepted}/${result.relays?.length ?? 0} relays, ` +
+        `${keptTags.length} tag(s) preserved`);
 
     // Tell the rest of the UI (the dropdown, the nav, the home tab) right away
     // rather than waiting for a reload.

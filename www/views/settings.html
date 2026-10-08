@@ -12,59 +12,7 @@
           ⚙️ Settings
         </h1>
       </div>
-      <p style="color: var(--color-textMuted);">Customize your Pubkey Quest experience</p>
-    </div>
-
-    <!-- Theme Selector Section -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">🎨 Theme</h2>
-      <p class="mb-4 text-sm" style="color: var(--color-textSecondary);">
-        Choose your preferred color theme. All UI elements will adapt to your selection.
-      </p>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <!-- Dark Theme -->
-        <button onclick="selectTheme('dark')" class="theme-option win95-outset p-4 rounded-lg pixel-clip" data-theme="dark">
-          <div class="theme-swatch mb-2" style="background: linear-gradient(135deg, rgb(16, 16, 16) 0%, rgb(40, 40, 40) 50%, rgb(149, 40, 244) 100%);"></div>
-          <div class="text-sm font-bold">Dark</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">Default</div>
-        </button>
-
-        <!-- Light Theme -->
-        <button onclick="selectTheme('light')" class="theme-option win95-outset p-4 rounded-lg pixel-clip" data-theme="light">
-          <div class="theme-swatch mb-2" style="background: linear-gradient(135deg, rgb(230, 230, 230) 0%, rgb(200, 200, 200) 50%, rgb(149, 40, 244) 100%);"></div>
-          <div class="text-sm font-bold">Light</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">Bright</div>
-        </button>
-
-        <!-- Midnight Theme -->
-        <button onclick="selectTheme('midnight')" class="theme-option win95-outset p-4 rounded-lg pixel-clip" data-theme="midnight">
-          <div class="theme-swatch mb-2" style="background: linear-gradient(135deg, rgb(25, 24, 48) 0%, rgb(31, 31, 65) 50%, rgb(250, 208, 0) 100%);"></div>
-          <div class="text-sm font-bold">Midnight</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">Purple Night</div>
-        </button>
-
-        <!-- Lava Theme -->
-        <button onclick="selectTheme('lava')" class="theme-option win95-outset p-4 rounded-lg pixel-clip" data-theme="lava">
-          <div class="theme-swatch mb-2" style="background: linear-gradient(135deg, rgb(57, 0, 0) 0%, rgb(97, 0, 0) 50%, rgb(255, 114, 154) 100%);"></div>
-          <div class="text-sm font-bold">Lava</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">Fire Red</div>
-        </button>
-
-        <!-- Solar Theme -->
-        <button onclick="selectTheme('solar')" class="theme-option win95-outset p-4 rounded-lg pixel-clip" data-theme="solar">
-          <div class="theme-swatch mb-2" style="background: linear-gradient(135deg, rgb(0, 43, 54) 0%, rgb(7, 54, 66) 50%, rgb(38, 139, 210) 100%);"></div>
-          <div class="text-sm font-bold">Solar</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">Ocean Blue</div>
-        </button>
-
-        <!-- Matrix Theme -->
-        <button onclick="selectTheme('matrix')" class="theme-option win95-outset p-4 rounded-lg pixel-clip" data-theme="matrix">
-          <div class="theme-swatch mb-2" style="background: linear-gradient(135deg, rgb(0, 0, 0) 0%, rgb(0, 20, 0) 50%, rgb(0, 255, 65) 100%);"></div>
-          <div class="text-sm font-bold">Matrix</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">Terminal Green</div>
-        </button>
-      </div>
+      <p style="color: var(--color-textMuted);">Your Nostr identity — the name, picture and relays you carry between apps</p>
     </div>
 
     <!-- Nostr Profile -->
@@ -177,34 +125,6 @@
 </div>
 
 <script>
-  // Theme selection
-  function selectTheme(themeName) {
-    if (window.themeManager) {
-      window.themeManager.setTheme(themeName);
-      updateThemeSelection();
-      showMessage(`✅ Theme changed to ${themeName}`, 'success');
-    }
-  }
-
-  // Update theme selection UI
-  function updateThemeSelection() {
-    if (!window.themeManager) return;
-
-    const currentTheme = window.themeManager.getCurrentTheme();
-    const options = document.querySelectorAll('.theme-option');
-
-    options.forEach(option => {
-      const theme = option.getAttribute('data-theme');
-      if (theme === currentTheme) {
-        option.classList.add('theme-swatch-selected');
-        option.style.borderColor = 'var(--color-textHighlighted)';
-      } else {
-        option.classList.remove('theme-swatch-selected');
-        option.style.borderColor = '';
-      }
-    });
-  }
-
   // -- Nostr profile + relays ------------------------------------------------
   // Backed by src/systems/nostrIdentity.js (exposed as window.nostrIdentity):
   // the browser signs with MILL, the server verifies and routes to the player's
@@ -415,11 +335,9 @@
   // Initialize on page load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      updateThemeSelection();
       updateNostrSections();
     });
   } else {
-    updateThemeSelection();
     updateNostrSections();
   }
 
@@ -427,7 +345,5 @@
   // these fire on login, logout and a silent re-login alike.
   window.addEventListener('auth-changed', updateNostrSections);
 
-  // Listen for theme changes (from other tabs)
-  window.addEventListener('theme-changed', updateThemeSelection);
 </script>
 {{end}}
