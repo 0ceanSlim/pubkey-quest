@@ -23,6 +23,17 @@ export const SessionStatus = {
     UNAUTHENTICATED: 'unauthenticated'
 };
 
+// Events that change whether somebody is logged in. Each also raises the
+// coarse `auth-changed` signal the templates listen for.
+const AUTH_STATE_EVENTS = new Set([
+    'sessionReady',
+    'sessionRestored',
+    'authenticationSuccess',
+    'authenticationRequired',
+    'sessionExpired',
+    'loggedOut',
+]);
+
 class SessionManager {
     constructor() {
         this.sessionData = null;
@@ -483,6 +494,39 @@ class SessionManager {
                 }
             });
         }
+        this.mirrorToWindow(eventName, data);
+    }
+
+    /**
+     * Re-dispatch a session event on `window`.
+     *
+     * Half the codebase subscribes with `sessionManager.on(...)` and half with
+     * `window.addEventListener(...)` — the profile manager, the nav, the
+     * settings page and the home tab all use the latter. emit() only ever
+     * walked its own listener map, so those never fired: the profile was never
+     * fetched and the dropdown sat on "Loading…" forever. Nothing dispatched
+     * `auth-changed` either, leaving four more listeners dead.
+     *
+     * The identity fields go out under both spellings because the two sides
+     * disagree: sessionData carries `publicKey`, while listeners read `pubkey`.
+     */
+    mirrorToWindow(eventName, data) {
+        if (typeof window === 'undefined') return;
+
+        const detail = data && typeof data === 'object' && !Array.isArray(data)
+            ? { ...data, pubkey: data.pubkey ?? data.publicKey, publicKey: data.publicKey ?? data.pubkey }
+            : data;
+
+        window.dispatchEvent(new CustomEvent(eventName, { detail }));
+
+        if (AUTH_STATE_EVENTS.has(eventName)) {
+            window.dispatchEvent(new CustomEvent('auth-changed', {
+                detail: {
+                    isAuthenticated: this.currentStatus === SessionStatus.ACTIVE,
+                    ...(detail && typeof detail === 'object' ? detail : {}),
+                },
+            }));
+        }
     }
 
     // ========================================================================
@@ -516,6 +560,7 @@ class SessionManager {
 
 // After a failed silent re-login, wait this long before trying again.
 const REAUTH_COOLDOWN_MS = 30000;
+
 
 // Export singleton instance
 export const sessionManager = new SessionManager();

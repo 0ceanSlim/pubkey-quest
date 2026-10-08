@@ -8,7 +8,6 @@ exclude github.com/btcsuite/btcd v0.20.1-beta
 
 require (
 	github.com/btcsuite/btcutil v1.0.2 // indirect
-	github.com/gorilla/websocket v1.5.3
 	gopkg.in/yaml.v3 v3.0.1
 )
 

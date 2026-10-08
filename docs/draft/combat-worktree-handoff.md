@@ -157,6 +157,11 @@ session manager, so it sends no proof and is refused since `c8cb355`. Its export
 view or page; it is imported for side effects only, at `src/entries/index.js:14`. MILL owns
 login and NIP-55 covers Amber. Delete the module and that import.
 
+**`www/views/components/profile-dropdown.html`.** A 218-line `{{define "profile-dropdown"}}`
+template that no page includes. The dropdown actually in use is built in JavaScript by
+`www/views/components/nav-play.html`, so this one has been drifting unused — it still
+contained its own `updateProfileUI` and logout handler.
+
 **`/api/debug/sessions`.** No frontend caller anywhere. It is now gated and scoped to its
 caller, so it is harmless, but deleting it outright is cleaner than keeping an endpoint
 nobody calls. `/api/debug/state` *is* used (`www/views/game.html:474`) — keep that.

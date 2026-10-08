@@ -67,56 +67,103 @@
       </div>
     </div>
 
-    <!-- Relay Management Section -->
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">📡 Nostr Relays</h2>
+    <!-- Nostr Profile -->
+    <div id="profile-editor-section" class="mb-8 hidden">
+      <h2 class="text-2xl font-bold mb-4">👤 Your Profile</h2>
       <p class="mb-4 text-sm" style="color: var(--color-textSecondary);">
-        The client handles Nostr login and basic authentication, but relay selection is currently a placeholder while the game is in development.
+        This is your Nostr profile — the same name and picture every other Nostr app
+        shows for you. Editing it here publishes to your relays.
       </p>
 
-      <div class="win95-inset p-4 rounded-lg mb-4">
-        <div id="relay-list" class="space-y-2">
-          <!-- Relays will be dynamically inserted here -->
+      <div class="win95-inset p-4 rounded-lg space-y-3">
+        <div class="flex items-center gap-3">
+          <img id="profile-edit-preview" src="" alt="" class="pfp-48" style="display: none;" />
+          <span id="profile-edit-placeholder" class="text-3xl">👤</span>
+          <div class="flex-1 overflow-hidden">
+            <div class="text-xs" style="color: var(--color-textMuted);">Public key</div>
+            <div id="profile-edit-npub" class="font-mono text-xs truncate" style="color: var(--color-textHighlighted);">-</div>
+          </div>
         </div>
-      </div>
 
-      <!-- Add Relay -->
-      <div class="flex gap-2">
-        <input
-          type="text"
-          id="new-relay-input"
-          placeholder="wss://relay.example.com"
-          class="flex-1 win95-inset px-3 py-2 rounded text-sm"
-          style="color: var(--color-textPrimary); background: var(--color-bgPrimary);"
-        />
-        <button onclick="addRelay()" class="pixel-button pixel-clip px-4 py-2 text-sm" style="color: var(--color-textPrimary);">
-          ➕ Add Relay
-        </button>
-      </div>
+        <label class="block">
+          <span class="text-xs" style="color: var(--color-textMuted);">Display name</span>
+          <input type="text" id="profile-edit-display-name" maxlength="80" placeholder="The name other players see"
+            class="w-full win95-inset px-3 py-2 rounded text-sm"
+            style="color: var(--color-textPrimary); background: var(--color-bgPrimary);" />
+        </label>
 
-      <div class="mt-4 text-xs win95-inset p-3 rounded" style="background: var(--color-bgPrimary); color: var(--color-textMuted);">
-        <p class="mb-2"><strong>ℹ️ Pre-Alpha Status:</strong></p>
-        <ul class="list-disc list-inside space-y-1 text-xs">
-          <li>Saves are currently held in memory when loaded</li>
-          <li>During development, saves can be read from memory or saved to disk for debugging</li>
-          <li>Relay-based save synchronization is the core feature of Pubkey Quest</li>
-          <li>Full relay functionality will be implemented after pre-alpha</li>
-        </ul>
+        <label class="block">
+          <span class="text-xs" style="color: var(--color-textMuted);">Picture URL</span>
+          <input type="url" id="profile-edit-picture" placeholder="https://..."
+            class="w-full win95-inset px-3 py-2 rounded text-sm"
+            style="color: var(--color-textPrimary); background: var(--color-bgPrimary);" />
+          <span class="text-xs" style="color: var(--color-textMuted);">
+            Nostr profiles store a link, not the image itself. Paste the address of a
+            picture already online — or set one in a client that handles uploads, and it
+            will appear here.
+          </span>
+        </label>
+
+        <label class="block">
+          <span class="text-xs" style="color: var(--color-textMuted);">About</span>
+          <textarea id="profile-edit-about" rows="2" maxlength="500" placeholder="A line about you"
+            class="w-full win95-inset px-3 py-2 rounded text-sm"
+            style="color: var(--color-textPrimary); background: var(--color-bgPrimary);"></textarea>
+        </label>
+
+        <div class="flex items-center gap-2">
+          <button id="profile-save-btn" onclick="saveProfileEdits()" class="pixel-button pixel-clip px-4 py-2 text-sm"
+            style="color: var(--color-textPrimary);">💾 Publish Profile</button>
+          <span id="profile-save-status" class="text-xs" style="color: var(--color-textMuted);"></span>
+        </div>
       </div>
     </div>
 
-    <!-- Account Info (if logged in) -->
-    <div id="account-info-section" class="hidden mb-8">
-      <h2 class="text-2xl font-bold mb-4">👤 Account Info</h2>
-      <div class="win95-inset p-4 rounded-lg space-y-2">
-        <div class="flex justify-between">
-          <span style="color: var(--color-textMuted);">Public Key:</span>
-          <span id="account-npub" class="font-mono text-sm" style="color: var(--color-textHighlighted);">-</span>
-        </div>
-        <div class="flex justify-between">
-          <span style="color: var(--color-textMuted);">Display Name:</span>
-          <span id="account-name" style="color: var(--color-textPrimary);">-</span>
-        </div>
+    <!-- Nostr Relays -->
+    <div id="relay-section" class="mb-8 hidden">
+      <h2 class="text-2xl font-bold mb-4">📡 Your Relays</h2>
+      <p class="mb-4 text-sm" style="color: var(--color-textSecondary);">
+        Relays are where your events live. Publishing this list (NIP-65) tells every
+        Nostr app where to find you — including this game.
+      </p>
+
+      <div class="win95-inset p-4 rounded-lg mb-4">
+        <div id="relay-list" class="space-y-2"></div>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="new-relay-input" placeholder="wss://relay.example.com"
+          class="flex-1 win95-inset px-3 py-2 rounded text-sm"
+          style="color: var(--color-textPrimary); background: var(--color-bgPrimary);" />
+        <button onclick="addRelay()" class="pixel-button pixel-clip px-4 py-2 text-sm"
+          style="color: var(--color-textPrimary);">➕ Add</button>
+      </div>
+
+      <div class="flex items-center gap-2 mb-4">
+        <button id="relay-save-btn" onclick="saveRelayList()" class="pixel-button pixel-clip px-4 py-2 text-sm"
+          style="color: var(--color-textPrimary);">💾 Publish Relay List</button>
+        <span id="relay-save-status" class="text-xs" style="color: var(--color-textMuted);"></span>
+      </div>
+
+      <div class="win95-inset p-3 rounded" style="background: var(--color-bgPrimary);">
+        <label class="flex items-start gap-2 cursor-pointer">
+          <input type="checkbox" id="relay-pinned-toggle" onchange="togglePinnedRelays()" class="mt-1" />
+          <span class="text-xs" style="color: var(--color-textMuted);">
+            <strong style="color: var(--color-textPrimary);">Use only these relays for this game</strong><br />
+            Normally the game follows the outbox model: it reads and writes wherever
+            each person publishes. Turn this on to ignore that and use exactly the
+            relays above — useful if you want this game's saves kept somewhere
+            specific. This setting is yours alone and is not published.
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Signed out -->
+    <div id="nostr-signed-out" class="mb-8 hidden">
+      <h2 class="text-2xl font-bold mb-4">👤 Profile &amp; Relays</h2>
+      <div class="win95-inset p-4 rounded-lg text-sm" style="color: var(--color-textMuted);">
+        Sign in to edit your Nostr profile and choose your relays.
       </div>
     </div>
 
@@ -158,108 +205,210 @@
     });
   }
 
-  // Add relay
+  // -- Nostr profile + relays ------------------------------------------------
+  // Backed by src/systems/nostrIdentity.js (exposed as window.nostrIdentity):
+  // the browser signs with MILL, the server verifies and routes to the player's
+  // own relays. Relay edits are staged here and published as one NIP-65 event,
+  // so a half-finished list never goes out.
+
+  let relayDraft = [];
+
+  function isSignedIn() {
+    return Boolean(window.sessionManager?.isAuthenticated?.());
+  }
+
+  function currentNpub() {
+    return window.sessionManager?.getSession?.()?.npub || null;
+  }
+
+  function setStatus(id, text, tone) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = tone === 'error' ? 'rgb(239, 68, 68)'
+      : tone === 'success' ? 'var(--color-textHighlighted)'
+      : 'var(--color-textMuted)';
+  }
+
+  function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value;
+    return div.innerHTML;
+  }
+
+  // -- Profile --
+  async function loadProfileEditor() {
+    const npub = currentNpub();
+    if (!npub || !window.nostrIdentity) return;
+
+    document.getElementById('profile-edit-npub').textContent = npub;
+    const loaded = await window.nostrIdentity.loadProfile(npub);
+    const profile = loaded.profile || {};
+
+    document.getElementById('profile-edit-display-name').value = profile.display_name || profile.name || '';
+    document.getElementById('profile-edit-picture').value = profile.picture || '';
+    document.getElementById('profile-edit-about').value = profile.about || '';
+    renderPicturePreview(profile.picture);
+  }
+
+  function renderPicturePreview(url) {
+    const img = document.getElementById('profile-edit-preview');
+    const placeholder = document.getElementById('profile-edit-placeholder');
+    if (!img || !placeholder) return;
+    if (url) {
+      img.src = url;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'inline';
+    }
+  }
+
+  async function saveProfileEdits() {
+    if (!window.nostrIdentity) return;
+    const btn = document.getElementById('profile-save-btn');
+    btn.disabled = true;
+    setStatus('profile-save-status', 'Publishing...');
+
+    try {
+      const result = await window.nostrIdentity.saveProfile(currentNpub(), {
+        display_name: document.getElementById('profile-edit-display-name').value,
+        picture: document.getElementById('profile-edit-picture').value,
+        about: document.getElementById('profile-edit-about').value,
+      });
+      renderPicturePreview(document.getElementById('profile-edit-picture').value.trim());
+      setStatus('profile-save-status', 'Saved to ' + result.accepted + ' of ' + (result.relays || []).length + ' relays', 'success');
+      showMessage('Profile published', 'success');
+    } catch (error) {
+      setStatus('profile-save-status', error.message, 'error');
+      showMessage(error.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // -- Relays --
+  async function loadRelayEditor() {
+    if (!window.nostrIdentity) return;
+    try {
+      const state = await window.nostrIdentity.loadRelays();
+      relayDraft = (state.relays || []).map((r) => ({ ...r }));
+      document.getElementById('relay-pinned-toggle').checked = Boolean(state.pinned);
+      renderRelayList();
+      setStatus('relay-save-status', '');
+    } catch (error) {
+      setStatus('relay-save-status', error.message, 'error');
+    }
+  }
+
+  function renderRelayList() {
+    const container = document.getElementById('relay-list');
+    if (!container) return;
+
+    if (!relayDraft.length) {
+      container.innerHTML = '<div class="text-center py-4 text-sm" style="color: var(--color-textMuted);">'
+        + 'No relays yet. Add one above - wss://relay.damus.io is a common starting point.</div>';
+      return;
+    }
+
+    container.innerHTML = relayDraft.map((relay, i) => ''
+      + '<div class="flex items-center justify-between gap-2 py-2 px-3 win95-outset rounded">'
+      +   '<div class="flex-1 min-w-0">'
+      +     '<div class="font-mono text-sm truncate" style="color: var(--color-textPrimary);">' + escapeHtml(relay.url) + '</div>'
+      +   '</div>'
+      +   '<label class="text-xs flex items-center gap-1" style="color: var(--color-textMuted);">'
+      +     '<input type="checkbox" ' + (relay.read ? 'checked' : '') + ' onchange="setRelayRole(' + i + ', \'read\', this.checked)" /> read'
+      +   '</label>'
+      +   '<label class="text-xs flex items-center gap-1" style="color: var(--color-textMuted);">'
+      +     '<input type="checkbox" ' + (relay.write ? 'checked' : '') + ' onchange="setRelayRole(' + i + ', \'write\', this.checked)" /> write'
+      +   '</label>'
+      +   '<button onclick="removeRelay(' + i + ')" class="text-xs px-2 py-1 win95-button rounded" style="color: rgb(239, 68, 68);">X</button>'
+      + '</div>').join('');
+  }
+
+  function setRelayRole(index, role, enabled) {
+    if (!relayDraft[index]) return;
+    relayDraft[index][role] = enabled;
+    setStatus('relay-save-status', 'Unpublished changes');
+  }
+
   function addRelay() {
     const input = document.getElementById('new-relay-input');
-    const relayUrl = input.value.trim();
+    const url = input.value.trim();
 
-    if (!relayUrl) {
-      showMessage('❌ Please enter a relay URL', 'error');
+    if (!url) {
+      showMessage('Enter a relay URL', 'error');
+      return;
+    }
+    if (!url.startsWith('wss://') && !url.startsWith('ws://')) {
+      showMessage('A relay URL starts with wss:// or ws://', 'error');
+      return;
+    }
+    if (relayDraft.some((r) => r.url === url)) {
+      showMessage('That relay is already on your list', 'error');
       return;
     }
 
-    if (!relayUrl.startsWith('wss://') && !relayUrl.startsWith('ws://')) {
-      showMessage('❌ Relay URL must start with wss:// or ws://', 'error');
-      return;
-    }
+    relayDraft.push({ url: url, read: true, write: true });
+    input.value = '';
+    renderRelayList();
+    setStatus('relay-save-status', 'Unpublished changes');
+  }
 
-    if (window.relayManager) {
-      const success = window.relayManager.addRelay(relayUrl);
-      if (success) {
-        showMessage(`✅ Added relay: ${relayUrl}`, 'success');
-        input.value = '';
-        renderRelayList();
-      } else {
-        showMessage('❌ Relay already exists', 'error');
-      }
+  function removeRelay(index) {
+    relayDraft.splice(index, 1);
+    renderRelayList();
+    setStatus('relay-save-status', 'Unpublished changes');
+  }
+
+  async function saveRelayList() {
+    if (!window.nostrIdentity) return;
+    const btn = document.getElementById('relay-save-btn');
+    btn.disabled = true;
+    setStatus('relay-save-status', 'Publishing...');
+
+    try {
+      const result = await window.nostrIdentity.saveRelays(relayDraft);
+      setStatus('relay-save-status', 'Published to ' + result.accepted + ' of ' + (result.relays || []).length + ' relays', 'success');
+      showMessage('Relay list published', 'success');
+      await loadRelayEditor();
+    } catch (error) {
+      setStatus('relay-save-status', error.message, 'error');
+      showMessage(error.message, 'error');
+    } finally {
+      btn.disabled = false;
     }
   }
 
-  // Remove relay
-  function removeRelay(relayUrl) {
-    if (window.relayManager) {
-      window.relayManager.removeRelay(relayUrl);
-      showMessage(`✅ Removed relay: ${relayUrl}`, 'success');
-      renderRelayList();
+  async function togglePinnedRelays() {
+    const toggle = document.getElementById('relay-pinned-toggle');
+    const wanted = toggle.checked;
+    toggle.disabled = true;
+    try {
+      const state = await window.nostrIdentity.setPinnedRelays(wanted);
+      toggle.checked = state.pinned;
+      showMessage(state.pinned
+        ? 'Now using only your relays for this game'
+        : 'Back to finding relays automatically', 'success');
+    } catch (error) {
+      toggle.checked = !wanted; // the server did not take it
+      showMessage(error.message, 'error');
+    } finally {
+      toggle.disabled = false;
     }
   }
 
-  // Test relay connection
-  async function testRelay(relayUrl) {
-    if (window.relayManager) {
-      showMessage(`⏳ Testing connection to ${relayUrl}...`, 'info');
-      const success = await window.relayManager.testRelay(relayUrl);
-      if (success) {
-        showMessage(`✅ Connected to ${relayUrl}`, 'success');
-      } else {
-        showMessage(`❌ Failed to connect to ${relayUrl}`, 'error');
-      }
-      renderRelayList();
-    }
-  }
+  // -- Section visibility --
+  function updateNostrSections() {
+    const signedIn = isSignedIn();
+    document.getElementById('profile-editor-section')?.classList.toggle('hidden', !signedIn);
+    document.getElementById('relay-section')?.classList.toggle('hidden', !signedIn);
+    document.getElementById('nostr-signed-out')?.classList.toggle('hidden', signedIn);
 
-  // Render relay list
-  function renderRelayList() {
-    if (!window.relayManager) return;
-
-    const relayListContainer = document.getElementById('relay-list');
-    const relays = window.relayManager.getRelays();
-
-    if (relays.length === 0) {
-      relayListContainer.innerHTML = `
-        <div class="text-center py-4" style="color: var(--color-textMuted);">
-          No relays configured. Add one above to get started.
-        </div>
-      `;
-      return;
-    }
-
-    relayListContainer.innerHTML = relays.map(relay => `
-      <div class="flex items-center justify-between py-2 px-3 win95-outset rounded">
-        <div class="flex-1">
-          <div class="font-mono text-sm" style="color: var(--color-textPrimary);">${relay.url}</div>
-          <div class="text-xs" style="color: var(--color-textMuted);">
-            ${relay.connected ? '✅ Connected' : '⏸️ Not tested'}
-          </div>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="testRelay('${relay.url}')" class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textPrimary);">
-            🔍 Test
-          </button>
-          <button onclick="removeRelay('${relay.url}')" class="text-xs px-2 py-1 win95-button rounded" style="color: rgb(239, 68, 68);">
-            ❌
-          </button>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // Update account info
-  function updateAccountInfo() {
-    const accountSection = document.getElementById('account-info-section');
-    const npubElement = document.getElementById('account-npub');
-    const nameElement = document.getElementById('account-name');
-
-    if (window.sessionManager && window.sessionManager.isAuthenticated()) {
-      accountSection?.classList.remove('hidden');
-
-      if (window.profileManager && window.profileManager.getProfile()) {
-        const profile = window.profileManager.getProfile();
-        if (npubElement) npubElement.textContent = profile.npub?.slice(0, 20) + '...' || '-';
-        if (nameElement) nameElement.textContent = profile.display_name || profile.name || '-';
-      }
-    } else {
-      accountSection?.classList.add('hidden');
+    if (signedIn) {
+      loadProfileEditor();
+      loadRelayEditor();
     }
   }
 
@@ -267,18 +416,16 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       updateThemeSelection();
-      renderRelayList();
-      updateAccountInfo();
+      updateNostrSections();
     });
   } else {
     updateThemeSelection();
-    renderRelayList();
-    updateAccountInfo();
+    updateNostrSections();
   }
 
-  // Listen for profile updates
-  window.addEventListener('profile-updated', updateAccountInfo);
-  window.addEventListener('auth-changed', updateAccountInfo);
+  // The session manager mirrors its events onto window (src/lib/session.js), so
+  // these fire on login, logout and a silent re-login alike.
+  window.addEventListener('auth-changed', updateNostrSections);
 
   // Listen for theme changes (from other tabs)
   window.addEventListener('theme-changed', updateThemeSelection);

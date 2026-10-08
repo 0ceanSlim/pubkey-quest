@@ -6,10 +6,17 @@ import (
 	"net/http"
 
 	"github.com/0ceanslim/grain/client/core/tools"
-
-	"pubkey-quest/cmd/server/cache"
-	"pubkey-quest/cmd/server/utils"
+	"github.com/0ceanslim/grain/client/data"
 )
+
+// Profiles come from Nostr, through Grain: data.GetUserDataForSession answers
+// from Grain's cache when it can and otherwise fetches over the outbox model —
+// the user's own relays, resolved from their NIP-65 list — rather than a handful
+// of relays we guessed at. Login already warms that cache in the background
+// (session.CreateUserSession), so the common case is a cache hit.
+//
+// This endpoint is public on purpose: kind 0 is public data, and the game shows
+// other players' names and pictures.
 
 // ProfileMetadata represents a Nostr user profile
 // swagger:model ProfileMetadata
@@ -21,6 +28,7 @@ type ProfileMetadata struct {
 	Banner      string `json:"banner"`
 	Nip05       string `json:"nip05"`
 	Lud16       string `json:"lud16"`
+	Website     string `json:"website"`
 }
 
 // ProfileResponse represents the response from the profile endpoint
@@ -29,20 +37,20 @@ type ProfileResponse struct {
 	Npub    string          `json:"npub"`
 	Pubkey  string          `json:"pubkey"`
 	Profile ProfileMetadata `json:"profile"`
-	Cached  bool            `json:"cached"`
+	Found   bool            `json:"found"`
 }
 
 // ProfileHandler godoc
 // @Summary      Get Nostr profile
-// @Description  Fetch Nostr profile metadata for a given npub
+// @Description  Fetch Nostr profile metadata (kind 0) for a given npub, via the
+// @Description  outbox model. A player with no published profile is not an
+// @Description  error: the response carries empty fields and found=false.
 // @Tags         Profile
 // @Accept       json
 // @Produce      json
 // @Param        npub  query     string  true  "Nostr public key (npub format)"
 // @Success      200   {object}  ProfileResponse
 // @Failure      400   {string}  string  "Missing or invalid npub"
-// @Failure      404   {string}  string  "Profile not found"
-// @Failure      500   {string}  string  "Error fetching profile"
 // @Router       /profile [get]
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	npub := r.URL.Query().Get("npub")
@@ -57,71 +65,54 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check cache first
-	if cachedProfile, found := cache.GlobalProfileCache.Get(pubKey); found {
-		log.Printf("✅ Profile cache hit for %s", pubKey[:8]+"...")
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"npub":    npub,
-			"pubkey":  pubKey,
-			"profile": ProfileMetadata{
-				Name:        cachedProfile.Name,
-				DisplayName: cachedProfile.DisplayName,
-				About:       cachedProfile.About,
-				Picture:     cachedProfile.Picture,
-				Nip05:       cachedProfile.NIP05,
-				Lud16:       cachedProfile.LUD16,
-			},
-			"cached": true,
-		})
-		return
-	}
+	// A missing or unreachable profile is a normal state, not a failure: plenty
+	// of players arrive having never published a kind 0, and the UI falls back
+	// to a shortened npub. Answering 404/500 here only made the client log
+	// errors over something ordinary.
+	profile, found := fetchProfileMetadata(pubKey)
 
-	log.Printf("⏳ Profile cache miss for %s, fetching from relays...", pubKey[:8]+"...")
+	writeJSON(w, ProfileResponse{
+		Npub:    npub,
+		Pubkey:  pubKey,
+		Profile: profile,
+		Found:   found,
+	})
+}
 
-	// Default relays to query
-	relays := []string{
-		"wss://relay.damus.io",
-		"wss://nos.lol",
-		"wss://relay.nostr.band",
-		"wss://nostr.wine",
-	}
-
-	// Fetch metadata from relays
-	event, err := utils.FetchUserMetadata(pubKey, relays)
-	if err != nil {
-		http.Error(w, "Error fetching profile: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if event == nil {
-		http.Error(w, "Profile not found", http.StatusNotFound)
-		return
-	}
-
-	// Parse the content JSON
+// fetchProfileMetadata returns the parsed kind 0 for a pubkey, and whether one
+// was actually found.
+func fetchProfileMetadata(pubKey string) (ProfileMetadata, bool) {
 	var profile ProfileMetadata
-	if err := json.Unmarshal([]byte(event.Content), &profile); err != nil {
-		http.Error(w, "Error parsing profile data", http.StatusInternalServerError)
-		return
+
+	event, _, err := data.GetUserDataForSession(pubKey)
+	if err != nil {
+		log.Printf("⚠️ No profile for %s...: %v", shortKey(pubKey), err)
+		return profile, false
 	}
+	if event == nil || event.Content == "" {
+		return profile, false
+	}
+	// A kind 0 whose content isn't the object we expect is the author's
+	// business, not an error of ours — report it as absent.
+	if err := json.Unmarshal([]byte(event.Content), &profile); err != nil {
+		log.Printf("⚠️ Unparseable profile content for %s...: %v", shortKey(pubKey), err)
+		return ProfileMetadata{}, false
+	}
+	return profile, true
+}
 
-	// Cache the profile data
-	cache.GlobalProfileCache.Set(pubKey, cache.ProfileData{
-		DisplayName: profile.DisplayName,
-		Name:        profile.Name,
-		Picture:     profile.Picture,
-		About:       profile.About,
-		NIP05:       profile.Nip05,
-		LUD16:       profile.Lud16,
-	})
-	log.Printf("📝 Cached profile for %s (display_name: %s)", pubKey[:8]+"...", profile.DisplayName)
+// shortKey abbreviates a pubkey for logging.
+func shortKey(pubKey string) string {
+	if len(pubKey) <= 8 {
+		return pubKey
+	}
+	return pubKey[:8]
+}
 
+// writeJSON writes v as a JSON response.
+func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"npub":    npub,
-		"pubkey":  pubKey,
-		"profile": profile,
-		"cached":  false,
-	})
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		log.Printf("❌ Failed to encode response: %v", err)
+	}
 }

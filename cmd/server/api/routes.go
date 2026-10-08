@@ -508,6 +508,31 @@ func registerProfileRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/profile [get]
 	mux.HandleFunc("/api/profile", ProfileHandler)
+
+	// @Summary      Publish a signed Nostr event
+	// @Description  Profile (kind 0) and relay lists (kind 10002), signed in the
+	//               browser and routed to the player's own relays.
+	// @Tags         Profile
+	// @Accept       json
+	// @Produce      json
+	// @Success      200  {object}  PublishResponse
+	// @Router       /api/publish [post]
+	mux.HandleFunc("/api/publish", PublishHandler)
+
+	// @Summary      Get the signed-in player's relays
+	// @Tags         Profile
+	// @Produce      json
+	// @Success      200  {object}  RelayListResponse
+	// @Router       /api/relays [get]
+	mux.HandleFunc("/api/relays", RelaysHandler)
+
+	// @Summary      Pin this player to their own relay list
+	// @Tags         Profile
+	// @Accept       json
+	// @Produce      json
+	// @Success      200  {object}  RelayListResponse
+	// @Router       /api/relays/pinned [post]
+	mux.HandleFunc("/api/relays/pinned", PinnedRelaysHandler)
 }
 
 // ============================================================================

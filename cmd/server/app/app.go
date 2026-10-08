@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"pubkey-quest/cmd/server/auth"
-	"pubkey-quest/cmd/server/cache"
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/discovery"
@@ -27,7 +26,6 @@ func Init() {
 		log.Fatalf("Failed to initialize Grain client: %v", err)
 	}
 
-	cache.InitProfileCache(24 * time.Hour)
 
 	// Wire the event-recorder consumers: the quest objective tracker advances
 	// active quests from gameplay events, and the discovery reward grants XP for
