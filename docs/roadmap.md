@@ -305,13 +305,14 @@ The "whole system that needs implementation."
   - **Explicitly not doing:** per-skill XP / professions — skills are purely stat-derived by design; a skilling-XP track conflicts with the hydration rule (§4). Gate gathering by tool + POI tier + the existing d20 check instead.
 
 ### M5.6 — Party & multi-entity combat (XL) — **RESCOPE 2026-10-07: pulled into alpha**
-Full plan + findings: `docs/draft/party-multiplayer-plan.md`. Decisions: saves stay single-player (party state is memory-only); party clock snaps to the leader; NPC partners are permanent recruits (IDs in the save, stats derived); leader directs movement; one shared `CombatSession` with true initiative order.
-  - [ ] **P1 Multi-entity combat engine** (single human vs N enemies): per-combatant positions, unique instance IDs, initiative cursor + real rounds, `target_id`, AI target selection + occupancy, victory = all hostiles down, group XP-budget difficulty, POI `count`/`surprise` wired, multi-token UI. ⬅ **active**
-  - [ ] **P2 Combatant abstraction + NPC partners** (recruit/dismiss dialogue actions, partner block on NPC JSON, ally-aware rules)
-  - [ ] **P3 Grain v0.8.0 + auth hardening + presence** (cookie-bound npub on all game APIs, per-session locking, online players at your spot within ±1 h game time)
-  - [ ] **P4 Friends (mutual follows) + party formation** (Friends replaces Badges button; Badges → tab under Quests)
-  - [ ] **P5 Multiplayer party combat** (shared session, turn timer/AFK, per-member outcomes, scaling, bosses, multi-discipline dungeons)
+Full plan + findings: `docs/draft/party-multiplayer-plan.md`. Decisions: saves stay single-player (party state is memory-only); party clock snaps to the leader; leader directs movement; one shared `CombatSession` with true initiative order; party cap 5. **NPC partners deferred to post-beta** (2026-10-07); Nostr identity comes before multiplayer.
+  - [x] **P1 Multi-entity combat engine** (single human vs N enemies): per-combatant positions, unique instance IDs, initiative cursor + real rounds, `target_id`, AI target selection + occupancy, victory = all hostiles down, group XP-budget difficulty, POI `count`/`surprise` wired, multi-token UI. — implemented 2026-10-08, awaiting playtest
+  - [ ] **P2 Nostr identity + saves on relays** ⬅ **next** — proof-of-key login + cookie-bound identity ✅ (`c8cb355`); identity per `docs/draft/nostr-identity-plan.md`; saves on relays (**alpha**, decided 2026-10-07).
+  - [ ] **P3 Presence** (per-session locking, online players at your spot within ±1 h game time)
+  - [ ] **P4 Friends (mutual follows) + party formation** (party cap 5; party clock snaps to the leader; Friends replaces Badges button; Badges → tab under Quests)
+  - [ ] **P5 Multiplayer party combat** (Combatant sheet, shared session, turn timer/AFK, per-member outcomes, ally rules, scaling, bosses, multi-discipline dungeons)
   - [ ] **P6 Quest tab rework** (UI track, scope TBD)
+  - Post-beta: **NPC partners** (favor-gated, deferred 2026-10-07). Later: trading, **PvP arena** (Sunscorch Desert via a Dusthaven south exit, RS2 Duel Arena style).
 
 ### M6 — Presentation overhaul (M) — full critique in §7
 
@@ -394,7 +395,7 @@ Buildings live *inside* city JSON and rooms will live inside buildings, so world
 At solo+AI pace that's roughly **4–5 months of focused work** to alpha (M5.5 adds ~a month). If it must compress: M2 can ship taverns/inns-only, M5 conditions/abilities can ship half-done, M7 environment art can slip, and within M5.5 the interactive minigames can degrade to skin-over-check and feats to the clean-MVP set — but **M1, M3, M4, the M6 dialogue fix, and now the M5.5 core mechanics cannot be cut**, they *are* the (rescoped) alpha.
 
 ### Explicitly NOT in alpha
-Relay-hosted saves (the schema discipline ships in alpha; the relay plumbing is beta, §4) · story set-piece engine & act-1 art (beta, §8) · **general item crafting** (turning gathered resources into gear — only *scroll* crafting is in alpha; gathered resources are sellable/quest loot for now) · **per-skill XP / professions** (skills stay stat-derived — §4 hydration) · magic items · mobile layout (landscape lock only) · districts model · per-room art & per-room encounter triggers · stealth/surprise · monster lairs · player **trading** + PvP arena (post-alpha, §4). *(Rescoped INTO alpha 2026-10-07 as M5.6: multi-entity combat, NPC partners, Grain-backed presence/friends, parties, party combat — see `docs/draft/party-multiplayer-plan.md`.)* Scene-image interactivity is not deferred — it's **not planned at all** (scenes are flavor art by design). *(Rescoped INTO alpha 2026-07-13, now in M5.5: feats, spell scrolls, drop/pickup loop, gathering-node POIs + mining/fishing/lockpicking minigames.)*
+*(Relay-hosted saves moved INTO alpha 2026-10-07 — M5.6 P2.)* story set-piece engine & act-1 art (beta, §8) · **general item crafting** (turning gathered resources into gear — only *scroll* crafting is in alpha; gathered resources are sellable/quest loot for now) · **per-skill XP / professions** (skills stay stat-derived — §4 hydration) · magic items · mobile layout (landscape lock only) · districts model · per-room art & per-room encounter triggers · stealth/surprise · monster lairs · player **trading** + PvP arena (post-alpha, §4). *(Rescoped INTO alpha 2026-10-07 as M5.6: multi-entity combat, NPC partners, Grain-backed presence/friends, parties, party combat — see `docs/draft/party-multiplayer-plan.md`.)* Scene-image interactivity is not deferred — it's **not planned at all** (scenes are flavor art by design). *(Rescoped INTO alpha 2026-07-13, now in M5.5: feats, spell scrolls, drop/pickup loop, gathering-node POIs + mining/fishing/lockpicking minigames.)*
 
 ---
 
