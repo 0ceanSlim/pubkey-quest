@@ -52,9 +52,6 @@ Running list while the maintainer plays from a new character. Investigate only w
 8. **Track / over-scene tracker.** Track already picks what the tracker shows. **Tuned:** the
    tracker is smaller (6px, regular weight, narrower), and clicking it opens that quest's
    popup in the journal.
-9. **Content: Bob's first-time greeting has a mojibake character** ("Oh, thank the gods �
-   a capable-looking sort!") in `game-data/npcs/goldenhaven/tavern-owner-bob.json`; it
-   was probably an em dash.
 
 ## Data check (asked: did Codex break game data / migration?)
 
