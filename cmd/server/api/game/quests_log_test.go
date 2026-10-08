@@ -45,12 +45,16 @@ func TestQuestLogStatusesAndReasons(t *testing.T) {
 	check(log.Locked, "locked")
 	check(log.Completed, "completed")
 
-	// A human fighter can't take the paladin's or the dwarf's quest — they show
-	// as locked, with the unmet gate spelled out.
-	for _, id := range []string{"paladins-vow", "sword-of-the-ancestors"} {
-		if seen[id] != "locked" {
-			t.Errorf("%s: status %q, want locked", id, seen[id])
+	// A human fighter will never be a paladin or a dwarf, so those quests don't
+	// appear at all — not even as locked.
+	for _, id := range []string{"paladins-vow", "sword-of-the-ancestors", "elven-heritage"} {
+		if st, ok := seen[id]; ok {
+			t.Errorf("%s: listed as %q, want it left out (race/class can never change)", id, st)
 		}
+	}
+	// A quest that can still open up (a sequel waiting on its prerequisite) does show.
+	if seen["the-shadows-source"] != "locked" {
+		t.Errorf("the-shadows-source: status %q, want locked", seen["the-shadows-source"])
 	}
 	for _, q := range log.Locked {
 		unmet := 0
@@ -67,15 +71,13 @@ func TestQuestLogStatusesAndReasons(t *testing.T) {
 		}
 	}
 
-	// A sequel waits on its prerequisite and says so.
-	if seen["the-shadows-source"] == "locked" {
-		for _, q := range log.Locked {
-			if q.ID != "the-shadows-source" {
-				continue
-			}
-			if len(q.Requirements) == 0 || q.Requirements[0].Description != "Complete The Rising Shadow" || q.Requirements[0].Met {
-				t.Errorf("the-shadows-source should lead with an unmet 'Complete The Rising Shadow', got %+v", q.Requirements)
-			}
+	// The sequel says why it's locked.
+	for _, q := range log.Locked {
+		if q.ID != "the-shadows-source" {
+			continue
+		}
+		if len(q.Requirements) == 0 || q.Requirements[0].Description != "Complete The Rising Shadow" || q.Requirements[0].Met {
+			t.Errorf("the-shadows-source should lead with an unmet 'Complete The Rising Shadow', got %+v", q.Requirements)
 		}
 	}
 }

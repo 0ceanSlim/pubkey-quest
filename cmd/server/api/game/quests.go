@@ -292,11 +292,30 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 				continue
 			}
 		}
+		if barredForLife(qd, ctx) {
+			continue // e.g. an elves-only quest for a human — it can never open up
+		}
 		v := baseQuestView(qd, "locked")
 		v.Requirements = questRequirements(qd, save, ctx)
 		view.Locked = append(view.Locked, v)
 	}
 	return view
+}
+
+// permanentRequirementTypes are gates on traits fixed at character creation —
+// nothing in play changes them — so failing one means the quest is never
+// startable by this character.
+var permanentRequirementTypes = map[string]bool{"race": true, "class": true, "alignment": true}
+
+// barredForLife reports whether a quest fails one of those permanent gates.
+// Such quests are left out of the journal entirely rather than shown as locked.
+func barredForLife(qd *types.QuestData, ctx requirement.Context) bool {
+	for _, req := range qd.Requirements {
+		if permanentRequirementTypes[req.Type] && !requirement.EvaluateOne(req, ctx) {
+			return true
+		}
+	}
+	return false
 }
 
 // injectQuestOffers adds the quests this NPC gives — those whose start
