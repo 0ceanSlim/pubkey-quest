@@ -35,6 +35,13 @@ let _cachedGameText  = null;
 let _lastState       = null;
 let _checkedOnLoad   = false;
 let _baseExperience  = 0;
+// Multi-enemy fights (M5.6): the enemy the player is aiming at, where each
+// monster token is currently drawn (lags the server while a move animates),
+// and the last HP the bars were drained to (so a re-render doesn't skip the
+// drain the log stager has scheduled).
+let _targetID        = null;
+let _shownPos        = {};
+let _hpByID          = {};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const getNpub   = () => gameAPI.npub   ?? null;
@@ -62,8 +69,9 @@ export async function debugStartCombat() {
         return;
     }
     const monsterID = document.getElementById('debug-monster-select')?.value ?? '';
+    const count = parseInt(document.getElementById('debug-monster-count')?.value ?? '1', 10) || 1;
     try {
-        const resp = await combatPost('/api/combat/debug/start', { npub, save_id: saveID, monster_id: monsterID });
+        const resp = await combatPost('/api/combat/debug/start', { npub, save_id: saveID, monster_id: monsterID, count });
         const cs   = await resp.json();
         if (!resp.ok || !cs.success) {
             window.showMessage?.(cs.error ?? `HTTP ${resp.status}`, 'error');
@@ -85,6 +93,9 @@ export function enterCombatMode(cs) {
     // Clear any stale pacing timers from a prior combat that ended mid-flush.
     _logQueueTailAt = 0;
     _animationEndsAt = 0;
+    _targetID = null;
+    _shownPos = {};
+    _hpByID = {};
     _replaceGameText();
     // If we entered from a travel encounter, the action bar is the travel flex
     // layout (no navigation/building/npc sub-elements). Rebuild the normal grid
@@ -107,6 +118,9 @@ export function exitCombatMode() {
     _lastState = null;
     _logQueueTailAt = 0;
     _animationEndsAt = 0;
+    _targetID = null;
+    _shownPos = {};
+    _hpByID = {};
     // Re-render the scene we returned to so the correct action bar comes back —
     // in particular the travel controls when a fight ended mid-journey (the
     // cached bar restore above only rebuilds the generic grid).
@@ -116,64 +130,45 @@ export function exitCombatMode() {
 /** Single re-render function — reads cs and updates every DOM region. */
 export function renderCombatState(cs) {
     if (!cs) return;
-    // On combat start with monster-first initiative the backend sends
-    // `monster_pos_before` (the spawn cell, before the opening turn move).
-    // Use it as the animation seed so the sprite enters from where it
-    // appeared instead of teleporting to its post-move position.
-    const prevMonsterPos = _lastState?.monster_pos
-        ?? cs.monster_pos_before
-        ?? null;
+    // Where each monster was last drawn. On combat start, monsters that won
+    // initiative carry `pos_before` (their spawn cell, before the opening move)
+    // so their sprites enter from where they appeared instead of teleporting.
+    const prevPos = _monsterPositions(_lastState);
     _lastState = cs;
+    _pickTarget(cs);
 
-    const monster = cs.monsters?.[0];
-
-    // ── Monster panel (HP drain deferred — see below) ───────────────────────
-    if (monster) {
-        _setText('combat-monster-name', monster.name ?? 'Unknown');
-        _setText('combat-monster-ac-badge', `AC ${monster.armor_class ?? '?'}`);
-        _renderConditionsInto('combat-monster-conditions', monster.conditions || [], '#c4b5fd');
-        _renderDifficultyBadge(cs.difficulty);
-    }
-
+    // ── Target panel + turn-order strip ─────────────────────────────────────
+    _renderTargetPanel(cs);
+    _renderTurnStrip(cs);
+    _renderDifficultyBadge(cs.difficulty);
     // Player conditions (things afflicting you) render over the scene, in red.
     _renderConditionsInto('combat-conditions', cs.player?.conditions || [], '#fca5a5');
-    if (monster) {
-
-        const img = $id('combat-monster-img');
-        if (img && monster.instance_id) {
-            const newSrc = `/res/img/monsters/${monster.instance_id}.png`;
-            if (img.src !== newSrc) {
-                img.src = newSrc;
-                img.onerror = () => { img.src = '/res/img/monsters/unknown.png'; img.onerror = null; };
-            }
-        }
-    }
+    _fitGridArea();
 
     // ── Round + range + movement budget ──────────────────────────────────────
     _setText('combat-round-display', `Round ${cs.round ?? 1}`);
-    const range  = cs.range ?? 0;
+    _renderRangeDisplay(cs);
     const budget = cs.movement_budget ?? 6;
     const spent  = cs.movement_spent  ?? 0;
-    const remaining = budget - spent;
-
-    const wID    = _equippedWeaponID('mainHand');
-    const wRange = wID ? _isRangedWeapon(wID) : false;
-    const reach  = wID ? _meleeReach(wID) : 1;
-    const inReach = !wRange && range <= reach;
-    const reachTag = !wRange ? (inReach ? ' ⚔' : '') : '';
-    _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? ''}${reachTag}`);
-    _setText('combat-move-budget', `Move ${remaining}/${budget}`);
+    _setText('combat-move-budget', `Move ${budget - spent}/${budget}`);
 
     // ── Grid baseline + movement context ────────────────────────────────────
+    // Every monster that changed cell this response becomes a "mover": it is
+    // drawn at its old cell until the log line announcing its move plays, then
+    // glides along its path — so several monsters' turns read in order.
     _ensureGrid();
-    const newMonsterPos = cs.monster_pos;
-    const movedThisFrame = prevMonsterPos && newMonsterPos &&
-        (prevMonsterPos.x !== newMonsterPos.x || prevMonsterPos.y !== newMonsterPos.y);
-    const movePath = movedThisFrame ? _chebyshevPath(prevMonsterPos, newMonsterPos) : [];
-    if (!movedThisFrame) {
-        // No monster movement — paint statically (player may have stepped).
-        _updateGridHighlights(cs);
+    const movers = {};
+    for (const m of (cs.monsters ?? [])) {
+        if (!m.is_alive || m.fled || !m.pos) continue;
+        const from = prevPos[m.instance_id] ?? m.pos_before ?? null;
+        if (from && (from.x !== m.pos.x || from.y !== m.pos.y)) {
+            movers[m.instance_id] = { name: m.name, path: _chebyshevPath(from, m.pos), scheduled: false };
+        }
     }
+    _shownPos = {};
+    for (const id of Object.keys(movers)) _shownPos[id] = prevPos[id] ?? _findMonster(cs, id)?.pos_before;
+    _paintGrid(cs);
+    const gridCtx = { cs, movers };
 
     // ── Combat log (staggered) ───────────────────────────────────────────────
     // Pacing model:
@@ -191,15 +186,12 @@ export function renderCombatState(cs) {
 
         if (entries.length) {
             const fixed = isResume ? LOG_MS_INITIAL : null;
-            _appendLogEntriesStaggered(logEl, entries, false, fixed, {
-                cs, prevMonsterPos, movePath,
-            });
-        } else if (movedThisFrame) {
-            // No new log entries but monster moved (rare) — still animate.
-            _scheduleGridSteps(cs, prevMonsterPos, movePath, performance.now());
+            _appendLogEntriesStaggered(logEl, entries, false, fixed, gridCtx);
         }
-    } else if (movedThisFrame) {
-        _scheduleGridSteps(cs, prevMonsterPos, movePath, performance.now());
+    }
+    // Any mover whose move line never played (rare) still animates, right away.
+    for (const [id, mv] of Object.entries(movers)) {
+        if (!mv.scheduled) _scheduleGridSteps(cs, id, mv, performance.now());
     }
 
     // ── Action buttons ────────────────────────────────────────────────────────
@@ -223,12 +215,140 @@ export function renderCombatState(cs) {
     }
 }
 
+// ─── Targeting (M5.6) ─────────────────────────────────────────────────────────
+
+const _isActive = m => m && m.is_alive && !m.fled;
+
+function _findMonster(cs, id) {
+    return (cs?.monsters ?? []).find(m => m.instance_id === id) ?? null;
+}
+
+/** instance_id → last known cell, for animating moves between responses. */
+function _monsterPositions(cs) {
+    const out = {};
+    for (const m of (cs?.monsters ?? [])) if (m.pos) out[m.instance_id] = m.pos;
+    return out;
+}
+
+/** Keep the chosen target while it's still in the fight; otherwise aim at the nearest enemy. */
+function _pickTarget(cs) {
+    if (_isActive(_findMonster(cs, _targetID))) return;
+    let best = null;
+    for (const m of (cs.monsters ?? [])) {
+        if (_isActive(m) && (best === null || (m.range ?? 99) < (best.range ?? 99))) best = m;
+    }
+    _targetID = best?.instance_id ?? null;
+}
+
+/** The targeted monster — or, once nobody is left, the first one (for the panel). */
+function _targetMonster(cs) {
+    return _findMonster(cs, _targetID) ?? cs?.monsters?.[0] ?? null;
+}
+
+/** Aim subsequent attacks/spells at a monster (grid cell or turn-strip chip click). */
+export function selectCombatTarget(instanceID) {
+    const cs = _lastState;
+    if (!cs || !_isActive(_findMonster(cs, instanceID))) return;
+    _targetID = instanceID;
+    _renderTargetPanel(cs);
+    _renderTurnStrip(cs);
+    _paintHPViews(cs);
+    _renderRangeDisplay(cs);
+    _paintGrid(cs);
+    if (_cachedNav !== null && cs.phase === 'active') _renderCombatButtons(cs);
+}
+
+function _renderTargetPanel(cs) {
+    const monster = _targetMonster(cs);
+    if (!monster) return;
+    _setText('combat-monster-name', monster.name ?? 'Unknown');
+    _setText('combat-monster-ac-badge', `AC ${monster.armor_class ?? '?'}`);
+    _renderConditionsInto('combat-monster-conditions', monster.conditions || [], '#c4b5fd');
+    const img = $id('combat-monster-img');
+    const art = monster.template_id || monster.instance_id;
+    if (img && art) {
+        const newSrc = `/res/img/monsters/${art}.png`;
+        if (!img.src.endsWith(newSrc)) {
+            img.src = newSrc;
+            img.onerror = () => { img.src = '/res/img/monsters/unknown.png'; img.onerror = null; };
+        }
+    }
+}
+
+/**
+ * Turn-order strip: one chip per combatant in initiative order, so the player
+ * can see who acts when. Enemy chips carry a mini HP bar and pick the target on
+ * click. Hidden for a lone enemy — the top panel already says it all.
+ */
+function _renderTurnStrip(cs) {
+    const el = $id('combat-turn-strip');
+    if (!el) return;
+    const monsters = cs.monsters ?? [];
+    if (monsters.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'flex';
+    el.innerHTML = '';
+    for (const entry of (cs.initiative ?? [])) {
+        const chip = document.createElement('div');
+        chip.className = 'combat-chip';
+        if (entry.type === 'player') {
+            chip.classList.add('you');
+            chip.textContent = 'You';
+            chip.title = `You — initiative ${entry.initiative}`;
+            el.appendChild(chip);
+            continue;
+        }
+        const m = _findMonster(cs, entry.id);
+        if (!m) continue;
+        const label = document.createElement('span');
+        label.textContent = m.name;
+        chip.appendChild(label);
+        if (_isActive(m)) {
+            chip.classList.add('foe');
+            if (m.instance_id === _targetID) chip.classList.add('target');
+            const hp = _hpByID[m.instance_id] ?? { cur: m.current_hp, max: m.max_hp };
+            const bar = document.createElement('div');
+            bar.className = 'combat-chip-hp';
+            bar.innerHTML = `<div data-hp-for="${m.instance_id}" style="width:${_hpPct(hp.cur, hp.max)}%"></div>`;
+            chip.appendChild(bar);
+            chip.title = `${m.name} — range ${m.range}, initiative ${entry.initiative}. Click to target.`;
+            chip.addEventListener('click', () => selectCombatTarget(m.instance_id));
+        } else {
+            chip.classList.add('down');
+            chip.title = m.fled ? `${m.name} fled` : `${m.name} is down`;
+        }
+        el.appendChild(chip);
+    }
+}
+
+/** The grid sits under the top bar, whose height grows with the turn strip. */
+function _fitGridArea() {
+    const bar = $id('combat-topbar');
+    if (!bar) return;
+    const h = bar.offsetHeight;
+    if (!h) return;
+    const area = $id('combat-grid-area');
+    if (area) area.style.top = `${h + 4}px`;
+    const conds = $id('combat-conditions');
+    if (conds) conds.style.top = `${h}px`;
+}
+
+function _renderRangeDisplay(cs) {
+    const target = _targetMonster(cs);
+    const range  = (_isActive(target) ? target.range : cs.range) ?? 0;
+    const wID    = _equippedWeaponID('mainHand');
+    const wRange = wID ? _isRangedWeapon(wID) : false;
+    const reach  = wID ? _meleeReach(wID) : 1;
+    const inReach = !wRange && range <= reach;
+    const reachTag = !wRange ? (inReach ? ' ⚔' : '') : '';
+    _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? ''}${reachTag}`);
+}
+
 export async function doAttack(hand = 'main', thrown = false) {
     const npub = getNpub(), saveID = getSaveID();
     if (!npub || !saveID) return;
     try {
         const resp = await combatPost('/api/combat/action', {
-            npub, save_id: saveID,
+            npub, save_id: saveID, target_id: _targetID ?? '',
             weapon_slot: hand === 'off' ? 'offHand' : 'mainHand',
             hand, thrown,
         });
@@ -318,13 +438,13 @@ export function doStubAction(name) {
 
 // ─── Cast / Use-Item (M4 Phase E) ──────────────────────────────────────────────
 
-/** Cast a prepared spell at the monster. Mirrors doAttack. */
+/** Cast a prepared spell at the targeted monster. Mirrors doAttack. */
 export async function doCastSpell(spellId) {
     const npub = getNpub(), saveID = getSaveID();
     if (!npub || !saveID) return;
     _closeCombatChooser();
     try {
-        const resp = await combatPost('/api/combat/cast', { npub, save_id: saveID, spell_id: spellId });
+        const resp = await combatPost('/api/combat/cast', { npub, save_id: saveID, spell_id: spellId, target_id: _targetID ?? '' });
         const cs = await resp.json();
         if (!resp.ok || !cs.success) {
             _logError(cs.error ?? `HTTP ${resp.status}`);
@@ -344,7 +464,7 @@ export async function doUseCombatItem(itemId) {
     if (!npub || !saveID) return;
     _closeCombatChooser();
     try {
-        const resp = await combatPost('/api/combat/use-item', { npub, save_id: saveID, item_id: itemId });
+        const resp = await combatPost('/api/combat/use-item', { npub, save_id: saveID, item_id: itemId, target_id: _targetID ?? '' });
         const cs = await resp.json();
         if (!resp.ok || !cs.success) {
             _logError(cs.error ?? `HTTP ${resp.status}`);
@@ -680,7 +800,7 @@ export async function doFlee() {
     }
 }
 
-/** End the player's turn — triggers the monster's response turn on the server. */
+/** End the player's turn — the server runs every monster's turn in initiative order. */
 export async function doEndTurn() {
     const npub = getNpub(), saveID = getSaveID();
     if (!npub || !saveID) return;
@@ -931,9 +1051,9 @@ function _isOutcomeLine(line) {
 }
 
 // _appendLogEntriesStaggered emits each line on a classified delay schedule.
-// When `gridCtx` is provided and contains a non-empty movePath, the monster's
-// grid animation is launched at the exact moment the matching "moves toward/
-// away" log line emits — keeping sprite motion in lock-step with the narration.
+// When `gridCtx` carries movers, each monster's grid animation is launched at
+// the exact moment its own "<Name> moves toward/away" line emits — keeping
+// sprite motion in lock-step with the narration, one monster at a time.
 function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval = null, gridCtx = null) {
     const filtered = lines.map(r => r.trim()).filter(Boolean);
     if (!filtered.length) return;
@@ -941,20 +1061,25 @@ function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval
     const now = performance.now();
     let t = Math.max(now, _logQueueTailAt);
     let sawMove = false;
-    let scheduledGrid = false;
 
     filtered.forEach((line, i) => {
         const atAbsolute = t;
-        const isMoveLine = /moves\s+(toward|away)/i.test(line);
+        const moveMatch  = line.match(/^(.+?)\s+moves\s+(toward|away)/i);
+        const isMoveLine = !!moveMatch;
         const rollN = _diceRollNumber(line);
         const dmgN  = rollN === null ? _diceDamageNumber(line) : null;
 
-        // Schedule the monster grid animation at the move-line's emit time.
-        // Doing it here (rather than on render) guarantees the sprite never
-        // starts gliding before the player sees the announcement.
-        if (isMoveLine && !scheduledGrid && gridCtx && gridCtx.movePath && gridCtx.movePath.length) {
-            _scheduleGridSteps(gridCtx.cs, gridCtx.prevMonsterPos, gridCtx.movePath, atAbsolute);
-            scheduledGrid = true;
+        // Schedule the named monster's grid animation at the move-line's emit
+        // time. Doing it here (rather than on render) guarantees the sprite
+        // never starts gliding before the player sees the announcement.
+        if (moveMatch && gridCtx?.movers) {
+            const name = moveMatch[1].trim();
+            for (const [id, mv] of Object.entries(gridCtx.movers)) {
+                if (!mv.scheduled && mv.name === name) {
+                    _scheduleGridSteps(gridCtx.cs, id, mv, atAbsolute);
+                    break;
+                }
+            }
         }
 
         if (!isError && fixedInterval === null) {
@@ -1039,7 +1164,10 @@ function _scrollLogToBottom() {
 
 // ─── Combat grid ──────────────────────────────────────────────────────────────
 
-/** Build the 63 cell divs once. Cells are passive — movement is driven by the D-pad. */
+/**
+ * Build the 63 cell divs once. Movement is driven by the D-pad; the only cell
+ * interaction is clicking an enemy to target it (delegated to the container).
+ */
 function _ensureGrid() {
     const container = $id('combat-grid');
     if (!container || container.dataset.built) return;
@@ -1055,57 +1183,58 @@ function _ensureGrid() {
             container.appendChild(cell);
         }
     }
+    container.addEventListener('click', (e) => {
+        const cell = e.target.closest?.('.combat-cell.foe');
+        if (cell?.dataset.foe) selectCombatTarget(cell.dataset.foe);
+    });
 }
 
-/** Redraw the grid: only the player and monster cells carry colour + emoji. */
-function _updateGridHighlights(cs) {
-    const playerPos  = cs.player_pos;
-    const monsterPos = cs.monster_pos;
-    if (!playerPos || !monsterPos) return;
+/**
+ * Redraw the grid: the player, every enemy still in the fight (at its drawn
+ * position, which lags the server while a move animates), and the fallen.
+ * The current target's cell is outlined.
+ */
+function _paintGrid(cs) {
+    const playerPos = cs.player_pos;
+    if (!playerPos) return;
 
     for (let r = 0; r < GRID_ROWS; r++) {
         for (let c = 0; c < GRID_COLS; c++) {
             const cell = $id(`gc-${c}-${r}`);
             if (!cell) continue;
-
             cell.style.background = '';
+            cell.style.opacity = '';
             cell.textContent = '';
-
-            if (c === playerPos.x && r === playerPos.y) {
-                cell.style.background = 'rgba(74,222,128,0.28)';
-                cell.textContent = '⚔';
-            } else if (c === monsterPos.x && r === monsterPos.y) {
-                cell.style.background = 'rgba(239,68,68,0.28)';
-                cell.textContent = '👹';
-            }
+            cell.title = '';
+            cell.classList.remove('foe', 'target');
+            delete cell.dataset.foe;
         }
     }
-}
+    const cellAt = p => (p ? $id(`gc-${p.x}-${p.y}`) : null);
 
-/** Full grid update: ensure built, redraw cells. */
-function _renderGrid(cs) {
-    _ensureGrid();
-    _updateGridHighlights(cs);
-}
-
-/** Redraw grid but with the monster at a custom position (for step animation). */
-function _updateGridHighlightsAt(cs, mPos) {
-    const playerPos = cs.player_pos;
-    if (!playerPos || !mPos) return;
-    for (let r = 0; r < GRID_ROWS; r++) {
-        for (let c = 0; c < GRID_COLS; c++) {
-            const cell = $id(`gc-${c}-${r}`);
-            if (!cell) continue;
-            cell.style.background = '';
-            cell.textContent = '';
-            if (c === playerPos.x && r === playerPos.y) {
-                cell.style.background = 'rgba(74,222,128,0.28)';
-                cell.textContent = '⚔';
-            } else if (c === mPos.x && r === mPos.y) {
-                cell.style.background = 'rgba(239,68,68,0.28)';
-                cell.textContent = '👹';
-            }
-        }
+    // The fallen first, so a living combatant standing there paints over them.
+    for (const m of (cs.monsters ?? [])) {
+        if (m.is_alive || m.fled) continue;
+        const cell = cellAt(m.pos);
+        if (cell) { cell.textContent = '💀'; cell.style.opacity = '0.45'; }
+    }
+    for (const m of (cs.monsters ?? [])) {
+        if (!_isActive(m)) continue;
+        const cell = cellAt(_shownPos[m.instance_id] ?? m.pos);
+        if (!cell) continue;
+        cell.style.opacity = '';
+        cell.style.background = 'rgba(239,68,68,0.28)';
+        cell.textContent = '👹';
+        cell.classList.add('foe');
+        cell.dataset.foe = m.instance_id;
+        cell.title = `${m.name} (${m.current_hp}/${m.max_hp} HP) — click to target`;
+        if (m.instance_id === _targetID) cell.classList.add('target');
+    }
+    const pCell = cellAt(playerPos);
+    if (pCell) {
+        pCell.style.opacity = '';
+        pCell.style.background = 'rgba(74,222,128,0.28)';
+        pCell.textContent = '⚔';
     }
 }
 
@@ -1125,20 +1254,21 @@ function _chebyshevPath(from, to) {
 // _GRID_STEP_MS — wall time between monster grid steps.
 const _GRID_STEP_MS = 450;
 
-// _scheduleGridSteps animates the monster sprite one Chebyshev cell at a time
-// starting at `startAt` (performance.now scale). The previous position is
-// painted immediately; subsequent steps fire on a fixed cadence. Updates
-// `_animationEndsAt` so the log stager can hold subsequent entries until the
-// monster has come to rest.
-function _scheduleGridSteps(cs, prevMonsterPos, path, startAt) {
+// _scheduleGridSteps animates one monster's sprite a Chebyshev cell at a time
+// starting at `startAt` (performance.now scale). Steps fire on a fixed cadence.
+// Extends `_animationEndsAt` so the log stager holds subsequent entries until
+// the monster has come to rest.
+function _scheduleGridSteps(cs, id, mover, startAt) {
+    mover.scheduled = true;
+    const path = mover.path;
     if (!path || !path.length) return;
-    _updateGridHighlightsAt(cs, prevMonsterPos);
-    _animationEndsAt = startAt + path.length * _GRID_STEP_MS;
+    _animationEndsAt = Math.max(_animationEndsAt, startAt + path.length * _GRID_STEP_MS);
     path.forEach((p, i) => {
         const fireAt = startAt + (i + 1) * _GRID_STEP_MS;
         setTimeout(() => {
             if (_lastState !== cs) return;
-            _updateGridHighlightsAt(cs, p);
+            _shownPos[id] = p;
+            _paintGrid(cs);
         }, Math.max(0, fireAt - performance.now()));
     });
 }
@@ -1298,7 +1428,10 @@ function _renderLootPanel(cs) {
     const listEl = $id('loot-list');
     if (!listEl) return;
     listEl.innerHTML = '';
-    const loot = cs.loot_rolled ?? [];
+    // Several kills can drop the same item — show one line per item.
+    const merged = new Map();
+    for (const d of (cs.loot_rolled ?? [])) merged.set(d.item, (merged.get(d.item) ?? 0) + (d.quantity ?? 0));
+    const loot = [...merged].map(([item, quantity]) => ({ item, quantity }));
     if (!loot.length) { listEl.textContent = 'No loot.'; return; }
     for (const drop of loot) {
         const row = document.createElement('div');
@@ -1411,7 +1544,11 @@ function _renderCombatButtons(cs) {
 
     const actionUsed   = cs.action_used ?? false;
     const bonusUsed    = cs.bonus_action_used ?? false;
-    const range        = cs.range ?? 0;
+    const range        = cs.range ?? 0;           // to the nearest enemy (flee gate)
+    const target       = _targetMonster(cs);
+    const targetRange  = _isActive(target) ? (target.range ?? range) : range;
+    const targetName   = target?.name ?? 'the enemy';
+    const foes         = (cs.monsters ?? []).filter(_isActive);
     const bonusAvail   = cs.bonus_attack_available ?? false;
     const ammo         = cs.ammo_remaining ?? 0;
 
@@ -1420,8 +1557,7 @@ function _renderCombatButtons(cs) {
     const remaining = Math.max(0, budget - spent);
 
     const pPos = cs.player_pos ?? { x: -1, y: -1 };
-    const mPos = cs.monster_pos ?? { x: -1, y: -1 };
-    const mReach      = cs.monster_melee_reach ?? 0;
+    const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
     const disengaged  = cs.disengaged ?? false;
     const reactionUsed = cs.reaction_used ?? false;
 
@@ -1441,16 +1577,17 @@ function _renderCombatButtons(cs) {
                     </div>`;
         }
         const tx = pPos.x + d.dx, ty = pPos.y + d.dy;
+        const to = { x: tx, y: ty };
         const oob        = tx < 0 || tx >= GRID_COLS || ty < 0 || ty >= GRID_ROWS;
-        const intoMon    = tx === mPos.x && ty === mPos.y;
+        const intoMon    = foes.some(m => m.pos && m.pos.x === tx && m.pos.y === ty);
         const noBudget   = remaining <= 0;
         const disabled   = oob || intoMon || noBudget;
 
-        // OA warning: moving this direction would leave monster's reach
-        const prevR = Math.max(Math.abs(pPos.x - mPos.x), Math.abs(pPos.y - mPos.y));
-        const newR  = Math.max(Math.abs(tx     - mPos.x), Math.abs(ty     - mPos.y));
-        const provokesOA = !disabled && !disengaged && mReach > 0 &&
-                           prevR <= mReach && newR > mReach;
+        // OA warning: moving this direction would leave some enemy's reach
+        const provokesOA = !disabled && !disengaged && foes.some(m => {
+            const reach = m.melee_reach ?? 0;
+            return m.pos && reach > 0 && cheb(pPos, m.pos) <= reach && cheb(to, m.pos) > reach;
+        });
         const label = provokesOA ? `⚠${d.label}` : d.label;
         const title = disabled
             ? (noBudget ? 'No movement left' : intoMon ? 'Blocked by enemy' : 'Out of bounds')
@@ -1476,7 +1613,7 @@ function _renderCombatButtons(cs) {
     const isRanged  = mainID ? _isRangedWeapon(mainID) : false;
     const maxMelee  = mainID ? _meleeReach(mainID) : 1;
     const mainName  = mainID ? (_equippedWeaponName('mainHand') || 'Unarmed') : 'Unarmed';
-    const meleeBlocked  = !isRanged && range > maxMelee;
+    const meleeBlocked  = !isRanged && targetRange > maxMelee;
     const rangedBlocked = isRanged && ammo <= 0;
 
     let mainLabel = `⚔ ${mainName}`;
@@ -1484,9 +1621,9 @@ function _renderCombatButtons(cs) {
 
     let attackBtn;
     if (actionUsed)         attackBtn = _B_GRAYED(mainLabel, 'Action used this turn');
-    else if (meleeBlocked)  attackBtn = _B_GRAYED(mainLabel, 'Out of melee range — step closer');
+    else if (meleeBlocked)  attackBtn = _B_GRAYED(mainLabel, `${targetName} is out of melee range — step closer or pick another target`);
     else if (rangedBlocked) attackBtn = _B_GRAYED(mainLabel, 'No ammo');
-    else attackBtn = `<button style="${_B()}" onclick="window.doAttack('main',false)">${mainLabel}</button>`;
+    else attackBtn = `<button style="${_B()}" onclick="window.doAttack('main',false)" title="Attack ${targetName}">${mainLabel}</button>`;
 
     let bonusBtn = '';
     if (bonusAvail) {
@@ -1513,7 +1650,7 @@ function _renderCombatButtons(cs) {
         </div>`;
 
     // ── NPC column: Disengage / Hold / Flee / End Turn ───────────────────────
-    const inMonsterReach = range <= mReach && mReach > 0;
+    const inMonsterReach = foes.some(m => (m.melee_reach ?? 0) > 0 && (m.range ?? 99) <= m.melee_reach);
     let disengageBtn;
     if (disengaged) {
         disengageBtn = _B_GRAYED('🕊 Disengaged', 'Already disengaged — movement safe');
@@ -1536,7 +1673,7 @@ function _renderCombatButtons(cs) {
     const fleeBtn = actionUsed
         ? _B_GRAYED('🏃 Flee', 'Action already used')
         : range < 3
-            ? _B_GRAYED('🏃 Flee (need range ≥ 3)', 'Move away on the grid first')
+            ? _B_GRAYED('🏃 Flee (need range ≥ 3)', 'Get every enemy to range 3 or more first')
             : `<button style="${_B('color:#fbbf24;')}" onclick="window.doFlee()"
                     title="Attempt to escape — success chance based on range and speed">🏃 Flee</button>`;
 
@@ -1547,7 +1684,7 @@ function _renderCombatButtons(cs) {
             ${holdBtn}
             ${fleeBtn}
             <button style="${_B('color:#f87171;')}" onclick="window.doEndTurn()"
-                    title="End your turn and let the monster act">⏭ End Turn</button>
+                    title="End your turn — every enemy acts in initiative order">⏭ End Turn</button>
         </div>`;
 
     // ── A/B resource badges ──────────────────────────────────────────────────
@@ -1671,16 +1808,32 @@ function _renderDifficultyBadge(difficulty) {
     el.style.background = s.bg;
 }
 
-// _renderMonsterHP drains the monster HP bar to the cs values.
+// _renderMonsterHP drains every monster's HP to the cs values: the targeted
+// enemy's big bar and each turn-strip chip.
 function _renderMonsterHP(cs) {
-    const monster = cs.monsters?.[0];
-    if (!monster) return;
-    const pct = monster.max_hp > 0
-        ? Math.max(0, Math.min(100, (monster.current_hp / monster.max_hp) * 100))
-        : 0;
-    const bar = $id('combat-monster-hp-bar');
-    if (bar) bar.style.width = `${pct}%`;
-    _setText('combat-monster-hp-text', `${monster.current_hp} / ${monster.max_hp} HP`);
+    if (!cs) return;
+    for (const m of (cs.monsters ?? [])) _hpByID[m.instance_id] = { cur: m.current_hp, max: m.max_hp };
+    _paintHPViews(cs);
+}
+
+function _hpPct(cur, max) {
+    return max > 0 ? Math.max(0, Math.min(100, (cur / max) * 100)) : 0;
+}
+
+// _paintHPViews draws the bars from the last drained HP (_hpByID), so retargeting
+// mid-animation doesn't leak damage the log hasn't announced yet.
+function _paintHPViews(cs) {
+    const target = _targetMonster(cs);
+    if (target) {
+        const hp = _hpByID[target.instance_id] ?? { cur: target.current_hp, max: target.max_hp };
+        const bar = $id('combat-monster-hp-bar');
+        if (bar) bar.style.width = `${_hpPct(hp.cur, hp.max)}%`;
+        _setText('combat-monster-hp-text', `${hp.cur} / ${hp.max} HP`);
+    }
+    for (const el of document.querySelectorAll('#combat-turn-strip [data-hp-for]')) {
+        const hp = _hpByID[el.dataset.hpFor];
+        if (hp) el.style.width = `${_hpPct(hp.cur, hp.max)}%`;
+    }
 }
 
 // _renderPlayerHP writes player HP (and mana) from combat state into the side

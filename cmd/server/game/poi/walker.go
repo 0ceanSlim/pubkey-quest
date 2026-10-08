@@ -34,6 +34,10 @@ type StepResult struct {
 	Outcome  []string `json:"outcome,omitempty"` // what happened: check result, loot, damage…
 	Choices  []Choice `json:"choices,omitempty"` // present on choice nodes
 	Combat   string   `json:"combat,omitempty"`  // monster id — the caller bridges into combat
+	// CombatCount / CombatSurprise carry a monster node's authored group size and
+	// ambush flag through to the combat bridge.
+	CombatCount    int  `json:"-"`
+	CombatSurprise bool `json:"-"`
 	Next     string   `json:"next,omitempty"`    // node to resolve on "continue" (empty if choices/terminal)
 	Terminal bool     `json:"terminal"`
 
@@ -121,6 +125,8 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		// The caller starts combat with this monster and resumes the POI at Next
 		// once it's won. (Bridge wired with the session.)
 		res.Combat = node.MonsterID
+		res.CombatCount = node.Count
+		res.CombatSurprise = node.Surprise
 		res.Next = node.Next
 
 	case types.POIStepExit, types.POIStepNPCInteraction:

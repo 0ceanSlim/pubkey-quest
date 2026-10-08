@@ -44,11 +44,6 @@ func chebyshev(a, b types.Position) int {
 	return dy
 }
 
-// currentRange returns the current combat range (Chebyshev distance between player and monster).
-func currentRange(cs *types.CombatSession) int {
-	return chebyshev(cs.PlayerPos, cs.MonsterPos)
-}
-
 // ChebyshevExported is the exported version of chebyshev for use by the API layer.
 func ChebyshevExported(a, b types.Position) int {
 	return chebyshev(a, b)
@@ -73,78 +68,153 @@ func playerMovementBudget(race string) int {
 
 // ─── StartCombat ─────────────────────────────────────────────────────────────
 
-// StartCombat initialises a new CombatSession for a single-monster encounter.
-// The session lives in server memory only — it is never written to the save file.
+// EncounterSpec describes the hostile side of a fight about to start.
+type EncounterSpec struct {
+	MonsterIDs    []string // one entry per monster; repeats mean several of that kind
+	EnvironmentID string   // drives the starting range
+	Surprise      bool     // the party is caught off guard: every monster acts first in round 1
+}
+
+// StartCombat initialises a new CombatSession against a single monster.
+// Kept as the common-case entry point; see StartEncounter for groups.
 func StartCombat(db *sql.DB, save *types.SaveFile, npub, monsterID, environmentID string, advancement []types.AdvancementEntry) (*types.CombatSession, error) {
-	monsterData, err := LoadMonsterByID(db, monsterID)
-	if err != nil {
-		return nil, fmt.Errorf("StartCombat: %w", err)
+	return StartEncounter(db, save, npub, EncounterSpec{MonsterIDs: []string{monsterID}, EnvironmentID: environmentID}, advancement)
+}
+
+// MonsterIDsForCount expands a monster id and an authored count into the id list
+// StartEncounter takes. A count below 1 means one.
+func MonsterIDsForCount(monsterID string, count int) []string {
+	if count < 1 {
+		count = 1
+	}
+	if count > maxEncounterMonsters {
+		count = maxEncounterMonsters
+	}
+	ids := make([]string, count)
+	for i := range ids {
+		ids[i] = monsterID
+	}
+	return ids
+}
+
+// StartEncounter initialises a new CombatSession for one or more monsters.
+// Initiative is rolled for every combatant; any monsters ahead of the player in
+// the order act immediately, so the returned session is always parked on the
+// player's turn (or already resolved if the opening went badly).
+// The session lives in server memory only — it is never written to the save file.
+func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec EncounterSpec, advancement []types.AdvancementEntry) (*types.CombatSession, error) {
+	if len(spec.MonsterIDs) == 0 {
+		return nil, fmt.Errorf("StartEncounter: no monsters")
+	}
+	if len(spec.MonsterIDs) > maxEncounterMonsters {
+		spec.MonsterIDs = spec.MonsterIDs[:maxEncounterMonsters]
 	}
 
-	cs := initCombatSession(npub, save, monsterData, environmentID)
+	monsters := make([]types.MonsterInstance, 0, len(spec.MonsterIDs))
+	crs := make([]float64, 0, len(spec.MonsterIDs))
+	for _, id := range spec.MonsterIDs {
+		data, err := LoadMonsterByID(db, id)
+		if err != nil {
+			return nil, fmt.Errorf("StartEncounter: %w", err)
+		}
+		monsters = append(monsters, newMonsterInstance(data))
+		crs = append(crs, data.ChallengeRating)
+	}
+	assignInstanceIDs(monsters)
+
+	cs := &types.CombatSession{
+		Party:         []types.PartyCombatant{newPlayerCombatant(npub, save)},
+		Monsters:      monsters,
+		Round:         1,
+		GridWidth:     combatGridWidth,
+		GridHeight:    combatGridHeight,
+		EnvironmentID: spec.EnvironmentID,
+		IsSurprised:   spec.Surprise,
+		Phase:         "active",
+	}
+	placeMonsters(cs, startingRange(spec.EnvironmentID))
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
 	// Seed the martial class resource pool (Rage/Stamina/Ki/Cunning) for the fight.
 	InitResourcePool(&cs.Party[0].CombatState, save.Class, level, save.Stats)
-	// Rate the fight against the player's level band (M5 §22 difficulty guardrail).
-	cs.Difficulty = encounter.Difficulty(monsterData.ChallengeRating, level)
+	// Rate the whole group against the player's level band (M5 §22 difficulty
+	// guardrail): several weak monsters can add up to a deadly fight.
+	cs.Difficulty = encounter.GroupDifficulty(crs, level, len(cs.Party))
 
-	effStats := effectiveStats(save)
-	playerDEXMod := StatMod(GetStatFromMap(effStats, "dexterity"))
-	monsterDEXMod := StatMod(monsterData.Stats.Dexterity)
-	playerInit := rollInitiative(playerDEXMod)
-	monsterInit := rollInitiative(monsterDEXMod)
-
-	playerDEX := GetStatFromMap(effStats, "dexterity")
-	cs.Initiative = buildInitiativeOrder(npub, playerDEX, playerInit.Total, monsterData.Stats.Dexterity, monsterInit.Total, cs.Monsters[0])
-
-	cs.Log = append(cs.Log,
-		fmt.Sprintf("⚔️  Combat begins! %s appears at range %d.", cs.Monsters[0].Name, currentRange(cs)),
-	)
+	cs.Log = append(cs.Log, encounterOpeningLine(cs))
 	switch cs.Difficulty {
 	case "deadly":
-		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks deadly — you may want to flee.", cs.Monsters[0].Name))
+		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks deadly — you may want to flee.", foeLabel(cs)))
 	case "tough":
-		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks like a tough fight.", cs.Monsters[0].Name))
+		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks like a tough fight.", foeLabel(cs)))
 	}
-	cs.Log = append(cs.Log,
-		"⚡ Rolling initiative…",
-		fmt.Sprintf("  You rolled %d%s", playerInit.Face, formatModifier(playerInit.Mod)),
-		fmt.Sprintf("  %s rolled %d%s", cs.Monsters[0].Name, monsterInit.Face, formatModifier(monsterInit.Mod)),
-	)
 
-	if monsterHasFirstTurn(cs) {
-		cs.Log = append(cs.Log, fmt.Sprintf("⚡ %s goes first!", cs.Monsters[0].Name))
-		// Capture the spawn position so the frontend can animate the opening
-		// step from where the monster appeared, not from where it ended up.
-		spawnPos := cs.MonsterPos
-		cs.MonsterSpawnPos = &spawnPos
-		cs.Log = append(cs.Log, execMonsterOpeningTurn(db, cs, save)...)
+	cs.Log = append(cs.Log, rollEncounterInitiative(cs, save)...)
+	if spec.Surprise {
+		cs.Log = append(cs.Log, "⚡ You're caught off guard!")
+	}
+
+	if cs.Initiative[0].Type == "monster" {
+		cs.Log = append(cs.Log, fmt.Sprintf("⚡ %s goes first!", cs.Initiative[0].Name))
+		cs.Log = append(cs.Log, runOpeningTurns(db, cs, save)...)
 	} else {
+		cs.CurrentTurnIndex = 0
+		startPlayerTurn(cs, save)
 		cs.Log = append(cs.Log, "⚡ You go first!")
 	}
 
 	return cs, nil
 }
 
-// initCombatSession constructs the initial CombatSession with one player and one monster.
-func initCombatSession(npub string, save *types.SaveFile, monster *types.MonsterData, environmentID string) *types.CombatSession {
-	sr := startingRange(environmentID)
-	monsterX := 1 + sr
-	if monsterX > combatGridWidth-2 {
-		monsterX = combatGridWidth - 2
+// encounterOpeningLine announces the foes and how far off the nearest one is.
+func encounterOpeningLine(cs *types.CombatSession) string {
+	if len(cs.Monsters) == 1 {
+		return fmt.Sprintf("⚔️  Combat begins! %s appears at range %d.", cs.Monsters[0].Name, nearestRange(cs))
 	}
-	return &types.CombatSession{
-		Party:         []types.PartyCombatant{newPlayerCombatant(npub, save)},
-		Monsters:      []types.MonsterInstance{newMonsterInstance(monster)},
-		Round:         1,
-		GridWidth:     combatGridWidth,
-		GridHeight:    combatGridHeight,
-		PlayerPos:     types.Position{X: 1, Y: combatGridHeight / 2},
-		MonsterPos:    types.Position{X: monsterX, Y: combatGridHeight / 2},
-		EnvironmentID: environmentID,
-		Phase:         "active",
+	return fmt.Sprintf("⚔️  Combat begins! %s appear — the nearest at range %d.", foeLabel(cs), nearestRange(cs))
+}
+
+// foeLabel names the opposition for log lines: "Goblin" for one, "3 Goblins" for
+// a pack of one kind, "4 enemies" for a mixed group.
+func foeLabel(cs *types.CombatSession) string {
+	if len(cs.Monsters) == 1 {
+		return cs.Monsters[0].Name
 	}
+	first := cs.Monsters[0].TemplateID
+	for _, m := range cs.Monsters[1:] {
+		if m.TemplateID != first {
+			return fmt.Sprintf("%d enemies", len(cs.Monsters))
+		}
+	}
+	return fmt.Sprintf("%d %ss", len(cs.Monsters), cs.Monsters[0].Data.Name)
+}
+
+// rollEncounterInitiative rolls every combatant's initiative, sorts the order
+// (DEX breaks ties) and returns the log lines. A surprised party is moved behind
+// every monster for the opening round.
+func rollEncounterInitiative(cs *types.CombatSession, save *types.SaveFile) []string {
+	effStats := effectiveStats(save)
+	playerDEX := GetStatFromMap(effStats, "dexterity")
+	playerInit := rollInitiative(StatMod(playerDEX))
+
+	entries := []types.InitiativeEntry{
+		{ID: cs.Party[0].ID, Type: "player", Name: "You", Initiative: playerInit.Total, DEXScore: playerDEX},
+	}
+	log := []string{
+		"⚡ Rolling initiative…",
+		fmt.Sprintf("  You rolled %d%s", playerInit.Face, formatModifier(playerInit.Mod)),
+	}
+	for i := range cs.Monsters {
+		m := &cs.Monsters[i]
+		roll := rollInitiative(StatMod(m.Data.Stats.Dexterity))
+		m.Initiative = roll.Total
+		entries = append(entries, types.InitiativeEntry{
+			ID: m.InstanceID, Type: "monster", Name: m.Name, Initiative: roll.Total, DEXScore: m.Data.Stats.Dexterity,
+		})
+		log = append(log, fmt.Sprintf("  %s rolled %d%s", m.Name, roll.Face, formatModifier(roll.Mod)))
+	}
+	cs.Initiative = sortInitiative(entries, cs.IsSurprised)
+	return log
 }
 
 // newPlayerCombatant snapshots the player's current HP into combat state.
@@ -153,6 +223,7 @@ func newPlayerCombatant(npub string, save *types.SaveFile) types.PartyCombatant 
 		Type:               "player",
 		ID:                 npub,
 		IsPlayerControlled: true,
+		Pos:                types.Position{X: 1, Y: combatGridHeight / 2},
 		CombatState: types.PlayerCombatState{
 			CurrentHP:      save.HP,
 			MaxHP:          save.MaxHP,
@@ -201,13 +272,13 @@ func rollInitiative(mod int) initRoll {
 	return initRoll{Face: f, Mod: mod, Total: f + mod}
 }
 
-// buildInitiativeOrder returns combatants sorted by initiative, with DEX as the tiebreaker.
-func buildInitiativeOrder(playerID string, playerDEX, playerInit, monsterDEX, monsterInit int, monster types.MonsterInstance) []types.InitiativeEntry {
-	entries := []types.InitiativeEntry{
-		{ID: playerID, Type: "player", Initiative: playerInit, DEXScore: playerDEX},
-		{ID: monster.InstanceID, Type: "monster", Initiative: monsterInit, DEXScore: monsterDEX},
-	}
-	sort.Slice(entries, func(i, j int) bool {
+// sortInitiative orders combatants by initiative, with DEX as the tiebreaker.
+// When surprised, the party is placed after every monster (stable within each side).
+func sortInitiative(entries []types.InitiativeEntry, surprised bool) []types.InitiativeEntry {
+	sort.SliceStable(entries, func(i, j int) bool {
+		if surprised && (entries[i].Type == "player") != (entries[j].Type == "player") {
+			return entries[j].Type == "player"
+		}
 		if entries[i].Initiative != entries[j].Initiative {
 			return entries[i].Initiative > entries[j].Initiative
 		}
@@ -230,31 +301,14 @@ func startingRange(environmentID string) int {
 	}
 }
 
-// monsterHasFirstTurn returns true when the monster leads the initiative order.
-func monsterHasFirstTurn(cs *types.CombatSession) bool {
-	return len(cs.Initiative) > 0 && cs.Initiative[0].Type == "monster"
-}
-
-// execMonsterOpeningTurn runs the monster's turn when it wins initiative at combat start.
-// The player hasn't chosen a stance yet, so they get a reflex save to potentially dodge.
-func execMonsterOpeningTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) []string {
-	playerAC := computePlayerAC(db, save)
-	dexMod := StatMod(GetStatFromMap(effectiveStats(save), "dexterity"))
-	dmg, log := ExecuteMonsterTurn(cs, &cs.Monsters[0], playerAC, true, dexMod, save)
-	if dmg > 0 {
-		log = append(log, applyDamageToPlayer(cs, dmg)...)
-	}
-	return log
-}
-
 // ─── ProcessPlayerMove ───────────────────────────────────────────────────────
 
 // ProcessPlayerMove moves the player to the target grid cell.
 // Can be called any time during the player's turn while movement budget remains.
-// Does NOT trigger the monster's response — the player must call ProcessEndTurn.
+// Does NOT trigger the monsters' turns — the player must call ProcessEndTurn.
 //
-// If the player leaves the monster's melee reach without having used Disengage,
-// the monster's reaction fires as an opportunity attack.
+// Every monster whose melee reach the player leaves (without Disengage) gets an
+// opportunity attack, if it still has its reaction.
 func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, targetX, targetY int) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot move: combat phase is %q", cs.Phase)
@@ -263,16 +317,17 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		return nil, fmt.Errorf("no player in combat")
 	}
 
-	if targetX < 0 || targetX >= cs.GridWidth || targetY < 0 || targetY >= cs.GridHeight {
+	target := types.Position{X: targetX, Y: targetY}
+	if !inGrid(cs, target) {
 		return nil, fmt.Errorf("target (%d,%d) is outside the grid", targetX, targetY)
 	}
-	target := types.Position{X: targetX, Y: targetY}
-	if target == cs.MonsterPos {
-		return nil, fmt.Errorf("cannot move into the monster's space")
+	me := &cs.Party[0]
+	if occupied(cs, target, me.ID) {
+		return nil, fmt.Errorf("that space is occupied")
 	}
 
-	state := &cs.Party[0].CombatState
-	dist := chebyshev(cs.PlayerPos, target)
+	state := &me.CombatState
+	dist := chebyshev(me.Pos, target)
 	if dist == 0 {
 		return nil, fmt.Errorf("already at that position")
 	}
@@ -281,10 +336,15 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		return nil, fmt.Errorf("not enough movement — need %d cells, have %d remaining", dist, remaining)
 	}
 
-	prevRange := currentRange(cs)
-	cs.PlayerPos = target
+	// Ranges to every active monster before the move, for the OA check below.
+	before := map[string]int{}
+	for _, m := range activeMonsters(cs) {
+		before[m.InstanceID] = rangeTo(cs, m)
+	}
+	prevRange := nearestRange(cs)
+	me.Pos = target
 	state.MovementSpent += dist
-	newRange := currentRange(cs)
+	newRange := nearestRange(cs)
 
 	var dir string
 	switch {
@@ -298,13 +358,15 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	log := []string{fmt.Sprintf("  You move %s. (range: %d, movement: %d/%d)",
 		dir, newRange, state.MovementSpent, state.MovementBudget)}
 
-	// Opportunity attack: player left the monster's melee reach
-	if len(cs.Monsters) > 0 {
-		monster := &cs.Monsters[0]
-		monsterReach := MonsterMeleeReach(monster)
-		if monsterReach > 0 && prevRange <= monsterReach && newRange > monsterReach &&
-			!state.Disengaged && !monster.ReactionUsed && monster.IsAlive {
-			log = append(log, executeMonsterOA(cs, monster, save, db)...)
+	// Opportunity attacks: every monster whose reach the player just left.
+	for _, m := range activeMonsters(cs) {
+		reach := MonsterMeleeReach(m)
+		if reach > 0 && before[m.InstanceID] <= reach && rangeTo(cs, m) > reach &&
+			!state.Disengaged && !m.ReactionUsed && !IsIncapacitated(m.Conditions) {
+			log = append(log, executeMonsterOA(cs, m, save, db)...)
+			if cs.Phase != "active" {
+				break // the OA dropped the player
+			}
 		}
 	}
 
@@ -370,22 +432,6 @@ func ProcessPlayerDisengage(cs *types.CombatSession) ([]string, error) {
 	return []string{"  You disengage — your movement no longer provokes opportunity attacks."}, nil
 }
 
-// ─── ProcessEndTurn ──────────────────────────────────────────────────────────
-
-// ProcessEndTurn finalises the player's turn and runs the monster's response.
-// Call this when the player clicks "End Turn". Resets player turn state afterward
-// so the next round starts fresh.
-func ProcessEndTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
-	if cs.Phase != "active" {
-		return nil, fmt.Errorf("cannot end turn: combat phase is %q", cs.Phase)
-	}
-	if len(cs.Party) == 0 {
-		return nil, fmt.Errorf("no player in combat")
-	}
-	// HeldPosition is set explicitly by ProcessPlayerHold, never inferred here.
-	return runMonsterResponseTurn(db, cs, save), nil
-}
-
 // ─── ProcessPlayerHold ───────────────────────────────────────────────────────
 
 // ProcessPlayerHold uses the player's action to brace into a readied stance.
@@ -417,24 +463,37 @@ func ProcessPlayerHold(cs *types.CombatSession) ([]string, error) {
 // ─── ProcessPlayerFlee ───────────────────────────────────────────────────────
 
 // ProcessPlayerFlee attempts to escape combat.
-// Requires range ≥ 3. Uses the player's full action.
-// On success: phase → "loot" (empty loot — XP already accumulated). Combat ends.
+// Requires every enemy to be at range ≥ 3. Uses the player's full action.
+// The chance is set by the nearest enemy's range and the fastest pursuer.
+// On success: phase → "loot" (bodies left behind — no loot; XP already accumulated). Combat ends.
 // On failure: returns log, caller should prompt player to End Turn.
 func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot flee: combat phase is %q", cs.Phase)
 	}
-	if currentRange(cs) < 3 {
-		return nil, fmt.Errorf("too close to flee — retreat to range 3 or more first")
-	}
-	if len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
-		return nil, fmt.Errorf("no living enemy to flee from")
-	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
+	foes := activeMonsters(cs)
+	if len(foes) == 0 {
+		return nil, fmt.Errorf("no living enemy to flee from")
+	}
+	r := nearestRange(cs)
+	if r < 3 {
+		return nil, fmt.Errorf("too close to flee — get every enemy to range 3 or more first")
+	}
 
-	monster := &cs.Monsters[0]
+	// The fastest pursuer decides the chase; any relentless one makes it harder.
+	monster := foes[0]
+	monsterAth := 0.0
+	relentless := false
+	for _, m := range foes {
+		ath := athleticsScore(m.Data.Stats.Strength, m.Data.Stats.Constitution, m.Data.Stats.Dexterity)
+		if ath > monsterAth {
+			monster, monsterAth = m, ath
+		}
+		relentless = relentless || m.Data.Behavior.Relentless
+	}
 
 	fleeStats := effectiveStats(save)
 	playerAth := athleticsScore(
@@ -442,22 +501,17 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 		GetStatFromMap(fleeStats, "constitution"),
 		GetStatFromMap(fleeStats, "dexterity"),
 	)
-	monsterAth := athleticsScore(
-		monster.Data.Stats.Strength,
-		monster.Data.Stats.Constitution,
-		monster.Data.Stats.Dexterity,
-	)
 
 	speedAdv := playerAth - monsterAth
 	speedMod := speedAdv * 0.03
 
-	baseChance := float64(currentRange(cs)-2) * 0.25 // range 3=25%, 4=50%, 5=75%, 6→capped
+	baseChance := float64(r-2) * 0.25 // range 3=25%, 4=50%, 5=75%, 6→capped
 	if baseChance > 0.90 {
 		baseChance = 0.90
 	}
 
 	relentlessPenalty := 0.0
-	if monster.Data.Behavior.Relentless {
+	if relentless {
 		relentlessPenalty = 0.20
 	}
 
@@ -503,9 +557,10 @@ func athleticsScore(str, con, dex int) float64 {
 // Can be called any time during the player's turn while action is available.
 // Does NOT trigger the monster's response — the player must call ProcessEndTurn.
 //
+// targetID: the monster instance to attack ("" = nearest).
 // hand: "main" (default) or "off" for two-weapon bonus attack.
 // thrown: true to treat a melee weapon with the "thrown" tag as a ranged attack.
-func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, weaponSlot string, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
+func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, targetID, weaponSlot string, hand string, thrown bool, advancement []types.AdvancementEntry) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot attack: combat phase is %q", cs.Phase)
 	}
@@ -518,6 +573,11 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	if IsIncapacitated(state.Conditions) {
 		return nil, fmt.Errorf("you are incapacitated and can't act")
 	}
+	monster, err := ResolveTarget(cs, targetID)
+	if err != nil {
+		return nil, err
+	}
+	r := rangeTo(cs, monster)
 	isOffHand := hand == "off"
 
 	if isOffHand {
@@ -535,7 +595,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	}
 
 	// Validate that the attack can reach the target at the current range
-	if err := validateAttackRange(cs, item, isUnarmed, thrown); err != nil {
+	if err := validateAttackRange(r, item, isUnarmed, thrown); err != nil {
 		return nil, err
 	}
 
@@ -558,11 +618,10 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		}
 	}
 
-	monster := &cs.Monsters[0]
 	level := character.GetLevelFromXP(save.Experience, advancement)
 
 	attackBonus := resolveAttackBonus(item, effectiveStats(save), save.Class, level, isUnarmed, thrown)
-	advantage := resolveAttackAdvantage(cs, item, isUnarmed, save.Race, thrown)
+	advantage := resolveAttackAdvantage(r, item, isUnarmed, save.Race, thrown)
 	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
 	// the target monster's (restrained/blinded/outlined/…) grant advantage.
 	advantage += ConditionAttackAdvantage(state.Conditions, monster.Conditions)
@@ -675,7 +734,8 @@ func resolveAttackBonus(item map[string]interface{}, stats map[string]interface{
 
 // resolveAttackAdvantage returns >0 (advantage), <0 (disadvantage), or 0 (normal).
 // Phase 2: ranged-at-melee-range, long-range, heavy weapon + small race.
-func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}, isUnarmed bool, race string, thrown bool) int {
+// r is the range to the target.
+func resolveAttackAdvantage(r int, item map[string]interface{}, isUnarmed bool, race string, thrown bool) int {
 	if isUnarmed || item == nil {
 		return 0
 	}
@@ -685,9 +745,8 @@ func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}
 	actingAsRanged := IsRangedAction(weaponType) || thrown
 
 	if actingAsRanged {
-		r := currentRange(cs)
-		// Disadvantage when firing at melee range
-		if r == 0 {
+		// Disadvantage when firing at an adjacent target (within 5 ft)
+		if r <= 1 {
 			advantage--
 		}
 		// Disadvantage when beyond normal range (but still within long range)
@@ -707,11 +766,10 @@ func resolveAttackAdvantage(cs *types.CombatSession, item map[string]interface{}
 	return advantage
 }
 
-// validateAttackRange returns an error if the current combat range prevents this attack.
-func validateAttackRange(cs *types.CombatSession, item map[string]interface{}, isUnarmed, thrown bool) error {
-	r := currentRange(cs)
+// validateAttackRange returns an error if the range to the target (r) prevents this attack.
+func validateAttackRange(r int, item map[string]interface{}, isUnarmed, thrown bool) error {
 	if isUnarmed || item == nil {
-		if r > 0 {
+		if r > 1 {
 			return fmt.Errorf("enemy is out of melee range — move closer or use a ranged weapon")
 		}
 		return nil
@@ -1030,7 +1088,9 @@ func awardDamageXP(cs *types.CombatSession, monster *types.MonsterInstance, dmg,
 	return xp
 }
 
-// handleMonsterKill processes monster death: rolls loot and checks for a level-up.
+// handleMonsterKill processes a monster's death: rolls its loot onto the fight's
+// pile, awards the kill bonus, checks for a level-up, and ends the fight if it
+// was the last enemy standing.
 func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, save *types.SaveFile, advancement []types.AdvancementEntry) []string {
 	log := []string{fmt.Sprintf("  %s is defeated!", monster.Name)}
 
@@ -1038,8 +1098,7 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 	// No-op until a consumer is subscribed at startup.
 	events.Record(save, events.MonsterKilled, monster.Data.ID, 1)
 
-	cs.LootRolled = RollLoot(monster.Data.LootTable)
-	cs.Phase = "loot"
+	cs.LootRolled = append(cs.LootRolled, RollLoot(monster.Data.LootTable)...)
 
 	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on
 	// POI/dungeon steps via the node walker in M3), on top of the proportional
@@ -1050,100 +1109,31 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 		log = append(log, fmt.Sprintf("  +%d bonus XP for slaying %s!", bonus, monster.Name))
 	}
 
-	if character.WillLevelUp(save.Experience, cs.XPEarnedThisFight, advancement) {
+	if !cs.LevelUpPending && character.WillLevelUp(save.Experience, cs.XPEarnedThisFight, advancement) {
 		cs.LevelUpPending = true
 		log = append(log, "  Level up!")
 	}
 
-	log = append(log, fmt.Sprintf("  Victory! +%d XP this fight.", cs.XPEarnedThisFight))
-	return log
+	return append(log, checkVictory(cs)...)
 }
 
-// runMonsterResponseTurn runs the monster's turn (called by ProcessEndTurn).
-// If the player held position this turn and the monster advances into melee reach,
-// the player's readied counter-attack fires before the monster can swing.
-// Resets player turn state so the next round starts fresh.
-func runMonsterResponseTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) []string {
-	if cs.Phase != "active" || len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
-		resetPlayerTurnState(cs, save)
+// checkVictory ends the fight once no enemy is left in it (all slain or fled).
+// Loot already rolled from the kills stays on the pile. Returns the closing log
+// line, or nil while the fight goes on.
+func checkVictory(cs *types.CombatSession) []string {
+	if cs.Phase != "active" && cs.Phase != "death_saves" {
 		return nil
 	}
-
-	monster := &cs.Monsters[0]
-	decision := DecideMonsterAction(cs, monster)
-	playerAC := computePlayerAC(db, save)
-
-	var log []string
-
-	// End of the player's turn: their conditions save-to-end / count down before
-	// the monster acts. A condition the monster imposes later this turn persists to
-	// the player's next turn (it lands after this tick).
-	if len(cs.Party) > 0 {
-		log = append(log, TickCreatureConditions("You", &cs.Party[0].CombatState.Conditions,
-			func(stat string) int { return playerSaveTotal(save, stat) })...)
-		// End of your turn: regen the class resource and count down rage.
-		log = append(log, tickPlayerAbilities(&cs.Party[0].CombatState)...)
+	if len(activeMonsters(cs)) > 0 {
+		return nil
 	}
-
-	// Monster starting adjacent and trying to retreat? Use Disengage (consumes
-	// its action, but avoids the player's OA).
-	if decision.Action == "retreat" && currentRange(cs) <= getPlayerMeleeReach(db, save) {
-		monster.Disengaged = true
-		log = append(log, fmt.Sprintf("  %s disengages and breaks off.", monster.Name))
-	}
-
-	playerReach := getPlayerMeleeReach(db, save)
-	oaTrigger := func() []string {
-		return executePlayerOA(cs, save, db, monster)
-	}
-	// No OA if monster disengaged, player has no reach, or already reacted.
-	if monster.Disengaged || playerReach <= 0 ||
-		len(cs.Party) == 0 || cs.Party[0].CombatState.ReactionUsed {
-		oaTrigger = nil
-	}
-
-	// Apply monster movement
-	log = append(log, ApplyMonsterMove(cs, monster, decision, playerReach, oaTrigger)...)
-
-	// If player held position and monster just stepped into melee reach,
-	// the readied counter-attack fires before the monster strikes.
-	if len(cs.Party) > 0 && cs.Party[0].CombatState.HeldPosition && decision.Move == -1 {
-		playerReach := getPlayerMeleeReach(db, save)
-		if currentRange(cs) <= playerReach {
-			log = append(log, fmt.Sprintf("  Your readied stance pays off — you strike as %s steps in!", monster.Name))
-			counterLog, killed := executeReadiedAttack(db, cs, save, monster)
-			log = append(log, counterLog...)
-			cs.Party[0].CombatState.HeldPosition = false
-			if killed {
-				resetPlayerTurnState(cs, save)
-				return log
-			}
+	cs.Phase = "loot"
+	for _, m := range cs.Monsters {
+		if !m.IsAlive {
+			return []string{fmt.Sprintf("  Victory! +%d XP this fight.", cs.XPEarnedThisFight)}
 		}
 	}
-	if len(cs.Party) > 0 {
-		cs.Party[0].CombatState.HeldPosition = false
-	}
-
-	// Re-pick the attack based on the actual post-move range (the monster may have
-	// closed enough to make a reach check succeed, or moved out of its original band).
-	decision = RefreshAttackDecision(cs, monster, decision)
-
-	// Monster takes its action (no reflex save — player already chose their stance)
-	dmg, actionLog := ApplyMonsterAction(cs, monster, decision, playerAC, false, 0, save)
-	log = append(log, actionLog...)
-	if dmg > 0 {
-		log = append(log, applyDamageToPlayer(cs, dmg)...)
-		log = append(log, checkConcentrationOnDamage(cs, save, dmg)...)
-	}
-
-	// End of the monster's turn: it rolls saves to shake off conditions
-	// (restrained/stunned/…) and timed conditions count down and expire — D&D
-	// resolves both at the end of the afflicted creature's turn.
-	log = append(log, TickCreatureConditions(monster.Name, &monster.Conditions,
-		func(stat string) int { return monsterSaveTotal(monster, stat) })...)
-
-	resetPlayerTurnState(cs, save)
-	return log
+	return []string{"  The battlefield falls quiet — your foes have fled."}
 }
 
 // executePlayerOA resolves the player's opportunity attack against the monster
@@ -1210,31 +1200,6 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 		log = append(log, handleMonsterKill(cs, monster, save, advancement)...)
 	}
 	return log
-}
-
-// resetPlayerTurnState resets per-turn flags so the next round starts fresh.
-// Also resets the monster's per-turn reaction/disengage so both sides start clean.
-func resetPlayerTurnState(cs *types.CombatSession, save *types.SaveFile) {
-	if len(cs.Monsters) > 0 {
-		cs.Monsters[0].ReactionUsed = false
-		cs.Monsters[0].Disengaged = false
-	}
-	if len(cs.Party) == 0 {
-		return
-	}
-	state := &cs.Party[0].CombatState
-	state.ActionUsed = false
-	state.BonusActionUsed = false
-	state.MovementSpent = 0
-	state.MovementBudget = playerMovementBudget(save.Race)
-	state.Dodging = false
-	state.HeldPosition = false
-	state.ReactionUsed = false
-	state.Disengaged = false
-	// Extra actions and a readied-but-unused sneak attack don't carry over.
-	// (Rage persists — it has its own duration countdown in tickPlayerAbilities.)
-	state.ExtraActions = 0
-	state.PendingSneakDice = ""
 }
 
 // PlayerMeleeReachForSave is an exported helper for the API layer to report the
@@ -1339,26 +1304,6 @@ func addDeathSaveFailures(state *types.PlayerCombatState, cs *types.CombatSessio
 	}
 }
 
-// ─── ProcessDeathSave ────────────────────────────────────────────────────────
-
-// ProcessDeathSave rolls one death saving throw and runs the monster's follow-up turn.
-// Returns log entries for this round. Caller appends them to cs.Log.
-func ProcessDeathSave(cs *types.CombatSession, save *types.SaveFile) []string {
-	if len(cs.Party) == 0 || cs.Phase != "death_saves" {
-		return nil
-	}
-
-	roll := RollD20()
-	log := []string{fmt.Sprintf("  Death saving throw: rolled %d.", roll)}
-	log = append(log, resolveDeathSaveRoll(&cs.Party[0].CombatState, cs, roll))
-
-	if cs.Phase == "death_saves" {
-		log = append(log, runMonsterDeathSaveTurn(cs, save)...)
-	}
-
-	return log
-}
-
 // resolveDeathSaveRoll applies the roll result to death save counters.
 func resolveDeathSaveRoll(state *types.PlayerCombatState, cs *types.CombatSession, roll int) string {
 	switch {
@@ -1410,50 +1355,6 @@ func oneDeathSaveFailure(state *types.PlayerCombatState, cs *types.CombatSession
 		return "  Failure. You have died."
 	}
 	return fmt.Sprintf("  Failure. (%d/3 failures)", state.DeathSaveFailures)
-}
-
-// runMonsterDeathSaveTurn runs the monster's attack against an unconscious player.
-// Hits apply death save failures rather than HP damage.
-func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile) []string {
-	if len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
-		return nil
-	}
-	monster := &cs.Monsters[0]
-	decision := DecideMonsterAction(cs, monster)
-
-	if decision.Action == "retreat" || decision.Action == "escape" {
-		cs.Phase = "loot"
-		cs.LootRolled = nil
-		return []string{fmt.Sprintf("  %s disengages and slips away. You are safe.", monster.Name)}
-	}
-	if decision.Action != "attack" {
-		return nil
-	}
-
-	action := monster.Data.Actions[decision.ActionIndex]
-	isMeleeAtContact := action.Type == "melee_attack" && currentRange(cs) == 0
-	playerAC := 10 + StatMod(GetStatFromMap(effectiveStats(save), "dexterity"))
-	result := resolveDeathSaveAttack(action, playerAC, isMeleeAtContact)
-
-	log := []string{
-		fmt.Sprintf("  %s attacks: rolled %d%s",
-			monster.Name, result.Roll, formatModifier(action.AttackBonus)),
-		outcomeLine(result),
-	}
-
-	if result.IsHit {
-		log = append(log, applyDeathSaveHit(cs, result.IsCrit || isMeleeAtContact))
-	}
-	return log
-}
-
-// resolveDeathSaveAttack rolls the monster's attack against an unconscious player.
-// All attacks have advantage; adjacent melee attacks auto-crit.
-func resolveDeathSaveAttack(action types.MonsterAction, playerAC int, isMeleeAtContact bool) AttackResult {
-	if isMeleeAtContact {
-		return AttackResult{Roll: 20, Total: 20, IsCrit: true, IsHit: true}
-	}
-	return ResolveAttackRoll(action.AttackBonus, playerAC, 1) // advantage=1
 }
 
 // applyDeathSaveHit records 1 (hit) or 2 (crit) automatic death save failures.

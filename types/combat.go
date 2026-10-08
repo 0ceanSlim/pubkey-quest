@@ -207,7 +207,7 @@ type PlayerCombatState struct {
 // MonsterInstance is a live monster in the current combat encounter
 type MonsterInstance struct {
 	TemplateID string           `json:"template_id"` // ID from monster JSON
-	InstanceID string           `json:"instance_id"` // Unique per-combat ID (for future multi-monster)
+	InstanceID string           `json:"instance_id"` // Unique per-combat ID ("goblin", "goblin#2", …)
 	Name       string           `json:"name"`
 	CurrentHP  int              `json:"current_hp"`
 	MaxHP      int              `json:"max_hp"`
@@ -217,7 +217,19 @@ type MonsterInstance struct {
 	IsAlive    bool             `json:"is_alive"`
 	ReactionUsed bool           `json:"reaction_used"` // Reaction consumed this round (OA)
 	Disengaged   bool           `json:"disengaged"`    // Monster used Disengage this turn
-	Data       MonsterData      `json:"data"` // Full stat block
+	Fled         bool           `json:"fled"`          // Escaped off the grid edge — out of the fight, no kill
+	Pos          Position       `json:"pos"`           // Grid cell
+	// SpawnPos is set only for the opening response of an encounter when this
+	// monster won initiative and moved before the player ever saw the board, so
+	// the client can animate the step from where it appeared. Cleared via
+	// combat.ClearSpawnPositions once the opening response has been built.
+	SpawnPos *Position   `json:"-"`
+	Data     MonsterData `json:"data"` // Full stat block
+}
+
+// Active reports whether the monster is still a participant (alive and on the grid).
+func (m *MonsterInstance) Active() bool {
+	return m.IsAlive && !m.Fled
 }
 
 // PartyCombatant represents the player (or future companion) in combat
@@ -225,6 +237,7 @@ type PartyCombatant struct {
 	Type               string            `json:"type"` // "player", future: "companion"
 	ID                 string            `json:"id"`   // npub
 	IsPlayerControlled bool              `json:"is_player_controlled"`
+	Pos                Position          `json:"pos"` // Grid cell
 	CombatState        PlayerCombatState `json:"combat_state"`
 }
 
@@ -232,6 +245,7 @@ type PartyCombatant struct {
 type InitiativeEntry struct {
 	ID         string `json:"id"`         // npub for player, instance_id for monster
 	Type       string `json:"type"`       // "player" or "monster"
+	Name       string `json:"name"`       // display name for the turn-order strip
 	Initiative int    `json:"initiative"`
 	DEXScore   int    `json:"dex_score"` // For tie-breaking
 }
@@ -251,15 +265,13 @@ type CombatSession struct {
 	Party              []PartyCombatant  `json:"party"`
 	Monsters           []MonsterInstance `json:"monsters"`
 	Initiative         []InitiativeEntry `json:"initiative"`
-	CurrentTurnIndex   int               `json:"current_turn_index"`
-	Round              int               `json:"round"`
+	CurrentTurnIndex   int               `json:"current_turn_index"` // index into Initiative of whoever is acting
+	Round              int               `json:"round"`              // increments each time the turn order wraps
 	GridWidth          int               `json:"grid_width"`   // Always 9
 	GridHeight         int               `json:"grid_height"`  // Always 7
-	PlayerPos          Position          `json:"player_pos"`
-	MonsterPos         Position          `json:"monster_pos"`
 	Log                []string          `json:"log"`
 	EnvironmentID      string            `json:"environment_id"`
-	IsSurprised        bool              `json:"is_surprised"`  // Player was surprised (monster acts first)
+	IsSurprised        bool              `json:"is_surprised"`  // Party was surprised (every monster acts before the party in round 1)
 	Phase              string            `json:"phase"`         // "active", "loot", "victory", "defeat", "death_saves"
 	LootRolled         []LootDrop        `json:"loot_rolled,omitempty"`
 	LevelUpPending     bool              `json:"level_up_pending"`
@@ -274,12 +286,4 @@ type CombatSession struct {
 	// Concentration is the spell the player is currently concentrating on (buff/
 	// control). Nil when not concentrating. Taking damage triggers a CON save.
 	Concentration *ConcentrationState `json:"concentration,omitempty"`
-
-	// MonsterSpawnPos is set only on the very first response for an encounter
-	// (combat start). When the monster wins initiative and runs an opening
-	// turn before the player ever sees the board, the post-move MonsterPos
-	// would otherwise teleport the sprite into position. Surfacing the spawn
-	// lets the frontend animate the opening step in lock-step with the
-	// "moves toward you" log line. Cleared after the start response is sent.
-	MonsterSpawnPos *Position `json:"-"`
 }

@@ -23,17 +23,19 @@ import (
 // and setting concentration. The engine already spent mana + components and
 // applied any buff effect to the save.
 
-// ProcessPlayerCast resolves the player casting spellID at the (single) monster.
-// Does NOT run the monster's response — the caller ends the turn like any action.
-func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, spellID string, advancement []types.AdvancementEntry) ([]string, error) {
+// ProcessPlayerCast resolves the player casting spellID at a monster (targetID,
+// "" = nearest). Does NOT run the monsters' turns — the caller ends the turn like
+// any action.
+func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, spellID, targetID string, advancement []types.AdvancementEntry) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot cast: combat phase is %q", cs.Phase)
 	}
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	if len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
-		return nil, fmt.Errorf("no living target to cast at")
+	monster, err := ResolveTarget(cs, targetID)
+	if err != nil {
+		return nil, err
 	}
 	state := &cs.Party[0].CombatState
 	if IsIncapacitated(state.Conditions) {
@@ -57,7 +59,6 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		return nil, fmt.Errorf("%s takes too long to cast in combat", spellID)
 	}
 
-	monster := &cs.Monsters[0]
 	level := character.GetLevelFromXP(save.Experience, advancement)
 
 	deps := spells.Deps{
@@ -237,7 +238,8 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 // isn't reachable in a fight). Healing and mana route through the shared item
 // effect path, bridged onto the combat HP pool so the heal lands on the live
 // combatant rather than the resting save HP. Uses the player's action.
-func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID string) ([]string, error) {
+// targetID aims a spell scroll ("" = nearest); other consumables ignore it.
+func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, targetID string) ([]string, error) {
 	if cs.Phase != "active" {
 		return nil, fmt.Errorf("cannot use an item: combat phase is %q", cs.Phase)
 	}
@@ -260,7 +262,7 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 
 	// A spell scroll casts the spell it carries (bypassing prepared/known/components).
 	if spellID, _ := item["spell_id"].(string); spellID != "" {
-		return processScrollUse(db, cs, save, itemID, spellID, name)
+		return processScrollUse(db, cs, save, itemID, spellID, name, targetID)
 	}
 
 	if !hasTag(item["tags"], "consumable") {
@@ -296,15 +298,18 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 }
 
 // processScrollUse resolves a spell scroll in combat: it casts the scroll's spell
-// at the monster (bypassing prepared/known/components; mana still applies), applies
+// at the target (bypassing prepared/known/components; mana still applies), applies
 // the same consequences as a normal cast, then consumes one scroll. Uses the action.
-func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, spellID, itemName string) ([]string, error) {
+func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, spellID, itemName, targetID string) ([]string, error) {
 	state := &cs.Party[0].CombatState
 	slot := findReachableConsumable(save.Inventory, itemID)
 	if slot == nil {
 		return nil, fmt.Errorf("no %s within reach", itemName)
 	}
-	monster := &cs.Monsters[0]
+	monster, err := ResolveTarget(cs, targetID)
+	if err != nil {
+		return nil, err
+	}
 	adv, _ := character.LoadAdvancement(db)
 	level := character.GetLevelFromXP(save.Experience, adv)
 

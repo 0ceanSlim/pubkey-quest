@@ -21,12 +21,16 @@ import (
 // ─── Request / Response models ───────────────────────────────────────────────
 
 // CombatStartRequest is the body sent to POST /combat/start.
+// Either monster_id (+ optional count) or monster_ids (a mixed group) names the foes.
 // swagger:model CombatStartRequest
 type CombatStartRequest struct {
-	Npub          string `json:"npub"           example:"npub1..."`
-	SaveID        string `json:"save_id"        example:"save_1234567890"`
-	MonsterID     string `json:"monster_id"     example:"goblin"`
-	EnvironmentID string `json:"environment_id" example:"forest"`
+	Npub          string   `json:"npub"           example:"npub1..."`
+	SaveID        string   `json:"save_id"        example:"save_1234567890"`
+	MonsterID     string   `json:"monster_id"     example:"goblin"`
+	Count         int      `json:"count,omitempty" example:"3"`
+	MonsterIDs    []string `json:"monster_ids,omitempty"`
+	EnvironmentID string   `json:"environment_id" example:"forest"`
+	Surprise      bool     `json:"surprise,omitempty"`
 }
 
 // CombatMoveRequest is the body sent to POST /combat/move.
@@ -40,6 +44,7 @@ type CombatMoveRequest struct {
 }
 
 // CombatActionRequest is the body sent to POST /combat/action.
+// target_id: the monster instance to attack ("" = nearest).
 // weapon_slot must be "mainHand", "offHand", or "unarmed".
 // hand: "main" (default) or "off" to use the off-hand weapon as a bonus action.
 // thrown: true to throw a melee weapon with the "thrown" tag as a ranged attack.
@@ -47,6 +52,7 @@ type CombatMoveRequest struct {
 type CombatActionRequest struct {
 	Npub       string `json:"npub"        example:"npub1..."`
 	SaveID     string `json:"save_id"     example:"save_1234567890"`
+	TargetID   string `json:"target_id"   example:"goblin#2"`
 	WeaponSlot string `json:"weapon_slot" example:"mainHand"`
 	Hand       string `json:"hand"        example:"main"`
 	Thrown     bool   `json:"thrown"      example:"false"`
@@ -91,13 +97,19 @@ type CombatResourceView struct {
 // Full stat blocks are never sent to the client.
 // swagger:model CombatMonsterView
 type CombatMonsterView struct {
-	InstanceID string `json:"instance_id" example:"goblin"`
-	Name       string `json:"name"        example:"Goblin"`
-	CurrentHP  int    `json:"current_hp"  example:"5"`
-	MaxHP      int    `json:"max_hp"      example:"7"`
-	ArmorClass int    `json:"armor_class" example:"15"`
-	IsAlive    bool   `json:"is_alive"    example:"true"`
-	Conditions []string `json:"conditions"`
+	InstanceID string          `json:"instance_id" example:"goblin#2"`
+	TemplateID string          `json:"template_id" example:"goblin"`
+	Name       string          `json:"name"        example:"Goblin 2"`
+	CurrentHP  int             `json:"current_hp"  example:"5"`
+	MaxHP      int             `json:"max_hp"      example:"7"`
+	ArmorClass int             `json:"armor_class" example:"15"`
+	IsAlive    bool            `json:"is_alive"    example:"true"`
+	Fled       bool            `json:"fled"        example:"false"`
+	Pos        types.Position  `json:"pos"`
+	PosBefore  *types.Position `json:"pos_before,omitempty"` // opening response only: where it spawned before its first move
+	Range      int             `json:"range"       example:"2"`
+	MeleeReach int             `json:"melee_reach" example:"1"`
+	Conditions []string        `json:"conditions"`
 }
 
 // CombatGridView describes the 2D combat grid dimensions.
@@ -113,22 +125,20 @@ type CombatStateResponse struct {
 	Success              bool                    `json:"success"                example:"true"`
 	Phase                string                  `json:"phase"                  example:"active"`
 	Round                int                     `json:"round"                  example:"1"`
-	Range                int                     `json:"range"                  example:"2"`
+	Range                int                     `json:"range"                  example:"2"` // to the nearest enemy
 	Grid                 CombatGridView          `json:"grid"`
 	PlayerPos            types.Position          `json:"player_pos"`
-	MonsterPos           types.Position          `json:"monster_pos"`
 	MovementBudget       int                     `json:"movement_budget"        example:"6"`
 	MovementSpent        int                     `json:"movement_spent"         example:"0"`
 	ActionUsed           bool                    `json:"action_used"            example:"false"`
 	BonusActionUsed      bool                    `json:"bonus_action_used"      example:"false"`
 	Disengaged           bool                    `json:"disengaged"             example:"false"`
 	ReactionUsed         bool                    `json:"reaction_used"          example:"false"`
-	MonsterMeleeReach    int                     `json:"monster_melee_reach"    example:"1"`
 	PlayerMeleeReach     int                     `json:"player_melee_reach"     example:"1"`
-	MonsterPosBefore     *types.Position         `json:"monster_pos_before,omitempty"`
 	Player               CombatPlayerView        `json:"player"`
 	Monsters             []CombatMonsterView     `json:"monsters"`
 	Initiative           []types.InitiativeEntry `json:"initiative"`
+	CurrentTurnIndex     int                     `json:"current_turn_index"     example:"0"`
 	Log                  []string                `json:"log"`
 	NewLog               []string                `json:"new_log,omitempty"`
 	XPEarned             int                     `json:"xp_earned"              example:"12"`
@@ -218,14 +228,21 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 	}
 
 	monsters := make([]CombatMonsterView, 0, len(cs.Monsters))
-	for _, m := range cs.Monsters {
+	for i := range cs.Monsters {
+		m := &cs.Monsters[i]
 		monsters = append(monsters, CombatMonsterView{
 			InstanceID: m.InstanceID,
+			TemplateID: m.TemplateID,
 			Name:       m.Name,
 			CurrentHP:  m.CurrentHP,
 			MaxHP:      m.MaxHP,
 			ArmorClass: m.ArmorClass,
 			IsAlive:    m.IsAlive,
+			Fled:       m.Fled,
+			Pos:        m.Pos,
+			PosBefore:  m.SpawnPos,
+			Range:      combat.RangeTo(cs, m),
+			MeleeReach: combat.MonsterMeleeReach(m),
 			Conditions: conditionNames(m.Conditions),
 		})
 	}
@@ -248,9 +265,9 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		reactionUsed = s.ReactionUsed
 	}
 
-	monsterReach := 0
-	if len(cs.Monsters) > 0 {
-		monsterReach = combat.MonsterMeleeReach(&cs.Monsters[0])
+	nearest := 99
+	if m := combat.NearestMonster(cs); m != nil {
+		nearest = combat.RangeTo(cs, m)
 	}
 	playerReach := 0
 	if save != nil {
@@ -261,22 +278,20 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		Success:              true,
 		Phase:                cs.Phase,
 		Round:                cs.Round,
-		Range:                combat.ChebyshevExported(cs.PlayerPos, cs.MonsterPos),
+		Range:                nearest,
 		Grid:                 CombatGridView{Width: cs.GridWidth, Height: cs.GridHeight},
-		PlayerPos:            cs.PlayerPos,
-		MonsterPos:           cs.MonsterPos,
+		PlayerPos:            combat.PlayerPos(cs),
 		MovementBudget:       movBudget,
 		MovementSpent:        movSpent,
 		ActionUsed:           actionUsed,
 		BonusActionUsed:      bonusUsed,
 		Disengaged:           disengaged,
 		ReactionUsed:         reactionUsed,
-		MonsterMeleeReach:    monsterReach,
 		PlayerMeleeReach:     playerReach,
-		MonsterPosBefore:     cs.MonsterSpawnPos,
 		Player:               player,
 		Monsters:             monsters,
 		Initiative:           cs.Initiative,
+		CurrentTurnIndex:     cs.CurrentTurnIndex,
 		Log:                  cs.Log,
 		NewLog:               newLog,
 		XPEarned:             cs.XPEarnedThisFight,
@@ -462,7 +477,11 @@ func StartCombatHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
-	if req.Npub == "" || req.SaveID == "" || req.MonsterID == "" {
+	monsterIDs := req.MonsterIDs
+	if len(monsterIDs) == 0 && req.MonsterID != "" {
+		monsterIDs = combat.MonsterIDsForCount(req.MonsterID, req.Count)
+	}
+	if req.Npub == "" || req.SaveID == "" || len(monsterIDs) == 0 {
 		writeCombatError(w, http.StatusBadRequest, "Missing npub, save_id, or monster_id")
 		return
 	}
@@ -484,7 +503,8 @@ func StartCombatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cs, err := combat.StartCombat(serverdb.GetDB(), &sess.SaveData, req.Npub, req.MonsterID, req.EnvironmentID, advancement)
+	spec := combat.EncounterSpec{MonsterIDs: monsterIDs, EnvironmentID: req.EnvironmentID, Surprise: req.Surprise}
+	cs, err := combat.StartEncounter(serverdb.GetDB(), &sess.SaveData, req.Npub, spec, advancement)
 	if err != nil {
 		log.Printf("❌ StartCombat: %v", err)
 		writeCombatError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to start combat: %v", err))
@@ -492,12 +512,12 @@ func StartCombatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sess.ActiveCombat = cs
-	log.Printf("⚔️  Combat started: npub=%s monster=%s env=%s", req.Npub, req.MonsterID, req.EnvironmentID)
+	log.Printf("⚔️  Combat started: npub=%s monsters=%v env=%s", req.Npub, monsterIDs, req.EnvironmentID)
 
 	resp := buildStateResponse(cs, &sess.SaveData, cs.Log)
-	// Spawn position is only meaningful on the very first response — clear it
+	// Spawn positions are only meaningful on the very first response — clear them
 	// so subsequent state queries / rounds don't re-trigger the opening animation.
-	cs.MonsterSpawnPos = nil
+	combat.ClearSpawnPositions(cs)
 	writeCombatJSON(w, http.StatusOK, resp)
 }
 
@@ -599,7 +619,7 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerAttack(
 		serverdb.GetDB(), cs, &sess.SaveData,
-		req.WeaponSlot, req.Hand, req.Thrown, advancement,
+		req.TargetID, req.WeaponSlot, req.Hand, req.Thrown, advancement,
 	)
 	if err != nil {
 		log.Printf("❌ CombatAction: %v", err)
@@ -608,7 +628,6 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
@@ -619,9 +638,10 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 // CombatCastRequest is the body sent to POST /combat/cast.
 // swagger:model CombatCastRequest
 type CombatCastRequest struct {
-	Npub    string `json:"npub"     example:"npub1..."`
-	SaveID  string `json:"save_id"  example:"save_1234567890"`
-	SpellID string `json:"spell_id" example:"fire-bolt"`
+	Npub     string `json:"npub"      example:"npub1..."`
+	SaveID   string `json:"save_id"   example:"save_1234567890"`
+	SpellID  string `json:"spell_id"  example:"fire-bolt"`
+	TargetID string `json:"target_id" example:"goblin#2"` // "" = nearest enemy
 }
 
 // CombatCastHandler resolves the player casting a prepared spell at the monster.
@@ -658,14 +678,13 @@ func CombatCastHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerCast(serverdb.GetDB(), cs, &sess.SaveData, req.SpellID, advancement)
+	roundLog, err := combat.ProcessPlayerCast(serverdb.GetDB(), cs, &sess.SaveData, req.SpellID, req.TargetID, advancement)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Cast error: %v", err))
 		return
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
@@ -676,9 +695,10 @@ func CombatCastHandler(w http.ResponseWriter, r *http.Request) {
 // CombatUseItemRequest is the body sent to POST /combat/use-item.
 // swagger:model CombatUseItemRequest
 type CombatUseItemRequest struct {
-	Npub   string `json:"npub"    example:"npub1..."`
-	SaveID string `json:"save_id" example:"save_1234567890"`
-	ItemID string `json:"item_id" example:"healing"`
+	Npub     string `json:"npub"      example:"npub1..."`
+	SaveID   string `json:"save_id"   example:"save_1234567890"`
+	ItemID   string `json:"item_id"   example:"healing"`
+	TargetID string `json:"target_id" example:"goblin#2"` // spell scrolls only; "" = nearest enemy
 }
 
 // CombatUseItemHandler drinks a potion / uses a consumable during the fight and
@@ -707,14 +727,13 @@ func CombatUseItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs := sess.ActiveCombat
-	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID)
+	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID, req.TargetID)
 	if err != nil {
 		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Use-item error: %v", err))
 		return
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
@@ -771,7 +790,6 @@ func CombatAbilityHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
@@ -820,9 +838,8 @@ func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
 
 // ─── CombatEndTurnHandler ────────────────────────────────────────────────────
 
-// CombatEndTurnHandler finalises the player's turn and runs the monster's response.
-// The player can move and act freely before calling this. Resets player turn state
-// for the next round and increments the round counter.
+// CombatEndTurnHandler finalises the player's turn and runs every monster's turn
+// in initiative order. The player can move and act freely before calling this.
 func CombatEndTurnHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeCombatError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -852,7 +869,6 @@ func CombatEndTurnHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }
@@ -954,7 +970,7 @@ func shouldAutoEndTurn(cs *types.CombatSession, save *types.SaveFile) bool {
 	return !checkBonusAttackAvailable(cs, save)
 }
 
-// maybeAutoEndTurn runs the monster response if the player is out of meaningful
+// maybeAutoEndTurn runs the monsters' turns if the player is out of meaningful
 // options. Returns the generated log entries (empty slice if no auto-end fired).
 // The cs.Log is updated with those entries so persisted state stays consistent.
 func maybeAutoEndTurn(cs *types.CombatSession, save *types.SaveFile) []string {
@@ -1055,7 +1071,6 @@ func CombatDeathSaveHandler(w http.ResponseWriter, r *http.Request) {
 
 	roundLog := combat.ProcessDeathSave(cs, &sess.SaveData)
 	cs.Log = append(cs.Log, roundLog...)
-	cs.Round++
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }

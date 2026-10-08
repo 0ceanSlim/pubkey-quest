@@ -220,19 +220,26 @@ var abilityMechanics = map[string]abilityMechanic{
 		state.RageTurnsLeft = turns
 		return []string{fmt.Sprintf("  You fly into a rage — +%d%% damage, -%d%% damage taken for %d turns.", dmg, resist, turns)}
 	}},
+	// The roar carries across the whole battlefield: every enemy still in the
+	// fight makes its own WIS save.
 	"intimidating-roar": {action: "action", apply: func(cs *types.CombatSession, state *types.PlayerCombatState, save *types.SaveFile, level, tierIdx int) []string {
-		if len(cs.Monsters) == 0 || !cs.Monsters[0].IsAlive {
+		foes := activeMonsters(cs)
+		if len(foes) == 0 {
 			return []string{"  You roar, but there's nothing left to frighten."}
 		}
-		m := &cs.Monsters[0]
 		dc := 8 + proficiencyBonus(level) + StatMod(GetStatFromMap(effectiveStats(save), "strength"))
-		total := monsterSaveTotal(m, "wisdom")
-		if total >= dc {
-			return []string{fmt.Sprintf("  You roar! %s holds its nerve (WIS save %d vs DC %d).", m.Name, total, dc)}
-		}
 		rounds := []int{2, 2, 3, 3}[clampIdx(tierIdx, 4)]
-		ApplyCondition(&m.Conditions, types.CombatCondition{Name: "frightened", DurationRounds: rounds})
-		return []string{fmt.Sprintf("  ✘ You roar! %s is frightened for %d rounds (WIS save %d vs DC %d).", m.Name, rounds, total, dc)}
+		log := []string{"  You roar!"}
+		for _, m := range foes {
+			total := monsterSaveTotal(m, "wisdom")
+			if total >= dc {
+				log = append(log, fmt.Sprintf("  %s holds its nerve (WIS save %d vs DC %d).", m.Name, total, dc))
+				continue
+			}
+			ApplyCondition(&m.Conditions, types.CombatCondition{Name: "frightened", DurationRounds: rounds})
+			log = append(log, fmt.Sprintf("  ✘ %s is frightened for %d rounds (WIS save %d vs DC %d).", m.Name, rounds, total, dc))
+		}
+		return log
 	}},
 
 	// ── Fighter ──
@@ -288,7 +295,7 @@ var abilityMechanics = map[string]abilityMechanic{
 
 // ProcessPlayerAbility resolves the player activating a class ability during combat.
 // Validates class / unlock level / resource / cooldown / action economy, applies the
-// ability's mechanic, then spends the resource. Does NOT run the monster turn — the
+// ability's mechanic, then spends the resource. Does NOT run the monsters' turns — the
 // caller ends the turn (surge/flurry leave the action open on purpose).
 func ProcessPlayerAbility(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, abilityID string, advancement []types.AdvancementEntry) ([]string, error) {
 	if cs.Phase != "active" {

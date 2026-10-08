@@ -23,6 +23,7 @@ type debugCombatRequest struct {
 	Npub      string `json:"npub"`
 	SaveID    string `json:"save_id"`
 	MonsterID string `json:"monster_id"` // optional; empty = random pick
+	Count     int    `json:"count"`      // optional; how many of that monster (default 1)
 }
 
 // DebugCombatStartHandler godoc
@@ -85,7 +86,8 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cs, err := combat.StartCombat(serverdb.GetDB(), &sess.SaveData, npub, monsterID, "", advancement)
+	spec := combat.EncounterSpec{MonsterIDs: combat.MonsterIDsForCount(monsterID, req.Count)}
+	cs, err := combat.StartEncounter(serverdb.GetDB(), &sess.SaveData, npub, spec, advancement)
 	if err != nil {
 		log.Printf("❌ DebugCombatStart: %v", err)
 		writeCombatError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to start combat: %v", err))
@@ -93,7 +95,9 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sess.ActiveCombat = cs
-	log.Printf("⚔️  Debug combat started: npub=%s monster=%s", npub, monsterID)
+	log.Printf("⚔️  Debug combat started: npub=%s monster=%s x%d", npub, monsterID, len(cs.Monsters))
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, cs.Log))
+	resp := buildStateResponse(cs, &sess.SaveData, cs.Log)
+	combat.ClearSpawnPositions(cs)
+	writeCombatJSON(w, http.StatusOK, resp)
 }

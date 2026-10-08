@@ -61,6 +61,15 @@ func effectivePreferredRange(monster *types.MonsterInstance) int {
 	return adjustPreferredRange(preferred, aggression, hpFraction)
 }
 
+// monsterRange is the range from a monster to the party member it's going after.
+func monsterRange(cs *types.CombatSession, monster *types.MonsterInstance) int {
+	t := aiTarget(cs, monster)
+	if t == nil {
+		return noTargetRange
+	}
+	return chebyshev(monster.Pos, t.Pos)
+}
+
 // DecideMonsterAction runs the monster AI decision tree and returns its chosen turn.
 // Movement is chosen here; the final attack is resolved *after* ApplyMonsterMove runs
 // via RefreshAttackDecision, so monsters that can cover multiple cells this turn still
@@ -72,11 +81,11 @@ func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance
 	if aggression == "" {
 		aggression = "aggressive"
 	}
-	r := currentRange(cs)
+	r := monsterRange(cs, monster)
 	wantsToFlee := hpFraction <= monster.Data.Behavior.FleeThreshold && aggression != "berserker"
 	if wantsToFlee && r >= fleeMinPlayerRange {
 		// Already at an edge → escape this turn.
-		if atGridEdge(cs.MonsterPos, cs.GridWidth, cs.GridHeight) {
+		if atGridEdge(monster.Pos, cs.GridWidth, cs.GridHeight) {
 			return MonsterDecision{Move: 0, Action: "escape"}
 		}
 		// Otherwise break toward the edge (away from the player). TargetRange=6 lets
@@ -86,6 +95,9 @@ func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance
 	}
 
 	preferred := effectivePreferredRange(monster)
+	if preferred < 1 {
+		preferred = 1 // adjacent is as close as two combatants get
+	}
 
 	move := 0
 	switch {
@@ -115,13 +127,13 @@ func RefreshAttackDecision(cs *types.CombatSession, monster *types.MonsterInstan
 	case "escape":
 		return decision
 	case "retreat":
-		if currentRange(cs) >= fleeMinPlayerRange &&
-			atGridEdge(cs.MonsterPos, cs.GridWidth, cs.GridHeight) {
+		if monsterRange(cs, monster) >= fleeMinPlayerRange &&
+			atGridEdge(monster.Pos, cs.GridWidth, cs.GridHeight) {
 			decision.Action = "escape"
 		}
 		return decision
 	}
-	idx := selectBestAction(monster.Data.Actions, currentRange(cs))
+	idx := selectBestAction(monster.Data.Actions, monsterRange(cs, monster))
 	if idx >= 0 {
 		decision.Action = "attack"
 		decision.ActionIndex = idx
@@ -178,16 +190,21 @@ func MonsterMeleeReach(monster *types.MonsterInstance) int {
 	return max
 }
 
-// ApplyMonsterMove moves the monster on the grid toward or away from the player.
-// Uses greedy pathfinding (one Chebyshev step per movement point).
+// ApplyMonsterMove moves the monster on the grid toward or away from its target.
+// Uses greedy pathfinding (one Chebyshev step per movement point) that steps
+// around other combatants rather than through them.
 // Movement budget is monster.Data.Speed.Walk / 5 (falls back to 6 if unset).
 //
 // oaTrigger, if non-nil, is called at most once — on the first step that takes
 // the monster from within the player's melee reach to outside it. The callback
-// receives the step's distance (always 1) and must itself enforce reaction/
-// disengage rules; its returned log entries are appended to the move log.
+// must itself enforce reaction/disengage rules; its returned log entries are
+// appended to the move log.
 func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerMeleeReach int, oaTrigger func() []string) []string {
 	if decision.Move == 0 {
+		return nil
+	}
+	target := aiTarget(cs, monster)
+	if target == nil {
 		return nil
 	}
 
@@ -200,10 +217,11 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 	preferred := decision.TargetRange
 	var oaLog []string
 	oaFired := false
+	player := playerPos(cs)
 
 	moved := 0
 	for i := 0; i < maxSteps; i++ {
-		r := chebyshev(cs.PlayerPos, cs.MonsterPos)
+		r := chebyshev(target.Pos, monster.Pos)
 		if decision.Move == -1 && r <= preferred {
 			break
 		}
@@ -211,22 +229,18 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 			break
 		}
 
-		newPos := stepMonster(cs.MonsterPos, cs.PlayerPos, decision.Move, cs.GridWidth, cs.GridHeight)
-		if newPos == cs.MonsterPos {
+		newPos, ok := stepMonster(cs, monster, target.Pos, decision.Move)
+		if !ok {
 			break
 		}
-		if newPos == cs.PlayerPos {
-			break
-		}
-		prevR := r
-		cs.MonsterPos = newPos
+		prevPR := chebyshev(player, monster.Pos)
+		monster.Pos = newPos
 		moved++
 
-		newR := chebyshev(cs.PlayerPos, cs.MonsterPos)
-
 		// Opportunity attack check: monster left the player's melee reach.
+		newPR := chebyshev(player, monster.Pos)
 		if !oaFired && oaTrigger != nil && playerMeleeReach > 0 &&
-			prevR <= playerMeleeReach && newR > playerMeleeReach {
+			prevPR <= playerMeleeReach && newPR > playerMeleeReach {
 			if entries := oaTrigger(); entries != nil {
 				oaLog = append(oaLog, entries...)
 			}
@@ -245,36 +259,62 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 	if decision.Move > 0 {
 		dir = "away from you"
 	}
-	out := []string{fmt.Sprintf("  %s moves %s. (range: %d)", monster.Name, dir, currentRange(cs))}
+	out := []string{fmt.Sprintf("  %s moves %s. (range: %d)", monster.Name, dir, chebyshev(player, monster.Pos))}
 	return append(out, oaLog...)
 }
 
-// stepMonster returns the next grid position one Chebyshev step in the given direction.
-// moveDir: -1 = toward player, +1 = away from player.
-func stepMonster(from, player types.Position, moveDir, gridW, gridH int) types.Position {
-	var dx, dy int
-	if moveDir == -1 {
-		dx = clampInt(player.X-from.X, -1, 1)
-		dy = clampInt(player.Y-from.Y, -1, 1)
-	} else {
-		dx = clampInt(from.X-player.X, -1, 1)
-		dy = clampInt(from.Y-player.Y, -1, 1)
+// stepMonster picks the monster's next cell one Chebyshev step toward (moveDir
+// -1) or away from (+1) goal. Of the eight neighbours it only considers free,
+// on-grid cells that strictly improve the Chebyshev distance, and prefers the
+// one that also best improves the straight-line (Manhattan) distance — so a
+// monster walks around an ally in its way instead of stalling behind it.
+// Returns false when no improving step exists.
+func stepMonster(cs *types.CombatSession, monster *types.MonsterInstance, goal types.Position, moveDir int) (types.Position, bool) {
+	from := monster.Pos
+	curC := chebyshev(from, goal)
+	best := from
+	bestC, bestM := curC, manhattan(from, goal)
+	found := false
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			next := types.Position{X: from.X + dx, Y: from.Y + dy}
+			if !inGrid(cs, next) || occupied(cs, next, monster.InstanceID) {
+				continue
+			}
+			c, m := chebyshev(next, goal), manhattan(next, goal)
+			if moveDir == -1 {
+				if c >= curC {
+					continue
+				}
+				if !found || c < bestC || (c == bestC && m < bestM) {
+					best, bestC, bestM, found = next, c, m, true
+				}
+			} else {
+				if c <= curC {
+					continue
+				}
+				if !found || c > bestC || (c == bestC && m > bestM) {
+					best, bestC, bestM, found = next, c, m, true
+				}
+			}
+		}
 	}
-	next := types.Position{X: from.X + dx, Y: from.Y + dy}
-	// Clamp to grid bounds
-	if next.X < 0 {
-		next.X = 0
+	return best, found
+}
+
+// manhattan is the grid-step (taxicab) distance between two cells.
+func manhattan(a, b types.Position) int {
+	dx, dy := a.X-b.X, a.Y-b.Y
+	if dx < 0 {
+		dx = -dx
 	}
-	if next.X >= gridW {
-		next.X = gridW - 1
+	if dy < 0 {
+		dy = -dy
 	}
-	if next.Y < 0 {
-		next.Y = 0
-	}
-	if next.Y >= gridH {
-		next.Y = gridH - 1
-	}
-	return next
+	return dx + dy
 }
 
 func clampInt(v, min, max int) int {
@@ -307,10 +347,11 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 		logEntries = append(logEntries, fmt.Sprintf("  %s is wounded and tries to flee!", monster.Name))
 
 	case "escape":
-		// Monster reached the edge with the player too far to stop it — combat ends with no kill.
+		// Monster reached the edge with the player too far to stop it — it leaves
+		// the fight with no kill. The fight ends once nobody hostile is left.
 		logEntries = append(logEntries, fmt.Sprintf("  %s escapes off the edge of the battlefield!", monster.Name))
-		cs.Phase = "loot"
-		cs.LootRolled = nil
+		monster.Fled = true
+		logEntries = append(logEntries, checkVictory(cs)...)
 
 	case "none":
 		logEntries = append(logEntries, fmt.Sprintf("  %s has no action available.", monster.Name))
@@ -318,14 +359,14 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 	case "attack":
 		action := monster.Data.Actions[decision.ActionIndex]
 
-		// If the player is dodging this turn, the monster attacks at disadvantage.
+		// If the target is dodging this turn, the monster attacks at disadvantage.
 		monsterAdvantage := 0
 		var playerConds []types.CombatCondition
-		if len(cs.Party) > 0 {
-			if cs.Party[0].CombatState.Dodging {
+		if t := aiTarget(cs, monster); t != nil {
+			if t.CombatState.Dodging {
 				monsterAdvantage = -1
 			}
-			playerConds = cs.Party[0].CombatState.Conditions
+			playerConds = t.CombatState.Conditions
 		}
 		// Conditions: the monster's own (poisoned/frightened/…) impose disadvantage;
 		// the player's (prone/restrained/…) grant the monster advantage.

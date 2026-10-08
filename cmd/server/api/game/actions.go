@@ -319,7 +319,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	// Build the combat payload, then clear the spawn position so later state
 	// queries don't replay the opening animation (mirrors StartCombatHandler).
 	combatPayload := buildStateResponse(cs, state, cs.Log)
-	cs.MonsterSpawnPos = nil
+	combat.ClearSpawnPositions(cs)
 	response.Data["combat_started"] = true
 	response.Data["combat"] = combatPayload
 	log.Printf("⚔️  Travel encounter: %s (CR %.2f) in biome %q at level %d", monster.ID, monster.CR, biome, level)

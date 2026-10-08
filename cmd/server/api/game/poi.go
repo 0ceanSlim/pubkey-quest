@@ -98,7 +98,7 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 		// Monster node — drop into the combat UI; the POI resumes at res.Next on
 		// victory. If the monster can't be started (e.g. an unbuilt monster id),
 		// don't dead-end the walk — fall through to the resume node as a Continue.
-		if err := bridgePOICombat(sess, res.Combat); err != nil {
+		if err := bridgePOICombat(sess, &res); err != nil {
 			log.Printf("⚠️ %q monster node: combat bridge failed: %v", sess.ActivePOI.POIID, err)
 			res.Combat = ""
 			sess.ActivePOI.ValidNexts = poi.NextsFor(res) // recompute now Combat is cleared
@@ -112,9 +112,10 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	return res, nil
 }
 
-// bridgePOICombat starts combat with the POI's monster, mirroring the biome
-// travel-encounter entry (maybeRollTravelEncounter in actions.go).
-func bridgePOICombat(sess *session.GameSession, monsterID string) error {
+// bridgePOICombat starts combat with the monster node's group (its authored count,
+// and an ambush if it's flagged surprise), mirroring the biome travel-encounter
+// entry (maybeRollTravelEncounter in actions.go).
+func bridgePOICombat(sess *session.GameSession, res *poi.StepResult) error {
 	if sess.ActiveCombat != nil {
 		return fmt.Errorf("combat already in progress")
 	}
@@ -123,7 +124,12 @@ func bridgePOICombat(sess *session.GameSession, monsterID string) error {
 		return err
 	}
 	state := &sess.SaveData
-	cs, err := combat.StartCombat(serverdb.GetDB(), state, sess.Npub, monsterID, state.Location, advancement)
+	spec := combat.EncounterSpec{
+		MonsterIDs:    combat.MonsterIDsForCount(res.Combat, res.CombatCount),
+		EnvironmentID: state.Location,
+		Surprise:      res.CombatSurprise,
+	}
+	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
 	if err != nil {
 		return err
 	}
@@ -140,7 +146,7 @@ func buildCombatPayload(sess *session.GameSession, data map[string]any) {
 		return
 	}
 	payload := buildStateResponse(cs, &sess.SaveData, cs.Log)
-	cs.MonsterSpawnPos = nil
+	combat.ClearSpawnPositions(cs)
 	data["combat_started"] = true
 	data["combat"] = payload
 }
