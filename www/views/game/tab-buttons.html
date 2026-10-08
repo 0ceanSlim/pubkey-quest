@@ -1,9 +1,10 @@
 {{define "game/tab-buttons.html"}}
-<!-- Bottom Tab Row: MUSIC | BADGES | LOGOUT | SETTINGS | REPORT -->
+<!-- Bottom Tab Row: MUSIC | FRIENDS | LOGOUT | SETTINGS | REPORT -->
+<!-- Badges moved to the quest journal's Badges sub-tab. -->
 <div style="background: #2a2a2a; flex-shrink: 0; width: 100%; overflow: hidden;">
     <div class="grid grid-cols-5" style="width: 100%;">
         <button id="tab-music" onclick="switchTab('music')" class="py-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; font-size: 10px;" title="Music">🎵</button>
-        <button onclick="openBadges()" class="py-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; font-size: 10px;" title="Badges">🏆</button>
+        <button id="btn-friends" onclick="openFriends()" class="py-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; font-size: 10px;" title="Friends">😊</button>
         <button onclick="showLogoutModal()" class="py-3 font-bold text-white" style="background: #2a2a2a; border: 2px solid #dc2626; font-size: 10px;" title="Logout">❌</button>
         <button id="btn-settings" onclick="openSettings()" class="py-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; font-size: 10px;" title="Settings">⚙️</button>
         <button onclick="showBugReportModal()" class="py-3 font-bold text-white" style="background: #2a2a2a; border: 2px solid #eab308; font-size: 10px;" title="Report Bug">🐛</button>

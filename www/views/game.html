@@ -384,8 +384,11 @@
     window.addEventListener('resize', scaleGameUI);
 
     // Action button handlers
-    function openBadges() {
-      showMessage("🏆 Badges system coming soon!", "info");
+    // Friends = mutual follows on Nostr, with who's online. The list arrives with
+    // the presence work (docs/draft/party-multiplayer-plan.md P3/P4); badges now
+    // live in the journal's Badges sub-tab.
+    function openFriends() {
+      showMessage("😊 Friends are coming soon — your mutual follows, and who's online.", "info");
     }
 
     function openSettings() {

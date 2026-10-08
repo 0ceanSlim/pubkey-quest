@@ -14,6 +14,7 @@ import { gameAPI } from '../lib/api.js';
 import { API_BASE_URL } from '../config/constants.js';
 import { eventBus } from '../lib/events.js';
 import { logger } from '../lib/logger.js';
+import { getTrackedQuestId } from './questDisplay.js';
 
 /** Fetch the quest log and render the tracker chip (or hide it). */
 export async function updateQuestTracker() {
@@ -30,8 +31,9 @@ export async function updateQuestTracker() {
             el.classList.add('hidden');
             return;
         }
-        // First active quest, its first not-yet-done objective (fallback: first).
-        const q = active[0];
+        // The quest pinned in the journal (📌 Track) if it's still active,
+        // otherwise the first active one; then its first not-yet-done objective.
+        const q = active.find((a) => a.id === getTrackedQuestId()) || active[0];
         const objs = q.objectives || [];
         const obj = objs.find((o) => !o.done) || objs[0];
         if (!obj) {

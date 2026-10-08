@@ -1,23 +1,33 @@
 {{define "game/quest-modal.html"}}
+<style>
+#quest-modal { --qm-muted: #9ca3af; font-size: 8px; line-height: 1.5; }
+#quest-modal .qm-close { margin-left: auto; font: inherit; color: #fff; background: #7f1d1d; width: 14px; height: 13px; line-height: 9px;
+                         padding: 0; cursor: pointer; border: 2px solid; border-color: #dc2626 #450a0a #450a0a #dc2626; }
+#quest-modal .qm-name { color: #facc15; font-weight: bold; }
+#quest-modal .qm-meta { color: var(--qm-muted); margin: 1px 0 5px; }
+#quest-modal .qm-pill { display: inline-block; padding: 0 3px; border: 1px solid; margin-right: 3px; }
+#quest-modal .qm-sec { color: var(--qm-muted); text-transform: uppercase; margin: 7px 0 2px; border-bottom: 1px solid #333; }
+#quest-modal .qm-desc { color: #d1d5db; }
+#quest-modal .qm-obj { display: flex; justify-content: space-between; gap: 6px; color: #d1d5db; }
+#quest-modal .qm-ok { color: #4ade80; } #quest-modal .qm-bad { color: #f87171; } #quest-modal .qm-hint { color: #93c5fd; }
+#quest-modal .qm-reward { color: #fcd34d; }
+#quest-modal .qm-items div::before { content: '• '; color: var(--qm-muted); }
+#quest-modal .qm-actions { margin-top: 8px; display: flex; gap: 4px; }
+#quest-modal .qm-btn { font: inherit; color: #fff; padding: 2px 6px; cursor: pointer; background: #0e7490;
+                       border: 2px solid; border-color: #22d3ee #155e75 #155e75 #22d3ee; }
+#quest-modal .qm-btn.warn { background: #7f1d1d; border-color: #dc2626 #450a0a #450a0a #dc2626; }
+</style>
 <!-- Quest Detail Modal Overlay (drawn over the scene, scales with it) -->
-<div id="quest-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
-    <div class="relative bg-win95-bgDark m-2" style="border: 2px solid #b8860b; max-width: 300px; max-height: 88%; overflow-y: auto; margin-left: auto; margin-right: auto; margin-top: 24px; pointer-events: auto; box-shadow: 0 0 16px rgba(184,134,11,0.5);">
+<div id="quest-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); pointer-events: none;">
+    <div class="relative bg-win95-bgDark" style="border: 2px solid #b8860b; width: 300px; max-width: calc(100% - 16px); max-height: 92%; display: flex; flex-direction: column; margin: 18px auto 0; pointer-events: auto; box-shadow: 0 0 12px rgba(184,134,11,0.45);">
         <!-- Title Bar -->
-        <div class="px-2 py-1 flex items-center gap-2" style="background: linear-gradient(90deg, #92400e, #b8860b);">
-            <span style="font-size: 12px;">📜</span>
-            <span class="text-white font-bold" style="font-size: 9px;">QUEST</span>
+        <div class="flex items-center gap-1 text-white font-bold" style="padding: 2px 3px; background: linear-gradient(90deg, #92400e, #b8860b);">
+            <span>📜 QUEST</span>
+            <button class="qm-close" title="Close" onclick="window.closeQuestModal && window.closeQuestModal()">✕</button>
         </div>
 
         <!-- Content (populated by questDisplay) -->
-        <div class="p-3 bg-win95-bgDark">
-            <div id="quest-modal-content"></div>
-            <button
-                onclick="window.closeQuestModal && window.closeQuestModal()"
-                class="mt-3 px-4 py-1 font-bold text-white"
-                style="font-size: 8px; background: #0e7490; border-top: 2px solid #22d3ee; border-left: 2px solid #22d3ee; border-right: 2px solid #155e75; border-bottom: 2px solid #155e75;">
-                CLOSE
-            </button>
-        </div>
+        <div id="quest-modal-content" class="bg-win95-bgDark" style="padding: 6px; overflow-y: auto;"></div>
     </div>
 </div>
 {{end}}

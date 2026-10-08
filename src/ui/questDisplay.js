@@ -1,12 +1,16 @@
 /**
- * Quest Display — the quest journal tab.
+ * Quest Display — the journal tab (Quests | Badges) and the quest guide popup.
  *
- * Reads /api/quests/log and renders quests grouped into collapsible category
- * sections (Main, Side, Class, Race, Daily, Weekly, then Completed). Each quest
- * is a clickable row that opens a detail modal — the "quest guide": how/where to
- * start it (available), or the current objective (in progress). Quests are NOT
- * accepted here — they start in the world (talk to the giver). Loaded when the
- * questlog tab opens (see the switchTab hook in game.html).
+ * Reads /api/quests/log, where every quest carries a status — active,
+ * available, locked (a requirement unmet) or completed — and renders one list
+ * that can be sorted (category / status / name / difficulty) and filtered (hide
+ * unavailable, hide completed). Rows are colour-coded by status and carry the
+ * next step, danger and rewards; clicking one opens the guide popup with the
+ * objectives, how to start, requirements (met / unmet), recommendations and
+ * rewards, plus Track / Abandon for quests in progress.
+ *
+ * Quests are NOT accepted here — they start in the world (talk to the giver).
+ * Loaded when the questlog tab opens (see the switchTab hook in game.html).
  *
  * @module ui/questDisplay
  */
@@ -21,11 +25,37 @@ const esc = (s) =>
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 
 const CATEGORY_ORDER = ['main', 'side', 'class', 'race', 'daily', 'weekly'];
-const CATEGORY_LABEL = { main: 'Main', side: 'Side', class: 'Class', race: 'Race', daily: 'Daily', weekly: 'Weekly' };
+const DIFFICULTY_ORDER = ['novice', 'intermediate', 'moderate', 'experienced', 'master'];
+const STATUS_ORDER = { active: 0, available: 1, locked: 2, completed: 3 };
+const STATUS_LABEL = { active: 'In progress', available: 'Not started', locked: 'Unavailable', completed: 'Completed' };
+const STATUS_COLOR = { active: '#facc15', available: '#93c5fd', locked: '#6b7280', completed: '#4ade80' };
 
-// Quests indexed by id for the modal, and which category sections are collapsed.
-let _questsById = {};
-const _collapsed = new Set();
+// View preferences survive reloads (a per-browser convenience, not game state).
+const PREFS_KEY = 'pq_quest_journal_prefs';
+const prefs = { sort: 'category', hideLocked: false, hideDone: false, collapsed: [] };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREFS_KEY) || '{}')); } catch (_) { /* private mode */ }
+function savePrefs() {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (_) { /* private mode */ }
+}
+
+let _quests = [];       // every quest in the last log, flattened, with .status
+let _byId = {};
+
+// ── tracked quest (which one the over-scene tracker follows) ────────────────
+// A UI preference per save, so it lives in the browser — never in the save file.
+const trackedKey = () => `pq_tracked_quest:${gameAPI.saveID}`;
+export function getTrackedQuestId() {
+    try { return localStorage.getItem(trackedKey()) || null; } catch (_) { return null; }
+}
+function setTrackedQuestId(id) {
+    try {
+        if (id) localStorage.setItem(trackedKey(), id);
+        else localStorage.removeItem(trackedKey());
+    } catch (_) { /* private mode */ }
+    window.updateQuestTracker?.();
+}
+
+// ── loading ──────────────────────────────────────────────────────────────────
 
 /** Fetch the quest log and render the journal. */
 async function loadQuestLog() {
@@ -38,116 +68,186 @@ async function loadQuestLog() {
             logger.warn('Quest log load failed:', json.error ?? resp.status);
             return;
         }
-        renderJournal(json.data);
+        ingest(json.data);
+        renderJournal();
     } catch (err) {
         logger.error('loadQuestLog error:', err);
     }
 }
 
-function renderJournal(data) {
-    const qpEl = $('quest-points-total');
-    if (qpEl) qpEl.textContent = data.quest_points ?? 0;
-
-    // Merge active + available (with a status) and index every quest for the modal.
-    _questsById = {};
-    const items = [];
-    (data.active || []).forEach((q) => {
-        const e = { ...q, status: 'active' };
-        items.push(e);
-        _questsById[q.id] = e;
-    });
-    (data.available || []).forEach((q) => {
-        const e = { ...q, status: 'available' };
-        items.push(e);
-        _questsById[q.id] = e;
-    });
-    (data.completed || []).forEach((q) => {
-        _questsById[q.id] = { ...q, status: 'completed' };
-    });
-
-    const byCat = {};
-    items.forEach((q) => {
-        const c = q.category || 'side';
-        (byCat[c] = byCat[c] || []).push(q);
-    });
-
-    const journal = $('quest-journal');
-    if (!journal) return;
-
-    let html = '';
-    const seen = new Set();
-    CATEGORY_ORDER.forEach((cat) => {
-        if (byCat[cat]?.length) {
-            html += section(CATEGORY_LABEL[cat], cat, byCat[cat]);
-            seen.add(cat);
-        }
-    });
-    Object.keys(byCat).forEach((cat) => {
-        if (!seen.has(cat)) html += section(cap(cat), cat, byCat[cat]);
-    });
-    if ((data.completed || []).length) {
-        const done = data.completed.map((q) => ({ ...q, status: 'completed' }));
-        html += section('Completed', 'completed', done);
-    }
-
-    journal.innerHTML = html || `<div class="text-gray-500 text-[9px] p-1">No quests yet — explore and talk to people.</div>`;
-    wireJournal(journal);
+function ingest(data) {
+    const qp = $('quest-points-total');
+    if (qp) qp.textContent = data.quest_points ?? 0;
+    _quests = [
+        ...(data.active || []),
+        ...(data.available || []),
+        ...(data.locked || []),
+        ...(data.completed || []),
+    ];
+    _byId = Object.fromEntries(_quests.map((q) => [q.id, q]));
 }
 
-function section(label, key, list) {
-    const collapsed = _collapsed.has(key);
-    const arrow = collapsed ? '▸' : '▾';
-    const rows = collapsed ? '' : list.map(questRow).join('');
+// ── the list ─────────────────────────────────────────────────────────────────
+
+function renderJournal() {
+    const journal = $('quest-journal');
+    if (!journal) return;
+    syncTools();
+
+    const list = _quests.filter((q) =>
+        !(prefs.hideLocked && q.status === 'locked') && !(prefs.hideDone && q.status === 'completed'));
+    const byName = (a, b) => a.name.localeCompare(b.name);
+    const byStatus = (a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || byName(a, b);
+
+    let html = '';
+    if (prefs.sort === 'category') {
+        const cats = [...CATEGORY_ORDER, ...new Set(list.map((q) => q.category).filter((c) => !CATEGORY_ORDER.includes(c)))];
+        for (const cat of cats) {
+            const items = list.filter((q) => (q.category || 'side') === cat).sort(byStatus);
+            if (!items.length) continue;
+            const open = !prefs.collapsed.includes(cat);
+            html += `<div class="qj-group" data-cat="${esc(cat)}"><span>${open ? '▾' : '▸'} ${esc(cap(cat))}</span><span>${items.length}</span></div>`;
+            if (open) html += items.map(row).join('');
+        }
+    } else {
+        const cmp = {
+            status: byStatus,
+            name: byName,
+            difficulty: (a, b) => difficultyRank(a) - difficultyRank(b) || byName(a, b),
+        }[prefs.sort] || byStatus;
+        html = [...list].sort(cmp).map(row).join('');
+    }
+
+    if (!html) {
+        html = _quests.length
+            ? '<div class="qj-empty">Nothing to show — try clearing a filter.</div>'
+            : '<div class="qj-empty">No quests yet — explore and talk to people.</div>';
+    }
+    journal.innerHTML = html;
+}
+
+function difficultyRank(q) {
+    const i = DIFFICULTY_ORDER.indexOf(String(q.difficulty || '').toLowerCase());
+    return i < 0 ? DIFFICULTY_ORDER.length : i;
+}
+
+function row(q) {
+    const tracked = q.status === 'active' && q.id === getTrackedQuestId() ? '<span class="qj-tracked" title="Tracked">📌</span>' : '';
+    const stage = q.status === 'active' && q.stage_count > 1
+        ? `Stage ${(q.stage ?? 0) + 1}/${q.stage_count}`
+        : cap(q.category || '');
+    const danger = q.recommended?.danger ? ` · ⚔ ${esc(q.recommended.danger)}` : '';
+    const prog = q.status === 'active' && q.stage_count > 0
+        ? `<div class="qj-prog"><div style="width:${Math.round((100 * (q.stage ?? 0)) / q.stage_count)}%"></div></div>`
+        : '';
     return `
-    <div class="quest-cat" data-cat="${esc(key)}">
-        <button class="quest-cat-header w-full flex items-center justify-between text-left text-yellow-300 font-bold text-[9px] py-0.5 px-1 bg-gray-700 hover:bg-gray-600">
-            <span>${arrow} ${esc(label)}</span>
-            <span class="text-gray-400">${list.length}</span>
-        </button>
-        <div class="quest-cat-body pl-1 pt-0.5 space-y-0.5">${rows}</div>
+    <div class="qj-row qj-${q.status}" data-quest="${esc(q.id)}">
+        <div class="qj-bar"></div>
+        <div class="qj-body">
+            <div class="qj-l1">${tracked}<span class="qj-name">${esc(q.name)}</span><span class="qj-tag">${esc(q.difficulty || '')}</span></div>
+            <div class="qj-l2">${esc(detailLine(q))}</div>
+            <div class="qj-l3"><span>${esc(stage)}${danger}</span><span class="qj-reward">${esc(rewardShort(q.rewards))}</span></div>
+            ${prog}
+        </div>
     </div>`;
 }
 
-function questRow(q) {
-    const badge =
-        q.status === 'active'
-            ? '<span class="text-yellow-400">◆</span>'
-            : q.status === 'completed'
-            ? '<span class="text-green-500">☑</span>'
-            : '<span class="text-blue-300">○</span>';
-    const nameColor = q.status === 'completed' ? 'text-gray-400' : 'text-gray-200';
-    return `
-    <button class="quest-row w-full text-left flex items-center gap-1 px-1 py-0.5 hover:bg-gray-700 text-[9px]" data-quest="${esc(q.id)}">
-        ${badge}<span class="flex-1 truncate ${nameColor}">${esc(q.name)}</span>
-    </button>`;
+/** The one-line context under a quest's name, by status. */
+function detailLine(q) {
+    switch (q.status) {
+        case 'active': {
+            const objs = q.objectives || [];
+            const next = objs.find((o) => !o.done) || objs[objs.length - 1];
+            if (!next) return q.stage_description || 'In progress';
+            return `Next: ${next.description}${next.target > 1 ? ` ${next.count}/${next.target}` : ''}`;
+        }
+        case 'available':
+            return q.start_hint || 'Seek it out in the world.';
+        case 'locked': {
+            const unmet = (q.requirements || []).find((r) => !r.met);
+            return `🔒 ${unmet ? unmet.description : 'Requirements not met'}`;
+        }
+        default:
+            return 'Completed';
+    }
 }
 
-function wireJournal(journal) {
-    journal.querySelectorAll('.quest-cat-header').forEach((h) => {
-        h.addEventListener('click', () => {
-            const key = h.closest('.quest-cat')?.dataset.cat;
-            if (!key) return;
-            if (_collapsed.has(key)) _collapsed.delete(key);
-            else _collapsed.add(key);
-            loadQuestLog(); // simplest: re-render from fresh data
-        });
+function rewardShort(r) {
+    if (!r) return '';
+    const parts = [];
+    if (r.xp) parts.push(`${r.xp}xp`);
+    if (r.gold) parts.push(`${r.gold}g`);
+    if (r.quest_points) parts.push(`${r.quest_points}QP`);
+    const n = (r.items || []).length;
+    if (n) parts.push(`+${n} item${n > 1 ? 's' : ''}`);
+    return parts.join(' ');
+}
+
+function itemName(id) {
+    return window.getItemById?.(id)?.name || cap(String(id).replace(/[-_]/g, ' '));
+}
+
+// ── tools (sort / filters / sub-tabs) ────────────────────────────────────────
+
+function syncTools() {
+    const sort = $('qj-sort');
+    if (sort) sort.value = prefs.sort;
+    const hl = $('qj-hide-locked');
+    if (hl) hl.checked = !!prefs.hideLocked;
+    const hd = $('qj-hide-done');
+    if (hd) hd.checked = !!prefs.hideDone;
+}
+
+// The journal markup is server-rendered once, so wire it with delegation.
+function wireJournalPanel() {
+    const panel = $('questlog-panel');
+    if (!panel || panel.dataset.wired) return;
+    panel.dataset.wired = '1';
+
+    panel.addEventListener('change', (e) => {
+        if (e.target.id === 'qj-sort') prefs.sort = e.target.value;
+        else if (e.target.id === 'qj-hide-locked') prefs.hideLocked = e.target.checked;
+        else if (e.target.id === 'qj-hide-done') prefs.hideDone = e.target.checked;
+        else return;
+        savePrefs();
+        renderJournal();
     });
-    journal.querySelectorAll('.quest-row').forEach((r) => {
-        r.addEventListener('click', () => openQuestModal(r.dataset.quest));
+
+    panel.addEventListener('click', (e) => {
+        const sub = e.target.closest('.qj-subtab');
+        if (sub) {
+            const badges = sub.dataset.qjSub === 'badges';
+            panel.querySelectorAll('.qj-subtab').forEach((b) => b.classList.toggle('on', b === sub));
+            $('qj-quests-view')?.classList.toggle('hidden', badges);
+            $('qj-badges-view')?.classList.toggle('hidden', !badges);
+            return;
+        }
+        const group = e.target.closest('.qj-group');
+        if (group) {
+            const cat = group.dataset.cat;
+            prefs.collapsed = prefs.collapsed.includes(cat)
+                ? prefs.collapsed.filter((c) => c !== cat)
+                : [...prefs.collapsed, cat];
+            savePrefs();
+            renderJournal();
+            return;
+        }
+        const r = e.target.closest('.qj-row');
+        if (r) openQuestModal(r.dataset.quest);
     });
 }
 
-// ── detail modal (the quest guide) ──────────────────────────────────────────
+// ── the guide popup ──────────────────────────────────────────────────────────
 
 // The modal markup lives in the scene (game/quest-modal.html) so it draws over
 // the scene and scales with it — same pattern as the level-up modal.
 function openQuestModal(questId) {
-    const q = _questsById[questId];
-    if (!q) return;
+    const q = _byId[questId];
     const content = $('quest-modal-content');
     const modal = $('quest-modal');
-    if (!content || !modal) return;
+    if (!q || !content || !modal) return;
     content.innerHTML = modalBody(q);
+    wireModalActions(content, q);
     modal.classList.remove('hidden');
 }
 
@@ -155,48 +255,110 @@ function closeQuestModal() {
     $('quest-modal')?.classList.add('hidden');
 }
 
-if (typeof window !== 'undefined') {
-    window.closeQuestModal = closeQuestModal;
-}
-
 function modalBody(q) {
-    const meta = [cap(q.category), q.difficulty ? cap(q.difficulty) : '']
-        .filter(Boolean)
-        .join(' · ');
-    let html = `<div style="color:#facc15;font-weight:bold;font-size:14px;">${esc(q.name)}</div>`;
-    if (meta) html += `<div style="color:#9ca3af;font-size:10px;margin-bottom:8px;">${esc(meta)}</div>`;
-
-    if (q.status === 'completed') {
-        html += `<div style="color:#4ade80;font-size:12px;">☑ Completed</div>`;
-        return html;
-    }
+    const col = STATUS_COLOR[q.status] || '#9ca3af';
+    const meta = [cap(q.category || ''), q.difficulty, q.recommended?.danger ? `⚔ ${q.recommended.danger} danger` : '']
+        .filter(Boolean).map(esc).join(' · ');
+    let h = `<div class="qm-name">${esc(q.name)}</div>
+        <div class="qm-meta"><span class="qm-pill" style="color:${col};border-color:${col}">${STATUS_LABEL[q.status] || ''}</span>${meta}</div>`;
+    if (q.description) h += `<div class="qm-desc">${esc(q.description)}</div>`;
 
     if (q.status === 'active') {
-        const stage = q.stage_count > 1 ? ` (stage ${(q.stage ?? 0) + 1}/${q.stage_count})` : '';
-        html += `<div style="color:#9ca3af;font-size:10px;text-transform:uppercase;margin-bottom:2px;">What to do next${stage}</div>`;
-        if (q.description) html += `<div style="color:#e5e7eb;font-size:11px;margin-bottom:6px;">${esc(q.description)}</div>`;
-        (q.objectives || []).forEach((o) => {
-            const col = o.done ? '#4ade80' : '#d1d5db';
-            html += `<div style="color:${col};font-size:11px;">${o.done ? '☑' : '☐'} ${esc(o.description)} <span style="color:#6b7280;">${o.count}/${o.target}</span></div>`;
-        });
-    } else {
-        // available
-        if (q.description) html += `<div style="color:#d1d5db;font-size:11px;margin-bottom:8px;">${esc(q.description)}</div>`;
-        html += `<div style="color:#9ca3af;font-size:10px;text-transform:uppercase;margin-bottom:2px;">How to start</div>`;
-        html += `<div style="color:#93c5fd;font-size:11px;">${esc(q.start_hint || 'Seek it out in the world.')}</div>`;
+        if (q.stage_count > 1 || q.stage_description) {
+            h += `<div class="qm-sec">Stage ${(q.stage ?? 0) + 1} of ${q.stage_count}</div>`;
+            if (q.stage_description) h += `<div class="qm-desc">${esc(q.stage_description)}</div>`;
+        }
+        if ((q.objectives || []).length) {
+            h += '<div class="qm-sec">Objectives</div>';
+            h += q.objectives.map((o) =>
+                `<div class="qm-obj ${o.done ? 'qm-ok' : ''}"><span>${o.done ? '☑' : '☐'} ${esc(o.description)}</span><span>${o.count}/${o.target}</span></div>`,
+            ).join('');
+        }
+    }
+
+    if (q.status === 'available' || q.status === 'locked') {
+        h += `<div class="qm-sec">How to start</div><div class="qm-hint">${esc(q.start_hint || 'Seek it out in the world.')}</div>`;
+    }
+
+    if ((q.requirements || []).length && q.status !== 'completed') {
+        h += '<div class="qm-sec">Requirements</div>';
+        h += q.requirements.map((r) =>
+            `<div class="${r.met ? 'qm-ok' : 'qm-bad'}">${r.met ? '✓' : '✗'} ${esc(r.description)}</div>`).join('');
+    }
+
+    if (q.recommended?.stats?.length) {
+        h += `<div class="qm-sec">Recommended</div><div class="qm-desc">${q.recommended.stats.map(esc).join(' · ')}</div>`;
     }
 
     const r = q.rewards;
-    if (r && (r.xp || r.gold || r.quest_points || (r.items || []).length)) {
+    if (r) {
         const parts = [];
-        if (r.quest_points) parts.push(`${r.quest_points} QP`);
         if (r.xp) parts.push(`${r.xp} XP`);
         if (r.gold) parts.push(`${r.gold} gold`);
-        (r.items || []).forEach((it) => parts.push(`${esc(it.id)}${it.quantity > 1 ? ' ×' + it.quantity : ''}`));
-        html += `<div style="color:#9ca3af;font-size:10px;text-transform:uppercase;margin:10px 0 2px;">Rewards</div>`;
-        html += `<div style="color:#fcd34d;font-size:11px;">${parts.join(' · ')}</div>`;
+        if (r.quest_points) parts.push(`${r.quest_points} QP`);
+        h += '<div class="qm-sec">Rewards</div>';
+        if (parts.length) h += `<div class="qm-reward">${parts.join(' · ')}</div>`;
+        if ((r.items || []).length) {
+            h += `<div class="qm-items">${r.items.map((it) =>
+                `<div>${esc(itemName(it.id))}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div>`).join('')}</div>`;
+        }
     }
-    return html;
+
+    if (q.status === 'active') {
+        const tracked = q.id === getTrackedQuestId();
+        h += `<div class="qm-actions">
+            <button class="qm-btn" data-qm="track">${tracked ? '📌 Untrack' : '📌 Track'}</button>
+            <button class="qm-btn warn" data-qm="abandon">Abandon</button>
+        </div>`;
+    }
+    return h;
+}
+
+function wireModalActions(content, q) {
+    content.querySelector('[data-qm="track"]')?.addEventListener('click', () => {
+        setTrackedQuestId(q.id === getTrackedQuestId() ? null : q.id);
+        renderJournal();
+        openQuestModal(q.id);
+    });
+    const abandon = content.querySelector('[data-qm="abandon"]');
+    abandon?.addEventListener('click', async () => {
+        // Two-step: the first click arms it, so a stray tap can't throw away progress.
+        if (!abandon.dataset.armed) {
+            abandon.dataset.armed = '1';
+            abandon.textContent = 'Really abandon?';
+            return;
+        }
+        await abandonQuest(q.id);
+    });
+}
+
+async function abandonQuest(questId) {
+    try {
+        const resp = await fetch(`${API_BASE_URL}/quests/abandon`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: gameAPI.npub, save_id: gameAPI.saveID, quest_id: questId }),
+        });
+        const json = await resp.json();
+        if (!resp.ok || !json.success) {
+            window.showMessage?.(json.error ?? 'Could not abandon the quest', 'error');
+            return;
+        }
+        if (questId === getTrackedQuestId()) setTrackedQuestId(null);
+        else window.updateQuestTracker?.();
+        ingest(json.data);
+        renderJournal();
+        closeQuestModal();
+        window.showMessage?.('Quest abandoned', 'info');
+    } catch (err) {
+        logger.error('abandonQuest error:', err);
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.closeQuestModal = closeQuestModal;
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireJournalPanel);
+    else wireJournalPanel();
 }
 
 export { loadQuestLog };

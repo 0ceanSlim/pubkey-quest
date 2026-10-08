@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -67,6 +68,15 @@ func (c questContext) Alignment() string               { return c.save.Alignment
 func (c questContext) IsQuestCompleted(id string) bool { return quest.IsCompleted(c.save, id) }
 
 // ─── log view ─────────────────────────────────────────────────────────────────
+//
+// Every quest in the log has the same shape, whatever its status, so the journal
+// can sort and filter one list. Status is one of:
+//
+//	active    — in progress (stage, objectives)
+//	available — startable now (start hint)
+//	locked    — exists for this character but a requirement or prerequisite is
+//	            unmet; Requirements says which
+//	completed — done
 
 type objectiveView struct {
 	Description string `json:"description"`
@@ -85,6 +95,43 @@ type rewardView struct {
 	Gold        int              `json:"gold,omitempty"`
 	QuestPoints int              `json:"quest_points,omitempty"`
 	Items       []rewardItemView `json:"items,omitempty"`
+}
+
+// requirementView is one gate on starting a quest, phrased for the player, and
+// whether this character currently meets it.
+type requirementView struct {
+	Description string `json:"description"`
+	Met         bool   `json:"met"`
+}
+
+type recommendedView struct {
+	Stats  []string `json:"stats,omitempty"`
+	Danger string   `json:"danger,omitempty"`
+}
+
+type questView struct {
+	ID               string            `json:"id"`
+	Name             string            `json:"name"`
+	Status           string            `json:"status"`
+	Category         string            `json:"category,omitempty"`
+	Difficulty       string            `json:"difficulty,omitempty"`
+	Description      string            `json:"description,omitempty"`
+	StartHint        string            `json:"start_hint,omitempty"`
+	Stage            int               `json:"stage"`
+	StageCount       int               `json:"stage_count"`
+	StageDescription string            `json:"stage_description,omitempty"`
+	Objectives       []objectiveView   `json:"objectives,omitempty"`
+	Requirements     []requirementView `json:"requirements,omitempty"`
+	Recommended      *recommendedView  `json:"recommended,omitempty"`
+	Rewards          *rewardView       `json:"rewards,omitempty"`
+}
+
+type questLogView struct {
+	Active      []questView `json:"active"`
+	Available   []questView `json:"available"`
+	Locked      []questView `json:"locked"`
+	Completed   []questView `json:"completed"`
+	QuestPoints int         `json:"quest_points"`
 }
 
 // questRewardView summarises a quest's payout: its quest points (the quest's
@@ -108,50 +155,95 @@ func questRewardView(qd *types.QuestData) *rewardView {
 	return rv
 }
 
-type activeQuestView struct {
-	ID          string          `json:"id"`
-	Name        string          `json:"name"`
-	Category    string          `json:"category"`
-	Difficulty  string          `json:"difficulty,omitempty"`
-	Stage       int             `json:"stage"`
-	StageCount  int             `json:"stage_count"`
-	Description string          `json:"description"`
-	Objectives  []objectiveView `json:"objectives"`
-	Rewards     *rewardView     `json:"rewards,omitempty"`
+// baseQuestView fills the fields every status shares.
+func baseQuestView(qd *types.QuestData, status string) questView {
+	v := questView{
+		ID: qd.ID, Name: qd.Name, Status: status, Category: string(qd.Category),
+		Difficulty: qd.Difficulty, Description: qd.Description,
+		StartHint: qd.StartCondition.StartHint, StageCount: len(qd.Stages),
+		Rewards: questRewardView(qd),
+	}
+	if rec := qd.Recommended; rec != nil && (len(rec.RecommendedStats) > 0 || rec.CombatDanger != "") {
+		v.Recommended = &recommendedView{Stats: rec.RecommendedStats, Danger: rec.CombatDanger}
+	}
+	return v
 }
 
-type namedQuestView struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Category    string `json:"category,omitempty"`
-	Difficulty  string `json:"difficulty,omitempty"`
-	Description string      `json:"description,omitempty"`
-	StartHint   string      `json:"start_hint,omitempty"`
-	Rewards     *rewardView `json:"rewards,omitempty"`
+// questRequirements lists every gate on starting the quest — prerequisite
+// quests first, then requirements — each marked met or not for this character.
+func questRequirements(qd *types.QuestData, save *types.SaveFile, ctx requirement.Context) []requirementView {
+	var out []requirementView
+	for _, pre := range qd.Prerequisites {
+		name := pre
+		if pq, err := serverdb.GetQuestByID(pre); err == nil && pq != nil {
+			name = pq.Name
+		}
+		out = append(out, requirementView{Description: "Complete " + name, Met: quest.IsCompleted(save, pre)})
+	}
+	for _, req := range qd.Requirements {
+		out = append(out, requirementView{Description: describeRequirement(req), Met: requirement.EvaluateOne(req, ctx)})
+	}
+	return out
 }
 
-type questLogView struct {
-	Active      []activeQuestView `json:"active"`
-	Completed   []namedQuestView  `json:"completed"`
-	Available   []namedQuestView  `json:"available"`
-	QuestPoints int               `json:"quest_points"`
+// describeRequirement phrases a requirement for the player: the authored
+// description when there is one, otherwise a short label built from the rule.
+func describeRequirement(req types.POIRequirement) string {
+	if req.Description != "" {
+		return req.Description
+	}
+	title := func(s string) string {
+		s = strings.ReplaceAll(s, "_", " ")
+		s = strings.ReplaceAll(s, "-", " ")
+		if s == "" {
+			return s
+		}
+		return strings.ToUpper(s[:1]) + s[1:]
+	}
+	list := func(vs []string) string {
+		out := make([]string, len(vs))
+		for i, v := range vs {
+			out[i] = title(v)
+		}
+		return strings.Join(out, " or ")
+	}
+	switch req.Type {
+	case "skill", "stat":
+		return fmt.Sprintf("%s %d", title(req.ID), req.Min)
+	case "level":
+		return fmt.Sprintf("Level %d", req.Min)
+	case "quest_points":
+		return fmt.Sprintf("%d Quest Points", req.Min)
+	case "item":
+		return "Carry " + title(req.ID)
+	case "class", "race", "alignment":
+		return title(req.Type) + ": " + list(req.Values)
+	case "quest_completed":
+		name := req.ID
+		if pq, err := serverdb.GetQuestByID(req.ID); err == nil && pq != nil {
+			name = pq.Name
+		}
+		return "Complete " + name
+	}
+	return title(req.Type)
 }
 
 func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
-	view := questLogView{QuestPoints: quest.QuestPoints(save, serverdb.GetQuestByID)}
+	view := questLogView{
+		Active: []questView{}, Available: []questView{}, Locked: []questView{}, Completed: []questView{},
+		QuestPoints: quest.QuestPoints(save, serverdb.GetQuestByID),
+	}
 
 	for _, qp := range save.QuestsActive {
 		qd, err := serverdb.GetQuestByID(qp.QuestID)
 		if err != nil || qd == nil {
 			continue
 		}
-		av := activeQuestView{
-			ID: qd.ID, Name: qd.Name, Category: string(qd.Category), Difficulty: qd.Difficulty,
-			Stage: qp.Stage, StageCount: len(qd.Stages), Rewards: questRewardView(qd),
-		}
+		av := baseQuestView(qd, "active")
+		av.Stage = qp.Stage
 		if qp.Stage < len(qd.Stages) {
 			stage := qd.Stages[qp.Stage]
-			av.Description = stage.Description
+			av.StageDescription = stage.Description
 			for j, obj := range stage.Objectives {
 				target := obj.Count
 				if target <= 0 {
@@ -170,20 +262,39 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 	}
 
 	for _, id := range save.QuestsCompleted {
-		name := id
 		if qd, err := serverdb.GetQuestByID(id); err == nil && qd != nil {
-			name = qd.Name
+			view.Completed = append(view.Completed, baseQuestView(qd, "completed"))
+		} else {
+			view.Completed = append(view.Completed, questView{ID: id, Name: id, Status: "completed"})
 		}
-		view.Completed = append(view.Completed, namedQuestView{ID: id, Name: name})
 	}
 
 	all, _ := serverdb.GetAllQuests()
+	available := map[string]bool{}
 	for _, qd := range quest.Available(all, save, ctx) {
-		view.Available = append(view.Available, namedQuestView{
-			ID: qd.ID, Name: qd.Name, Category: string(qd.Category),
-			Difficulty: qd.Difficulty, Description: qd.Description,
-			StartHint: qd.StartCondition.StartHint, Rewards: questRewardView(&qd),
-		})
+		v := baseQuestView(&qd, "available")
+		v.Requirements = questRequirements(&qd, save, ctx)
+		view.Available = append(view.Available, v)
+		available[qd.ID] = true
+	}
+
+	// Locked: quests this character could pursue but can't start yet. Daily and
+	// weekly pools only show the current pick, and only when it's still to do.
+	now := time.Now()
+	for i := range all {
+		qd := &all[i]
+		if available[qd.ID] || quest.IsActive(save, qd.ID) || quest.IsCompleted(save, qd.ID) {
+			continue
+		}
+		if quest.IsRepeatable(qd.Category) {
+			if cur, ok := quest.CurrentRepeatable(all, qd.Category, now); !ok || cur.ID != qd.ID ||
+				!quest.RepeatableAvailable(*qd, save, all, now) {
+				continue
+			}
+		}
+		v := baseQuestView(qd, "locked")
+		v.Requirements = questRequirements(qd, save, ctx)
+		view.Locked = append(view.Locked, v)
 	}
 	return view
 }

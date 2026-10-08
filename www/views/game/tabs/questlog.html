@@ -1,12 +1,86 @@
 {{define "game/tabs/questlog.html"}}
+<style>
+/* Quest journal — 8px Dogica Pixel (the font's native size) throughout. */
+#questlog-panel { --qj-todo: #93c5fd; --qj-doing: #facc15; --qj-done: #4ade80; --qj-locked: #6b7280; --qj-gold: #fcd34d; --qj-muted: #9ca3af;
+                  font-size: 8px; line-height: 1.5; }
+.qj-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 3px; border-bottom: 1px solid #854d0e; margin-bottom: 3px; }
+.qj-head .qj-title { color: #facc15; font-weight: bold; }
+.qj-head .qj-qp { color: var(--qj-muted); } .qj-head .qj-qp b { color: #facc15; }
+.qj-subtabs { display: flex; gap: 2px; margin-bottom: 3px; }
+.qj-subtab { flex: 1; font: inherit; color: var(--qj-muted); background: #2a2a2a; padding: 2px 0; cursor: pointer;
+             border: 2px solid; border-color: #4a4a4a #0f0f0f #0f0f0f #4a4a4a; }
+.qj-subtab.on { color: #fff; background: #3a3a3a; border-color: #0f0f0f #4a4a4a #4a4a4a #0f0f0f; }
+.qj-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; margin-bottom: 3px; color: var(--qj-muted); }
+.qj-tools select { font: inherit; color: #e5e7eb; background: #2a2a2a; border: 1px solid #4a4a4a; padding: 0 2px; }
+.qj-tools label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+.qj-tools input { margin: 0; width: 9px; height: 9px; }
+.qj-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 3px; color: var(--qj-muted); }
+.qj-dot { display: inline-block; width: 6px; height: 6px; margin-right: 2px; }
+.qj-group { color: var(--qj-gold); font-weight: bold; background: #2a2a2a; padding: 1px 3px; margin: 3px 0 1px; cursor: pointer;
+            display: flex; justify-content: space-between; }
+.qj-group span:last-child { color: var(--qj-muted); font-weight: normal; }
+.qj-row { display: flex; gap: 4px; padding: 2px 3px 2px 0; cursor: pointer; border-bottom: 1px solid #222; }
+.qj-row:hover { background: #262626; }
+.qj-bar { width: 3px; flex-shrink: 0; }
+.qj-body { flex: 1; min-width: 0; }
+.qj-l1 { display: flex; gap: 4px; align-items: baseline; }
+.qj-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qj-tag { color: var(--qj-muted); flex-shrink: 0; }
+.qj-l2 { color: var(--qj-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qj-l3 { display: flex; justify-content: space-between; gap: 4px; color: var(--qj-muted); }
+.qj-reward { color: var(--qj-gold); white-space: nowrap; }
+.qj-prog { height: 2px; background: #333; margin-top: 1px; } .qj-prog > div { height: 100%; background: var(--qj-doing); }
+.qj-active .qj-bar { background: var(--qj-doing); }      .qj-active .qj-name { color: var(--qj-doing); }
+.qj-available .qj-bar { background: var(--qj-todo); }    .qj-available .qj-name { color: var(--qj-todo); }
+.qj-completed .qj-bar { background: var(--qj-done); }    .qj-completed .qj-name { color: var(--qj-done); }
+.qj-locked .qj-bar { background: var(--qj-locked); }     .qj-locked .qj-name { color: var(--qj-locked); }
+.qj-locked .qj-l2 { color: #a16207; }
+.qj-tracked { color: #facc15; }
+.qj-empty { color: #6b7280; padding: 4px 2px; }
+.qj-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.qj-badge { aspect-ratio: 1; background: #2a2a2a; border: 2px solid; border-color: #0f0f0f #4a4a4a #4a4a4a #0f0f0f;
+            display: flex; align-items: center; justify-content: center; font-size: 16px; filter: grayscale(1); opacity: .35; }
+</style>
+
 <!-- Quest Journal Panel -->
 <div id="questlog-panel" class="tab-panel hidden">
-    <div class="flex items-center justify-between mb-2 border-b border-yellow-800 pb-1">
-        <span class="text-yellow-400 font-bold text-[10px]">📜 QUEST JOURNAL</span>
-        <span class="text-[9px] text-gray-400">QP <span id="quest-points-total" class="text-yellow-400 font-bold">0</span></span>
+    <div class="qj-head">
+        <span class="qj-title">📜 JOURNAL</span>
+        <span class="qj-qp">QP <b id="quest-points-total">0</b></span>
     </div>
-    <div id="quest-journal" class="space-y-1">
-        <div class="text-gray-500 text-[9px]">Loading…</div>
+    <div class="qj-subtabs">
+        <button class="qj-subtab on" data-qj-sub="quests">Quests</button>
+        <button class="qj-subtab" data-qj-sub="badges">🏆 Badges</button>
+    </div>
+
+    <div id="qj-quests-view">
+        <div class="qj-tools">
+            <span>Sort <select id="qj-sort">
+                <option value="category">Category</option>
+                <option value="status">Status</option>
+                <option value="name">Name</option>
+                <option value="difficulty">Difficulty</option>
+            </select></span>
+            <label><input type="checkbox" id="qj-hide-locked">Hide unavailable</label>
+            <label><input type="checkbox" id="qj-hide-done">Hide completed</label>
+        </div>
+        <div class="qj-legend">
+            <span><i class="qj-dot" style="background:var(--qj-doing)"></i>Active</span>
+            <span><i class="qj-dot" style="background:var(--qj-todo)"></i>Not started</span>
+            <span><i class="qj-dot" style="background:var(--qj-done)"></i>Done</span>
+            <span><i class="qj-dot" style="background:var(--qj-locked)"></i>Locked</span>
+        </div>
+        <div id="quest-journal">
+            <div class="qj-empty">Loading…</div>
+        </div>
+    </div>
+
+    <div id="qj-badges-view" class="hidden">
+        <div class="qj-badges">
+            <div class="qj-badge">🗡</div><div class="qj-badge">🛡</div><div class="qj-badge">🐀</div><div class="qj-badge">🏰</div>
+            <div class="qj-badge">📜</div><div class="qj-badge">🌲</div><div class="qj-badge">⛏</div><div class="qj-badge">💀</div>
+        </div>
+        <div class="qj-empty">No badges yet. Badges will arrive as Nostr awards (NIP-58) for milestones you reach.</div>
     </div>
 </div>
 {{end}}
