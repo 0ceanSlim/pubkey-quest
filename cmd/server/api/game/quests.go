@@ -424,24 +424,6 @@ func QuestAcceptHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// QuestAbandonHandler drops an in-progress quest.
-func QuestAbandonHandler(w http.ResponseWriter, r *http.Request) {
-	req, sess, ok := questActionSession(w, r)
-	if !ok {
-		return
-	}
-	if err := quest.Abandon(&sess.SaveData, req.QuestID); err != nil {
-		writeQuestError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	ctx := buildQuestContext(&sess.SaveData)
-	writeQuestJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"message": "Quest abandoned",
-		"data":    buildQuestLog(&sess.SaveData, ctx),
-	})
-}
-
 // questActionSession parses a POST quest action and resolves its session.
 func questActionSession(w http.ResponseWriter, r *http.Request) (questActionRequest, *session.GameSession, bool) {
 	var req questActionRequest

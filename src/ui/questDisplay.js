@@ -7,7 +7,7 @@
  * unavailable, hide completed). Rows are colour-coded by status and carry the
  * next step, danger and rewards; clicking one opens the guide popup with the
  * objectives, how to start, requirements (met / unmet), recommendations and
- * rewards, plus Track / Abandon for quests in progress.
+ * rewards, plus Track for quests in progress.
  *
  * Quests are NOT accepted here — they start in the world (talk to the giver).
  * Loaded when the questlog tab opens (see the switchTab hook in game.html).
@@ -312,7 +312,6 @@ function modalBody(q) {
         const tracked = q.id === getTrackedQuestId();
         h += `<div class="qm-actions">
             <button class="qm-btn" data-qm="track">${tracked ? '📌 Untrack' : '📌 Track'}</button>
-            <button class="qm-btn warn" data-qm="abandon">Abandon</button>
         </div>`;
     }
     return h;
@@ -324,43 +323,18 @@ function wireModalActions(content, q) {
         renderJournal();
         openQuestModal(q.id);
     });
-    const abandon = content.querySelector('[data-qm="abandon"]');
-    abandon?.addEventListener('click', async () => {
-        // Two-step: the first click arms it, so a stray tap can't throw away progress.
-        if (!abandon.dataset.armed) {
-            abandon.dataset.armed = '1';
-            abandon.textContent = 'Really abandon?';
-            return;
-        }
-        await abandonQuest(q.id);
-    });
 }
 
-async function abandonQuest(questId) {
-    try {
-        const resp = await fetch(`${API_BASE_URL}/quests/abandon`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ npub: gameAPI.npub, save_id: gameAPI.saveID, quest_id: questId }),
-        });
-        const json = await resp.json();
-        if (!resp.ok || !json.success) {
-            window.showMessage?.(json.error ?? 'Could not abandon the quest', 'error');
-            return;
-        }
-        if (questId === getTrackedQuestId()) setTrackedQuestId(null);
-        else window.updateQuestTracker?.();
-        ingest(json.data);
-        renderJournal();
-        closeQuestModal();
-        window.showMessage?.('Quest abandoned', 'info');
-    } catch (err) {
-        logger.error('abandonQuest error:', err);
-    }
+/** Open the journal tab on one quest's popup — the over-scene tracker's click. */
+export async function openQuestInJournal(questId) {
+    window.switchTab?.('questlog');
+    await loadQuestLog();
+    if (questId) openQuestModal(questId);
 }
 
 if (typeof window !== 'undefined') {
     window.closeQuestModal = closeQuestModal;
+    window.openQuestInJournal = openQuestInJournal;
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireJournalPanel);
     else wireJournalPanel();
 }

@@ -1,5 +1,5 @@
 // Package quest is the M3 quest engine: it decides which quests a player can
-// start, starts and abandons them, tracks objective progress fed by the event
+// start, starts them, tracks objective progress fed by the event
 // recorder, and pays out rewards on completion. Availability gating reuses the
 // shared requirement evaluator; objective progress flows from gameplay events
 // (see Consumer); quest points are always derived from the completed list.
@@ -91,24 +91,6 @@ func Accept(q types.QuestData, save *types.SaveFile, ctx requirement.Context) er
 		Stage:           0,
 		ObjectiveCounts: make([]int, objectives),
 	})
-	return nil
-}
-
-// Abandon drops an in-progress quest, discarding its progress.
-func Abandon(save *types.SaveFile, questID string) error {
-	kept := make([]types.QuestProgress, 0, len(save.QuestsActive))
-	found := false
-	for _, qp := range save.QuestsActive {
-		if qp.QuestID == questID {
-			found = true
-			continue
-		}
-		kept = append(kept, qp)
-	}
-	if !found {
-		return fmt.Errorf("quest not active: %s", questID)
-	}
-	save.QuestsActive = kept
 	return nil
 }
 

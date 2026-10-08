@@ -2,10 +2,11 @@
  * Active-quest tracker chip.
  *
  * Renders a single line over the scene showing the player's current quest
- * objective (e.g. "◆ Speak with the innkeeper (0/1)") — the highest-bang quest
- * UX element (roadmap M3/M6). Reads /api/quests/log, shows the first active
- * quest's first incomplete objective, and hides itself when there's no active
- * quest. Refreshes on state changes (throttled) and on load.
+ * objective (e.g. "◆ Speak with the innkeeper (0/1)"). Reads /api/quests/log and
+ * shows the journal's tracked (📌) quest — or the first active one — at its
+ * first incomplete objective; hides itself when there's no active quest.
+ * Clicking it opens that quest in the journal. Refreshes on state changes
+ * (throttled) and on load.
  *
  * @module ui/questTracker
  */
@@ -42,7 +43,8 @@ export async function updateQuestTracker() {
         }
         const prog = obj.target > 1 ? ` (${obj.count}/${obj.target})` : '';
         txt.textContent = `◆ ${obj.description}${prog}`;
-        el.title = q.name;
+        el.title = `${q.name} — click to open in the journal`;
+        el.dataset.quest = q.id;
         el.classList.remove('hidden');
     } catch (err) {
         logger.error('quest tracker update failed:', err);

@@ -423,12 +423,11 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/combat/state", game.GetCombatStateHandler)
 
 	// ─── Quests (M3) ───
-	// Log (active w/ objective progress, completed, available, QP total), and
-	// accept / abandon. Objective progress itself flows through the event
+	// Log (every quest with its status, plus the QP total) and accept. Quests
+	// can't be abandoned. Objective progress itself flows through the event
 	// recorder, not these endpoints.
 	mux.HandleFunc("/api/quests/log", game.QuestLogHandler)
 	mux.HandleFunc("/api/quests/accept", game.QuestAcceptHandler)
-	mux.HandleFunc("/api/quests/abandon", game.QuestAbandonHandler)
 
 	// @Summary      Execute a player attack action
 	// @Description  Resolves one full combat round: player movement, attack roll, damage,

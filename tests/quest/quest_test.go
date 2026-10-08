@@ -227,21 +227,6 @@ func TestAcceptRejectsUnqualified(t *testing.T) {
 	}
 }
 
-func TestAbandon(t *testing.T) {
-	qs := testQuests()
-	save := newSave()
-	_ = quest.Accept(*qs["wolf-hunt"], save, fakeCtx{})
-	if err := quest.Abandon(save, "wolf-hunt"); err != nil {
-		t.Fatalf("Abandon: %v", err)
-	}
-	if quest.IsActive(save, "wolf-hunt") {
-		t.Error("quest should not be active after Abandon")
-	}
-	if err := quest.Abandon(save, "wolf-hunt"); err == nil {
-		t.Error("abandoning a non-active quest should error")
-	}
-}
-
 func TestQuestPointsDerive(t *testing.T) {
 	qs := testQuests()
 	save := newSave()

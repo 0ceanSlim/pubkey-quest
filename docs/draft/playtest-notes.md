@@ -47,11 +47,14 @@ Running list while the maintainer plays from a new character. Investigate only w
 6. **Accepting a quest is a bare button**: "📜 Accept: …" sits above the NPC's options;
    clicking accepts and the dialogue restarts. Wanted: the offer as a normal dialogue
    option that leads through a short tree ending in Accept / Not now.
-7. **"Can't really abandon quests."** Server abandon works (removes it from active). To
-   clarify the symptom: does the button do nothing, or does the quest come straight back
-   as Not started (re-offerable), or after a reload without saving?
-8. **Track should change the over-scene quest notes** to the tracked quest, and the
-   over-scene tracker may need tuning.
+7. **Abandon wasn't intended.** **Removed** everywhere: popup button, `/api/quests/abandon`,
+   `quest.Abandon`, its test.
+8. **Track / over-scene tracker.** Track already picks what the tracker shows. **Tuned:** the
+   tracker is smaller (6px, regular weight, narrower), and clicking it opens that quest's
+   popup in the journal.
+9. **Content: Bob's first-time greeting has a mojibake character** ("Oh, thank the gods �
+   a capable-looking sort!") in `game-data/npcs/goldenhaven/tavern-owner-bob.json`; it
+   was probably an em dash.
 
 ## Data check (asked: did Codex break game data / migration?)
 
