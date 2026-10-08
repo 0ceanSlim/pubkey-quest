@@ -111,8 +111,10 @@ func (auth *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create user session using grain
-	userSession, err := session.CreateUserSession(w, sessionReq)
+	// Create user session using grain. The request is needed so grain can mark
+	// the cookie Secure exactly when the browser reached us over HTTPS (directly
+	// or via a TLS-terminating proxy) — it stays unset for plain-http local work.
+	userSession, err := session.CreateUserSession(w, r, sessionReq)
 	if err != nil {
 		auth.sendErrorResponse(w, fmt.Sprintf("Failed to create session: %v", err), http.StatusBadRequest)
 		return

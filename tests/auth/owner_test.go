@@ -33,11 +33,14 @@ func signedIn(t *testing.T, pubkeyHex string, req *http.Request) *http.Request {
 		grainsession.SessionMgr = grainsession.NewSessionManager()
 	}
 	rec := httptest.NewRecorder()
-	if _, err := grainsession.SessionMgr.CreateSession(rec, grainsession.SessionInitRequest{
+	// CreateSession takes the request so grain can decide the cookie's Secure
+	// flag, and the user's connected relays (nil here — ownership checks only
+	// read the pubkey).
+	if _, err := grainsession.SessionMgr.CreateSession(rec, req, grainsession.SessionInitRequest{
 		PublicKey:     pubkeyHex,
 		RequestedMode: "write",
 		SigningMethod: "test",
-	}); err != nil {
+	}, nil); err != nil {
 		t.Fatalf("create session: %v", err)
 	}
 	for _, c := range rec.Result().Cookies() {
