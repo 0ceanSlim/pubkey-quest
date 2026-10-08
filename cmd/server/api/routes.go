@@ -652,18 +652,6 @@ func registerReportRoutes(mux *http.ServeMux) {
 func registerDebugRoutes(mux *http.ServeMux) {
 	log.Println("🐛 Debug mode enabled - registering debug routes")
 
-	// @Summary List all sessions
-	// @Description Returns all active sessions (debug only)
-	// @Tags Debug
-	// @Produce json
-	// @Success 200 {object} map[string]interface{}
-	// @Router /api/debug/sessions [get]
-	// Scoped to the caller: this used to dump every active session's save data
-	// to anyone who asked.
-	mux.HandleFunc("/api/debug/sessions", func(w http.ResponseWriter, r *http.Request) {
-		game.DebugSessionsHandler(w, r, true, auth.OwnerNpub(r))
-	})
-
 	// @Summary Get session state
 	// @Description Returns detailed session state (debug only)
 	// @Tags Debug

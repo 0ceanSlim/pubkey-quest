@@ -84,9 +84,9 @@ func RequireIdentity(next http.Handler) http.Handler {
 		}
 
 		// A session is required on every protected route, including one that
-		// names no player: /api/debug/sessions takes no npub, and letting it
-		// through unauthenticated is how it used to hand every player's save
-		// data to anyone who asked.
+		// names no player. Some carry no npub at all (the debug tools), and
+		// letting those through unauthenticated is how a debug endpoint once
+		// handed every player's save data to anyone who asked.
 		user := GetCurrentUser(r)
 		if user == nil {
 			writeIdentityError(w, http.StatusUnauthorized, "Not logged in", true)

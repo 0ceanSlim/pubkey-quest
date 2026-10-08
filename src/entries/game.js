@@ -103,9 +103,9 @@ window.doEndTurn        = combatSystem.doEndTurn;
 window.rollDeathSave    = combatSystem.rollDeathSave;
 window.endCombat        = combatSystem.endCombat;
 
-// Initialize inventory interactions on DOM ready. Slot interaction is now a
-// single delegated pointer-event layer (slotInteractions.js) — no per-render
-// rebinding needed; bindInventoryEvents() is a kept-for-compat no-op.
+// Initialize inventory interactions on DOM ready. Slot interaction is a single
+// delegated pointer-event layer (slotInteractions.js) — delegation handles
+// re-rendered DOM, so there is no per-render rebinding.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initSlotInteractions();

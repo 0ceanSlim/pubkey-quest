@@ -1,3 +1,11 @@
+// Package api_test exercises the API handlers directly.
+//
+// These tests attach handlers to their own mux, which deliberately bypasses
+// auth.RequireIdentity — the gate wraps the real server's mux in
+// cmd/server/app.Start, not individual handlers. So nothing here can catch an
+// unprotected route or an ownership regression; that is what the tests in
+// cmd/server/auth cover. What these assert is handler behaviour given a request
+// that has already passed the gate.
 package api_test
 
 import (

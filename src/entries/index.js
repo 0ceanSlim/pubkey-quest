@@ -11,7 +11,6 @@ import '../styles/main.css';
 // Core libraries
 import { logger } from '../lib/logger.js';
 import '../lib/session.js'; // Auto-initializes as window.sessionManager
-import '../lib/nostrConnect.js'; // Nostr Connect / Amber QR login
 
 // Systems
 import { themeManager } from '../systems/themeManager.js';

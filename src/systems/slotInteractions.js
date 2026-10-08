@@ -35,6 +35,7 @@ import {
     getDefaultAction,
     getItemActions,
     showContextMenu,
+    closeContextMenu,
     storeInVault,
     withdrawFromVault,
     inventoryDragState,
@@ -50,7 +51,7 @@ let ready = false;
 
 /**
  * Initialize the delegated pointer listeners. Idempotent — safe to call from
- * every former bindInventoryEvents() site.
+ * every site that used to rebind slots after a render.
  */
 export function initSlotInteractions() {
     if (ready) return;
@@ -79,6 +80,14 @@ export function initSlotInteractions() {
         if (!d || !d.itemId) return;
         if (d.surface === 'container') return; // container modal owns its own menu
         openContextMenu(d, e.clientX, e.clientY, e);
+    });
+
+    // Clicking away closes an open context menu. This used to live in
+    // inventoryInteractions' initializer, which nothing ever called — so the
+    // menu lingered until you opened another one.
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#container-context-menu')) return; // container owns its own
+        if (!e.target.closest('.context-menu')) closeContextMenu();
     });
 
     // Hover label that follows the cursor (mouse only — touch has no hover).

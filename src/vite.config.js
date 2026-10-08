@@ -55,7 +55,6 @@ export default defineConfig({
         index: resolve(rootDir, 'src/entries/index.js'),
         game: resolve(rootDir, 'src/entries/game.js'),
         gameIntro: resolve(rootDir, 'src/entries/gameIntro.js'),
-        newGame: resolve(rootDir, 'src/entries/newGame.js'),
         settings: resolve(rootDir, 'src/entries/settings.js'),
         discover: resolve(rootDir, 'src/entries/discover.js'),
         saves: resolve(rootDir, 'src/entries/saves.js'),

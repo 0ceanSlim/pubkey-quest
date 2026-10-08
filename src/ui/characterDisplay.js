@@ -595,7 +595,6 @@ export async function updateCharacterDisplay() {
             if (backpackDiv.parentElement) {
                 backpackDiv.parentElement.style.display = 'none';
             }
-            // Don't return early - continue to bindInventoryEvents() at end of function
         } else {
             // Bag is equipped - show the backpack div
             if (backpackDiv.parentElement) {
@@ -680,9 +679,7 @@ export async function updateCharacterDisplay() {
 
     // Rebind inventory interactions after rendering slots
     // This ensures events are always attached, regardless of where updateCharacterDisplay() is called from
-    if (window.inventoryInteractions && window.inventoryInteractions.bindInventoryEvents) {
-        window.inventoryInteractions.bindInventoryEvents();
-    }
+
 }
 
 /**

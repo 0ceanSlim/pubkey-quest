@@ -358,49 +358,6 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// DebugSessionsHandler godoc
-// @Summary      List all sessions
-// @Description  Returns all active sessions in memory (debug mode only)
-// @Tags         Debug
-// @Produce      json
-// @Success      200  {object}  map[string]interface{}
-// @Failure      403  {string}  string  "Debug mode disabled"
-// @Failure      405  {string}  string  "Method not allowed"
-// @Router       /debug/sessions [get]
-// DebugSessionsHandler lists the caller's own active sessions. ownerNpub is the
-// identity the auth layer verified for this request; it is required, because an
-// unfiltered dump here would hand every player's save data to anyone who asked.
-func DebugSessionsHandler(w http.ResponseWriter, r *http.Request, debugMode bool, ownerNpub string) {
-	if !debugMode {
-		http.Error(w, "Debug mode disabled", http.StatusForbidden)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	if ownerNpub == "" {
-		http.Error(w, "Not signed in", http.StatusUnauthorized)
-		return
-	}
-
-	mine := map[string]*session.GameSession{}
-	for key, sess := range session.GetSessionManager().GetAllSessions() {
-		if sess != nil && sess.Npub == ownerNpub {
-			mine[key] = sess
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"success":       true,
-		"session_count": len(mine),
-		"sessions":      mine,
-	})
-}
-
 // DebugStateHandler godoc
 // @Summary      Get session state (debug)
 // @Description  Returns detailed session state for debugging (debug mode only)

@@ -123,7 +123,7 @@ func TestRequireIdentity(t *testing.T) {
 		{"public sibling of exact route", "GET", "/api/skills/definitions?npub=" + bobNpub, "", false, 200},
 		{"names no player, signed in", "POST", "/api/game/action", `{"action":"x"}`, true, 200},
 		{"names no player, anonymous", "POST", "/api/game/action", `{"action":"x"}`, false, 401},
-		{"npub-less protected route still needs a session", "GET", "/api/debug/sessions", "", false, 401},
+		{"npub-less protected route still needs a session", "GET", "/api/debug/state", "", false, 401},
 	}
 	for _, c := range cases {
 		if got := do(c.method, c.target, c.body, c.cookie); got != c.want {
@@ -140,8 +140,7 @@ func TestRequireIdentity(t *testing.T) {
 
 // RequireIdentity publishes the identity it proved, so a handler can scope its
 // answer to the caller instead of re-reading the body it was just protected
-// from. /api/debug/sessions depends on this: it names no npub, and without a
-// caller to filter by it would hand out every player's save data.
+// from — the body being what the gate just finished distrusting.
 func TestRequireIdentityPublishesTheProvenNpub(t *testing.T) {
 	session.SessionMgr = session.NewSessionManager()
 	alice, _ := core.NewEventSignerFromRandom()
@@ -159,7 +158,7 @@ func TestRequireIdentityPublishesTheProvenNpub(t *testing.T) {
 		got = OwnerNpub(r)
 	}))
 
-	req := httptest.NewRequest("GET", "/api/debug/sessions", nil)
+	req := httptest.NewRequest("GET", "/api/debug/state", nil)
 	req.AddCookie(rec.Result().Cookies()[0])
 	h.ServeHTTP(httptest.NewRecorder(), req)
 
