@@ -111,6 +111,7 @@ type QuestData struct {
 	Requirements   []POIRequirement     `json:"requirements,omitempty"`
 	Prerequisites  []string             `json:"prerequisites,omitempty"`
 	Recommended    *QuestRecommendation `json:"recommended,omitempty"`
+	Dialogue       *QuestDialogue       `json:"dialogue,omitempty"`
 	Stages         []QuestStage         `json:"stages"`
 }
 
@@ -128,4 +129,37 @@ type PlayerQuestProgress struct {
 	LastRolledDay    int            `json:"last_rolled_day,omitempty"`
 	LastRolledWeek   int            `json:"last_rolled_week,omitempty"`
 	ObjectiveTracker map[string]int `json:"objective_tracker,omitempty"`
+}
+
+// QuestDialogue is what the quest's giver says about it, by quest state. The
+// game adds the matching tree to the giver's menu as one option: Offer while the
+// player can start the quest, Active while it's in progress, Completed after.
+// A quest with no Offer tree gets a short generated one from its description.
+type QuestDialogue struct {
+	// Giver is the NPC whose menu carries these trees. Defaults to the
+	// start_condition target for "talk" quests; repeatable (vault_keeper) quests
+	// are offered by every vault keeper.
+	Giver     string             `json:"giver,omitempty"`
+	Offer     *QuestDialogueTree `json:"offer,omitempty"`
+	Active    *QuestDialogueTree `json:"active,omitempty"`
+	Completed *QuestDialogueTree `json:"completed,omitempty"`
+}
+
+// QuestDialogueTree is one conversation: the menu option that opens it, its
+// first node, and the nodes. Node options name other nodes in the same tree.
+type QuestDialogueTree struct {
+	Option string                       `json:"option"` // the button in the NPC's menu
+	Start  string                       `json:"start"`
+	Nodes  map[string]QuestDialogueNode `json:"nodes"`
+}
+
+// QuestDialogueNode is one exchange: what the player says to get here (Label),
+// the NPC's reply (Text) and where it can go next. A node with no options ends
+// the thread — the player can ask about something else or say goodbye.
+type QuestDialogueNode struct {
+	Label        string           `json:"label,omitempty"`
+	Text         string           `json:"text"`
+	Options      []string         `json:"options,omitempty"`
+	Action       string           `json:"action,omitempty"` // "accept" (offer trees) | "close"
+	Requirements []POIRequirement `json:"requirements,omitempty"`
 }

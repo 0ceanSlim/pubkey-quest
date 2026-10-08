@@ -343,6 +343,38 @@ func (c *schemaChecker) checkEncounter(e types.EncounterData) {
 	}
 }
 
+// checkQuestDialogueTree checks one quest conversation: an option label for the
+// NPC's menu, a start node that exists, options that name nodes in the same
+// tree, a reply on every node, and "accept" only where a quest can be taken up.
+func (c *schemaChecker) checkQuestDialogueTree(phase string, t *types.QuestDialogueTree) {
+	if t.Option == "" {
+		c.errf("dialogue %s: missing \"option\" (the button in the giver's menu)", phase)
+	}
+	if _, ok := t.Nodes[t.Start]; !ok {
+		c.errf("dialogue %s: start node %q does not exist", phase, t.Start)
+	}
+	for id, n := range t.Nodes {
+		if n.Text == "" {
+			c.errf("dialogue %s node %q: missing text", phase, id)
+		}
+		for _, next := range n.Options {
+			if _, ok := t.Nodes[next]; !ok {
+				c.errf("dialogue %s node %q: option %q does not exist", phase, id, next)
+			}
+		}
+		switch n.Action {
+		case "", "close":
+		case "accept":
+			if phase != "offer" {
+				c.errf("dialogue %s node %q: \"accept\" only belongs in the offer tree", phase, id)
+			}
+		default:
+			c.errf("dialogue %s node %q: unknown action %q (accept | close)", phase, id, n.Action)
+		}
+		c.checkRequirements(n.Requirements)
+	}
+}
+
 func (c *schemaChecker) checkQuest(q types.QuestData) {
 	c.checkRequirements(q.Requirements)
 	for _, pre := range q.Prerequisites {
@@ -353,6 +385,20 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 	}
 	if q.StartCondition.Location != "" {
 		c.checkRef("location", q.StartCondition.Location, c.idx.locations)
+	}
+	if d := q.Dialogue; d != nil {
+		save := c.context
+		if d.Giver != "" {
+			c.context = save + "/dialogue/giver"
+			c.checkNPCRef(d.Giver)
+		}
+		for phase, tree := range map[string]*types.QuestDialogueTree{"offer": d.Offer, "active": d.Active, "completed": d.Completed} {
+			if tree != nil {
+				c.context = save + "/dialogue/" + phase
+				c.checkQuestDialogueTree(phase, tree)
+			}
+		}
+		c.context = save
 	}
 	for si, st := range q.Stages {
 		save := c.context

@@ -318,67 +318,7 @@ func barredForLife(qd *types.QuestData, ctx requirement.Context) bool {
 	return false
 }
 
-// injectQuestOffers adds the quests this NPC gives — those whose start
-// condition is talking to it, and which the player can currently start — onto
-// the dialogue delta as offered_quests, so the talk UI can present them.
-func injectQuestOffers(resp *types.GameActionResponse, npcID string, state *types.SaveFile) {
-	if resp.Delta == nil {
-		return
-	}
-	dlg, ok := resp.Delta["npc_dialogue"].(map[string]interface{})
-	if !ok {
-		return
-	}
-	all, err := serverdb.GetAllQuests()
-	if err != nil {
-		return
-	}
-	ctx := buildQuestContext(state)
-
-	offer := func(q types.QuestData) map[string]interface{} {
-		return map[string]interface{}{
-			"id":          q.ID,
-			"name":        q.Name,
-			"category":    string(q.Category),
-			"difficulty":  q.Difficulty,
-			"description": q.Description,
-		}
-	}
-
-	var offers []map[string]interface{}
-	for _, q := range all {
-		if q.StartCondition.Type == "talk" && q.StartCondition.Target == npcID && quest.CanStart(q, state, ctx) {
-			offers = append(offers, offer(q))
-		}
-	}
-
-	// Vault keepers (marked by storage_config) hand out the day's daily and the
-	// week's weekly bounty — the current pick from each pool, if the player hasn't
-	// done it this period and meets its requirements. Vault keepers are on duty
-	// around the clock, so a bounty can be picked up at any hour.
-	if npcData, err := serverdb.GetNPCByID(npcID); err == nil && len(npcData.StorageConfig) > 0 {
-		now := time.Now()
-		for _, cat := range []types.QuestCategory{types.QuestDaily, types.QuestWeekly} {
-			if q, ok := quest.CurrentRepeatable(all, cat, now); ok &&
-				quest.RepeatableAvailable(q, state, all, now) &&
-				requirement.Evaluate(q.Requirements, ctx).OK {
-				offers = append(offers, offer(q))
-			}
-		}
-	}
-
-	if len(offers) > 0 {
-		dlg["offered_quests"] = offers
-	}
-}
-
 // ─── handlers ─────────────────────────────────────────────────────────────────
-
-type questActionRequest struct {
-	Npub    string `json:"npub"`
-	SaveID  string `json:"save_id"`
-	QuestID string `json:"quest_id"`
-}
 
 // QuestLogHandler returns the player's quest log: active quests with objective
 // progress, completed quests, currently-available quests, and the QP total.
@@ -399,52 +339,6 @@ func QuestLogHandler(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"data":    buildQuestLog(&sess.SaveData, ctx),
 	})
-}
-
-// QuestAcceptHandler starts a quest for the player after availability checks.
-func QuestAcceptHandler(w http.ResponseWriter, r *http.Request) {
-	req, sess, ok := questActionSession(w, r)
-	if !ok {
-		return
-	}
-	qd, err := serverdb.GetQuestByID(req.QuestID)
-	if err != nil || qd == nil {
-		writeQuestError(w, http.StatusNotFound, "quest not found")
-		return
-	}
-	ctx := buildQuestContext(&sess.SaveData)
-	if err := quest.Accept(*qd, &sess.SaveData, ctx); err != nil {
-		writeQuestError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	writeQuestJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"message": "Quest accepted: " + qd.Name,
-		"data":    buildQuestLog(&sess.SaveData, ctx),
-	})
-}
-
-// questActionSession parses a POST quest action and resolves its session.
-func questActionSession(w http.ResponseWriter, r *http.Request) (questActionRequest, *session.GameSession, bool) {
-	var req questActionRequest
-	if r.Method != http.MethodPost {
-		writeQuestError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return req, nil, false
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeQuestError(w, http.StatusBadRequest, "invalid request body")
-		return req, nil, false
-	}
-	if req.Npub == "" || req.SaveID == "" || req.QuestID == "" {
-		writeQuestError(w, http.StatusBadRequest, "missing npub, save_id, or quest_id")
-		return req, nil, false
-	}
-	sess, err := session.GetSessionManager().GetSession(req.Npub, req.SaveID)
-	if err != nil {
-		writeQuestError(w, http.StatusNotFound, "session not found")
-		return req, nil, false
-	}
-	return req, sess, true
 }
 
 func writeQuestJSON(w http.ResponseWriter, status int, payload interface{}) {

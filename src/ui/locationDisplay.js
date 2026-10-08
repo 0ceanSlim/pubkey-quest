@@ -1122,8 +1122,9 @@ export function showNPCDialogue(dialogueData, npcMessage) {
             button.style.borderBottom = '1px solid #000000';
             button.style.boxShadow = 'inset -1px -1px 0 #404040, inset 1px 1px 0 rgba(255, 255, 255, 0.3)';
 
-            // Format option text (convert snake_case to readable)
-            const optionText = formatDialogueOption(optionKey);
+            // Quest threads (and anything else the server labels) carry their own
+            // text; plain NPC options fall back to the formatted key.
+            const optionText = dialogueData.option_labels?.[optionKey] || formatDialogueOption(optionKey);
             button.textContent = optionText;
 
             button.addEventListener('click', () => selectDialogueOption(dialogueData.npc_id, optionKey));
@@ -1134,32 +1135,6 @@ export function showNPCDialogue(dialogueData, npcMessage) {
     }
 
     dialogueOverlay.appendChild(optionsGrid);
-
-    // Quest offers (M3 in-world start): quests this NPC gives, rendered as
-    // prominent accept buttons above the normal dialogue options.
-    if (Array.isArray(dialogueData.offered_quests) && dialogueData.offered_quests.length > 0) {
-        const questWrap = document.createElement('div');
-        questWrap.className = 'flex flex-col gap-0.5 mt-1';
-        dialogueData.offered_quests.forEach(q => {
-            const qb = document.createElement('button');
-            qb.style.fontSize = '8px';
-            qb.style.fontWeight = 'bold';
-            qb.style.color = '#fff';
-            qb.style.background = '#3b5bbf';
-            qb.style.cursor = 'pointer';
-            qb.style.padding = '2px 4px';
-            qb.style.textAlign = 'left';
-            qb.style.borderTop = '1px solid #7d97ff';
-            qb.style.borderLeft = '1px solid #7d97ff';
-            qb.style.borderRight = '1px solid #000000';
-            qb.style.borderBottom = '1px solid #000000';
-            qb.textContent = `📜 Accept: ${q.name}`;
-            qb.title = q.description || '';
-            qb.addEventListener('click', () => acceptOfferedQuest(q.id, dialogueData.npc_id));
-            questWrap.appendChild(qb);
-        });
-        dialogueOverlay.appendChild(questWrap);
-    }
 
     // Type the NPC's line first; hold the option strip back until the text lands
     // (or the player clicks the box to skip it). No line → options appear at once.
@@ -1178,30 +1153,6 @@ export function showNPCDialogue(dialogueData, npcMessage) {
     }
 
     logger.debug('Dialogue overlay created with', dialogueData.options?.length || 0, 'options');
-}
-
-/**
- * Accept a quest offered by an NPC during dialogue, then reopen the dialogue so
- * the now-accepted quest drops off the offer list.
- */
-async function acceptOfferedQuest(questId, npcId) {
-    try {
-        const resp = await fetch(`${API_BASE_URL}/quests/accept`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ npub: gameAPI.npub, save_id: gameAPI.saveID, quest_id: questId }),
-        });
-        const json = await resp.json();
-        if (!resp.ok || !json.success) {
-            showMessage(json.error ?? 'Could not accept the quest', 'error');
-            return;
-        }
-        showMessage(json.message ?? 'Quest accepted!', 'success');
-        talkToNPC(npcId);
-    } catch (err) {
-        logger.error('acceptOfferedQuest error:', err);
-        showMessage('Could not accept the quest', 'error');
-    }
 }
 
 /**
@@ -1241,6 +1192,14 @@ export async function selectDialogueOption(npcId, choice) {
             // Refresh game state after successful dialogue action
             await refreshGameState();
             await updateAllDisplays();
+
+            // Taking up a quest in conversation: announce it and let the tracker
+            // and journal pick it up. The conversation carries on with the
+            // giver's reply below.
+            if (result.data?.quest_accepted) {
+                showMessage(`📜 Quest started: ${result.data.quest_name || result.data.quest_accepted}`, 'success');
+                window.updateQuestTracker?.();
+            }
 
             // Check if vault should open (check this first before close action)
             if (result.delta?.open_vault) {

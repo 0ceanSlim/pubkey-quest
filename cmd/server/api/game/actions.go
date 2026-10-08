@@ -1096,9 +1096,10 @@ func handleTalkToNPCAction(state *SaveFile, params map[string]any) (*GameActionR
 	if resp != nil && resp.Success {
 		if npcID, ok := params["npc_id"].(string); ok && npcID != "" {
 			// Feed the conversation to the event recorder so "talk" quest
-			// objectives advance, then offer any quests this NPC gives.
+			// objectives advance, then add the quests this NPC talks about
+			// to their menu (see quest_dialogue.go).
 			events.Record(state, events.NPCTalked, npcID, 1)
-			injectQuestOffers(resp, npcID, state)
+			injectQuestOptions(resp, npcID, state)
 		}
 	}
 	if resp != nil {
@@ -1118,6 +1119,15 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 	paramsIface := make(map[string]interface{}, len(params))
 	for k, v := range params {
 		paramsIface[k] = v
+	}
+	// Quest conversations live in the quests' own JSON, not the NPC's.
+	if choice, _ := params["choice"].(string); strings.HasPrefix(choice, questKeyPrefix) {
+		npcID, _ := params["npc_id"].(string)
+		resp, err := handleQuestDialogueChoice(session, npcID, choice)
+		if resp == nil {
+			return nil, err
+		}
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Delta: resp.Delta, Data: resp.Data}, err
 	}
 	resp, err := npc.HandleNPCDialogueChoiceActionWithSession(&session.SaveData, paramsIface, session)
 	if resp != nil {
