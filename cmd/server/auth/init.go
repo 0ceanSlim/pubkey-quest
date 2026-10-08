@@ -71,9 +71,33 @@ func InitializeGrainClient(config *utils.Config) error {
 	cache.StartCacheCleanup(ctx)
 	connection.StartRelayHealthCheck(ctx, 5*time.Minute)
 	connection.StartRelayEvictionSweeper(ctx, time.Minute)
+	startSessionCleanup(ctx)
 
 	log.Println("✅ Grain client ready for Pubkey Quest")
 	return nil
+}
+
+// sessionMaxIdle drops a login session nobody has used for this long (matches
+// grain's 7-day cookie, so a session never outlives its cookie).
+const sessionMaxIdle = 7 * 24 * time.Hour
+
+// startSessionCleanup prunes idle login sessions hourly. Only grain's top-level
+// client.InitializeClient starts this, and we don't use that package.
+func startSessionCleanup(ctx context.Context) {
+	go func() {
+		t := time.NewTicker(time.Hour)
+		defer t.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-t.C:
+				if mgr := session.SessionMgr; mgr != nil {
+					mgr.CleanupSessions(sessionMaxIdle)
+				}
+			}
+		}
+	}()
 }
 
 // ShutdownGrainClient gracefully shuts down the grain client.

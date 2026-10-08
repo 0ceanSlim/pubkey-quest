@@ -146,7 +146,7 @@ func registerGameDataRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/abilities", data.AbilitiesHandler)
 
 	mux.HandleFunc("/api/skills/definitions", data.SkillsDefinitionsHandler)
-	mux.HandleFunc("/api/skills", auth.RequireOwner(game.SkillsHandler))
+	mux.HandleFunc("/api/skills", game.SkillsHandler)
 }
 
 // ============================================================================
@@ -161,9 +161,10 @@ func registerCharacterRoutes(mux *http.ServeMux) {
 	// @Param npub query string true "Nostr public key (npub)"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/character [get]
-	// Deliberately open: deterministic character generation from a public key,
-	// touching no stored state. The public /discover page previews the character
-	// for *any* npub, which is the point of it.
+	// Deliberately NOT under the identity gate (auth/identity.go): deterministic
+	// character generation from a public key, touching no stored state. The
+	// public /discover page previews the character for *any* npub, which is the
+	// point of it — gating this breaks that page.
 	mux.HandleFunc("/api/character", character.CharacterHandler)
 
 	// @Summary Create character save
@@ -174,7 +175,7 @@ func registerCharacterRoutes(mux *http.ServeMux) {
 	// @Param request body character.CreateCharacterRequest true "Character creation request"
 	// @Success 200 {object} character.CreateCharacterResponse
 	// @Router /api/character/create-save [post]
-	mux.HandleFunc("/api/character/create-save", auth.RequireOwner(character.CreateCharacterHandler))
+	mux.HandleFunc("/api/character/create-save", character.CreateCharacterHandler)
 
 	// @Summary Get generation weights
 	// @Description Returns character generation weight tables
@@ -215,6 +216,15 @@ func registerAuthRoutes(mux *http.ServeMux) {
 	// @Produce json
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/auth/login [post]
+	// @Summary      Login challenge
+	// @Description  Issues a single-use nonce the client signs to prove it holds
+	//               the key it is logging in as (see auth/challenge.go).
+	// @Tags         Auth
+	// @Produce      json
+	// @Success      200  {object}  auth.ChallengeResponse
+	// @Router       /api/auth/challenge [get]
+	mux.HandleFunc("/api/auth/challenge", authHandler.HandleChallenge)
+
 	mux.HandleFunc("/api/auth/login", authHandler.HandleLogin)
 
 	// @Summary Logout
@@ -257,7 +267,7 @@ func registerSaveRoutes(mux *http.ServeMux) {
 	// @Router /api/saves/{npub} [get]
 	// @Router /api/saves/{npub} [post]
 	// @Router /api/saves/{npub}/{saveID} [delete]
-	mux.HandleFunc("/api/saves/", auth.RequireOwner(SavesHandler))
+	mux.HandleFunc("/api/saves/", SavesHandler)
 }
 
 // ============================================================================
@@ -273,7 +283,7 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param request body object true "npub and save_id"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/init [post]
-	mux.HandleFunc("/api/session/init", auth.RequireOwner(game.InitSessionHandler))
+	mux.HandleFunc("/api/session/init", game.InitSessionHandler)
 
 	// @Summary Reload session
 	// @Description Force reload from disk, discarding in-memory changes
@@ -283,7 +293,7 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param request body object true "npub and save_id"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/reload [post]
-	mux.HandleFunc("/api/session/reload", auth.RequireOwner(game.ReloadSessionHandler))
+	mux.HandleFunc("/api/session/reload", game.ReloadSessionHandler)
 
 	// @Summary Get session state
 	// @Description Retrieve current in-memory session state
@@ -293,7 +303,7 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param save_id query string true "Save ID"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/state [get]
-	mux.HandleFunc("/api/session/state", auth.RequireOwner(game.GetSessionHandler))
+	mux.HandleFunc("/api/session/state", game.GetSessionHandler)
 
 	// @Summary Update session
 	// @Description Update in-memory game state
@@ -303,7 +313,7 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param request body object true "npub, save_id, and save_data"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/update [post]
-	mux.HandleFunc("/api/session/update", auth.RequireOwner(game.UpdateSessionHandler))
+	mux.HandleFunc("/api/session/update", game.UpdateSessionHandler)
 
 	// @Summary Save session
 	// @Description Write in-memory state to disk
@@ -313,7 +323,7 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param request body object true "npub and save_id"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/save [post]
-	mux.HandleFunc("/api/session/save", auth.RequireOwner(game.SaveSessionHandler))
+	mux.HandleFunc("/api/session/save", game.SaveSessionHandler)
 
 	// @Summary Cleanup session
 	// @Description Remove session from memory
@@ -323,7 +333,7 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param save_id query string true "Save ID"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/cleanup [delete]
-	mux.HandleFunc("/api/session/cleanup", auth.RequireOwner(game.CleanupSessionHandler))
+	mux.HandleFunc("/api/session/cleanup", game.CleanupSessionHandler)
 }
 
 // ============================================================================
@@ -339,7 +349,7 @@ func registerGameRoutes(mux *http.ServeMux) {
 	// @Param request body object true "npub, save_id, and action"
 	// @Success 200 {object} types.GameActionResponse
 	// @Router /api/game/action [post]
-	mux.HandleFunc("/api/game/action", auth.RequireOwner(game.GameActionHandler))
+	mux.HandleFunc("/api/game/action", game.GameActionHandler)
 
 	// @Summary Get game state
 	// @Description Returns current game state for a session
@@ -349,7 +359,7 @@ func registerGameRoutes(mux *http.ServeMux) {
 	// @Param save_id query string true "Save ID"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/game/state [get]
-	mux.HandleFunc("/api/game/state", auth.RequireOwner(game.GetGameStateHandler))
+	mux.HandleFunc("/api/game/state", game.GetGameStateHandler)
 
 	registerCombatRoutes(mux)
 	registerPOIRoutes(mux)
@@ -363,9 +373,9 @@ func registerPOIRoutes(mux *http.ServeMux) {
 	// enter: begin a walk of a discovered POI at its start node.
 	// advance: resolve the next node the player chose (anti-skip validated).
 	// list: discovered POIs in the current environment (travel-screen markers).
-	mux.HandleFunc("/api/poi/enter", auth.RequireOwner(game.POIEnterHandler))
-	mux.HandleFunc("/api/poi/advance", auth.RequireOwner(game.POIAdvanceHandler))
-	mux.HandleFunc("/api/poi/list", auth.RequireOwner(game.POIListHandler))
+	mux.HandleFunc("/api/poi/enter", game.POIEnterHandler)
+	mux.HandleFunc("/api/poi/advance", game.POIAdvanceHandler)
+	mux.HandleFunc("/api/poi/list", game.POIListHandler)
 }
 
 // ============================================================================
@@ -386,7 +396,7 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Failure      404      {string}  string  "Session not found"
 	// @Failure      500      {string}  string  "Internal error"
 	// @Router       /api/combat/start [post]
-	mux.HandleFunc("/api/combat/start", auth.RequireOwner(game.StartCombatHandler))
+	mux.HandleFunc("/api/combat/start", game.StartCombatHandler)
 
 	// @Summary      Get current combat state
 	// @Description  Returns the live combat state. Use this to re-sync after a page refresh.
@@ -397,15 +407,15 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Success      200      {object}  game.CombatStateResponse
 	// @Failure      404      {string}  string  "Session or combat not found"
 	// @Router       /api/combat/state [get]
-	mux.HandleFunc("/api/combat/state", auth.RequireOwner(game.GetCombatStateHandler))
+	mux.HandleFunc("/api/combat/state", game.GetCombatStateHandler)
 
 	// ─── Quests (M3) ───
 	// Log (active w/ objective progress, completed, available, QP total), and
 	// accept / abandon. Objective progress itself flows through the event
 	// recorder, not these endpoints.
-	mux.HandleFunc("/api/quests/log", auth.RequireOwner(game.QuestLogHandler))
-	mux.HandleFunc("/api/quests/accept", auth.RequireOwner(game.QuestAcceptHandler))
-	mux.HandleFunc("/api/quests/abandon", auth.RequireOwner(game.QuestAbandonHandler))
+	mux.HandleFunc("/api/quests/log", game.QuestLogHandler)
+	mux.HandleFunc("/api/quests/accept", game.QuestAcceptHandler)
+	mux.HandleFunc("/api/quests/abandon", game.QuestAbandonHandler)
 
 	// @Summary      Execute a player attack action
 	// @Description  Resolves one full combat round: player movement, attack roll, damage,
@@ -420,23 +430,23 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Failure      404      {string}  string  "Session or combat not found"
 	// @Failure      500      {string}  string  "Combat error"
 	// @Router       /api/combat/move [post]
-	mux.HandleFunc("/api/combat/move", auth.RequireOwner(game.CombatMoveHandler))
+	mux.HandleFunc("/api/combat/move", game.CombatMoveHandler)
 	// @Router       /api/combat/action [post]
-	mux.HandleFunc("/api/combat/action", auth.RequireOwner(game.CombatActionHandler))
+	mux.HandleFunc("/api/combat/action", game.CombatActionHandler)
 	// @Router       /api/combat/cast [post]
-	mux.HandleFunc("/api/combat/cast", auth.RequireOwner(game.CombatCastHandler))
+	mux.HandleFunc("/api/combat/cast", game.CombatCastHandler)
 	// @Router       /api/combat/use-item [post]
-	mux.HandleFunc("/api/combat/use-item", auth.RequireOwner(game.CombatUseItemHandler))
+	mux.HandleFunc("/api/combat/use-item", game.CombatUseItemHandler)
 	// @Router       /api/combat/ability [post]
-	mux.HandleFunc("/api/combat/ability", auth.RequireOwner(game.CombatAbilityHandler))
+	mux.HandleFunc("/api/combat/ability", game.CombatAbilityHandler)
 	// @Router       /api/combat/hold [post]
-	mux.HandleFunc("/api/combat/hold", auth.RequireOwner(game.CombatHoldHandler))
+	mux.HandleFunc("/api/combat/hold", game.CombatHoldHandler)
 	// @Router       /api/combat/disengage [post]
-	mux.HandleFunc("/api/combat/disengage", auth.RequireOwner(game.CombatDisengageHandler))
+	mux.HandleFunc("/api/combat/disengage", game.CombatDisengageHandler)
 	// @Router       /api/combat/flee [post]
-	mux.HandleFunc("/api/combat/flee", auth.RequireOwner(game.CombatFleeHandler))
+	mux.HandleFunc("/api/combat/flee", game.CombatFleeHandler)
 	// @Router       /api/combat/end-turn [post]
-	mux.HandleFunc("/api/combat/end-turn", auth.RequireOwner(game.CombatEndTurnHandler))
+	mux.HandleFunc("/api/combat/end-turn", game.CombatEndTurnHandler)
 
 	// @Summary      Roll a death saving throw
 	// @Description  Rolls one death saving throw for the unconscious player and runs the
@@ -450,7 +460,7 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Failure      400      {string}  string  "Wrong phase or bad request"
 	// @Failure      404      {string}  string  "Session or combat not found"
 	// @Router       /api/combat/death-save [post]
-	mux.HandleFunc("/api/combat/death-save", auth.RequireOwner(game.CombatDeathSaveHandler))
+	mux.HandleFunc("/api/combat/death-save", game.CombatDeathSaveHandler)
 
 	// @Summary      End combat and apply results
 	// @Description  Resolves the outcome and applies changes to session memory. Must be called
@@ -465,7 +475,7 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Failure      400      {string}  string  "Combat not in terminal phase"
 	// @Failure      404      {string}  string  "Session or combat not found"
 	// @Router       /api/combat/end [post]
-	mux.HandleFunc("/api/combat/end", auth.RequireOwner(game.CombatEndHandler))
+	mux.HandleFunc("/api/combat/end", game.CombatEndHandler)
 }
 
 // ============================================================================
@@ -482,7 +492,7 @@ func registerShopRoutes(mux *http.ServeMux) {
 	// @Router /api/shop/{merchant_id} [get]
 	// @Router /api/shop/buy [post]
 	// @Router /api/shop/sell [post]
-	mux.HandleFunc("/api/shop/", auth.RequireOwner(game.ShopHandler))
+	mux.HandleFunc("/api/shop/", game.ShopHandler)
 }
 
 // ============================================================================
@@ -513,7 +523,7 @@ func registerSpellRoutes(mux *http.ServeMux) {
 	// @Param        request  body      game.SpellPrepRequest   true  "Preparation request"
 	// @Success      200      {object}  game.SpellPrepResponse
 	// @Router       /api/spells/prepare [post]
-	mux.HandleFunc("/api/spells/prepare", auth.RequireOwner(game.PrepareSpellHandler))
+	mux.HandleFunc("/api/spells/prepare", game.PrepareSpellHandler)
 
 	// @Summary      Get prep queue
 	// @Description  Returns all in-progress prep tasks, resolving any that are ready
@@ -523,7 +533,7 @@ func registerSpellRoutes(mux *http.ServeMux) {
 	// @Param        save_id  query  string  true  "Save ID"
 	// @Success      200      {object}  game.PrepQueueResponse
 	// @Router       /api/spells/prep-queue [get]
-	mux.HandleFunc("/api/spells/prep-queue", auth.RequireOwner(game.GetPrepQueueHandler))
+	mux.HandleFunc("/api/spells/prep-queue", game.GetPrepQueueHandler)
 
 	// @Summary      Cancel spell prep
 	// @Description  Removes a prep task from the queue without changing the slot
@@ -533,7 +543,7 @@ func registerSpellRoutes(mux *http.ServeMux) {
 	// @Param        request  body      game.SpellSlotRequest  true  "Slot to cancel"
 	// @Success      200      {object}  map[string]interface{}
 	// @Router       /api/spells/cancel-prep [post]
-	mux.HandleFunc("/api/spells/cancel-prep", auth.RequireOwner(game.CancelPrepHandler))
+	mux.HandleFunc("/api/spells/cancel-prep", game.CancelPrepHandler)
 
 	// @Summary      Unslot a spell
 	// @Description  Clears a spell from a slot and cancels any in-progress prep for that slot
@@ -543,7 +553,7 @@ func registerSpellRoutes(mux *http.ServeMux) {
 	// @Param        request  body      game.SpellSlotRequest  true  "Slot to clear"
 	// @Success      200      {object}  map[string]interface{}
 	// @Router       /api/spells/unslot [post]
-	mux.HandleFunc("/api/spells/unslot", auth.RequireOwner(game.UnslotSpellHandler))
+	mux.HandleFunc("/api/spells/unslot", game.UnslotSpellHandler)
 }
 
 // ============================================================================
@@ -559,7 +569,7 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Param        save_id  query  string  true  "Save ID"
 	// @Success      200      {object}  game.AbilityPointsResponse
 	// @Router       /api/progression/ability-points [get]
-	mux.HandleFunc("/api/progression/ability-points", auth.RequireOwner(game.GetAbilityPointsHandler))
+	mux.HandleFunc("/api/progression/ability-points", game.GetAbilityPointsHandler)
 
 	// @Summary      Spend an ability point
 	// @Description  Allocates one banked point into an ability (capped at 20), re-deriving Max HP/Mana
@@ -569,11 +579,11 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Param        request  body      game.SpendAbilityPointRequest  true  "Ability to raise"
 	// @Success      200      {object}  game.SpendAbilityPointResponse
 	// @Router       /api/progression/spend-point [post]
-	mux.HandleFunc("/api/progression/spend-point", auth.RequireOwner(game.SpendAbilityPointHandler))
+	mux.HandleFunc("/api/progression/spend-point", game.SpendAbilityPointHandler)
 	// @Router       /api/progression/feats [get]
-	mux.HandleFunc("/api/progression/feats", auth.RequireOwner(game.GetFeatsHandler))
+	mux.HandleFunc("/api/progression/feats", game.GetFeatsHandler)
 	// @Router       /api/progression/choose-feat [post]
-	mux.HandleFunc("/api/progression/choose-feat", auth.RequireOwner(game.ChooseFeatHandler))
+	mux.HandleFunc("/api/progression/choose-feat", game.ChooseFeatHandler)
 
 	// @Summary      Level-up progression guide
 	// @Description  Returns the character's full 1→20 path (XP, ability points, feats, abilities, spell slots)
@@ -583,7 +593,7 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Param        save_id  query  string  true  "Save ID"
 	// @Success      200      {object}  game.LevelGuideResponse
 	// @Router       /api/progression/guide [get]
-	mux.HandleFunc("/api/progression/guide", auth.RequireOwner(game.GetLevelGuideHandler))
+	mux.HandleFunc("/api/progression/guide", game.GetLevelGuideHandler)
 
 	// @Summary      Rooms in the current building
 	// @Description  Lists the current building's rooms with per-room accessibility (M2)
@@ -593,7 +603,7 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Param        save_id  query  string  true  "Save ID"
 	// @Success      200      {object}  game.RoomsResponse
 	// @Router       /api/rooms [get]
-	mux.HandleFunc("/api/rooms", auth.RequireOwner(game.GetRoomsHandler))
+	mux.HandleFunc("/api/rooms", game.GetRoomsHandler)
 }
 
 // ============================================================================
@@ -625,9 +635,9 @@ func registerDebugRoutes(mux *http.ServeMux) {
 	// @Router /api/debug/sessions [get]
 	// Scoped to the caller: this used to dump every active session's save data
 	// to anyone who asked.
-	mux.HandleFunc("/api/debug/sessions", auth.RequireOwner(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/debug/sessions", func(w http.ResponseWriter, r *http.Request) {
 		game.DebugSessionsHandler(w, r, true, auth.OwnerNpub(r))
-	}))
+	})
 
 	// @Summary Get session state
 	// @Description Returns detailed session state (debug only)
@@ -637,9 +647,9 @@ func registerDebugRoutes(mux *http.ServeMux) {
 	// @Param save_id query string false "Save ID"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/debug/state [get]
-	mux.HandleFunc("/api/debug/state", auth.RequireOwner(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/debug/state", func(w http.ResponseWriter, r *http.Request) {
 		game.DebugStateHandler(w, r, true)
-	}))
+	})
 
 	// @Summary Start a random debug combat encounter
 	// @Description Picks a random monster from a curated list and starts a combat session (debug only)
@@ -648,21 +658,21 @@ func registerDebugRoutes(mux *http.ServeMux) {
 	// @Produce json
 	// @Success 200 {object} game.CombatStateResponse
 	// @Router /api/combat/debug/start [post]
-	mux.HandleFunc("/api/combat/debug/start", auth.RequireOwner(game.DebugCombatStartHandler))
+	mux.HandleFunc("/api/combat/debug/start", game.DebugCombatStartHandler)
 
 	// @Summary Grant XP (debug)
 	// @Description Adds XP to the character and re-derives level/HP/mana (debug only)
 	// @Tags Debug
 	// @Router /api/debug/grant-xp [post]
-	mux.HandleFunc("/api/debug/grant-xp", auth.RequireOwner(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/debug/grant-xp", func(w http.ResponseWriter, r *http.Request) {
 		game.DebugGrantXPHandler(w, r, true)
-	}))
+	})
 
 	// @Summary Teleport (debug)
 	// @Description Moves the player to any settlement and clears travel/building state (debug only)
 	// @Tags Debug
 	// @Router /api/debug/teleport [post]
-	mux.HandleFunc("/api/debug/teleport", auth.RequireOwner(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/debug/teleport", func(w http.ResponseWriter, r *http.Request) {
 		game.DebugTeleportHandler(w, r, true)
-	}))
+	})
 }

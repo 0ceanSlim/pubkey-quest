@@ -160,7 +160,11 @@ class SessionManager {
         }, 30000);
     }
 
-    handleSessionExpiry() {
+    async handleSessionExpiry() {
+        // Usually the server just restarted and lost its in-memory sessions;
+        // the signer is still here, so quietly prove the key again first.
+        if (await this.reauthenticate()) return;
+
         this.currentStatus = SessionStatus.EXPIRED;
         this.sessionData = null;
 
@@ -229,13 +233,53 @@ class SessionManager {
     // AUTHENTICATION METHODS
     // ========================================================================
 
-    async performLogin(loginRequest) {
+    /**
+     * Prove we hold the key: fetch a single-use challenge from the server and
+     * sign it as a NIP-98 HTTP-auth event (kind 27235) for POST /api/auth/login,
+     * using the signer MILL installed as window.nostr. The server refuses a
+     * login without this, so nobody can claim someone else's pubkey.
+     * @returns {Promise<object>} the signed proof event
+     */
+    async signLoginProof() {
+        // After a page reload the signer is rebuilt asynchronously (and NIP-07
+        // extensions inject late) — give it a few seconds to appear.
+        for (const delay of [0, 250, 500, 1000, 2000]) {
+            if (window.nostr?.signEvent) break;
+            await new Promise((r) => setTimeout(r, delay));
+        }
+        if (!window.nostr?.signEvent) {
+            throw new Error('No signer available to prove your key — log in again');
+        }
+        const resp = await fetch(`${API_BASE_URL}/auth/challenge`);
+        const ch = await resp.json().catch(() => null);
+        if (!resp.ok || !ch?.success || !ch.challenge) {
+            throw new Error(ch?.error || `Could not get a login challenge (${resp.status})`);
+        }
+        return window.nostr.signEvent({
+            kind: ch.kind ?? 27235,
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ['u', `${window.location.origin}${API_BASE_URL}/auth/login`],
+                ['method', 'POST'],
+                ['challenge', ch.challenge],
+            ],
+            content: '',
+        });
+    }
+
+    /**
+     * @param {object} loginRequest  { public_key, signing_method, mode }
+     * @param {{ silent?: boolean }} [opts]  silent: a background re-login — skip
+     *   authenticationSuccess (whose listeners redirect or reload the page).
+     */
+    async performLogin(loginRequest, { silent = false } = {}) {
+        const proof = await this.signLoginProof();
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(loginRequest)
+            body: JSON.stringify({ ...loginRequest, proof })
         });
 
         const result = await response.json().catch(() => null);
@@ -280,6 +324,11 @@ class SessionManager {
         this.storeSessionMetadata();
         this.startSessionMonitoring();
 
+        if (silent) {
+            this.emit('sessionRestored', this.sessionData);
+            return this.sessionData;
+        }
+
         // Check if this is a new account
         const isNewAccount = window._isNewAccount || false;
         if (isNewAccount) {
@@ -294,6 +343,48 @@ class SessionManager {
         });
 
         return this.sessionData;
+    }
+
+    /**
+     * The server forgot our login (it restarted, or the session aged out) but
+     * this page still has its signer. Re-prove the key and recreate the session
+     * without bothering the player. Concurrent callers share one attempt; after
+     * a failure we stand down for a while instead of hammering the signer.
+     * @returns {Promise<boolean>} true if the session is back
+     */
+    reauthenticate() {
+        if (this._reauthPromise) return this._reauthPromise;
+        if (Date.now() - (this._reauthFailedAt ?? 0) < REAUTH_COOLDOWN_MS) {
+            return Promise.resolve(false);
+        }
+        const meta = this.sessionData ?? this._storedSessionMeta();
+        if (!meta?.publicKey || !meta?.signingMethod || meta.signingMethod === 'none') {
+            return Promise.resolve(false);
+        }
+        this._reauthPromise = this.performLogin({
+            public_key: meta.publicKey,
+            signing_method: meta.signingMethod,
+            mode: 'write',
+        }, { silent: true }).then(() => {
+            logger.info('Session re-established by re-proving the key');
+            return true;
+        }).catch((err) => {
+            // The session monitor surfaces the expiry to the player.
+            logger.warn('Re-authentication failed:', err?.message || err);
+            this._reauthFailedAt = Date.now();
+            return false;
+        }).finally(() => {
+            this._reauthPromise = null;
+        });
+        return this._reauthPromise;
+    }
+
+    _storedSessionMeta() {
+        try {
+            return JSON.parse(localStorage.getItem('pubkey_quest_session_meta') || 'null');
+        } catch (_) {
+            return null;
+        }
     }
 
     storeSessionMetadata() {
@@ -421,12 +512,41 @@ class SessionManager {
     }
 }
 
+// After a failed silent re-login, wait this long before trying again.
+const REAUTH_COOLDOWN_MS = 30000;
+
 // Export singleton instance
 export const sessionManager = new SessionManager();
+
+/**
+ * Player-state API routes are tied to the login session (server: auth/identity.go).
+ * When one answers 401 with auth_required — typically because the server
+ * restarted and lost its in-memory sessions — re-prove the key once and replay
+ * the request, so a restart doesn't break the tick loop or a fight in progress.
+ * Wrapping fetch here covers every caller (many modules call fetch directly).
+ */
+function installReauthFetch() {
+    const baseFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+        const url = typeof input === 'string' ? input : (input?.url ?? String(input));
+        const isGuarded = url.includes(`${API_BASE_URL}/`) && !url.includes(`${API_BASE_URL}/auth/`);
+        // A Request's body can only be read once — keep a copy for the replay.
+        const replay = isGuarded && input instanceof Request ? input.clone() : input;
+
+        const response = await baseFetch(input, init);
+        if (!isGuarded || response.status !== 401) return response;
+
+        const body = await response.clone().json().catch(() => null);
+        if (!body?.auth_required) return response;
+        if (!(await sessionManager.reauthenticate())) return response;
+        return baseFetch(replay, init);
+    };
+}
 
 // Make available globally for compatibility with templates
 if (typeof window !== 'undefined') {
     window.sessionManager = sessionManager;
+    installReauthFetch();
 }
 
 logger.debug('SessionManager loaded and initialized');

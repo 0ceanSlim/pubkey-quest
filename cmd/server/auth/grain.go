@@ -9,9 +9,11 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/0ceanslim/grain/client/core/tools"
 	"github.com/0ceanslim/grain/client/session"
+	nostr "github.com/0ceanslim/grain/server/types"
 	"pubkey-quest/cmd/server/utils"
 )
 
@@ -29,12 +31,13 @@ func NewAuthHandler(cfg *utils.Config) *AuthHandler {
 //
 // As of grain 0.8 all signing happens client-side (mill installs a
 // window.nostr-compatible signer). The server never receives a private key —
-// it only records the authenticated hex public key and the signing method the
-// client chose.
+// it records the hex public key and the signing method, and requires proof: a
+// login event signed by that key over a server-issued challenge (challenge.go).
 type LoginRequest struct {
 	PublicKey     string                         `json:"public_key,omitempty"`
 	SigningMethod session.SigningMethod          `json:"signing_method"`
 	Mode          session.SessionInteractionMode `json:"mode,omitempty"`
+	Proof         *nostr.Event                   `json:"proof,omitempty"`
 }
 
 // LoginResponse represents a login response
@@ -90,6 +93,21 @@ func (auth *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	pubkeyHex, err := normalizePubkey(req.PublicKey)
 	if err != nil {
 		auth.sendErrorResponse(w, fmt.Sprintf("Invalid public key: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Playing needs a key that can sign; a read-only identity can't prove itself.
+	if req.SigningMethod == session.NoSigning || req.Mode == session.ReadOnlyMode {
+		auth.sendErrorResponse(w, "Read-only login can't play — connect a signer", http.StatusBadRequest)
+		return
+	}
+	// Prove the caller actually holds this key before handing out a session.
+	// Without this, posting someone else's pubkey was enough to play as them,
+	// and the identity gate would then authorise it correctly — because you
+	// would *be* that session.
+	if err := verifyLoginProof(req.Proof, pubkeyHex, time.Now()); err != nil {
+		log.Printf("🚫 Login proof rejected for %s...: %v", pubkeyHex[:16], err)
+		auth.sendErrorResponse(w, fmt.Sprintf("Login not verified: %v", err), http.StatusUnauthorized)
 		return
 	}
 

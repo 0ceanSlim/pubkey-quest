@@ -56,11 +56,12 @@ func Shutdown() {
 	log.Println("✅ All services shut down")
 }
 
-// Start starts the HTTP server
+// Start starts the HTTP server. Every request passes the identity gate first, so
+// player-state routes only answer for the logged-in player's own npub.
 func Start(mux *http.ServeMux) {
 	port := utils.AppConfig.Server.Port
 	fmt.Printf("Server running on http://localhost:%d\n", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), auth.RequireIdentity(mux)); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
