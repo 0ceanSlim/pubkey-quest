@@ -214,6 +214,8 @@ function renderOccupied(saveData) {
     ? saveData.location
     : (saveData.location?.current || 'Unknown Location');
 
+  const stats = character.stats || saveData.stats || null;
+
   return `
     <div class="flex items-center space-x-4">
       <div class="w-14 h-14 flex-shrink-0 rounded-full win95-inset flex items-center justify-center">
@@ -226,6 +228,7 @@ function renderOccupied(saveData) {
       </div>
       <div class="flex-shrink-0 text-xs" style="color: var(--color-textMuted);">Continue →</div>
     </div>
+    ${renderStats(stats, false)}
   `;
 }
 
@@ -260,10 +263,11 @@ function renderStartable(slot, preview, custom) {
         <h3 class="font-extrabold" style="${heading}">▶ ${slot.id === 1 ? 'Start New Adventure' : 'Start Slot ' + slot.id}</h3>
         ${preview ? `
           <p class="text-sm font-semibold truncate" style="${body}">${escapeHtml(preview.race)} ${escapeHtml(preview.class)} · ${escapeHtml(preview.background)}</p>
-          <p class="text-xs truncate" style="${body}">${escapeHtml(preview.alignment)}${renderStatLine(preview.stats)}</p>
+          <p class="text-xs truncate" style="${body}">${escapeHtml(preview.alignment)}</p>
         ` : `<p class="text-sm" style="${body}">Begin a fresh journey</p>`}
       </div>
     </div>
+    ${preview ? renderStats(preview.stats, dark) : ''}
   `;
 }
 
@@ -297,18 +301,52 @@ function renderUpcoming(slot, preview, custom) {
       </div>
       <div class="flex-shrink-0 text-xl">🔒</div>
     </div>
+    ${preview ? renderStats(preview.stats, true) : ''}
   `;
 }
 
-/** The two or three stats worth glancing at, highest first. */
-function renderStatLine(stats) {
+// The six abilities, in the order players expect to read them.
+const ABILITY_ORDER = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+
+/**
+ * The ability block shown on a slot: every score plus their total.
+ *
+ * The total is the quickest way to compare two characters at a glance — rolls
+ * land between 79 and 89, so the number says more than any single score does.
+ * A live save shows what the character has now; an empty slot shows what it
+ * would start with.
+ *
+ * @param {Object} stats - Ability name → score
+ * @param {boolean} muted - Dim styling, for locked slots
+ */
+function renderStats(stats, muted) {
   if (!stats) return '';
-  const top = Object.entries(stats)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([name, value]) => `${name.slice(0, 3).toUpperCase()} ${value}`)
-    .join(' · ');
-  return top ? ` · ${top}` : '';
+
+  const entries = ABILITY_ORDER
+    .filter((name) => stats[name] !== undefined)
+    .map((name) => [name, stats[name]]);
+  if (!entries.length) return '';
+
+  const total = entries.reduce((sum, [, value]) => sum + (Number(value) || 0), 0);
+  const label = muted ? 'color: var(--color-textMuted);' : 'color: var(--color-textSecondary);';
+  const value = muted ? 'color: var(--color-textSecondary);' : 'color: var(--color-textHighlighted);';
+
+  const cells = entries.map(([name, score]) => `
+    <div class="text-center">
+      <div style="${label}; font-size: 9px;">${name.slice(0, 3).toUpperCase()}</div>
+      <div class="font-bold" style="${value}; font-size: 12px;">${score}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="flex items-center gap-2 mt-2">
+      <div class="grid grid-cols-6 gap-1 flex-1">${cells}</div>
+      <div class="flex-shrink-0 text-center px-2 win95-inset rounded" title="All six abilities added together">
+        <div style="${label}; font-size: 9px;">TOTAL</div>
+        <div class="font-bold" style="${value}; font-size: 12px;">${total}</div>
+      </div>
+    </div>
+  `;
 }
 
 function escapeHtml(value) {

@@ -6,10 +6,18 @@
  * handled by MILL (see systems/millLogin.js) — this module only opens it and
  * reacts to the resulting session events.
  *
+ * It also pulls in the profile manager, since "who is signed in" and "who are
+ * they" are the same concern from the header's point of view.
+ *
  * @module systems/auth
  */
 
 import { logger } from '../lib/logger.js';
+// Every page that renders the header (templates/layout.html) needs the player's
+// name and picture for the dropdown, and every page entry imports this module —
+// so the profile manager is pulled in here rather than per entry, where it kept
+// being forgotten. It self-registers on window and loads on session events.
+import '../systems/profileManager.js';
 // openMillLogin is registered on window by systems/millLogin.js (imported via
 // lib/session.js). Reference it lazily so load order doesn't matter.
 const openLogin = () => window.openMillLogin?.();
