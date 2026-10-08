@@ -121,3 +121,81 @@ go run ./cmd/codex --migrate && go run ./cmd/codex --validate
 
 CI runs all of that, so a failure blocks the test deploy. Main is green on all of it as of
 `c8cb355`.
+
+---
+
+# Cleanup backlog
+
+Found while doing the vault, encounter and auth work. None of it blocks anything; it is
+recorded here so it stops being rediscovered. Ownership is marked, because some of it
+belongs to the Nostr identity plan rather than to whoever reads this next.
+
+## Safe to delete — dead code, no behaviour change
+
+**The legacy HTML5-drag inventory layer.** `src/systems/inventoryInteractions.js` still
+carries the pre-pointer-events drag implementation. Its two entry points,
+`bindSlotEvents` and `bindVaultSlotEvents`, are defined and **never called** —
+`bindInventoryEvents` is an explicit no-op kept for compatibility
+(`src/entries/game.js:108`). Everything reachable only from those binders is dead:
+`handleDrop`, `handleDropOnEquipment`, `handleDragStart`, `handleDragOver`,
+`handleLeftClick`, `handleRightClick`, `bindEquipmentSlotEvents`. Roughly 400 lines.
+`slotInteractions.js` is the live implementation. *Already tracked as a background task
+chip.* Verify each function is only referenced inside the dead subgraph before removing —
+`performAction`, `storeInVault`, `withdrawFromVault`, `setVaultOpen`, `vaultOpen` and the
+container helpers are live and shared.
+
+**The `newGame` page bundle.** `/new-game` serves `game-intro.html`
+(`cmd/server/routes/game_pages.go:44`), so `src/pages/newGame.js`,
+`src/entries/newGame.js`, `www/views/new-game.html` and the `newGame` entry in
+`src/vite.config.js` are all unreachable. The dead copy was still writing a `vault:` field
+in the pre-v4 shape, which would now collide with the typed `Vault` on `SaveFile` — that is
+how it was found.
+
+**`src/lib/nostrConnect.js`.** Posts `/api/auth/login` directly instead of through the
+session manager, so it sends no proof and is refused since `c8cb355`. Its exports
+(`showAmberOptions`, `generateAmberQRCode`, `hideNostrConnectQR`) are referenced from no
+view or page; it is imported for side effects only, at `src/entries/index.js:14`. MILL owns
+login and NIP-55 covers Amber. Delete the module and that import.
+
+**`/api/debug/sessions`.** No frontend caller anywhere. It is now gated and scoped to its
+caller, so it is harmless, but deleting it outright is cleaner than keeping an endpoint
+nobody calls. `/api/debug/state` *is* used (`www/views/game.html:474`) — keep that.
+
+## Owned by the Nostr identity plan
+
+See `docs/draft/nostr-identity-plan.md`; listed here only so the duplication is visible.
+
+- **`cmd/server/utils/fetchUserMetaData.go`** (151 lines) — a hand-rolled websocket profile
+  fetch, superseded by `data.GetUserDataForSession` in grain v0.8.1.
+- **`cmd/server/cache/profile_cache.go`** (118 lines) — our own TTL profile cache,
+  superseded by grain's `cache.GetUserData` / `SetUserData`. Callers:
+  `api/profile.go`, `app/app.go`, `auth/init.go`.
+- **`src/systems/relayManager.js`** — localStorage-only, so invisible to the server and to
+  every other client. Replaced by the NIP-65 editor in N2.
+
+## Conditional — wait for the trigger
+
+**`SaveFile.LegacyVaults` and `migrateVaultsToShared`.** The schema-v4 shim
+(`types/save.go:51`, `cmd/server/session/save.go`) exists only to fold pre-v4 per-building
+vault grids into the shared vault. Once every live save under `data/saves/` has been loaded
+and re-written at `schema_version: 4`, the field, the migration and
+`tests/save/vault_migration_test.go` can all go. Do not remove it on a hunch — a save that
+has not been opened since the change still carries the old shape.
+
+## Worth a review rather than a deletion
+
+**`tests/api` no longer mirrors production wiring.** Those 23 route registrations attach
+handlers directly to a test mux, which bypasses `auth.RequireIdentity`. The tests still
+assert what they mean to, but they cannot catch an unprotected route or an ownership
+regression — the auth tests in `cmd/server/auth/` are the real check there. Worth either
+routing a couple of them through the gate, or noting the limitation in that package's
+doc comment.
+
+**`isLocalConnection` skips the whitelist for any private-network IP**
+(`cmd/server/auth/grain.go`, `ip.IsPrivate()` — 10./172.16–31./192.168). Since `c8cb355` a
+caller must still prove a key, so this is no longer an identity hole, but it does mean
+anyone on the LAN can play with any key regardless of the whitelist. Fine for development;
+worth a conscious decision before anything resembling a public deploy.
+
+**Stale roadmap status.** `docs/roadmap.md` still describes M6 as the active milestone in
+places, which M5.6 superseded on 2026-10-07.
