@@ -131,12 +131,18 @@ function difficultyRank(q) {
     return i < 0 ? DIFFICULTY_ORDER.length : i;
 }
 
+// Short forms for the narrow rail; the popup spells them out.
+const ABBR = { novice: 'Nov', intermediate: 'Int', moderate: 'Mod', experienced: 'Exp', master: 'Mas', low: 'Low', high: 'High' };
+const abbr = (s) => ABBR[String(s || '').toLowerCase()] || s || '';
+
 function row(q) {
     const tracked = q.status === 'active' && q.id === getTrackedQuestId() ? '<span class="qj-tracked" title="Tracked">📌</span>' : '';
-    const stage = q.status === 'active' && q.stage_count > 1
-        ? `Stage ${(q.stage ?? 0) + 1}/${q.stage_count}`
-        : cap(q.category || '');
-    const danger = q.recommended?.danger ? ` · ⚔ ${esc(q.recommended.danger)}` : '';
+    // Bottom line: stage (active) · difficulty · danger — e.g. "3/10 · Int · ⚔️Mod".
+    const meta = [
+        q.status === 'active' && q.stage_count > 1 ? `${(q.stage ?? 0) + 1}/${q.stage_count}` : '',
+        abbr(q.difficulty),
+        q.recommended?.danger ? `⚔️${abbr(q.recommended.danger)}` : '',
+    ].filter(Boolean).join(' · ');
     const prog = q.status === 'active' && q.stage_count > 0
         ? `<div class="qj-prog"><div style="width:${Math.round((100 * (q.stage ?? 0)) / q.stage_count)}%"></div></div>`
         : '';
@@ -144,9 +150,9 @@ function row(q) {
     <div class="qj-row qj-${q.status}" data-quest="${esc(q.id)}">
         <div class="qj-bar"></div>
         <div class="qj-body">
-            <div class="qj-l1">${tracked}<span class="qj-name">${esc(q.name)}</span><span class="qj-tag">${esc(q.difficulty || '')}</span></div>
-            <div class="qj-l2">${esc(detailLine(q))}</div>
-            <div class="qj-l3"><span>${esc(stage)}${danger}</span><span class="qj-reward">${esc(rewardShort(q.rewards))}</span></div>
+            <div class="qj-l1">${tracked}<span class="qj-name" title="${esc(q.name)}">${esc(q.name)}</span></div>
+            <div class="qj-l2" title="${esc(detailLine(q))}">${esc(detailLine(q))}</div>
+            <div class="qj-l3"><span>${esc(meta)}</span><span class="qj-reward">${esc(rewardShort(q.rewards))}</span></div>
             ${prog}
         </div>
     </div>`;
@@ -172,14 +178,12 @@ function detailLine(q) {
     }
 }
 
+// XP and gold only — the row has ~10 characters for it; QP and items are in the popup.
 function rewardShort(r) {
     if (!r) return '';
     const parts = [];
     if (r.xp) parts.push(`${r.xp}xp`);
     if (r.gold) parts.push(`${r.gold}g`);
-    if (r.quest_points) parts.push(`${r.quest_points}QP`);
-    const n = (r.items || []).length;
-    if (n) parts.push(`+${n} item${n > 1 ? 's' : ''}`);
     return parts.join(' ');
 }
 
@@ -257,7 +261,7 @@ function closeQuestModal() {
 
 function modalBody(q) {
     const col = STATUS_COLOR[q.status] || '#9ca3af';
-    const meta = [cap(q.category || ''), q.difficulty, q.recommended?.danger ? `⚔ ${q.recommended.danger} danger` : '']
+    const meta = [cap(q.category || ''), q.difficulty, q.recommended?.danger ? `⚔️ ${q.recommended.danger} danger` : '']
         .filter(Boolean).map(esc).join(' · ');
     let h = `<div class="qm-name">${esc(q.name)}</div>
         <div class="qm-meta"><span class="qm-pill" style="color:${col};border-color:${col}">${STATUS_LABEL[q.status] || ''}</span>${meta}</div>`;

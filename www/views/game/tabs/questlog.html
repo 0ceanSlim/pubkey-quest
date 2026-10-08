@@ -1,22 +1,25 @@
 {{define "game/tabs/questlog.html"}}
 <style>
-/* Quest journal — 8px Dogica Pixel (the font's native size) throughout. */
+/* Quest journal. Sized for the 200px right rail (~185px of content after border,
+   padding and scrollbar): 8px names, 7px detail, 6px legend — the sizes the
+   other tabs use. Every row line truncates rather than wraps. */
 #questlog-panel { --qj-todo: #93c5fd; --qj-doing: #facc15; --qj-done: #4ade80; --qj-locked: #6b7280; --qj-gold: #fcd34d; --qj-muted: #9ca3af;
-                  font-size: 8px; line-height: 1.5; }
+                  font-size: 7px; line-height: 1.45; }
 .qj-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 3px; border-bottom: 1px solid #854d0e; margin-bottom: 3px; }
-.qj-head .qj-title { color: #facc15; font-weight: bold; }
+.qj-head .qj-title { color: #facc15; font-weight: bold; font-size: 8px; }
 .qj-head .qj-qp { color: var(--qj-muted); } .qj-head .qj-qp b { color: #facc15; }
 .qj-subtabs { display: flex; gap: 2px; margin-bottom: 3px; }
 .qj-subtab { flex: 1; font: inherit; color: var(--qj-muted); background: #2a2a2a; padding: 2px 0; cursor: pointer;
              border: 2px solid; border-color: #4a4a4a #0f0f0f #0f0f0f #4a4a4a; }
 .qj-subtab.on { color: #fff; background: #3a3a3a; border-color: #0f0f0f #4a4a4a #4a4a4a #0f0f0f; }
-.qj-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; margin-bottom: 3px; color: var(--qj-muted); }
-.qj-tools select { font: inherit; color: #e5e7eb; background: #2a2a2a; border: 1px solid #4a4a4a; padding: 0 2px; }
+.qj-tools { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; color: var(--qj-muted); }
+.qj-tools > div { display: flex; align-items: center; gap: 6px; }
+.qj-tools select { font: inherit; color: #e5e7eb; background: #2a2a2a; border: 1px solid #4a4a4a; padding: 0 2px; flex: 1; min-width: 0; }
 .qj-tools label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
-.qj-tools input { margin: 0; width: 9px; height: 9px; }
-.qj-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 3px; color: var(--qj-muted); }
-.qj-dot { display: inline-block; width: 6px; height: 6px; margin-right: 2px; }
-.qj-group { color: var(--qj-gold); font-weight: bold; background: #2a2a2a; padding: 1px 3px; margin: 3px 0 1px; cursor: pointer;
+.qj-tools input { margin: 0; width: 7px; height: 7px; }
+.qj-legend { display: flex; justify-content: space-between; margin-bottom: 3px; color: var(--qj-muted); font-size: 6px; }
+.qj-dot { display: inline-block; width: 5px; height: 5px; margin-right: 2px; }
+.qj-group { color: var(--qj-gold); font-weight: bold; font-size: 8px; background: #2a2a2a; padding: 1px 3px; margin: 3px 0 1px; cursor: pointer;
             display: flex; justify-content: space-between; }
 .qj-group span:last-child { color: var(--qj-muted); font-weight: normal; }
 .qj-row { display: flex; gap: 4px; padding: 2px 3px 2px 0; cursor: pointer; border-bottom: 1px solid #222; }
@@ -24,10 +27,10 @@
 .qj-bar { width: 3px; flex-shrink: 0; }
 .qj-body { flex: 1; min-width: 0; }
 .qj-l1 { display: flex; gap: 4px; align-items: baseline; }
-.qj-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.qj-tag { color: var(--qj-muted); flex-shrink: 0; }
+.qj-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 8px; }
 .qj-l2 { color: var(--qj-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.qj-l3 { display: flex; justify-content: space-between; gap: 4px; color: var(--qj-muted); }
+.qj-l3 { display: flex; justify-content: space-between; gap: 4px; color: var(--qj-muted); white-space: nowrap; }
+.qj-l3 > span:first-child { overflow: hidden; text-overflow: ellipsis; }
 .qj-reward { color: var(--qj-gold); white-space: nowrap; }
 .qj-prog { height: 2px; background: #333; margin-top: 1px; } .qj-prog > div { height: 100%; background: var(--qj-doing); }
 .qj-active .qj-bar { background: var(--qj-doing); }      .qj-active .qj-name { color: var(--qj-doing); }
@@ -55,18 +58,20 @@
 
     <div id="qj-quests-view">
         <div class="qj-tools">
-            <span>Sort <select id="qj-sort">
+            <div>Sort <select id="qj-sort">
                 <option value="category">Category</option>
                 <option value="status">Status</option>
                 <option value="name">Name</option>
                 <option value="difficulty">Difficulty</option>
-            </select></span>
-            <label><input type="checkbox" id="qj-hide-locked">Hide unavailable</label>
-            <label><input type="checkbox" id="qj-hide-done">Hide completed</label>
+            </select></div>
+            <div>Hide
+                <label title="Hide quests you can't start yet"><input type="checkbox" id="qj-hide-locked">Unavailable</label>
+                <label title="Hide completed quests"><input type="checkbox" id="qj-hide-done">Done</label>
+            </div>
         </div>
         <div class="qj-legend">
             <span><i class="qj-dot" style="background:var(--qj-doing)"></i>Active</span>
-            <span><i class="qj-dot" style="background:var(--qj-todo)"></i>Not started</span>
+            <span><i class="qj-dot" style="background:var(--qj-todo)"></i>New</span>
             <span><i class="qj-dot" style="background:var(--qj-done)"></i>Done</span>
             <span><i class="qj-dot" style="background:var(--qj-locked)"></i>Locked</span>
         </div>
