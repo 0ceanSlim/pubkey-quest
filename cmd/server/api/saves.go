@@ -11,7 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/0ceanslim/grain/client/core/tools"
 	"pubkey-quest/cmd/server/session"
+
+	"pubkey-quest/cmd/server/api/character"
+	gamecharacter "pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/types"
 )
 
@@ -148,11 +152,14 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 	log.Printf("✅ Found %d saves for npub: %s", len(saves), npub)
 	w.Header().Set("Content-Type", "application/json")
 
+	slotOf := slotResolver(npub)
+
 	// Convert saves to include id field in JSON output
 	savesWithID := make([]map[string]interface{}, 0, len(saves))
 	for _, save := range saves {
 		saveMap := make(map[string]interface{})
 		saveMap["id"] = save.InternalID
+		saveMap["slot_id"] = slotOf(save.Race, save.Class)
 		saveMap["d"] = save.D
 		saveMap["created_at"] = save.CreatedAt
 		saveMap["race"] = save.Race
@@ -207,7 +214,6 @@ func handleCreateSave(w http.ResponseWriter, r *http.Request, npub string) {
 		http.Error(w, "Invalid save data", http.StatusBadRequest)
 		return
 	}
-
 
 	// Convert back to JSON and then decode into SaveFile struct
 	jsonData, err := json.Marshal(rawData)
@@ -305,4 +311,39 @@ func GetSaveInfo(npub, saveID string) (*SaveFile, error) {
 // loadSaveFile is a local helper for handlers in this file
 func loadSaveFile(path string) (*SaveFile, error) {
 	return session.LoadSaveFile(path)
+}
+
+// slotResolver returns a function that says which roster slot a character
+// belongs to.
+//
+// The slot is *derived*, not stored: each derived slot is generated with the
+// earlier slots' race and class excluded, so race+class identifies a slot
+// uniquely. A character matching none of them was built by the player, which is
+// the custom slot. That keeps the saves screen working without adding a field
+// the server can already work out (the hydration rule, roadmap §4).
+//
+// If the generation tables can't be read, every save reports slot 1 — the
+// behaviour before slots were derived at all.
+func slotResolver(npub string) func(race, class string) int {
+	fallback := func(string, string) int { return 1 }
+
+	pubKey, err := tools.DecodeNpub(npub)
+	if err != nil {
+		return fallback
+	}
+	weightData, err := character.LoadWeightData()
+	if err != nil {
+		log.Printf("⚠️ Could not load generation weights for slot matching: %v", err)
+		return fallback
+	}
+
+	roster := gamecharacter.GenerateRoster(pubKey, weightData)
+	return func(race, class string) int {
+		for i, c := range roster {
+			if c.Race == race && c.Class == class {
+				return i + 1
+			}
+		}
+		return gamecharacter.CustomSlot
+	}
 }

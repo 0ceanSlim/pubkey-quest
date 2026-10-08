@@ -177,6 +177,19 @@ func registerCharacterRoutes(mux *http.ServeMux) {
 	// @Router /api/character/create-save [post]
 	mux.HandleFunc("/api/character/create-save", character.CreateCharacterHandler)
 
+	// @Summary      The player's character slots
+	// @Description  Each slot with the character it would create. Derived from
+	//               the npub alone, so a locked slot can show who waits in it.
+	// @Tags         Character
+	// @Produce      json
+	// @Success      200  {object}  character.CharacterSlotsResponse
+	// @Router       /api/character/slots [get]
+	//
+	// Open like /api/character: a pure function of a public key, touching no
+	// stored state. (It sits under the /api/character/ path but the identity
+	// gate protects /api/character/create-save specifically, not the prefix.)
+	mux.HandleFunc("/api/character/slots", character.CharacterSlotsHandler)
+
 	// @Summary Get generation weights
 	// @Description Returns character generation weight tables
 	// @Tags Character
