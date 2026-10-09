@@ -2,7 +2,7 @@
 
 Status: **DESIGN — first decisions made** (2026-10-08). Source data:
 `game-data/systems/gems.json` (not read by any code yet). Only one gem item exists:
-`rough-gem` (placeholder, 500 copper), the Ember Vault rite's price.
+`rough-gem` (placeholder, 500 gold), the Ember Vault rite's price.
 
 Scope note: the roadmap keeps **general item crafting** and **magic items** out of alpha.
 Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting are beta.
@@ -81,18 +81,32 @@ would be readable by anyone. The player can still reload a save to re-cut. That'
 accepted revert freedom as everywhere else, and the fee makes it a loss.
 
 ### Rarity from value (decided)
-A gem's rarity follows its final value (type × size × quality), on bands of its own:
+A gem's rarity follows its final value (type × size × quality), mapped onto the game's
+five item rarities. Values are in **gold**: the game counts everything in one coin, the gold
+piece, worth what D&D calls a copper.
 
-| Rarity | Value (copper) | e.g. |
+| Rarity | Value (gold) | Standard-quality examples |
 |---|---|---|
-| common | < 1,000 | tiny or small basic and common gems |
-| uncommon | 1,000 – 9,999 | medium basic, small rare |
-| rare | 10,000 – 99,999 | medium common/uncommon, small diamond |
-| very rare | 100,000 – 999,999 | medium rare, large uncommon |
-| legendary | 1,000,000+ | large rare, huge anything |
+| common | < 1,000 | tiny or small basic and common gems, tiny rare gems |
+| uncommon | 1,000 – 9,999 | medium basic gems, small amethyst/pearl/amber |
+| rare | 10,000 – 99,999 | medium common and uncommon gems, large basic, small ruby/sapphire/emerald |
+| legendary | 100,000 – 999,999 | medium ruby/sapphire/emerald/diamond, large topaz, huge basic |
+| mythic | 1,000,000+ | large rare, huge common and up |
 
-The draft's ×100 for huge makes a huge flawless diamond 200,000,000c (2,000,000 gp). It may
-want flattening (huge ×25?) when prices are tuned.
+Quality shifts a gem up or down: a flawless medium amethyst is 40,000 (rare), a flawed one
+5,000 (uncommon).
+
+**Naming trap:** `gems.json` groups gem *types* into tiers called basic / common / uncommon /
+rare / legendary. That's the type's base-value tier, not the item's rarity. The generator
+should rename them (e.g. `type_tier`), so a "common-tier" huge gem showing as mythic doesn't
+read as a contradiction.
+
+**Rarity name mismatch to fix:** the codex validator accepts `mythical`, while the game UI's
+rarity colours and glow (`ITEM_RARITY_COLORS` in `inventoryInteractions.js`) use `mythic`.
+No item uses either today. Pick one before any gem can be mythic.
+
+Huge is ×100 by decision, so a huge flawless diamond is 500,000 × 100 × 4 = **200,000,000
+gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 5% flawless.
 
 ## 2. Where gems come from
 
