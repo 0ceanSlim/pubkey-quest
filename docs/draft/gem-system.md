@@ -13,9 +13,10 @@ Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting 
   untouched.
 - **Jeweller NPC** cuts gems for a fee. **Hidden quality:** an uncut gem's quality is
   unknown until the jeweller cuts it.
-- **Smelter NPC** melts gold coins into bars for a fee. **No silver.**
-- **Jeweller crafts the finished piece:** bring a gold bar + a cut gem + the fee and get the
-  ring or necklace back. There is **no separate "set the gem" step.**
+- **No smelter, no bars, no silver.** The jeweller works straight from gold coins.
+- **Jeweller crafts the finished piece:** bring the coins + a cut gem + the fee and get the
+  ring or necklace back. There is **no separate "set the gem" step** (pricing in §3).
+- **Several enchanters,** each with their own pieces, success rates and fees (§4).
 - **Only rings and necklaces** are enchanted. No staffs, wands, foci, socketing or charges,
   and nothing that degrades (so no food-spoilage affinity).
 - **Affinities** (§4) are good as drafted, minus amber's food preservation.
@@ -29,6 +30,7 @@ Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting 
   shops; it gets replaced when the generator lands, and the vault rite moves to "any 2
   uncut gems" by tag.
 - **Huge stays ×100**, made rare enough to earn it: **0.5%** of gem drops (§1).
+- **Drops roll per kill, with a per-monster `gem_chance` override** (§2).
 
 ---
 
@@ -99,9 +101,9 @@ want flattening (huge ×25?) when prices are tuned.
   - Every kill rolls it at a **25% base chance**, adjusted by the draft's CR scaling (×1.2 at
     CR 1–2 up to ×5 at CR 16+) on the *type* roll, so tougher monsters drop better gems, not
     more of them.
-  - An optional `gem_chance` on a monster overrides the 25%: 0 for beasts that shouldn't carry
-    gems, higher for hoarders like dragons and kobolds.
-  - Rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
+  - **Decided:** an optional `gem_chance` on a monster overrides the 25%: 0 for beasts that
+    shouldn't carry gems, higher for hoarders like dragons and kobolds.
+  - **Decided:** rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
     pile with everything else.
 - **Mining POIs** (Ironvein Seam etc.), mostly uncut basic/common gems.
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
@@ -111,17 +113,26 @@ want flattening (huge ×25?) when prices are tuned.
 
 | Step | NPC | You bring | You get |
 |---|---|---|---|
-| Melt | **Smelter** (Ironpeak forge; Goldenhaven's Mountain Ore Exchange) | N gold coins + fee | gold bar |
-| Cut | **Jeweller** (Goldenhaven, the gem trade) | uncut gem + fee (by type and size) | cut gem, **quality revealed**; ~40% of the carats lost |
-| Craft | **Jeweller** | gold bar + cut gem + fee | gold ring or necklace with that gem (unenchanted) |
-| Enchant | **Enchanter** (open: Verdant's elves? the Kingdom?) | that ring or necklace + fee | the magic item (§4) |
+| Cut | **Jeweller** (Goldenhaven, the gem trade) | uncut gem + cutting fee | cut gem, **quality revealed**; ~40% of the carats lost |
+| Craft | **Jeweller** | gold coins + cut gem + labour fee | gold ring or necklace with that gem (unenchanted) |
+| Enchant | **An enchanter** (several; §4) | that ring or necklace + their fee | the magic item |
 
-- Each is an ordinary NPC dialogue action, like the vault rite: `requirements` + `consume_items`
-  + a fee, then the result is added. No new UI beyond the dialogue strip.
-- Plain gold rings and necklaces (no gem) can be crafted too. They're valuable but have no
-  magic.
-- **Cutting never fails.** The quality roll is the risk. Enchanting is where quality matters
-  (§4).
+Each step is an ordinary NPC dialogue action, like the vault rite: `requirements` +
+`consume_items` + a fee, then the result is added. No new UI beyond the dialogue strip.
+
+### Jeweller pricing (proposal from the maintainer's figures)
+| Piece | Gold it takes | Labour | Piece is worth |
+|---|---|---|---|
+| ring | **1,000** | 10% of the cut gem's value | 1,000 + gem value |
+| necklace | **2,000** | 10% of the cut gem's value | 2,000 + gem value |
+
+- The coins become the piece's gold, so their value isn't lost: a piece is worth its gold
+  plus its gem. Only the labour fee is spent, and it scales with what the piece is worth.
+- **Cutting fee:** a flat fee by size (e.g. tiny 50 … huge 5,000). Since quality is unknown
+  until cut, the fee can't follow the cut value.
+- **Weights:** ring 0.02 lb, necklace 0.05 lb. A thousand coins melted into a ring weigh far
+  less than the coins did, which is the point of the jeweller.
+- **Plain gold** rings and necklaces (no gem) cost the gold plus a flat labour fee.
 
 ## 4. Enchanting: what each gem does
 
@@ -166,13 +177,33 @@ an ember aura or a regeneration tick. It's applied on equip and removed on unequ
 worn item.
 
 ### Quality = ease of enchanting (decided)
-Quality sets the enchanter's **success chance and fee**. Failure costs the fee only; the
-piece survives.
+Quality shifts the **success chance and fee**. Failure costs the fee only; the piece
+survives.
 
-- **Flawed:** ~60%.
-- **Standard:** ~80%.
-- **Fine:** ~95% at half the fee.
-- **Flawless:** 100%, and a second minor enchant.
+- **Flawed:** −20% success.
+- **Standard:** base.
+- **Fine:** +15%, at a lower fee.
+- **Flawless:** always succeeds, and adds a second minor enchant.
+
+### Enchanters differ (decided)
+Several enchanter NPCs, each with an `enchant_config` on their NPC JSON:
+
+| Field | Meaning |
+|---|---|
+| `pieces` | what they'll work on: ring, necklace or both |
+| `affinities` | which gem affinities they know (all, or a specialty) |
+| `max_size` | the largest size they can handle (a hedge-witch can't touch huge gems) |
+| `base_success` | their base chance before quality |
+| `fee_multiplier` | their price relative to the base fee (base fee scales with enchant tier) |
+
+Example roster, placements open:
+
+| Enchanter | Where | Character |
+|---|---|---|
+| Marsh hedge-witch | Marshlight | cheap, 60% base, small gems only, any affinity |
+| Elven enchantress | Verdant | 90% base, expensive, nature and clarity specialties |
+| Dwarven runesmith | Ironpeak | 80%, mid price, ward / vigor / endurance only, any size |
+| Goldenhaven arcanist | Goldenhaven | 85%, priciest, any affinity, the only one for huge gems |
 
 ### Stacking (decided)
 Two pieces with the same gem simply add their effects: ruby ring + ruby necklace = +2 STR.
@@ -251,10 +282,8 @@ such as random enchant strengths or durability. Those were ruled out today.
 
 ## 8. Still open
 
-1. **Per kill or per encounter?** Proposal: per kill, 25% each.
-2. **`gem_chance` override per monster**: worth having from the start, or add it when a
-   monster needs one?
-3. **Where the enchanter lives**, and the coins-per-bar ratio.
+1. **Jeweller figures:** 1,000 / 2,000 gold + 10% labour, and the cutting fee table — OK?
+2. **Enchanter roster:** which ones, where, and their numbers.
 
 ## 9. Build slices (Option A)
 
@@ -263,6 +292,6 @@ such as random enchant strengths or durability. Those were ruled out today.
 2. **Gem drops:** the shared table on every kill (plus mining POIs).
 3. **Tag requirements:** dialogue `requirements.items` / `consume_items` accept a tag. The
    Ember Vault rite asks for any 2 uncut gems.
-4. **Jeweller (cut) + smelter (bars)** NPCs and dialogue actions.
-5. **Jeweller crafting** of gold rings and necklaces.
-6. **Enchanter** and the enchanted pieces with their worn effects (beta).
+4. **Jeweller cutting:** NPC + `cut_gem` dialogue action (quality rolled at the cut).
+5. **Jeweller crafting:** gold rings and necklaces from coins + cut gem + labour.
+6. **Enchanters:** `enchant_config` NPCs, and the enchanted pieces with their worn effects (beta).
