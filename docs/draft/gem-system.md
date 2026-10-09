@@ -24,6 +24,11 @@ Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting 
 - **Class affinity** is dropped as too complicated.
 - **Rarity comes from value**, like every other item (§1).
 - **Sprites** as drafted: one per type (cut and uncut), scaled by size, shimmer by quality.
+- **Option A:** generated variant items from `gems.json` (§7).
+- **No stopgap.** `rough-gem` is a placeholder, not a real item. It isn't seeded into loot or
+  shops; it gets replaced when the generator lands, and the vault rite moves to "any 2
+  uncut gems" by tag.
+- **Huge stays ×100**, made rare enough to earn it: **0.5%** of gem drops (§1).
 
 ---
 
@@ -41,11 +46,16 @@ Store the gem's **carats**; the size class is a band of that, not a separate fie
 
 | Size | Carats | Value × | Drop share |
 |---|---|---|---|
-| tiny | < 0.5 | 0.01 | 42% |
-| small | 0.5–2 | 0.1 | 32% |
-| medium | 2–5 | 1 | 18% |
-| large | 5–15 | 10 | 6% |
-| huge | 15+ | 100 | 2% |
+| tiny | < 0.5 | 0.01 | 44% |
+| small | 0.5–2 | 0.1 | 33% |
+| medium | 2–5 | 1 | 18.5% |
+| large | 5–15 | 10 | 4% |
+| huge | 15+ | 100 | **0.5%** |
+
+**Why ×100 is fine at 0.5%:** a drop's expected size multiplier is Σ share × multiplier =
+0.0044 + 0.033 + 0.185 + 0.4 + 0.5 ≈ **1.1×** the medium price. Huge gems carry about half
+of that expected value but turn up once in 200 gems. With a 25% gem chance per kill, that's
+one huge gem in ~800 kills, and a huge *diamond* (1% of types) one in ~80,000.
 
 Gems are light: carry weight can be carats ÷ 2,000 lb, effectively nothing. That's fine,
 because a gem's weight matters for value and enchanting, not for encumbrance.
@@ -84,13 +94,18 @@ want flattening (huge ×25?) when prices are tuned.
 
 ## 2. Where gems come from
 
-- **Monster drops:** one shared gem roll on every combat loot roll, using the draft's
-  CR scaling (×1.2 at CR 1–2 up to ×5 at CR 16+). The draft's 50% base drop rate is likely
-  too generous for the economy; ~15–25% feels closer, with large/huge gated behind CR.
+- **Monster kills: one shared gem table, overridable per monster.** No monster JSON has a gem
+  entry today (31 checked), so a shared table is the base:
+  - Every kill rolls it at a **25% base chance**, adjusted by the draft's CR scaling (×1.2 at
+    CR 1–2 up to ×5 at CR 16+) on the *type* roll, so tougher monsters drop better gems, not
+    more of them.
+  - An optional `gem_chance` on a monster overrides the 25%: 0 for beasts that shouldn't carry
+    gems, higher for hoarders like dragons and kobolds.
+  - Rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
+    pile with everything else.
 - **Mining POIs** (Ironvein Seam etc.), mostly uncut basic/common gems.
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
-- **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific
-  flawless gem).
+- **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific gem).
 
 ## 3. The NPC crafting chain (beta)
 
@@ -236,10 +251,18 @@ such as random enchant strengths or durability. Those were ruled out today.
 
 ## 8. Still open
 
-1. **A (recommended) or B?**
-2. **Drop rate** (draft says 50%; suggest 15–25%) and CR gating for large/huge gems.
-3. **Huge multiplier:** keep ×100 or flatten (×25)?
-4. **Where the enchanter lives**, and the coins-per-bar ratio.
-5. **Unblock now:** add `rough-gem` to early monster loot and/or stock it at the Mountain
-   Ore Exchange (Goldenhaven north) so the Ember Vault rite is reachable today. When the
-   generator lands, the rite moves to "any 2 uncut gems" by tag.
+1. **Per kill or per encounter?** Proposal: per kill, 25% each.
+2. **`gem_chance` override per monster**: worth having from the start, or add it when a
+   monster needs one?
+3. **Where the enchanter lives**, and the coins-per-bar ratio.
+
+## 9. Build slices (Option A)
+
+1. **Generator:** migration expands `gems.json` into uncut and cut gem items, with value,
+   rarity-from-value, tags, and sprite path + size scale. Replaces `rough-gem`.
+2. **Gem drops:** the shared table on every kill (plus mining POIs).
+3. **Tag requirements:** dialogue `requirements.items` / `consume_items` accept a tag. The
+   Ember Vault rite asks for any 2 uncut gems.
+4. **Jeweller (cut) + smelter (bars)** NPCs and dialogue actions.
+5. **Jeweller crafting** of gold rings and necklaces.
+6. **Enchanter** and the enchanted pieces with their worn effects (beta).
