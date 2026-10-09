@@ -46,18 +46,17 @@ Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting 
 ### Size from weight (your idea, adopted)
 Store the gem's **carats**; the size class is a band of that, not a separate field:
 
-| Size | Carats | Value × | Drop share |
+| Size | Carats | Value × | Base share |
 |---|---|---|---|
 | tiny | < 0.5 | 0.01 | 44% |
 | small | 0.5–2 | 0.1 | 33% |
 | medium | 2–5 | 1 | 18.5% |
 | large | 5–15 | 10 | 4% |
-| huge | 15+ | 100 | **0.5%** |
+| huge | 15+ | 100 | 0.5% |
 
-**Why ×100 is fine at 0.5%:** a drop's expected size multiplier is Σ share × multiplier =
-0.0044 + 0.033 + 0.185 + 0.4 + 0.5 ≈ **1.1×** the medium price. Huge gems carry about half
-of that expected value but turn up once in 200 gems. With a 25% gem chance per kill, that's
-one huge gem in ~800 kills, and a huge *diamond* (1% of types) one in ~80,000.
+The base shares are the CR-10 baseline (`size_tilt` = 1). Weaker monsters shift toward
+tiny and stronger ones toward huge (§2), which is what keeps ×100 sane: a huge gem is
+~1 in 195,000 gems at CR 0, and ~1 in 28 at CR 20.
 
 Gems are light: carry weight can be carats ÷ 2,000 lb, effectively nothing. That's fine,
 because a gem's weight matters for value and enchanting, not for encumbrance.
@@ -110,54 +109,51 @@ gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 
 
 - **Monster kills: one shared gem table, overridable per monster.** No monster JSON has a gem
   entry today (31 checked), so a shared table is the base:
-  - Every kill rolls it at a **25% base chance**, adjusted by the draft's CR scaling (×1.2 at
-    CR 1–2 up to ×5 at CR 16+) on the *type* roll — shifting weight toward higher-`base_value` types — so tougher
-    monsters drop better gems, not more of them.
-  - **Decided:** an optional `gem_chance` on a monster overrides the 25%: 0 for beasts that
-    shouldn't carry gems, higher for hoarders like dragons and kobolds.
+  - **Decided:** everything scales with CR (chance, type and size), on adjustable curves.
+  - **Decided:** an optional `gem_chance` on a monster overrides the CR curve: 0 for beasts
+    that shouldn't carry gems, higher for hoarders like dragons and kobolds.
   - **Decided:** rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
     pile with everything else.
-- **The roll, step by step** (per kill):
-  1. **Gem or not:** roll the monster's `gem_chance` (default 25%). A miss means no gem.
-  2. **Which type:** a weighted pick over the 20 types. A type's weight is its `drop_rate`
-     from `gems.json` (the weights sum to 2.12; only the ratios matter), tilted toward
-     valuable gems by the monster's CR:
+- **The roll, step by step** (per kill). Every number is data in `gems.json` →
+  `cr_scaling`. Each curve is a list of `[CR, value]` points, interpolated log-linearly and
+  held flat past the ends.
+  1. **Gem or not:** roll `gem_chance(CR)`, unless the monster sets its own `gem_chance`.
+     A miss means no gem.
+  2. **Which type:** a weighted pick over the 20 types:
+     `weight = drop_rate × type_tilt(CR) ^ log10(base_value ÷ 1,000)`.
+     The exponent counts tenfold steps above quartz (onyx 0.7, amethyst 1, topaz 1.7,
+     ruby 2, diamond 2.7). A tilt below 1 favours cheap gems; above 1, valuable ones.
+  3. **Which size:** the same shape over the five sizes:
+     `weight = share × size_tilt(CR) ^ log10(multiplier)` (tiny −2 … huge +2), with
+     base shares tiny 44%, small 33%, medium 18.5%, large 4%, huge 0.5%.
+  4. **Result:** that type and size as an **uncut** gem on the loot pile. Quality waits
+     for the jeweller.
 
-     `weight = drop_rate × tilt ^ log10(base_value ÷ 1,000)`
+  The starting curves:
 
-     `tilt` is the draft's CR factor: CR 0–½ = 1, 1–2 = 1.2, 3–5 = 1.5, 6–10 = 2,
-     11–15 = 3, 16+ = 5. The exponent counts how many tenfold steps a gem sits above
-     quartz (quartz 0, onyx 0.7, amethyst 1, topaz 1.7, ruby 2, diamond 2.7). At tilt 1 the
-     draft's own rates apply unchanged.
-  3. **Which size:** the size shares in §1 (tiny 44% … huge 0.5%), the same at every CR.
-  4. **Result:** that type and size as an **uncut** gem on the loot pile. Quality isn't
-     rolled until a jeweller cuts it.
+  | CR | 0 | 5 | 10 | 20 |
+  |---|---|---|---|---|
+  | `gem_chance` | 15% | 25% | 30% | 40% |
+  | `type_tilt` | 0.6 | 1.3 | 2.2 | 5.0 |
+  | `size_tilt` | 0.15 | 0.5 | 1.0 | 2.0 |
 
-  What that gives, as the share of gems by type:
+  What they produce: a jackpot is always possible, but it starts tiny and climbs steeply.
 
-  | Monster CR | quartz…malachite (1k) | onyx…bloodstone (5k) | pearl/amber/amethyst (10k) | topaz/garnet/alexandrite (50k) | ruby/sapphire/emerald (100k) | diamond (500k) |
-  |---|---|---|---|---|---|---|
-  | 0–½ | 51.9% | 23.6% | 11.3% | 8.5% | 4.2% | 0.5% |
-  | 1–2 | 46.9% | 24.2% | 12.3% | 10.5% | 5.5% | 0.7% |
-  | 3–5 | 40.5% | 24.5% | 13.3% | 13.2% | 7.5% | 1.1% |
-  | 6–10 | 32.3% | 23.9% | 14.1% | 17.2% | 10.6% | 1.9% |
-  | 11–15 | 21.7% | 21.3% | 14.2% | 23.0% | 16.0% | 3.8% |
-  | 16+ | 11.4% | 16.0% | 12.5% | 28.8% | 23.4% | 8.0% |
+  | Monster CR | Avg gem gold per kill | Huge gem: 1 in N gems | Large or huge | Diamond |
+  |---|---|---|---|---|
+  | 0 | ~34 | ~195,000 | 0.03% | 0.1% |
+  | 1 | ~60 | ~77,000 | 0.06% | 0.2% |
+  | 3 | ~230 | ~12,000 | 0.2% | 0.4% |
+  | 5 | ~1,070 | ~2,100 | 0.8% | 0.8% |
+  | 10 | ~11,900 | ~200 | 4.5% | 2.3% |
+  | 15 | ~47,700 | ~70 | 9.4% | 4.5% |
+  | 20 | ~171,000 | ~28 | 17.9% | 8.0% |
 
-- **Economy check — needs a decision.** A typical gem is tiny or small and worth 10–1,000
-  gold. But the *average* gem is worth a lot, because rare large and huge gems carry the
-  mean:
-  - The average base value at CR ½ is ~13,700 gold. Times the size average (≈1.1) and the
-    25% chance, that's **~3,800 gold per CR-½ kill on average**.
-  - A bandit drops 2–10 coins.
-  - Over a few hundred kills, gems would dwarf every other income. That's fine if it's the
-    intended "jackpot" feel, but it inflates the economy.
+  A weak kill's gems are now worth about what its other loot is (a bandit drops 2–10 coins
+  plus gear). Big finds stay rare until the monsters get dangerous. The averages are
+  carried by the rare big gems; a typical gem is still tiny or small. These are first-pass
+  numbers: tune by editing the curves and re-running the generator.
 
-  Levers, any mix:
-  - **Gate size by CR:** large and huge only from CR 3+ and 6+. This cuts most of the mean.
-  - **Lower `gem_chance` for weak monsters,** e.g. 10% below CR 1.
-  - **Steeper size shares at low CR:** tiny and small only from CR 0–½.
-  - **Accept it,** and let prices and sinks (jeweller fees, enchanting) soak it up.
 - **Mining POIs** (Ironvein Seam etc.), mostly uncut low-value gems (quartz to amethyst).
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
 - **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific gem).
