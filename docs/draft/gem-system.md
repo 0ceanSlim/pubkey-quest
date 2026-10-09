@@ -156,14 +156,14 @@ Each step is an ordinary NPC dialogue action, like the vault rite: `requirements
 | 1,000 | azurite | **Tide:** mana regeneration |
 | 1,000 | obsidian | **Shade:** stealth, necrotic edge |
 | 1,000 | turquoise | **Wayfarer:** less travel fatigue, safer roads |
-| 5–10k | onyx | **Ward:** +AC, necrotic resistance |
-| 5–10k | moonstone | **Night:** darkvision, more mana at night |
-| 5–10k | citrine | **Dawn:** radiant damage, light |
-| 5–10k | jasper | **Endurance:** stamina/rage pool, fatigue resistance |
-| 5–10k | bloodstone | **Vitality:** HP regen, healing received |
-| 5–10k | pearl | **Grace:** CHA, water breathing |
-| 5–10k | amber | **Stillness:** lightning resistance |
-| 5–10k | amethyst | **Clarity:** WIS, resist charm/fright |
+| 5,000 | onyx | **Ward:** +AC, necrotic resistance |
+| 5,000 | moonstone | **Night:** darkvision, more mana at night |
+| 5,000 | citrine | **Dawn:** radiant damage, light |
+| 5,000 | jasper | **Endurance:** stamina/rage pool, fatigue resistance |
+| 5,000 | bloodstone | **Vitality:** HP regen, healing received |
+| 10,000 | pearl | **Grace:** CHA, water breathing |
+| 10,000 | amber | **Stillness:** lightning resistance |
+| 10,000 | amethyst | **Clarity:** WIS, resist charm/fright |
 | 50,000 | topaz | **Swiftness:** DEX, lightning damage |
 | 50,000 | garnet | **Vigor:** STR, max HP |
 | 50,000 | alexandrite | **Shifting:** adapts to the wearer's class's main stat |
