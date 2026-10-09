@@ -117,6 +117,47 @@ gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 
     shouldn't carry gems, higher for hoarders like dragons and kobolds.
   - **Decided:** rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
     pile with everything else.
+- **The roll, step by step** (per kill):
+  1. **Gem or not:** roll the monster's `gem_chance` (default 25%). A miss means no gem.
+  2. **Which type:** a weighted pick over the 20 types. A type's weight is its `drop_rate`
+     from `gems.json` (the weights sum to 2.12; only the ratios matter), tilted toward
+     valuable gems by the monster's CR:
+
+     `weight = drop_rate × tilt ^ log10(base_value ÷ 1,000)`
+
+     `tilt` is the draft's CR factor: CR 0–½ = 1, 1–2 = 1.2, 3–5 = 1.5, 6–10 = 2,
+     11–15 = 3, 16+ = 5. The exponent counts how many tenfold steps a gem sits above
+     quartz (quartz 0, onyx 0.7, amethyst 1, topaz 1.7, ruby 2, diamond 2.7). At tilt 1 the
+     draft's own rates apply unchanged.
+  3. **Which size:** the size shares in §1 (tiny 44% … huge 0.5%), the same at every CR.
+  4. **Result:** that type and size as an **uncut** gem on the loot pile. Quality isn't
+     rolled until a jeweller cuts it.
+
+  What that gives, as the share of gems by type:
+
+  | Monster CR | quartz…malachite (1k) | onyx…bloodstone (5k) | pearl/amber/amethyst (10k) | topaz/garnet/alexandrite (50k) | ruby/sapphire/emerald (100k) | diamond (500k) |
+  |---|---|---|---|---|---|---|
+  | 0–½ | 51.9% | 23.6% | 11.3% | 8.5% | 4.2% | 0.5% |
+  | 1–2 | 46.9% | 24.2% | 12.3% | 10.5% | 5.5% | 0.7% |
+  | 3–5 | 40.5% | 24.5% | 13.3% | 13.2% | 7.5% | 1.1% |
+  | 6–10 | 32.3% | 23.9% | 14.1% | 17.2% | 10.6% | 1.9% |
+  | 11–15 | 21.7% | 21.3% | 14.2% | 23.0% | 16.0% | 3.8% |
+  | 16+ | 11.4% | 16.0% | 12.5% | 28.8% | 23.4% | 8.0% |
+
+- **Economy check — needs a decision.** A typical gem is tiny or small and worth 10–1,000
+  gold. But the *average* gem is worth a lot, because rare large and huge gems carry the
+  mean:
+  - The average base value at CR ½ is ~13,700 gold. Times the size average (≈1.1) and the
+    25% chance, that's **~3,800 gold per CR-½ kill on average**.
+  - A bandit drops 2–10 coins.
+  - Over a few hundred kills, gems would dwarf every other income. That's fine if it's the
+    intended "jackpot" feel, but it inflates the economy.
+
+  Levers, any mix:
+  - **Gate size by CR:** large and huge only from CR 3+ and 6+. This cuts most of the mean.
+  - **Lower `gem_chance` for weak monsters,** e.g. 10% below CR 1.
+  - **Steeper size shares at low CR:** tiny and small only from CR 0–½.
+  - **Accept it,** and let prices and sinks (jeweller fees, enchanting) soak it up.
 - **Mining POIs** (Ironvein Seam etc.), mostly uncut low-value gems (quartz to amethyst).
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
 - **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific gem).
