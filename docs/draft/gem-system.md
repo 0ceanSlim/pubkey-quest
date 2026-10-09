@@ -38,7 +38,7 @@ Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting 
 
 | Axis | Values | What it drives |
 |---|---|---|
-| **Type** | 20 types in 5 tiers (quartz … diamond) | base value; the **affinity** (what it enchants into, §4) |
+| **Type** | 20 types, quartz (1,000) … diamond (500,000) | base value; the **affinity** (what it enchants into, §4) |
 | **Size** | derived from **weight in carats** | value multiplier; **power** of an enchant (§4); sprite scale (§6) |
 | **Quality** | flawed · standard · fine · flawless | value multiplier; **ease of enchanting** (§4) |
 | **State** | uncut · cut | uncut is a trade good; cut is needed to set into jewelry (§3) |
@@ -87,19 +87,18 @@ piece, worth what D&D calls a copper.
 
 | Rarity | Value (gold) | Standard-quality examples |
 |---|---|---|
-| common | < 1,000 | tiny or small basic and common gems, tiny rare gems |
-| uncommon | 1,000 – 9,999 | medium basic gems, small amethyst/pearl/amber |
-| rare | 10,000 – 99,999 | medium common and uncommon gems, large basic, small ruby/sapphire/emerald |
-| legendary | 100,000 – 999,999 | medium ruby/sapphire/emerald/diamond, large topaz, huge basic |
+| 5–10k | < 1,000 | tiny or small basic and common gems, tiny rare gems |
+| 50,000 | 1,000 – 9,999 | medium basic gems, small amethyst/pearl/amber |
+| 100,000 | 10,000 – 99,999 | medium common and uncommon gems, large basic, small ruby/sapphire/emerald |
+| 500,000 | 100,000 – 999,999 | medium ruby/sapphire/emerald/diamond, large topaz, huge basic |
 | mythic | 1,000,000+ | large rare, huge common and up |
 
 Quality shifts a gem up or down: a flawless medium amethyst is 40,000 (rare), a flawed one
 5,000 (uncommon).
 
-**Naming trap:** `gems.json` groups gem *types* into tiers called basic / common / uncommon /
-rare / legendary. That's the type's base-value tier, not the item's rarity. The generator
-should rename them (e.g. `type_tier`), so a "common-tier" huge gem showing as mythic doesn't
-read as a contradiction.
+**No type tiers** (decided): a gem's type only contributes its `base_value` and drop
+weight; rarity comes from the final value alone. The draft's `tier` field was removed from
+`gems.json`.
 
 **Top rarity is `mythic` everywhere** (decided): the codex validator and item editor were
 changed from `mythical` to match the game UI.
@@ -112,8 +111,8 @@ gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 
 - **Monster kills: one shared gem table, overridable per monster.** No monster JSON has a gem
   entry today (31 checked), so a shared table is the base:
   - Every kill rolls it at a **25% base chance**, adjusted by the draft's CR scaling (×1.2 at
-    CR 1–2 up to ×5 at CR 16+) on the *type* roll, so tougher monsters drop better gems, not
-    more of them.
+    CR 1–2 up to ×5 at CR 16+) on the *type* roll — shifting weight toward higher-`base_value` types — so tougher
+    monsters drop better gems, not more of them.
   - **Decided:** an optional `gem_chance` on a monster overrides the 25%: 0 for beasts that
     shouldn't carry gems, higher for hoarders like dragons and kobolds.
   - **Decided:** rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
@@ -150,28 +149,28 @@ Each step is an ordinary NPC dialogue action, like the vault rite: `requirements
 ## 4. Enchanting: what each gem does
 
 ### Affinities: every type has its own identity
-| Tier | Gem | Affinity (stat / element / utility) |
+| Base value | Gem | Affinity (stat / element / utility) |
 |---|---|---|
-| basic | quartz | **Focus:** +spell attack / perception |
-| basic | malachite | **Verdance:** poison resistance, herbalism |
-| basic | azurite | **Tide:** mana regeneration |
-| basic | obsidian | **Shade:** stealth, necrotic edge |
-| basic | turquoise | **Wayfarer:** less travel fatigue, safer roads |
-| common | onyx | **Ward:** +AC, necrotic resistance |
-| common | moonstone | **Night:** darkvision, more mana at night |
-| common | citrine | **Dawn:** radiant damage, light |
-| common | jasper | **Endurance:** stamina/rage pool, fatigue resistance |
-| common | bloodstone | **Vitality:** HP regen, healing received |
-| common | pearl | **Grace:** CHA, water breathing |
-| common | amber | **Stillness:** lightning resistance |
-| common | amethyst | **Clarity:** WIS, resist charm/fright |
-| uncommon | topaz | **Swiftness:** DEX, lightning damage |
-| uncommon | garnet | **Vigor:** STR, max HP |
-| uncommon | alexandrite | **Shifting:** adapts to the wearer's class's main stat |
-| rare | ruby | **Flame:** STR, fire damage |
-| rare | sapphire | **Frost & mind:** INT, max mana, cold damage |
-| rare | emerald | **Growth:** WIS, healing power, nature spells |
-| legendary | diamond | **Purity:** CON, resist all; takes any affinity at full power |
+| 1,000 | quartz | **Focus:** +spell attack / perception |
+| 1,000 | malachite | **Verdance:** poison resistance, herbalism |
+| 1,000 | azurite | **Tide:** mana regeneration |
+| 1,000 | obsidian | **Shade:** stealth, necrotic edge |
+| 1,000 | turquoise | **Wayfarer:** less travel fatigue, safer roads |
+| 5–10k | onyx | **Ward:** +AC, necrotic resistance |
+| 5–10k | moonstone | **Night:** darkvision, more mana at night |
+| 5–10k | citrine | **Dawn:** radiant damage, light |
+| 5–10k | jasper | **Endurance:** stamina/rage pool, fatigue resistance |
+| 5–10k | bloodstone | **Vitality:** HP regen, healing received |
+| 5–10k | pearl | **Grace:** CHA, water breathing |
+| 5–10k | amber | **Stillness:** lightning resistance |
+| 5–10k | amethyst | **Clarity:** WIS, resist charm/fright |
+| 50,000 | topaz | **Swiftness:** DEX, lightning damage |
+| 50,000 | garnet | **Vigor:** STR, max HP |
+| 50,000 | alexandrite | **Shifting:** adapts to the wearer's class's main stat |
+| 100,000 | ruby | **Flame:** STR, fire damage |
+| 100,000 | sapphire | **Frost & mind:** INT, max mana, cold damage |
+| 100,000 | emerald | **Growth:** WIS, healing power, nature spells |
+| 500,000 | diamond | **Purity:** CON, resist all; takes any affinity at full power |
 
 ### Size = power (this gives size a role even for flat +stat items)
 An enchant's **tier is capped by the gem's size**:

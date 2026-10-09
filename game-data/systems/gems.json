@@ -10,121 +10,101 @@
       "diamond": {
         "base_value": 500000,
         "drop_rate": 0.01,
-        "tier": "legendary",
         "description": "The most precious of gems, crystal clear and brilliant"
       },
       "sapphire": {
         "base_value": 100000,
         "drop_rate": 0.03,
-        "tier": "rare",
         "description": "Deep blue gemstone prized by nobility"
       },
       "emerald": {
         "base_value": 100000,
         "drop_rate": 0.03,
-        "tier": "rare",
         "description": "Vibrant green gem associated with nature magic"
       },
       "ruby": {
         "base_value": 100000,
         "drop_rate": 0.03,
-        "tier": "rare",
         "description": "Blood-red stone that gleams like fire"
       },
       "topaz": {
         "base_value": 50000,
         "drop_rate": 0.06,
-        "tier": "uncommon",
         "description": "Golden gemstone that catches light beautifully"
       },
       "garnet": {
         "base_value": 50000,
         "drop_rate": 0.06,
-        "tier": "uncommon",
         "description": "Dark red stone often used in jewelry"
       },
       "alexandrite": {
         "base_value": 50000,
         "drop_rate": 0.06,
-        "tier": "uncommon",
         "description": "Color-changing gem that shifts in different light"
       },
       "pearl": {
         "base_value": 10000,
         "drop_rate": 0.08,
-        "tier": "common",
         "description": "Lustrous sphere formed in oysters and mussels"
       },
       "amber": {
         "base_value": 10000,
         "drop_rate": 0.08,
-        "tier": "common",
         "description": "Fossilized tree resin, sometimes containing ancient insects"
       },
       "amethyst": {
         "base_value": 10000,
         "drop_rate": 0.08,
-        "tier": "common",
         "description": "Purple quartz crystal with mystical properties"
       },
       "onyx": {
         "base_value": 5000,
         "drop_rate": 0.10,
-        "tier": "common",
         "description": "Black stone with white bands"
       },
       "moonstone": {
         "base_value": 5000,
         "drop_rate": 0.10,
-        "tier": "common",
         "description": "Pale gem that shimmers like moonlight"
       },
       "citrine": {
         "base_value": 5000,
         "drop_rate": 0.10,
-        "tier": "common",
         "description": "Yellow quartz that sparkles like sunlight"
       },
       "jasper": {
         "base_value": 5000,
         "drop_rate": 0.10,
-        "tier": "common",
         "description": "Colorful stone with interesting patterns"
       },
       "bloodstone": {
         "base_value": 5000,
         "drop_rate": 0.10,
-        "tier": "common",
         "description": "Dark green stone flecked with red spots"
       },
       "turquoise": {
         "base_value": 1000,
         "drop_rate": 0.22,
-        "tier": "basic",
         "description": "Blue-green stone often carved into trinkets"
       },
       "quartz": {
         "base_value": 1000,
         "drop_rate": 0.22,
-        "tier": "basic",
         "description": "Clear crystal common in many regions"
       },
       "azurite": {
         "base_value": 1000,
         "drop_rate": 0.22,
-        "tier": "basic",
         "description": "Bright blue mineral used in paint and decoration"
       },
       "obsidian": {
         "base_value": 1000,
         "drop_rate": 0.22,
-        "tier": "basic",
         "description": "Volcanic glass, sharp and dark"
       },
       "malachite": {
         "base_value": 1000,
         "drop_rate": 0.22,
-        "tier": "basic",
         "description": "Bright green stone with swirling patterns"
       }
     },
