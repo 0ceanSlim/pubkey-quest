@@ -87,11 +87,11 @@ piece, worth what D&D calls a copper.
 
 | Rarity | Value (gold) | Standard-quality examples |
 |---|---|---|
-| 5–10k | < 1,000 | tiny or small basic and common gems, tiny rare gems |
-| 50,000 | 1,000 – 9,999 | medium basic gems, small amethyst/pearl/amber |
-| 100,000 | 10,000 – 99,999 | medium common and uncommon gems, large basic, small ruby/sapphire/emerald |
-| 500,000 | 100,000 – 999,999 | medium ruby/sapphire/emerald/diamond, large topaz, huge basic |
-| mythic | 1,000,000+ | large rare, huge common and up |
+| common | < 1,000 | tiny or small quartz/onyx, tiny ruby |
+| uncommon | 1,000 – 9,999 | medium quartz, small amethyst/pearl/amber |
+| rare | 10,000 – 99,999 | medium onyx/amethyst/topaz, large quartz, small ruby/sapphire/emerald |
+| legendary | 100,000 – 999,999 | medium ruby/sapphire/emerald/diamond, large topaz, huge quartz |
+| mythic | 1,000,000+ | large ruby/sapphire/emerald/diamond, huge onyx and up |
 
 Quality shifts a gem up or down: a flawless medium amethyst is 40,000 (rare), a flawed one
 5,000 (uncommon).
