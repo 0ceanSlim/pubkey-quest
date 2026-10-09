@@ -117,7 +117,7 @@ gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 
     shouldn't carry gems, higher for hoarders like dragons and kobolds.
   - **Decided:** rolled per kill, so a pack of goblins can drop several. Gems land on the fight's loot
     pile with everything else.
-- **Mining POIs** (Ironvein Seam etc.), mostly uncut basic/common gems.
+- **Mining POIs** (Ironvein Seam etc.), mostly uncut low-value gems (quartz to amethyst).
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
 - **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific gem).
 
