@@ -1,12 +1,29 @@
 # Gems, jewelry & enchanting — brainstorm
 
-Status: **BRAINSTORM, for the maintainer to pick from** (2026-10-08). Source data:
+Status: **DESIGN — first decisions made** (2026-10-08). Source data:
 `game-data/systems/gems.json` (not read by any code yet). Only one gem item exists:
 `rough-gem` (placeholder, 500 copper), the Ember Vault rite's price.
 
 Scope note: the roadmap keeps **general item crafting** and **magic items** out of alpha.
 Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting are beta.
-That ordering is how the slices at the bottom are cut.
+
+### Decided (2026-10-08)
+- **Crafting is done by NPCs, D&D-style.** You bring the materials plus a fee; you don't
+  craft yourself. That keeps it to "find the right person", and stat-derived skills stay
+  untouched.
+- **Jeweller NPC** cuts gems for a fee. **Hidden quality:** an uncut gem's quality is
+  unknown until the jeweller cuts it.
+- **Smelter NPC** melts gold coins into bars for a fee. **No silver.**
+- **Jeweller crafts the finished piece:** bring a gold bar + a cut gem + the fee and get the
+  ring or necklace back. There is **no separate "set the gem" step.**
+- **Only rings and necklaces** are enchanted. No staffs, wands, foci, socketing or charges,
+  and nothing that degrades (so no food-spoilage affinity).
+- **Affinities** (§4) are good as drafted, minus amber's food preservation.
+- **Size caps power; huge gems grant a full effect while worn.**
+- **Set bonuses** aren't a separate mechanic: two ruby pieces simply stack their effects.
+- **Class affinity** is dropped as too complicated.
+- **Rarity comes from value**, like every other item (§1).
+- **Sprites** as drafted: one per type (cut and uncut), scaled by size, shimmer by quality.
 
 ---
 
@@ -41,9 +58,29 @@ because a gem's weight matters for value and enchanting, not for encumbrance.
 | fine | 2 | easier, cheaper | 15% |
 | flawless | 4 | always succeeds, and a bonus roll | 5% |
 
-**Idea: hidden quality.** An uncut gem's quality is *unknown* until it's cut or appraised
-(a jeweller, or an INT / Wisdom check). Uncut gems are then a gamble you can sell rough or
-cut and hope. It also gives cutting a reason to exist beyond "required for jewelry".
+**Hidden quality (decided).** An uncut gem's quality is unknown until the jeweller cuts
+it. Uncut gems are a gamble: sell them rough at the standard-quality price, or pay to cut
+and hope.
+
+**Quality is rolled at the moment of cutting, not stored on the uncut gem.** To the player
+it's the same "hidden until cut", but nothing secret sits in the save. That matters
+because saves become public Nostr events (roadmap §4): a quality stored on the uncut gem
+would be readable by anyone. The player can still reload a save to re-cut. That's the same
+accepted revert freedom as everywhere else, and the fee makes it a loss.
+
+### Rarity from value (decided)
+A gem's rarity follows its final value (type × size × quality), on bands of its own:
+
+| Rarity | Value (copper) | e.g. |
+|---|---|---|
+| common | < 1,000 | tiny or small basic and common gems |
+| uncommon | 1,000 – 9,999 | medium basic, small rare |
+| rare | 10,000 – 99,999 | medium common/uncommon, small diamond |
+| very rare | 100,000 – 999,999 | medium rare, large uncommon |
+| legendary | 1,000,000+ | large rare, huge anything |
+
+The draft's ×100 for huge makes a huge flawless diamond 200,000,000c (2,000,000 gp). It may
+want flattening (huge ×25?) when prices are tuned.
 
 ## 2. Where gems come from
 
@@ -55,19 +92,21 @@ cut and hope. It also gives cutting a reason to exist beyond "required for jewel
 - **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific
   flawless gem).
 
-## 3. Cutting and jewelry (OSRS-style chain, beta)
+## 3. The NPC crafting chain (beta)
 
-1. **Melt gold:** coins → gold bars at a furnace (Ironpeak forge, Goldenhaven smelter).
-   Also silver, since cheaper silver jewelry suits basic gems.
-2. **Cut:** an uncut gem → cut, at a jeweller (fee) or with a chisel (skill check). This
-   reveals quality; a bad roll can drop it a grade or shatter a flawed gem. Cutting loses
-   ~40% of the carats, which is realistic and offset by the cut value multiplier.
-3. **Craft:** bar + mould → ring / amulet / bracelet / circlet (unset jewelry).
-4. **Set:** jewelry + cut gem → set jewelry. Sells well, even unenchanted.
-5. **Enchant:** set jewelry → magic item (§4).
+| Step | NPC | You bring | You get |
+|---|---|---|---|
+| Melt | **Smelter** (Ironpeak forge; Goldenhaven's Mountain Ore Exchange) | N gold coins + fee | gold bar |
+| Cut | **Jeweller** (Goldenhaven, the gem trade) | uncut gem + fee (by type and size) | cut gem, **quality revealed**; ~40% of the carats lost |
+| Craft | **Jeweller** | gold bar + cut gem + fee | gold ring or necklace with that gem (unenchanted) |
+| Enchant | **Enchanter** (open: Verdant's elves? the Kingdom?) | that ring or necklace + fee | the magic item (§4) |
 
-Skills stay stat-derived (no crafting XP, per the hydration rule). Success is a d20 check
-on the relevant stat (DEX for cutting and setting), and quality adjusts the DC.
+- Each is an ordinary NPC dialogue action, like the vault rite: `requirements` + `consume_items`
+  + a fee, then the result is added. No new UI beyond the dialogue strip.
+- Plain gold rings and necklaces (no gem) can be crafted too. They're valuable but have no
+  magic.
+- **Cutting never fails.** The quality roll is the risk. Enchanting is where quality matters
+  (§4).
 
 ## 4. Enchanting: what each gem does
 
@@ -85,7 +124,7 @@ on the relevant stat (DEX for cutting and setting), and quality adjusts the DC.
 | common | jasper | **Endurance:** stamina/rage pool, fatigue resistance |
 | common | bloodstone | **Vitality:** HP regen, healing received |
 | common | pearl | **Grace:** CHA, water breathing |
-| common | amber | **Stillness:** lightning resistance, food keeps longer |
+| common | amber | **Stillness:** lightning resistance |
 | common | amethyst | **Clarity:** WIS, resist charm/fright |
 | uncommon | topaz | **Swiftness:** DEX, lightning damage |
 | uncommon | garnet | **Vigor:** STR, max HP |
@@ -106,25 +145,27 @@ An enchant's **tier is capped by the gem's size**:
 | large | greater: +2 stat, or +1 and a rider | +1 STR, +1d4 fire on hit |
 | huge | legendary: a unique effect | "Emberheart": burning aura |
 
-For **magic combat items** (staffs, wands, foci) size scales continuously instead: spell
-damage +2% per carat, capped by tier. A huge sapphire staff is a real caster upgrade.
+### Huge = an effect while worn (decided)
+A huge gem's piece carries a full effect from the effects system (`effects_when_worn`), e.g.
+an ember aura or a regeneration tick. It's applied on equip and removed on unequip like any
+worn item.
 
-### Quality = ease (your idea, adopted)
-Quality sets the **enchant success chance and cost**, and **flawless** gives a bonus:
+### Quality = ease of enchanting (decided)
+Quality sets the enchanter's **success chance and fee**. Failure costs the fee only; the
+piece survives.
 
-- **Flawed:** ~60% success; a failure may crack the gem.
+- **Flawed:** ~60%.
 - **Standard:** ~80%.
-- **Fine:** ~95% at half the cost.
-- **Flawless:** 100%, plus a second minor enchant roll.
+- **Fine:** ~95% at half the fee.
+- **Flawless:** 100%, and a second minor enchant.
 
-### More unique ideas
-- **Set resonance:** wearing two items with the same gem type (ruby ring + ruby amulet)
-  adds a small set bonus.
-- **Class affinity:** sapphire/emerald enchants are stronger on casters, ruby/garnet on
-  martials. Alexandrite always matches.
-- **Gem charges:** consumable enchants (a "ruby of flame" that charges fire bolts). The
-  size sets the charge count; it can be recharged at an enchanter.
-- **Socketing weapons/armor** later uses the same affinity table, at half power.
+### Stacking (decided)
+Two pieces with the same gem simply add their effects: ruby ring + ruby necklace = +2 STR.
+There is no special set-bonus mechanic.
+
+### Dropped
+Class affinity, enchanted staffs/wands/foci, socketing weapons or armor, rechargeable
+charges, anything that degrades.
 
 ## 5. Non-magic uses (alpha-friendly)
 
@@ -140,35 +181,65 @@ One sprite per type, plus an uncut variant per type, so 40 images. The **UI scal
 sprite by size** (tiny 0.5× … huge 1.1×) and adds a shimmer overlay by quality. No extra
 art per size or quality.
 
-## 7. Option A vs B, re-weighed with the axes above
+## 7. Option A vs B, re-assessed with the decisions
 
-- **A — generated variant items.** Every combination becomes a real item id. With
-  type × size × quality × state that's **20 × 5 × 4 × 2 = 800 items**, and continuous
-  carats are impossible (only bands). Enchanted jewelry has the same problem: a ring's power
-  depends on which gem went in, so the jewelry would need its own combinatorial ids.
-- **B — item instances with properties.** One definition per gem type; the inventory slot
-  carries `{item, qty, props: {ct, q, cut}}`. It's the foundation every later idea needs:
-  set jewelry carries its gem, enchanted items carry their rolled enchant, and durability
-  or charges later need it too.
+What actually varies per piece now:
 
-**Re-assessed recommendation: B, done narrowly.**
-- One shared helper set (`ItemValue(slot)`, `ItemWeight(slot)`, `SameStack(a, b)`), used by
-  the eight systems that touch slots: add/stack/split, move, weight, shop pricing, death
-  keep-3, loot placement, vault transfer, and tooltips.
-- Items without `props` behave exactly as today.
-- Save impact: props are real (non-derivable) data, kept short-keyed for the size budget.
+| Thing | Varies by | Combinations |
+|---|---|---|
+| uncut gem | type × size *(quality is rolled at cutting, not stored)* | 20 × 5 = **100** |
+| cut gem | type × size × quality | 20 × 5 × 4 = **400** |
+| unenchanted piece | ring/necklace × gem type × size × quality *(quality is still needed for enchanting)* | 2 × 400 = **800** |
+| enchanted piece | ring/necklace × gem type × size *(+ flawless bonus roll)* | 2 × 100 = **200+** |
+| plain gold ring/necklace, gold bar | fixed | 3 |
 
-**A is still the faster first step if only loot and selling are wanted in alpha:**
-- Generate type × size only (uncut, standard quality: 100 items).
-- Move to B when cutting and jewelry arrive.
+- **A — generated variant items:** ~1,500 generated item ids.
+  - Every one is an ordinary item, so stacking, weight, price, death, loot, saves, shops
+    and the vault all work untouched. That's the real win.
+  - The cost is a very large items table and a shop and inventory UI that must group
+    variants well.
+  - The flawless bonus enchant multiplies the enchanted set further, unless that roll is
+    made deterministic (e.g. flawless always adds the gem's minor effect).
+- **B — instance properties on the slot** (`{item, qty, p: {t, ct, q}}`).
+  - Five definitions: uncut gem, cut gem, ring, necklace, gold bar.
+  - The props say which gem, how big and how good, and an enchanted piece's effect is
+    computed from them.
+  - The cost is one shared helper set (`ItemValue`, `ItemWeight`, `SameStack`,
+    `ItemRarity`, `WornEffects`) threaded through the eight systems that touch slots:
+    stacking, moving, weight, shop pricing, death keep-3, loot placement, vault, tooltips.
+  - Equip would derive `effects_when_worn` from the props instead of the item definition.
 
-## 8. Decisions for the maintainer
+**What changed since the brainstorm:** with NPC crafting and only rings and necklaces to
+enchant, A comes to ~1,500 ids. That's large, but every one is generated and each is a
+real, finite thing a player can hold. B's work stayed the same size. Two things now favour A:
+- **Nothing in this design needs a continuous value.** Size works in five bands,
+  quality in four tiers.
+- **Every NPC step is a dialogue action that consumes item ids and grants item ids.** That
+  is exactly what the vault rite already does. Under A the jeweller, smelter and enchanter
+  need **no new engine**, just generated data and dialogue nodes.
 
-1. **A or B** (or A-now, B-later)?
-2. **Hidden quality** for uncut gems, revealed by cutting or appraisal?
-3. **Drop rate** (draft says 50%; suggest 15–25%) and CR gating for large/huge?
-4. **Which of §4** — affinities, size = power tiers, quality = ease, set resonance,
-   class affinity, charges?
-5. **Silver** as a second, cheaper metal?
-6. **Unblock now:** add `rough-gem` to early monster loot and/or stock it at the Mountain
-   Ore Exchange (Goldenhaven north) so the Ember Vault rite is reachable today?
+**Recommendation: A, generated from `gems.json` at migration.** It keeps all of this in
+data, fits the existing dialogue-action and requirements machinery, and leaves the save
+format untouched (id + quantity).
+
+Three guard-rails make A comfortable:
+1. **The generator owns the ids:** `gem-{type}-{size}-uncut`, `gem-{type}-{size}-{quality}`,
+   `{ring|necklace}-{type}-{size}-{quality}` and `…-enchanted`. Nothing is hand-authored, and
+   the grammar is regular, so a later move to B is a mechanical id → props migration.
+2. **Tags carry the axes** (`gem`, `gem-ruby`, `uncut`, `size-large`, `quality-fine`), so
+   requirements like "any 2 uncut gems" and UI grouping work by tag.
+3. **The UI groups by tag:** one "Gems" family in shops and tooltips, so 1,500 ids never
+   show as a 1,500-row list.
+
+Choose B instead if magic items later need per-piece rolls that the id grammar can't hold,
+such as random enchant strengths or durability. Those were ruled out today.
+
+## 8. Still open
+
+1. **A (recommended) or B?**
+2. **Drop rate** (draft says 50%; suggest 15–25%) and CR gating for large/huge gems.
+3. **Huge multiplier:** keep ×100 or flatten (×25)?
+4. **Where the enchanter lives**, and the coins-per-bar ratio.
+5. **Unblock now:** add `rough-gem` to early monster loot and/or stock it at the Mountain
+   Ore Exchange (Goldenhaven north) so the Ember Vault rite is reachable today. When the
+   generator lands, the rite moves to "any 2 uncut gems" by tag.
