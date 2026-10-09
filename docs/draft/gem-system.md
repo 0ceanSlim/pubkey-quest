@@ -183,12 +183,22 @@ An enchant's **tier is capped by the gem's size**:
 | small | lesser: minor resistance or utility | fire resistance 10% |
 | medium | standard: **+1 stat** | +1 STR |
 | large | greater: +2 stat, or +1 and a rider | +1 STR, +1d4 fire on hit |
-| huge | legendary: a unique effect | "Emberheart": burning aura |
+| huge | **that gem's unique effect** (one of 20, authored) | "Emberheart": an ember aura |
 
-### Huge = an effect while worn (decided)
-A huge gem's piece carries a full effect from the effects system (`effects_when_worn`), e.g.
-an ember aura or a regeneration tick. It's applied on equip and removed on unequip like any
-worn item.
+### Every jewelry effect is a worn effect (decided)
+Enchanted rings and necklaces grant their effect the same way any worn item does: through
+`effects_when_worn`, applied on equip and removed on unequip. There's no separate jewelry
+mechanism.
+
+- **Tiny → large:** the effect follows the gem's affinity and the size tier in the table
+  above. Each affinity × tier is one effect definition in `game-data/effects/`, so 4 tiers ×
+  20 gems = 80 effects. The generator can produce these from a small table (stat or
+  resistance, and amount per tier).
+- **Huge:** each gem type has **one unique effect, 20 in all, authored by hand** by the
+  maintainer. Each stays in line with its gem's affinity but is clearly better than anything
+  the regular tiers give. The generator points huge pieces at them by id
+  (`jewel-{type}-huge`); until one is written, its placeholder falls back to that gem's
+  large-tier effect.
 
 ### Quality = ease of enchanting (decided)
 Quality shifts the **success chance and fee**. Failure costs the fee only; the piece
