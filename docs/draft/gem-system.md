@@ -237,7 +237,7 @@ What actually varies per piece now:
 | cut gem | type × size × quality | 20 × 5 × 4 = **400** |
 | unenchanted piece | ring/necklace × gem type × size × quality *(quality is still needed for enchanting)* | 2 × 400 = **800** |
 | enchanted piece | ring/necklace × gem type × size *(+ flawless bonus roll)* | 2 × 100 = **200+** |
-| plain gold ring/necklace, gold bar | fixed | 3 |
+| plain gold ring/necklace | fixed | 2 |
 
 - **A — generated variant items:** ~1,500 generated item ids.
   - Every one is an ordinary item, so stacking, weight, price, death, loot, saves, shops
@@ -247,7 +247,7 @@ What actually varies per piece now:
   - The flawless bonus enchant multiplies the enchanted set further, unless that roll is
     made deterministic (e.g. flawless always adds the gem's minor effect).
 - **B — instance properties on the slot** (`{item, qty, p: {t, ct, q}}`).
-  - Five definitions: uncut gem, cut gem, ring, necklace, gold bar.
+  - Four definitions: uncut gem, cut gem, ring, necklace.
   - The props say which gem, how big and how good, and an enchanted piece's effect is
     computed from them.
   - The cost is one shared helper set (`ItemValue`, `ItemWeight`, `SameStack`,
@@ -261,7 +261,7 @@ real, finite thing a player can hold. B's work stayed the same size. Two things 
 - **Nothing in this design needs a continuous value.** Size works in five bands,
   quality in four tiers.
 - **Every NPC step is a dialogue action that consumes item ids and grants item ids.** That
-  is exactly what the vault rite already does. Under A the jeweller, smelter and enchanter
+  is exactly what the vault rite already does. Under A the jeweller and the enchanters
   need **no new engine**, just generated data and dialogue nodes.
 
 **Recommendation: A, generated from `gems.json` at migration.** It keeps all of this in
