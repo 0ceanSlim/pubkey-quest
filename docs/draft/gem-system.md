@@ -101,9 +101,8 @@ rare / legendary. That's the type's base-value tier, not the item's rarity. The 
 should rename them (e.g. `type_tier`), so a "common-tier" huge gem showing as mythic doesn't
 read as a contradiction.
 
-**Rarity name mismatch to fix:** the codex validator accepts `mythical`, while the game UI's
-rarity colours and glow (`ITEM_RARITY_COLORS` in `inventoryInteractions.js`) use `mythic`.
-No item uses either today. Pick one before any gem can be mythic.
+**Top rarity is `mythic` everywhere** (decided): the codex validator and item editor were
+changed from `mythical` to match the game UI.
 
 Huge is ×100 by decision, so a huge flawless diamond is 500,000 × 100 × 4 = **200,000,000
 gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 5% flawless.

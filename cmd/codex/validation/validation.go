@@ -243,7 +243,7 @@ func validateItemFile(filePath string, validItemIDs map[string]bool) []Issue {
 	// Check rarity is valid
 	validRarities := map[string]bool{
 		"common": true, "uncommon": true, "rare": true,
-		"legendary": true, "mythical": true,
+		"legendary": true, "mythic": true,
 	}
 	if rarity, ok := item["rarity"].(string); ok {
 		if !validRarities[strings.ToLower(rarity)] {
