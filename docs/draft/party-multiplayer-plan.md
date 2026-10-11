@@ -122,7 +122,7 @@ authored encounters) decide **what** a fight contains. `encounter/group.go` only
 **rates** a given group. Biome encounters still roll one monster; rolling packs there is
 a later tuning call.
 
-## Phase 2 — Nostr identity + saves on relays  ← next (the big lift)
+## Phase 2 — Nostr identity + saves on relays  ← identity shipped; saves on relays still to do
 
 Reordered 2026-10-07: Grain comes before any multiplayer, because presence, friends,
 parties and trading all stand on it.
