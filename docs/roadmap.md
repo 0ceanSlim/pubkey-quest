@@ -308,8 +308,8 @@ The "whole system that needs implementation."
 Full plan + findings: `docs/draft/party-multiplayer-plan.md`. Decisions: saves stay single-player (party state is memory-only); party clock snaps to the leader; leader directs movement; one shared `CombatSession` with true initiative order; party cap 5. **NPC partners deferred to post-beta** (2026-10-07); Nostr identity comes before multiplayer.
   - [x] **P1 Multi-entity combat engine** (single human vs N enemies): per-combatant positions, unique instance IDs, initiative cursor + real rounds, `target_id`, AI target selection + occupancy, victory = all hostiles down, group XP-budget difficulty, POI `count`/`surprise` wired, multi-token UI. — implemented 2026-10-08, awaiting playtest
   - [ ] **P2 Nostr identity + saves on relays** ⬅ **next** — proof-of-key login + cookie-bound identity ✅ (`c8cb355`); identity per `docs/draft/nostr-identity-plan.md`; saves on relays (**alpha**, decided 2026-10-07).
-  - [ ] **P3 Presence** (per-session locking, online players at your spot within ±1 h game time)
-  - [ ] **P4 Friends (mutual follows) + party formation** (party cap 5; party clock snaps to the leader; Friends replaces Badges button; Badges → tab under Quests)
+  - [ ] **P3 Presence, Friends panel, chat** ⬅ **next** — players at your spot in the People column (clocks within 60 min); an unobtrusive headcount opening the Friends panel's Area tab; Friends tab = mutual follows with in-game or Nostr "active on client" status; right-click menu (whisper / invite / follow / profile / mute); chat in the log (Say, Area, Whisper as real NIP-17 DMs). No teleport, no hubs.
+  - [ ] **P4 Parties** (invite only at the same spot; follower's clock snaps to the leader; leader moves the party; cap 5; party chat + HUD)
   - [ ] **P5 Multiplayer party combat** (Combatant sheet, shared session, turn timer/AFK, per-member outcomes, ally rules, scaling, bosses, multi-discipline dungeons)
   - [ ] **P6 Quest tab rework** (UI track, scope TBD)
   - Post-beta: **NPC partners** (favor-gated, deferred 2026-10-07). Later: trading, **PvP arena** (Sunscorch Desert via a Dusthaven south exit, RS2 Duel Arena style).

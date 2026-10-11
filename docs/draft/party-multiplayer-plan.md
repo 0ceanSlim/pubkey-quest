@@ -136,30 +136,110 @@ parties and trading all stand on it.
   ~8–16 KB size budget. See `docs/draft/future-nostr-save-optimization.md`. It needs
   Grain's outbound tag/since filter encoding fixed to fetch by `d`.
 
-## Phase 3 — Presence
+## Phase 3 — Presence, the friends panel and chat  ← next
 
-- Per-session mutex (or an immutable presence snapshot published on each tick) to make
-  cross-session reads race-free.
-- Idle eviction; "online" = heartbeat within N seconds; collapse multiple saves per npub.
-- Presence index: spot key (normalized `GroundKey`) → online sessions. Filter
-  `|absTimeA − absTimeB| ≤ 60`. Add `Room` to the snapshot/delta, plus a `players`
-  added/removed delta.
-- The people list renders players with a distinct button style. Clicking opens a player
-  card: profile, level/class, and actions Invite to party / Trade (disabled) / Inspect.
+Designed with the maintainer 2026-10-11. Three ways players show up, one panel to manage
+them, and chat in the log.
 
-## Phase 4 — Friends list + party formation
+### Decisions
 
-- Friends = mutual follows (kind 3 both ways). Show online/offline, and location if
-  within the time window.
-- **UI:** Friends replaces the Badges button; Badges moves to a tab inside the Quests
-  area (a stub until the NIP-58 work).
-- Party lifecycle (memory-only): invite → accept/decline → leader → leave/kick → promote →
-  disband. Invites only go to mutual friends or players present at your spot.
-- **Party size cap: 5** (D&D's usual 4–5). Partners, when they arrive, count toward it.
-- **Party clock snaps to the leader.** Leaving keeps the party's time (no rewind).
-- The leader directs movement/travel; followers' location and clock are slaved to
-  the leader.
-- Party HUD: member portraits, HP, leader crown. Party chat is optional, later via DMs.
+- **Two different lists.**
+  - **Players online** is how you meet strangers. Presence shows everywhere, as a light
+    headcount, plus an Area list.
+  - **Friends** are your mutual follows on Nostr (you follow them and they follow you).
+    From the friends list you message them and coordinate where to meet.
+- **No teleporting, no travel-to-friend.** To party, players must physically be at the same
+  place. Friends arrange it by whispering ("meet me at the Salty Anchor").
+- **Party clocks sync on joining:** the follower's clock snaps to the leader's (decided
+  2026-10-07). Before a party, everyone's clock is their own.
+- **No hubs.** A Grand-Exchange-style market later becomes the natural gathering spot.
+- **Chat lives in the left log,** with an input line under it. Whisper is a real Nostr DM.
+
+### Where players appear
+
+| Surface | Who | Rule |
+|---|---|---|
+| **People column** (with the NPCs) | players in your exact spot | same location / district / building / room, **and** in-game clocks within **60 minutes**. A player can wait to line up with someone they see is close. |
+| **Headcount** (small, unobtrusive, on the main screen, e.g. `👥 4`) | players online in your current location (city or environment) | any district, any clock. Clicking it opens the Friends panel on its **Area** tab. |
+| **Friends panel → Area tab** | the same players as the headcount | each with district/building and clock offset ("Salty Anchor · 40 min ahead"), so you can find them |
+| **Friends panel → Friends tab** | your mutual follows | in-game: online, where, clock offset. Not in game: Nostr activity (below). |
+
+**Friends' status when they aren't in the game:** their most recent Nostr event tells you
+something.
+- Its NIP-89 `client` tag says where they are: *"active on Primal · 12 min ago"*.
+- With no client tag, fall back to *"last seen 3 h ago"*.
+- Grain fetches each friend's latest event (one per author), cached for a few minutes.
+
+### The 😊 Friends panel
+
+The bottom-row 😊 opens it, as do the headcount (straight to Area) and the player card's
+"friends" link. It has two tabs:
+- **Friends:** online friends first, then the rest by most recently seen.
+- **Area:** everyone online in this location.
+
+**Right-click / long-press on a name** opens a context menu. Each item applies where it
+makes sense:
+- **Whisper:** opens a whisper to them in the chat line.
+- **Invite to party:** enabled only when they're at your spot.
+- **Follow / Unfollow:** publishes your updated Nostr contact list (kind 3). Following
+  someone who follows you back makes them a friend.
+- **View profile:** their Nostr profile card plus their character (name, level, race,
+  class).
+- **Mute:** adds them to your Nostr mute list (kind 10000), which also hides their chat.
+
+Clicking a player in the People column opens the same menu.
+
+### Chat in the log
+
+Messages appear in the left log, colour-coded by channel. A one-line input under the log
+has a channel picker.
+
+| Channel | Reaches | Carried by |
+|---|---|---|
+| **Say** | everyone who can see you in the People column (same spot, clocks within 60 min) | the server: in memory, never stored |
+| **Area** | everyone online in your location | the server |
+| **Whisper** | one person (a friend, or anyone from Area/People) | **a real Nostr DM** (NIP-17, sealed and gift-wrapped in the browser by your signer, published to their inbox relays). It shows up in their other Nostr clients too. |
+| **Party** | your party wherever they are | the server (Phase 4) |
+
+- **Delivery:** new Say/Area/Party messages ride the presence poll (every few seconds,
+  paused or not). Incoming whispers are fetched from your inbox relays through Grain and
+  decrypted in the browser.
+- **Safety:** a per-player rate limit, a message length cap, and your Nostr mute list (it
+  carries over from other clients).
+
+### Build slices
+
+1. **Presence core.** The registry is written and tested (`cmd/server/presence`).
+   - Every action publishes the player's snapshot (character, spot with the default room
+     filled in, game minute, in combat).
+   - `GET /api/players/here` and `GET /api/players/area` sit behind the identity gate, and
+     the client polls one of them as its heartbeat.
+   - Players appear in the People column with their own colour.
+   - Clicking one opens the player card / context menu: View profile works; the rest are
+     stubbed.
+2. **Headcount + Friends panel shell + Area tab.** The 😊 button stops being a stub.
+3. **Friends tab.**
+   - Mutual follows via Grain: your kind 3, plus the kind-3 lists that tag you.
+   - Their in-game status, and Nostr "active on client · ago" from their latest event.
+   - **Follow / Unfollow** with a safe kind-3 update: fetch the newest list first and
+     append, so it never clobbers follows made in other clients.
+4. **Chat: Say + Area.** A server-side message bus, the log input and channel picker, rate
+   limits, mute.
+5. **Whisper.** NIP-17 send and receive with the browser signer (MILL's `nip44`), published
+   through `/api/publish`.
+
+## Phase 4 — Parties
+
+- **Invite** from the context menu, only when the invitee is **at the same spot**. There's
+  no remote join: friends meet up first. The invite reaches them through the poll and
+  appears in their log with Accept / Decline.
+- **Joining snaps the follower's clock to the leader's.** From then on the leader's
+  movement and travel carry the party; members can't move on their own except to **Leave**.
+- **Lifecycle (memory-only):** invite → accept / decline → leave / kick → promote →
+  disband. Logging out leaves the party.
+- **Cap: 5** (partners count when they arrive post-beta).
+- **Party chat** channel. **Party HUD:** member names, HP, a leader crown.
+- **Combat together is Phase 5.**
 
 ## Phase 5 — Multiplayer party combat
 
