@@ -138,6 +138,9 @@ parties and trading all stand on it.
 
 ## Phase 3 — Presence, the friends panel and chat  ← next
 
+**Full build plan:** `docs/draft/social-plan.md` (slices S0–S6 and P4, with API contracts,
+edge cases and tests). **UI draft:** `docs/draft/social-ui-draft.html` (open it in a browser).
+
 Designed with the maintainer 2026-10-11. Three ways players show up, one panel to manage
 them, and chat in the log.
 
