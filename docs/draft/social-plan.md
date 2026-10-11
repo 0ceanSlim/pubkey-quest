@@ -25,6 +25,17 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
 7. **Friends' status:** in-game status when they're playing; otherwise their latest Nostr
    event, giving *"active on Primal · 12 min ago"* from its `client` tag, or *"last seen
    3 h ago"*.
+8. **(2026-10-11) Headcount** goes in the empty spot on the right of the scene's bottom
+   strip.
+9. **(2026-10-11) Say** only reaches players who can see you (same spot, clocks within
+   60 min).
+10. **(2026-10-11) Travel presence:** players on the same road appear "nearby" when they're
+    within a few percent of each other along it, like POI discovery. You can stop on the
+    road and watch people pass.
+11. **(2026-10-11) Party sleep:** everyone needs a bed. In town that's a rented room each.
+    In the wild it's a bedroll each, or one **camp set** that beds down the whole party.
+12. **(2026-10-11) Group-tailored encounters** belong with party combat (P5), still to be
+    talked through.
 
 ## 1. Facts the plan has to respect
 
@@ -51,6 +62,17 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
 - **Snapshot contents:** npub, saveID, character name, race, class, level (from XP via the
   advancement table, cached once), spot, location id, district, building, absolute minute,
   in-combat flag, `LastSeen = now`.
+- **On the road** (decided 2026-10-11):
+  - The snapshot also carries the route (the environment id) and a **route position** in
+    0–1, measured from a fixed end of the road. Your progress counts from the end you set
+    out from, so a traveller from the far end is at `1 − progress`.
+  - Two travellers are "nearby" when they're on the same route, within **`ROAD_NEARBY`
+    (start at 0.05 = 5% of the road)** of each other, and their clocks are within 60 min.
+  - Nearby travellers fill the People list on the travel screen, the same way spot-mates
+    do in town.
+  - A stopped traveller (`TravelStopped`) stays put while others move past, which is the
+    "watch people come and go" case.
+  - The headcount and Area tab treat the **whole road** as one area.
 - **One envelope endpoint, `GET /api/social/poll?npub&save_id`,** behind the identity gate
   (add `/api/social/` to the protected prefixes). It:
   1. refreshes the caller's snapshot (`publishPresence`), which is the heartbeat;
@@ -139,9 +161,9 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
 ## 4. Slice S2 — Headcount and the Friends panel (Area tab)
 
 ### Headcount chip
-- **Placement:** on the scene's top-left, **`top:4px; left:4px`**, above the quest
-  tracker, which moves to `top:20px`. The city name is centred, so the corner is clear.
-  (Alternative: the empty spacer in the bottom strip, but the speech box covers it.)
+- **Placement (decided):** the empty 48px spacer on the right of the scene's bottom
+  strip (`scene.html:153`), across from GROUND. While an NPC's speech box is open it
+  covers the strip, and the headcount with it; that's accepted.
 - **Look:** tiny, 6px, `👥 4` on a translucent dark pill. Hidden when the count is 0.
   Tooltip "4 adventurers in Goldenhaven".
 - **Click:** opens the Friends panel on Area.
@@ -356,9 +378,13 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
   member's Athletics doesn't pull the party apart).
 - **Sleeping, waiting and resting:**
   - wait and rest apply to all members;
-  - a leader **sleep** is allowed only if every member can sleep there (each has a room
-    rented at that inn). Otherwise it's refused: *"Not everyone in your party has a bed
-    here."*
+  - **sleep (decided):** everyone needs a bed.
+    - **In town:** a room rented at that inn, each.
+    - **In the wild:** a bedroll each, or **one camp set** in any member's pack, which
+      beds down the whole party at bedroll comfort.
+    - Otherwise the leader's sleep is refused: *"Not everyone in your party has a bed."*
+  - **New item `camp-set`:** a tent and cookware bundle. Heavier and pricier than a
+    bedroll, with tags `camping` and `party-camp`. Sold where bedrolls are.
 - **The client hears** `data.party_sync` on the follower's next tick or poll. It does a
   full refresh and `smoothClock.syncFromBackend(time, day, true)`. A move that only
   changes rooms produces no delta, so the flag is what carries it.
@@ -405,10 +431,11 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
 
 ## 11. Open questions
 
-1. **Headcount spot:** top-left of the scene (recommended) or the bottom strip's spacer?
-2. **Should Say reach players at your spot whose clocks are > 60 min apart?** The plan says
-   no, because they can't see you either.
-3. **Party sleep:** require everyone to have a bed (plan), or let followers just rest along?
-4. **Encounters while partied before P5:** suppress (plan), or ship P4 and P5 together?
-5. **Area scope:** a city counts as one area. Does each travel environment count as one too
-   (everyone on the same road)?
+1. ~~Headcount spot~~ **Decided:** the bottom strip's right-hand spacer.
+2. ~~Say range~~ **Decided:** only players who can see you.
+3. ~~Party sleep~~ **Decided:** everyone needs a bed; a camp set covers a party in the wild.
+4. **Encounters while partied:** group-tailored encounters are part of P5, still to be
+   talked through. Until P5 lands, suppress random/authored encounters for parties, or hold
+   P4 back to ship with P5?
+5. ~~Area scope on the road~~ **Decided:** a road is one area; "nearby" is within 5% of the
+   road (tunable).
