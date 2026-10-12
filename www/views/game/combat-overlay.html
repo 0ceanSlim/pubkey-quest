@@ -29,9 +29,26 @@
     pointer-events: none;
 }
 /* An enemy's cell can be clicked to target it. */
-.combat-cell.foe { pointer-events: auto; cursor: crosshair; background: rgba(239,68,68,0.22); }
-.combat-cell.you { background: rgba(74,222,128,0.18); box-shadow: inset 0 0 0 1px #4ade80; }
+.combat-cell.foe { pointer-events: auto; cursor: crosshair; box-shadow: inset 0 0 0 1px rgba(239,68,68,0.85); }
+.combat-cell.you { box-shadow: inset 0 0 0 1px #4ade80; }
 .combat-cell.target { box-shadow: inset 0 0 0 2px #fbbf24; }
+/* Cells you can move to this turn; click one to move there. */
+.combat-cell.reach { pointer-events: auto; cursor: pointer; outline: 1px dashed rgba(74,222,128,0.55); outline-offset: -2px; }
+.combat-cell.reach:hover { background-color: rgba(74,222,128,0.25); }
+/* Terrain (party-combat-plan §2a pass 1): a tint per type, plus the glyph. */
+.combat-cell.t-difficult   { background-color: rgba(120,80,40,0.45);
+                             background-image: radial-gradient(rgba(0,0,0,0.45) 1px, transparent 1.2px);
+                             background-size: 5px 5px; }
+.combat-cell.t-water       { background-color: rgba(59,130,246,0.35); }
+.combat-cell.t-deep_water  { background-color: rgba(30,64,175,0.65); }
+.combat-cell.t-low_cover   { background-color: rgba(120,90,50,0.6); }
+.combat-cell.t-high_cover  { background-color: rgba(12,12,12,0.85); }
+.combat-cell.t-high_ground { background-color: rgba(214,211,170,0.28); border-bottom: 2px solid rgba(0,0,0,0.65); }
+.combat-cell.t-hazard      { background-color: rgba(220,38,38,0.4); }
+.combat-terrain-glyph { font-size: calc(var(--cell, 26px) * 0.5); opacity: 0.85; color: #e5e7eb; }
+.combat-token-badge {
+    position: absolute; top: 0; right: 0; font-size: calc(var(--cell, 26px) * 0.32); line-height: 1;
+}
 .combat-cell.fallen > * { opacity: 0.4; filter: grayscale(1); }
 /* Tokens: a monster sprite (or a glyph until it has one) and the player's crest. */
 .combat-token-img {

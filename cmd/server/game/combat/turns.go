@@ -3,7 +3,9 @@ package combat
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
+	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/types"
 )
 
@@ -74,7 +76,44 @@ func endPlayerTurn(cs *types.CombatSession, save *types.SaveFile) []string {
 	state := &cs.Party[0].CombatState
 	log := TickCreatureConditions("You", &state.Conditions,
 		func(stat string) int { return playerSaveTotal(save, stat) })
-	return append(log, tickPlayerAbilities(state)...)
+	log = append(log, tickPlayerAbilities(state)...)
+	// Ending a turn in a hazard burns again.
+	return append(log, playerHazard(cs, save, cs.Party[0].Pos, "are caught in")...)
+}
+
+// playerHazard applies a hazard cell's damage to the player (verb: "step into",
+// "are caught in"). No-op on safe ground.
+func playerHazard(cs *types.CombatSession, save *types.SaveFile, pos types.Position, verb string) []string {
+	dice, dtype, name := hazardAt(cs, pos)
+	if dice == "" {
+		return nil
+	}
+	dmg := RollDice(dice, false)
+	if dmg < 1 {
+		dmg = 1
+	}
+	log := []string{fmt.Sprintf("  🔥 You %s the %s: %d %s damage.", verb, strings.ToLower(name), dmg, dtype)}
+	return append(log, damagePlayer(cs, save, dmg)...)
+}
+
+// monsterHazard applies a hazard cell's damage to a monster. A hazard kill
+// still counts as the player's kill (loot, quest progress, kill bonus).
+func monsterHazard(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m *types.MonsterInstance, pos types.Position) []string {
+	dice, dtype, name := hazardAt(cs, pos)
+	if dice == "" || !m.Active() {
+		return nil
+	}
+	dmg := RollDice(dice, false)
+	if dmg < 1 {
+		dmg = 1
+	}
+	applyDamageToMonster(m, dmg)
+	log := []string{fmt.Sprintf("  🔥 %s is burned by the %s: %d %s damage.", m.Name, strings.ToLower(name), dmg, dtype)}
+	if !m.IsAlive {
+		advancement, _ := character.LoadAdvancement(db)
+		log = append(log, handleMonsterKill(cs, m, save, advancement)...)
+	}
+	return log
 }
 
 // ProcessEndTurn finalises the player's turn and runs every monster's turn, in
@@ -155,6 +194,10 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 		dmg, turnLog := ExecuteMonsterTurn(cs, m, playerAC, !cs.IsSurprised, dexMod, save)
 		log = append(log, turnLog...)
 		log = append(log, damagePlayer(cs, save, dmg)...)
+		log = append(log, monsterHazard(db, cs, save, m, m.Pos)...)
+		if !m.Active() {
+			return log
+		}
 		return append(log, tickMonsterConditions(m)...)
 	}
 
@@ -201,6 +244,8 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 	dmg, actionLog := ApplyMonsterAction(cs, m, decision, playerAC, false, 0, save)
 	log = append(log, actionLog...)
 	log = append(log, damagePlayer(cs, save, dmg)...)
+	// Ending its turn in a hazard burns it.
+	log = append(log, monsterHazard(db, cs, save, m, m.Pos)...)
 
 	if m.Active() {
 		log = append(log, tickMonsterConditions(m)...)

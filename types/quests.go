@@ -63,6 +63,10 @@ type QuestStageEncounter struct {
 	Count     int    `json:"count,omitempty"`
 	Surprise  bool   `json:"surprise,omitempty"`
 	Text      string `json:"text,omitempty"` // opening line in the combat log
+	// Arena is an authored battlefield: rows of combat-terrain arena_key
+	// characters ('.' open, ',' rough, '~' water, 'W' deep water, '=' low cover,
+	// '#' high cover, '^' high ground, '!' hazard), centred on the grid.
+	Arena []string `json:"arena,omitempty"`
 }
 
 // QuestStartCondition tells the player how to begin the quest.

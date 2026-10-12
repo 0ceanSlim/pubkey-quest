@@ -323,8 +323,14 @@ Nothing open. The crest seed is decided: npub only, one house per key.
 
 1. **Build order** (proposed):
    1. ✅ bigger grid + monster sprites + crest tokens (2026-10-11);
-   2. terrain rules with the tint/glyph look;
-   3. A* and cover-aware AI;
+   2. ✅ terrain rules with the tint/glyph look (2026-10-12): `combat-terrain.json`
+      (types + per-battlefield scatter + arena key), generated per fight from the
+      biome / street / building / cellar, authored `arena` on quest encounters (the
+      rat cellar has one), terrain-costed movement with click-to-move, line of sight
+      and cover on attacks and spells, high ground, deep water, hazards;
+   3. ✅ cost-routed, cover-aware AI (2026-10-12): monsters route by terrain cost to
+      the best cell for their goal; archers seek a line and favour cover and high
+      ground, cautious monsters favour cover;
    4. stealth openings;
    5. character portraits (prompt, URL/Blossom, server-side 64px cache);
    6. — all of that improves solo fights —

@@ -146,22 +146,15 @@ func TestStepMonsterRoutesAroundAllies(t *testing.T) {
 	cs.Monsters[0].Pos = types.Position{X: 2, Y: 3}
 	cs.Monsters[1].Pos = types.Position{X: 3, Y: 3}
 
-	next, ok := stepMonster(cs, &cs.Monsters[1], playerPos(cs), -1)
-	if !ok {
-		t.Fatal("expected a step around the blocking ally")
-	}
+	// Full move: it routes around its ally and both end up adjacent, on distinct cells.
+	d := DecideMonsterAction(cs, &cs.Monsters[1])
+	ApplyMonsterMove(cs, &cs.Monsters[1], d, 0, nil)
+	next := cs.Monsters[1].Pos
 	if next == cs.Monsters[0].Pos || next == playerPos(cs) {
-		t.Errorf("stepped into an occupied cell %+v", next)
+		t.Errorf("ended on an occupied cell %+v", next)
 	}
 	if chebyshev(next, playerPos(cs)) != 1 {
 		t.Errorf("expected to reach adjacency around the ally, landed at %+v", next)
-	}
-
-	// Full move: both end up adjacent, on distinct cells.
-	d := DecideMonsterAction(cs, &cs.Monsters[1])
-	ApplyMonsterMove(cs, &cs.Monsters[1], d, 0, nil)
-	if cs.Monsters[1].Pos == cs.Monsters[0].Pos {
-		t.Error("two monsters ended on the same cell")
 	}
 }
 

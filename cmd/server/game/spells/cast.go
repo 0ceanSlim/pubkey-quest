@@ -83,6 +83,17 @@ func Cast(db *sql.DB, deps Deps, save *types.SaveFile, spellID string, level int
 	return resolveCast(deps, save, spell, spellID, level, target, focus, false)
 }
 
+// TargetsEnemy reports whether a spell is aimed at an enemy (attack, auto-hit
+// or save shapes), as opposed to healing, buffs and utility.
+func TargetsEnemy(db *sql.DB, spellID string) bool {
+	spell, err := gamedata.LoadSpellByID(db, spellID)
+	if err != nil {
+		return false
+	}
+	shape := spellShape(spell)
+	return shape == "attack" || shape == "auto" || shape == "save"
+}
+
 // CastFromScroll casts a spell off a scroll. The scroll IS the spell, so it
 // bypasses the known + prepared + material-component gates, but still spends mana
 // and resolves by the same shape as a normal cast. The caller consumes the scroll.

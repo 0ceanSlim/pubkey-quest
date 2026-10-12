@@ -204,7 +204,7 @@ func placeMonsters(cs *types.CombatSession, startRange int) {
 				x = cs.GridWidth - 1
 			}
 			pos := types.Position{X: x, Y: y}
-			if inGrid(cs, pos) && !occupied(cs, pos, cs.Monsters[i].InstanceID) {
+			if passable(cs, pos) && !occupied(cs, pos, cs.Monsters[i].InstanceID) {
 				cs.Monsters[i].Pos = pos
 				break
 			}

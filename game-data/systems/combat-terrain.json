@@ -1,0 +1,213 @@
+{
+  "description": "Combat terrain: what each cell type does, and how each kind of battlefield scatters it. Loaded into the systems table by codex --migrate. See docs/draft/party-combat-plan.md §2.",
+  "keep_clear_columns": 2,
+  "base_cells": 88,
+  "types": {
+    "open":        { "name": "Open ground",   "glyph": "",   "move_cost": 1 },
+    "difficult":   { "name": "Rough ground",  "glyph": "·",  "move_cost": 2 },
+    "water":       { "name": "Shallow water", "glyph": "",   "move_cost": 2 },
+    "deep_water":  { "name": "Deep water",    "glyph": "≈",  "move_cost": 2, "swim": true },
+    "low_cover":   { "name": "Low cover",     "glyph": "▭",  "blocks_movement": true, "cover_ac": 2 },
+    "high_cover":  { "name": "High cover",    "glyph": "🪨", "blocks_movement": true, "blocks_sight": true, "cover_ac": 5 },
+    "high_ground": { "name": "High ground",   "glyph": "▲",  "move_cost": 1, "climb_cost": 1, "ranged_bonus": 1 },
+    "hazard":      { "name": "Hazard",        "glyph": "🔥", "move_cost": 1, "damage": "1d4", "damage_type": "fire" }
+  },
+  "arena_key": {
+    ".": "open",
+    ",": "difficult",
+    "~": "water",
+    "W": "deep_water",
+    "=": "low_cover",
+    "#": "high_cover",
+    "^": "high_ground",
+    "!": "hazard"
+  },
+  "battlefields": {
+    "default": {
+      "name": "Open ground",
+      "starting_range": [2, 2],
+      "features": [
+        { "terrain": "difficult", "clusters": [1, 2], "size": [2, 3] },
+        { "terrain": "high_cover", "clusters": [1, 2], "size": [1, 1] }
+      ]
+    },
+    "forest": {
+      "name": "Forest",
+      "starting_range": [1, 2],
+      "look": {
+        "high_cover": { "name": "Tree", "glyph": "🌲" },
+        "difficult": { "name": "Brush", "glyph": "🌿" },
+        "low_cover": { "name": "Fallen log", "glyph": "🪵" }
+      },
+      "features": [
+        { "terrain": "high_cover", "clusters": [5, 8], "size": [1, 2] },
+        { "terrain": "difficult", "clusters": [3, 5], "size": [2, 4] },
+        { "terrain": "low_cover", "clusters": [1, 2], "size": [1, 2] }
+      ]
+    },
+    "swamp": {
+      "name": "Swamp",
+      "starting_range": [1, 3],
+      "look": {
+        "difficult": { "name": "Mud", "glyph": "·" },
+        "high_cover": { "name": "Gnarled tree", "glyph": "🌳" },
+        "low_cover": { "name": "Reeds", "glyph": "🌾" }
+      },
+      "features": [
+        { "terrain": "deep_water", "clusters": [1, 2], "size": [4, 7] },
+        { "terrain": "water", "clusters": [2, 4], "size": [3, 6] },
+        { "terrain": "difficult", "clusters": [2, 4], "size": [2, 4] },
+        { "terrain": "high_cover", "clusters": [1, 3], "size": [1, 1] },
+        { "terrain": "low_cover", "clusters": [1, 2], "size": [1, 2] }
+      ]
+    },
+    "mountain": {
+      "name": "Mountainside",
+      "starting_range": [2, 3],
+      "look": {
+        "high_cover": { "name": "Boulder", "glyph": "🪨" },
+        "difficult": { "name": "Scree", "glyph": "·" },
+        "high_ground": { "name": "Ledge", "glyph": "▲" }
+      },
+      "features": [
+        { "terrain": "high_ground", "clusters": [2, 3], "size": [3, 6] },
+        { "terrain": "high_cover", "clusters": [2, 4], "size": [1, 2] },
+        { "terrain": "difficult", "clusters": [2, 3], "size": [2, 4] }
+      ]
+    },
+    "hill": {
+      "name": "Hills",
+      "starting_range": [2, 3],
+      "look": {
+        "high_ground": { "name": "Hilltop", "glyph": "▲" },
+        "high_cover": { "name": "Standing stone", "glyph": "🪨" },
+        "difficult": { "name": "Heather", "glyph": "🌿" }
+      },
+      "features": [
+        { "terrain": "high_ground", "clusters": [1, 2], "size": [5, 8] },
+        { "terrain": "high_cover", "clusters": [1, 2], "size": [1, 1] },
+        { "terrain": "difficult", "clusters": [1, 3], "size": [2, 3] }
+      ]
+    },
+    "arctic": {
+      "name": "Frozen waste",
+      "starting_range": [2, 4],
+      "look": {
+        "difficult": { "name": "Deep snow", "glyph": "❄️" },
+        "high_cover": { "name": "Ice ridge", "glyph": "🧊" },
+        "deep_water": { "name": "Broken ice", "glyph": "≈" }
+      },
+      "features": [
+        { "terrain": "difficult", "clusters": [3, 5], "size": [3, 5] },
+        { "terrain": "high_cover", "clusters": [1, 3], "size": [1, 2] },
+        { "terrain": "deep_water", "clusters": [0, 1], "size": [2, 4] }
+      ]
+    },
+    "grassland": {
+      "name": "Plains",
+      "starting_range": [2, 4],
+      "look": {
+        "difficult": { "name": "Tall grass", "glyph": "🌾" },
+        "high_cover": { "name": "Lone tree", "glyph": "🌳" },
+        "high_ground": { "name": "Rise", "glyph": "▲" }
+      },
+      "features": [
+        { "terrain": "difficult", "clusters": [2, 3], "size": [2, 4] },
+        { "terrain": "high_cover", "clusters": [0, 2], "size": [1, 1] },
+        { "terrain": "high_ground", "clusters": [0, 1], "size": [3, 5] }
+      ]
+    },
+    "urban": {
+      "name": "Highway",
+      "starting_range": [2, 4],
+      "look": {
+        "low_cover": { "name": "Cart", "glyph": "🛒" },
+        "high_cover": { "name": "Boulder", "glyph": "🪨" },
+        "difficult": { "name": "Ditch", "glyph": "·" }
+      },
+      "features": [
+        { "terrain": "low_cover", "clusters": [1, 2], "size": [2, 2] },
+        { "terrain": "high_cover", "clusters": [0, 2], "size": [1, 1] },
+        { "terrain": "difficult", "clusters": [1, 2], "size": [3, 5] }
+      ]
+    },
+    "coast": {
+      "name": "Shoreline",
+      "starting_range": [2, 4],
+      "look": {
+        "difficult": { "name": "Sand", "glyph": "·" },
+        "high_cover": { "name": "Rock", "glyph": "🪨" },
+        "low_cover": { "name": "Driftwood", "glyph": "🪵" }
+      },
+      "features": [
+        { "terrain": "deep_water", "clusters": [1, 1], "size": [5, 8] },
+        { "terrain": "water", "clusters": [1, 2], "size": [4, 6] },
+        { "terrain": "difficult", "clusters": [1, 2], "size": [2, 4] },
+        { "terrain": "high_cover", "clusters": [1, 2], "size": [1, 2] },
+        { "terrain": "low_cover", "clusters": [0, 2], "size": [1, 2] }
+      ]
+    },
+    "desert": {
+      "name": "Desert",
+      "starting_range": [2, 4],
+      "look": {
+        "difficult": { "name": "Soft sand", "glyph": "·" },
+        "high_ground": { "name": "Dune", "glyph": "▲" },
+        "high_cover": { "name": "Sandstone", "glyph": "🪨" },
+        "hazard": { "name": "Scorching rock", "glyph": "🔥" }
+      },
+      "features": [
+        { "terrain": "high_ground", "clusters": [1, 2], "size": [4, 7] },
+        { "terrain": "difficult", "clusters": [2, 4], "size": [2, 4] },
+        { "terrain": "high_cover", "clusters": [0, 2], "size": [1, 1] },
+        { "terrain": "hazard", "clusters": [0, 1], "size": [1, 2] }
+      ]
+    },
+    "street": {
+      "name": "Street",
+      "starting_range": [1, 3],
+      "look": {
+        "low_cover": { "name": "Crates", "glyph": "📦" },
+        "high_cover": { "name": "Wall", "glyph": "🧱" },
+        "difficult": { "name": "Market clutter", "glyph": "·" }
+      },
+      "features": [
+        { "terrain": "low_cover", "clusters": [2, 3], "size": [1, 2] },
+        { "terrain": "high_cover", "clusters": [1, 2], "size": [1, 3] },
+        { "terrain": "difficult", "clusters": [0, 2], "size": [2, 3] }
+      ]
+    },
+    "interior": {
+      "name": "Indoors",
+      "starting_range": [1, 2],
+      "look": {
+        "low_cover": { "name": "Table", "glyph": "🪑" },
+        "high_cover": { "name": "Pillar", "glyph": "🧱" },
+        "difficult": { "name": "Overturned chairs", "glyph": "·" },
+        "hazard": { "name": "Hearth", "glyph": "🔥" }
+      },
+      "features": [
+        { "terrain": "low_cover", "clusters": [2, 4], "size": [1, 2] },
+        { "terrain": "high_cover", "clusters": [0, 2], "size": [1, 1] },
+        { "terrain": "difficult", "clusters": [1, 2], "size": [1, 3] },
+        { "terrain": "hazard", "clusters": [0, 1], "size": [1, 1] }
+      ]
+    },
+    "cellar": {
+      "name": "Cellar",
+      "starting_range": [0, 1],
+      "look": {
+        "low_cover": { "name": "Barrels", "glyph": "🛢️" },
+        "high_cover": { "name": "Pillar", "glyph": "🧱" },
+        "difficult": { "name": "Rubble", "glyph": "·" },
+        "water": { "name": "Puddle", "glyph": "" }
+      },
+      "features": [
+        { "terrain": "low_cover", "clusters": [2, 4], "size": [1, 2] },
+        { "terrain": "high_cover", "clusters": [1, 3], "size": [1, 1] },
+        { "terrain": "difficult", "clusters": [1, 3], "size": [1, 3] },
+        { "terrain": "water", "clusters": [0, 2], "size": [2, 3] }
+      ]
+    }
+  }
+}

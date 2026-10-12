@@ -58,6 +58,7 @@ func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameAct
 		MonsterIDs:    combat.MonsterIDsForCount(qe.enc.MonsterID, count),
 		EnvironmentID: state.Location,
 		Surprise:      qe.enc.Surprise,
+		Arena:         qe.enc.Arena,
 	}
 	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
 	if err != nil {

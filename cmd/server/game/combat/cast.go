@@ -76,12 +76,23 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 			return ResolveDamageToMonster(dice, mod, dtype, crit, m)
 		}
 	}
+	// Offensive spells need a line to the target; cover raises its AC against
+	// spell attacks for the duration of the cast.
+	var coverLog []string
+	if spells.TargetsEnemy(db, spellID) {
+		restore, lines, err := applySpellCover(cs, monster)
+		if err != nil {
+			return nil, err
+		}
+		defer restore()
+		coverLog = lines
+	}
 	res, err := spells.Cast(db, deps, save, spellID, level, monster)
 	if err != nil {
 		return nil, err
 	}
 
-	log := res.Log
+	log := append(coverLog, res.Log...)
 
 	// Damage → monster HP + XP + kill.
 	if res.Damage > 0 {
@@ -171,6 +182,21 @@ func applySpellCondition(spellID string, res *spells.CastResult, monster *types.
 		SaveStat:       rider.saveStat,
 	})
 	return []string{fmt.Sprintf("  %s is %s!", monster.Name, rider.condition)}
+}
+
+// applySpellCover checks the player can see the spell's target and, if it has
+// cover, raises its AC until the returned restore runs.
+func applySpellCover(cs *types.CombatSession, monster *types.MonsterInstance) (func(), []string, error) {
+	visible, cover := Sight(cs, cs.Party[0].Pos, monster.Pos)
+	if !visible {
+		return nil, nil, fmt.Errorf("you have no line of sight to %s", monster.Name)
+	}
+	if cover == 0 {
+		return func() {}, nil, nil
+	}
+	monster.ArmorClass += cover
+	return func() { monster.ArmorClass -= cover },
+		[]string{fmt.Sprintf("  🛡 %s has %s (+%d AC).", monster.Name, coverLabel(cover), cover)}, nil
 }
 
 // spellActionCost reads a spell's combat action cost, defaulting to "action".
@@ -313,13 +339,23 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 	adv, _ := character.LoadAdvancement(db)
 	level := character.GetLevelFromXP(save.Experience, adv)
 
+	var coverLog []string
+	if spells.TargetsEnemy(db, spellID) {
+		restore, lines, err := applySpellCover(cs, monster)
+		if err != nil {
+			return nil, err
+		}
+		defer restore()
+		coverLog = lines
+	}
 	deps := spells.Deps{RollD20: RollD20, RollDice: RollDice, ResolveMonsterDamage: ResolveDamageToMonster}
 	res, err := spells.CastFromScroll(db, deps, save, spellID, level, monster)
 	if err != nil {
 		return nil, err
 	}
 
-	log := append([]string{fmt.Sprintf("  You read the %s.", itemName)}, res.Log...)
+	log := append([]string{fmt.Sprintf("  You read the %s.", itemName)}, coverLog...)
+	log = append(log, res.Log...)
 	if res.Damage > 0 {
 		applyDamageToMonster(monster, res.Damage)
 		if xp := awardDamageXP(cs, monster, res.Damage, save.TimeOfDay, level, adv); xp > 0 {

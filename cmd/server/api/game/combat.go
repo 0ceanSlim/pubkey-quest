@@ -113,6 +113,25 @@ type CombatMonsterView struct {
 	// CreatureType ("Beast", "Undead", …) picks the grid glyph when the monster
 	// has no sprite yet.
 	CreatureType string `json:"creature_type" example:"Humanoid"`
+	// InSight / Cover: whether the player has a line to it, and the AC its cover
+	// adds against the player's attacks (2 half, 5 three-quarters).
+	InSight bool `json:"in_sight" example:"true"`
+	Cover   int  `json:"cover"    example:"0"`
+}
+
+// TerrainLegendView describes one terrain type on this board.
+// swagger:model TerrainLegendView
+type TerrainLegendView struct {
+	Name           string `json:"name"            example:"Tree"`
+	Glyph          string `json:"glyph"           example:"🌲"`
+	MoveCost       int    `json:"move_cost"       example:"1"`
+	ClimbCost      int    `json:"climb_cost"      example:"0"`
+	BlocksMovement bool   `json:"blocks_movement" example:"true"`
+	BlocksSight    bool   `json:"blocks_sight"    example:"true"`
+	CoverAC        int    `json:"cover_ac"        example:"5"`
+	RangedBonus    int    `json:"ranged_bonus"    example:"0"`
+	Swim           bool   `json:"swim"            example:"false"`
+	Hazard         string `json:"hazard,omitempty" example:"1d4 fire"`
 }
 
 // CombatGridView describes the 2D combat grid dimensions.
@@ -120,6 +139,11 @@ type CombatMonsterView struct {
 type CombatGridView struct {
 	Width  int `json:"width"  example:"11"`
 	Height int `json:"height" example:"8"`
+	// Battlefield is the terrain profile ("forest", "cellar", …); Terrain is the
+	// row-major cell list ("" = open ground); Legend describes each type present.
+	Battlefield string                       `json:"battlefield,omitempty" example:"forest"`
+	Terrain     []string                     `json:"terrain,omitempty"`
+	Legend      map[string]TerrainLegendView `json:"legend,omitempty"`
 }
 
 // CombatStateResponse is returned by all combat action endpoints.
@@ -133,6 +157,9 @@ type CombatStateResponse struct {
 	PlayerPos            types.Position          `json:"player_pos"`
 	MovementBudget       int                     `json:"movement_budget"        example:"6"`
 	MovementSpent        int                     `json:"movement_spent"         example:"0"`
+	// Reachable lists the cells the player can move to now, with what each costs
+	// (terrain makes some cost more than one). Empty outside the player's turn.
+	Reachable []combat.ReachCell `json:"reachable"`
 	ActionUsed           bool                    `json:"action_used"            example:"false"`
 	BonusActionUsed      bool                    `json:"bonus_action_used"      example:"false"`
 	Disengaged           bool                    `json:"disengaged"             example:"false"`
@@ -250,6 +277,14 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 
 			CreatureType: m.Data.Type,
 		})
+		if m.Active() {
+			monsters[len(monsters)-1].InSight, monsters[len(monsters)-1].Cover = combat.Sight(cs, combat.PlayerPos(cs), m.Pos)
+		}
+	}
+
+	var reachable []combat.ReachCell
+	if cs.Phase == "active" && combat.IsPlayerTurn(cs) {
+		reachable = combat.PlayerReachable(cs)
 	}
 
 	bonusAvail := false
@@ -284,7 +319,8 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		Phase:                cs.Phase,
 		Round:                cs.Round,
 		Range:                nearest,
-		Grid:                 CombatGridView{Width: cs.GridWidth, Height: cs.GridHeight},
+		Grid:                 buildGridView(cs),
+		Reachable:            reachable,
 		PlayerPos:            combat.PlayerPos(cs),
 		MovementBudget:       movBudget,
 		MovementSpent:        movSpent,
@@ -306,6 +342,49 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		AmmoRemaining:        ammoLeft,
 		Difficulty:           cs.Difficulty,
 	}
+}
+
+// buildGridView describes the board, its terrain, and a legend for the terrain
+// types on it (named for this battlefield: a forest's high cover is a "Tree").
+func buildGridView(cs *types.CombatSession) CombatGridView {
+	view := CombatGridView{Width: cs.GridWidth, Height: cs.GridHeight, Battlefield: cs.Battlefield}
+	if len(cs.Terrain) == 0 {
+		return view
+	}
+	view.Terrain = cs.Terrain
+	view.Legend = map[string]TerrainLegendView{}
+	cfg := combat.ActiveTerrainConfig()
+	look := cfg.Battlefields[cs.Battlefield].Look
+	for _, id := range cs.Terrain {
+		if id == "" {
+			continue
+		}
+		if _, done := view.Legend[id]; done {
+			continue
+		}
+		t, ok := cfg.Types[id]
+		if !ok {
+			continue
+		}
+		lv := TerrainLegendView{
+			Name: t.Name, Glyph: t.Glyph, MoveCost: t.MoveCost, ClimbCost: t.ClimbCost,
+			BlocksMovement: t.BlocksMovement, BlocksSight: t.BlocksSight, CoverAC: t.CoverAC,
+			RangedBonus: t.RangedBonus, Swim: t.Swim,
+		}
+		if t.Damage != "" {
+			lv.Hazard = t.Damage + " " + t.DamageType
+		}
+		if l, ok := look[id]; ok {
+			if l.Name != "" {
+				lv.Name = l.Name
+			}
+			if l.Glyph != "" {
+				lv.Glyph = l.Glyph
+			}
+		}
+		view.Legend[id] = lv
+	}
+	return view
 }
 
 // checkBonusAttackAvailable returns true when the player currently meets the

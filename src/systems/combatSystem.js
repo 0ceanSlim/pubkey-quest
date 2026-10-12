@@ -355,7 +355,12 @@ function _renderRangeDisplay(cs) {
     const reach  = wID ? _meleeReach(wID) : 1;
     const inReach = !wRange && range <= reach;
     const reachTag = !wRange ? (inReach ? ' ⚔' : '') : '';
-    _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? ''}${reachTag}`);
+    let sightTag = '';
+    if (_isActive(target)) {
+        if (target.in_sight === false) sightTag = ' · 🚫 no sight';
+        else if (target.cover > 0) sightTag = ` · 🛡+${target.cover}`;
+    }
+    _setText('combat-range-display', `Range ${range} — ${RANGE_LABELS[range] ?? ''}${reachTag}${sightTag}`);
 }
 
 export async function doAttack(hand = 'main', thrown = false) {
@@ -1209,8 +1214,10 @@ function _ensureGrid(cs) {
     if (!container.dataset.built) {
         container.dataset.built = '1';
         container.addEventListener('click', (e) => {
-            const cell = e.target.closest?.('.combat-cell.foe');
-            if (cell?.dataset.foe) selectCombatTarget(cell.dataset.foe);
+            const foe = e.target.closest?.('.combat-cell.foe');
+            if (foe?.dataset.foe) { selectCombatTarget(foe.dataset.foe); return; }
+            const reach = e.target.closest?.('.combat-cell.reach');
+            if (reach) doMoveToCell(Number(reach.dataset.x), Number(reach.dataset.y));
         });
     }
     _fitGridCells(container);
@@ -1281,6 +1288,46 @@ function _playerFace() {
     return `<span class="combat-token-crest">${crestSVG(getNpub() ?? '', name, 18)}</span>`;
 }
 
+// ─── Terrain ─────────────────────────────────────────────────────────────────
+
+/** The terrain type id at (x, y), or '' for open ground. */
+function _terrainAt(cs, x, y) {
+    const t = cs?.grid?.terrain;
+    const w = cs?.grid?.width ?? 0;
+    return (t && t[y * w + x]) || '';
+}
+
+/** Legend entry (name, glyph, costs) for the terrain at (x, y), or null on open ground. */
+function _terrainInfo(cs, x, y) {
+    const id = _terrainAt(cs, x, y);
+    return id ? (cs.grid?.legend?.[id] ?? null) : null;
+}
+
+/** Map "x,y" → movement cost for every cell the player can reach this turn. */
+function _reachMap(cs) {
+    return new Map((cs.reachable ?? []).map(c => [`${c.x},${c.y}`, c.cost]));
+}
+
+/** Tint + glyph + tooltip for one cell's terrain (party-combat-plan §2a, pass 1). */
+function _paintTerrainCell(cs, cell, x, y) {
+    const id = _terrainAt(cs, x, y);
+    if (!id) return;
+    const info = cs.grid?.legend?.[id];
+    cell.classList.add(`t-${id}`);
+    if (info?.glyph) cell.innerHTML = `<span class="combat-terrain-glyph">${info.glyph}</span>`;
+    if (!info) return;
+    const notes = [];
+    if (info.blocks_movement) notes.push('blocks movement');
+    else if (info.move_cost > 1) notes.push(`costs ${info.move_cost} to enter`);
+    if (info.climb_cost) notes.push(`+${info.climb_cost} to climb`);
+    if (info.blocks_sight) notes.push('blocks sight');
+    else if (info.cover_ac) notes.push(`+${info.cover_ac} AC cover`);
+    if (info.ranged_bonus) notes.push(`+${info.ranged_bonus} to hit with ranged attacks from here`);
+    if (info.swim) notes.push('swimming — melee at disadvantage');
+    if (info.hazard) notes.push(`${info.hazard} damage`);
+    cell.title = notes.length ? `${info.name} — ${notes.join(', ')}` : info.name;
+}
+
 /**
  * Redraw the grid: the player, every enemy still in the fight (at its drawn
  * position, which lags the server while a move animates), and the fallen.
@@ -1296,11 +1343,21 @@ function _paintGrid(cs) {
             if (!cell) continue;
             cell.innerHTML = '';
             cell.title = '';
-            cell.classList.remove('foe', 'target', 'you', 'fallen');
+            cell.className = 'combat-cell';
             delete cell.dataset.foe;
+            _paintTerrainCell(cs, cell, c, r);
         }
     }
     const cellAt = p => (p ? $id(`gc-${p.x}-${p.y}`) : null);
+
+    // Where you can move this turn (terrain-costed by the server). Clicking moves you.
+    for (const rc of (cs.reachable ?? [])) {
+        const cell = cellAt(rc);
+        if (!cell) continue;
+        cell.classList.add('reach');
+        const info = _terrainInfo(cs, rc.x, rc.y);
+        cell.title = `Move here — costs ${rc.cost}${info ? ` (${info.name})` : ''}`;
+    }
 
     // The fallen first, so a living combatant standing there paints over them.
     for (const m of (cs.monsters ?? [])) {
@@ -1320,10 +1377,15 @@ function _paintGrid(cs) {
         const hp = _hpByID[m.instance_id] ?? { cur: m.current_hp, max: m.max_hp };
         cell.classList.remove('fallen');
         cell.classList.add('foe');
-        cell.innerHTML = _monsterFace(m)
+        cell.classList.remove('reach');
+        const sight = m.in_sight === false
+            ? '<span class="combat-token-badge" title="No line of sight">🚫</span>'
+            : m.cover > 0 ? `<span class="combat-token-badge" title="Cover +${m.cover} AC">🛡</span>` : '';
+        cell.innerHTML = _monsterFace(m) + sight
             + `<div class="combat-token-hp"><div data-hp-for="${m.instance_id}" style="width:${_hpPct(hp.cur, hp.max)}%"></div></div>`;
         cell.dataset.foe = m.instance_id;
-        cell.title = `${m.name} (${m.current_hp}/${m.max_hp} HP) — click to target`;
+        const sightNote = m.in_sight === false ? ' — no line of sight' : m.cover > 0 ? ` — cover +${m.cover} AC` : '';
+        cell.title = `${m.name} (${m.current_hp}/${m.max_hp} HP)${sightNote} — click to target`;
         if (m.instance_id === _targetID) cell.classList.add('target');
     }
     const pCell = cellAt(playerPos);
@@ -1655,6 +1717,7 @@ function _renderCombatButtons(cs) {
 
     const pPos = cs.player_pos ?? { x: -1, y: -1 };
     const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+    const reachCost = _reachMap(cs);
     const disengaged  = cs.disengaged ?? false;
     const reactionUsed = cs.reaction_used ?? false;
 
@@ -1678,7 +1741,9 @@ function _renderCombatButtons(cs) {
         const oob        = tx < 0 || tx >= _gridCols || ty < 0 || ty >= _gridRows;
         const intoMon    = foes.some(m => m.pos && m.pos.x === tx && m.pos.y === ty);
         const noBudget   = remaining <= 0;
-        const disabled   = oob || intoMon || noBudget;
+        const cost       = reachCost.get(`${tx},${ty}`);
+        const blockedBy  = !oob && !intoMon && !noBudget && cost === undefined ? _terrainInfo(cs, tx, ty) : null;
+        const disabled   = oob || intoMon || noBudget || cost === undefined;
 
         // OA warning: moving this direction would leave some enemy's reach
         const provokesOA = !disabled && !disengaged && foes.some(m => {
@@ -1686,11 +1751,13 @@ function _renderCombatButtons(cs) {
             return m.pos && reach > 0 && cheb(pPos, m.pos) <= reach && cheb(to, m.pos) > reach;
         });
         const label = provokesOA ? `⚠${d.label}` : d.label;
+        const costNote = cost > 1 ? ` — ${_terrainInfo(cs, tx, ty)?.name ?? 'rough ground'}, costs ${cost}` : '';
         const title = disabled
-            ? (noBudget ? 'No movement left' : intoMon ? 'Blocked by enemy' : 'Out of bounds')
+            ? (noBudget ? 'No movement left' : intoMon ? 'Blocked by enemy' : oob ? 'Out of bounds'
+                : blockedBy?.blocks_movement ? `Blocked — ${blockedBy.name}` : 'Not enough movement')
             : provokesOA
-                ? `Move ${d.label} — will provoke opportunity attack! Disengage first.`
-                : `Move ${d.label}`;
+                ? `Move ${d.label}${costNote} — will provoke opportunity attack! Disengage first.`
+                : `Move ${d.label}${costNote}`;
         return disabled
             ? `<button style="${_DPAD_BTN_DISABLED}" disabled title="${title}">${d.label}</button>`
             : `<button style="${_DPAD_BTN}${provokesOA ? 'color:#fbbf24;' : ''}" onclick="window.doStep(${d.dx},${d.dy})" title="${title}">${label}</button>`;
@@ -1712,6 +1779,9 @@ function _renderCombatButtons(cs) {
     const mainName  = mainID ? (_equippedWeaponName('mainHand') || 'Unarmed') : 'Unarmed';
     const meleeBlocked  = !isRanged && targetRange > maxMelee;
     const rangedBlocked = isRanged && ammo <= 0;
+    const noSight       = _isActive(target) && target.in_sight === false;
+    const coverNote     = _isActive(target) && target.cover > 0
+        ? ` — ${targetName} has ${target.cover >= 5 ? 'three-quarters' : 'half'} cover (+${target.cover} AC)` : '';
 
     let mainLabel = `⚔ ${mainName}`;
     if (isRanged && ammo > 0) mainLabel += ` (${ammo})`;
@@ -1720,7 +1790,8 @@ function _renderCombatButtons(cs) {
     if (actionUsed)         attackBtn = _B_GRAYED(mainLabel, 'Action used this turn');
     else if (meleeBlocked)  attackBtn = _B_GRAYED(mainLabel, `${targetName} is out of melee range — step closer or pick another target`);
     else if (rangedBlocked) attackBtn = _B_GRAYED(mainLabel, 'No ammo');
-    else attackBtn = `<button style="${_B()}" onclick="window.doAttack('main',false)" title="Attack ${targetName}">${mainLabel}</button>`;
+    else if (noSight)       attackBtn = _B_GRAYED(mainLabel, `No line of sight to ${targetName} — move to get a clear shot`);
+    else attackBtn = `<button style="${_B()}" onclick="window.doAttack('main',false)" title="Attack ${targetName}${coverNote}">${coverNote ? '🛡' : ''}${mainLabel}</button>`;
 
     let bonusBtn = '';
     if (bonusAvail) {

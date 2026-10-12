@@ -271,6 +271,8 @@ type CombatSession struct {
 	GridHeight         int               `json:"grid_height"`  // Sized by combatant count (combat.GridSizeFor)
 	Log                []string          `json:"log"`
 	EnvironmentID      string            `json:"environment_id"`
+	Battlefield        string            `json:"battlefield,omitempty"` // terrain profile: "forest", "interior", "cellar", …
+	Terrain            []string          `json:"terrain,omitempty"`     // row-major GridWidth×GridHeight terrain ids; "" = open ground
 	IsSurprised        bool              `json:"is_surprised"`  // Party was surprised (every monster acts before the party in round 1)
 	Phase              string            `json:"phase"`         // "active", "loot", "victory", "defeat", "death_saves"
 	LootRolled         []LootDrop        `json:"loot_rolled,omitempty"`

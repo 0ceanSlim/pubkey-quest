@@ -30,7 +30,18 @@
         "room": "cellar",
         "monster_id": "giant-rat",
         "count": 3,
-        "text": "Something squeals behind the ale casks — then a dozen eyes glint in the lamplight."
+        "text": "Something squeals behind the ale casks — then a dozen eyes glint in the lamplight.",
+        "arena": [
+          ".....=...=...",
+          "..=.....#....",
+          ".....,,......",
+          "...#...~~..=.",
+          ".......~~....",
+          "...#.........",
+          ".....,,..#...",
+          "..=......=...",
+          "............."
+        ]
       },
       "objectives": [
         {

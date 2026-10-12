@@ -3,8 +3,10 @@ package combat
 import (
 	"database/sql"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
+	"time"
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
@@ -69,8 +71,11 @@ func playerMovementBudget(race string) int {
 // EncounterSpec describes the hostile side of a fight about to start.
 type EncounterSpec struct {
 	MonsterIDs    []string // one entry per monster; repeats mean several of that kind
-	EnvironmentID string   // drives the starting range
+	EnvironmentID string   // where the fight is (for the log / analytics)
 	Surprise      bool     // the party is caught off guard: every monster acts first in round 1
+	// Arena is an authored terrain layout (rows of combat-terrain arena_key
+	// characters) used instead of generating terrain for the battlefield.
+	Arena []string
 }
 
 // StartCombat initialises a new CombatSession against a single monster.
@@ -134,7 +139,15 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 		IsSurprised:   spec.Surprise,
 		Phase:         "active",
 	}
-	placeMonsters(cs, scaleRangeToGrid(startingRange(spec.EnvironmentID), width))
+	// Terrain: an authored arena, or scattered from where the fight is.
+	loadTerrainConfig(db)
+	cs.Battlefield = BattlefieldFor(db, save)
+	if len(spec.Arena) > 0 {
+		applyArena(cs, spec.Arena)
+	} else {
+		generateTerrain(cs, rand.New(rand.NewSource(time.Now().UnixNano())))
+	}
+	placeMonsters(cs, scaleRangeToGrid(startingRangeFor(cs.Battlefield), width))
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
 	// Seed the martial class resource pool (Rage/Stamina/Ki/Cunning) for the fight.
@@ -289,20 +302,6 @@ func sortInitiative(entries []types.InitiativeEntry, surprised bool) []types.Ini
 	return entries
 }
 
-// startingRange returns the encounter's initial range based on environment type.
-func startingRange(environmentID string) int {
-	switch environmentID {
-	case "dungeon", "cave", "cellar", "ruins-interior", "crypt":
-		return RollRange(0, 1)
-	case "forest", "jungle", "swamp", "thicket":
-		return RollRange(1, 2)
-	case "grassland", "plains", "desert", "coast", "road":
-		return RollRange(2, 4)
-	default:
-		return 2
-	}
-}
-
 // ─── ProcessPlayerMove ───────────────────────────────────────────────────────
 
 // ProcessPlayerMove moves the player to the target grid cell.
@@ -327,15 +326,25 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	if occupied(cs, target, me.ID) {
 		return nil, fmt.Errorf("that space is occupied")
 	}
+	if !passable(cs, target) {
+		return nil, fmt.Errorf("you can't stand there (%s)", terrainName(cs, terrainAt(cs, target)))
+	}
 
 	state := &me.CombatState
-	dist := chebyshev(me.Pos, target)
-	if dist == 0 {
+	if me.Pos == target {
 		return nil, fmt.Errorf("already at that position")
 	}
+	// Terrain makes some cells cost more than one movement: find the cheapest
+	// route there (around cover and through no one).
+	pm := shortestPaths(cs, me.Pos, moveRules{moverID: me.ID, isPlayer: true})
+	path := pm.pathTo(target)
+	if path == nil {
+		return nil, fmt.Errorf("there's no way through to that space")
+	}
+	dist := pm.cost[target]
 	remaining := state.MovementBudget - state.MovementSpent
 	if dist > remaining {
-		return nil, fmt.Errorf("not enough movement — need %d cells, have %d remaining", dist, remaining)
+		return nil, fmt.Errorf("not enough movement — that costs %d, you have %d left", dist, remaining)
 	}
 
 	// Ranges to every active monster before the move, for the OA check below.
@@ -359,6 +368,14 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	}
 	log := []string{fmt.Sprintf("  You move %s. (range: %d, movement: %d/%d)",
 		dir, newRange, state.MovementSpent, state.MovementBudget)}
+
+	// Hazards burn on the way through.
+	for _, p := range path {
+		log = append(log, playerHazard(cs, save, p, "step into")...)
+		if cs.Phase != "active" {
+			return log, nil
+		}
+	}
 
 	// Opportunity attacks: every monster whose reach the player just left.
 	for _, m := range activeMonsters(cs) {
@@ -600,6 +617,12 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	if err := validateAttackRange(r, item, isUnarmed, thrown); err != nil {
 		return nil, err
 	}
+	// …and that there's a line to it. Cover raises its AC.
+	visible, cover := Sight(cs, cs.Party[0].Pos, monster.Pos)
+	if !visible {
+		return nil, fmt.Errorf("you have no line of sight to %s — move to get a clear shot", monster.Name)
+	}
+	isRangedAttack := thrown || (!isUnarmed && item != nil && IsRangedAction(stringOf(item["type"])))
 
 	// Ammo consumption — ranged weapons with the "ammunition" tag require ammo
 	if !isUnarmed && item != nil && !thrown {
@@ -627,7 +650,16 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
 	// the target monster's (restrained/blinded/outlined/…) grant advantage.
 	advantage += ConditionAttackAdvantage(state.Conditions, monster.Conditions)
-	result := ResolveAttackRoll(attackBonus, monster.ArmorClass, advantage)
+	// Terrain: shooting down from high ground helps; swinging while swimming doesn't.
+	if isRangedAttack {
+		attackBonus += highGroundBonus(cs, cs.Party[0].Pos, monster.Pos)
+	} else if inDeepWater(cs, cs.Party[0].Pos) {
+		advantage--
+	}
+	if cover > 0 {
+		log = append(log, fmt.Sprintf("  🛡 %s has %s (+%d AC).", monster.Name, coverLabel(cover), cover))
+	}
+	result := ResolveAttackRoll(attackBonus, monster.ArmorClass+cover, advantage)
 
 	log = append(log, formatAttackRoll(save.D, item, isUnarmed, result), outcomeLine(result))
 
@@ -1372,4 +1404,10 @@ func applyDeathSaveHit(cs *types.CombatSession, isCrit bool) string {
 		return fmt.Sprintf("  Hit — %d failure(s). You have died.", n)
 	}
 	return fmt.Sprintf("  Hit — %d failure(s). (%d/3 failures)", n, state.DeathSaveFailures)
+}
+
+// stringOf reads a string out of a loosely-typed item field ("" otherwise).
+func stringOf(v interface{}) string {
+	s, _ := v.(string)
+	return s
 }
