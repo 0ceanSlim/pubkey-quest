@@ -19,11 +19,11 @@ combat, shipped) and the social plan's P4 parties (`docs/draft/social-plan.md`).
 | Going down | Allies can revive (healing, a potion on an ally, Help). If the party wins, downed members wake at 1 HP with no death penalty. **Only a full wipe** sends everyone home stripped. |
 | Fleeing | Fleeing alone also leaves the party. The leader can call a **retreat**: one shared roll at the slowest member's speed. |
 | Ally rules | Flanking, Help, ally-targeted heals and buffs, and **AoE friendly fire with a warning** before you confirm. |
-| Terrain | **All six cell types** (§2). Shown first with tints + glyphs, then a generated tileset (§2a). |
+| Terrain | **All six cell types** (§2), drawn as **tints + glyphs** (§2a). That may be the final look; a tileset is optional and not planned. |
 | Grid size | **By total combatants** (§3); a big fight may **fill the whole scene**. |
 | Loot share | **1/N per-member rolls** (§4). |
 | Healer XP | As §5. |
-| Tokens | **Monster sprites on the grid** instead of emoji; players shown by Nostr picture (§2b). |
+| Tokens | **Monster sprites on the grid** instead of emoji. Players show their **character portrait**, a picture chosen for the game, not their Nostr picture; without one they get a **crest** (§2b, §2c). |
 | Stealth openings | Come upon a monster that hasn't noticed you: **sneak away or sneak attack** (§7). |
 | Scope | **All of it gets built.** Terrain, bigger grids, tokens and stealth openings improve solo fights too, so they ship first, before party combat. |
 
@@ -97,7 +97,7 @@ type, in whichever way is available:
    | hazard | a red tint with 🔥 |
 
    Everything is readable on day one and costs no art.
-2. **Pass 2, a small tileset per environment family:**
+2. **Pass 2 (optional, maybe never), a small tileset per environment family:**
    - **Size:** 16×16 or 24×24, pixelated, about **10 tiles per family** (open ground, two
      difficult variants, shallow and deep water, low cover, high cover, a high-ground top
      and its edge, hazard).
@@ -124,14 +124,84 @@ type, in whichever way is available:
   - A red outline when it's the current target.
   - Conditions as tiny badges in a corner.
   - **Fallback when a sprite is missing:** `unknown.png`.
-- **Players:**
-  - **In a party:** each player's **Nostr profile picture** in a square frame, so you can
-    tell real people apart at a glance. The frame is green for you and blue for allies, and
-    the leader gets a 👑 pip.
-  - **Fallback when there's no picture** (or in solo play, if preferred): a small
-    **class sigil**. That's 12 icons, one per class, and the same art family can later feed
-    the paperdoll work.
-- **Turn order strip** uses the same faces: picture or sprite chips.
+- **Players:** their **character portrait** (§2c), solo or in a party, in a square frame.
+  - The frame is green for you and blue for allies.
+  - The leader gets a 👑 pip.
+  - Without a portrait, the player's **crest** (§2c).
+- **Turn order strip** uses the same faces: portrait, crest or sprite chips.
+
+## 2c. Character portraits
+
+A picture **chosen for the game**, separate from the player's Nostr picture, so a character
+can look like the character. It's used everywhere a player appears:
+- grid tokens and the turn strip;
+- the People column;
+- the player card and the Friends panel (the Nostr picture stays in the card's profile
+  part);
+- the saves screen.
+
+**Storage:** one optional `portrait` URL on the save, per character.
+- It passes the hydration rule because it's the player's choice and can't be derived.
+- It travels with the save when saves become signed events.
+- It goes into the presence snapshot so others see it.
+
+### Getting one — "Make a portrait" (character sheet)
+
+1. **Copy a prompt.** The game writes an image prompt from the save:
+   - race, class, background, alignment and level;
+   - equipped armour and weapon (by name);
+   - an optional "your look" box (hair, scars, colours) that isn't stored;
+   - a fixed style line so portraits share a look.
+
+   The player pastes it into whatever AI image tool they like. Example:
+
+   > Square pixel-art bust portrait for a 16-bit fantasy RPG. A level 4 half-orc fighter,
+   > soldier background, lawful neutral. Wearing scale mail, a longsword on the shoulder.
+   > Short black hair, a scar across the nose. Facing slightly left, plain dark background,
+   > no text, no border.
+2. **Set it**, either way:
+   - **Paste a URL** (https).
+   - **Upload to Blossom:** the browser reads the player's Blossom server list (kind 10063),
+     signs the upload authorisation (kind 24242) with the active signer, and uploads.
+     Players with no server list just paste a URL.
+     - Check whether Grain has a Blossom helper. If not, it's a small browser-side fetch and a
+       candidate for upstreaming.
+3. **Preview** it cropped to the square token at small sizes, then save.
+
+### Showing other people's portraits safely
+
+Clients never load another player's URL directly. The server:
+- fetches each portrait once;
+- checks it's a real image under a size cap;
+- scales it to a **64×64 PNG** and caches it by URL hash;
+- serves it from `/api/portrait/{hash}`.
+
+That way:
+- strangers' image hosts never see your IP;
+- huge or animated files can't hurt the scene;
+- everything renders crisp at token size.
+
+A muted player's portrait shows as their crest.
+
+### The fallback: a crest from the npub
+
+Identical race/class icons can't tell two players apart. A **crest** can, and it suits the
+fantasy setting.
+- **Generated from the npub** (like character generation) and drawn as a tiny SVG shield,
+  so it needs **no art**:
+  - **field colour:** ~10 colours;
+  - **division:** ~8 patterns (plain, halved, quartered, bend, chevron, cross, saltire,
+    stripes);
+  - **second colour:** different from the field.
+  - That's over 700 fields.
+- **Centre charge:**
+  - for now, the character's **initial**;
+  - later, a **class sigil**, giving over 700 fields × 12 classes.
+- Two players at one spot sharing a crest is rare, and names show next to tokens anyway.
+- **Later:** let players redesign their arms. It's just a few stored choices, and the crest
+  could appear on shields, banners or the saves screen.
+- **Why from the npub:** it's "your house", so every character on that key shares it. If
+  you'd rather each character be distinct, generate it from npub + save ID instead.
 
 ## 3. Grid size (brainstorm)
 
@@ -229,8 +299,8 @@ you choose.
 | **They notice you first** | An ambush: the party is surprised. This already exists as `Surprise` on POI nodes and encounters. |
 
 **The choices when you're unseen:**
-- **Sneak away:** another stealth check. On success there's no fight. On failure the
-  monster spots you and the fight starts normally.
+- **Sneak away:** another stealth check. On success there's no fight. **On failure it's a
+  normal fight: roll for initiative**, with no surprise either way.
 - **Sneak attack:** combat starts with **the monsters surprised**. They lose their first
   turn, and the opening attacks get advantage. Rogues' Sneak Attack is a natural fit here.
 - **Approach openly:** a normal fight. This is for when you want to talk to an intelligent
@@ -247,16 +317,14 @@ you choose.
 
 ## 8. Still to settle
 
-1. **Player tokens in solo play:** your Nostr picture, or the class sigil?
-2. **Who makes the tileset:** PixelLab via Codex, or hand-drawn/commissioned? Pass 1 doesn't
-   need either.
-3. **Sneak away on failure:** the monster gets the first move, or just a normal fight?
-4. **Build order** (proposed):
-   1. bigger grid + monster sprites + player tokens;
-   2. terrain rules with the pass-1 look;
+1. **Crest seed:** npub (one house for all your characters, as proposed) or npub + save
+   (each character distinct)?
+2. **Build order** (proposed):
+   1. bigger grid + monster sprites + crest tokens;
+   2. terrain rules with the tint/glyph look;
    3. A* and cover-aware AI;
    4. stealth openings;
-   5. — all of that improves solo fights —
-   6. then party combat (shared fight, turn timer, loot share, healer XP, ally rules,
-      group encounters);
-   7. the tileset whenever the art lands.
+   5. character portraits (prompt, URL/Blossom, server-side 64px cache);
+   6. — all of that improves solo fights —
+   7. then party combat (shared fight, turn timer, loot share, healer XP, ally rules,
+      group encounters).
