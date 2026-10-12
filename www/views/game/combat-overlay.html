@@ -14,6 +14,7 @@
     animation: combatFlairAnim 1.6s ease-out forwards;
 }
 .combat-cell {
+    position: relative;
     aspect-ratio: 1;
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.06);
@@ -21,14 +22,29 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: calc(var(--cell, 26px) * 0.55);
     line-height: 1;
+    overflow: hidden;
     user-select: none;
     pointer-events: none;
 }
 /* An enemy's cell can be clicked to target it. */
-.combat-cell.foe { pointer-events: auto; cursor: crosshair; }
+.combat-cell.foe { pointer-events: auto; cursor: crosshair; background: rgba(239,68,68,0.22); }
+.combat-cell.you { background: rgba(74,222,128,0.18); box-shadow: inset 0 0 0 1px #4ade80; }
 .combat-cell.target { box-shadow: inset 0 0 0 2px #fbbf24; }
+.combat-cell.fallen > * { opacity: 0.4; filter: grayscale(1); }
+/* Tokens: a monster sprite (or a glyph until it has one) and the player's crest. */
+.combat-token-img {
+    width: 100%; height: 100%; object-fit: contain;
+    image-rendering: pixelated;
+}
+.combat-token-crest { display: flex; }
+.combat-token-crest svg { height: calc(var(--cell, 26px) * 0.8); width: auto; }
+.combat-token-hp {
+    position: absolute; left: 1px; right: 1px; bottom: 1px; height: 2px;
+    background: rgba(0,0,0,0.7);
+}
+.combat-token-hp > div { height: 100%; background: #dc2626; transition: width 0.3s ease; }
 
 /* Turn-order strip: one chip per combatant, in initiative order. Enemy chips
    are clickable to pick the target; the selected one is outlined in gold. */
@@ -208,10 +224,11 @@
             </span>
         </div>
 
-        <!-- 9×7 combat grid — cells and tokens injected by JS -->
+        <!-- Combat grid: the server sizes it per fight (cs.grid); combatSystem.js
+             builds the cells, fits the cell size and draws the tokens -->
         <div id="combat-grid"
-             style="position:relative; display:grid; grid-template-columns:repeat(9,1fr);
-                    width:100%; max-width:234px; pointer-events:auto;">
+             style="position:relative; display:grid; grid-template-columns:repeat(11,22px);
+                    pointer-events:auto;">
         </div>
     </div>
 

@@ -11,6 +11,7 @@ import { eventBus }   from '../lib/events.js';
 import { gameAPI }    from '../lib/api.js';
 import { smoothClock } from './smoothClock.js';
 import { restoreActionButtonsLayout, displayCurrentLocation, closeNPCDialogue } from '../ui/locationDisplay.js';
+import { crestSVG }   from '../ui/crest.js';
 
 // ─── Range descriptions ────────────────────────────────────────────────────────
 const RANGE_LABELS = {
@@ -23,9 +24,14 @@ const RANGE_LABELS = {
     6: 'Extreme',
 };
 
-// ─── Grid constants ────────────────────────────────────────────────────────────
-const GRID_COLS = 9;
-const GRID_ROWS = 7;
+// ─── Grid size ────────────────────────────────────────────────────────────────
+// The server sizes the board by how many are fighting (cs.grid); these track
+// the board currently built in the DOM.
+let _gridCols = 0;
+let _gridRows = 0;
+// Cells never grow past this, so a small fight keeps the scene art around it.
+const _MAX_CELL_PX = 28;
+const _MIN_CELL_PX = 12;
 
 // ─── Module state ─────────────────────────────────────────────────────────────
 let _cachedNav       = null;
@@ -165,7 +171,7 @@ export function renderCombatState(cs) {
     // Every monster that changed cell this response becomes a "mover": it is
     // drawn at its old cell until the log line announcing its move plays, then
     // glides along its path — so several monsters' turns read in order.
-    _ensureGrid();
+    _ensureGrid(cs);
     const movers = {};
     for (const m of (cs.monsters ?? [])) {
         if (!m.is_alive || m.fled || !m.pos) continue;
@@ -1174,28 +1180,105 @@ function _scrollLogToBottom() {
 // ─── Combat grid ──────────────────────────────────────────────────────────────
 
 /**
- * Build the 63 cell divs once. Movement is driven by the D-pad; the only cell
- * interaction is clicking an enemy to target it (delegated to the container).
+ * Build the board's cells for this fight's size (rebuilt only when the size
+ * changes) and fit the cell size to the room the scene gives it. Movement is
+ * driven by the D-pad; the only cell interaction is clicking an enemy to target
+ * it (delegated to the container).
  */
-function _ensureGrid() {
+function _ensureGrid(cs) {
     const container = $id('combat-grid');
-    if (!container || container.dataset.built) return;
-    container.dataset.built = '1';
+    if (!container) return;
+    const cols = cs?.grid?.width  || 11;
+    const rows = cs?.grid?.height || 8;
 
-    for (let r = 0; r < GRID_ROWS; r++) {
-        for (let c = 0; c < GRID_COLS; c++) {
-            const cell = document.createElement('div');
-            cell.id = `gc-${c}-${r}`;
-            cell.className = 'combat-cell';
-            cell.dataset.x = c;
-            cell.dataset.y = r;
-            container.appendChild(cell);
+    if (cols !== _gridCols || rows !== _gridRows) {
+        _gridCols = cols;
+        _gridRows = rows;
+        container.innerHTML = '';
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.id = `gc-${c}-${r}`;
+                cell.className = 'combat-cell';
+                cell.dataset.x = c;
+                cell.dataset.y = r;
+                container.appendChild(cell);
+            }
         }
     }
-    container.addEventListener('click', (e) => {
-        const cell = e.target.closest?.('.combat-cell.foe');
-        if (cell?.dataset.foe) selectCombatTarget(cell.dataset.foe);
-    });
+    if (!container.dataset.built) {
+        container.dataset.built = '1';
+        container.addEventListener('click', (e) => {
+            const cell = e.target.closest?.('.combat-cell.foe');
+            if (cell?.dataset.foe) selectCombatTarget(cell.dataset.foe);
+        });
+    }
+    _fitGridCells(container);
+}
+
+/** Size cells to fill the grid area below the badge row, within the caps. */
+function _fitGridCells(container) {
+    const area = $id('combat-grid-area');
+    if (!area || !_gridCols) return;
+    const badges = container.previousElementSibling;
+    const availW = area.clientWidth - 8;
+    const availH = area.clientHeight - 6 - (badges ? badges.offsetHeight + 3 : 0);
+    let cell = Math.floor(Math.min(availW / _gridCols, availH / _gridRows));
+    if (!Number.isFinite(cell) || cell <= 0) cell = 22; // not laid out yet
+    cell = Math.max(_MIN_CELL_PX, Math.min(_MAX_CELL_PX, cell));
+    container.style.gridTemplateColumns = `repeat(${_gridCols}, ${cell}px)`;
+    container.style.width = `${cell * _gridCols}px`;
+    container.style.setProperty('--cell', `${cell}px`);
+}
+
+// ─── Grid tokens ──────────────────────────────────────────────────────────────
+
+// Monster sprites live at /res/img/monsters/{template}.png, but not every
+// monster has one yet. Each template is probed once; until (or unless) its
+// sprite loads, the cell shows a glyph for the creature.
+const _spriteState = {}; // template id → 'loading' | 'ok' | 'missing'
+
+const _MONSTER_GLYPHS = {
+    'giant-rat': '🐀', 'swarm-of-rats': '🐀', 'wolf': '🐺', 'werewolf': '🐺',
+    'giant-spider': '🕷️', 'blood-hawk': '🦅', 'harpy': '🦅', 'stirge': '🦟',
+    'owlbear': '🐻', 'manticore': '🦁', 'merrow': '🧜', 'skeleton': '🦴',
+    'banshee': '👻', 'wraith': '👻', 'ghoul': '🧟', 'zombie': '🧟',
+    'troll': '👹', 'ogre': '👹', 'lizardfolk': '🦎', 'kobold': '🦎',
+};
+const _TYPE_GLYPHS = {
+    beast: '🐾', humanoid: '👤', undead: '🧟', monstrosity: '👹', fiend: '😈',
+    dragon: '🐉', elemental: '🌪️', plant: '🌿', construct: '🗿', aberration: '👁️',
+    fey: '🧚', giant: '🗿', ooze: '🫧', celestial: '✨',
+};
+
+function _monsterGlyph(m) {
+    return _MONSTER_GLYPHS[m.template_id]
+        ?? _TYPE_GLYPHS[(m.creature_type || '').toLowerCase()]
+        ?? '👹';
+}
+
+/** Kick off a one-time sprite probe; repaint when it lands. */
+function _probeSprite(templateID) {
+    if (!templateID || _spriteState[templateID]) return;
+    _spriteState[templateID] = 'loading';
+    const img = new Image();
+    img.onload  = () => { _spriteState[templateID] = 'ok'; if (_lastState) _paintGrid(_lastState); };
+    img.onerror = () => { _spriteState[templateID] = 'missing'; };
+    img.src = `/res/img/monsters/${templateID}.png`;
+}
+
+function _monsterFace(m) {
+    _probeSprite(m.template_id);
+    if (_spriteState[m.template_id] === 'ok') {
+        return `<img class="combat-token-img" src="/res/img/monsters/${m.template_id}.png" alt="">`;
+    }
+    return `<span class="combat-token-glyph">${_monsterGlyph(m)}</span>`;
+}
+
+/** The player's face: a portrait later (party-combat-plan §2c); for now their npub crest. */
+function _playerFace() {
+    const name = window.getGameStateSync?.()?.character?.name ?? '';
+    return `<span class="combat-token-crest">${crestSVG(getNpub() ?? '', name, 18)}</span>`;
 }
 
 /**
@@ -1207,15 +1290,13 @@ function _paintGrid(cs) {
     const playerPos = cs.player_pos;
     if (!playerPos) return;
 
-    for (let r = 0; r < GRID_ROWS; r++) {
-        for (let c = 0; c < GRID_COLS; c++) {
+    for (let r = 0; r < _gridRows; r++) {
+        for (let c = 0; c < _gridCols; c++) {
             const cell = $id(`gc-${c}-${r}`);
             if (!cell) continue;
-            cell.style.background = '';
-            cell.style.opacity = '';
-            cell.textContent = '';
+            cell.innerHTML = '';
             cell.title = '';
-            cell.classList.remove('foe', 'target');
+            cell.classList.remove('foe', 'target', 'you', 'fallen');
             delete cell.dataset.foe;
         }
     }
@@ -1225,25 +1306,32 @@ function _paintGrid(cs) {
     for (const m of (cs.monsters ?? [])) {
         if (m.is_alive || m.fled) continue;
         const cell = cellAt(m.pos);
-        if (cell) { cell.textContent = '💀'; cell.style.opacity = '0.45'; }
+        if (!cell) continue;
+        cell.classList.add('fallen');
+        cell.innerHTML = _spriteState[m.template_id] === 'ok'
+            ? _monsterFace(m)
+            : '<span class="combat-token-glyph">💀</span>';
+        cell.title = `${m.name} is down`;
     }
     for (const m of (cs.monsters ?? [])) {
         if (!_isActive(m)) continue;
         const cell = cellAt(_shownPos[m.instance_id] ?? m.pos);
         if (!cell) continue;
-        cell.style.opacity = '';
-        cell.style.background = 'rgba(239,68,68,0.28)';
-        cell.textContent = '👹';
+        const hp = _hpByID[m.instance_id] ?? { cur: m.current_hp, max: m.max_hp };
+        cell.classList.remove('fallen');
         cell.classList.add('foe');
+        cell.innerHTML = _monsterFace(m)
+            + `<div class="combat-token-hp"><div data-hp-for="${m.instance_id}" style="width:${_hpPct(hp.cur, hp.max)}%"></div></div>`;
         cell.dataset.foe = m.instance_id;
         cell.title = `${m.name} (${m.current_hp}/${m.max_hp} HP) — click to target`;
         if (m.instance_id === _targetID) cell.classList.add('target');
     }
     const pCell = cellAt(playerPos);
     if (pCell) {
-        pCell.style.opacity = '';
-        pCell.style.background = 'rgba(74,222,128,0.28)';
-        pCell.textContent = '⚔';
+        pCell.classList.remove('fallen');
+        pCell.classList.add('you');
+        pCell.innerHTML = _playerFace();
+        pCell.title = 'You';
     }
 }
 
@@ -1587,7 +1675,7 @@ function _renderCombatButtons(cs) {
         }
         const tx = pPos.x + d.dx, ty = pPos.y + d.dy;
         const to = { x: tx, y: ty };
-        const oob        = tx < 0 || tx >= GRID_COLS || ty < 0 || ty >= GRID_ROWS;
+        const oob        = tx < 0 || tx >= _gridCols || ty < 0 || ty >= _gridRows;
         const intoMon    = foes.some(m => m.pos && m.pos.x === tx && m.pos.y === ty);
         const noBudget   = remaining <= 0;
         const disabled   = oob || intoMon || noBudget;
@@ -1839,7 +1927,7 @@ function _paintHPViews(cs) {
         if (bar) bar.style.width = `${_hpPct(hp.cur, hp.max)}%`;
         _setText('combat-monster-hp-text', `${hp.cur} / ${hp.max} HP`);
     }
-    for (const el of document.querySelectorAll('#combat-turn-strip [data-hp-for]')) {
+    for (const el of document.querySelectorAll('#combat-turn-strip [data-hp-for], #combat-grid [data-hp-for]')) {
         const hp = _hpByID[el.dataset.hpFor];
         if (hp) el.style.width = `${_hpPct(hp.cur, hp.max)}%`;
     }

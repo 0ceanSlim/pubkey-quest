@@ -15,8 +15,6 @@ import (
 	"pubkey-quest/types"
 )
 
-const combatGridWidth  = 9
-const combatGridHeight = 7
 
 // effectiveStats returns the player's ability scores with active-effect modifiers
 // (buffs, plus fatigue/exhaustion penalties) folded in — the stat block every
@@ -122,17 +120,21 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 	}
 	assignInstanceIDs(monsters)
 
+	party := []types.PartyCombatant{newPlayerCombatant(npub, save)}
+	width, height := GridSizeFor(len(party) + len(monsters))
+	party[0].Pos = types.Position{X: 1, Y: height / 2}
+
 	cs := &types.CombatSession{
-		Party:         []types.PartyCombatant{newPlayerCombatant(npub, save)},
+		Party:         party,
 		Monsters:      monsters,
 		Round:         1,
-		GridWidth:     combatGridWidth,
-		GridHeight:    combatGridHeight,
+		GridWidth:     width,
+		GridHeight:    height,
 		EnvironmentID: spec.EnvironmentID,
 		IsSurprised:   spec.Surprise,
 		Phase:         "active",
 	}
-	placeMonsters(cs, startingRange(spec.EnvironmentID))
+	placeMonsters(cs, scaleRangeToGrid(startingRange(spec.EnvironmentID), width))
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
 	// Seed the martial class resource pool (Rage/Stamina/Ki/Cunning) for the fight.
@@ -217,13 +219,13 @@ func rollEncounterInitiative(cs *types.CombatSession, save *types.SaveFile) []st
 	return log
 }
 
-// newPlayerCombatant snapshots the player's current HP into combat state.
+// newPlayerCombatant snapshots the player's current HP into combat state. The
+// caller places it once the grid size is known.
 func newPlayerCombatant(npub string, save *types.SaveFile) types.PartyCombatant {
 	return types.PartyCombatant{
 		Type:               "player",
 		ID:                 npub,
 		IsPlayerControlled: true,
-		Pos:                types.Position{X: 1, Y: combatGridHeight / 2},
 		CombatState: types.PlayerCombatState{
 			CurrentHP:      save.HP,
 			MaxHP:          save.MaxHP,

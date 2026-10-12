@@ -14,8 +14,41 @@ import (
 // combatants may share a cell. Dead or fled monsters drop off the grid.
 
 // maxEncounterMonsters caps one encounter's monster count so a bad authored
-// count can't flood the 9×7 grid.
-const maxEncounterMonsters = 8
+// count can't flood the grid.
+const maxEncounterMonsters = 12
+
+// gridSizes sizes the board by how many combatants are in the fight (players
+// plus monsters), smallest first: a duel stays compact, a crowd gets room to
+// manoeuvre. See docs/draft/party-combat-plan.md §3.
+var gridSizes = []struct{ upTo, width, height int }{
+	{3, 11, 8},
+	{6, 13, 9},
+	{10, 15, 10},
+}
+
+// largestGrid is used past the last gridSizes band.
+const largestGridWidth, largestGridHeight = 17, 11
+
+// baseGridWidth is the width the environment starting ranges were tuned on.
+const baseGridWidth = 9
+
+// GridSizeFor returns the board width and height for a fight with the given
+// number of combatants.
+func GridSizeFor(combatants int) (int, int) {
+	for _, s := range gridSizes {
+		if combatants <= s.upTo {
+			return s.width, s.height
+		}
+	}
+	return largestGridWidth, largestGridHeight
+}
+
+// scaleRangeToGrid stretches an environment's starting range to the board
+// width, so "close in a dungeon, far on the plains" keeps its feel on a bigger
+// grid.
+func scaleRangeToGrid(r, width int) int {
+	return (r*width + baseGridWidth/2) / baseGridWidth
+}
 
 // noTargetRange is the range reported when there is nothing left to measure to.
 const noTargetRange = 99

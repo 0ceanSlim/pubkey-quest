@@ -123,7 +123,9 @@ type, in whichever way is available:
   - A thin HP bar along the cell's bottom.
   - A red outline when it's the current target.
   - Conditions as tiny badges in a corner.
-  - **Fallback when a sprite is missing:** `unknown.png`.
+  - **When a sprite is missing:** a creature glyph (per monster, else per creature type).
+    **21 of the 32 live monsters have no sprite yet**, including goblin, wolf, giant rat
+    and bandit; the 114 existing sprites mostly belong to `monsters/wip`.
 - **Players:** their **character portrait** (§2c), solo or in a party, in a square frame.
   - The frame is green for you and blue for allies.
   - The leader gets a 👑 pip.
@@ -320,7 +322,7 @@ you choose.
 Nothing open. The crest seed is decided: npub only, one house per key.
 
 1. **Build order** (proposed):
-   1. bigger grid + monster sprites + crest tokens;
+   1. ✅ bigger grid + monster sprites + crest tokens (2026-10-11);
    2. terrain rules with the tint/glyph look;
    3. A* and cover-aware AI;
    4. stealth openings;

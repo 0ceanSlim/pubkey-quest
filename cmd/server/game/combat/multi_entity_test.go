@@ -31,11 +31,11 @@ func goblins(n int) []types.MonsterInstance {
 func boardWith(monsters []types.MonsterInstance) *types.CombatSession {
 	return &types.CombatSession{
 		Phase:      "active",
-		GridWidth:  combatGridWidth,
-		GridHeight: combatGridHeight,
+		GridWidth:  9,
+		GridHeight: 7,
 		Party: []types.PartyCombatant{{
 			Type: "player", ID: "npub_me",
-			Pos:         types.Position{X: 1, Y: combatGridHeight / 2},
+			Pos:         types.Position{X: 1, Y: 3},
 			CombatState: types.PlayerCombatState{CurrentHP: 10, MaxHP: 10},
 		}},
 		Monsters: monsters,
@@ -193,5 +193,21 @@ func TestAdvanceCursorCountsRounds(t *testing.T) {
 	}
 	if playerTurnIndex(cs) != 1 {
 		t.Errorf("playerTurnIndex = %d, want 1", playerTurnIndex(cs))
+	}
+}
+
+func TestGridSizeFor(t *testing.T) {
+	cases := []struct{ n, w, h int }{{2, 11, 8}, {3, 11, 8}, {4, 13, 9}, {6, 13, 9}, {7, 15, 10}, {10, 15, 10}, {11, 17, 11}, {20, 17, 11}}
+	for _, c := range cases {
+		if w, h := GridSizeFor(c.n); w != c.w || h != c.h {
+			t.Errorf("GridSizeFor(%d) = %d×%d, want %d×%d", c.n, w, h, c.w, c.h)
+		}
+	}
+	// Starting ranges stretch with the board but never shrink.
+	if got := scaleRangeToGrid(4, 11); got != 5 {
+		t.Errorf("scaleRangeToGrid(4, 11) = %d, want 5", got)
+	}
+	if got := scaleRangeToGrid(2, 9); got != 2 {
+		t.Errorf("scaleRangeToGrid(2, 9) = %d, want 2", got)
 	}
 }

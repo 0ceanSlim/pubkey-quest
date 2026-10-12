@@ -110,13 +110,16 @@ type CombatMonsterView struct {
 	Range      int             `json:"range"       example:"2"`
 	MeleeReach int             `json:"melee_reach" example:"1"`
 	Conditions []string        `json:"conditions"`
+	// CreatureType ("Beast", "Undead", …) picks the grid glyph when the monster
+	// has no sprite yet.
+	CreatureType string `json:"creature_type" example:"Humanoid"`
 }
 
 // CombatGridView describes the 2D combat grid dimensions.
 // swagger:model CombatGridView
 type CombatGridView struct {
-	Width  int `json:"width"  example:"9"`
-	Height int `json:"height" example:"7"`
+	Width  int `json:"width"  example:"11"`
+	Height int `json:"height" example:"8"`
 }
 
 // CombatStateResponse is returned by all combat action endpoints.
@@ -244,6 +247,8 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 			Range:      combat.RangeTo(cs, m),
 			MeleeReach: combat.MonsterMeleeReach(m),
 			Conditions: conditionNames(m.Conditions),
+
+			CreatureType: m.Data.Type,
 		})
 	}
 

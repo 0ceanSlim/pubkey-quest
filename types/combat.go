@@ -267,8 +267,8 @@ type CombatSession struct {
 	Initiative         []InitiativeEntry `json:"initiative"`
 	CurrentTurnIndex   int               `json:"current_turn_index"` // index into Initiative of whoever is acting
 	Round              int               `json:"round"`              // increments each time the turn order wraps
-	GridWidth          int               `json:"grid_width"`   // Always 9
-	GridHeight         int               `json:"grid_height"`  // Always 7
+	GridWidth          int               `json:"grid_width"`   // Sized by combatant count (combat.GridSizeFor)
+	GridHeight         int               `json:"grid_height"`  // Sized by combatant count (combat.GridSizeFor)
 	Log                []string          `json:"log"`
 	EnvironmentID      string            `json:"environment_id"`
 	IsSurprised        bool              `json:"is_surprised"`  // Party was surprised (every monster acts before the party in round 1)

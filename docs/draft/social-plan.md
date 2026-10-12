@@ -389,8 +389,9 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
   full refresh and `smoothClock.syncFromBackend(time, day, true)`. A move that only
   changes rooms produces no delta, so the flag is what carries it.
 - **Encounters:** rolls run on the leader only.
-  - **Until P5 (party combat), random and authored encounters are suppressed while in a
-    party.** The roads are safe for groups.
+  - **Random and authored encounters are suppressed while in a party** (decided
+    2026-10-11) until encounters built for parties exist (P5). The roads are safe for
+    groups.
   - Quest-stage encounters for a quest only the leader holds are also suppressed until P5.
 
 ### Leaving
@@ -434,8 +435,7 @@ maintainer; the code facts come from three code surveys run the same day. UI dra
 1. ~~Headcount spot~~ **Decided:** the bottom strip's right-hand spacer.
 2. ~~Say range~~ **Decided:** only players who can see you.
 3. ~~Party sleep~~ **Decided:** everyone needs a bed; a camp set covers a party in the wild.
-4. **Encounters while partied:** group-tailored encounters are part of P5, still to be
-   talked through. Until P5 lands, suppress random/authored encounters for parties, or hold
-   P4 back to ship with P5?
+4. ~~Encounters while partied~~ **Decided:** parties get no random or authored encounters
+   until party-ready encounters are authored (P5). P4 ships on its own.
 5. ~~Area scope on the road~~ **Decided:** a road is one area; "nearby" is within 5% of the
    road (tunable).
