@@ -1,6 +1,6 @@
 # Saves on relays, the official server, and releases — plan
 
-Status: **PLAN, open questions in §9** (2026-10-12). This is M5.6 P2. It builds on roadmap §4
+Status: **PLAN, decided** (2026-10-12). This is M5.6 P2. It builds on roadmap §4
 (the trust model) and replaces `future-nostr-save-optimization.md` as the working plan.
 
 **Why it matters:** once saves are on relays, they can't be taken back. Anyone can dig an old
@@ -22,6 +22,10 @@ last wipe**. The save format, versioning and migration path must be settled befo
 | **Format first** | Before anything goes on a relay, the format is optimized as the drafts describe and **versioned**. Old saves are migrated forward, then re-signed and re-broadcast. |
 | **Servers** | **Official** at `pubkey.quest`, holds no wipes once it's on. **Test** is the debug server and follows the modded rules. |
 | **Releases** | The official server runs only a **single bundled binary** that is checksummed, has an **auto-incremented version**, and was built and released by a **passing CI**. |
+| **Launch** | **The official server starts empty.** Test characters stay on test. |
+| **Ledger contents** | **The event id only, plus the list of relays that accepted it.** No copy of the event. A dedicated relay for this app comes later. |
+| **A mismatched save** | Explain why (edited, another client, an older copy) and **offer to load the last save the official server accepted**, fetched by id from the recorded relays. |
+| **Official deploys** | **Manual promote.** Every passing CI cuts a versioned release; a "promote to official" button deploys one. |
 
 ## 2. The save event
 
@@ -47,9 +51,13 @@ content: <the compact save JSON, format v1>
 
 - **A small persistent store, separate from `game.db`.** `game.db` is a rebuildable cache and
   must never hold player records.
-- One row per (npub, slot): the latest **accepted event id**, its `created_at`, its format
-  version, and when it was accepted.
-  - Exactly what goes in the row is §9 Q2.
+- One row per (npub, slot):
+  - the latest **accepted event id**;
+  - **the relays that accepted it** (OK);
+  - its `created_at` and format version;
+  - when it was accepted.
+- No copy of the event is kept. The recorded relays are where the server fetches it back
+  from.
 - **Accepting a save:**
   1. the browser signs the event;
   2. the server checks the signature, kind, `d` slot, `client` tag, that `prev` equals the
@@ -60,8 +68,9 @@ content: <the compact save JSON, format v1>
 - **Loading on the official server:**
   - fetch the event **by the ledger's id** from the player's relays, and verify its id and
     signature;
-  - if relays have the slot's newest event under a different id, it isn't playable here.
-    The player sees why: edited, from another client, or an old copy.
+  - if relays have the slot's newest event under a different id, that copy isn't playable
+    here. The player sees why (edited, from another client, or an old copy) and is offered
+    the save the official server last accepted, fetched by id from the recorded relays.
   - **Revert freedom stays.** The player can always reload the last save they made here.
 - **Loading on a modded or test server:** the newest valid event for the slot, no ledger check.
 
@@ -135,16 +144,9 @@ These go in `config.yml`. The official build refuses to start with debug tools o
 - Trading and PvP stakes (post-alpha), which will build on the ledger: a trade is a signed
   event that both sides' next saves reference.
 
-## 9. Open questions
+## 9. Questions answered (2026-10-12)
 
-1. **What happens to test saves at launch?** Does the official server start empty, with test
-   characters staying on test? Or should the test characters be carried over?
-2. **The ledger: ids only, or the whole event too?** Keeping a copy of the latest signed event
-   (2–5 KB) means a player can still load if every relay dropped their save. It's
-   tamper-evident, so it adds no cheating risk.
-3. **What happens to a save that doesn't match on the official server?** Refuse with an
-   explanation? Or offer to load the last save the official server accepted (fetched by id),
-   if relays still have it?
-4. **How do official deploys happen?** Automatically on every release, or as a manual promote
-   step (a button in GitHub Actions)? And does the official server run on the same machine as
-   test?
+1. **The official server starts empty**; test characters stay on test.
+2. **The ledger keeps ids only**, plus the relays that accepted each save.
+3. **A mismatch offers the last official save.**
+4. **Official deploys are a manual promote** of a CI release.
