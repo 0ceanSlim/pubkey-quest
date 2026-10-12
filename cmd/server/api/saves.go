@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/0ceanslim/grain/client/core/tools"
+	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/session"
 
 	"pubkey-quest/cmd/server/api/character"
@@ -168,6 +169,9 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 
 	slotOf := slotResolver(npub)
 
+	// Level derives from XP through the advancement table (never stored).
+	advancement, _ := gamecharacter.LoadAdvancement(db.GetDB())
+
 	// Convert saves to include id field in JSON output
 	savesWithID := make([]map[string]interface{}, 0, len(saves))
 	for _, save := range saves {
@@ -181,6 +185,7 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 		saveMap["background"] = save.Background
 		saveMap["alignment"] = save.Alignment
 		saveMap["experience"] = save.Experience
+		saveMap["level"] = gamecharacter.GetLevelFromXP(save.Experience, advancement)
 		saveMap["hp"] = save.HP
 		saveMap["max_hp"] = save.MaxHP
 		saveMap["mana"] = save.Mana

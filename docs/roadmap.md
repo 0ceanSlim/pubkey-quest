@@ -140,10 +140,10 @@ One migration, all at once, so alpha saves survive. Every field must pass the hy
 - [x] Add to `types.SaveFile`: `Quests` — two compact lists that **are stored in the save** (they're the only way to know on login what a character has done): *completed* = an array of quest IDs, nothing else; *in-progress* = tuples of `[quest_id, stage_index, objective_counts…]` (step-4 compaction later turns the ID into an index int). Quest points, availability, and log display all *derive from* these lists. Also: `POIState` (per-POI: last-interacted day/minute + passed/looted/cleared flags — "fresh again" derives from cooldown math), `Room string` (position state for M2 — joins the existing Location/District/Building trio), `Rentals` (compact `[building, expires_day, expires_minute]` — today rentals are session-only in `GetRentedRooms()` and a paid room evaporates on reload; it's a paid, non-derivable outcome, so it belongs in the save and doubles as M2's room-unlock state), `SchemaVersion int`
 - [x] **Ability-point allocation (new M1 scope):** `AbilityIncreases map[string]int` — points spent per ability, the only stored record of allocation (base stays a creation snapshot, never re-derived from the editable generation tables). `FeatsChosen []string` reserved (empty until the feats milestone). Unspent points and feat counts *derive* — see [feats-progression.md](draft/feats-progression.md). Cadence 2/4/6/8/10/12/14/16/18/19/20 (11 points), per-stat cap 20, total cap 100 (matches the about-page). Per-level `AbilityPoints` in `advancement.json`; `GET/POST /api/progression/{ability-points,spend-point}` + guide endpoint; spend UI (`ability-allocate-modal.html`, opened from the level-up modal + progression guide). XP level-multiplier centralized in `character.BonusXP` so it reaches all sources. Logic + tests in `cmd/server/game/character/` + `tests/character/`.
 - [x] **Explicitly do NOT add**: `Level` (derives from XP + advancement — the canonical example of the rule), `QuestPoints` (the *number* stays out because it's `sum(total_qp)` over the stored completed-quest list — to be unambiguous: the **list** is in the save, the **aggregate** never is), max-derived stats, anything the official server can recompute from game data + the lists the save does hold
-- [ ] Encounter `LastFired` anti-spam state stays **session-only** (worst case after a reload an encounter can re-fire early — acceptable, free bytes)
-- [ ] Lifetime statistics (kills, deaths, gold earned…) do **not** live in the save by default — they're tracked server-side from the event recorder and later published as separate server-issued Nostr events (badges/stats, §4). Only add an in-save counter if a *gameplay mechanic* gates on it
+- [x] Encounter `LastFired` anti-spam state stays **session-only** (worst case after a reload an encounter can re-fire early — acceptable, free bytes)
+- [x] Lifetime statistics (kills, deaths, gold earned…) do **not** live in the save by default — they're tracked server-side from the event recorder and later published as separate server-issued Nostr events (badges/stats, §4). Only add an in-save counter if a *gameplay mechanic* gates on it
 - [x] `LoadSession` migration shim: v1 saves get zero-valued new fields (forward-compatible loads)
-- [ ] **Central event recorder** (deferred — build at M3 start with its first consumer): `game/events/record.go` — `Record(save, EventKindMonsterKilled, target, n)` feeds quest objectives (M3), dailies, and badge/stat tracking; on the official server this same stream is the **action audit trail** (§4). Call sites: combat kill, item pickup, location discovery, NPC talk, shop transactions, sleep. Build it once, not three times.
+- [x] **Central event recorder** (deferred — build at M3 start with its first consumer): `game/events/record.go` — `Record(save, EventKindMonsterKilled, target, n)` feeds quest objectives (M3), dailies, and badge/stat tracking; on the official server this same stream is the **action audit trail** (§4). Call sites: combat kill, item pickup, location discovery, NPC talk, shop transactions, sleep. Build it once, not three times.
 
 **Deliberate saves + session resilience (two different things — don't conflate them)**
 - [x] *Saves are player actions*: explicit, Pokemon/Fallout-style, blocked in combat (already 409s). No background autosave — in the Nostr model a save is the player signing an event, which can't and shouldn't happen silently
@@ -159,23 +159,23 @@ One migration, all at once, so alpha saves survive. Every field must pass the hy
 The structural change to how interiors work: entering a building puts you in its **default room**; you navigate to other rooms and back; NPCs are present *in a room*, not smeared across the building. This also quietly fixes the "People column lists everyone in the building" overload.
 
 **Schema (backward-compatible by construction)**
-- [ ] Building objects (inside city district JSON) gain optional `rooms: [{id, name, description?}]` + `default_room` — a building with no `rooms` behaves exactly as today (one implicit default room), so **zero migration for the ~90% of buildings that don't need rooms** (shops, stalls)
-- [ ] **Rooms can be locked**, mirroring building open/close: optional `access` on a room — `hours` (time window, like buildings), `key` (item requirement — reuse the `POIRequirement` evaluator, same engine that gates POI paths; `silver-key`/`iron-key` from the quest drafts now have an indoor use), or `state` (unlocked by an action/flag — the canonical case: an inn's guest room is locked until you rent it, then it's *yours*). No `access` = always open
-- [ ] NPC schedule slots gain optional `room` (slot `location` already holds the building ID, e.g. `ember_vault`); no `room` = present in the default room
-- [ ] Tooling: rooms land *inside city JSON*, which Codex can't edit yet — either pull the location editor (Codex track C1) forward, or hand-edit JSON for M2's tavern/inn floor and lean on validation (C2) to catch bad refs. Don't let the editor block the engine work
+- [x] Building objects (inside city district JSON) gain optional `rooms: [{id, name, description?}]` + `default_room` — a building with no `rooms` behaves exactly as today (one implicit default room), so **zero migration for the ~90% of buildings that don't need rooms** (shops, stalls)
+- [x] **Rooms can be locked**, mirroring building open/close: optional `access` on a room — `hours` (time window, like buildings), `key` (item requirement — reuse the `POIRequirement` evaluator, same engine that gates POI paths; `silver-key`/`iron-key` from the quest drafts now have an indoor use), or `state` (unlocked by an action/flag — the canonical case: an inn's guest room is locked until you rent it, then it's *yours*). No `access` = always open
+- [x] NPC schedule slots gain optional `room` (slot `location` already holds the building ID, e.g. `ember_vault`); no `room` = present in the default room
+- [x] Tooling: rooms land *inside city JSON*, which Codex can't edit yet — either pull the location editor (Codex track C1) forward, or hand-edit JSON for M2's tavern/inn floor and lean on validation (C2) to catch bad refs. Don't let the editor block the engine work
 
 **Server**
-- [ ] `Room string` on the save (added in M1's schema v2) — set to `default_room` by `enter_building`, cleared by `exit_building`
-- [ ] New action `move_to_room` — validates the room exists **and is accessible** (hours window / key in inventory / state like an active rental), with a clear locked message otherwise
-- [ ] `GET /api/npcs/at-location` gains `room` param; NPC visibility = schedule slot matches building **and** room
-- [ ] **Room-scoped actions**: the inn flow becomes spatial — rent from the innkeeper → the locked guest room unlocks for you → walk into it and the **Sleep** option appears there (and only there). Rental state moves from session-only to the save (M1's `Rentals`) so a paid room survives reload. Same pattern later for vault interiors, tavern back rooms, night-only rooms
+- [x] `Room string` on the save (added in M1's schema v2) — set to `default_room` by `enter_building`, cleared by `exit_building`
+- [x] New action `move_to_room` — validates the room exists **and is accessible** (hours window / key in inventory / state like an active rental), with a clear locked message otherwise
+- [x] `GET /api/npcs/at-location` gains `room` param; NPC visibility = schedule slot matches building **and** room
+- [x] **Room-scoped actions**: the inn flow becomes spatial — rent from the innkeeper → the locked guest room unlocks for you → walk into it and the **Sleep** option appears there (and only there). Rental state moves from session-only to the save (M1's `Rentals`) so a paid room survives reload. Same pattern later for vault interiors, tavern back rooms, night-only rooms
 
 **UI**
-- [ ] Inside a building, the "Buildings" column becomes **Rooms** (+ Exit); "People" shows current-room occupants only. Locked rooms render visibly locked (🔒) rather than hidden — a visible locked door is an affordance and a tease; unlocking gives feedback
-- [ ] Scene header line shows `Building — Room` (district line already exists); scene image can stay per-building for alpha (per-room art is post-alpha flavor, scenes are just flavor by design)
+- [x] Inside a building, the "Buildings" column becomes **Rooms** (+ Exit); "People" shows current-room occupants only. Locked rooms render visibly locked (🔒) rather than hidden — a visible locked door is an affordance and a tease; unlocking gives feedback
+- [x] Scene header line shows `Building — Room` (district line already exists); scene image can stay per-building for alpha (per-room art is post-alpha flavor, scenes are just flavor by design)
 
 **Content floor for alpha**
-- [ ] Taverns + inns get 2–3 rooms each (common room / kitchen or cellar / guest hall); temples get sanctuary + back room where quests need it (Goldenhaven temple, M7); everything else stays single-room implicit
+- [x] Taverns + inns get 2–3 rooms each (common room / kitchen or cellar / guest hall); temples get sanctuary + back room where quests need it (Goldenhaven temple, M7); everything else stays single-room implicit *(✅ for the towns that needed it; the rest of the room content floor moved to M7 below)*
 
 **Done when:** you can walk into a tavern's common room, find the barkeep there but the cook in the kitchen, see a locked guest room, rent it from the innkeeper, watch it unlock, walk into *your* room, and sleep in it; a keyed door refuses you without the key; no existing building breaks.
 
@@ -186,31 +186,31 @@ The structural change to how interiors work: entering a building puts you in its
 Everything was designed (`docs/poi-quest-design.md`) and content existed; this was pure engine work.
 
 **Loaders + migration**
-- [ ] Extend `cmd/codex/migration` + server `db/migration.go` to load `pois`, `encounters`, `quests` tables from the (still `-draft`) dirs; keep strict schema check as a migration pre-gate
-- [ ] Move dirs out of `-draft` only at M7 when refs are fixed
+- [x] Extend `cmd/codex/migration` + server `db/migration.go` to load `pois`, `encounters`, `quests` tables from the (still `-draft`) dirs; keep strict schema check as a migration pre-gate
+- [ ] ➡ **tracked in M7** — Move dirs out of `-draft` only at M7 when refs are fixed
 
 **Quest engine** (`game/quest/`)
-- [ ] Availability: prerequisites + requirements (uses skills, level, quest_points — *derived* at check time — items, class/race, alignment; the `POIRequirement` evaluator; share it with POIs/encounters/dialogue)
-- [ ] Start conditions: `talk` (hook into `handleTalkToNPCAction` — NPC offers quest in dialogue), `explore`, `item`, `bulletin_board`
-- [ ] Stage state machine: objective tracker fed by the M1 event recorder (`talk`/`fetch`/`explore`/`slay`/`check`), wait-stages (`ready_at_day/minute`, in-game clock), stage completion → next stage / rewards / `unlocks_poi`
-- [ ] Rewards: gold/items/XP/effects via existing inventory + effects + (M1) XP path; quest points accrue implicitly via the completed-quest list
-- [ ] Daily/weekly roll: pool per category; resets are **real-time** — daily at a fixed real-world hour, weekly per real calendar week (*not* in-game days, which last ~10 real minutes at 144×). `last_rolled_day`/`last_rolled_week` hold real-world day/week indices; wait-stages stay on the in-game clock; `is_randomized` re-roll
-- [ ] Endpoints: `GET /api/quests/log`, `POST /api/quests/accept`, `POST /api/quests/abandon` (objective progress flows through existing action responses/deltas, not polling)
+- [x] Availability: prerequisites + requirements (uses skills, level, quest_points — *derived* at check time — items, class/race, alignment; the `POIRequirement` evaluator; share it with POIs/encounters/dialogue)
+- [x] Start conditions: `talk` (hook into `handleTalkToNPCAction` — NPC offers quest in dialogue), `explore`, `item`, `bulletin_board`
+- [x] Stage state machine: objective tracker fed by the M1 event recorder (`talk`/`fetch`/`explore`/`slay`/`check`), wait-stages (`ready_at_day/minute`, in-game clock), stage completion → next stage / rewards / `unlocks_poi`
+- [x] Rewards: gold/items/XP/effects via existing inventory + effects + (M1) XP path; quest points accrue implicitly via the completed-quest list
+- [x] Daily/weekly roll: pool per category; resets are **real-time** — daily at a fixed real-world hour, weekly per real calendar week (*not* in-game days, which last ~10 real minutes at 144×). `last_rolled_day`/`last_rolled_week` hold real-world day/week indices; wait-stages stay on the in-game clock; `is_randomized` re-roll
+- [x] Endpoints: `GET /api/quests/log`, `POST /api/quests/accept`, `POST /api/quests/abandon` (objective progress flows through existing action responses/deltas, not polling) *(✅ — log shipped; accept now happens through quest dialogue and abandon was removed by design, 2026-10-08)*
 
 **POI runtime** (`game/poi/`)
-- [ ] Node walker: `narrative`, `choice` (requirements + consumed items), `skill_check` (derived skills vs DC, d20-style roll server-side), `combat` (bridges into the existing combat engine; on victory resume next node), `loot` (weighted tables → ground/inventory), `transaction`, terminal nodes
-- [ ] Per-save POI state: interacted flags, passed/failed checks, cleared combat, looted containers, 3-in-game-day cooldown reset — in the compact `POIState` from M1
-- [ ] Discovery: travel-tick roll vs `discovery.chance` (+ optional perception check), adds to `locations_discovered`, map/travel UI entry
-- [ ] POI entry UI: reuse the dialogue surface (M6) — POIs are "dialogue with a place"; same node renderer covers both
+- [x] Node walker: `narrative`, `choice` (requirements + consumed items), `skill_check` (derived skills vs DC, d20-style roll server-side), `combat` (bridges into the existing combat engine; on victory resume next node), `loot` (weighted tables → ground/inventory), `transaction`, terminal nodes
+- [x] Per-save POI state: interacted flags, passed/failed checks, cleared combat, looted containers, 3-in-game-day cooldown reset — in the compact `POIState` from M1
+- [x] Discovery: travel-tick roll vs `discovery.chance` (+ optional perception check), adds to `locations_discovered`, map/travel UI entry
+- [x] POI entry UI: reuse the dialogue surface (M6) — POIs are "dialogue with a place"; same node renderer covers both
 
 **Encounter scheduler**
-- [ ] Hook the 30-min time-check tick (travel system already ticks): gather candidates by trigger context (travel/location/building/building-type) → requirements filter → repeatable/cooldown filter → chance roll → first success fires (building-level granularity; rooms don't need their own triggers in v1)
-- [ ] Encounters run through the same node walker; combat nodes finally give **organic combat entry** (retire the debug-only path)
-- [ ] `LastFired` per (session, encounter) in session memory (not the save — see M1)
+- [x] Hook the 30-min time-check tick (travel system already ticks): gather candidates by trigger context (travel/location/building/building-type) → requirements filter → repeatable/cooldown filter → chance roll → first success fires (building-level granularity; rooms don't need their own triggers in v1)
+- [x] Encounters run through the same node walker; combat nodes finally give **organic combat entry** (retire the debug-only path)
+- [x] `LastFired` per (session, encounter) in session memory (not the save — see M1)
 
 **Quest log UI (functional, not pretty yet)**
-- [ ] Replace placeholder `tabs/questlog.html`: active quests w/ current stage + objective progress (2/3), completed list, QP total (derived, returned by the API)
-- [ ] **Active-objective tracker chip** over the scene (one line: "◆ Speak with Oracle Seraphina — Goldenhaven Temple") — biggest bang-for-buck quest UX element
+- [x] Replace placeholder `tabs/questlog.html`: active quests w/ current stage + objective progress (2/3), completed list, QP total (derived, returned by the API)
+- [x] **Active-objective tracker chip** over the scene (one line: "◆ Speak with Oracle Seraphina — Goldenhaven Temple") — biggest bang-for-buck quest UX element
 
 **Done when:** ✅ MET — dailies are acceptable (from **innkeepers**, not a board — user preference); a side quest can be taken from an NPC, progressed by killing/fetching, turned in for gold+XP; a POI is discovered while traveling and runs start-to-finish including its combat node; wolves (biome) and authored vignettes can jump you on the highway.
 
@@ -221,21 +221,21 @@ Everything was designed (`docs/poi-quest-design.md`) and content existed; this w
 The "whole system that needs implementation."
 
 **Casting engine** (`game/spells/cast.go`) — shared by combat and exploration
-- [ ] Validation: spell known + slotted + prepped (slot not used), components/focus (`provides` data already exists on focus items), mana cost
-- [ ] Resolution by spell shape, driven by the spell JSON you already have: attack-roll spells (fire-bolt), save spells (DC = 8 + prof + casting mod; needs monster saves — M5 overlap), auto-hit (magic-missile), heal, buff/effect application (reuse effect system: `bless` → ActiveEffect), utility (light, mage-armor)
-- [ ] Slot consumption + upcast (cast at higher slot), cantrips free, mana cost per your mana model
-- [ ] Concentration: one concentrating effect at a time; broken on damage (CON save) — data flag already exists on all 84 spells
-- [ ] Replace the `cast_spell` stub for out-of-combat utility/heal casting
+- [x] Validation: spell known + slotted + prepped (slot not used), components/focus (`provides` data already exists on focus items), mana cost
+- [x] Resolution by spell shape, driven by the spell JSON you already have: attack-roll spells (fire-bolt), save spells (DC = 8 + prof + casting mod; needs monster saves — M5 overlap), auto-hit (magic-missile), heal, buff/effect application (reuse effect system: `bless` → ActiveEffect), utility (light, mage-armor)
+- [x] Slot consumption + upcast (cast at higher slot), cantrips free, mana cost per your mana model
+- [x] Concentration: one concentrating effect at a time; broken on damage (CON save) — data flag already exists on all 84 spells
+- [x] Replace the `cast_spell` stub for out-of-combat utility/heal casting
 
 **Combat integration**
-- [ ] `POST /api/combat/cast` (or extend `/action` with `action_type`): target selection, range from spell data (0–6 mapping per plan §13), AoE = all monsters for v1
-- [ ] Monster response turn reuses existing flow; spell lines into the staggered combat log + dice/flair animations (the combat UI patterns are already there)
-- [ ] Combat UI: spell panel listing *prepped, affordable* spells with mana/slot cost — flat buttons first, polish in M6
-- [ ] Holding a spellbook/focus finally *means* something: it's what you give up a weapon hand for — see the M5 interaction matrix for how it renders in the attack UI
+- [x] `POST /api/combat/cast` (or extend `/action` with `action_type`): target selection, range from spell data (0–6 mapping per plan §13), AoE = all monsters for v1
+- [x] Monster response turn reuses existing flow; spell lines into the staggered combat log + dice/flair animations (the combat UI patterns are already there)
+- [x] Combat UI: spell panel listing *prepped, affordable* spells with mana/slot cost — flat buttons first, polish in M6
+- [x] Holding a spellbook/focus finally *means* something: it's what you give up a weapon hand for — see the M5 interaction matrix for how it renders in the attack UI
 
 **Consumables & items in combat** (plan §14)
-- [ ] `POST /api/combat/use-item`: potions/food/throwables from quick slots; uses an action; routes through the same `use_item` effect path
-- [ ] Quick-slot access rule: general slots only (4) usable in combat, backpack not — makes the 4 general slots a real loadout decision
+- [x] `POST /api/combat/use-item`: potions/food/throwables from quick slots; uses an action; routes through the same `use_item` effect path
+- [x] Quick-slot access rule: general slots only (4) usable in combat, backpack not — makes the 4 general slots a real loadout decision
 
 **Scope guard:** implement the ~25 spells of levels 0–2 across the starting classes *well* (that covers alpha's level band, ~1–5); stub higher-level spells with "not yet implemented" rather than half-supporting all 84. Scrolls/crafting stay in draft for beta.
 
@@ -308,11 +308,11 @@ The "whole system that needs implementation."
 Full plan + findings: `docs/draft/party-multiplayer-plan.md`. Decisions: saves stay single-player (party state is memory-only); party clock snaps to the leader; leader directs movement; one shared `CombatSession` with true initiative order; party cap 5. **NPC partners deferred to post-beta** (2026-10-07); Nostr identity comes before multiplayer.
   - [x] **P5a Solo combat upgrades** (2026-10-12, awaiting playtest): grid sized by combatant count, monster sprites + npub crest tokens; terrain (`combat-terrain.json`: rough ground, water, deep water, cover, high ground, hazards; generated per battlefield, authored arenas) with terrain-costed click-to-move, line of sight + cover, cost-routed cover-seeking AI; **stealth openings** (who-noticed-whom roll → unaware choice: sneak away / sneak attack / approach, or an ambush) — pulled into alpha. See `docs/draft/party-combat-plan.md`.
   - [x] **P1 Multi-entity combat engine** (single human vs N enemies): per-combatant positions, unique instance IDs, initiative cursor + real rounds, `target_id`, AI target selection + occupancy, victory = all hostiles down, group XP-budget difficulty, POI `count`/`surprise` wired, multi-token UI. — implemented 2026-10-08, awaiting playtest
-  - [ ] **P2 Nostr identity + saves on relays** ⬅ **next** — proof-of-key login + cookie-bound identity ✅ (`c8cb355`); identity per `docs/draft/nostr-identity-plan.md`; saves on relays (**alpha**, decided 2026-10-07).
+  - [x] **P2 Nostr identity + saves on relays** ⬅ **next** — proof-of-key login + cookie-bound identity ✅ (`c8cb355`); identity per `docs/draft/nostr-identity-plan.md`; saves on relays (**alpha**, decided 2026-10-07). *(✅ 2026-10-12: identity done; saves on relays built — signed kind-30078 saves, the official ledger, release binaries, launch gate. See `docs/draft/relay-saves-plan.md`)*
   - [x] **P3 Presence, Friends panel, chat** (2026-10-12, awaiting playtest): presence + 3 s social poll; players at your spot in the People column / nearby on the road; headcount → Friends panel (Friends = mutual follows with in-game or "active on client · ago" status; Area = everyone online here); player menu + card (whisper / invite / follow / profile / mute); chat in the log (Say, Area, Party; Whisper = NIP-17 DMs sealed in the browser). Follow and mute edit your real Nostr lists, one entry at a time. NIP-42 AUTH for DM relays answered in the browser (S5b).
   - [x] **P4 Parties** (2026-10-12, awaiting playtest): invite only at the same spot; follower's clock snaps to the leader; leader moves the party (queued PartySyncs, session mutex); cap 5; party chat + HUD; party sleep needs a bed each or a camp set (new item).
   - [x] **P5 Multiplayer party combat** (2026-10-12, awaiting playtest): shared fight, own initiative places, 45 s turn timer / away = Dodge, threat targeting, downed-not-dead, 1/N loot, shared kill bonus, healer XP, flanking / Help / ally heals & potions, flee alone or leader's retreat, quest-encounter scaling (extra monster or elite). Still to come: bosses, multi-discipline dungeons, authored party encounters (random encounters stay off for parties until then).
-  - [ ] **P6 Quest tab rework** (UI track, scope TBD)
+  - [x] **P6 Quest tab rework** (UI track, scope TBD) *(✅ shipped 2026-10-08: sortable/filterable journal, Badges sub-tab, tracker)*
   - Post-beta: **NPC partners** (favor-gated, deferred 2026-10-07). Later: trading, **PvP arena** (Sunscorch Desert via a Dusthaven south exit, RS2 Duel Arena style).
 
 ### M6 — Presentation overhaul (M) — full critique in §7
@@ -323,11 +323,11 @@ The targeted fixes, in priority order:
 - [ ] **Fix scaling distortion**: replace the non-uniform stretch (`game.html scaleGameUI`) with uniform integer scaling + letterbox
 - [ ] **Re-base the canvas**: 756×503 with 6–8px fonts is below comfortable legibility. Recommend 960×540 (16:9, integer-scales to 1080p/4K) with a real pixel font (Dogica is already in the intro) at 8/16px sizes; minimum effective text ≥ 10px
 - [ ] **Log demotion + channels**: log becomes a scrollback *history* (system/travel/combat-summary); narrative never lives there; toasts only for save/error/unlock notices
-- [ ] **Quest tracker chip** over scene (from M3) + level/XP visibility: XP bar exists, add "Lv 3 → 4" context on hover/click
-- [ ] **Right rail content (tab layout stays exactly as it is — no merging)**: quest log goes real (M3); the Equipment tab gains the stats your gear actually produces, shown on the page (AC, main/off-hand attack + damage, ranged + ammo count); the Stats tab — skills and effects are already in — fills out with the missing character numbers: level + XP-to-next, proficiency bonus, AC, attack summary, carry weight vs capacity (exact list to workshop)
+- [x] **Quest tracker chip** over scene (from M3) + level/XP visibility: XP bar exists, add "Lv 3 → 4" context on hover/click *(✅ tracker chip; the "Lv 3 → 4" hover is folded into the M6 UI rework)*
+- [x] **Right rail content (tab layout stays exactly as it is — no merging)**: quest log goes real (M3); the Equipment tab gains the stats your gear actually produces, shown on the page (AC, main/off-hand attack + damage, ranged + ammo count); the Stats tab — skills and effects are already in — fills out with the missing character numbers: level + XP-to-next, proficiency bonus, AC, attack summary, carry weight vs capacity (exact list to workshop)
 - [ ] **Rooms navigation polish** (from M2): Rooms column with occupant count badges ("Common Room (3)"), Exit always last, consistent ordering
-- [ ] **Save ritual UI** (from M1): win95 save modal, "last saved" indicator, decline-able save prompts at inns/arrivals
-- [ ] Replace remaining native `confirm()`s with the win95 modal; hide the Badges button until badges exist
+- [x] **Save ritual UI** (from M1): win95 save modal, "last saved" indicator, decline-able save prompts at inns/arrivals
+- [ ] Replace remaining native `confirm()`s with the win95 modal; hide the Badges button until badges exist *(Badges button → became the 😊 Friends panel ✅; native `confirm()`s still to replace)*
 
 ### M7 — Alpha content pass (L, parallelizable with M6)
 
@@ -349,11 +349,11 @@ Work the `poi-quest-followups.md` triage top to bottom:
 
 ### M8 — Alpha release engineering (M)
 
-- [ ] **Versioning**: tag `v0.1.0-alpha.1`; version string in the settings tab + bug-report template
+- [ ] **Versioning**: tag `v0.1.0-alpha.1`; version string in the settings tab + bug-report template *(partly ✅: CI tags `v0.1.N` releases and the footer shows the version; settings tab + bug-report template still to do)*
 - [ ] **Save policy**: schema v2 + migration shim from M1 means "we try not to wipe"; wipes only on schema breaks, announced via a login MOTD. Local save files are explicitly the stand-in for future relay events — schema discipline (§4) starts now so alpha saves can, in principle, be re-signed into relay events at beta
 - [ ] **Systems bug-bash**: one dedicated pass across the §1 "implemented" table hunting undefined interactions and no-op buttons (the spellbook class of bug) — alpha testers should find *new* bugs, not the ones you already know how to find
-- [ ] **Deploy**: the existing `docs/development/deployment` path; config hardening (debug mode OFF disables `/api/debug/*` + free `add_item` paths — verify nothing else cheaty leaks in prod build)
-- [ ] **Don't ship the foot-guns**: gate `POST /api/session/update` (raw state overwrite) behind debug mode now; the official-server validation layer (§4) replaces it properly at beta
+- [x] **Deploy**: the existing `docs/development/deployment` path; config hardening (debug mode OFF disables `/api/debug/*` + free `add_item` paths — verify nothing else cheaty leaks in prod build) *(✅ 2026-10-12: debug routes, `add_item` and raw overwrites only exist with debug mode; the official server refuses debug mode)*
+- [x] **Don't ship the foot-guns**: gate `POST /api/session/update` (raw state overwrite) behind debug mode now; the official-server validation layer (§4) replaces it properly at beta *(✅ 2026-10-12)*
 - [ ] **Feedback loop**: bug-report button already opens GitHub — add an in-game "what were you doing" pre-fill (location, version, last action); pin a known-issues list
 - [ ] **Lightweight telemetry**: server-side counters (sessions started, combats, quest completions, deaths) — enough to see if testers actually play; no third-party analytics
 - [ ] **Balance smoke pass**: one full playthrough per class archetype (martial/caster/hybrid) to level ~4; tune monster XP, shop prices, daily payouts

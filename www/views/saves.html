@@ -149,8 +149,7 @@ function calculateHighestLevel(saves) {
 
   return Math.max(...saves.map(save => {
     const character = save.character || save;
-    const experience = character.experience || save.experience || 0;
-    return Math.floor(experience / 100) + 1;
+    return save.level || 1; // the server derives it from XP
   }));
 }
 
@@ -208,8 +207,7 @@ function renderOccupied(saveData) {
   const name = character.name || saveData.d || 'Unnamed Hero';
   const hp = character.hp || saveData.hp || 0;
   const maxHp = character.max_hp || saveData.max_hp || 0;
-  const experience = character.experience || saveData.experience || 0;
-  const level = Math.floor(experience / 100) + 1;
+  const level = saveData.level || 1; // the server derives it from XP
   const locationName = typeof saveData.location === 'string'
     ? saveData.location
     : (saveData.location?.current || 'Unknown Location');
