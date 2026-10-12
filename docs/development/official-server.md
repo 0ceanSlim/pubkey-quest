@@ -36,7 +36,14 @@ There's no separate `codex --migrate` step, and no repo checkout on the server.
      relay: true         # signed saves on the players' relays
      validation: true    # only the save this server last accepted is playable
      max_slots: 5
+   launch:
+     closed: true        # not open yet: everyone gets a "play on the test server" page
+     message: "Pubkey Quest isn't open yet — we're testing the first release."
+     test_url: "https://test.pubkey.quest"
+     allow:              # keys that can still sign in and play (team testing)
+       - npub1...
    ```
+   Sign in while closed at `/?signin=1`. To open the game, set `closed: false` and restart.
 2. **Create a systemd unit** `pubkey-quest.service`:
    ```ini
    [Unit]

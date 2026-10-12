@@ -43,10 +43,21 @@ type SavesConfig struct {
 	MaxSlots   int  `yaml:"max_slots"`
 }
 
+// LaunchConfig holds the official server closed until it opens. While Closed,
+// visitors get a "not open yet" page pointing at TestURL; keys in Allow (npub
+// or hex) can still sign in and play.
+type LaunchConfig struct {
+	Closed  bool     `yaml:"closed"`
+	Message string   `yaml:"message"`
+	TestURL string   `yaml:"test_url"`
+	Allow   []string `yaml:"allow"`
+}
+
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	Report ReportConfig `yaml:"report"`
 	Saves  SavesConfig  `yaml:"saves"`
+	Launch LaunchConfig `yaml:"launch"`
 }
 
 // Global variable to hold the config after loading

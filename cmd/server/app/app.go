@@ -63,7 +63,7 @@ func Shutdown() {
 func Start(mux *http.ServeMux) {
 	port := utils.AppConfig.Server.Port
 	fmt.Printf("Server running on http://localhost:%d\n", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), auth.RequireIdentity(mux)); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), auth.LaunchGate(auth.RequireIdentity(mux))); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
