@@ -299,7 +299,7 @@ func PlayerReachable(cs *types.CombatSession) []ReachCell {
 	if len(cs.Party) == 0 {
 		return nil
 	}
-	me := &cs.Party[0]
+	me := actor(cs)
 	remaining := me.CombatState.MovementBudget - me.CombatState.MovementSpent
 	if remaining <= 0 {
 		return nil

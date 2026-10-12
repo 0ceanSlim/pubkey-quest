@@ -50,6 +50,13 @@ let _baseExperience  = 0;
 let _targetID        = null;
 let _shownPos        = {};
 let _hpByID          = {};
+// Party fights (P5): how much of the shared log we've shown, the ally picked
+// for heals / potions / Help, and the timers that keep us in step with others.
+let _logIndex        = null;
+let _allyTargetID    = null;
+let _partyPollTimer  = null;
+let _countdownTimer  = null;
+let _busy            = 0;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const getNpub   = () => gameAPI.npub   ?? null;
@@ -60,11 +67,12 @@ const _hide     = id  => $id(id)?.classList.add('hidden');
 const _setText  = (id, t) => { const e = $id(id); if (e) e.textContent = t; };
 
 function combatPost(endpoint, body) {
+    _busy++;
     return fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-    });
+    }).finally(() => { _busy--; });
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -140,6 +148,10 @@ export function exitCombatMode() {
     _targetID = null;
     _shownPos = {};
     _hpByID = {};
+    _logIndex = null;
+    _allyTargetID = null;
+    clearInterval(_partyPollTimer); _partyPollTimer = null;
+    clearInterval(_countdownTimer); _countdownTimer = null;
     // Re-render the scene we returned to so the correct action bar comes back —
     // in particular the travel controls when a fight ended mid-journey (the
     // cached bar restore above only rebuilds the generic grid).
@@ -149,6 +161,14 @@ export function exitCombatMode() {
 /** Single re-render function — reads cs and updates every DOM region. */
 export function renderCombatState(cs) {
     if (!cs) return;
+    // Party fights share one log: show whatever was added since we last looked
+    // (our own action, or other players' and monsters' turns in between).
+    if (cs.party_fight) {
+        if (_logIndex === null) cs.new_log = undefined; // first look: dump the log
+        else cs.new_log = (cs.log ?? []).slice(_logIndex);
+        _logIndex = cs.log_index ?? (cs.log?.length ?? 0);
+        _startPartyTimers(cs);
+    }
     // Where each monster was last drawn. On combat start, monsters that won
     // initiative carry `pos_before` (their spawn cell, before the opening move)
     // so their sprites enter from where they appeared instead of teleporting.
@@ -303,16 +323,30 @@ function _renderTurnStrip(cs) {
     const el = $id('combat-turn-strip');
     if (!el) return;
     const monsters = cs.monsters ?? [];
-    if (monsters.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    if (monsters.length <= 1 && !cs.party_fight) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = 'flex';
     el.innerHTML = '';
+    const current = (cs.initiative ?? [])[cs.current_turn_index ?? -1];
     for (const entry of (cs.initiative ?? [])) {
         const chip = document.createElement('div');
         chip.className = 'combat-chip';
         if (entry.type === 'player') {
-            chip.classList.add('you');
-            chip.textContent = 'You';
-            chip.title = `You — initiative ${entry.initiative}`;
+            const ally = (cs.allies ?? []).find(a => a.id === entry.id);
+            const me = !cs.party_fight || ally?.you;
+            chip.classList.add(me ? 'you' : 'ally');
+            if (ally && (ally.unconscious || ally.fled)) chip.classList.add('down');
+            const label = me ? 'You' : (ally?.name ?? entry.name ?? 'Ally');
+            chip.textContent = ally?.unconscious ? `💀 ${label}` : label;
+            if (cs.party_fight && current?.id === entry.id) {
+                chip.classList.add('turn');
+                chip.dataset.countdown = '1';
+                chip.textContent = `${label} ⏱`;
+            }
+            chip.title = `${label} — initiative ${entry.initiative}`;
+            if (!me && ally && !ally.fled) {
+                chip.style.cursor = 'pointer';
+                chip.addEventListener('click', () => _selectAlly(ally.id));
+            }
             el.appendChild(chip);
             continue;
         }
@@ -468,7 +502,12 @@ export async function doCastSpell(spellId) {
     if (!npub || !saveID) return;
     _closeCombatChooser();
     try {
-        const resp = await combatPost('/api/combat/cast', { npub, save_id: saveID, spell_id: spellId, target_id: _targetID ?? '' });
+        // Offensive spells go at the enemy you're aiming at; heals and buffs at
+        // the ally you picked (or yourself).
+        const sp = window.getSpellById?.(spellId);
+        const offensive = !!(sp?.spell_attack || sp?.save_type || sp?.damage);
+        const target = offensive ? (_targetID ?? '') : (_allyTargetID ?? '');
+        const resp = await combatPost('/api/combat/cast', { npub, save_id: saveID, spell_id: spellId, target_id: target });
         const cs = await resp.json();
         if (!resp.ok || !cs.success) {
             _logError(cs.error ?? `HTTP ${resp.status}`);
@@ -488,7 +527,13 @@ export async function doUseCombatItem(itemId) {
     if (!npub || !saveID) return;
     _closeCombatChooser();
     try {
-        const resp = await combatPost('/api/combat/use-item', { npub, save_id: saveID, item_id: itemId, target_id: _targetID ?? '' });
+        // A potion goes to the ally you picked (they must be next to you), else
+        // yourself; a scroll's spell picks like a cast.
+        const it = window.getItemById?.(itemId);
+        const sp = it?.spell_id ? window.getSpellById?.(it.spell_id) : null;
+        const offensive = !!(sp && (sp.spell_attack || sp.save_type || sp.damage));
+        const target = offensive ? (_targetID ?? '') : (_allyTargetID ?? '');
+        const resp = await combatPost('/api/combat/use-item', { npub, save_id: saveID, item_id: itemId, target_id: target });
         const cs = await resp.json();
         if (!resp.ok || !cs.success) {
             _logError(cs.error ?? `HTTP ${resp.status}`);
@@ -969,6 +1014,27 @@ async function _answerUnaware(choice) {
 }
 
 eventBus.on('combat:unaware', showUnawareChoice);
+
+// A party member started a fight we're in (we hear it from the social poll):
+// pull the fight's state and join in.
+let _joining = false;
+eventBus.on('social:in-combat', async () => {
+    if (_lastState || _joining) return;
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    _joining = true;
+    try {
+        const resp = await fetch(`/api/combat/state?npub=${encodeURIComponent(npub)}&save_id=${encodeURIComponent(saveID)}`);
+        if (!resp.ok) return;
+        const cs = await resp.json();
+        if (cs?.phase && cs.phase !== 'unaware') {
+            logger.info('⚔️  Joining the party\'s fight');
+            enterCombatMode(cs);
+        }
+    } catch (_) { /* next poll */ } finally {
+        _joining = false;
+    }
+});
 eventBus.on('gameStateLoaded', checkActiveCombatOnLoad);
 
 // A biome travel encounter fired on the world tick — drop straight into combat
@@ -1284,6 +1350,8 @@ function _ensureGrid(cs) {
         container.addEventListener('click', (e) => {
             const foe = e.target.closest?.('.combat-cell.foe');
             if (foe?.dataset.foe) { selectCombatTarget(foe.dataset.foe); return; }
+            const ally = e.target.closest?.('.combat-cell.ally');
+            if (ally?.dataset.ally) { _selectAlly(ally.dataset.ally); return; }
             const reach = e.target.closest?.('.combat-cell.reach');
             if (reach) doMoveToCell(Number(reach.dataset.x), Number(reach.dataset.y));
         });
@@ -1466,6 +1534,25 @@ function _paintGrid(cs) {
         cell.title = `${m.name} (${m.current_hp}/${m.max_hp} HP)${sightNote} — click to target`;
         if (m.instance_id === _targetID) cell.classList.add('target');
     }
+    // Party members (P5): their portrait or crest, framed blue; the downed greyed.
+    for (const a of (cs.allies ?? [])) {
+        if (a.you || a.fled || !a.pos) continue;
+        const cell = cellAt(a.pos);
+        if (!cell) continue;
+        cell.classList.remove('reach');
+        cell.classList.add('ally');
+        if (a.unconscious) cell.classList.add('fallen');
+        if (a.id === _allyTargetID) cell.classList.add('ally-target');
+        const face = a.portrait_src
+            ? `<img class="combat-token-img" src="${a.portrait_src}" alt="">`
+            : `<span class="combat-token-crest">${crestSVG(a.id, a.name ?? '', 18)}</span>`;
+        const pct = a.max_hp > 0 ? Math.max(0, Math.min(100, a.current_hp / a.max_hp * 100)) : 0;
+        cell.innerHTML = face + (a.unconscious ? '<span class="combat-token-badge">💀</span>' : '') +
+            `<div class="combat-token-hp ally-hp"><div style="width:${pct}%"></div></div>`;
+        cell.dataset.ally = a.id;
+        cell.title = `${a.name} (${a.current_hp}/${a.max_hp} HP)${a.unconscious ? ' — down! Help or heal them' : ''} — click to pick for heals / Help`;
+    }
+
     const pCell = cellAt(playerPos);
     if (pCell) {
         pCell.classList.remove('fallen');
@@ -1474,6 +1561,84 @@ function _paintGrid(cs) {
         pCell.title = 'You';
     }
 }
+
+// ─── Party fights (P5) ────────────────────────────────────────────────────────
+
+/** Pick (or un-pick) an ally as the target for heals, potions and Help. */
+function _selectAlly(id) {
+    _allyTargetID = _allyTargetID === id ? null : id;
+    if (_lastState) {
+        _paintGrid(_lastState);
+        _renderCombatButtons(_lastState);
+        const a = (_lastState.allies ?? []).find(x => x.id === _allyTargetID);
+        if (a) _logInfo(`Healing and Help will go to ${a.name}. Click them again to clear.`);
+    }
+}
+
+/** Keep a party fight in step: poll for others' turns, tick the turn timer. */
+function _startPartyTimers(cs) {
+    const active = cs.phase === 'active';
+    if (active && !_partyPollTimer) _partyPollTimer = setInterval(_pollPartyFight, 1200);
+    if (!active && _partyPollTimer) { clearInterval(_partyPollTimer); _partyPollTimer = null; }
+    if (!_countdownTimer) _countdownTimer = setInterval(_tickCountdown, 500);
+    _tickCountdown();
+}
+
+async function _pollPartyFight() {
+    if (_busy > 0 || !_lastState) return;
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const q = new URLSearchParams({ npub, save_id: saveID, since: String(_logIndex ?? 0) });
+        const resp = await fetch(`/api/combat/state?${q}`);
+        if (!resp.ok) return;
+        const cs = await resp.json();
+        if (!cs?.phase || _busy > 0) return;
+        const last = _lastState;
+        const changed = cs.log_index !== _logIndex || cs.phase !== last?.phase ||
+            cs.turn_name !== last?.turn_name || cs.your_turn !== last?.your_turn;
+        if (changed) renderCombatState(cs);
+    } catch (_) { /* try again next tick */ }
+}
+
+function _tickCountdown() {
+    const cs = _lastState;
+    const chip = document.querySelector('#combat-turn-strip .combat-chip.turn');
+    const banner = $id('combat-turn-banner');
+    if (!cs || !cs.party_fight || cs.phase !== 'active' || !cs.turn_deadline) {
+        if (banner) banner.style.display = 'none';
+        return;
+    }
+    const left = Math.max(0, Math.ceil((cs.turn_deadline - Date.now()) / 1000));
+    if (chip) chip.textContent = chip.textContent.replace(/⏱.*$/, `⏱ ${left}`);
+    if (banner) {
+        banner.style.display = 'block';
+        banner.textContent = cs.your_turn ? `Your turn — ${left}s` : `Waiting for ${cs.turn_name ?? '…'} — ${left}s`;
+        banner.style.color = cs.your_turn ? (left <= 10 ? '#fbbf24' : '#4ade80') : '#9ca3af';
+    }
+}
+
+/** POST a party-fight action and render the result. */
+async function _partyFightPost(endpoint, body = {}) {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    try {
+        const resp = await combatPost(endpoint, { npub, save_id: saveID, ...body });
+        const cs = await resp.json();
+        if (!resp.ok || !cs.success) {
+            _logError(cs.error ?? `HTTP ${resp.status}`);
+            if (_lastState) _renderCombatButtons(_lastState);
+            return;
+        }
+        renderCombatState(cs);
+    } catch (err) {
+        logger.error(`${endpoint} error:`, err);
+        _logError('Network error — try again.');
+    }
+}
+
+export function doHelpAlly(id) { return _partyFightPost('/api/combat/help', { target_id: id }); }
+export function doRetreat() { return _partyFightPost('/api/combat/retreat'); }
 
 /** Greedy Chebyshev path from → to, excluding the start cell. */
 function _chebyshevPath(from, to) {
@@ -1779,6 +1944,15 @@ function _renderCombatButtons(cs) {
     // Death saves get their own bar renderer; non-active phases skip altogether.
     if (phase !== 'active') return;
 
+    // Party fight, someone else's turn: show who we're waiting on.
+    const waiting = cs.party_fight && !cs.your_turn;
+    const actionBar = $id('action-buttons');
+    if (actionBar) {
+        actionBar.style.opacity = waiting ? '0.45' : '';
+        actionBar.style.pointerEvents = waiting ? 'none' : '';
+        actionBar.title = waiting ? `Waiting for ${cs.turn_name ?? 'the enemy'}…` : '';
+    }
+
     const actionUsed   = cs.action_used ?? false;
     const bonusUsed    = cs.bonus_action_used ?? false;
     const range        = cs.range ?? 0;           // to the nearest enemy (flee gate)
@@ -1916,6 +2090,24 @@ function _renderCombatButtons(cs) {
             : `<button style="${_B('color:#60a5fa;')}" onclick="window.doHoldPosition()"
                     title="Spend remaining movement to ready a counter-strike">🛡 Hold Position</button>`;
 
+    // Party fights: help an adjacent ally; the leader can call a retreat.
+    const me = (cs.allies ?? []).find(a => a.you);
+    const adjacent = (cs.allies ?? []).filter(a => !a.you && !a.fled && a.pos && me?.pos && cheb(a.pos, me.pos) <= 1);
+    const helpTarget = adjacent.find(a => a.id === _allyTargetID) ?? adjacent.find(a => a.unconscious) ?? adjacent[0];
+    let helpBtn = '';
+    if (cs.party_fight && helpTarget) {
+        const verb = helpTarget.unconscious ? `🤝 Revive ${helpTarget.name}` : `🤝 Help ${helpTarget.name}`;
+        helpBtn = actionUsed ? _B_GRAYED(verb, 'Action already used')
+            : `<button style="${_B('color:#86efac;')}" onclick="window.doHelpAlly('${helpTarget.id}')"
+                title="${helpTarget.unconscious ? 'Get them back on their feet (1 HP)' : 'Their next attack has advantage'}">${verb}</button>`;
+    }
+    const leads = !!window.socialState?.()?.party?.you_lead;
+    const retreatBtn = cs.party_fight && leads
+        ? (actionUsed ? _B_GRAYED('📯 Retreat', 'Action already used')
+            : `<button style="${_B('color:#fbbf24;')}" onclick="window.doRetreat()"
+                title="Call a retreat: one roll for the whole party, at the slowest member's pace">📯 Retreat</button>`)
+        : '';
+
     const fleeBtn = actionUsed
         ? _B_GRAYED('🏃 Flee', 'Action already used')
         : range < 3
@@ -1926,8 +2118,10 @@ function _renderCombatButtons(cs) {
     if (npcEl) npcEl.innerHTML = `
         <h3 style="color:#9ca3af;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Turn</h3>
         <div style="display:flex;flex-direction:column;gap:2px;">
+            ${helpBtn}
             ${disengageBtn}
             ${holdBtn}
+            ${retreatBtn}
             ${fleeBtn}
             <button style="${_B('color:#f87171;')}" onclick="window.doEndTurn()"
                     title="End your turn — every enemy acts in initiative order">⏭ End Turn</button>

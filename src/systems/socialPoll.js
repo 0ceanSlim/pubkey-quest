@@ -48,6 +48,7 @@ async function poll() {
         eventBus.emit('social:invites', out.invites ?? []);
         eventBus.emit('social:party', out.party ?? null);
         if (out.party_sync) eventBus.emit('social:party-sync');
+        if (out.in_combat) eventBus.emit('social:in-combat');
     } catch (err) {
         logger.debug('social poll failed:', err?.message || err);
     } finally {

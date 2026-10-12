@@ -33,11 +33,24 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	monster, err := ResolveTarget(cs, targetID)
-	if err != nil {
-		return nil, err
+	// A spell can be aimed at an ally (heals, buffs) or an enemy.
+	ally := FindMember(cs, targetID)
+	var monster *types.MonsterInstance
+	if ally != nil {
+		if ally.Fled {
+			return nil, fmt.Errorf("%s has left the fight", ally.Name)
+		}
+		if spells.TargetsEnemy(db, spellID) {
+			return nil, fmt.Errorf("aim that spell at an enemy")
+		}
+	} else {
+		m, err := ResolveTarget(cs, targetID)
+		if err != nil {
+			return nil, err
+		}
+		monster = m
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if IsIncapacitated(state.Conditions) {
 		return nil, fmt.Errorf("you are incapacitated and can't cast")
 	}
@@ -79,7 +92,7 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	// Offensive spells need a line to the target; cover raises its AC against
 	// spell attacks for the duration of the cast.
 	var coverLog []string
-	if spells.TargetsEnemy(db, spellID) {
+	if monster != nil && spells.TargetsEnemy(db, spellID) {
 		restore, lines, err := applySpellCover(cs, monster)
 		if err != nil {
 			return nil, err
@@ -95,27 +108,36 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	log := append(coverLog, res.Log...)
 
 	// Damage → monster HP + XP + kill.
-	if res.Damage > 0 {
+	if res.Damage > 0 && monster != nil {
 		applyDamageToMonster(monster, res.Damage)
 		if xp := awardDamageXP(cs, monster, res.Damage, save.TimeOfDay, level, advancement); xp > 0 {
 			log = append(log, fmt.Sprintf("  +%d XP", xp))
 		}
 	}
 
-	// Healing → combat HP pool (not save.HP; combat owns HP until it ends).
+	// Healing → combat HP pool (not save.HP; combat owns HP until it ends):
+	// yours, or the ally you aimed it at. Healing the hurt earns XP.
 	if res.Heal > 0 {
-		applyHealToPlayer(cs, res.Heal)
+		target := actor(cs)
+		if ally != nil {
+			target = ally
+		}
+		healed, healLog := HealMember(cs, actor(cs), target, res.Heal, save.TimeOfDay, level, advancement)
+		if ally != nil && ally != actor(cs) {
+			log = append(log, fmt.Sprintf("  💚 %s recovers %d HP.", ally.Name, healed))
+		}
+		log = append(log, healLog...)
 	}
 
 	// Control spells impose their condition on the target on a failed save
 	// (M5 §15): entangle → restrained, faerie-fire → outlined, …
-	if monster.IsAlive {
+	if monster != nil && monster.IsAlive {
 		log = append(log, applySpellCondition(spellID, res, monster)...)
 	}
 
 	// Concentration — a maintained buff/control the player must now hold.
 	if res.Concentration {
-		cs.Concentration = &types.ConcentrationState{
+		actor(cs).Concentration = &types.ConcentrationState{
 			SpellID:   res.SpellID,
 			SpellName: res.SpellName,
 			EffectID:  res.EffectID,
@@ -129,7 +151,7 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		state.ActionUsed = true
 	}
 
-	if !monster.IsAlive {
+	if monster != nil && !monster.IsAlive {
 		log = append(log, handleMonsterKill(cs, monster, save, advancement)...)
 	}
 
@@ -187,7 +209,7 @@ func applySpellCondition(spellID string, res *spells.CastResult, monster *types.
 // applySpellCover checks the player can see the spell's target and, if it has
 // cover, raises its AC until the returned restore runs.
 func applySpellCover(cs *types.CombatSession, monster *types.MonsterInstance) (func(), []string, error) {
-	visible, cover := Sight(cs, cs.Party[0].Pos, monster.Pos)
+	visible, cover := Sight(cs, actor(cs).Pos, monster.Pos)
 	if !visible {
 		return nil, nil, fmt.Errorf("you have no line of sight to %s", monster.Name)
 	}
@@ -216,7 +238,7 @@ func applyHealToPlayer(cs *types.CombatSession, heal int) {
 	if len(cs.Party) == 0 {
 		return
 	}
-	st := &cs.Party[0].CombatState
+	st := &actor(cs).CombatState
 	st.CurrentHP += heal
 	if st.CurrentHP > st.MaxHP {
 		st.CurrentHP = st.MaxHP
@@ -228,7 +250,7 @@ func applyHealToPlayer(cs *types.CombatSession, heal int) {
 // linked ActiveEffect is dropped and concentration clears. Returns log lines.
 // Lives here (not combat.go) so the effects import stays local to the cast path.
 func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, dmg int) []string {
-	if cs == nil || cs.Concentration == nil || dmg <= 0 {
+	if cs == nil || actor(cs).Concentration == nil || dmg <= 0 {
 		return nil
 	}
 	dc := 10
@@ -245,13 +267,13 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 	}
 	if roll+conMod >= dc {
 		return []string{fmt.Sprintf("  You hold concentration on %s (CON save %d%s vs DC %d%s).",
-			cs.Concentration.SpellName, roll, formatModifier(conMod), dc, advNote)}
+			actor(cs).Concentration.SpellName, roll, formatModifier(conMod), dc, advNote)}
 	}
-	name := cs.Concentration.SpellName
-	if cs.Concentration.EffectID != "" {
-		effects.RemoveEffect(save, cs.Concentration.EffectID)
+	name := actor(cs).Concentration.SpellName
+	if actor(cs).Concentration.EffectID != "" {
+		effects.RemoveEffect(save, actor(cs).Concentration.EffectID)
 	}
-	cs.Concentration = nil
+	actor(cs).Concentration = nil
 	return []string{fmt.Sprintf("  ✘ You lose concentration on %s! (CON save %d%s vs DC %d)",
 		name, roll, formatModifier(conMod), dc)}
 }
@@ -272,7 +294,7 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if state.ActionUsed {
 		return nil, fmt.Errorf("action already used this turn")
 	}
@@ -303,31 +325,67 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		return nil, fmt.Errorf("no %s within reach", name)
 	}
 
+	// Who it's for: you, or an ally standing next to you (a potion to the lips
+	// of a fallen friend gets them back up).
+	me := actor(cs)
+	target, targetSave := me, save
+	if ally := FindMember(cs, targetID); ally != nil && ally != me {
+		if ally.Fled {
+			return nil, fmt.Errorf("%s has left the fight", ally.Name)
+		}
+		if chebyshev(me.Pos, ally.Pos) > 1 {
+			return nil, fmt.Errorf("move next to %s to hand them that", ally.Name)
+		}
+		target, targetSave = ally, saveOf(ally, save)
+	}
+	tstate := &target.CombatState
+
 	// Bridge: point save.HP at the combat HP pool so ApplyItemEffects (which heals
 	// save.HP and clamps to MaxHP) mends the live combatant. MaxHP is identical in
 	// both (combat snapshots save.MaxHP), so the clamp is correct.
-	prevHP := save.HP
-	save.HP = state.CurrentHP
-	msgs := gaminventory.ApplyItemEffects(save, itemID)
-	state.CurrentHP = save.HP
-	save.HP = prevHP // combat owns HP until the fight ends
+	before := tstate.CurrentHP
+	prevHP := targetSave.HP
+	targetSave.HP = tstate.CurrentHP
+	msgs := gaminventory.ApplyItemEffects(targetSave, itemID)
+	tstate.CurrentHP = targetSave.HP
+	targetSave.HP = prevHP // combat owns HP until the fight ends
 
 	// Consume one from the located stack.
 	decrementSlotStack(slot)
 	state.ActionUsed = true
 
 	line := fmt.Sprintf("  You use %s.", name)
-	if len(msgs) > 0 {
-		line = fmt.Sprintf("  You use %s — %s.", name, strings.Join(msgs, ", "))
+	if target != me {
+		line = fmt.Sprintf("  %s gives %s a %s.", me.Name, target.Name, name)
+	} else if PartyFight(cs) {
+		line = fmt.Sprintf("  %s uses %s.", me.Name, name)
 	}
-	return []string{line}, nil
+	if len(msgs) > 0 {
+		line = strings.TrimSuffix(line, ".") + " — " + strings.Join(msgs, ", ") + "."
+	}
+	log := []string{line}
+
+	// Healing the hurt wakes the fallen and earns the healer XP.
+	if healed := tstate.CurrentHP - before; healed > 0 {
+		if tstate.IsUnconscious {
+			tstate.IsUnconscious = false
+			tstate.DeathSaveFailures, tstate.DeathSaveSuccesses = 0, 0
+			log = append(log, fmt.Sprintf("  ✨ %s is back on their feet!", target.Name))
+		}
+		adv, _ := character.LoadAdvancement(db)
+		level := character.GetLevelFromXP(save.Experience, adv)
+		if xp := awardHealXP(cs, me, target, healed, save.TimeOfDay, level, adv); xp > 0 {
+			log = append(log, fmt.Sprintf("  +%d XP (healing)", xp))
+		}
+	}
+	return log, nil
 }
 
 // processScrollUse resolves a spell scroll in combat: it casts the scroll's spell
 // at the target (bypassing prepared/known/components; mana still applies), applies
 // the same consequences as a normal cast, then consumes one scroll. Uses the action.
 func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, spellID, itemName, targetID string) ([]string, error) {
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	slot := findReachableConsumable(save.Inventory, itemID)
 	if slot == nil {
 		return nil, fmt.Errorf("no %s within reach", itemName)
@@ -369,7 +427,7 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 		log = append(log, applySpellCondition(res.SpellID, res, monster)...)
 	}
 	if res.Concentration {
-		cs.Concentration = &types.ConcentrationState{SpellID: res.SpellID, SpellName: res.SpellName, EffectID: res.EffectID}
+		actor(cs).Concentration = &types.ConcentrationState{SpellID: res.SpellID, SpellName: res.SpellName, EffectID: res.EffectID}
 	}
 
 	decrementSlotStack(slot)

@@ -343,5 +343,14 @@ Nothing open. The crest seed is decided: npub only, one house per key.
       decodes PNG/JPEG/GIF/WebP and serves a cached 64×64 PNG; grid token uses it,
       crest otherwise;
    6. — all of that improves solo fights —
-   7. then party combat (shared fight, turn timer, loot share, healer XP, ally rules,
-      group encounters).
+   7. ✅ party combat (2026-10-12): one shared fight for everyone standing with the
+      leader (debug fights and the leader's quest encounters; random/authored
+      encounters stay off for parties until party encounters are authored), each
+      player keeps their own initiative place, 45 s turn timer (Dodge on expiry or
+      when a member is away), threat-based monster targeting, downed members wait
+      for Help / healing and wake at 1 HP on a win (only a wipe is a defeat), 1/N
+      loot (gold split, guaranteed drops to the top contributor), shared kill
+      bonus, healer XP (self-heals half, no overheal), flanking, Help, heals and
+      potions on allies, flee alone (leaves the party) or the leader's retreat,
+      quest encounters scale (one more monster per extra player, or an elite).
+      AoE friendly fire is moot until AoE spells exist.

@@ -246,7 +246,7 @@ func applyMonsterConditionRider(cs *types.CombatSession, save *types.SaveFile, a
 	case "restrained", "paralyzed":
 		rounds, reSaveDC, reSaveStat = -1, dc, stat // save at the end of each of your turns
 	}
-	ApplyCondition(&cs.Party[0].CombatState.Conditions, types.CombatCondition{
+	ApplyCondition(&actor(cs).CombatState.Conditions, types.CombatCondition{
 		Name: cond, DurationRounds: rounds, SaveDC: reSaveDC, SaveStat: reSaveStat,
 	})
 	return []string{fmt.Sprintf("  ✘ You are %s! (%s save %d vs DC %d)", cond, stat, total, dc)}

@@ -432,6 +432,13 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Router       /api/combat/approach [post]
 	mux.HandleFunc("/api/combat/approach", game.CombatApproachHandler)
 
+	// @Summary      Party fights: the leader calls a retreat / help an adjacent ally
+	// @Tags         Combat
+	// @Router       /api/combat/retreat [post]
+	mux.HandleFunc("/api/combat/retreat", game.CombatRetreatHandler)
+	// @Router       /api/combat/help [post]
+	mux.HandleFunc("/api/combat/help", game.CombatHelpHandler)
+
 	// @Summary      Set the character's portrait
 	// @Tags         Game
 	// @Router       /api/game/portrait [post]

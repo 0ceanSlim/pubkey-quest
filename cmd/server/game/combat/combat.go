@@ -77,6 +77,9 @@ type EncounterSpec struct {
 	// attack). The party acts first, every monster loses its first turn, and
 	// the party's attacks that first turn have advantage.
 	MonstersSurprised bool
+	// Elite toughens the first monster for a bigger party: the number of
+	// extra players (0 = a normal monster).
+	Elite int
 	// Arena is an authored terrain layout (rows of combat-terrain arena_key
 	// characters) used instead of generating terrain for the battlefield.
 	Arena []string
@@ -110,12 +113,30 @@ func MonsterIDsForCount(monsterID string, count int) []string {
 // player's turn (or already resolved if the opening went badly).
 // The session lives in server memory only — it is never written to the save file.
 func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec EncounterSpec, advancement []types.AdvancementEntry) (*types.CombatSession, error) {
+	return StartPartyEncounter(db, []FightMember{{Npub: npub, SaveID: save.InternalID, Save: save}}, spec, advancement)
+}
+
+// FightMember is one player joining a fight: who, and their live save.
+type FightMember struct {
+	Npub   string
+	SaveID string
+	Save   *types.SaveFile
+}
+
+// StartPartyEncounter starts a fight for one or more players (the first is the
+// party leader). Players line up on the left, monsters on the right; everyone
+// rolls initiative and keeps their own place in the order.
+func StartPartyEncounter(db *sql.DB, members []FightMember, spec EncounterSpec, advancement []types.AdvancementEntry) (*types.CombatSession, error) {
+	if len(members) == 0 {
+		return nil, fmt.Errorf("StartEncounter: no players")
+	}
 	if len(spec.MonsterIDs) == 0 {
 		return nil, fmt.Errorf("StartEncounter: no monsters")
 	}
 	if len(spec.MonsterIDs) > maxEncounterMonsters {
 		spec.MonsterIDs = spec.MonsterIDs[:maxEncounterMonsters]
 	}
+	leader := members[0].Save
 
 	monsters := make([]types.MonsterInstance, 0, len(spec.MonsterIDs))
 	crs := make([]float64, 0, len(spec.MonsterIDs))
@@ -128,10 +149,32 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 		crs = append(crs, data.ChallengeRating)
 	}
 	assignInstanceIDs(monsters)
+	if spec.Elite > 0 {
+		makeElite(&monsters[0], spec.Elite)
+	}
 
-	party := []types.PartyCombatant{newPlayerCombatant(npub, save)}
+	party := make([]types.PartyCombatant, 0, len(members))
+	for _, m := range members {
+		p := newPlayerCombatant(m.Npub, m.Save)
+		p.SaveID = m.SaveID
+		p.Name = m.Save.D
+		party = append(party, p)
+	}
 	width, height := GridSizeFor(len(party) + len(monsters))
-	party[0].Pos = types.Position{X: 1, Y: height / 2}
+	// Players stand in the left column, fanning out from the middle row.
+	mid := height / 2
+	for i := range party {
+		off := (i + 1) / 2
+		if i%2 == 1 {
+			off = -off
+		}
+		y := mid + off
+		x := 1
+		if y < 0 || y >= height {
+			x, y = 0, mid+off/2
+		}
+		party[i].Pos = types.Position{X: x, Y: y}
+	}
 
 	cs := &types.CombatSession{
 		Party:         party,
@@ -145,20 +188,30 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 	}
 	// Terrain: an authored arena, or scattered from where the fight is.
 	loadTerrainConfig(db)
-	cs.Battlefield = BattlefieldFor(db, save)
+	cs.Battlefield = BattlefieldFor(db, leader)
 	if len(spec.Arena) > 0 {
 		applyArena(cs, spec.Arena)
 	} else {
 		generateTerrain(cs, rand.New(rand.NewSource(time.Now().UnixNano())))
 	}
+	for i := range cs.Party { // an authored arena can't wall a player in
+		p := cs.Party[i].Pos
+		if len(cs.Terrain) == width*height {
+			cs.Terrain[p.Y*width+p.X] = ""
+		}
+	}
 	placeMonsters(cs, scaleRangeToGrid(startingRangeFor(cs.Battlefield), width))
 
-	level := character.GetLevelFromXP(save.Experience, advancement)
-	// Seed the martial class resource pool (Rage/Stamina/Ki/Cunning) for the fight.
-	InitResourcePool(&cs.Party[0].CombatState, save.Class, level, save.Stats)
-	// Rate the whole group against the player's level band (M5 §22 difficulty
+	// Seed each martial class's resource pool (Rage/Stamina/Ki/Cunning).
+	levelSum := 0
+	for i, m := range members {
+		level := character.GetLevelFromXP(m.Save.Experience, advancement)
+		levelSum += level
+		InitResourcePool(&cs.Party[i].CombatState, m.Save.Class, level, m.Save.Stats)
+	}
+	// Rate the whole group against the party's level band (M5 §22 difficulty
 	// guardrail): several weak monsters can add up to a deadly fight.
-	cs.Difficulty = encounter.GroupDifficulty(crs, level, len(cs.Party))
+	cs.Difficulty = encounter.GroupDifficulty(crs, (levelSum+len(members)/2)/len(members), len(cs.Party))
 
 	cs.Log = append(cs.Log, encounterOpeningLine(cs))
 	switch cs.Difficulty {
@@ -168,29 +221,51 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks like a tough fight.", foeLabel(cs)))
 	}
 
-	cs.Log = append(cs.Log, rollEncounterInitiative(cs, save)...)
+	cs.Log = append(cs.Log, rollEncounterInitiative(cs, members)...)
 	if spec.Surprise {
 		cs.Log = append(cs.Log, "⚡ You're caught off guard!")
 	}
-	if spec.MonstersSurprised && !spec.Surprise {
+	sneak := spec.MonstersSurprised && !spec.Surprise
+	if sneak {
 		for i := range cs.Monsters {
 			cs.Monsters[i].Surprised = true
 		}
 		cs.Initiative = partyFirst(cs.Initiative)
 		cs.Log = append(cs.Log, "⚡ They never saw you coming — you strike first!")
+		for i := range cs.Party {
+			cs.Party[i].CombatState.Ambushing = true
+		}
 	}
 
 	if cs.Initiative[0].Type == "monster" {
 		cs.Log = append(cs.Log, fmt.Sprintf("⚡ %s goes first!", cs.Initiative[0].Name))
-		cs.Log = append(cs.Log, runOpeningTurns(db, cs, save)...)
+		cs.Log = append(cs.Log, runOpeningTurns(db, cs, leader)...)
 	} else {
 		cs.CurrentTurnIndex = 0
-		startPlayerTurn(cs, save)
-		cs.Party[0].CombatState.Ambushing = spec.MonstersSurprised && !spec.Surprise
-		cs.Log = append(cs.Log, "⚡ You go first!")
+		cs.Actor = MemberIndex(cs, cs.Initiative[0].ID)
+		first := actor(cs)
+		ambushing := first.CombatState.Ambushing
+		startPlayerTurn(cs, saveOf(first, members[cs.Actor].Save))
+		first.CombatState.Ambushing = ambushing
+		if PartyFight(cs) {
+			cs.Log = append(cs.Log, fmt.Sprintf("⚡ %s goes first!", first.Name))
+		} else {
+			cs.Log = append(cs.Log, "⚡ You go first!")
+		}
 	}
 
 	return cs, nil
+}
+
+// makeElite toughens a monster for a bigger party (party-combat-plan §1): +50%
+// HP and +1 to hit per extra player.
+func makeElite(m *types.MonsterInstance, extraPlayers int) {
+	m.MaxHP += m.MaxHP * extraPlayers / 2
+	m.CurrentHP = m.MaxHP
+	for i := range m.Data.Actions {
+		m.Data.Actions[i].AttackBonus += extraPlayers
+	}
+	m.Name = "Elite " + m.Name
 }
 
 // encounterOpeningLine announces the foes and how far off the nearest one is.
@@ -219,17 +294,21 @@ func foeLabel(cs *types.CombatSession) string {
 // rollEncounterInitiative rolls every combatant's initiative, sorts the order
 // (DEX breaks ties) and returns the log lines. A surprised party is moved behind
 // every monster for the opening round.
-func rollEncounterInitiative(cs *types.CombatSession, save *types.SaveFile) []string {
-	effStats := effectiveStats(save)
-	playerDEX := GetStatFromMap(effStats, "dexterity")
-	playerInit := rollInitiative(StatMod(playerDEX))
-
-	entries := []types.InitiativeEntry{
-		{ID: cs.Party[0].ID, Type: "player", Name: "You", Initiative: playerInit.Total, DEXScore: playerDEX},
-	}
-	log := []string{
-		"⚡ Rolling initiative…",
-		fmt.Sprintf("  You rolled %d%s", playerInit.Face, formatModifier(playerInit.Mod)),
+func rollEncounterInitiative(cs *types.CombatSession, members []FightMember) []string {
+	log := []string{"⚡ Rolling initiative…"}
+	var entries []types.InitiativeEntry
+	for i, m := range members {
+		dex := GetStatFromMap(effectiveStats(m.Save), "dexterity")
+		roll := rollInitiative(StatMod(dex))
+		name := cs.Party[i].Name
+		who := "You"
+		if PartyFight(cs) {
+			who = name
+		} else {
+			name = "You"
+		}
+		entries = append(entries, types.InitiativeEntry{ID: cs.Party[i].ID, Type: "player", Name: name, Initiative: roll.Total, DEXScore: dex})
+		log = append(log, fmt.Sprintf("  %s rolled %d%s", who, roll.Face, formatModifier(roll.Mod)))
 	}
 	for i := range cs.Monsters {
 		m := &cs.Monsters[i]
@@ -351,7 +430,7 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	if !inGrid(cs, target) {
 		return nil, fmt.Errorf("target (%d,%d) is outside the grid", targetX, targetY)
 	}
-	me := &cs.Party[0]
+	me := actor(cs)
 	if occupied(cs, target, me.ID) {
 		return nil, fmt.Errorf("that space is occupied")
 	}
@@ -471,7 +550,7 @@ func ProcessPlayerDisengage(cs *types.CombatSession) ([]string, error) {
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if state.ActionUsed {
 		return nil, fmt.Errorf("action already used this turn")
 	}
@@ -494,7 +573,7 @@ func ProcessPlayerHold(cs *types.CombatSession) ([]string, error) {
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if state.ActionUsed {
 		return nil, fmt.Errorf("action already used this turn")
 	}
@@ -579,15 +658,24 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 	)}
 
 	if roll <= pct {
-		// Escape successful — end combat without a kill (XP already in cs.XPEarnedThisFight)
+		// In a party you slip away alone: out of the fight (and the party),
+		// keeping the XP you've earned; the others fight on.
+		if PartyFight(cs) {
+			me := actor(cs)
+			me.Fled = true
+			me.Loot = nil
+			log = append(log, fmt.Sprintf("  %s breaks away and escapes the fight!", me.Name))
+			return append(log, partyAfterDeparture(cs)...), nil
+		}
+		// Escape successful — end combat without a kill (XP already in actor(cs).XPEarned)
 		cs.Phase = "loot"
-		cs.LootRolled = nil
+		actor(cs).Loot = nil
 		log = append(log, "  You manage to put enough distance between you and the enemy to escape!")
 		return log, nil
 	}
 
 	// Escape failed — player's action is spent; monster responds when player ends turn
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	state.ActionUsed = true
 	log = append(log, fmt.Sprintf("  %s cuts off your escape! You're still in combat.", monster.Name))
 	return log, nil
@@ -617,7 +705,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	}
 
 	var log []string
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if IsIncapacitated(state.Conditions) {
 		return nil, fmt.Errorf("you are incapacitated and can't act")
 	}
@@ -647,7 +735,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		return nil, err
 	}
 	// …and that there's a line to it. Cover raises its AC.
-	visible, cover := Sight(cs, cs.Party[0].Pos, monster.Pos)
+	visible, cover := Sight(cs, actor(cs).Pos, monster.Pos)
 	if !visible {
 		return nil, fmt.Errorf("you have no line of sight to %s — move to get a clear shot", monster.Name)
 	}
@@ -683,10 +771,19 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	if state.Ambushing {
 		advantage++
 	}
+	// Allies: a Help from a friend, or a friend flanking the target in melee.
+	if state.Helped {
+		advantage++
+		state.Helped = false
+	}
+	if !isRangedAttack && flanking(cs, actor(cs), monster) {
+		advantage++
+		log = append(log, "  ⚔ Flanking — advantage!")
+	}
 	// Terrain: shooting down from high ground helps; swinging while swimming doesn't.
 	if isRangedAttack {
-		attackBonus += highGroundBonus(cs, cs.Party[0].Pos, monster.Pos)
-	} else if inDeepWater(cs, cs.Party[0].Pos) {
+		attackBonus += highGroundBonus(cs, actor(cs).Pos, monster.Pos)
+	} else if inDeepWater(cs, actor(cs).Pos) {
 		advantage--
 	}
 	if cover > 0 {
@@ -870,7 +967,7 @@ func validateTwoWeaponFighting(db *sql.DB, save *types.SaveFile, cs *types.Comba
 	if len(cs.Party) == 0 {
 		return fmt.Errorf("no player in combat")
 	}
-	if cs.Party[0].CombatState.BonusActionUsed {
+	if actor(cs).CombatState.BonusActionUsed {
 		return fmt.Errorf("bonus action already used this turn")
 	}
 
@@ -923,7 +1020,7 @@ func consumeAmmo(save *types.SaveFile, cs *types.CombatSession, weapon map[strin
 		// contents rather than consuming the quiver itself.
 		if contents, ok := slotMap["contents"].([]interface{}); ok {
 			if consumeFromAmmoContents(contents, weapon) {
-				cs.AmmoUsedThisCombat++
+				actor(cs).AmmoUsed++
 				return nil
 			}
 			continue // container present but has no usable ammo inside
@@ -938,7 +1035,7 @@ func consumeAmmo(save *types.SaveFile, cs *types.CombatSession, weapon map[strin
 				slotMap["quantity"] = qty - 1
 				gearSlots[key] = slotMap
 			}
-			cs.AmmoUsedThisCombat++
+			actor(cs).AmmoUsed++
 			return nil
 		}
 	}
@@ -1151,7 +1248,12 @@ func applyDamageToMonster(monster *types.MonsterInstance, dmg int) {
 // player's level multiplier through the single character.BonusXP path.
 func awardDamageXP(cs *types.CombatSession, monster *types.MonsterInstance, dmg, timeOfDay, level int, advancement []types.AdvancementEntry) int {
 	xp := character.BonusXP(level, XPForDamage(monster, dmg, NightMultiplier(timeOfDay)), advancement)
-	cs.XPEarnedThisFight += xp
+	actor(cs).XPEarned += xp
+	// Whoever hurts a monster most draws its attention.
+	if monster.Threat == nil {
+		monster.Threat = map[string]int{}
+	}
+	monster.Threat[actor(cs).ID] += dmg
 	return xp
 }
 
@@ -1160,28 +1262,138 @@ func awardDamageXP(cs *types.CombatSession, monster *types.MonsterInstance, dmg,
 // was the last enemy standing.
 func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, save *types.SaveFile, advancement []types.AdvancementEntry) []string {
 	log := []string{fmt.Sprintf("  %s is defeated!", monster.Name)}
+	members := inFightMembers(cs)
+	if len(members) == 0 {
+		members = []*types.PartyCombatant{actor(cs)}
+	}
+	party := len(members) > 1
 
-	// Feed the kill to the event recorder so "slay" quest objectives advance.
-	// No-op until a consumer is subscribed at startup.
-	events.Record(save, events.MonsterKilled, monster.Data.ID, 1)
+	// Everyone in the fight gets the kill for "slay" quest objectives.
+	for _, m := range members {
+		events.Record(saveOf(m, save), events.MonsterKilled, monster.Data.ID, 1)
+	}
 
-	cs.LootRolled = append(cs.LootRolled, RollLoot(monster.Data.LootTable)...)
+	// Loot: a solo kill pays the whole table; a party shares one table's worth.
+	if party {
+		distributePartyLoot(cs, monster, members)
+	} else {
+		members[0].Loot = append(members[0].Loot, RollLoot(monster.Data.LootTable)...)
+	}
 
 	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on
 	// POI/dungeon steps via the node walker in M3), on top of the proportional
-	// damage XP accrued during the fight.
-	killLevel := character.GetLevelFromXP(save.Experience, advancement)
-	if bonus := character.BonusXP(killLevel, KillBonusXP(&monster.Data), advancement); bonus > 0 {
-		cs.XPEarnedThisFight += bonus
-		log = append(log, fmt.Sprintf("  +%d bonus XP for slaying %s!", bonus, monster.Name))
+	// damage XP accrued during the fight. A party shares it.
+	base := KillBonusXP(&monster.Data)
+	if party && base > 0 {
+		base = (base + len(members) - 1) / len(members)
 	}
-
-	if !cs.LevelUpPending && character.WillLevelUp(save.Experience, cs.XPEarnedThisFight, advancement) {
-		cs.LevelUpPending = true
-		log = append(log, "  Level up!")
+	for _, m := range members {
+		ms := saveOf(m, save)
+		level := character.GetLevelFromXP(ms.Experience, advancement)
+		if bonus := character.BonusXP(level, base, advancement); bonus > 0 {
+			m.XPEarned += bonus
+			if party {
+				log = append(log, fmt.Sprintf("  %s: +%d bonus XP.", m.Name, bonus))
+			} else {
+				log = append(log, fmt.Sprintf("  +%d bonus XP for slaying %s!", bonus, monster.Name))
+			}
+		}
+		if !m.LevelUpPending && character.WillLevelUp(ms.Experience, m.XPEarned, advancement) {
+			m.LevelUpPending = true
+			if party {
+				log = append(log, fmt.Sprintf("  %s is ready to level up!", m.Name))
+			} else {
+				log = append(log, "  Level up!")
+			}
+		}
 	}
 
 	return append(log, checkVictory(cs)...)
+}
+
+// distributePartyLoot shares one kill's loot across the party (party-combat-plan
+// §4) without paying out a full table per member:
+//   - guaranteed drops go to whoever did the most to the monster, except gold,
+//     which is split evenly (the remainder to that top contributor);
+//   - each member makes the table's random rolls at 1/N odds, so the party
+//     collects about one table per kill between them.
+func distributePartyLoot(cs *types.CombatSession, monster *types.MonsterInstance, members []*types.PartyCombatant) {
+	table := monster.Data.LootTable
+	n := len(members)
+	top := members[0]
+	for _, m := range members[1:] {
+		if monster.Threat[m.ID] > monster.Threat[top.ID] {
+			top = m
+		}
+	}
+	for _, g := range table.Guaranteed {
+		qty := RollRange(g.Quantity[0], g.Quantity[1])
+		if qty <= 0 {
+			continue
+		}
+		if g.Item == "gold-piece" {
+			share, rest := qty/n, qty%n
+			for _, m := range members {
+				q := share
+				if m == top {
+					q += rest
+				}
+				if q > 0 {
+					m.Loot = appendOrStack(m.Loot, types.LootDrop{Item: g.Item, Quantity: q})
+				}
+			}
+			continue
+		}
+		top.Loot = appendOrStack(top.Loot, types.LootDrop{Item: g.Item, Quantity: qty})
+	}
+	rolls := table.Rolls
+	if rolls <= 0 {
+		rolls = 1
+	}
+	for _, m := range members {
+		for i := 0; i < rolls; i++ {
+			if rand.Intn(n) != 0 { // a 1-in-N chance at each roll
+				continue
+			}
+			if drop := rollOneTier(table.Tiers); drop != nil {
+				m.Loot = appendOrStack(m.Loot, *drop)
+			}
+		}
+	}
+}
+
+// HealXPMultiplier scales healing XP against damage XP (party-combat-plan §5).
+const HealXPMultiplier = 1.0
+
+// awardHealXP pays a healer for HP restored to someone hurt in this fight, at
+// the fight's average monster XP per HP. Only damage taken this fight counts
+// (no overheal), and healing yourself pays half.
+func awardHealXP(cs *types.CombatSession, healer, target *types.PartyCombatant, healed, timeOfDay, level int, advancement []types.AdvancementEntry) int {
+	if healed <= 0 || healer == nil || target == nil {
+		return 0
+	}
+	if healed > target.DamageTaken {
+		healed = target.DamageTaken
+	}
+	target.DamageTaken -= healed
+	totalXP, totalHP := 0, 0
+	for i := range cs.Monsters {
+		totalXP += cs.Monsters[i].Data.XP
+		totalHP += cs.Monsters[i].MaxHP
+	}
+	if healed <= 0 || totalHP == 0 || totalXP == 0 {
+		return 0
+	}
+	raw := float64(healed) * float64(totalXP) / float64(totalHP) * HealXPMultiplier * NightMultiplier(timeOfDay)
+	if healer == target {
+		raw /= 2
+	}
+	if raw < 1 {
+		raw = 1
+	}
+	xp := character.BonusXP(level, int(raw), advancement)
+	healer.XPEarned += xp
+	return xp
 }
 
 // checkVictory ends the fight once no enemy is left in it (all slain or fled).
@@ -1197,7 +1409,10 @@ func checkVictory(cs *types.CombatSession) []string {
 	cs.Phase = "loot"
 	for _, m := range cs.Monsters {
 		if !m.IsAlive {
-			return []string{fmt.Sprintf("  Victory! +%d XP this fight.", cs.XPEarnedThisFight)}
+			if PartyFight(cs) {
+				return []string{"  Victory!"}
+			}
+			return []string{fmt.Sprintf("  Victory! +%d XP this fight.", actor(cs).XPEarned)}
 		}
 	}
 	return []string{"  The battlefield falls quiet — your foes have fled."}
@@ -1210,7 +1425,7 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 	if len(cs.Party) == 0 {
 		return nil
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if state.ReactionUsed {
 		return nil
 	}
@@ -1338,7 +1553,7 @@ func applyDamageToPlayer(cs *types.CombatSession, dmg int) []string {
 	if len(cs.Party) == 0 {
 		return nil
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 
 	var log []string
 	// Rage soaks a slice of incoming damage.
@@ -1353,10 +1568,23 @@ func applyDamageToPlayer(cs *types.CombatSession, dmg int) []string {
 		regenResource(state.Resource, state.Resource.PerHitTaken)
 	}
 
+	if dmg > state.CurrentHP {
+		actor(cs).DamageTaken += state.CurrentHP
+	} else if dmg > 0 {
+		actor(cs).DamageTaken += dmg
+	}
 	state.CurrentHP -= dmg
 	if state.CurrentHP <= 0 {
 		state.CurrentHP = 0
 		state.IsUnconscious = true
+		if PartyFight(cs) {
+			// In a party, a downed member waits for help; only a wipe ends it.
+			if len(standingMembers(cs)) == 0 {
+				cs.Phase = "defeat"
+				return []string{fmt.Sprintf("  %s falls. The whole party is down…", actor(cs).Name)}
+			}
+			return []string{fmt.Sprintf("  💀 %s falls unconscious! Heal them or help them up.", actor(cs).Name)}
+		}
 		cs.Phase = "death_saves"
 		return []string{"  You fall unconscious. Make death saving throws."}
 	}
@@ -1427,7 +1655,7 @@ func oneDeathSaveFailure(state *types.PlayerCombatState, cs *types.CombatSession
 // applyDeathSaveHit records 1 (hit) or 2 (crit) automatic death save failures.
 // Returns a description of the outcome.
 func applyDeathSaveHit(cs *types.CombatSession, isCrit bool) string {
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	n := 1
 	if isCrit {
 		n = 2

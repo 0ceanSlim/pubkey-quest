@@ -30,7 +30,8 @@ type questEncounter struct {
 // encounter is at the player's current place. Runs after every action (next to
 // the authored-encounter triggers); a no-op while a fight or POI walk is open.
 func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameActionResponse) {
-	if sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil || social.PartyOf(sess.Npub) != nil {
+	// Followers don't trigger fights; a leader's quest fight brings the party.
+	if sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil || social.IsFollower(sess.Npub) {
 		return
 	}
 	// Arriving somewhere new resets the "already fired here" memory, so leaving
@@ -61,7 +62,7 @@ func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameAct
 		Surprise:      qe.enc.Surprise,
 		Arena:         qe.enc.Arena,
 	}
-	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
+	cs, err := startFight(sess, spec, advancement, true)
 	if err != nil {
 		log.Printf("⚠️ quest encounter %s: %v", qe.quest.ID, err)
 		return

@@ -7,9 +7,9 @@ import (
 	"math/rand"
 	"net/http"
 
-	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/social"
 )
 
 // debugMonsterPool is the curated list of starter monsters for debug combat.
@@ -107,14 +107,18 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 	case combat.OpeningAmbush:
 		spec.Surprise = true
 	}
-	cs, err := combat.StartEncounter(serverdb.GetDB(), &sess.SaveData, npub, spec, advancement)
+	if social.IsFollower(npub) {
+		writeCombatError(w, http.StatusBadRequest, "Only your party leader can start a fight.")
+		return
+	}
+	// A party leader brings everyone standing with them (no scaling: the test
+	// picker sets the count).
+	cs, err := startFight(sess, spec, advancement, false)
 	if err != nil {
 		log.Printf("❌ DebugCombatStart: %v", err)
 		writeCombatError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to start combat: %v", err))
 		return
 	}
-
-	sess.ActiveCombat = cs
 	log.Printf("⚔️  Debug combat started: npub=%s monster=%s x%d", npub, monsterID, len(cs.Monsters))
 
 	resp := buildStateResponse(cs, &sess.SaveData, cs.Log)

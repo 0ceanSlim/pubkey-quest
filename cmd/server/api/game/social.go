@@ -53,6 +53,7 @@ type SocialPollResponse struct {
 	Invites   []InviteView `json:"invites"`
 	Party     *PartyView   `json:"party"`
 	PartySync bool         `json:"party_sync,omitempty"` // the leader moved you: refresh the world
+	InCombat  bool         `json:"in_combat"`            // you're in a fight (a party member may have started it)
 }
 
 // advancementOnce caches the advancement table for presence levels.
@@ -255,6 +256,7 @@ func SocialPollHandler(w http.ResponseWriter, r *http.Request) {
 	resp.Chat = drainChat(sess.Npub)
 	resp.Invites = invitesFor(sess.Npub)
 	resp.Party = partyViewFor(sess.Npub)
+	resp.InCombat = sess.ActiveCombat != nil
 	writeCombatJSON(w, http.StatusOK, resp)
 }
 

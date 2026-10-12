@@ -58,7 +58,7 @@ func playerPos(cs *types.CombatSession) types.Position {
 	if len(cs.Party) == 0 {
 		return types.Position{}
 	}
-	return cs.Party[0].Pos
+	return actor(cs).Pos
 }
 
 // PlayerPos is the exported form of playerPos for the API layer.
@@ -242,17 +242,12 @@ func assignInstanceIDs(monsters []types.MonsterInstance) {
 // authored target_priority ("lowest_hp", "random"; default/"highest_threat" →
 // nearest). Unconscious members are skipped while anyone is still standing.
 func aiTarget(cs *types.CombatSession, m *types.MonsterInstance) *types.PartyCombatant {
-	var standing []*types.PartyCombatant
-	for i := range cs.Party {
-		if !cs.Party[i].CombatState.IsUnconscious {
-			standing = append(standing, &cs.Party[i])
-		}
-	}
+	standing := standingMembers(cs)
 	if len(standing) == 0 {
 		if len(cs.Party) == 0 {
 			return nil
 		}
-		return &cs.Party[0]
+		return actor(cs)
 	}
 	switch m.Data.Behavior.TargetPriority {
 	case "lowest_hp":
@@ -266,9 +261,11 @@ func aiTarget(cs *types.CombatSession, m *types.MonsterInstance) *types.PartyCom
 	case "random":
 		return standing[rand.Intn(len(standing))]
 	default:
+		// Threat first (whoever hurt it most), then the nearest.
 		best := standing[0]
 		for _, p := range standing[1:] {
-			if chebyshev(m.Pos, p.Pos) < chebyshev(m.Pos, best.Pos) {
+			tp, tb := m.Threat[p.ID], m.Threat[best.ID]
+			if tp > tb || (tp == tb && chebyshev(m.Pos, p.Pos) < chebyshev(m.Pos, best.Pos)) {
 				best = p
 			}
 		}

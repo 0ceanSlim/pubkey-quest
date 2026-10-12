@@ -29,7 +29,7 @@ func ammoContents(save *types.SaveFile) map[string]interface{} {
 // itself equipped (the pre-fix bug consumed the quiver's own quantity).
 func TestConsumeAmmoFromQuiver(t *testing.T) {
 	save := quiverSave(3)
-	cs := &types.CombatSession{}
+	cs := &types.CombatSession{Party: []types.PartyCombatant{{}}}
 	weapon := map[string]interface{}{"ammunition": "arrows"}
 
 	if err := consumeAmmo(save, cs, weapon); err != nil {
@@ -43,15 +43,15 @@ func TestConsumeAmmoFromQuiver(t *testing.T) {
 	if round["item"] != "arrows" || slotQty(round, "quantity") != 2 {
 		t.Errorf("quiver arrows = %v x%d, want arrows x2", round["item"], slotQty(round, "quantity"))
 	}
-	if cs.AmmoUsedThisCombat != 1 {
-		t.Errorf("AmmoUsedThisCombat = %d, want 1", cs.AmmoUsedThisCombat)
+	if cs.Party[0].AmmoUsed != 1 {
+		t.Errorf("AmmoUsedThisCombat = %d, want 1", cs.Party[0].AmmoUsed)
 	}
 }
 
 // Firing the last round empties the contents slot but keeps the quiver.
 func TestConsumeLastAmmoFromQuiver(t *testing.T) {
 	save := quiverSave(1)
-	if err := consumeAmmo(save, &types.CombatSession{}, map[string]interface{}{"ammunition": "arrows"}); err != nil {
+	if err := consumeAmmo(save, &types.CombatSession{Party: []types.PartyCombatant{{}}}, map[string]interface{}{"ammunition": "arrows"}); err != nil {
 		t.Fatalf("consume: %v", err)
 	}
 	if round := ammoContents(save); round["item"] != nil {
@@ -63,7 +63,7 @@ func TestConsumeLastAmmoFromQuiver(t *testing.T) {
 func TestConsumeAmmoEmptyQuiverErrors(t *testing.T) {
 	save := quiverSave(0)
 	// A qty-0 round is not usable ammo.
-	if err := consumeAmmo(save, &types.CombatSession{}, map[string]interface{}{"ammunition": "arrows"}); err == nil {
+	if err := consumeAmmo(save, &types.CombatSession{Party: []types.PartyCombatant{{}}}, map[string]interface{}{"ammunition": "arrows"}); err == nil {
 		t.Error("expected an error firing with an empty quiver")
 	}
 }

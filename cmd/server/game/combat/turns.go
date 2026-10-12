@@ -50,7 +50,7 @@ func startPlayerTurn(cs *types.CombatSession, save *types.SaveFile) {
 	if len(cs.Party) == 0 {
 		return
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	state.ActionUsed = false
 	state.BonusActionUsed = false
 	state.MovementSpent = 0
@@ -63,6 +63,7 @@ func startPlayerTurn(cs *types.CombatSession, save *types.SaveFile) {
 	// (Rage persists — it has its own duration countdown in tickPlayerAbilities.)
 	state.ExtraActions = 0
 	state.PendingSneakDice = ""
+	startTurnTimer(cs)
 }
 
 // endPlayerTurn resolves the end of the player's turn: their conditions
@@ -73,13 +74,13 @@ func endPlayerTurn(cs *types.CombatSession, save *types.SaveFile) []string {
 	if len(cs.Party) == 0 {
 		return nil
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	state.Ambushing = false
-	log := TickCreatureConditions("You", &state.Conditions,
+	log := TickCreatureConditions(whoName(cs, actor(cs)), &state.Conditions,
 		func(stat string) int { return playerSaveTotal(save, stat) })
 	log = append(log, tickPlayerAbilities(state)...)
 	// Ending a turn in a hazard burns again.
-	return append(log, playerHazard(cs, save, cs.Party[0].Pos, "are caught in")...)
+	return append(log, playerHazard(cs, save, actor(cs).Pos, "are caught in")...)
 }
 
 // playerHazard applies a hazard cell's damage to the player (verb: "step into",
@@ -93,7 +94,11 @@ func playerHazard(cs *types.CombatSession, save *types.SaveFile, pos types.Posit
 	if dmg < 1 {
 		dmg = 1
 	}
-	log := []string{fmt.Sprintf("  🔥 You %s the %s: %d %s damage.", verb, strings.ToLower(name), dmg, dtype)}
+	who := whoName(cs, actor(cs))
+	if who != "You" {
+		verb = strings.Replace(strings.Replace(verb, "are caught", "is caught", 1), "step into", "steps into", 1)
+	}
+	log := []string{fmt.Sprintf("  🔥 %s %s the %s: %d %s damage.", who, verb, strings.ToLower(name), dmg, dtype)}
 	return append(log, damagePlayer(cs, save, dmg)...)
 }
 
@@ -148,7 +153,18 @@ func runUntilPlayerTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFil
 		advanceCursor(cs)
 		e := cs.Initiative[cs.CurrentTurnIndex]
 		if e.Type == "player" {
-			startPlayerTurn(cs, save)
+			idx := MemberIndex(cs, e.ID)
+			if idx < 0 || cs.Party[idx].Fled {
+				continue
+			}
+			p := &cs.Party[idx]
+			// In a party fight a downed member's turn passes: they lie there
+			// until someone heals or helps them up (or the fight ends).
+			if PartyFight(cs) && p.CombatState.IsUnconscious {
+				continue
+			}
+			cs.Actor = idx
+			startPlayerTurn(cs, saveOf(p, save))
 			return log
 		}
 		m := FindMonster(cs, e.ID)
@@ -182,6 +198,13 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 	m.ReactionUsed = false
 	m.Disengaged = false
 
+	// Everything below acts against the member this monster goes after: their
+	// AC, their reactions, their HP.
+	if t := aiTarget(cs, m); t != nil {
+		cs.Actor = MemberIndex(cs, t.ID)
+		save = saveOf(t, save)
+	}
+
 	var log []string
 	// Caught by a sneak attack: it spends its first turn getting its bearings.
 	if m.Surprised {
@@ -207,7 +230,7 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 		return append(log, tickMonsterConditions(m)...)
 	}
 
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	decision := DecideMonsterAction(cs, m)
 	playerReach := getPlayerMeleeReach(db, save)
 
@@ -289,7 +312,7 @@ func ProcessDeathSave(cs *types.CombatSession, save *types.SaveFile) []string {
 
 	roll := RollD20()
 	log := []string{fmt.Sprintf("  Death saving throw: rolled %d.", roll)}
-	log = append(log, resolveDeathSaveRoll(&cs.Party[0].CombatState, cs, roll))
+	log = append(log, resolveDeathSaveRoll(&actor(cs).CombatState, cs, roll))
 
 	switch cs.Phase {
 	case "active":

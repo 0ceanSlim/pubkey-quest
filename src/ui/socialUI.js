@@ -621,6 +621,7 @@ function init() {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 
+window.socialState = getSocialState;
 window.socialUI = {
     showFriendsTab, friendsPanelVisible, closePlayerCard, openPlayerCard, renderPlayersHere,
     openPlayerMenu, startWhisper,

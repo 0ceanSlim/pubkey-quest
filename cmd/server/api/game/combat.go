@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
@@ -14,7 +16,9 @@ import (
 	"pubkey-quest/cmd/server/game/combat"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/poi"
+	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/social"
 	"pubkey-quest/types"
 )
 
@@ -177,6 +181,31 @@ type CombatStateResponse struct {
 	BonusAttackAvailable bool                    `json:"bonus_attack_available" example:"false"`
 	AmmoRemaining        int                     `json:"ammo_remaining"         example:"19"`
 	Difficulty           string                  `json:"difficulty,omitempty"   example:"tough"`
+
+	// Party fights (P5): every member, whose turn it is (and until when, unix
+	// ms), and the length of the shared log so clients can catch up on what
+	// others did (GET /combat/state?since=log_index).
+	PartyFight   bool             `json:"party_fight"`
+	Allies       []CombatAllyView `json:"allies"`
+	YourTurn     bool             `json:"your_turn"`
+	TurnName     string           `json:"turn_name,omitempty"`
+	TurnDeadline int64            `json:"turn_deadline,omitempty"`
+	LogIndex     int              `json:"log_index"`
+}
+
+// CombatAllyView is one party member on the board.
+// swagger:model CombatAllyView
+type CombatAllyView struct {
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Class       string         `json:"class,omitempty"`
+	Pos         types.Position `json:"pos"`
+	CurrentHP   int            `json:"current_hp"`
+	MaxHP       int            `json:"max_hp"`
+	Unconscious bool           `json:"unconscious"`
+	Fled        bool           `json:"fled"`
+	You         bool           `json:"you"`
+	PortraitSrc string         `json:"portrait_src,omitempty"`
 }
 
 // CombatEndResponse is returned when the player calls POST /combat/end.
@@ -225,9 +254,15 @@ func conditionNames(conds []types.CombatCondition) []string {
 }
 
 func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []string) CombatStateResponse {
+	// Everything below is from the viewer's point of view: their HP, their
+	// position, ranges from them.
+	if save != nil && save.InternalNpub != "" {
+		combat.SetActor(cs, save.InternalNpub)
+	}
+	viewer := combat.Actor(cs)
 	player := CombatPlayerView{}
 	if len(cs.Party) > 0 {
-		state := cs.Party[0].CombatState
+		state := combat.Actor(cs).CombatState
 		player = CombatPlayerView{
 			CurrentHP:          state.CurrentHP,
 			MaxHP:              state.MaxHP,
@@ -296,7 +331,7 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 
 	movBudget, movSpent, actionUsed, bonusUsed, disengaged, reactionUsed := 0, 0, false, false, false, false
 	if len(cs.Party) > 0 {
-		s := cs.Party[0].CombatState
+		s := combat.Actor(cs).CombatState
 		movBudget = s.MovementBudget
 		movSpent = s.MovementSpent
 		actionUsed = s.ActionUsed
@@ -314,9 +349,38 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		playerReach = combat.PlayerMeleeReachForSave(serverdb.GetDB(), save)
 	}
 
+	phase := cs.Phase
+	if viewer.Fled {
+		phase = "loot" // you got away: collect your XP and go
+	}
+	allies := make([]CombatAllyView, 0, len(cs.Party))
+	for i := range cs.Party {
+		p := &cs.Party[i]
+		av := CombatAllyView{
+			ID: p.ID, Name: p.Name, Pos: p.Pos, CurrentHP: p.CombatState.CurrentHP, MaxHP: p.CombatState.MaxHP,
+			Unconscious: p.CombatState.IsUnconscious, Fled: p.Fled, You: p == viewer,
+		}
+		if ms := combat.MemberSave; ms != nil {
+			if s := ms(p); s != nil {
+				av.Class, av.PortraitSrc = s.Class, PortraitSrc(s.Portrait)
+			}
+		}
+		allies = append(allies, av)
+	}
+	turnName := ""
+	if m := combat.CurrentMember(cs); m != nil {
+		turnName = m.Name
+	}
+
 	return CombatStateResponse{
 		Success:              true,
-		Phase:                cs.Phase,
+		Phase:                phase,
+		PartyFight:           combat.PartyFight(cs),
+		Allies:               allies,
+		YourTurn:             combat.IsMemberTurn(cs, viewer.ID),
+		TurnName:             turnName,
+		TurnDeadline:         cs.TurnDeadline,
+		LogIndex:             len(cs.Log),
 		Round:                cs.Round,
 		Range:                nearest,
 		Grid:                 buildGridView(cs),
@@ -335,9 +399,9 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 		CurrentTurnIndex:     cs.CurrentTurnIndex,
 		Log:                  cs.Log,
 		NewLog:               newLog,
-		XPEarned:             cs.XPEarnedThisFight,
-		LootRolled:           cs.LootRolled,
-		LevelUpPending:       cs.LevelUpPending,
+		XPEarned:             combat.Actor(cs).XPEarned,
+		LootRolled:           combat.Actor(cs).Loot,
+		LevelUpPending:       combat.Actor(cs).LevelUpPending,
 		BonusAttackAvailable: bonusAvail,
 		AmmoRemaining:        ammoLeft,
 		Difficulty:           cs.Difficulty,
@@ -391,7 +455,7 @@ func buildGridView(cs *types.CombatSession) CombatGridView {
 // conditions for a two-weapon fighting bonus action: both hands hold light
 // weapons, and the bonus action has not yet been used this turn.
 func checkBonusAttackAvailable(cs *types.CombatSession, save *types.SaveFile) bool {
-	if len(cs.Party) == 0 || cs.Party[0].CombatState.BonusActionUsed {
+	if len(cs.Party) == 0 || combat.Actor(cs).CombatState.BonusActionUsed {
 		return false
 	}
 	db := serverdb.GetDB()
@@ -649,8 +713,18 @@ func GetCombatStateHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, false)
+	if !ok {
+		return
+	}
+	defer unlock()
 
-	writeCombatJSON(w, http.StatusOK, buildStateResponse(sess.ActiveCombat, &sess.SaveData, nil))
+	// ?since=N returns the log lines added after index N (what others did).
+	var newLog []string
+	if since, err := strconv.Atoi(r.URL.Query().Get("since")); err == nil && since >= 0 && since < len(sess.ActiveCombat.Log) {
+		newLog = append([]string{}, sess.ActiveCombat.Log[since:]...)
+	}
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(sess.ActiveCombat, &sess.SaveData, newLog))
 }
 
 // ─── CombatActionHandler ──────────────────────────────────────────────────────
@@ -701,6 +775,11 @@ func CombatActionHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	advancement, err := loadAdvancement()
 	if err != nil {
@@ -762,6 +841,11 @@ func CombatCastHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	advancement, err := loadAdvancement()
 	if err != nil {
@@ -818,6 +902,11 @@ func CombatUseItemHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerUseItem(serverdb.GetDB(), cs, &sess.SaveData, req.ItemID, req.TargetID)
@@ -867,6 +956,11 @@ func CombatAbilityHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	advancement, err := loadAdvancement()
 	if err != nil {
@@ -914,6 +1008,11 @@ func CombatMoveHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	moveLog, err := combat.ProcessPlayerMove(serverdb.GetDB(), cs, &sess.SaveData, req.X, req.Y)
@@ -953,6 +1052,11 @@ func CombatEndTurnHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessEndTurn(serverdb.GetDB(), cs, &sess.SaveData)
@@ -992,6 +1096,11 @@ func CombatHoldHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerHold(cs)
@@ -1028,6 +1137,11 @@ func CombatDisengageHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerDisengage(cs)
@@ -1050,7 +1164,7 @@ func shouldAutoEndTurn(cs *types.CombatSession, save *types.SaveFile) bool {
 	if cs.Phase != "active" || len(cs.Party) == 0 {
 		return false
 	}
-	state := &cs.Party[0].CombatState
+	state := &combat.Actor(cs).CombatState
 	if !state.ActionUsed {
 		return false
 	}
@@ -1104,6 +1218,11 @@ func CombatFleeHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	roundLog, err := combat.ProcessPlayerFlee(cs, &sess.SaveData)
@@ -1113,6 +1232,13 @@ func CombatFleeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cs.Log = append(cs.Log, roundLog...)
+	// In a party, whoever got away is out: play moves on to the next turn.
+	if combat.PartyFight(cs) && combat.Actor(cs).Fled && cs.Phase == "active" {
+		if more, err := combat.ProcessEndTurn(serverdb.GetDB(), cs, &sess.SaveData); err == nil {
+			cs.Log = append(cs.Log, more...)
+			roundLog = append(roundLog, more...)
+		}
+	}
 	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
 
 	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
@@ -1154,6 +1280,11 @@ func CombatDeathSaveHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, false)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	if cs.Phase != "death_saves" {
@@ -1216,10 +1347,16 @@ func CombatEndHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	unlock, ok := enterFight(w, sess, false)
+	if !ok {
+		return
+	}
+	defer unlock()
 
 	cs := sess.ActiveCombat
 	terminalPhases := map[string]bool{"loot": true, "victory": true, "defeat": true}
-	if !terminalPhases[cs.Phase] {
+	me := combat.Actor(cs)
+	if !terminalPhases[cs.Phase] && !me.Fled {
 		writeCombatError(w, http.StatusBadRequest,
 			fmt.Sprintf("Cannot end combat: phase is %q — combat must reach a terminal phase first", cs.Phase))
 		return
@@ -1227,13 +1364,28 @@ func CombatEndHandler(w http.ResponseWriter, r *http.Request) {
 
 	var resp CombatEndResponse
 
-	if cs.Phase == "defeat" {
+	// A member who got away before a wipe isn't caught in it.
+	if cs.Phase == "defeat" && !me.Fled {
 		resp = applyDefeatOutcome(sess, cs)
 	} else {
 		resp = applyVictoryOutcome(sess, cs)
 	}
 
 	sess.ActiveCombat = nil
+	me.Ended = true
+	if combat.PartyFight(cs) {
+		allDone := true
+		for i := range cs.Party {
+			allDone = allDone && cs.Party[i].Ended
+		}
+		if allDone {
+			combat.ForgetFight(cs)
+		}
+		// Running from a party fight leaves the party too.
+		if me.Fled && !cs.Retreated {
+			leaveParty(sess.Npub, sess.SaveData.D, "ran from the fight")
+		}
+	}
 
 	// If this fight happened inside a POI walk, bridge back: defeat ends the walk
 	// (the player is teleported home), victory resumes it at the node past the
@@ -1264,7 +1416,7 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 
 	// Apply combat HP (player may have taken damage)
 	if len(cs.Party) > 0 {
-		save.HP = cs.Party[0].CombatState.CurrentHP
+		save.HP = combat.Actor(cs).CombatState.CurrentHP
 		if save.HP < 1 {
 			save.HP = 1 // Stable players survive with at least 1 HP
 		}
@@ -1274,24 +1426,24 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 	// surfaced — XP comes from many sources, not just combat.
 	var levelUp types.LevelUpResult
 	if adv, err := character.LoadAdvancement(serverdb.GetDB()); err == nil {
-		levelUp = character.GrantXP(save, cs.XPEarnedThisFight, adv)
+		levelUp = character.GrantXP(save, combat.Actor(cs).XPEarned, adv)
 	} else {
 		log.Printf("⚠️ advancement load failed; XP applied without level-up check: %v", err)
-		save.Experience += cs.XPEarnedThisFight
+		save.Experience += combat.Actor(cs).XPEarned
 	}
 
 	// Recover 50% of ammo used this combat (floor)
-	if cs.AmmoUsedThisCombat > 0 {
-		recovered := cs.AmmoUsedThisCombat / 2
+	if combat.Actor(cs).AmmoUsed > 0 {
+		recovered := combat.Actor(cs).AmmoUsed / 2
 		if recovered > 0 {
 			addAmmoToSlot(save, recovered)
 		}
 	}
 
 	// Add loot to inventory
-	placed, overflow := addLootToInventory(save.Inventory, cs.LootRolled)
+	placed, overflow := addLootToInventory(save.Inventory, combat.Actor(cs).Loot)
 
-	msg := fmt.Sprintf("You are victorious! +%d XP.", cs.XPEarnedThisFight)
+	msg := fmt.Sprintf("You are victorious! +%d XP.", combat.Actor(cs).XPEarned)
 	if len(placed) > 0 {
 		msg += fmt.Sprintf(" %d item type(s) added to inventory.", len(placed))
 	}
@@ -1302,7 +1454,7 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 	resp := CombatEndResponse{
 		Success:     true,
 		Outcome:     "victory",
-		XPApplied:   cs.XPEarnedThisFight,
+		XPApplied:   combat.Actor(cs).XPEarned,
 		LootAdded:   placed,
 		LootDropped: overflow,
 		Message:     msg,
@@ -1320,7 +1472,7 @@ func applyDefeatOutcome(sess *session.GameSession, cs *types.CombatSession) Comb
 	save := &sess.SaveData
 
 	// Apply XP earned before death (plan: XP and level are kept on death)
-	save.Experience += cs.XPEarnedThisFight
+	save.Experience += combat.Actor(cs).XPEarned
 
 	// Strip inventory + restore vitals + return home (shared with non-combat deaths).
 	kept := ApplyDeath(save)
@@ -1333,7 +1485,7 @@ func applyDefeatOutcome(sess *session.GameSession, cs *types.CombatSession) Comb
 	return CombatEndResponse{
 		Success:   true,
 		Outcome:   "defeat",
-		XPApplied: cs.XPEarnedThisFight,
+		XPApplied: combat.Actor(cs).XPEarned,
 		LootAdded: kept,
 		Message:   msg,
 	}
@@ -1746,4 +1898,140 @@ func slotFloat(m map[string]interface{}, key string) float64 {
 		return float64(v)
 	}
 	return 0
+}
+
+
+// ─── Party fights: locking, turns, retreat, help ─────────────────────────────
+
+func init() {
+	// The combat engine reaches other party members' saves through the sessions.
+	combat.MemberSave = func(p *types.PartyCombatant) *types.SaveFile {
+		s, err := session.GetSessionManager().GetSession(p.ID, p.SaveID)
+		if err != nil {
+			return nil
+		}
+		return &s.SaveData
+	}
+	// A member who has stopped polling for 30 s is "away": their turns pass.
+	combat.MemberAway = func(p *types.PartyCombatant) bool {
+		e, ok := presence.Get(p.ID)
+		return !ok || time.Since(e.LastSeen) > 30*time.Second
+	}
+}
+
+// enterFight locks the caller's fight, lets any timed-out turns pass, makes the
+// caller the actor and — when needTurn — checks it's their turn. On failure it
+// writes the error and returns false.
+func enterFight(w http.ResponseWriter, sess *session.GameSession, needTurn bool) (func(), bool) {
+	cs := sess.ActiveCombat
+	unlock := combat.LockFight(cs)
+	if lines := combat.ExpireTurn(serverdb.GetDB(), cs, time.Now()); len(lines) > 0 {
+		cs.Log = append(cs.Log, lines...)
+	}
+	if !combat.SetActor(cs, sess.Npub) {
+		unlock()
+		writeCombatError(w, http.StatusBadRequest, "You're not in this fight.")
+		return nil, false
+	}
+	if needTurn && combat.PartyFight(cs) {
+		me := combat.Actor(cs)
+		if me.Fled {
+			unlock()
+			writeCombatError(w, http.StatusConflict, "You've left this fight.")
+			return nil, false
+		}
+		if cs.Phase == "active" && !combat.IsMemberTurn(cs, sess.Npub) {
+			who := "the enemy"
+			if m := combat.CurrentMember(cs); m != nil {
+				who = m.Name
+			}
+			unlock()
+			writeCombatError(w, http.StatusConflict, fmt.Sprintf("It's %s's turn.", who))
+			return nil, false
+		}
+	}
+	return unlock, true
+}
+
+// CombatRetreatHandler godoc
+// @Summary      Call a retreat (party leader)
+// @Description  One roll for the whole party at the slowest member's pace; everyone needs every enemy at
+// @Description  range 3+. Success ends the fight for all (no loot); failure spends your action.
+// @Tags         Combat
+// @Accept       json
+// @Produce      json
+// @Param        request  body      CombatBaseRequest  true  "Session identifiers"
+// @Success      200      {object}  CombatStateResponse
+// @Router       /api/combat/retreat [post]
+func CombatRetreatHandler(w http.ResponseWriter, r *http.Request) {
+	npub, saveID, err := decodeBaseRequest(r)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	sess, err := getSessionAndCombat(npub, saveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
+	cs := sess.ActiveCombat
+	if !combat.PartyFight(cs) || !social.IsLeader(npub) {
+		writeCombatError(w, http.StatusBadRequest, "Only a party leader can call a retreat.")
+		return
+	}
+	roundLog, err := combat.ProcessPartyRetreat(cs, &sess.SaveData)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+	cs.Log = append(cs.Log, roundLog...)
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
+}
+
+// CombatHelpRequest names the ally to help.
+type CombatHelpRequest struct {
+	Npub     string `json:"npub"`
+	SaveID   string `json:"save_id"`
+	TargetID string `json:"target_id"` // the ally's npub
+}
+
+// CombatHelpHandler godoc
+// @Summary      Help an adjacent ally
+// @Description  A downed ally gets back up at 1 HP; a standing one gets advantage on their next attack. Uses your action.
+// @Tags         Combat
+// @Accept       json
+// @Produce      json
+// @Param        request  body      CombatHelpRequest  true  "Ally"
+// @Success      200      {object}  CombatStateResponse
+// @Router       /api/combat/help [post]
+func CombatHelpHandler(w http.ResponseWriter, r *http.Request) {
+	var req CombatHelpRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Npub == "" || req.SaveID == "" {
+		writeCombatError(w, http.StatusBadRequest, "Missing npub or save_id")
+		return
+	}
+	sess, err := getSessionAndCombat(req.Npub, req.SaveID)
+	if err != nil {
+		writeCombatError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	unlock, ok := enterFight(w, sess, true)
+	if !ok {
+		return
+	}
+	defer unlock()
+	cs := sess.ActiveCombat
+	roundLog, err := combat.ProcessHelp(cs, req.TargetID)
+	if err != nil {
+		writeCombatError(w, http.StatusBadRequest, fmt.Sprintf("Combat error: %v", err))
+		return
+	}
+	cs.Log = append(cs.Log, roundLog...)
+	roundLog = append(roundLog, maybeAutoEndTurn(cs, &sess.SaveData)...)
+	writeCombatJSON(w, http.StatusOK, buildStateResponse(cs, &sess.SaveData, roundLog))
 }

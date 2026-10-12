@@ -96,6 +96,14 @@ func partyViewFor(npub string) *PartyView {
 		}
 		if s, err := session.GetSessionManager().GetSession(m.Npub, m.SaveID); err == nil {
 			mv.HP, mv.MaxHP = s.SaveData.HP, s.SaveData.MaxHP
+			// Mid-fight, HP lives on the fight, not the save.
+			if cs := s.ActiveCombat; cs != nil {
+				for i := range cs.Party {
+					if cs.Party[i].ID == m.Npub {
+						mv.HP, mv.MaxHP = cs.Party[i].CombatState.CurrentHP, cs.Party[i].CombatState.MaxHP
+					}
+				}
+			}
 		}
 		v.Members = append(v.Members, mv)
 	}

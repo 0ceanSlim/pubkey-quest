@@ -104,6 +104,8 @@ window.doFlee           = combatSystem.doFlee;
 window.doEndTurn        = combatSystem.doEndTurn;
 window.rollDeathSave    = combatSystem.rollDeathSave;
 window.endCombat        = combatSystem.endCombat;
+window.doHelpAlly        = combatSystem.doHelpAlly;
+window.doRetreat         = combatSystem.doRetreat;
 
 // Initialize inventory interactions on DOM ready. Slot interaction is a single
 // delegated pointer-event layer (slotInteractions.js) — delegation handles

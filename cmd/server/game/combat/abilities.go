@@ -304,7 +304,7 @@ func ProcessPlayerAbility(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
-	state := &cs.Party[0].CombatState
+	state := &actor(cs).CombatState
 	if IsIncapacitated(state.Conditions) {
 		return nil, fmt.Errorf("you are %s and can't act", incapacitatingConditionName(state.Conditions))
 	}
