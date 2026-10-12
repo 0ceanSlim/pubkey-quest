@@ -1,0 +1,21 @@
+{{define "game/player-card.html"}}
+<style>
+#player-card { font-size: 8px; line-height: 1.5; }
+#player-card .pc-x { margin-left: auto; font: inherit; color: #fff; background: #7f1d1d; width: 14px; height: 13px; line-height: 9px;
+                     padding: 0; cursor: pointer; border: 2px solid; border-color: #dc2626 #450a0a #450a0a #dc2626; }
+#player-card .pc-muted { color: #9ca3af; }
+#player-card .pc-btn { font: inherit; color: #fff; padding: 2px 5px; cursor: pointer; background: #1e3a8a;
+                       border: 2px solid; border-color: #3b82f6 #172554 #172554 #3b82f6; }
+#player-card .pc-btn:disabled { opacity: 0.45; cursor: default; }
+</style>
+<!-- Player card: another player's Nostr profile + character (over the scene) -->
+<div id="player-card" class="hidden absolute z-50" style="inset: 0; background: rgba(0,0,0,0.75);">
+    <div class="bg-win95-bgDark" style="border: 2px solid #3b82f6; width: 300px; max-width: calc(100% - 16px); margin: 24px auto 0; box-shadow: 0 0 12px rgba(59,130,246,0.4);">
+        <div class="flex items-center gap-1 text-white font-bold" style="padding: 2px 3px; background: linear-gradient(90deg, #1e3a8a, #2563eb);">
+            <span>👤 PLAYER</span>
+            <button class="pc-x" title="Close" onclick="window.socialUI && window.socialUI.closePlayerCard()">✕</button>
+        </div>
+        <div id="player-card-content" style="padding: 6px; color: #d1d5db;"></div>
+    </div>
+</div>
+{{end}}

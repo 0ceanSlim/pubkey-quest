@@ -442,6 +442,7 @@ func CleanupSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	leaveSocial(npub, saveID)
 	session.GetSessionManager().UnloadSession(npub, saveID)
 	// Clean quit: unsaved progress is intentionally discarded (revert to last
 	// deliberate save), so the crash journal goes too.

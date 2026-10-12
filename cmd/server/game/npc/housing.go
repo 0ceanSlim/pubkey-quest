@@ -154,6 +154,15 @@ func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProv
 	return applySleep(state, comfort, false, session, npcIdsFunc)
 }
 
+// HandleCampSleepAction sleeps out in the wild under a party's camp set: the
+// tent and bedding put everyone at bedroll comfort, whatever they carry.
+func HandleCampSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+	if !CanSleepNow(state.TimeOfDay) {
+		return &types.GameActionResponse{Success: false, Message: "It's not time to sleep yet — make camp after 9 PM.", Color: "yellow"}, nil
+	}
+	return applySleep(state, comfortBedroll, false, session, npcIdsFunc)
+}
+
 // applySleep is the shared sleep resolution: sleep until the 6 AM wake time,
 // restore HP/mana in proportion to how long was slept (so it scales with level),
 // restore fatigue scaled by bed comfort × bedtime × hours, optionally restore

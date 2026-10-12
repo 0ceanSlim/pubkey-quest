@@ -1,8 +1,17 @@
 {{define "game/game-text.html"}}
 <!-- Game Text Area - Dark Win95 Style -->
-<div class="p-2 overflow-y-auto custom-scrollbar w-full h-full" style="background: #000000; border-top: 2px solid #000000; border-left: 2px solid #000000; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; box-shadow: inset -1px -1px 0 #1a1a1a, inset 1px 1px 0 #000000;">
-    <div id="game-text" class="leading-relaxed space-y-1 text-white" style="font-size: 7px;">
-        <!-- Game log messages will be appended here dynamically -->
+<div class="w-full h-full flex flex-col" style="background: #000000; border-top: 2px solid #000000; border-left: 2px solid #000000; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; box-shadow: inset -1px -1px 0 #1a1a1a, inset 1px 1px 0 #000000;">
+    <div class="p-2 overflow-y-auto custom-scrollbar w-full" style="flex: 1; min-height: 0;">
+        <div id="game-text" class="leading-relaxed space-y-1 text-white" style="font-size: 7px;">
+            <!-- Game log messages will be appended here dynamically -->
+        </div>
+    </div>
+    <!-- Chat: channel button + one-line input (docs/draft/social-plan.md §6). Enter sends. -->
+    <div id="chat-row" style="display: flex; height: 16px; flex-shrink: 0; border-top: 1px solid #2a2a2a;">
+        <button id="chat-channel" title="Channel — click to switch (Say / Area / Party)"
+                style="font-size: 6px; color: #fff; background: #2a2a2a; padding: 0 3px; cursor: pointer; white-space: nowrap; border: 1px solid; border-color: #4a4a4a #0f0f0f #0f0f0f #4a4a4a;">Say ▾</button>
+        <input id="chat-input" maxlength="200" autocomplete="off" placeholder="Talk… (/s /a /p)"
+               style="flex: 1; min-width: 0; font-size: 7px; color: #e5e7eb; background: #0a0a0a; padding: 0 3px; border: 1px solid; border-color: #000 #2a2a2a #2a2a2a #000; outline: none;">
     </div>
 </div>
 {{end}}

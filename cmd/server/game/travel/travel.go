@@ -492,18 +492,7 @@ func processArrival(state *types.SaveFile, env *EnvironmentData) *TravelUpdate {
 	state.TravelStopped = false
 	state.Building = ""
 
-	// Check if city is newly discovered
-	newlyDiscovered := false
-	if !slices.Contains(state.LocationsDiscovered, destCity) {
-		state.LocationsDiscovered = append(state.LocationsDiscovered, destCity)
-		newlyDiscovered = true
-		log.Printf("🗺️ New location discovered: %s", destCityName)
-		// Feed discovery to the event recorder so "explore" objectives advance.
-		events.Record(state, events.LocationDiscovered, destCity, 1)
-	}
-
-	// Check for music unlocks
-	musicUnlocked := checkMusicUnlocks(state, destCity)
+	newlyDiscovered, musicUnlocked := RecordArrival(state, destCity)
 
 	log.Printf("🏙️ Arrived at %s (district: %s, discovered: %v, music: %v)",
 		destCityName, destDistrict, newlyDiscovered, musicUnlocked)
@@ -517,6 +506,21 @@ func processArrival(state *types.SaveFile, env *EnvironmentData) *TravelUpdate {
 		MusicUnlocked:   musicUnlocked,
 		TravelProgress:  0,
 	}
+}
+
+// RecordArrival marks a city discovered (feeding "explore" objectives and the
+// discovery reward) and unlocks its music. Used on arrival, and for party
+// followers arriving with their leader.
+func RecordArrival(state *types.SaveFile, destCity string) (bool, []string) {
+	newlyDiscovered := false
+	if !slices.Contains(state.LocationsDiscovered, destCity) {
+		state.LocationsDiscovered = append(state.LocationsDiscovered, destCity)
+		newlyDiscovered = true
+		log.Printf("🗺️ New location discovered: %s", lookupCityName(destCity))
+		// Feed discovery to the event recorder so "explore" objectives advance.
+		events.Record(state, events.LocationDiscovered, destCity, 1)
+	}
+	return newlyDiscovered, checkMusicUnlocks(state, destCity)
 }
 
 // lookupCityName gets the display name for a city ID from the database

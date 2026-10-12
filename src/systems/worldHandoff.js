@@ -29,6 +29,10 @@ import { eventBus } from '../lib/events.js';
 export function handleWorldHandoff(data) {
     if (!data) return false;
 
+    // A party leader moved us (applied server-side on this request): refresh the
+    // world. Not a handoff — the rest of the response still applies.
+    if (data.party_sync) eventBus.emit('social:party-sync');
+
     // A fight started (travel encounter, or a monster node inside a POI walk).
     // enterCombatMode pauses the clock.
     if (data.combat_started && data.combat) {

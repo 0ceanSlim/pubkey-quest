@@ -27,6 +27,7 @@ import (
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/social"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -95,6 +96,40 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// One request at a time per session; a party leader's moves reach this
+	// session as queued syncs, applied first.
+	session.Lock()
+	defer session.Unlock()
+	partySynced := applyPartySyncs(session)
+
+	// Followers go where the leader goes, on the leader's clock.
+	isFollower := social.IsFollower(session.Npub)
+	if isFollower && followerBlockedActions[request.Action.Type] {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(GameActionResponse{Success: false, Message: "Your party leader is leading the way."})
+		return
+	}
+	if isFollower && request.Action.Type == "update_time" {
+		if request.Action.Params == nil {
+			request.Action.Params = map[string]any{}
+		}
+		followerClock(session, request.Action.Params)
+	}
+
+	// A leader can only bed the party down if everyone has a bed.
+	isLeader := social.IsLeader(session.Npub)
+	sleepKind := ""
+	if isLeader && request.Action.Type == "sleep" {
+		kind, bedErr := partyBedCheck(session)
+		if bedErr != nil {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(GameActionResponse{Success: false, Message: bedErr.Error(), Color: "yellow"})
+			return
+		}
+		sleepKind = kind
+	}
+	before := placeOf(session)
+
 	// Track last action time for player actions (not tick-type actions)
 	if request.Action.Type != "update_time" {
 		session.LastActionTime = time.Now().Unix()
@@ -116,6 +151,21 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Update encumbrance effects if this action modified inventory
 	updateEncumbranceIfNeeded(&session.SaveData, request.Action.Type, response)
+
+	// A leader's move carries the party; everyone's presence follows.
+	if isLeader && response.Success {
+		if request.Action.Type != "sleep" {
+			sleepKind = ""
+		}
+		queuePartyMoves(session, before, request.Action.Type, sleepKind)
+	}
+	publishPresence(session)
+	if partySynced {
+		if response.Data == nil {
+			response.Data = make(map[string]interface{})
+		}
+		response.Data["party_sync"] = true
+	}
 
 	// Non-combat death: an action that advances time (the world tick, waiting,
 	// travel) can drop HP to 0 via starvation or an environment hazard. Death is
@@ -222,7 +272,8 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 			minutesElapsed = (1440 - oldTimeOfDay) + state.TimeOfDay + ((state.CurrentDay - oldCurrentDay - 1) * 1440)
 		}
 
-		if minutesElapsed > 0 {
+		// A follower's road progress is the leader's, copied in by party syncs.
+		if minutesElapsed > 0 && !social.IsFollower(session.Npub) {
 			oldProgress := state.TravelProgress
 			travelUpdate := travel.MaybeAdvanceTravelProgress(state, minutesElapsed)
 			if travelUpdate != nil {
@@ -282,6 +333,10 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 // separate from the hand-authored encounter vignettes.
 func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed int, response *GameActionResponse) {
 	if sess.ActiveCombat != nil || sess.PendingEncounter != nil {
+		return
+	}
+	// Parties get no random encounters until party-built encounters exist.
+	if social.PartyOf(sess.Npub) != nil {
 		return
 	}
 	// Cooldown: don't fire another biome encounter within CooldownMinutes of the

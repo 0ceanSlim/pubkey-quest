@@ -452,6 +452,29 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Router       /api/media-servers [get]
 	mux.HandleFunc("/api/media-servers", MediaServersHandler)
 
+	// ─── Social: presence, chat, parties (docs/draft/social-plan.md) ───
+	// @Summary  The social heartbeat: players here, headcount, chat, invites, party
+	// @Tags     Social
+	// @Router   /api/social/poll [get]
+	mux.HandleFunc("/api/social/poll", game.SocialPollHandler)
+	// @Summary  Everyone online in your city or on your road
+	// @Tags     Social
+	// @Router   /api/social/area [get]
+	mux.HandleFunc("/api/social/area", game.SocialAreaHandler)
+	// @Summary  Say something (say / area / party)
+	// @Tags     Social
+	// @Router   /api/social/say [post]
+	mux.HandleFunc("/api/social/say", game.SocialSayHandler)
+	// @Summary  Party invite / accept / decline / leave / kick / promote
+	// @Tags     Social
+	// @Router   /api/party/{action} [post]
+	mux.HandleFunc("/api/party/invite", game.PartyInviteHandler)
+	mux.HandleFunc("/api/party/accept", game.PartyAcceptHandler)
+	mux.HandleFunc("/api/party/decline", game.PartyDeclineHandler)
+	mux.HandleFunc("/api/party/leave", game.PartyLeaveHandler)
+	mux.HandleFunc("/api/party/kick", game.PartyKickHandler)
+	mux.HandleFunc("/api/party/promote", game.PartyPromoteHandler)
+
 	// ─── Quests (M3) ───
 	// The quest log (every quest with its status, plus the QP total). Quests are
 	// taken up in conversation with their giver (quest_dialogue.go) and can't be

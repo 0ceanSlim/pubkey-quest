@@ -467,6 +467,8 @@ export async function displayCurrentLocation() {
 
         // Atomic replace - minimizes flicker
         npcButtonContainer.replaceChildren(npcFragment);
+        // Other players standing here join the NPCs (social UI).
+        window.socialUI?.renderPlayersHere();
     }
     } finally {
         // Always reset rendering flag
@@ -635,6 +637,9 @@ function displayTravelView(state, envData) {
     statusMsg.style.cssText = 'text-align: center; color: #9ca3af; font-size: 8px; font-style: italic;';
     statusMsg.textContent = isStopped ? 'Resting in the wilderness.' : 'Traveling...';
     actionButtons.appendChild(statusMsg);
+
+    // Travellers near you on this road (social UI).
+    window.socialUI?.renderPlayersHere();
 
     // Load this environment's discovered POIs, then paint markers + any in-range
     // Enter buttons. Fire-and-forget: the bar is already on screen.

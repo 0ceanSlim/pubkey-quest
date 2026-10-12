@@ -56,6 +56,9 @@
     <!-- Quest Detail Modal (positioned over scene) -->
     {{template "game/quest-modal.html"}}
 
+    <!-- Another player's card (social) -->
+    {{template "game/player-card.html"}}
+
     <!-- NPC dialogue + POI/encounter narrative now render into the on-scene speech
          box built by src/ui/sceneSpeech.js (M6), which replaces the old #poi-modal. -->
 
@@ -103,6 +106,12 @@
         style="color: #facc15; font-size: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;"
       ></span>
     </div>
+    <!-- Party HUD: one row per member under the quest tracker (hidden when solo) -->
+    <div
+      id="party-hud"
+      class="hidden absolute"
+      style="top: 34px; left: 4px; z-index: 35; display: flex; flex-direction: column; gap: 1px; width: 80px;"
+    ></div>
     <!-- Time indicator (top-right corner) -->
     <div
       id="time-indicator"
@@ -149,8 +158,15 @@
       >
         Kingdom Center
       </h3>
-      <!-- Empty space (right for symmetry) -->
-      <div style="width: 48px"></div>
+      <!-- Headcount: other players online here (city or road). Click → Friends ▸ Area. -->
+      <div style="width: 48px; display: flex; justify-content: flex-end;">
+        <button
+          id="headcount-chip"
+          class="hidden"
+          onclick="window.openFriends && window.openFriends('area')"
+          style="font-size: 6px; color: #e5e7eb; background: rgba(0,0,0,0.55); border: 1px solid #4a4a4a; padding: 1px 4px; cursor: pointer; white-space: nowrap;"
+        >👥 0</button>
+      </div>
     </div>
     <!-- Action text (bottom-right, absolutely positioned outside flex) -->
     <div

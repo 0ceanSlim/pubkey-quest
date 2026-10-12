@@ -293,6 +293,7 @@
             {{template "game/tabs/stats.html"}}
             {{template "game/tabs/music.html"}}
             {{template "game/tabs/settings.html" .}}
+            {{template "game/tabs/friends.html"}}
           </div>
         </div>
 
@@ -304,7 +305,7 @@
   <!-- JavaScript -->
   <script>
     function switchTab(tabName) {
-      const tabs = ["equipment", "inventory", "spells", "questlog", "stats", "music", "settings"];
+      const tabs = ["equipment", "inventory", "spells", "questlog", "stats", "music", "settings", "friends"];
       const panels = {
         equipment: document.getElementById("equipment-panel"),
         inventory: document.getElementById("inventory-panel"),
@@ -313,6 +314,7 @@
         stats: document.getElementById("stats-panel"),
         music: document.getElementById("music-panel"),
         settings: document.getElementById("settings-panel"),
+        friends: document.getElementById("friends-panel"),
       };
       const buttons = {
         equipment: document.getElementById("tab-equipment"),
@@ -322,6 +324,7 @@
         stats: document.getElementById("tab-stats"),
         music: document.getElementById("tab-music"),
         settings: document.getElementById("btn-settings"),
+        friends: document.getElementById("btn-friends"),
       };
 
       tabs.forEach((tab) => {
@@ -343,6 +346,9 @@
       if (tabName === 'questlog' && window.questDisplay && window.questDisplay.loadQuestLog) {
         window.questDisplay.loadQuestLog();
       }
+
+      // The Friends panel loads its lists when shown and stops refreshing when hidden.
+      if (window.socialUI) window.socialUI.friendsPanelVisible(tabName === 'friends');
     }
 
     // Game UI Scaling System
@@ -389,12 +395,11 @@
     // Re-scale when window is resized
     window.addEventListener('resize', scaleGameUI);
 
-    // Action button handlers
-    // Friends = mutual follows on Nostr, with who's online. The list arrives with
-    // the presence work (docs/draft/party-multiplayer-plan.md P3/P4); badges now
-    // live in the journal's Badges sub-tab.
-    function openFriends() {
-      showMessage("😊 Friends are coming soon — your mutual follows, and who's online.", "info");
+    // Friends panel: mutual follows (Friends) and everyone online here (Area).
+    // openFriends('area') opens straight to the Area tab (the headcount chip).
+    function openFriends(sub) {
+      switchTab('friends');
+      if (window.socialUI) window.socialUI.showFriendsTab(sub || 'friends');
     }
 
     function openSettings() {

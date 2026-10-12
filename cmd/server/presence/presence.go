@@ -39,6 +39,21 @@ type Entry struct {
 	AbsMinutes int // CurrentDay*1440 + TimeOfDay
 	InCombat   bool
 	LastSeen   time.Time
+
+	// Location is the city or road (environment) id — the "area" for the
+	// headcount and the Area list. AreaName is its display name.
+	Location string
+	AreaName string
+	// Where describes the spot for other players: "Salty Anchor · Taproom",
+	// "East District", "on the road".
+	Where string
+	// Route / RoutePos place a traveller on a road: the environment id and a
+	// position 0–1 measured from the road's first end (so two travellers heading
+	// opposite ways compare correctly). Route is "" when not travelling.
+	Route    string
+	RoutePos float64
+	// Portrait is the character's chosen portrait URL ("" for none).
+	Portrait string
 }
 
 // Online reports whether the entry was seen within OnlineWindow of now.
@@ -98,6 +113,70 @@ func Here(self, spot string, absMinutes int, now time.Time) []Entry {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
+}
+
+// InArea returns every other online player in the same location (city or
+// road), any spot, any clock — the Area list. Sorted by name.
+func InArea(self, location string, now time.Time) []Entry {
+	if location == "" {
+		return nil
+	}
+	registry.RLock()
+	defer registry.RUnlock()
+	var out []Entry
+	for npub, e := range registry.byNpub {
+		if npub == self || e.Location != location || !e.Online(now) {
+			continue
+		}
+		out = append(out, e)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+// RoadNearby is how close (as a fraction of the road) two travellers must be
+// to see each other.
+const RoadNearby = 0.05
+
+// NearbyOnRoad returns other online travellers on the same road within
+// RoadNearby of pos whose clocks are within TimeWindowMinutes.
+func NearbyOnRoad(self, route string, pos float64, absMinutes int, now time.Time) []Entry {
+	if route == "" {
+		return nil
+	}
+	registry.RLock()
+	defer registry.RUnlock()
+	var out []Entry
+	for npub, e := range registry.byNpub {
+		if npub == self || e.Route != route || !e.Online(now) {
+			continue
+		}
+		d := e.RoutePos - pos
+		if d < 0 {
+			d = -d
+		}
+		diff := e.AbsMinutes - absMinutes
+		if diff < 0 {
+			diff = -diff
+		}
+		if d > RoadNearby || diff > TimeWindowMinutes {
+			continue
+		}
+		out = append(out, e)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+// StartPruner drops players unseen for 10 minutes, once a minute.
+func StartPruner() {
+	go func() {
+		t := time.NewTicker(time.Minute)
+		defer t.Stop()
+		for now := range t.C {
+			Prune(10*time.Minute, now)
+		}
+	}()
 }
 
 // OnlineSet reports which of npubs are online right now — for the friends list.

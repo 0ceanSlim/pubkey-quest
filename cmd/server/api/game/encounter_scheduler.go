@@ -12,6 +12,7 @@ import (
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/social"
 	"pubkey-quest/types"
 )
 
@@ -66,7 +67,7 @@ func isCityLocation(locationID string) bool {
 // minutesElapsed is the in-game time this check covers; pass 0 for an
 // event-driven check (arriving somewhere), which is gated by dwell time instead.
 func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []string, minutesElapsed int, response *types.GameActionResponse) {
-	if sess.ActivePOI != nil || sess.ActiveCombat != nil || sess.PendingEncounter != nil {
+	if sess.ActivePOI != nil || sess.ActiveCombat != nil || sess.PendingEncounter != nil || social.PartyOf(sess.Npub) != nil {
 		return
 	}
 	state := &sess.SaveData

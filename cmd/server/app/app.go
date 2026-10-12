@@ -12,6 +12,7 @@ import (
 	"pubkey-quest/cmd/server/game/discovery"
 	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/quest"
+	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
 )
@@ -41,6 +42,9 @@ func Init() {
 	// Crash resilience: periodically snapshot active sessions so an unexpected
 	// server death doesn't eat unsaved progress (restored on next load).
 	session.StartJournalLoop(2 * time.Minute)
+
+	// Presence: forget players who've been gone a while.
+	presence.StartPruner()
 
 	log.Println("✅ All services initialized")
 }

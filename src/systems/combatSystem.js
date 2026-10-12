@@ -982,6 +982,7 @@ function _replaceGameText() {
     _cachedGameText = gameText.innerHTML;
     gameText.innerHTML =
         `<div id="combat-log" style="display:flex;flex-direction:column;gap:0;"></div>`;
+    eventBus.emit('log:replaced');
 }
 
 function _restoreGameText() {
@@ -989,6 +990,8 @@ function _restoreGameText() {
     const gameText = $id('game-text');
     if (gameText) gameText.innerHTML = _cachedGameText;
     _cachedGameText = null;
+    // Chat that arrived mid-fight is re-added by the social UI.
+    eventBus.emit('log:restored');
 }
 
 // ─── Combat log helpers ───────────────────────────────────────────────────────

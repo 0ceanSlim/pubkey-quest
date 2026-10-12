@@ -1,6 +1,8 @@
 package session
 
 import (
+	"sync"
+
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -8,6 +10,16 @@ import (
 
 // GameSession holds the in-memory game state for an active session
 type GameSession struct {
+	// mu serializes requests that change this session (Lock/Unlock). Party
+	// moves never lock another player's session: they queue PartySyncs, which
+	// that player's own next request applies under its own lock.
+	mu sync.Mutex
+
+	// PartySyncs is the queue of leader moves waiting to be applied to this
+	// (follower) session, guarded by its own tiny mutex.
+	syncMu     sync.Mutex
+	partySyncs []PartySync
+
 	Npub      string         `json:"npub"`
 	SaveID    string         `json:"save_id"`
 	SaveData  types.SaveFile `json:"save_data"`
@@ -65,6 +77,16 @@ type GameSession struct {
 	// type — both looked up once per move instead of once per action.
 	PlaceInCity       bool   `json:"-"`
 	PlaceBuildingType string `json:"-"`
+
+	// Presence: the normalized spot / display text published for other players,
+	// recomputed only when PresenceKey (the raw place) changes. Session-only.
+	PresenceKey   string `json:"-"`
+	PresenceSpot  string `json:"-"`
+	PresenceWhere string `json:"-"`
+	PresenceArea  string `json:"-"`
+	// RouteFirstEnd is the current road's first end (its connects[0]), the zero
+	// point for RoutePos.
+	RouteFirstEnd string `json:"-"`
 
 	// Quest-stage encounters (a cellar full of rats): the place the last one was
 	// checked at, and how many kills were still owed when it last fired there.
@@ -223,4 +245,48 @@ func (s *GameSession) ShouldRefreshBuildings(currentTime int) bool {
 		return true // First call
 	}
 	return currentTime-s.BuildingsLastCheck >= 5
+}
+
+// Lock serializes a request against this session.
+func (s *GameSession) Lock() { s.mu.Lock() }
+
+// Unlock releases the session.
+func (s *GameSession) Unlock() { s.mu.Unlock() }
+
+// PartySync is a party leader's move, queued for a follower: where the party
+// now is, its clock, and its travel state (docs/draft/social-plan.md §9).
+type PartySync struct {
+	Location       string
+	District       string
+	Building       string
+	Room           string
+	CurrentDay     int
+	TimeOfDay      int
+	TravelProgress float64
+	TravelStopped  bool
+	// AccrueFatigue: whether the time this sync covers builds fatigue (false
+	// for waiting).
+	AccrueFatigue bool
+	// Sleep is set when the leader slept: "inn", "camp" or "wild" — the
+	// follower sleeps the same night. The sync's clock is the leader's time
+	// before sleeping. Rest is the same for the old rest action.
+	Sleep string
+	Rest  bool
+	Note  string // a log line for the follower ("Your party moves on — …")
+}
+
+// QueuePartySync appends a sync for this follower. Safe from any goroutine.
+func (s *GameSession) QueuePartySync(p PartySync) {
+	s.syncMu.Lock()
+	s.partySyncs = append(s.partySyncs, p)
+	s.syncMu.Unlock()
+}
+
+// TakePartySyncs removes and returns the queued syncs.
+func (s *GameSession) TakePartySyncs() []PartySync {
+	s.syncMu.Lock()
+	defer s.syncMu.Unlock()
+	out := s.partySyncs
+	s.partySyncs = nil
+	return out
 }

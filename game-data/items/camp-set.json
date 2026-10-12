@@ -1,0 +1,18 @@
+{
+  "description": "A canvas tent, ground cloths and a small cookpot, bundled to ride on a pack. Pitched in the wild it beds down a whole party at bedroll comfort.",
+  "id": "camp-set",
+  "image": "/res/img/items/camp-set.png",
+  "name": "Camp Set",
+  "notes": [
+    "Party camping: when the party sleeps in the wild, one camp set in any member's pack gives everyone a bed."
+  ],
+  "value": 600,
+  "rarity": "common",
+  "stack": 1,
+  "tags": [
+    "camping",
+    "party-camp"
+  ],
+  "type": "Adventuring Gear",
+  "weight": 25
+}

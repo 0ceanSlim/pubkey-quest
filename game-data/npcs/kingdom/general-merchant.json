@@ -152,6 +152,11 @@
         "max_stock": 8
       },
       {
+        "item_id": "camp-set",
+        "stock": 1,
+        "max_stock": 2
+      },
+      {
         "item_id": "tinderbox",
         "stock": 5,
         "max_stock": 10

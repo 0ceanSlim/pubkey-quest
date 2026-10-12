@@ -1,0 +1,39 @@
+{{define "game/tabs/friends.html"}}
+<style>
+/* Friends panel (docs/draft/social-plan.md §4–5). Sized for the 200px right rail,
+   like the journal: 8px names, 7px detail, one line each, truncating. */
+#friends-panel { --fp-muted: #9ca3af; --fp-on: #4ade80; font-size: 7px; line-height: 1.45; }
+.fp-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 3px; border-bottom: 1px solid #1e3a8a; margin-bottom: 3px; }
+.fp-head .fp-title { color: #93c5fd; font-weight: bold; font-size: 8px; }
+.fp-subtabs { display: flex; gap: 2px; margin-bottom: 3px; }
+.fp-subtab { flex: 1; font: inherit; color: var(--fp-muted); background: #2a2a2a; padding: 2px 0; cursor: pointer;
+             border: 2px solid; border-color: #4a4a4a #0f0f0f #0f0f0f #4a4a4a; }
+.fp-subtab.on { color: #fff; background: #3a3a3a; border-color: #0f0f0f #4a4a4a #4a4a4a #0f0f0f; }
+.fp-row { display: flex; gap: 4px; align-items: center; padding: 2px 3px 2px 0; border-bottom: 1px solid #222; cursor: context-menu; }
+.fp-row:hover { background: #262626; }
+.fp-face { width: 12px; height: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.fp-face img { width: 12px; height: 12px; image-rendering: pixelated; }
+.fp-body { flex: 1; min-width: 0; }
+.fp-line { display: flex; justify-content: space-between; gap: 4px; white-space: nowrap; }
+.fp-name { font-size: 8px; color: #e5e7eb; overflow: hidden; text-overflow: ellipsis; }
+.fp-meta { color: var(--fp-muted); flex-shrink: 0; }
+.fp-sub { color: var(--fp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fp-sub.here { color: var(--fp-on); }
+.fp-dot { color: var(--fp-on); } .fp-dot.off { color: #4b5563; }
+.fp-empty { color: var(--fp-muted); font-style: italic; padding: 6px 2px; text-align: center; }
+.fp-foot { color: var(--fp-muted); margin-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+.fp-btn { font: inherit; color: #fff; background: #2a2a2a; padding: 1px 4px; cursor: pointer; border: 2px solid; border-color: #4a4a4a #0f0f0f #0f0f0f #4a4a4a; }
+</style>
+<div id="friends-panel" class="hidden">
+    <div class="fp-head">
+        <span class="fp-title">😊 FRIENDS</span>
+        <span id="fp-count" class="fp-meta"></span>
+    </div>
+    <div class="fp-subtabs">
+        <button class="fp-subtab on" data-fp-tab="friends" onclick="window.socialUI && window.socialUI.showFriendsTab('friends')">Friends</button>
+        <button class="fp-subtab" data-fp-tab="area" onclick="window.socialUI && window.socialUI.showFriendsTab('area')">Area</button>
+    </div>
+    <div id="fp-list"></div>
+    <div id="fp-foot" class="fp-foot"></div>
+</div>
+{{end}}
