@@ -525,9 +525,92 @@ func DMInboxHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 	f := nostr.Filter{Kinds: []int{1059}, Tags: map[string][]string{"p": {user.PublicKey}}, Since: &since}
-	wraps := c.QueryEvents(ctx, f, relays, core.WithTimeout(8*time.Second), core.WithLimit(200))
+	// Read over the player's own connections, so relays they've answered a
+	// NIP-42 challenge on (see DMAuthHandler) serve their DMs.
+	var wraps []*nostr.Event
+	if uc := connection.UserFor(user.PublicKey); uc != nil {
+		wraps = uc.QueryEvents(ctx, f, relays, core.WithTimeout(8*time.Second), core.WithLimit(200))
+	} else {
+		wraps = c.QueryEvents(ctx, f, relays, core.WithTimeout(8*time.Second), core.WithLimit(200))
+	}
 	if wraps == nil {
 		wraps = []*nostr.Event{}
 	}
 	writeJSON(w, map[string]any{"success": true, "wraps": wraps})
+}
+
+// ─── NIP-42: logging in to DM relays (social-plan S5b) ───────────────────────
+
+// AuthChallengeView is a DM relay asking you to prove your key.
+// swagger:model AuthChallengeView
+type AuthChallengeView struct {
+	Relay     string `json:"relay"`
+	Challenge string `json:"challenge"`
+}
+
+// DMAuthHandler godoc
+// @Summary      NIP-42 for your DM inbox relays
+// @Description  GET lists your DM relays that challenge you and aren't answered yet (relay + challenge).
+// @Description  POST {relay, event} answers one with a kind 22242 event signed in the browser; from then on
+// @Description  your requests to that relay use the authenticated connection.
+// @Tags         Social
+// @Router       /api/dm/auth [get]
+func DMAuthHandler(w http.ResponseWriter, r *http.Request) {
+	user := session.SessionMgr.GetCurrentUser(r)
+	if user == nil {
+		http.Error(w, "Not signed in", http.StatusUnauthorized)
+		return
+	}
+	uc := connection.UserFor(user.PublicKey)
+	c := coreClient()
+	if uc == nil || c == nil {
+		writeJSONStatus(w, http.StatusServiceUnavailable, map[string]any{"success": false, "error": "Relay client not ready"})
+		return
+	}
+	if r.Method == http.MethodPost {
+		var req struct {
+			Relay string       `json:"relay"`
+			Event *nostr.Event `json:"event"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Event == nil || req.Relay == "" {
+			writeJSONStatus(w, http.StatusBadRequest, map[string]any{"success": false, "error": "Missing relay or event"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+		defer cancel()
+		if err := uc.Authenticate(ctx, req.Relay, req.Event); err != nil {
+			writeJSONStatus(w, http.StatusBadGateway, map[string]any{"success": false, "error": err.Error()})
+			return
+		}
+		writeJSON(w, map[string]any{"success": true})
+		return
+	}
+
+	ur := c.ResolveRelays(user.PublicKey)
+	relays := ur.DMInbox
+	if len(relays) == 0 {
+		relays = ur.Inbox
+	}
+	out := []AuthChallengeView{}
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	for _, relay := range relays {
+		if uc.IsAuthenticated(relay) {
+			continue
+		}
+		wg.Add(1)
+		go func(relay string) {
+			defer wg.Done()
+			ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+			defer cancel()
+			// Relays that don't challenge don't need AUTH: skip them.
+			if ch, err := uc.AuthChallenge(ctx, relay); err == nil && ch != "" {
+				mu.Lock()
+				out = append(out, AuthChallengeView{Relay: relay, Challenge: ch})
+				mu.Unlock()
+			}
+		}(relay)
+	}
+	wg.Wait()
+	writeJSON(w, map[string]any{"success": true, "challenges": out})
 }

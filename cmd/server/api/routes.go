@@ -491,6 +491,7 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/mutes", MutesHandler)
 	mux.HandleFunc("/api/dm/send", DMSendHandler)
 	mux.HandleFunc("/api/dm/inbox", DMInboxHandler)
+	mux.HandleFunc("/api/dm/auth", DMAuthHandler)
 
 	// ─── Quests (M3) ───
 	// The quest log (every quest with its status, plus the QP total). Quests are

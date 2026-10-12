@@ -250,8 +250,42 @@ async function nameFor(hex) {
     return name;
 }
 
+// NIP-42: answer the AUTH challenges of DM relays that want to know it's you
+// before they hand over your whispers (once per session; a relay that won't
+// take it is skipped and noted once).
+let _authDone = false;
+async function authDMRelays() {
+    if (_authDone) return;
+    _authDone = true;
+    const signer = getActiveSigner();
+    try {
+        const out = await (await fetch('/api/dm/auth')).json();
+        for (const ch of (out?.challenges ?? [])) {
+            try {
+                const ev = await signer.signEvent({
+                    kind: 22242,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [['relay', ch.relay], ['challenge', ch.challenge]],
+                    content: '',
+                });
+                const resp = await fetch('/api/dm/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ relay: ch.relay, event: ev }),
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            } catch (err) {
+                appendChatLine({ channel: 'system', text: `Couldn't sign in to ${ch.relay.replace(/^wss?:\/\//, '')} — some whispers there may not arrive.` });
+            }
+        }
+    } catch (err) {
+        logger.debug('DM relay auth failed:', err);
+    }
+}
+
 async function pollInbox() {
     if (!canWhisper()) return;
+    await authDMRelays();
     const signer = getActiveSigner();
     const me = myHex();
     try {
