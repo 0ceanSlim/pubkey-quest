@@ -1,0 +1,109 @@
+name: Release
+
+# Every push to main that passes CI cuts a numbered release: a single
+# checksummed server binary per platform, with its game assets embedded
+# (docs/draft/relay-saves-plan.md §6). The official server only ever runs one
+# of these, promoted by hand ("Deploy: pubkey.quest").
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the commit CI passed
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Next version
+        id: version
+        run: |
+          LAST=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ -z "$LAST" ]; then
+            NEXT="v0.1.0"
+          else
+            IFS=. read -r MAJOR MINOR PATCH <<< "${LAST#v}"
+            NEXT="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          fi
+          # Don't re-release a commit that already has a version.
+          EXISTING=$(git tag --points-at HEAD -l 'v*' | head -1)
+          if [ -n "$EXISTING" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Commit already released as $EXISTING"
+          fi
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Releasing $NEXT"
+
+      - name: Build frontend
+        if: steps.version.outputs.skip != 'true'
+        run: |
+          npm install
+          npm run build
+
+      - name: Generate swagger docs
+        if: steps.version.outputs.skip != 'true'
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/server/api/routes.go -o docs/api/swagger --parseDependency
+
+      - name: Build release binaries
+        if: steps.version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist-release
+          for ARCH in amd64 arm64; do
+            GOOS=linux GOARCH=$ARCH go build -tags release -trimpath \
+              -ldflags "-s -w -X main.Version=${VERSION}" \
+              -o "dist-release/pubkey-quest-${VERSION}-linux-${ARCH}" ./cmd/server
+          done
+          cd dist-release
+          sha256sum pubkey-quest-* > SHA256SUMS
+          cat SHA256SUMS
+          ls -la
+
+      - name: Smoke test the amd64 binary
+        if: steps.version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: ./dist-release/pubkey-quest-${VERSION}-linux-amd64 -version
+
+      - name: Tag and publish the release
+        if: steps.version.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git tag "$VERSION" "${{ github.event.workflow_run.head_sha }}"
+          git push origin "$VERSION"
+          gh release create "$VERSION" dist-release/* \
+            --target "${{ github.event.workflow_run.head_sha }}" \
+            --title "$VERSION" \
+            --notes "Built and checksummed by CI from $(git log -1 --pretty='%h %s' ${{ github.event.workflow_run.head_sha }}). Promote to pubkey.quest with the \"Deploy: pubkey.quest\" workflow."

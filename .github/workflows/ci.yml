@@ -69,5 +69,10 @@ jobs:
           test -f ./pubkey-quest || { echo "::error::pubkey-quest binary not found"; exit 1; }
           ./pubkey-quest -version
 
+      - name: Build the release binary (embedded assets)
+        run: |
+          CGO_ENABLED=0 go build -tags release -trimpath -o pubkey-quest-release ./cmd/server
+          ./pubkey-quest-release -version
+
       - name: Run API tests
         run: go test ./tests/...

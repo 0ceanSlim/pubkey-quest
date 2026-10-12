@@ -57,3 +57,8 @@ password.json
 # Windows artifacts
 nul
 NUL
+
+# Release builds: unpacked assets and local release artifacts
+.release/
+dist-release/
+pubkey-quest-release

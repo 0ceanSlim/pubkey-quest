@@ -11,6 +11,7 @@ import (
 	"pubkey-quest/cmd/server/game/savecodec"
 	"pubkey-quest/cmd/server/ledger"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/utils"
 )
 
 // ─── Relay saves: preparing the event (docs/draft/relay-saves-plan.md §2) ────
@@ -69,6 +70,7 @@ func prepareRelaySave(sess *session.GameSession, saveID string) (*UnsignedSave, 
 		{"d", d},
 		ClientTag,
 		{"v", strconv.Itoa(savecodec.Version)},
+		{"build", utils.AppVersion}, // the game version that wrote it (support / debugging)
 		{"alt", fmt.Sprintf("Pubkey Quest save — %s, level %d %s %s", s.D, level, s.Race, s.Class)},
 	}
 	if e, ok := ledger.Get(sess.Npub, d); ok {

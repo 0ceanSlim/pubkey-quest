@@ -1,24 +1,75 @@
 name: "Deploy: pubkey.quest"
 
-# Manual trigger only — will be fleshed out at alpha release
+# Manual promote: install one CI release on the official server. Only release
+# binaries built and checksummed by the Release workflow ever run here
+# (docs/draft/relay-saves-plan.md §6). Setup: docs/development/official-server.md.
+
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (e.g. 0.1.0-alpha)"
+        description: "Release to deploy (e.g. v0.1.12), or 'latest'"
         required: true
+        default: latest
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   deploy-prod:
-    runs-on: self-hosted
+    runs-on: [self-hosted, official]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Placeholder
+      - name: Resolve the release
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Production deployment is not yet configured."
-          echo "This workflow will be implemented at alpha release."
-          echo "Requested version: ${{ github.event.inputs.version }}"
-          exit 1
+          V="${{ github.event.inputs.version }}"
+          if [ "$V" = "latest" ]; then
+            V=$(gh release list -R "${{ github.repository }}" --limit 1 --json tagName -q '.[0].tagName')
+          fi
+          case "$(uname -m)" in
+            x86_64) ARCH=amd64 ;;
+            aarch64|arm64) ARCH=arm64 ;;
+            *) echo "::error::unsupported architecture $(uname -m)"; exit 1 ;;
+          esac
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "asset=pubkey-quest-${V}-linux-${ARCH}" >> "$GITHUB_OUTPUT"
+          echo "Deploying $V ($ARCH)"
+
+      - name: Download and verify the checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf promote && mkdir promote && cd promote
+          gh release download "${{ steps.rel.outputs.version }}" -R "${{ github.repository }}" \
+            -p "${{ steps.rel.outputs.asset }}" -p SHA256SUMS
+          grep " ${{ steps.rel.outputs.asset }}\$" SHA256SUMS | sha256sum -c -
+          chmod +x "${{ steps.rel.outputs.asset }}"
+          ./"${{ steps.rel.outputs.asset }}" -version
+
+      - name: Install
+        run: |
+          SERVICE_DIR=$(systemctl show pubkey-quest -p WorkingDirectory --value)
+          if [ -z "$SERVICE_DIR" ]; then echo "::error::pubkey-quest service has no WorkingDirectory"; exit 1; fi
+          sudo systemctl stop pubkey-quest
+          # Keep the previous binary for a quick rollback.
+          [ -f "$SERVICE_DIR/pubkey-quest" ] && cp "$SERVICE_DIR/pubkey-quest" "$SERVICE_DIR/pubkey-quest.previous"
+          cp "promote/${{ steps.rel.outputs.asset }}" "$SERVICE_DIR/pubkey-quest"
+          sudo systemctl start pubkey-quest
+
+      - name: Verify
+        run: |
+          for i in $(seq 1 30); do
+            if systemctl is-active --quiet pubkey-quest; then break; fi
+            sleep 2
+          done
+          if ! systemctl is-active --quiet pubkey-quest; then
+            echo "::error::pubkey-quest failed to start"
+            journalctl -u pubkey-quest --no-pager -n 40 || true
+            exit 1
+          fi
+          journalctl -u pubkey-quest --no-pager -n 15 || true
+          echo "## Deployed ${{ steps.rel.outputs.version }} to pubkey.quest" >> "$GITHUB_STEP_SUMMARY"

@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"os"
 
+	pubkeyquest "pubkey-quest"
 	"pubkey-quest/cmd/server/api"
 	"pubkey-quest/cmd/server/app"
+	"pubkey-quest/cmd/server/release"
 	"pubkey-quest/cmd/server/routes"
 	"pubkey-quest/cmd/server/utils"
 )
@@ -30,6 +32,14 @@ func main() {
 
 	if err := utils.LoadConfig("config.yml"); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// A release binary carries its own assets: unpack them and build game.db
+	// from the game data inside it before anything reads them.
+	if pubkeyquest.Embedded {
+		if err := release.Prepare(pubkeyquest.Assets, Version); err != nil {
+			log.Fatalf("❌ Release start-up failed: %v", err)
+		}
 	}
 
 	// The official server (validated saves) never runs debug tools.

@@ -136,7 +136,10 @@ These go in `config.yml`. The official build refuses to start with debug tools o
 2. ✅ (2026-10-12, code in; switched on by config) Ship the ledger, relay save and load, and
    the server modes on test, with validation off. Turn it on with `saves.relay: true` in the
    test server's `config.yml`.
-3. Ship the release pipeline and stand up the official server with validation on.
+3. ✅ (2026-10-12, pipeline) Ship the release pipeline (`release.yml` → numbered, checksummed
+   binaries; `deploy-production.yml` → manual promote; setup in
+   `docs/development/official-server.md`). Still to do: you stand up the official server and
+   its runner, then promote a release with validation on.
 4. **The last wipe:** the official server starts empty. From the first save there on, no wipes
    ever.
 
