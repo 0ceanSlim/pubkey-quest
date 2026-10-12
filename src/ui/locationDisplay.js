@@ -18,7 +18,7 @@ import { showSceneSpeech, hideSceneSpeech } from './sceneSpeech.js';
 import { moveToLocation } from '../logic/mechanics.js';
 import { updateAllDisplays } from './displayCoordinator.js';
 import { eventBus } from '../lib/events.js';
-import { loadEnvPOIs, getEnvPOIs, enterPOI } from './poiExplore.js';
+import { loadEnvPOIs, getEnvPOIs, enterPOI, loadQuestSites, enterQuestSite } from './poiExplore.js';
 
 // How close the player must be to a discovered POI's marker for its Enter
 // button to appear. Expressed in in-game minutes of travel rather than a flat
@@ -446,6 +446,16 @@ export async function displayCurrentLocation() {
 
         // Room actions (in-building only): Sleep in your rented room, Play Show when ready.
         let actionCount = 0;
+
+        // A way into a quest's own place (the breach in the cellar wall), while
+        // the quest is on a stage that uses it.
+        const sites = await loadQuestSites();
+        sites.forEach(site => {
+            const siteBtn = createLocationButton(`🕳️ ${site.label}`, () => enterQuestSite(site.quest_id, site.site_id), 'action');
+            if (site.description) siteBtn.title = site.description;
+            npcFragment.appendChild(siteBtn);
+            actionCount++;
+        });
         if (inBuilding) {
             // Only in the rented room itself — not the galley or the cellar.
             if (canSleepHere) {
