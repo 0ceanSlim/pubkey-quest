@@ -152,6 +152,8 @@ export function exitCombatMode() {
     _allyTargetID = null;
     clearInterval(_partyPollTimer); _partyPollTimer = null;
     clearInterval(_countdownTimer); _countdownTimer = null;
+    const bar = $id('action-buttons');
+    if (bar) { bar.style.opacity = ''; bar.style.pointerEvents = ''; bar.title = ''; }
     // Re-render the scene we returned to so the correct action bar comes back —
     // in particular the travel controls when a fight ended mid-journey (the
     // cached bar restore above only rebuilds the generic grid).
