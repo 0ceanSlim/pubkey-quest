@@ -158,6 +158,7 @@ export function transformSaveDataToUIState(saveData) {
     return {
         character: {
             name: saveData.d || 'Unknown',
+            portrait: saveData.portrait || '',
             race: saveData.race,
             class: saveData.class,
             background: saveData.background,

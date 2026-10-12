@@ -165,3 +165,34 @@ func PinnedRelaysHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📌 %s... pinned to %d read / %d write relays", shortKey(user.PublicKey), len(read), len(write))
 	writeJSON(w, relayState(user.PublicKey))
 }
+
+// MediaServersResponse lists the signed-in player's Blossom servers (their
+// kind 10063), primary first — where a portrait upload goes.
+// swagger:model MediaServersResponse
+type MediaServersResponse struct {
+	Blossom []string `json:"blossom"`
+}
+
+// MediaServersHandler godoc
+// @Summary      The signed-in player's Blossom media servers
+// @Description  Resolved by Grain from the player's kind 10063 list over the outbox model. Empty when they
+// @Description  haven't published one — the client then asks for a pasted link instead.
+// @Tags         Profile
+// @Produce      json
+// @Success      200  {object}  MediaServersResponse
+// @Failure      401  {string}  string  "Not signed in"
+// @Router       /api/media-servers [get]
+func MediaServersHandler(w http.ResponseWriter, r *http.Request) {
+	user := session.SessionMgr.GetCurrentUser(r)
+	if user == nil {
+		http.Error(w, "Not signed in", http.StatusUnauthorized)
+		return
+	}
+	resp := MediaServersResponse{Blossom: []string{}}
+	if c := connection.GetCoreClient(); c != nil {
+		if ms := c.ResolveMediaServers(user.PublicKey); ms != nil {
+			resp.Blossom = append(resp.Blossom, ms.Blossom...)
+		}
+	}
+	writeJSON(w, resp)
+}

@@ -336,7 +336,12 @@ Nothing open. The crest seed is decided: npub only, one house per key.
       unaware → sneak away / sneak attack (they lose their first turn, you get
       advantage that turn) / approach; ambush when only they notice; a debug
       "opening" picker forces each case;
-   5. character portraits (prompt, URL/Blossom, server-side 64px cache);
+   5. ✅ character portraits (2026-10-12): `portrait` on the save; the portrait dialog
+      from the little crest/portrait by your name (server-written AI prompt + your look, copy; paste
+      an https link or upload to your Blossom server, signed in the browser);
+      `/api/portrait` fetches only live portraits, refuses internal addresses,
+      decodes PNG/JPEG/GIF/WebP and serves a cached 64×64 PNG; grid token uses it,
+      crest otherwise;
    6. — all of that improves solo fights —
    7. then party combat (shared fight, turn timer, loot share, healer XP, ally rules,
       group encounters).

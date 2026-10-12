@@ -12,6 +12,7 @@ import { gameAPI }    from '../lib/api.js';
 import { smoothClock } from './smoothClock.js';
 import { restoreActionButtonsLayout, displayCurrentLocation, closeNPCDialogue } from '../ui/locationDisplay.js';
 import { crestSVG }   from '../ui/crest.js';
+import { portraitSrc } from '../ui/portraitDialog.js';
 import { showSceneSpeech, hideSceneSpeech } from '../ui/sceneSpeech.js';
 
 // ─── Range descriptions ────────────────────────────────────────────────────────
@@ -1346,11 +1347,21 @@ function _monsterFace(m) {
     return `<span class="combat-token-glyph">${_monsterGlyph(m)}</span>`;
 }
 
-/** The player's face: a portrait later (party-combat-plan §2c); for now their npub crest. */
+/** The player's face: their portrait if they've set one, else their npub crest (party-combat-plan §2c). */
 function _playerFace() {
-    const name = window.getGameStateSync?.()?.character?.name ?? '';
-    return `<span class="combat-token-crest">${crestSVG(getNpub() ?? '', name, 18)}</span>`;
+    const ch = window.getGameStateSync?.()?.character ?? {};
+    const crest = `<span class="combat-token-crest">${crestSVG(getNpub() ?? '', ch.name ?? '', 18)}</span>`;
+    if (!ch.portrait || _portraitFailed === ch.portrait) return crest;
+    return `<img class="combat-token-img" src="${portraitSrc(ch.portrait)}" alt=""
+                 onerror="window.__pqPortraitFailed && window.__pqPortraitFailed()">`;
 }
+
+// A portrait that won't load falls back to the crest (and isn't retried).
+let _portraitFailed = '';
+window.__pqPortraitFailed = () => {
+    _portraitFailed = window.getGameStateSync?.()?.character?.portrait ?? '';
+    if (_lastState) _paintGrid(_lastState);
+};
 
 // ─── Terrain ─────────────────────────────────────────────────────────────────
 

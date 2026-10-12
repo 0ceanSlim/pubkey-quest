@@ -432,6 +432,26 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Router       /api/combat/approach [post]
 	mux.HandleFunc("/api/combat/approach", game.CombatApproachHandler)
 
+	// @Summary      Set the character's portrait
+	// @Tags         Game
+	// @Router       /api/game/portrait [post]
+	mux.HandleFunc("/api/game/portrait", game.SetPortraitHandler)
+
+	// @Summary      An AI image prompt for this character's portrait
+	// @Tags         Game
+	// @Router       /api/game/portrait-prompt [get]
+	mux.HandleFunc("/api/game/portrait-prompt", game.PortraitPromptHandler)
+
+	// @Summary      A character portrait, scaled to 64×64 (public; current portraits only)
+	// @Tags         Game
+	// @Router       /api/portrait [get]
+	mux.HandleFunc("/api/portrait", game.PortraitImageHandler)
+
+	// @Summary      The signed-in player's Blossom media servers (kind 10063)
+	// @Tags         Profile
+	// @Router       /api/media-servers [get]
+	mux.HandleFunc("/api/media-servers", MediaServersHandler)
+
 	// ─── Quests (M3) ───
 	// The quest log (every quest with its status, plus the QP total). Quests are
 	// taken up in conversation with their giver (quest_dialogue.go) and can't be

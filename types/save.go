@@ -75,6 +75,11 @@ type SaveFile struct {
 	// pre-v4 per-building slot grids.
 	Vault        []VaultEntry `json:"vault,omitempty"`         // Shared vault contents; quantities are unbounded and ignore item stack limits
 	VaultKeepers []string     `json:"vault_keepers,omitempty"` // Building IDs whose keeper has accepted you; access is per-city, contents are shared
+
+	// Portrait is the image URL the player chose for this character (separate
+	// from their Nostr picture). A player choice, so it can't be derived. Shown
+	// through the server's scaled proxy (/api/portrait), never loaded directly.
+	Portrait string `json:"portrait,omitempty"`
 	SchemaVersion   int             `json:"schema_version,omitempty"`   // Save schema version (see CurrentSchemaVersion)
 
 	InternalID          string                   `json:"-"`                        // Not serialized, used internally for file naming

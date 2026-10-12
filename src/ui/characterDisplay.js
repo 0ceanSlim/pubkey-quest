@@ -12,6 +12,7 @@ import { getGameStateSync } from '../state/gameState.js';
 import { loadItemsFromDatabase } from '../data/items.js';
 import { eventBus } from '../lib/events.js';
 import { gameAPI } from '../lib/api.js';
+import { renderPortraitThumb } from './portraitDialog.js';
 import {
     getClassResource,
     calculateMaxResource,
@@ -261,6 +262,7 @@ export async function updateCharacterDisplay() {
     // Update character info
     if (document.getElementById('char-name')) {
         document.getElementById('char-name').textContent = character.name || '-';
+        renderPortraitThumb();
     }
     if (document.getElementById('char-race')) {
         document.getElementById('char-race').textContent = character.race || '-';
