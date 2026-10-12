@@ -19,7 +19,13 @@ combat, shipped) and the social plan's P4 parties (`docs/draft/social-plan.md`).
 | Going down | Allies can revive (healing, a potion on an ally, Help). If the party wins, downed members wake at 1 HP with no death penalty. **Only a full wipe** sends everyone home stripped. |
 | Fleeing | Fleeing alone also leaves the party. The leader can call a **retreat**: one shared roll at the slowest member's speed. |
 | Ally rules | Flanking, Help, ally-targeted heals and buffs, and **AoE friendly fire with a warning** before you confirm. |
-| Terrain | Wanted: cover, elevation, difficult ground, water. Brainstorm in §2. |
+| Terrain | **All six cell types** (§2). Shown first with tints + glyphs, then a generated tileset (§2a). |
+| Grid size | **By total combatants** (§3); a big fight may **fill the whole scene**. |
+| Loot share | **1/N per-member rolls** (§4). |
+| Healer XP | As §5. |
+| Tokens | **Monster sprites on the grid** instead of emoji; players shown by Nostr picture (§2b). |
+| Stealth openings | Come upon a monster that hasn't noticed you: **sneak away or sneak attack** (§7). |
+| Scope | **All of it gets built.** Terrain, bigger grids, tokens and stealth openings improve solo fights too, so they ship first, before party combat. |
 
 ## 2. Terrain (brainstorm)
 
@@ -67,10 +73,65 @@ Each grid cell gets a terrain type. Everything in this section is data, a table 
 
 ### Display
 - Cells get a terrain tint plus a tiny glyph (🌲 🪨 💧 ▲ ▭) and a hover tooltip ("Brush —
-  costs 2 movement").
+  costs 2 movement"). This is the **first pass** (§2a).
 - **Movement preview:** cells within reach at your remaining movement light up, counting
   terrain cost. Unreachable ones stay dark.
 - **Cover warning** on an attack button: "Target has half cover (+2 AC)".
+
+## 2a. How terrain looks — no tileset needed to start
+
+Terrain is **rules first, art second**. The renderer draws each cell from its terrain
+type, in whichever way is available:
+
+1. **Pass 1, no new art:** a **tint plus a glyph**.
+
+   | Terrain | Look |
+   |---|---|
+   | open | the scene shows through, dimmed (as now) |
+   | difficult | a brown stipple, `·` dots |
+   | shallow water | translucent blue |
+   | deep water | darker blue with a `≈` glyph |
+   | low cover | a ▭ crate glyph |
+   | high cover | a solid dark cell with a 🪨 or 🌲 glyph, depending on the environment |
+   | high ground | a lighter cell with a **shadow on its lower edge** (a 2px dark bottom border), so it reads as raised |
+   | hazard | a red tint with 🔥 |
+
+   Everything is readable on day one and costs no art.
+2. **Pass 2, a small tileset per environment family:**
+   - **Size:** 16×16 or 24×24, pixelated, about **10 tiles per family** (open ground, two
+     difficult variants, shallow and deep water, low cover, high cover, a high-ground top
+     and its edge, hazard).
+   - **Families:** forest, swamp, cave/dungeon, road/plains, town interior. That's ~50 tiles.
+   - **Made with Codex's built-in PixelLab** (already wired into `cmd/codex`), with the same
+     review-and-pick flow as item sprites.
+   - The renderer uses a tile when one exists for (environment, terrain) and falls back to
+     the pass-1 look otherwise, so art can land a family at a time.
+
+**Hard to show, so kept out of the always-on view:**
+- **Line of sight:** shown only while you're aiming. When an attack or spell is picked,
+  cells your target can't be seen from dim, and the target gets a 🛡 badge with its cover
+  bonus.
+- **Exact movement costs:** not printed on every cell. While you're moving, reachable cells
+  light up (already counting terrain), and hovering one shows its cost.
+- **Elevation heights:** only one level of "high ground", no multi-level heights. That's
+  enough for tactics and readable top-down.
+
+## 2b. Tokens on the grid
+
+- **Monsters:** their **sprite** (`/res/img/monsters/{template}.png`; 114 exist for 32
+  monsters) drawn pixelated and filling the cell.
+  - A thin HP bar along the cell's bottom.
+  - A red outline when it's the current target.
+  - Conditions as tiny badges in a corner.
+  - **Fallback when a sprite is missing:** `unknown.png`.
+- **Players:**
+  - **In a party:** each player's **Nostr profile picture** in a square frame, so you can
+    tell real people apart at a glance. The frame is green for you and blue for allies, and
+    the leader gets a 👑 pip.
+  - **Fallback when there's no picture** (or in solo play, if preferred): a small
+    **class sigil**. That's 12 icons, one per class, and the same art family can later feed
+    the paperdoll work.
+- **Turn order strip** uses the same faces: picture or sprite chips.
 
 ## 3. Grid size (brainstorm)
 
@@ -149,13 +210,53 @@ Every member gets their own drops, so there's no splitting argument. But one kil
   - you can still chat.
 - **Timer expiry:** *"⏱ Mara hesitates and takes the Dodge action."*
 
-## 7. Still to settle
+## 7. Stealth openings — "it hasn't seen you yet"
 
-1. **Terrain in the first pass:** all six cell types at once, or start with
-   open / difficult / high cover / high ground and add water, low cover and hazards after?
-2. **Grid sizing:** by total combatants (table above), or by party size only?
-3. **Big fights:** should 7+ combatant grids fill the whole scene?
-4. **Loot share:** the 1/N per-member rolls (recommended), or round-robin whole drops?
-5. **Healer XP multiplier:** start at 1.0, and self-heals at half?
-6. **Terrain for solo play too?** It makes ordinary fights richer, and it's independent of
-   parties, so it could ship **before** P5.
+Some encounters start with the monster **unaware**. That's a moment before the fight where
+you choose.
+
+**When an encounter starts, roll who noticed whom:**
+- the party's stealth against the monsters' **passive perception** (already in the monster
+  data);
+- the party's stealth is a group check (5e: the party succeeds if at least half its members
+  succeed), each member rolling DEX + Stealth;
+- terrain, light and the environment can adjust it later (fog, night, thick forest).
+
+| Result | What happens |
+|---|---|
+| **You notice them, they don't notice you** | A pre-fight choice appears: *"A goblin hasn't noticed you."* |
+| **Both notice** | A normal fight. |
+| **They notice you first** | An ambush: the party is surprised. This already exists as `Surprise` on POI nodes and encounters. |
+
+**The choices when you're unseen:**
+- **Sneak away:** another stealth check. On success there's no fight. On failure the
+  monster spots you and the fight starts normally.
+- **Sneak attack:** combat starts with **the monsters surprised**. They lose their first
+  turn, and the opening attacks get advantage. Rogues' Sneak Attack is a natural fit here.
+- **Approach openly:** a normal fight. This is for when you want to talk to an intelligent
+  creature; leaves room for parley later.
+
+**Engine:**
+- `EncounterSpec.Surprise` becomes a side, `none | party | monsters`.
+- An "unaware" state comes before `StartEncounter` (the choice overlay, the same pattern as
+  the encounter speech box).
+- Random travel encounters get this roll automatically. Authored ones can force a result
+  ("the brawler always notices you").
+
+**Note:** the roadmap had *stealth/surprise* in "not in alpha". This pulls it in.
+
+## 8. Still to settle
+
+1. **Player tokens in solo play:** your Nostr picture, or the class sigil?
+2. **Who makes the tileset:** PixelLab via Codex, or hand-drawn/commissioned? Pass 1 doesn't
+   need either.
+3. **Sneak away on failure:** the monster gets the first move, or just a normal fight?
+4. **Build order** (proposed):
+   1. bigger grid + monster sprites + player tokens;
+   2. terrain rules with the pass-1 look;
+   3. A* and cover-aware AI;
+   4. stealth openings;
+   5. — all of that improves solo fights —
+   6. then party combat (shared fight, turn timer, loot share, healer XP, ally rules,
+      group encounters);
+   7. the tileset whenever the art lands.
