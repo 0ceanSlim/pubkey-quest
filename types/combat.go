@@ -203,6 +203,8 @@ type PlayerCombatState struct {
 	Ambushing          bool          `json:"ambushing,omitempty"`             // Opened with a sneak attack: advantage on attacks this first turn
 	PendingSneakDice   string        `json:"pending_sneak_dice,omitempty"`    // rogue Sneak Attack rider ("2d6") applied to the next hit
 	AbilitiesUsed      []string      `json:"abilities_used,omitempty"`        // once-per-combat abilities already spent this fight
+	// Helped: an ally used Help on you — your next attack has advantage.
+	Helped bool `json:"helped,omitempty"`
 }
 
 // MonsterInstance is a live monster in the current combat encounter
@@ -227,6 +229,9 @@ type MonsterInstance struct {
 	// combat.ClearSpawnPositions once the opening response has been built.
 	SpawnPos *Position   `json:"-"`
 	Data     MonsterData `json:"data"` // Full stat block
+	// Threat is damage taken from each party member (by member id): monsters
+	// favour whoever hurt them most, so a tank can hold their attention.
+	Threat map[string]int `json:"-"`
 }
 
 // Active reports whether the monster is still a participant (alive and on the grid).
@@ -234,13 +239,31 @@ func (m *MonsterInstance) Active() bool {
 	return m.IsAlive && !m.Fled
 }
 
-// PartyCombatant represents the player (or future companion) in combat
+// PartyCombatant is one player (or future companion) in combat. A party fight
+// has several; each request acts as one of them (CombatSession.Actor).
 type PartyCombatant struct {
 	Type               string            `json:"type"` // "player", future: "companion"
 	ID                 string            `json:"id"`   // npub
+	SaveID             string            `json:"save_id"`
+	Name               string            `json:"name"` // the character's name
 	IsPlayerControlled bool              `json:"is_player_controlled"`
 	Pos                Position          `json:"pos"` // Grid cell
 	CombatState        PlayerCombatState `json:"combat_state"`
+
+	// Per-member tallies: each player earns and keeps their own.
+	Fled           bool                `json:"fled,omitempty"`  // escaped the fight (out of it, keeps XP so far)
+	Ended          bool                `json:"ended,omitempty"` // has collected their outcome (loot screen closed)
+	XPEarned       int                 `json:"xp_earned"`
+	Loot           []LootDrop          `json:"loot,omitempty"`
+	LevelUpPending bool                `json:"level_up_pending"`
+	AmmoUsed       int                 `json:"ammo_used"`
+	DamageTaken    int                 `json:"damage_taken"` // this fight — caps healing XP (no overheal farming)
+	Concentration  *ConcentrationState `json:"concentration,omitempty"`
+}
+
+// Standing reports whether the member is still up and in the fight.
+func (p *PartyCombatant) Standing() bool {
+	return !p.Fled && !p.CombatState.IsUnconscious
 }
 
 // InitiativeEntry records a combatant's position in the initiative order
@@ -277,19 +300,22 @@ type CombatSession struct {
 	Terrain            []string          `json:"terrain,omitempty"`     // row-major GridWidth×GridHeight terrain ids; "" = open ground
 	IsSurprised        bool              `json:"is_surprised"`  // Party was surprised (every monster acts before the party in round 1)
 	Phase              string            `json:"phase"`         // "active", "loot", "victory", "defeat", "death_saves"
-	LootRolled         []LootDrop        `json:"loot_rolled,omitempty"`
-	LevelUpPending     bool              `json:"level_up_pending"`
-	XPEarnedThisFight  int               `json:"xp_earned_this_fight"`
-	AmmoUsedThisCombat int               `json:"ammo_used_this_combat"`
+
+	// Actor is the party member the current request acts as (an index into
+	// Party). Set per request by the API layer, and to a monster's target
+	// during its turn. Always 0 in a solo fight.
+	Actor int `json:"-"`
+	// TurnDeadline (unix ms) ends a party member's turn: when it passes they
+	// take the Dodge action. 0 in solo fights (no timer).
+	TurnDeadline int64 `json:"turn_deadline,omitempty"`
+	// Retreat: the leader called a retreat and it succeeded — everyone left.
+	Retreated bool `json:"retreated,omitempty"`
 
 	// Difficulty rates the fight against the player's level band at combat start
 	// ("trivial"…"deadly", see encounter.Difficulty). Surfaced so the client can
 	// warn on a fight that outclasses the player (M5 §22). Set once, memory-only.
 	Difficulty string `json:"difficulty,omitempty"`
 
-	// Concentration is the spell the player is currently concentrating on (buff/
-	// control). Nil when not concentrating. Taking damage triggers a CON save.
-	Concentration *ConcentrationState `json:"concentration,omitempty"`
 }
 
 // PendingEncounter is an encounter whose monsters haven't noticed the player
