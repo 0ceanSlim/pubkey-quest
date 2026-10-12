@@ -1,0 +1,441 @@
+{
+  "d": "Tester 6",
+  "created_at": "2026-02-02T23:23:43Z",
+  "race": "Dwarf",
+  "class": "Monk",
+  "background": "Acolyte",
+  "alignment": "True Neutral",
+  "experience": 0,
+  "hp": 10,
+  "max_hp": 10,
+  "mana": 0,
+  "max_mana": 0,
+  "fatigue": 0,
+  "hunger": 2,
+  "stats": {
+    "Charisma": 13,
+    "Constitution": 14,
+    "Dexterity": 16,
+    "Intelligence": 13,
+    "Strength": 13,
+    "Wisdom": 16
+  },
+  "location": "ironpeak",
+  "district": "center",
+  "building": "",
+  "current_day": 1,
+  "time_of_day": 720,
+  "inventory": {
+    "gear_slots": {
+      "ammo": {
+        "item": null,
+        "quantity": 0
+      },
+      "bag": {
+        "contents": [
+          {
+            "item": "bedroll",
+            "quantity": 1,
+            "slot": 0
+          },
+          {
+            "item": "rations",
+            "quantity": 10,
+            "slot": 1
+          },
+          {
+            "item": "rope",
+            "quantity": 1,
+            "slot": 2
+          },
+          {
+            "item": "tinderbox",
+            "quantity": 1,
+            "slot": 3
+          },
+          {
+            "item": "torch",
+            "quantity": 10,
+            "slot": 4
+          },
+          {
+            "item": "waterskin",
+            "quantity": 1,
+            "slot": 5
+          },
+          {
+            "item": "mess-kit",
+            "quantity": 1,
+            "slot": 6
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 7
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 8
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 9
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 10
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 11
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 12
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 13
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 14
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 15
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 16
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 17
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 18
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 19
+          }
+        ],
+        "item": "backpack",
+        "quantity": 1
+      },
+      "boots": {
+        "item": null,
+        "quantity": 0
+      },
+      "chest": {
+        "item": null,
+        "quantity": 0
+      },
+      "gloves": {
+        "item": null,
+        "quantity": 0
+      },
+      "head": {
+        "item": null,
+        "quantity": 0
+      },
+      "legs": {
+        "item": null,
+        "quantity": 0
+      },
+      "mainhand": {
+        "item": "shortsword",
+        "quantity": 1
+      },
+      "neck": {
+        "item": null,
+        "quantity": 0
+      },
+      "offhand": {
+        "item": null,
+        "quantity": 0
+      },
+      "ring1": {
+        "item": null,
+        "quantity": 0
+      },
+      "ring2": {
+        "item": null,
+        "quantity": 0
+      }
+    },
+    "general_slots": [
+      {
+        "item": "gold-piece",
+        "quantity": 1500,
+        "slot": 0
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 1
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 2
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 3
+      }
+    ]
+  },
+  "vaults": [
+    {
+      "location": "ironpeak",
+      "slots": [
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 0
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 1
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 2
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 3
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 4
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 5
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 6
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 7
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 8
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 9
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 10
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 11
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 12
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 13
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 14
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 15
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 16
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 17
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 18
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 19
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 20
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 21
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 22
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 23
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 24
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 25
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 26
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 27
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 28
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 29
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 30
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 31
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 32
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 33
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 34
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 35
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 36
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 37
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 38
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 39
+        }
+      ]
+    }
+  ],
+  "known_spells": [],
+  "spell_slots": {},
+  "locations_discovered": [
+    "ironpeak"
+  ],
+  "music_tracks_unlocked": [
+    "Nokron, The Eternal City",
+    "Cycle of Life",
+    "Breath Of The Mountains"
+  ],
+  "active_effects": [
+    {
+      "effect_id": "fatigue-accumulation",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    },
+    {
+      "effect_id": "hunger-accumulation-satisfied",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    }
+  ]
+}

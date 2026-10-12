@@ -1,0 +1,448 @@
+{
+  "d": "Tester 4",
+  "created_at": "2026-02-04T21:56:03Z",
+  "race": "Human",
+  "class": "Paladin",
+  "background": "Knight",
+  "alignment": "True Neutral",
+  "experience": 0,
+  "hp": 11,
+  "max_hp": 11,
+  "mana": 4,
+  "max_mana": 4,
+  "fatigue": 0,
+  "hunger": 2,
+  "stats": {
+    "Charisma": 16,
+    "Constitution": 12,
+    "Dexterity": 12,
+    "Intelligence": 13,
+    "Strength": 16,
+    "Wisdom": 12
+  },
+  "location": "kingdom",
+  "district": "center",
+  "building": "",
+  "current_day": 1,
+  "time_of_day": 720,
+  "inventory": {
+    "gear_slots": {
+      "ammo": {
+        "item": null,
+        "quantity": 0
+      },
+      "bag": {
+        "contents": [
+          {
+            "item": "blanket",
+            "quantity": 1,
+            "slot": 0
+          },
+          {
+            "item": "holy-water",
+            "quantity": 1,
+            "slot": 1
+          },
+          {
+            "item": "rations",
+            "quantity": 2,
+            "slot": 2
+          },
+          {
+            "item": "tinderbox",
+            "quantity": 1,
+            "slot": 3
+          },
+          {
+            "item": "candle",
+            "quantity": 10,
+            "slot": 4
+          },
+          {
+            "item": "waterskin",
+            "quantity": 1,
+            "slot": 5
+          },
+          {
+            "item": "shield",
+            "quantity": 1,
+            "slot": 6
+          },
+          {
+            "item": "sickle",
+            "quantity": 1,
+            "slot": 7
+          },
+          {
+            "item": "blessed-incense",
+            "quantity": 3,
+            "slot": 8
+          },
+          {
+            "item": "sacred-oil",
+            "quantity": 2,
+            "slot": 9
+          },
+          {
+            "item": "holy-water",
+            "quantity": 2,
+            "slot": 10
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 11
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 12
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 13
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 14
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 15
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 16
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 17
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 18
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 19
+          }
+        ],
+        "item": "backpack",
+        "quantity": 1
+      },
+      "boots": {
+        "item": null,
+        "quantity": 0
+      },
+      "chest": {
+        "item": "chainmail-hauberk",
+        "quantity": 1
+      },
+      "gloves": {
+        "item": null,
+        "quantity": 0
+      },
+      "head": {
+        "item": null,
+        "quantity": 0
+      },
+      "legs": {
+        "item": "chainmail-chausses",
+        "quantity": 1
+      },
+      "mainhand": {
+        "item": "greatsword",
+        "quantity": 1
+      },
+      "neck": {
+        "item": "amulet",
+        "quantity": 1
+      },
+      "offhand": {
+        "item": null,
+        "quantity": 0
+      },
+      "ring1": {
+        "item": null,
+        "quantity": 0
+      },
+      "ring2": {
+        "item": null,
+        "quantity": 0
+      }
+    },
+    "general_slots": [
+      {
+        "item": "gold-piece",
+        "quantity": 2500,
+        "slot": 0
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 1
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 2
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 3
+      }
+    ]
+  },
+  "vaults": [
+    {
+      "location": "kingdom",
+      "slots": [
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 0
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 1
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 2
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 3
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 4
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 5
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 6
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 7
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 8
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 9
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 10
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 11
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 12
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 13
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 14
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 15
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 16
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 17
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 18
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 19
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 20
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 21
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 22
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 23
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 24
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 25
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 26
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 27
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 28
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 29
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 30
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 31
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 32
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 33
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 34
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 35
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 36
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 37
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 38
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 39
+        }
+      ]
+    }
+  ],
+  "known_spells": [
+    "bless",
+    "cure-wounds",
+    "divine-favor",
+    "searing-smite",
+    "shield-of-faith",
+    "thunderous-smite"
+  ],
+  "spell_slots": {},
+  "locations_discovered": [
+    "kingdom"
+  ],
+  "music_tracks_unlocked": [
+    "Nokron, The Eternal City",
+    "Cycle of Life",
+    "A Just King"
+  ],
+  "active_effects": [
+    {
+      "effect_id": "fatigue-accumulation",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    },
+    {
+      "effect_id": "hunger-accumulation-satisfied",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    }
+  ]
+}

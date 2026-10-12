@@ -18,6 +18,9 @@ import (
 	"pubkey-quest/cmd/codex/staging"
 	"pubkey-quest/cmd/codex/systemseditor"
 	"pubkey-quest/cmd/codex/validation"
+	gamecharacter "pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/savecodec"
+	"pubkey-quest/types"
 
 	"github.com/gorilla/mux"
 )
@@ -43,7 +46,12 @@ func main() {
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 	generateImagesFlag := flag.String("generate-images", "", "Generate sprite candidates from a batch spec JSON and exit (dev tool)")
 	configFlag := flag.String("config", "", "Path to config file (default: ./codex-config.yml)")
+	decodeSaveFlag := flag.String("decode-save", "", "Print a save (compact, a signed save event, or a disk save file) as a readable character sheet and exit")
 	flag.Parse()
+
+	if *decodeSaveFlag != "" {
+		os.Exit(decodeSave(*decodeSaveFlag))
+	}
 
 	if *versionFlag {
 		fmt.Printf("codex %s\n", Version)
@@ -550,4 +558,32 @@ func handleCleanupRun(w http.ResponseWriter, r *http.Request) {
 // Starting Gear editor handler
 func handleStartingGearEditor(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "cmd/codex/html/starting-gear-editor.html")
+}
+
+// decodeSave is the save inspector (docs/draft/relay-saves-plan.md §4): it
+// reads any form of a save and prints it as a character sheet, with the size
+// of its compact relay form.
+func decodeSave(path string) int {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Println("❌", err)
+		return 1
+	}
+	save, compact, err := savecodec.ParseAny(data)
+	if err != nil {
+		fmt.Println("❌ Couldn't read that save:", err)
+		return 1
+	}
+	var levelOf func(int) int
+	if raw, err := os.ReadFile("game-data/systems/advancement.json"); err == nil {
+		var adv []types.AdvancementEntry
+		if json.Unmarshal(raw, &adv) == nil {
+			levelOf = func(xp int) int { return gamecharacter.GetLevelFromXP(xp, adv) }
+		}
+	}
+	fmt.Print(savecodec.Describe(save, levelOf))
+	fmt.Println()
+	fmt.Printf("📦 Compact relay form: %d bytes (format v%d)", len(compact), savecodec.Version)
+	fmt.Println()
+	return 0
 }

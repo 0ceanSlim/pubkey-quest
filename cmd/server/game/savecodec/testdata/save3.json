@@ -1,0 +1,496 @@
+{
+  "d": "Tester 3",
+  "created_at": "2026-06-27T02:04:30Z",
+  "race": "Human",
+  "class": "Fighter",
+  "background": "Soldier",
+  "alignment": "True Neutral",
+  "experience": 0,
+  "hp": 12,
+  "max_hp": 12,
+  "mana": 0,
+  "max_mana": 0,
+  "fatigue": 10,
+  "hunger": 0,
+  "stats": {
+    "Charisma": 14,
+    "Constitution": 14,
+    "Dexterity": 16,
+    "Intelligence": 14,
+    "Strength": 16,
+    "Wisdom": 14
+  },
+  "location": "kingdom",
+  "district": "south",
+  "building": "",
+  "current_day": 2,
+  "time_of_day": 730,
+  "inventory": {
+    "gear_slots": {
+      "ammo": {
+        "item": "arrows",
+        "quantity": 20
+      },
+      "bag": {
+        "contents": [
+          {
+            "item": "bedroll",
+            "quantity": 1,
+            "slot": 0
+          },
+          {
+            "item": "rations",
+            "quantity": 5,
+            "slot": 1
+          },
+          {
+            "item": "rope",
+            "quantity": 1,
+            "slot": 2
+          },
+          {
+            "item": "tinderbox",
+            "quantity": 1,
+            "slot": 3
+          },
+          {
+            "item": "torch",
+            "quantity": 10,
+            "slot": 4
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 5
+          },
+          {
+            "item": "mess-kit",
+            "quantity": 1,
+            "slot": 6
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 7
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 8
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 9
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 10
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 11
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 12
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 13
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 14
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 15
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 16
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 17
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 18
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 19
+          }
+        ],
+        "item": "backpack",
+        "quantity": 1
+      },
+      "boots": {
+        "item": null,
+        "quantity": 0
+      },
+      "chest": {
+        "item": "leather-vest",
+        "quantity": 1
+      },
+      "gloves": {
+        "item": null,
+        "quantity": 0
+      },
+      "head": {
+        "item": null,
+        "quantity": 0
+      },
+      "legs": {
+        "item": "leather-leggings",
+        "quantity": 1
+      },
+      "mainhand": {
+        "item": "longbow",
+        "quantity": 1
+      },
+      "neck": {
+        "item": null,
+        "quantity": 0
+      },
+      "offhand": {
+        "item": "longbow",
+        "quantity": 1
+      },
+      "ring1": {
+        "item": null,
+        "quantity": 0
+      },
+      "ring2": {
+        "item": null,
+        "quantity": 0
+      }
+    },
+    "general_slots": [
+      {
+        "item": "gold-piece",
+        "quantity": 800,
+        "slot": 0
+      },
+      {
+        "item": "handaxe",
+        "quantity": 1,
+        "slot": 1
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 2
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 3
+      }
+    ]
+  },
+  "vaults": [
+    {
+      "location": "kingdom",
+      "slots": [
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 0
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 1
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 2
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 3
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 4
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 5
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 6
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 7
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 8
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 9
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 10
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 11
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 12
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 13
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 14
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 15
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 16
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 17
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 18
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 19
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 20
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 21
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 22
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 23
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 24
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 25
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 26
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 27
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 28
+        },
+        {
+          "item": "shield",
+          "quantity": 1,
+          "slot": 29
+        },
+        {
+          "item": "rations",
+          "quantity": 5,
+          "slot": 30
+        },
+        {
+          "item": "gold-piece",
+          "quantity": 200,
+          "slot": 31
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 32
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 33
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 34
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 35
+        },
+        {
+          "item": "waterskin",
+          "quantity": 1,
+          "slot": 36
+        },
+        {
+          "item": "scimitar",
+          "quantity": 1,
+          "slot": 37
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 38
+        },
+        {
+          "item": "handaxe",
+          "quantity": 1,
+          "slot": 39
+        }
+      ]
+    }
+  ],
+  "known_spells": [],
+  "spell_slots": {},
+  "locations_discovered": [
+    "kingdom"
+  ],
+  "music_tracks_unlocked": [
+    "Nokron, The Eternal City",
+    "Cycle of Life",
+    "A Just King"
+  ],
+  "active_effects": [
+    {
+      "effect_id": "backpack-capacity",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    },
+    {
+      "effect_id": "exhaustion",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    },
+    {
+      "effect_id": "exhaustion",
+      "effect_index": 1,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    },
+    {
+      "effect_id": "exhaustion",
+      "effect_index": 2,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    },
+    {
+      "effect_id": "exhaustion",
+      "effect_index": 3,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    },
+    {
+      "effect_id": "exhaustion",
+      "effect_index": 4,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    },
+    {
+      "effect_id": "starving",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    },
+    {
+      "effect_id": "starving",
+      "effect_index": 1,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 730
+    }
+  ],
+  "schema_version": 2
+}

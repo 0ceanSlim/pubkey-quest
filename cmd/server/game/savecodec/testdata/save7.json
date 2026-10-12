@@ -1,0 +1,514 @@
+{
+  "d": "Tester 7",
+  "created_at": "2026-06-22T21:41:34Z",
+  "race": "Halfling",
+  "class": "Sorcerer",
+  "background": "Entertainer",
+  "alignment": "Neutral Good",
+  "experience": 0,
+  "hp": 9,
+  "max_hp": 9,
+  "mana": 4,
+  "max_mana": 4,
+  "fatigue": 0,
+  "hunger": 2,
+  "stats": {
+    "Charisma": 16,
+    "Constitution": 16,
+    "Dexterity": 13,
+    "Intelligence": 13,
+    "Strength": 13,
+    "Wisdom": 12
+  },
+  "location": "millhaven",
+  "district": "center",
+  "building": "",
+  "current_day": 1,
+  "time_of_day": 720,
+  "inventory": {
+    "gear_slots": {
+      "ammo": {
+        "item": "arrows",
+        "quantity": 20
+      },
+      "bag": {
+        "contents": [
+          {
+            "item": "caltrops",
+            "quantity": 1,
+            "slot": 0
+          },
+          {
+            "item": "crowbar",
+            "quantity": 1,
+            "slot": 1
+          },
+          {
+            "item": "oil",
+            "quantity": 2,
+            "slot": 2
+          },
+          {
+            "item": "rations",
+            "quantity": 10,
+            "slot": 3
+          },
+          {
+            "item": "rope",
+            "quantity": 1,
+            "slot": 4
+          },
+          {
+            "item": "tinderbox",
+            "quantity": 1,
+            "slot": 5
+          },
+          {
+            "item": "torch",
+            "quantity": 10,
+            "slot": 6
+          },
+          {
+            "item": "waterskin",
+            "quantity": 1,
+            "slot": 7
+          },
+          {
+            "item": "shortbow",
+            "quantity": 1,
+            "slot": 8
+          },
+          {
+            "item": "rod",
+            "quantity": 1,
+            "slot": 9
+          },
+          {
+            "item": "quartz-dust",
+            "quantity": 3,
+            "slot": 10
+          },
+          {
+            "item": "arcane-powder",
+            "quantity": 3,
+            "slot": 11
+          },
+          {
+            "item": "ether-essence",
+            "quantity": 2,
+            "slot": 12
+          },
+          {
+            "item": "mana-crystals",
+            "quantity": 2,
+            "slot": 13
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 14
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 15
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 16
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 17
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 18
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 19
+          }
+        ],
+        "item": "backpack",
+        "quantity": 1
+      },
+      "boots": {
+        "item": null,
+        "quantity": 0
+      },
+      "chest": {
+        "item": null,
+        "quantity": 0
+      },
+      "gloves": {
+        "item": null,
+        "quantity": 0
+      },
+      "head": {
+        "item": null,
+        "quantity": 0
+      },
+      "legs": {
+        "item": null,
+        "quantity": 0
+      },
+      "mainhand": {
+        "item": "dagger",
+        "quantity": 1
+      },
+      "neck": {
+        "item": null,
+        "quantity": 0
+      },
+      "offhand": {
+        "item": "dagger",
+        "quantity": 1
+      },
+      "ring1": {
+        "item": null,
+        "quantity": 0
+      },
+      "ring2": {
+        "item": null,
+        "quantity": 0
+      }
+    },
+    "general_slots": [
+      {
+        "contents": [
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 0
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 1
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 2
+          },
+          {
+            "item": null,
+            "quantity": 0,
+            "slot": 3
+          }
+        ],
+        "item": "component-pouch",
+        "quantity": 1,
+        "slot": 0
+      },
+      {
+        "item": "gold-piece",
+        "quantity": 1500,
+        "slot": 1
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 2
+      },
+      {
+        "item": null,
+        "quantity": 0,
+        "slot": 3
+      }
+    ]
+  },
+  "vaults": [
+    {
+      "location": "millhaven",
+      "slots": [
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 0
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 1
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 2
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 3
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 4
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 5
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 6
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 7
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 8
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 9
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 10
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 11
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 12
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 13
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 14
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 15
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 16
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 17
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 18
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 19
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 20
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 21
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 22
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 23
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 24
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 25
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 26
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 27
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 28
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 29
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 30
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 31
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 32
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 33
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 34
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 35
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 36
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 37
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 38
+        },
+        {
+          "item": null,
+          "quantity": 0,
+          "slot": 39
+        }
+      ]
+    }
+  ],
+  "known_spells": [
+    "fire-bolt",
+    "ray-of-frost",
+    "shocking-grasp",
+    "prestidigitation",
+    "minor-illusion",
+    "dancing-lights",
+    "magic-missile",
+    "shield",
+    "thunderwave",
+    "burning-hands",
+    "mage-armor",
+    "witch-bolt",
+    "sleep",
+    "charm-person"
+  ],
+  "spell_slots": {
+    "cantrips": [
+      {
+        "quantity": 0,
+        "slot": 0,
+        "spell": null
+      },
+      {
+        "quantity": 0,
+        "slot": 1,
+        "spell": null
+      },
+      {
+        "quantity": 0,
+        "slot": 2,
+        "spell": null
+      },
+      {
+        "quantity": 0,
+        "slot": 3,
+        "spell": null
+      }
+    ],
+    "level_1": [
+      {
+        "quantity": 0,
+        "slot": 0,
+        "spell": null
+      },
+      {
+        "quantity": 0,
+        "slot": 1,
+        "spell": null
+      }
+    ]
+  },
+  "locations_discovered": [
+    "millhaven"
+  ],
+  "music_tracks_unlocked": [
+    "Nokron, The Eternal City",
+    "Cycle of Life",
+    "Healing"
+  ],
+  "active_effects": [
+    {
+      "effect_id": "fatigue-accumulation",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    },
+    {
+      "effect_id": "hunger-accumulation-satisfied",
+      "effect_index": 0,
+      "duration_remaining": 0,
+      "total_duration": 0,
+      "delay_remaining": 0,
+      "tick_accumulator": 0,
+      "applied_at": 720
+    }
+  ],
+  "schema_version": 2
+}
