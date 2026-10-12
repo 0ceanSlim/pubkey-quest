@@ -200,8 +200,8 @@ fantasy setting.
 - Two players at one spot sharing a crest is rare, and names show next to tokens anyway.
 - **Later:** let players redesign their arms. It's just a few stored choices, and the crest
   could appear on shields, banners or the saves screen.
-- **Why from the npub:** it's "your house", so every character on that key shares it. If
-  you'd rather each character be distinct, generate it from npub + save ID instead.
+- **Seeded from the npub alone (decided):** it's "your house", so every character on that
+  key shares it.
 
 ## 3. Grid size (brainstorm)
 
@@ -315,11 +315,11 @@ you choose.
 
 **Note:** the roadmap had *stealth/surprise* in "not in alpha". This pulls it in.
 
-## 8. Still to settle
+## 8. Build order
 
-1. **Crest seed:** npub (one house for all your characters, as proposed) or npub + save
-   (each character distinct)?
-2. **Build order** (proposed):
+Nothing open. The crest seed is decided: npub only, one house per key.
+
+1. **Build order** (proposed):
    1. bigger grid + monster sprites + crest tokens;
    2. terrain rules with the tint/glyph look;
    3. A* and cover-aware AI;
