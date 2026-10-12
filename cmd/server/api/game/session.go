@@ -338,6 +338,9 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Items mid-sale go back in the pack before anything is saved.
+	ReturnStagedSales(sess)
+
 	// Relay saves: hand the browser the event to sign; nothing is written until
 	// a relay accepts it (POST /api/saves/publish).
 	if utils.AppConfig.Saves.Relay {

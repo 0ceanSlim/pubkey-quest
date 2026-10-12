@@ -326,7 +326,11 @@ func registerSessionRoutes(mux *http.ServeMux) {
 	// @Param request body object true "npub, save_id, and save_data"
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/session/update [post]
-	mux.HandleFunc("/api/session/update", game.UpdateSessionHandler)
+	// Raw state overwrite: a developer tool only. Never on a server without
+	// debug mode — it would let anyone rewrite their character.
+	if utils.AppConfig.Server.DebugMode {
+		mux.HandleFunc("/api/session/update", game.UpdateSessionHandler)
+	}
 
 	// @Summary Save session
 	// @Description Write in-memory state to disk

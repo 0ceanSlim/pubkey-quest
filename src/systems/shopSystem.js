@@ -656,7 +656,7 @@ async function removeStagedSell(index) {
 
     // Restore item to inventory
     try {
-        const result = await gameAPI.sendAction('add_item', {
+        const result = await gameAPI.sendAction('unstage_sell', {
             item_id: item.itemID,
             quantity: item.quantity
         });
@@ -702,7 +702,7 @@ async function restoreSellStagingItems() {
 
     for (const item of sellStaging) {
         try {
-            const result = await gameAPI.sendAction('add_item', {
+            const result = await gameAPI.sendAction('unstage_sell', {
                 item_id: item.itemID,
                 quantity: item.quantity,
                 to_slot_type: 'auto' // Auto-find available slot
@@ -868,7 +868,8 @@ export async function addItemToSell(itemId, slotIndex, slotType) {
 
     // Remove 1 item from inventory immediately via backend
     try {
-        const result = await gameAPI.sendAction('remove_from_inventory', {
+        // The server takes it onto the sell counter (only counter items can be sold).
+        const result = await gameAPI.sendAction('stage_sell', {
             item_id: itemId,
             from_slot: slotIndex,
             from_slot_type: slotType,

@@ -276,6 +276,14 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A zero or negative quantity would turn a purchase into a payout.
+	if transaction.Quantity <= 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{"success": false, "error": "Invalid quantity"})
+		return
+	}
+
 	log.Printf("🛒 Processing buy: %s buying %dx %s from %s", transaction.Npub, transaction.Quantity, transaction.ItemID, transaction.MerchantID)
 
 	sessionMgr := session.GetSessionManager()
@@ -616,9 +624,21 @@ func handleSellToShop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// NOTE: Items are already removed from inventory when added to sell staging
-	// Frontend removes items via remove_from_inventory action, so we don't remove them here
-	log.Printf("ℹ️ Items already removed from inventory during sell staging")
+	// Only items the server took onto the sell counter (stage_sell) can be
+	// sold — the shop never pays for an item the player doesn't have.
+	if transaction.Quantity <= 0 || session.SellStaged[transaction.ItemID] < transaction.Quantity {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{
+			"success": false,
+			"error":   "Put the item on the counter first",
+		})
+		return
+	}
+	session.SellStaged[transaction.ItemID] -= transaction.Quantity
+	if session.SellStaged[transaction.ItemID] == 0 {
+		delete(session.SellStaged, transaction.ItemID)
+	}
 
 	// Add gold to player (using existing helper function)
 	if err := character.AddGoldToInventory(save.Inventory, totalValue); err != nil {
@@ -667,4 +687,56 @@ func handleSellToShop(w http.ResponseWriter, r *http.Request) {
 // addItemToInventory delegates to game/inventory package
 func addItemToInventory(save *SaveFile, itemID string, quantity int) (int, error) {
 	return inventory.AddItemToInventory(save, itemID, quantity)
+}
+
+// ─── The sell counter ────────────────────────────────────────────────────────
+
+// handleStageSell takes an item out of the pack onto the sell counter.
+func handleStageSell(sess *session.GameSession, params map[string]any) (*types.GameActionResponse, error) {
+	itemID, _ := params["item_id"].(string)
+	qty := 1
+	if q, ok := params["quantity"].(float64); ok && q > 0 {
+		qty = int(q)
+	}
+	resp, err := handleRemoveFromInventoryAction(&sess.SaveData, params)
+	if err != nil || resp == nil || !resp.Success {
+		return resp, err
+	}
+	if sess.SellStaged == nil {
+		sess.SellStaged = map[string]int{}
+	}
+	sess.SellStaged[itemID] += qty
+	return resp, nil
+}
+
+// handleUnstageSell puts an item from the sell counter back in the pack.
+func handleUnstageSell(sess *session.GameSession, params map[string]any) (*types.GameActionResponse, error) {
+	itemID, _ := params["item_id"].(string)
+	qty := 1
+	if q, ok := params["quantity"].(float64); ok && q > 0 {
+		qty = int(q)
+	}
+	if sess.SellStaged[itemID] < qty {
+		return &types.GameActionResponse{Success: false, Message: "That isn't on the counter"}, nil
+	}
+	resp, err := handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(qty)})
+	if err != nil || resp == nil || !resp.Success {
+		return resp, err
+	}
+	sess.SellStaged[itemID] -= qty
+	if sess.SellStaged[itemID] == 0 {
+		delete(sess.SellStaged, itemID)
+	}
+	return resp, nil
+}
+
+// ReturnStagedSales puts everything on the sell counter back in the pack, so
+// a save never captures items that were mid-sale.
+func ReturnStagedSales(sess *session.GameSession) {
+	for itemID, qty := range sess.SellStaged {
+		if qty > 0 {
+			handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(qty)})
+		}
+	}
+	sess.SellStaged = nil
 }

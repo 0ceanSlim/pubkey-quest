@@ -27,6 +27,7 @@ import (
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/cmd/server/social"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -493,6 +494,10 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleDropItemAction(session, state, action.Params)
 	case "remove_from_inventory":
 		return handleRemoveFromInventoryAction(state, action.Params)
+	case "stage_sell":
+		return handleStageSell(session, action.Params)
+	case "unstage_sell":
+		return handleUnstageSell(session, action.Params)
 	case "pickup_item":
 		return handlePickupItemAction(session, state, action.Params)
 	case "cast_spell":
@@ -514,6 +519,10 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 	case "split_item":
 		return handleSplitItemAction(state, action.Params)
 	case "add_item":
+		// Free items are the debug console's spawn tool, nothing else.
+		if !utils.AppConfig.Server.DebugMode {
+			return &GameActionResponse{Success: false, Message: "That's a debug tool."}, nil
+		}
 		return handleAddItemAction(state, action.Params)
 	case "add_to_container":
 		return handleAddToContainerAction(state, action.Params)

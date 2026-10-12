@@ -40,6 +40,12 @@ type GameSession struct {
 	// relay accepts it. Memory only.
 	PendingSave *PendingSave `json:"-"`
 
+	// SellStaged holds items taken out of the pack onto a shop's sell counter
+	// (item id → quantity). Only these can be sold or handed back, so the shop
+	// never pays for, or returns, an item the server didn't take. Memory only;
+	// returned to the pack before any save.
+	SellStaged map[string]int `json:"-"`
+
 	// PendingEncounter is an encounter whose monsters haven't noticed the
 	// player: no fight yet, waiting on their choice (POST /api/combat/approach).
 	// Memory only; nil when nothing is waiting.
