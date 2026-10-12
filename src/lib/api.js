@@ -167,6 +167,32 @@ class GameAPI {
                 throw new Error(result.message || 'Save failed');
             }
 
+            // Relay saves: the server handed back the save event to sign. A
+            // save only counts once it's signed and a relay has stored it.
+            if (result.sign) {
+                const signer = window.pqSigner;
+                if (!signer?.signEvent) {
+                    throw new Error('Your signer isn\'t ready — sign in again to save.');
+                }
+                let signed;
+                try {
+                    signed = await signer.signEvent(result.sign);
+                } catch (_) {
+                    throw new Error('Save cancelled — it wasn\'t signed.');
+                }
+                const pub = await fetch(`${API_BASE_URL}/saves/publish`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ npub: this.npub, save_id: this.saveID, event: signed }),
+                });
+                const out = await pub.json().catch(() => ({}));
+                if (!pub.ok || !out.success) {
+                    throw new Error(out.error || `Save not stored (${pub.status})`);
+                }
+                logger.info(`Signed save stored on ${out.relays?.length ?? 0} relay(s)`);
+                return true;
+            }
+
             logger.info('Game saved to disk');
             return true;
 

@@ -35,6 +35,11 @@ type GameSession struct {
 	// Nil when no combat is in progress.
 	ActiveCombat *types.CombatSession `json:"-"`
 
+	// PendingSave is a save prepared for signing (relay saves): the exact
+	// event content the player must sign, and the disk copy to write once a
+	// relay accepts it. Memory only.
+	PendingSave *PendingSave `json:"-"`
+
 	// PendingEncounter is an encounter whose monsters haven't noticed the
 	// player: no fight yet, waiting on their choice (POST /api/combat/approach).
 	// Memory only; nil when nothing is waiting.
@@ -289,4 +294,13 @@ func (s *GameSession) TakePartySyncs() []PartySync {
 	out := s.partySyncs
 	s.partySyncs = nil
 	return out
+}
+
+// PendingSave is an unsigned save event waiting for the player's signature.
+type PendingSave struct {
+	D         string   // the event's d tag
+	Content   string   // compact save (savecodec) — the signed content must match exactly
+	Tags      [][]string
+	CreatedAt int64
+	DiskJSON  []byte // the full save as it was when prepared, written to disk on success
 }

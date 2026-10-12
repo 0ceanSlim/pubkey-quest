@@ -10,6 +10,7 @@ import (
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/types"
 )
 
@@ -334,6 +335,25 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("❌ Session not found in memory: %v", err)
 		http.Error(w, "Session not found in memory", http.StatusNotFound)
+		return
+	}
+
+	// Relay saves: hand the browser the event to sign; nothing is written until
+	// a relay accepts it (POST /api/saves/publish).
+	if utils.AppConfig.Saves.Relay {
+		unsigned, err := prepareRelaySave(sess, request.SaveID)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"success": false, "message": err.Error()})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"success": true,
+			"message": "Sign your save to keep it",
+			"save_id": request.SaveID,
+			"sign":    unsigned,
+		})
 		return
 	}
 

@@ -325,7 +325,7 @@ func listHandler(kind int, label string) http.HandlerFunc {
 		results, err := uc.PublishEvent(ctx, ev, relays)
 		accepted := 0
 		for _, res := range results {
-			if res.Success {
+			if res.Accepted { // the relay's OK, not just "sent"
 				accepted++
 			}
 		}
@@ -481,7 +481,7 @@ func DMSendHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		results, _ := uc.PublishEvent(ctx, wrap, relays)
 		for _, res := range results {
-			if res.Success {
+			if res.Accepted { // the relay's OK, not just "sent"
 				delivered++
 				break
 			}

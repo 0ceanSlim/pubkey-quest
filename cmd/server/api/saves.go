@@ -1,6 +1,9 @@
 package api
 
 import (
+	"pubkey-quest/cmd/server/utils"
+	"pubkey-quest/cmd/server/ledger"
+	"pubkey-quest/cmd/server/api/game"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -122,6 +125,16 @@ func SavesHandler(w http.ResponseWriter, r *http.Request) {
 func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 	log.Printf("📂 Loading saves for npub: %s", npub)
 
+	// Relay saves: bring every character on the player's relays (or, on the
+	// official server, in its ledger) into the cache first, and note copies
+	// that differ from what this server will load.
+	notes := map[string]string{}
+	if utils.AppConfig.Saves.Relay {
+		for _, n := range syncRelaySaves(npub) {
+			notes[n.SaveID] = n.Note
+		}
+	}
+
 	savesDir := filepath.Join(SavesDirectory, npub)
 	if _, err := os.Stat(savesDir); os.IsNotExist(err) {
 		// No saves directory exists for this user
@@ -139,7 +152,8 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 
 	var saves []SaveFile
 	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".json" {
+		// Skip the signed events cached beside saves (save_x.event.json).
+		if filepath.Ext(file.Name()) == ".json" && !strings.HasSuffix(file.Name(), ".event.json") {
 			savePath := filepath.Join(savesDir, file.Name())
 			if saveData, err := loadSaveFile(savePath); err == nil {
 				saves = append(saves, *saveData)
@@ -186,6 +200,9 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 		saveMap["music_tracks_unlocked"] = save.MusicTracksUnlocked
 		saveMap["current_day"] = save.CurrentDay
 		saveMap["time_of_day"] = save.TimeOfDay
+		if n := notes[save.InternalID]; n != "" {
+			saveMap["relay_note"] = n
+		}
 		savesWithID = append(savesWithID, saveMap)
 	}
 
@@ -194,6 +211,13 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 
 // Create or update a save
 func handleCreateSave(w http.ResponseWriter, r *http.Request, npub string) {
+	// The official server never takes a save written by the client: characters
+	// come from the generator and change only through play and signed saves.
+	if utils.AppConfig.Saves.Validation {
+		writeJSONStatus(w, http.StatusForbidden, map[string]any{"success": false, "error": "This server doesn't accept saves from outside the game"})
+		return
+	}
+
 	// Block saves during active combat
 	for _, sess := range session.GetSessionManager().GetAllSessions() {
 		if sess.Npub == npub && sess.ActiveCombat != nil {
@@ -273,6 +297,10 @@ func handleCreateSave(w http.ResponseWriter, r *http.Request, npub string) {
 // Delete a save
 func handleDeleteSave(w http.ResponseWriter, _ *http.Request, npub string, saveID string) {
 	savePath := filepath.Join(SavesDirectory, npub, saveID+".json")
+	// The cached signed event and this server's record go with it. (The event
+	// stays on the player's relays: they own it.)
+	os.Remove(eventPath(npub, saveID))
+	ledger.Remove(npub, game.SaveDTag(saveID))
 
 	if err := os.Remove(savePath); err != nil {
 		if os.IsNotExist(err) {

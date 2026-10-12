@@ -493,6 +493,11 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/dm/inbox", DMInboxHandler)
 	mux.HandleFunc("/api/dm/auth", DMAuthHandler)
 
+	// @Summary  Publish a signed save (relay saves)
+	// @Tags     Saves
+	// @Router   /api/saves/publish [post]
+	mux.HandleFunc("/api/saves/publish", PublishSaveHandler)
+
 	// ─── Quests (M3) ───
 	// The quest log (every quest with its status, plus the QP total). Quests are
 	// taken up in conversation with their giver (quest_dialogue.go) and can't be

@@ -131,8 +131,11 @@ These go in `config.yml`. The official build refuses to start with debug tools o
 
 ## 7. Turning it on (the cut-over)
 
-1. Ship format v1, the codec, migrations and inspector on test, and play with them for a while.
-2. Ship the ledger, relay save and load, and the server modes on test, with validation off.
+1. ✅ (2026-10-12) Ship format v1, the codec, migrations and inspector on test (`savecodec`,
+   `codex --decode-save`), and play with them for a while.
+2. ✅ (2026-10-12, code in; switched on by config) Ship the ledger, relay save and load, and
+   the server modes on test, with validation off. Turn it on with `saves.relay: true` in the
+   test server's `config.yml`.
 3. Ship the release pipeline and stand up the official server with validation on.
 4. **The last wipe:** the official server starts empty. From the first save there on, no wipes
    ever.

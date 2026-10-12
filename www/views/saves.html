@@ -229,6 +229,7 @@ function renderOccupied(saveData) {
       <div class="flex-shrink-0 text-xs" style="color: var(--color-textMuted);">Continue →</div>
     </div>
     ${renderStats(stats, 'normal')}
+    ${saveData.relay_note ? `<p class="text-xs mt-1" style="color: var(--color-textMuted);">⚠ ${escapeHtml(saveData.relay_note)}</p>` : ''}
   `;
 }
 

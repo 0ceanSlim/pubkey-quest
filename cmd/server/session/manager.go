@@ -75,8 +75,13 @@ func getBuildingStatesWrapper(location, district string, timeOfDay int) (map[str
 // (MaxHP/MaxMana from class + level + stats) so leveling is reflected on every
 // load. Advancement comes from the DB; if it's unavailable the raw save is
 // returned and derived fields keep their last-persisted values.
+// SaveSource loads a character's save before it's hydrated. Disk by default;
+// with relay saves on, the API layer swaps in a loader that fetches the signed
+// copy from relays (and, on the official server, only the one it accepted).
+var SaveSource = LoadSaveByID
+
 func loadAndHydrateSave(npub, saveID string) (*types.SaveFile, error) {
-	save, err := LoadSaveByID(npub, saveID)
+	save, err := SaveSource(npub, saveID)
 	if err != nil {
 		return nil, err
 	}

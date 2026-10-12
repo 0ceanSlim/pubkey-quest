@@ -1,6 +1,7 @@
 package character
 
 import (
+	"pubkey-quest/cmd/server/utils"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -970,6 +971,21 @@ func saveToDisk(npub string, saveFile *types.SaveFile) error {
 	savesDir := filepath.Join(SavesDirectory, npub)
 	if err := os.MkdirAll(savesDir, 0755); err != nil {
 		return fmt.Errorf("failed to create saves directory: %v", err)
+	}
+	// A server can cap characters per key (the official one allows 5).
+	if max := utils.AppConfig.Saves.MaxSlots; max > 0 {
+		count := 0
+		if files, err := os.ReadDir(savesDir); err == nil {
+			for _, f := range files {
+				n := f.Name()
+				if strings.HasSuffix(n, ".json") && !strings.HasSuffix(n, ".event.json") && n != saveFile.InternalID+".json" {
+					count++
+				}
+			}
+		}
+		if count >= max {
+			return fmt.Errorf("you already have %d characters — the most this server allows", max)
+		}
 	}
 
 	savePath := filepath.Join(savesDir, saveFile.InternalID+".json")

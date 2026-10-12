@@ -22,3 +22,11 @@ report:
 
 pixellab:
   api_key: "your-pixellab-api-key-here"
+
+# Saves (docs/draft/relay-saves-plan.md). With everything off, saves are disk files
+# only (today's test server). The official server runs relay + validation, 5 slots,
+# and refuses to start with server.debug_mode on.
+saves:
+  relay: false      # sign saves in the browser and publish them (kind 30078) to the player's relays
+  validation: false # official only: play only the save this server last accepted (its ledger)
+  max_slots: 0      # characters per key; official = 5, 0 = unlimited

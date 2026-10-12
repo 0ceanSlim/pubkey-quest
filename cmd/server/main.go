@@ -32,8 +32,14 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	// The official server (validated saves) never runs debug tools.
+	if utils.AppConfig.Saves.Validation && utils.AppConfig.Server.DebugMode {
+		log.Fatalf("❌ config: saves.validation (the official server) can't run with server.debug_mode on")
+	}
+
 	app.Init()
 	defer app.Shutdown()
+	api.InitRelaySaves()
 
 	mux := http.NewServeMux()
 

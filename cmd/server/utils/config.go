@@ -30,9 +30,23 @@ type ReportConfig struct {
 }
 
 // Config holds the full application configuration
+// SavesConfig decides how saves work on this server (docs/draft/relay-saves-plan.md §5).
+//
+//   - Relay: saving signs a kind-30078 event in the browser and publishes it to
+//     the player's relays; loading prefers the relay copy. Off = disk saves only.
+//   - Validation: the official server's rule — only the save whose event id this
+//     server last accepted is playable. Off on test / modded servers.
+//   - MaxSlots: characters per key (official: 5). 0 = unlimited.
+type SavesConfig struct {
+	Relay      bool `yaml:"relay"`
+	Validation bool `yaml:"validation"`
+	MaxSlots   int  `yaml:"max_slots"`
+}
+
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	Report ReportConfig `yaml:"report"`
+	Saves  SavesConfig  `yaml:"saves"`
 }
 
 // Global variable to hold the config after loading
