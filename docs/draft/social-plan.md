@@ -1,6 +1,6 @@
 # Social: presence, friends, chat, whispers & parties — build plan
 
-Status: **PLAN** (2026-10-11). This expands `party-multiplayer-plan.md` Phase 3 (presence,
+Status: **BUILT** (2026-10-12, awaiting a two-player playtest) — S0–S6 and P4; S5b (NIP-42 AUTH for DM relays) still to do. Planned 2026-10-11. This expands `party-multiplayer-plan.md` Phase 3 (presence,
 the Friends panel, chat) and Phase 4 (parties) into buildable slices. Decisions come from the
 maintainer; the code facts come from three code surveys run the same day. UI draft:
 `docs/draft/social-ui-draft.html` (open it in a browser).

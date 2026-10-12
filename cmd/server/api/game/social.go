@@ -343,3 +343,22 @@ func dropStaleMembers(npub string, now time.Time) {
 		}
 	}
 }
+
+// FriendInGame describes a friend who is playing right now, as the viewer sees
+// them (where they are, clock offset, whether they're here). Nil when offline.
+func FriendInGame(viewerNpub, viewerSaveID, friendNpub string) *PlayerView {
+	now := time.Now()
+	e, ok := presence.Get(friendNpub)
+	if !ok || !e.Online(now) {
+		return nil
+	}
+	viewerAbs, here := e.AbsMinutes, false
+	if sess, err := session.GetSessionManager().GetSession(viewerNpub, viewerSaveID); err == nil {
+		viewerAbs = sess.SaveData.CurrentDay*1440 + sess.SaveData.TimeOfDay
+		for _, h := range playersHere(sess, now) {
+			here = here || h.Npub == friendNpub
+		}
+	}
+	v := playerView(e, viewerAbs, here)
+	return &v
+}

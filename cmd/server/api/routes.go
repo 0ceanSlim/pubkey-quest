@@ -482,6 +482,16 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/party/kick", game.PartyKickHandler)
 	mux.HandleFunc("/api/party/promote", game.PartyPromoteHandler)
 
+	// Friends (mutual follows), list edits and whispers — over Nostr.
+	// @Summary  Friends, contacts, mutes, whispers
+	// @Tags     Social
+	// @Router   /api/friends [get]
+	mux.HandleFunc("/api/friends", FriendsHandler)
+	mux.HandleFunc("/api/friends/contacts", ContactsHandler)
+	mux.HandleFunc("/api/mutes", MutesHandler)
+	mux.HandleFunc("/api/dm/send", DMSendHandler)
+	mux.HandleFunc("/api/dm/inbox", DMInboxHandler)
+
 	// ─── Quests (M3) ───
 	// The quest log (every quest with its status, plus the QP total). Quests are
 	// taken up in conversation with their giver (quest_dialogue.go) and can't be

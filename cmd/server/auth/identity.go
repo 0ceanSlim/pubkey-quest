@@ -45,6 +45,9 @@ var protectedPrefixes = []string{
 	"/api/relays",
 	"/api/social/",
 	"/api/party/",
+	"/api/friends",
+	"/api/mutes",
+	"/api/dm/",
 }
 
 // exactProtected are protected paths that must match exactly (a prefix would

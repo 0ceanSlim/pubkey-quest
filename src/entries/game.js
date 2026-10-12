@@ -29,6 +29,7 @@ import '../systems/levelGuideModal.js'; // Auto-initializes level-guide modal fu
 import '../systems/abilityAllocateModal.js'; // Auto-initializes ability-allocation modal functions on window
 import '../ui/spellAbilityModal.js'; // Auto-initializes spell/ability modal functions on window
 import '../ui/socialUI.js'; // Social: presence poll, players here, chat, parties
+import '../ui/socialNostr.js'; // Social over Nostr: friends, follow, mute, whispers
 import '../ui/portraitDialog.js'; // Character portrait dialog (window.openPortraitDialog)
 import '../ui/spellPicker.js'; // Known-spells picker (window.openSpellPicker)
 import '../ui/questTracker.js'; // Active-quest tracker chip — registers its own state listeners
