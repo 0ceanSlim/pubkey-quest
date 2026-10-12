@@ -74,6 +74,7 @@ func endPlayerTurn(cs *types.CombatSession, save *types.SaveFile) []string {
 		return nil
 	}
 	state := &cs.Party[0].CombatState
+	state.Ambushing = false
 	log := TickCreatureConditions("You", &state.Conditions,
 		func(stat string) int { return playerSaveTotal(save, stat) })
 	log = append(log, tickPlayerAbilities(state)...)
@@ -182,6 +183,11 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 	m.Disengaged = false
 
 	var log []string
+	// Caught by a sneak attack: it spends its first turn getting its bearings.
+	if m.Surprised {
+		m.Surprised = false
+		return []string{fmt.Sprintf("  %s is caught off guard and can't act this turn.", m.Name)}
+	}
 	if IsIncapacitated(m.Conditions) {
 		log = append(log, fmt.Sprintf("  %s is %s and can't act.", m.Name, incapacitatingConditionName(m.Conditions)))
 		return append(log, tickMonsterConditions(m)...)

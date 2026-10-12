@@ -73,6 +73,10 @@ type EncounterSpec struct {
 	MonsterIDs    []string // one entry per monster; repeats mean several of that kind
 	EnvironmentID string   // where the fight is (for the log / analytics)
 	Surprise      bool     // the party is caught off guard: every monster acts first in round 1
+	// MonstersSurprised: the party crept up unseen and attacked (a sneak
+	// attack). The party acts first, every monster loses its first turn, and
+	// the party's attacks that first turn have advantage.
+	MonstersSurprised bool
 	// Arena is an authored terrain layout (rows of combat-terrain arena_key
 	// characters) used instead of generating terrain for the battlefield.
 	Arena []string
@@ -168,6 +172,13 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 	if spec.Surprise {
 		cs.Log = append(cs.Log, "⚡ You're caught off guard!")
 	}
+	if spec.MonstersSurprised && !spec.Surprise {
+		for i := range cs.Monsters {
+			cs.Monsters[i].Surprised = true
+		}
+		cs.Initiative = partyFirst(cs.Initiative)
+		cs.Log = append(cs.Log, "⚡ They never saw you coming — you strike first!")
+	}
 
 	if cs.Initiative[0].Type == "monster" {
 		cs.Log = append(cs.Log, fmt.Sprintf("⚡ %s goes first!", cs.Initiative[0].Name))
@@ -175,6 +186,7 @@ func StartEncounter(db *sql.DB, save *types.SaveFile, npub string, spec Encounte
 	} else {
 		cs.CurrentTurnIndex = 0
 		startPlayerTurn(cs, save)
+		cs.Party[0].CombatState.Ambushing = spec.MonstersSurprised && !spec.Surprise
 		cs.Log = append(cs.Log, "⚡ You go first!")
 	}
 
@@ -230,6 +242,23 @@ func rollEncounterInitiative(cs *types.CombatSession, save *types.SaveFile) []st
 	}
 	cs.Initiative = sortInitiative(entries, cs.IsSurprised)
 	return log
+}
+
+// partyFirst reorders initiative so every party entry acts before any monster
+// (the order within each side is kept) — used when the monsters are surprised.
+func partyFirst(entries []types.InitiativeEntry) []types.InitiativeEntry {
+	out := make([]types.InitiativeEntry, 0, len(entries))
+	for _, e := range entries {
+		if e.Type == "player" {
+			out = append(out, e)
+		}
+	}
+	for _, e := range entries {
+		if e.Type != "player" {
+			out = append(out, e)
+		}
+	}
+	return out
 }
 
 // newPlayerCombatant snapshots the player's current HP into combat state. The
@@ -650,6 +679,10 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
 	// the target monster's (restrained/blinded/outlined/…) grant advantage.
 	advantage += ConditionAttackAdvantage(state.Conditions, monster.Conditions)
+	// A sneak attack's opening turn: they don't see it coming.
+	if state.Ambushing {
+		advantage++
+	}
 	// Terrain: shooting down from high ground helps; swinging while swimming doesn't.
 	if isRangedAttack {
 		attackBonus += highGroundBonus(cs, cs.Party[0].Pos, monster.Pos)

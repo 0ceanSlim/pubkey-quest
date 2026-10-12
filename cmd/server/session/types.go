@@ -23,6 +23,11 @@ type GameSession struct {
 	// Nil when no combat is in progress.
 	ActiveCombat *types.CombatSession `json:"-"`
 
+	// PendingEncounter is an encounter whose monsters haven't noticed the
+	// player: no fight yet, waiting on their choice (POST /api/combat/approach).
+	// Memory only; nil when nothing is waiting.
+	PendingEncounter *types.PendingEncounter `json:"-"`
+
 	// POI walk state — lives in server memory only, never written to save files.
 	// Nil when the player is not inside a discovered POI. A monster node inside a
 	// POI sets ActiveCombat too and stashes the resume node here (poi.Session).

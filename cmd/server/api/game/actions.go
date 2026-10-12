@@ -199,6 +199,13 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 			Message: "You can't do that during combat.",
 		}, nil
 	}
+	// Nor while something that hasn't seen you yet is waiting on your choice.
+	if session.PendingEncounter != nil && combatBlockedActions[action.Type] {
+		return &GameActionResponse{
+			Success: false,
+			Message: "Something up ahead hasn't noticed you — decide what to do first.",
+		}, nil
+	}
 
 	// Snapshot time before action (for travel progress calculation)
 	oldTimeOfDay := state.TimeOfDay
@@ -274,7 +281,7 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 // is the generic, scheduled travel-combat source (see the encounter package),
 // separate from the hand-authored encounter vignettes.
 func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed int, response *GameActionResponse) {
-	if sess.ActiveCombat != nil {
+	if sess.ActiveCombat != nil || sess.PendingEncounter != nil {
 		return
 	}
 	// Cooldown: don't fire another biome encounter within CooldownMinutes of the
@@ -310,16 +317,31 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	sess.LastEncounterTime = nowAbs
 	sess.LastEncounterMonster = monster.ID
 
-	cs, err := combat.StartCombat(serverdb.GetDB(), state, sess.Npub, monster.ID, state.Location, advancement)
-	if err != nil {
-		log.Printf("⚠️ travel encounter: StartCombat failed: %v", err)
-		return
-	}
-	sess.ActiveCombat = cs
-
 	if response.Data == nil {
 		response.Data = make(map[string]interface{})
 	}
+
+	// Who noticed whom (party-combat-plan §7): unseen → the player chooses;
+	// spotted first → an ambush; otherwise a normal fight.
+	ids := []string{monster.ID}
+	spec := combat.EncounterSpec{MonsterIDs: ids, EnvironmentID: state.Location}
+	if aw, err := rollOpening(state, ids); err == nil {
+		switch aw.Opening {
+		case combat.OpeningUnaware:
+			response.Data["encounter_unaware"] = holdUnawareEncounter(sess, ids, state.Location, aw.Log)
+			log.Printf("👁 Travel encounter (unaware): %s in biome %q", monster.ID, biome)
+			return
+		case combat.OpeningAmbush:
+			spec.Surprise = true
+		}
+	}
+
+	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
+	if err != nil {
+		log.Printf("⚠️ travel encounter: StartEncounter failed: %v", err)
+		return
+	}
+	sess.ActiveCombat = cs
 	// Build the combat payload, then clear the spawn position so later state
 	// queries don't replay the opening animation (mirrors StartCombatHandler).
 	combatPayload := buildStateResponse(cs, state, cs.Log)

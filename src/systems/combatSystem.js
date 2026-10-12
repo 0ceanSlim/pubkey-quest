@@ -12,6 +12,7 @@ import { gameAPI }    from '../lib/api.js';
 import { smoothClock } from './smoothClock.js';
 import { restoreActionButtonsLayout, displayCurrentLocation, closeNPCDialogue } from '../ui/locationDisplay.js';
 import { crestSVG }   from '../ui/crest.js';
+import { showSceneSpeech, hideSceneSpeech } from '../ui/sceneSpeech.js';
 
 // ─── Range descriptions ────────────────────────────────────────────────────────
 const RANGE_LABELS = {
@@ -76,13 +77,15 @@ export async function debugStartCombat() {
     }
     const monsterID = document.getElementById('debug-monster-select')?.value ?? '';
     const count = parseInt(document.getElementById('debug-monster-count')?.value ?? '1', 10) || 1;
+    const opening = document.getElementById('debug-combat-opening')?.value ?? '';
     try {
-        const resp = await combatPost('/api/combat/debug/start', { npub, save_id: saveID, monster_id: monsterID, count });
+        const resp = await combatPost('/api/combat/debug/start', { npub, save_id: saveID, monster_id: monsterID, count, opening });
         const cs   = await resp.json();
         if (!resp.ok || !cs.success) {
             window.showMessage?.(cs.error ?? `HTTP ${resp.status}`, 'error');
             return;
         }
+        if (cs.phase === 'unaware') { showUnawareChoice(cs.unaware); return; }
         enterCombatMode(cs);
     } catch (err) {
         logger.error('debugStartCombat error:', err);
@@ -898,12 +901,73 @@ async function checkActiveCombatOnLoad() {
         );
         if (!resp.ok) return;
         const cs = await resp.json();
-        if (cs.phase) {
+        if (cs.phase === 'unaware') {
+            showUnawareChoice(cs.unaware);
+        } else if (cs.phase) {
             logger.info('⚔️  Resuming active combat after page load');
             enterCombatMode(cs);
         }
     } catch (_) { /* no active combat */ }
 }
+
+// ─── Stealth openings (party-combat-plan §7) ──────────────────────────────────
+
+/**
+ * Monsters ahead haven't noticed you. The world holds still while you choose:
+ * sneak away (a Stealth check — fail and the fight starts), sneak attack (you
+ * act first, they lose their first turn, your attacks that turn have
+ * advantage), or step out and face them.
+ */
+export function showUnawareChoice(view) {
+    if (!view) return;
+    smoothClock.pause();
+    const names = [...new Set((view.monsters ?? []).map(m => m.name))].join(', ');
+    showSceneSpeech({
+        speaker: names ? `Unseen — ${names}` : 'Unseen',
+        icon: '👁',
+        text: view.text ?? "They haven't noticed you.",
+        outcomes: view.log ?? [],
+        buttons: [
+            { label: '🤫 Sneak away',   onClick: () => _answerUnaware('sneak_away') },
+            { label: '🗡 Sneak attack', onClick: () => _answerUnaware('sneak_attack') },
+            { label: '⚔ Approach',      onClick: () => _answerUnaware('approach') },
+        ],
+    });
+}
+
+let _answeringUnaware = false;
+
+async function _answerUnaware(choice) {
+    if (_answeringUnaware) return;
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    _answeringUnaware = true;
+    try {
+        const resp = await combatPost('/api/combat/approach', { npub, save_id: saveID, choice });
+        const out  = await resp.json();
+        if (!resp.ok || !out.success) {
+            window.showMessage?.(out.error ?? `HTTP ${resp.status}`, 'error');
+            hideSceneSpeech();
+            smoothClock.unpause();
+            return;
+        }
+        hideSceneSpeech();
+        if (out.slipped_away) {
+            for (const line of (out.log ?? [])) window.addGameLog?.(line.trim());
+            window.showMessage?.(`🤫 ${out.message}`, 'success');
+            smoothClock.unpause();
+            return;
+        }
+        if (out.combat) enterCombatMode(out.combat);
+    } catch (err) {
+        logger.error('approach error:', err);
+        window.showMessage?.('Network error — try again.', 'error');
+    } finally {
+        _answeringUnaware = false;
+    }
+}
+
+eventBus.on('combat:unaware', showUnawareChoice);
 eventBus.on('gameStateLoaded', checkActiveCombatOnLoad);
 
 // A biome travel encounter fired on the world tick — drop straight into combat

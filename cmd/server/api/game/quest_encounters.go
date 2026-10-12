@@ -29,7 +29,7 @@ type questEncounter struct {
 // encounter is at the player's current place. Runs after every action (next to
 // the authored-encounter triggers); a no-op while a fight or POI walk is open.
 func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameActionResponse) {
-	if sess.ActiveCombat != nil || sess.ActivePOI != nil {
+	if sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil {
 		return
 	}
 	// Arriving somewhere new resets the "already fired here" memory, so leaving

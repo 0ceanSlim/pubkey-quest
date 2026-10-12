@@ -635,6 +635,15 @@ func GetCombatStateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// An encounter waiting on the unaware choice resumes as that choice.
+	if s, err := session.GetSessionManager().GetSession(npub, saveID); err == nil &&
+		s.ActiveCombat == nil && s.PendingEncounter != nil {
+		writeCombatJSON(w, http.StatusOK, map[string]interface{}{
+			"success": true, "phase": "unaware", "unaware": unawareView(s.PendingEncounter, nil),
+		})
+		return
+	}
+
 	sess, err := getSessionAndCombat(npub, saveID)
 	if err != nil {
 		writeCombatError(w, http.StatusNotFound, err.Error())

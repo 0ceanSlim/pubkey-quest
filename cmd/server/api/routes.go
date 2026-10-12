@@ -422,6 +422,16 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Router       /api/combat/state [get]
 	mux.HandleFunc("/api/combat/state", game.GetCombatStateHandler)
 
+	// @Summary      Answer an encounter whose monsters haven't noticed you
+	// @Description  sneak_away, sneak_attack or approach. See CombatApproachHandler.
+	// @Tags         Combat
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.ApproachRequest  true  "Choice"
+	// @Success      200      {object}  game.ApproachResponse
+	// @Router       /api/combat/approach [post]
+	mux.HandleFunc("/api/combat/approach", game.CombatApproachHandler)
+
 	// ─── Quests (M3) ───
 	// The quest log (every quest with its status, plus the QP total). Quests are
 	// taken up in conversation with their giver (quest_dialogue.go) and can't be

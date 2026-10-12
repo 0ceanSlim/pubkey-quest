@@ -37,6 +37,14 @@ export function handleWorldHandoff(data) {
         return true;
     }
 
+    // Monsters ahead that haven't noticed you: no fight yet — offer the choice
+    // (sneak away / sneak attack / approach). The combat system pauses the clock.
+    if (data.encounter_unaware) {
+        logger.info('👁 World handoff — unaware encounter');
+        eventBus.emit('combat:unaware', data.encounter_unaware);
+        return true;
+    }
+
     // An authored encounter (vignette) started — open the exploration overlay on
     // its first node. The walk is already active server-side; advances flow
     // through /poi/advance.

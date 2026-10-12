@@ -24,6 +24,9 @@ type debugCombatRequest struct {
 	SaveID    string `json:"save_id"`
 	MonsterID string `json:"monster_id"` // optional; empty = random pick
 	Count     int    `json:"count"`      // optional; how many of that monster (default 1)
+	// Opening forces how it starts: "roll" (the real stealth roll), "unaware",
+	// "ambush", or "" / "normal".
+	Opening string `json:"opening"`
 }
 
 // DebugCombatStartHandler godoc
@@ -66,6 +69,7 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusConflict, "Combat already active")
 		return
 	}
+	sess.PendingEncounter = nil
 
 	// Use the caller's monster choice if it's in the allowed pool; else pick random.
 	monsterID := ""
@@ -86,7 +90,23 @@ func DebugCombatStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	spec := combat.EncounterSpec{MonsterIDs: combat.MonsterIDsForCount(monsterID, req.Count)}
+	spec := combat.EncounterSpec{MonsterIDs: combat.MonsterIDsForCount(monsterID, req.Count), EnvironmentID: sess.SaveData.Location}
+	opening := combat.Opening(req.Opening)
+	var rollLog []string
+	if req.Opening == "roll" {
+		aw, err := rollOpening(&sess.SaveData, spec.MonsterIDs)
+		if err == nil {
+			opening, rollLog = aw.Opening, aw.Log
+		}
+	}
+	switch opening {
+	case combat.OpeningUnaware:
+		view := holdUnawareEncounter(sess, spec.MonsterIDs, spec.EnvironmentID, rollLog)
+		writeCombatJSON(w, http.StatusOK, map[string]interface{}{"success": true, "phase": "unaware", "unaware": view})
+		return
+	case combat.OpeningAmbush:
+		spec.Surprise = true
+	}
 	cs, err := combat.StartEncounter(serverdb.GetDB(), &sess.SaveData, npub, spec, advancement)
 	if err != nil {
 		log.Printf("❌ DebugCombatStart: %v", err)

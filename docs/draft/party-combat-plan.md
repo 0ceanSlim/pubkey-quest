@@ -331,7 +331,11 @@ Nothing open. The crest seed is decided: npub only, one house per key.
    3. ✅ cost-routed, cover-aware AI (2026-10-12): monsters route by terrain cost to
       the best cell for their goal; archers seek a line and favour cover and high
       ground, cautious monsters favour cover;
-   4. stealth openings;
+   4. ✅ stealth openings (2026-10-12): who-noticed-whom roll (Thieving vs passive
+      Perception, passive Perception vs monster Stealth) on travel encounters;
+      unaware → sneak away / sneak attack (they lose their first turn, you get
+      advantage that turn) / approach; ambush when only they notice; a debug
+      "opening" picker forces each case;
    5. character portraits (prompt, URL/Blossom, server-side 64px cache);
    6. — all of that improves solo fights —
    7. then party combat (shared fight, turn timer, loot share, healer XP, ally rules,

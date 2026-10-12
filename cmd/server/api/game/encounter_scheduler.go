@@ -66,7 +66,7 @@ func isCityLocation(locationID string) bool {
 // minutesElapsed is the in-game time this check covers; pass 0 for an
 // event-driven check (arriving somewhere), which is gated by dwell time instead.
 func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []string, minutesElapsed int, response *types.GameActionResponse) {
-	if sess.ActivePOI != nil || sess.ActiveCombat != nil {
+	if sess.ActivePOI != nil || sess.ActiveCombat != nil || sess.PendingEncounter != nil {
 		return
 	}
 	state := &sess.SaveData

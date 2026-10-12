@@ -200,6 +200,7 @@ type PlayerCombatState struct {
 	RageDamageBonusPct int           `json:"rage_damage_bonus_pct,omitempty"` // % bonus to weapon damage while raging
 	RageResistPct      int           `json:"rage_resist_pct,omitempty"`       // % reduction to incoming damage while raging
 	ExtraActions       int           `json:"extra_actions,omitempty"`         // granted by Action Surge / Flurry — extra attack actions this turn
+	Ambushing          bool          `json:"ambushing,omitempty"`             // Opened with a sneak attack: advantage on attacks this first turn
 	PendingSneakDice   string        `json:"pending_sneak_dice,omitempty"`    // rogue Sneak Attack rider ("2d6") applied to the next hit
 	AbilitiesUsed      []string      `json:"abilities_used,omitempty"`        // once-per-combat abilities already spent this fight
 }
@@ -218,6 +219,7 @@ type MonsterInstance struct {
 	ReactionUsed bool           `json:"reaction_used"` // Reaction consumed this round (OA)
 	Disengaged   bool           `json:"disengaged"`    // Monster used Disengage this turn
 	Fled         bool           `json:"fled"`          // Escaped off the grid edge — out of the fight, no kill
+	Surprised    bool           `json:"surprised,omitempty"` // Caught unaware by a sneak attack: loses its first turn
 	Pos          Position       `json:"pos"`           // Grid cell
 	// SpawnPos is set only for the opening response of an encounter when this
 	// monster won initiative and moved before the player ever saw the board, so
@@ -288,4 +290,12 @@ type CombatSession struct {
 	// Concentration is the spell the player is currently concentrating on (buff/
 	// control). Nil when not concentrating. Taking damage triggers a CON save.
 	Concentration *ConcentrationState `json:"concentration,omitempty"`
+}
+
+// PendingEncounter is an encounter whose monsters haven't noticed the player
+// yet: the fight hasn't started, and the player chooses to sneak away, sneak
+// attack, or approach (party-combat-plan §7). Server memory only.
+type PendingEncounter struct {
+	MonsterIDs    []string `json:"monster_ids"`
+	EnvironmentID string   `json:"environment_id"`
 }
