@@ -36,8 +36,9 @@ type StepResult struct {
 	Combat   string   `json:"combat,omitempty"`  // monster id — the caller bridges into combat
 	// CombatCount / CombatSurprise carry a monster node's authored group size and
 	// ambush flag through to the combat bridge.
-	CombatCount    int  `json:"-"`
-	CombatSurprise bool `json:"-"`
+	CombatCount    int      `json:"-"`
+	CombatSurprise bool     `json:"-"`
+	CombatArena    []string `json:"-"`
 	Next     string   `json:"next,omitempty"`    // node to resolve on "continue" (empty if choices/terminal)
 	Terminal bool     `json:"terminal"`
 
@@ -47,6 +48,9 @@ type StepResult struct {
 	// keeping resolution pure. Empty/false on every other node type.
 	CheckSkill   string `json:"-"`
 	CheckSuccess bool   `json:"-"`
+
+	// Waypoint is the named spot this node reached (quest explore objectives).
+	Waypoint string `json:"-"`
 }
 
 // Deps injects the systems a node may touch, so the walker stays testable.
@@ -56,12 +60,25 @@ type Deps struct {
 	GrantReward func(save *types.SaveFile, r *types.POIReward) // XP/gold/items/effect
 	ApplyEffect func(save *types.SaveFile, effectID string)    // status effect
 	AddItem     func(save *types.SaveFile, itemID string, qty int)
+	// PayCost takes a transaction node's price, all or nothing; false when the
+	// player can't afford it.
+	PayCost func(save *types.SaveFile, c *types.POICost) bool
 }
 
 // Resolve applies a node's effects to the save and computes its presentation.
 // nodeID is the node's key (the map key in POIData.Nodes).
 func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps) StepResult {
-	res := StepResult{NodeID: nodeID, Text: node.Text}
+	res := StepResult{NodeID: nodeID, Text: node.Text, Waypoint: node.Waypoint}
+
+	// A gated node the player doesn't qualify for does nothing and turns them
+	// away — to its failure branch, or out of the POI.
+	if len(node.Requirements) > 0 && !requirement.Evaluate(node.Requirements, deps.Ctx).OK {
+		res.Waypoint = ""
+		res.Outcome = append(res.Outcome, nonEmpty(node.FailureText, "You can't go that way."))
+		res.Next = node.FailureNext
+		res.Terminal = node.FailureNext == ""
+		return res
+	}
 
 	switch node.Type {
 	case types.POIStepNarrative:
@@ -115,6 +132,12 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.Next = node.Next
 
 	case types.POIStepTransaction:
+		if node.Cost != nil && deps.PayCost != nil && !deps.PayCost(save, node.Cost) {
+			res.Outcome = append(res.Outcome, nonEmpty(node.FailureText, "You can't afford that."))
+			res.Next = node.FailureNext
+			res.Terminal = node.FailureNext == ""
+			return res
+		}
 		if node.Reward != nil && deps.GrantReward != nil {
 			deps.GrantReward(save, node.Reward)
 			res.Outcome = append(res.Outcome, rewardSummary(node.Reward))
@@ -127,6 +150,7 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.Combat = node.MonsterID
 		res.CombatCount = node.Count
 		res.CombatSurprise = node.Surprise
+		res.CombatArena = node.Arena
 		res.Next = node.Next
 
 	case types.POIStepExit, types.POIStepNPCInteraction:

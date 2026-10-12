@@ -277,6 +277,7 @@ export async function displayCurrentLocation() {
     let inSubRoom = false;        // standing in a sub-room, not the common/default room
     let defaultRoom = '';         // the common room — where Exit Room returns you
     let enterableRooms = [];      // sub-rooms you can move into from the common room
+    let canSleepHere = false;     // standing in the room you've rented
     if (inBuilding && buildings) {
         const currentBuilding = buildings.find(b => b.id === currentBuildingId);
         if (currentBuilding) {
@@ -285,6 +286,7 @@ export async function displayCurrentLocation() {
             const currentRoom = roomData.current_room || '';
             inSubRoom = !!(defaultRoom && currentRoom && currentRoom !== defaultRoom);
             enterableRooms = (roomData.rooms || []).filter(rm => !rm.is_current);
+            canSleepHere = !!(roomData.rooms || []).find(rm => rm.is_current && rm.sleepable);
 
             // Scene header: "Building — Room"
             const districtNameEl = document.getElementById('district-name');
@@ -445,7 +447,8 @@ export async function displayCurrentLocation() {
         // Room actions (in-building only): Sleep in your rented room, Play Show when ready.
         let actionCount = 0;
         if (inBuilding) {
-            if (inSubRoom && checkIfRoomRented(currentBuildingId)) {
+            // Only in the rented room itself — not the galley or the cellar.
+            if (canSleepHere) {
                 const sleepButton = createLocationButton('Sleep', () => sleepInRoom(), 'action');
                 npcFragment.appendChild(sleepButton);
                 actionCount++;
@@ -1675,42 +1678,6 @@ export function closeVaultUI() {
     import('./characterDisplay.js').then(module => {
         module.updateCharacterDisplay();
     });
-}
-
-/**
- * Check if player has a rented room at the current building
- * @param {string} buildingId - Building ID to check
- * @returns {boolean} True if room is rented here
- */
-export function checkIfRoomRented(buildingId) {
-    const state = getGameStateSync();
-
-    // Try multiple possible paths for rented_rooms
-    const rentedRooms = state.rented_rooms || state.character?.rented_rooms || [];
-    const currentDay = state.current_day || state.character?.current_day || 0;
-    const currentTime = state.time_of_day || state.character?.time_of_day || 0;
-
-    logger.debug('Checking rented room:', { buildingId, rentedRooms, currentDay, currentTime });
-
-    // Check if there's a valid (non-expired) rented room at this building
-    for (const room of rentedRooms) {
-        if (room.building === buildingId) {
-            // Support both the new save.Rentals shape and the legacy session shape.
-            const expDay = room.expires_day ?? room.expiration_day ?? 0;
-            const expTime = room.expires_minute ?? room.expiration_time ?? 0;
-
-            logger.debug('Found rented room:', { room, expDay, expTime });
-
-            // Check if not expired
-            if (currentDay < expDay || (currentDay === expDay && currentTime <= expTime)) {
-                logger.debug('Room is valid!');
-                return true;
-            }
-        }
-    }
-
-    logger.debug('No valid room found');
-    return false;
 }
 
 /**

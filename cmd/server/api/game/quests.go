@@ -66,6 +66,7 @@ func (c questContext) Class() string                   { return c.save.Class }
 func (c questContext) Race() string                    { return c.save.Race }
 func (c questContext) Alignment() string               { return c.save.Alignment }
 func (c questContext) IsQuestCompleted(id string) bool { return quest.IsCompleted(c.save, id) }
+func (c questContext) QuestStage(id string) int        { return quest.StageOf(c.save, id) }
 
 // ─── log view ─────────────────────────────────────────────────────────────────
 //

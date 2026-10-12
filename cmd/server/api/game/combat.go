@@ -1442,6 +1442,9 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 
 	// Add loot to inventory
 	placed, overflow := addLootToInventory(save.Inventory, combat.Actor(cs).Loot)
+	for _, d := range placed {
+		noteAcquired(save, d.Item)
+	}
 
 	msg := fmt.Sprintf("You are victorious! +%d XP.", combat.Actor(cs).XPEarned)
 	if len(placed) > 0 {

@@ -12,9 +12,11 @@ import (
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/events"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/quest"
+	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
@@ -40,10 +42,40 @@ func buildPOIDeps(state *types.SaveFile) (poi.Deps, error) {
 	return poi.Deps{
 		Ctx:         buildQuestContext(state), // effective-stats aware (base + active effects)
 		Rng:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		GrantReward: func(s *types.SaveFile, r *types.POIReward) { quest.GrantReward(s, r, advancement) },
+		GrantReward: func(s *types.SaveFile, r *types.POIReward) {
+			quest.GrantReward(s, r, advancement)
+			for _, it := range r.Items {
+				noteAcquired(s, it.ID)
+			}
+		},
 		ApplyEffect: func(s *types.SaveFile, id string) { _ = effects.ApplyEffect(s, id) },
-		AddItem:     func(s *types.SaveFile, id string, qty int) { _, _ = inventory.AddItemToInventory(s, id, qty) },
+		AddItem: func(s *types.SaveFile, id string, qty int) {
+			if added, _ := inventory.AddItemToInventory(s, id, qty); added > 0 {
+				noteAcquired(s, id)
+			}
+		},
+		PayCost: payPOICost,
 	}, nil
+}
+
+// payPOICost takes a transaction node's price — gold and items — all or
+// nothing: it checks everything is there before taking any of it.
+func payPOICost(s *types.SaveFile, c *types.POICost) bool {
+	if c.Gold > 0 && gameutil.GetGoldQuantity(s) < c.Gold {
+		return false
+	}
+	for _, it := range c.Items {
+		if gameutil.CountItem(s, it.ID) < max(it.Quantity, 1) {
+			return false
+		}
+	}
+	if c.Gold > 0 && !gameutil.DeductGold(s, c.Gold) {
+		return false
+	}
+	for _, it := range c.Items {
+		gameutil.ConsumeItem(s, it.ID, max(it.Quantity, 1))
+	}
+	return true
 }
 
 // stepPOI resolves one node of the active walk: it applies the node to the save,
@@ -85,9 +117,13 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 		return res, nil
 	}
 
-	// A passing check feeds the event recorder so quest "check" objectives tick.
+	// A passing check feeds the event recorder so quest "check" objectives tick,
+	// and reaching a named spot counts for "explore" objectives.
 	if res.CheckSkill != "" && res.CheckSuccess {
 		events.Record(state, events.SkillCheckPassed, res.CheckSkill, 1)
+	}
+	if res.Waypoint != "" {
+		events.Record(state, events.LocationDiscovered, res.Waypoint, 1)
 	}
 
 	sess.ActivePOI.CurrentNode = nodeID
@@ -128,6 +164,7 @@ func bridgePOICombat(sess *session.GameSession, res *poi.StepResult) error {
 		MonsterIDs:    combat.MonsterIDsForCount(res.Combat, res.CombatCount),
 		EnvironmentID: state.Location,
 		Surprise:      res.CombatSurprise,
+		Arena:         res.CombatArena,
 	}
 	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
 	if err != nil {
@@ -213,6 +250,20 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "POI not found")
 		return
 	}
+	// A POI can be shut to those who don't qualify (a rope to descend, the will
+	// to face what's inside); say why, in the author's words.
+	if res := requirement.Evaluate(poiData.Requirements, buildQuestContext(&sess.SaveData)); !res.OK {
+		msg := "You can't go in there yet."
+		if d := res.Missing[0].Description; d != "" {
+			msg = d
+		}
+		writePOIError(w, http.StatusForbidden, msg)
+		return
+	}
+
+	// Going in counts as exploring it — a quest taken after the POI was first
+	// found can still send you there.
+	events.Record(&sess.SaveData, events.LocationDiscovered, req.POIID, 1)
 
 	sess.ActivePOI = &poi.Session{POIID: req.POIID, Title: poiData.Name, Nodes: poiData.Nodes, CurrentNode: poiData.StartNode}
 	data := map[string]any{}

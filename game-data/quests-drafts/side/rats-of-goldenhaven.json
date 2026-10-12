@@ -9,8 +9,8 @@
   "start_condition": {
     "type": "talk",
     "target": "tavern-owner-bob",
-    "location": "goldenhaven-east",
-    "start_hint": "Speak with the tavern owner in Goldenhaven East."
+    "location": "goldenhaven",
+    "start_hint": "Speak with Bob at the Salty Anchor, on Goldenhaven's east docks."
   },
   "recommended": {
     "recommended_stats": [
@@ -54,7 +54,7 @@
     },
     {
       "id": "the-hole-in-the-wall",
-      "description": "Investigate the breach in the cellar wall.",
+      "description": "Something drove the rats up into the cellar. Investigate the breach in the wall.",
       "objectives": [
         {
           "type": "check",
@@ -67,7 +67,8 @@
           "target": "sewer-tunnels-entry",
           "description": "Enter the sewers."
         }
-      ]
+      ],
+      "site": "goldenhaven-sewers"
     },
     {
       "id": "sewer-navigation",
@@ -90,7 +91,8 @@
           "count": 3,
           "description": "Clear the junction."
         }
-      ]
+      ],
+      "site": "goldenhaven-sewers"
     },
     {
       "id": "the-rat-king",
@@ -113,7 +115,8 @@
           "count": 1,
           "description": "Defeat the Rat King."
         }
-      ]
+      ],
+      "site": "goldenhaven-sewers"
     },
     {
       "id": "bob-confrontation",
@@ -133,16 +136,403 @@
           {
             "id": "ale-mug",
             "quantity": 1
-          },
-          {
-            "id": "rat-tail-trophy",
-            "quantity": 1
           }
         ]
       }
     }
-  ]
+  ],
+  "sites": {
+    "goldenhaven-sewers": {
+      "name": "The Old Sewers",
+      "description": "A breach in the Salty Anchor's cellar wall, opening onto the sewers under the docks.",
+      "location": "goldenhaven",
+      "district": "east",
+      "building": "sailors_tavern",
+      "room": "cellar",
+      "label": "The breach in the wall",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "Behind the last row of casks the cellar wall has given way: a ragged hole in the old brick, gnawed at the edges. Cold, foul air breathes out of it, and somewhere below, water runs.",
+          "choices": [
+            {
+              "label": "Examine the breach",
+              "next": "examine",
+              "requirements": [
+                {
+                  "type": "quest_stage",
+                  "id": "rats-of-goldenhaven",
+                  "min": 1,
+                  "max": 1
+                }
+              ]
+            },
+            {
+              "label": "Climb through into the tunnels",
+              "next": "tunnels",
+              "requirements": [
+                {
+                  "type": "quest_stage",
+                  "id": "rats-of-goldenhaven",
+                  "min": 2,
+                  "max": 3
+                }
+              ]
+            },
+            {
+              "label": "Leave it for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "examine": {
+          "type": "check",
+          "text": "You crouch at the hole with a lamp.",
+          "skill": "perception",
+          "dc": 12,
+          "success_text": "Claw marks, hundreds of them, all leading up and out. The bricks around the hole are crusted with something blue and sticky. Whatever drove the rats into the cellar came from below, from the old sewers.",
+          "success_next": "drop-in",
+          "failure_text": "It's dark, and the smell makes your eyes water. You can't make much out beyond the hole itself.",
+          "failure_next": "examine-again"
+        },
+        "examine-again": {
+          "type": "choice",
+          "text": "The breach yawns at you.",
+          "choices": [
+            {
+              "label": "Look closer",
+              "next": "examine"
+            },
+            {
+              "label": "Leave it for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "drop-in": {
+          "type": "narrative",
+          "waypoint": "sewer-tunnels-entry",
+          "text": "You squeeze through the breach and drop into ankle-deep water. Goldenhaven's old sewers stretch away in both directions, brick arches slick with damp. Far off, something squeaks, and is answered by a great many somethings.",
+          "next": "tunnels"
+        },
+        "tunnels": {
+          "type": "choice",
+          "text": "The tunnel splits. Upstream, the scratching. Downstream, the roar of moving water.",
+          "choices": [
+            {
+              "label": "Follow the scratching",
+              "next": "junction",
+              "requirements": [
+                {
+                  "type": "quest_stage",
+                  "id": "rats-of-goldenhaven",
+                  "min": 2,
+                  "max": 2
+                }
+              ]
+            },
+            {
+              "label": "Wade downstream",
+              "next": "slip"
+            },
+            {
+              "label": "Head for the drainage chamber",
+              "next": "drainage",
+              "requirements": [
+                {
+                  "type": "quest_stage",
+                  "id": "rats-of-goldenhaven",
+                  "min": 3,
+                  "max": 3
+                }
+              ]
+            },
+            {
+              "label": "Climb back up to the cellar",
+              "next": "leave"
+            }
+          ]
+        },
+        "slip": {
+          "type": "damage",
+          "text": "The floor drops away under the current. You go down hard on the slimed brick and come up spluttering, back where the tunnel splits.",
+          "damage": {
+            "type": "bludgeoning",
+            "amount": 2
+          },
+          "next": "tunnels"
+        },
+        "junction": {
+          "type": "narrative",
+          "waypoint": "sewer-junction-a",
+          "text": "Four tunnels meet under a vaulted ceiling. Rags, bones and chewed cork are heaped against the walls: a nest, and a big one. The scratching is everywhere now.",
+          "next": "track"
+        },
+        "track": {
+          "type": "check",
+          "text": "You look for which way they went.",
+          "skill": "perception",
+          "dc": 10,
+          "success_text": "Fresh tracks in the muck lead along a ledge, and at its end three fat rats look up from their meal.",
+          "success_next": "junction-fight",
+          "failure_text": "The muck is churned in every direction. You lose the trail.",
+          "failure_next": "track-again"
+        },
+        "track-again": {
+          "type": "choice",
+          "text": "Tracks everywhere. None of them make sense.",
+          "choices": [
+            {
+              "label": "Search again",
+              "next": "track"
+            },
+            {
+              "label": "Climb back up to the cellar",
+              "next": "leave"
+            }
+          ]
+        },
+        "junction-fight": {
+          "type": "monster",
+          "text": "They come at you across the channel.",
+          "monster_id": "giant-rat",
+          "count": 3,
+          "arena": [
+            "..#.....~~#..",
+            "..#..=..~~...",
+            ".......,~~...",
+            "..,.....WW..=",
+            "........WW...",
+            "..=.....WW,..",
+            ".......,~~...",
+            "..#.....~~#..",
+            "..#.....~~..."
+          ],
+          "next": "after-junction"
+        },
+        "after-junction": {
+          "type": "narrative",
+          "text": "The last rat squeals and goes still. Past the nest the tunnel slopes down toward a roar of water, and under the roar there's a chittering, like a hundred rats talking at once.",
+          "next": "drainage"
+        },
+        "drainage": {
+          "type": "narrative",
+          "waypoint": "sewer-drainage-chamber",
+          "text": "A great round chamber where the city's drains pour into a black pool. On a mound of refuse in the middle of it a knot of rats writhes as one creature: a dozen bodies, tails fused into a single braid, every eye glowing a faint, wrong blue. The Rat King.",
+          "next": "residue"
+        },
+        "residue": {
+          "type": "check",
+          "text": "The same blue crust is everywhere here, thick on the stones around the pool.",
+          "skill": "medicine",
+          "dc": 10,
+          "success_text": "It isn't mould. It's sugary and smells of hops and something sharp and chemical: a brew, spoiled, and soaked into everything these rats have eaten. It's what changed them.",
+          "success_next": "king-fight",
+          "failure_text": "You rub some between your fingers and it stings like nettles. Whatever it is, it isn't natural.",
+          "failure_next": "residue-sting"
+        },
+        "residue-sting": {
+          "type": "damage",
+          "text": "Your fingers burn where the blue touched them.",
+          "damage": {
+            "type": "poison",
+            "amount": 1
+          },
+          "next": "residue-again"
+        },
+        "residue-again": {
+          "type": "choice",
+          "text": "The Rat King hasn't noticed you yet.",
+          "choices": [
+            {
+              "label": "Study the residue more carefully",
+              "next": "residue"
+            },
+            {
+              "label": "Back away to the tunnels",
+              "next": "tunnels"
+            }
+          ]
+        },
+        "king-fight": {
+          "type": "monster",
+          "text": "Every blue eye turns toward you at once.",
+          "monster_id": "rat-king-boss",
+          "count": 1,
+          "arena": [
+            "...#.....#...",
+            ".....~~~.....",
+            "...~~WWW~~...",
+            "..,~WWWWW~,..",
+            "...~WWWWW~...",
+            "..,~WWWWW~,..",
+            "...~~WWW~~...",
+            ".....~~~.....",
+            "...#.....#..."
+          ],
+          "next": "king-dead"
+        },
+        "king-dead": {
+          "type": "narrative",
+          "text": "The knot comes apart as it dies, and the blue fades from a dozen pairs of eyes. In the pool, bobbing against the refuse, floats a small cask, its bung knocked out, stamped with a familiar anchor and the words BOB'S SPECIAL BREW.",
+          "next": "trophy"
+        },
+        "trophy": {
+          "type": "loot",
+          "text": "You cut the braid of tails free. Bob will want to see this.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "rat-tail-trophy",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "You climb back up through the breach. Time to have a word with Bob.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step back from the breach.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "Ask about the cellar",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Rats. In my cellar. Big as dogs, some of 'em, and I swear one looked at me. I can't get to the casks, and a tavern without ale is just a room full of angry sailors. Clear them out and I'll make it worth your while.",
+          "options": [
+            "how-big",
+            "accept",
+            "decline"
+          ]
+        },
+        "how-big": {
+          "label": "Big as dogs?",
+          "text": "Well, big as a small dog. A terrier. A big terrier. They only got big this past month, mind. Before that, normal rats. A normal amount of rats.",
+          "options": [
+            "what-changed",
+            "accept",
+            "decline"
+          ]
+        },
+        "what-changed": {
+          "label": "What changed a month ago?",
+          "text": "Changed? Nothing changed. Nothing at all. Why would anything have changed? (He wipes the same spot on the bar, harder.)",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll clear your cellar.",
+          "text": "Bless you. The cellar's through the back, down past the galley. Mind the third step, it's gone soft.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not right now.",
+          "text": "Right. I'll just keep the cellar door shut, then. Tight."
+        }
+      }
+    },
+    "active": {
+      "option": "About the cellar...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Well? Are they... how's it looking down there?",
+          "options": [
+            "still-rats",
+            "the-hole",
+            "the-sewers",
+            "the-king",
+            "back-to-it"
+          ]
+        },
+        "still-rats": {
+          "label": "Still working on it.",
+          "text": "They're still down there? I can hear them chewing. They're chewing my casks, I know it.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rats-of-goldenhaven",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "the-hole": {
+          "label": "The rats are dead, but there's a hole in your cellar wall.",
+          "text": "A hole? Into the old sewers, I suppose. This whole quarter's built on them. If more are coming up through there, I'd be grateful if you had a look. Down there. Where the hole goes.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rats-of-goldenhaven",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "the-sewers": {
+          "label": "There are more of them in the sewers.",
+          "text": "More? How many more? ...Did you see anything odd down there? Anything blue? No reason. Just asking.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rats-of-goldenhaven",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "the-king": {
+          "label": "Something down there is driving them. Something big.",
+          "text": "Big. Right. Well. You'll want to deal with that, then. Before it comes up the steps.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rats-of-goldenhaven",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll get back to it.",
+          "text": "Right. Yes. Thank you."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the Rat King...",
+      "start": "confess",
+      "nodes": {
+        "confess": {
+          "text": "You found the cask. Of course you found the cask. It was meant to be my Special Brew: hops, honey, and a pinch of something a sailor sold me off a ship from the Isles. It went blue, then it went bad, and I rolled it down the drain so nobody would know. I didn't know it would do that. To them.",
+          "options": [
+            "scold",
+            "forgive"
+          ]
+        },
+        "scold": {
+          "label": "You made a monster out of a sewer full of rats.",
+          "text": "I know. I KNOW. No more Special Brew. Honest ale from now on. Keep the tankard, you'll always have a stool at the Anchor. And maybe don't tell the harbourmaster."
+        },
+        "forgive": {
+          "label": "Accidents happen. Just don't brew it again.",
+          "text": "Never again. Honest ale, I swear it on the Anchor. Keep that tankard, you'll always have a stool here."
+        }
+      }
+    }
+  }
 }
-
-
-

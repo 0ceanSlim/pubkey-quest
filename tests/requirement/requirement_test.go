@@ -19,6 +19,7 @@ type fakeContext struct {
 	race      string
 	alignment string
 	completed map[string]bool
+	stages    map[string]int // active quest → stage
 }
 
 func (f fakeContext) SkillValue(id string) int        { return f.skills[id] }
@@ -30,6 +31,15 @@ func (f fakeContext) Class() string                   { return f.class }
 func (f fakeContext) Race() string                    { return f.race }
 func (f fakeContext) Alignment() string               { return f.alignment }
 func (f fakeContext) IsQuestCompleted(id string) bool { return f.completed[id] }
+func (f fakeContext) QuestStage(id string) int {
+	if s, ok := f.stages[id]; ok {
+		return s
+	}
+	if f.completed[id] {
+		return requirement.StageCompleted
+	}
+	return requirement.StageNotStarted
+}
 
 func baseCtx() fakeContext {
 	return fakeContext{
@@ -106,5 +116,32 @@ func TestEvaluate_AndSemantics(t *testing.T) {
 	// All-met set passes.
 	if res := requirement.Evaluate(reqs[:2], ctx); !res.OK {
 		t.Errorf("all-met set should pass, got %+v", res)
+	}
+}
+
+func TestQuestStage(t *testing.T) {
+	ctx := baseCtx()
+	ctx.stages = map[string]int{"rats": 2}
+	zero, two, three := 0, 2, 3
+	cases := []struct {
+		name string
+		req  types.POIRequirement
+		want bool
+	}{
+		{"in range", types.POIRequirement{Type: "quest_stage", ID: "rats", Min: 2, Max: &three}, true},
+		{"exact", types.POIRequirement{Type: "quest_stage", ID: "rats", Min: 2, Max: &two}, true},
+		{"below min", types.POIRequirement{Type: "quest_stage", ID: "rats", Min: 3}, false},
+		{"above max", types.POIRequirement{Type: "quest_stage", ID: "rats", Min: 0, Max: &zero}, false},
+		{"no max", types.POIRequirement{Type: "quest_stage", ID: "rats", Min: 1}, true},
+		{"not started", types.POIRequirement{Type: "quest_stage", ID: "other", Min: 0}, false},
+		{"completed passes min", types.POIRequirement{Type: "quest_stage", ID: "the-rising-shadow", Min: 4}, true},
+		{"completed fails max", types.POIRequirement{Type: "quest_stage", ID: "the-rising-shadow", Min: 0, Max: &three}, false},
+		{"active", types.POIRequirement{Type: "quest_active", ID: "rats"}, true},
+		{"active: completed isn't", types.POIRequirement{Type: "quest_active", ID: "the-rising-shadow"}, false},
+	}
+	for _, c := range cases {
+		if got := requirement.EvaluateOne(c.req, ctx); got != c.want {
+			t.Errorf("%s: got %v, want %v", c.name, got, c.want)
+		}
 	}
 }

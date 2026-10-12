@@ -447,6 +447,7 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 
 	// Update encumbrance effects after buying items
 	status.UpdateEncumbrancePenaltyEffects(save)
+	noteAcquired(save, transaction.ItemID)
 
 	// Update session in memory (not disk!)
 	if err := sessionMgr.UpdateSession(transaction.Npub, transaction.SaveID, session.SaveData); err != nil {

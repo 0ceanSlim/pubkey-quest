@@ -117,6 +117,7 @@ type schemaRefIndex struct {
 	locations map[string]bool // cities + environments + POIs (homes for NPCs)
 	quests    map[string]bool
 	pois      map[string]bool
+	waypoints map[string]bool // named spots inside POIs (node "waypoint")
 }
 
 func buildSchemaRefIndex(dirs SchemaDirs) *schemaRefIndex {
@@ -129,6 +130,18 @@ func buildSchemaRefIndex(dirs SchemaDirs) *schemaRefIndex {
 		locations: map[string]bool{},
 		quests:    schemaLoadIDs(dirs.Quests),
 		pois:      schemaLoadIDs(dirs.POIs),
+		waypoints: map[string]bool{},
+	}
+	for _, p := range schemaWalkJSON(dirs.POIs) {
+		var v types.POIData
+		if schemaDecodeStrict(p, &v) != nil {
+			continue
+		}
+		for _, n := range v.Nodes {
+			if n.Waypoint != "" {
+				idx.waypoints[n.Waypoint] = true
+			}
+		}
 	}
 	for k := range schemaLoadIDs(dirs.Cities) {
 		idx.locations[k] = true
@@ -227,8 +240,13 @@ func (c *schemaChecker) checkRequirements(reqs []types.POIRequirement) {
 			}
 		case "item":
 			c.checkRef("item", r.ID, c.idx.items)
-		case "quest_completed":
+		case "quest_completed", "quest_active":
 			c.checkRef("quest", r.ID, c.idx.quests)
+		case "quest_stage":
+			c.checkRef("quest", r.ID, c.idx.quests)
+			if r.Max != nil && *r.Max < r.Min {
+				c.errf("quest_stage requirement has max %d below min %d", *r.Max, r.Min)
+			}
 		case "level", "quest_points":
 			// numeric only — Min carries the value
 		case "class", "race", "alignment":
@@ -286,6 +304,7 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 		c.checkSkill(n.Skill)
 	case types.POIStepMonster:
 		c.checkRef("monster", n.MonsterID, c.idx.monsters)
+		c.checkArena(n.Arena)
 	case types.POIStepNPCInteraction:
 		for _, id := range n.NPCIDs {
 			if id == "" {
@@ -311,6 +330,44 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 	}
 }
 
+// checkArena rejects arena rows with characters outside the combat-terrain
+// arena_key ('.' open, ',' rough, '~' water, 'W' deep water, '=' low cover,
+// '#' high cover, '^' high ground, '!' hazard).
+func (c *schemaChecker) checkArena(rows []string) {
+	for i, row := range rows {
+		for _, ch := range row {
+			if !strings.ContainsRune(".,~W=#^!", ch) {
+				c.errf("arena row %d: unknown terrain %q", i, ch)
+				break
+			}
+		}
+	}
+}
+
+// checkGraph reports node links (next / success_next / failure_next / choice
+// next) and the start node that point at nodes that don't exist.
+func (c *schemaChecker) checkGraph(start string, nodes map[string]types.POIStep) {
+	if _, ok := nodes[start]; !ok {
+		c.errf("start_node %q is not a node", start)
+	}
+	link := func(from, to string) {
+		if to == "" {
+			return
+		}
+		if _, ok := nodes[to]; !ok {
+			c.errf("nodes.%s links to missing node %q", from, to)
+		}
+	}
+	for id, n := range nodes {
+		link(id, n.Next)
+		link(id, n.SuccessNext)
+		link(id, n.FailureNext)
+		for _, ch := range n.Choices {
+			link(id, ch.Next)
+		}
+	}
+}
+
 func (c *schemaChecker) checkPOI(p types.POIData) {
 	c.checkRef("location", p.ParentEnvironment, c.idx.locations)
 	c.checkSkill(p.Discovery.Skill)
@@ -322,6 +379,7 @@ func (c *schemaChecker) checkPOI(p types.POIData) {
 		// POIs no longer embed NPCs — the only NPC source is the global index.
 		c.checkNode(id, n, nil)
 	}
+	c.checkGraph(p.StartNode, p.Nodes)
 }
 
 func (c *schemaChecker) checkEncounter(e types.EncounterData) {
@@ -400,15 +458,37 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 		}
 		c.context = save
 	}
+	// Quest sites: their nodes, and the waypoints inside them that this quest's
+	// explore objectives can name.
+	siteWaypoints := map[string]bool{}
+	for sid, site := range q.Sites {
+		save := c.context
+		c.context = save + "/sites." + sid
+		c.checkRef("location", site.Location, c.idx.locations)
+		for id, n := range site.Nodes {
+			c.checkNode(id, n, nil)
+			if n.Waypoint != "" {
+				siteWaypoints[n.Waypoint] = true
+			}
+		}
+		c.checkGraph(site.StartNode, site.Nodes)
+		c.context = save
+	}
 	for si, st := range q.Stages {
 		save := c.context
 		c.context = save + fmt.Sprintf("/stages[%d]", si)
 		if st.UnlocksPOI != "" {
 			c.checkRef("poi", st.UnlocksPOI, c.idx.pois)
 		}
+		if st.Site != "" {
+			if _, ok := q.Sites[st.Site]; !ok {
+				c.errf("unknown quest site %q", st.Site)
+			}
+		}
 		if enc := st.Encounter; enc != nil {
 			c.checkRef("location", enc.Location, c.idx.locations)
 			c.checkRef("monster", enc.MonsterID, c.idx.monsters)
+			c.checkArena(enc.Arena)
 		}
 		c.checkReward(st.Rewards)
 		for oi, o := range st.Objectives {
@@ -420,8 +500,8 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 			case types.ObjectiveFetch:
 				c.checkRef("item", o.Target, c.idx.items)
 			case types.ObjectiveExplore:
-				if !c.idx.locations[o.Target] && !c.idx.pois[o.Target] {
-					c.errf("unknown location/poi: %q", o.Target)
+				if !c.idx.locations[o.Target] && !c.idx.pois[o.Target] && !c.idx.waypoints[o.Target] && !siteWaypoints[o.Target] {
+					c.errf("unknown location/poi/waypoint: %q", o.Target)
 				}
 			case types.ObjectiveSlay:
 				c.checkRef("monster", o.Target, c.idx.monsters)

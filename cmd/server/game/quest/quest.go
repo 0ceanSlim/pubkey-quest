@@ -18,6 +18,20 @@ func IsCompleted(save *types.SaveFile, questID string) bool {
 	return contains(save.QuestsCompleted, questID)
 }
 
+// StageOf is the quest's active stage index, or requirement.StageCompleted /
+// requirement.StageNotStarted — what quest_stage requirements gate on.
+func StageOf(save *types.SaveFile, questID string) int {
+	for _, qp := range save.QuestsActive {
+		if qp.QuestID == questID {
+			return qp.Stage
+		}
+	}
+	if IsCompleted(save, questID) {
+		return requirement.StageCompleted
+	}
+	return requirement.StageNotStarted
+}
+
 // IsActive reports whether the quest is currently in progress.
 func IsActive(save *types.SaveFile, questID string) bool {
 	for _, qp := range save.QuestsActive {
@@ -91,6 +105,9 @@ func Accept(q types.QuestData, save *types.SaveFile, ctx requirement.Context) er
 		Stage:           0,
 		ObjectiveCounts: make([]int, objectives),
 	})
+	if len(q.Stages) > 0 {
+		PrimeFetch(save, &save.QuestsActive[len(save.QuestsActive)-1], q.Stages[0])
+	}
 	return nil
 }
 

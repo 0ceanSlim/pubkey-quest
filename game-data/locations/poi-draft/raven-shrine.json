@@ -130,9 +130,11 @@
         "duration_minutes": 360
       },
       "is_terminal": true
+    },
+    "leave": {
+      "type": "exit",
+      "text": "You leave the shrine to its ravens. One of them watches you all the way back to the road.",
+      "is_terminal": true
     }
   }
 }
-
-
-

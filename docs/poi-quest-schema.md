@@ -21,8 +21,9 @@ Used in `POIData.Requirements`, `POIChoice.Requirements`, `POIStep.Requirements`
 | Field         | Type       | When                                      |
 |---------------|------------|-------------------------------------------|
 | `type`        | string     | always (see table below)                  |
-| `id`          | string     | for `item`, `skill`, `stat`, `quest_completed` |
-| `min`         | int        | numeric thresholds (`skill`, `stat`, `level`, `quest_points`, `item` quantity) |
+| `id`          | string     | for `item`, `skill`, `stat`, `quest_completed`, `quest_active`, `quest_stage` |
+| `min`         | int        | numeric thresholds (`skill`, `stat`, `level`, `quest_points`, `item` quantity, `quest_stage`) |
+| `max`         | int        | optional upper bound for `quest_stage` (`0` = stage 0 only; leave out for no bound) |
 | `values`      | string[]   | enum lists (`class`, `race`, `alignment`, `background`, `deity`) |
 | `consumed`    | bool       | for `item` requirements that get spent    |
 | `description` | string     | optional human-readable reason            |
@@ -39,6 +40,10 @@ Used in `POIData.Requirements`, `POIChoice.Requirements`, `POIStep.Requirements`
 | `alignment`      | `{type:"alignment", values:["good","neutral_good","lawful_good","chaotic_good"]}`      |
 | `background`     | `{type:"background", values:["Sage"]}`                                                 |
 | `quest_completed`| `{type:"quest_completed", id:"<quest-id>"}`                                            |
+| `quest_active`   | `{type:"quest_active", id:"<quest-id>"}` — in progress (not done)                      |
+| `quest_stage`    | `{type:"quest_stage", id:"<quest-id>", min:<stage>, max?:<stage>}` — active at a stage index (0-based) in range; a completed quest passes any `min` and fails any `max` |
+
+`quest_stage` is how a quest reaches into a place that also exists on its own: a POI anyone can visit gets a choice gated on the quest's stage (the quest's part of it), and its waypoints, checks and fights feed the stage's objectives.
 
 Skill IDs (canonical, in `game-data/systems/skills.json`): `athletics`, `crafting`, `influence`, `medicine`, `perception`, `resolve`, `survival`, `thieving`. Anything else is wrong.
 
@@ -158,6 +163,7 @@ A discoverable, revisitable location attached to an environment.
   "monster_id":   "<monster-id>",
   "count":        int,                    // default 1
   "surprise":     bool,                   // player gets first round
+  "arena":        ["....~~..", ...],      // optional authored battlefield (combat-terrain arena_key)
 
   // loot
   "loot_table":   POILootTable,
@@ -175,10 +181,16 @@ A discoverable, revisitable location attached to an environment.
   // npc_interaction
   "npc_ids":      ["<npc-id>", ...],
 
-  // gating
-  "requirements": [POIRequirement, ...]
+  // gating — when unmet the node does nothing and goes to failure_next
+  // (shown failure_text), or ends the walk when there's no failure_next
+  "requirements": [POIRequirement, ...],
+
+  // any node
+  "waypoint":     "<spot-id>"             // reaching this node counts for quest explore objectives
 }
 ```
+
+A `transaction` takes its `cost` all or nothing; when the player can't pay it goes to `failure_next` (or ends) without granting the reward.
 
 ### Node type summary
 
@@ -267,6 +279,7 @@ Quests live in `game-data/quests/<category>/<quest-id>.json`.
     "recommended_stats": ["Strength 14", "Resolve 12"],
     "combat_danger":     "Low | Moderate | High"
   },
+  "sites":  { "<site-id>": QuestSite, ... },              // optional, places that exist only for this quest
   "stages": [QuestStage, ...]
 }
 ```
@@ -280,17 +293,39 @@ Quests live in `game-data/quests/<category>/<quest-id>.json`.
   "wait_minutes": int,                          // narrative pause before stage activates
   "objectives":   [QuestObjective, ...],
   "rewards":      POIReward,                    // optional, usually only on the final stage
-  "unlocks_poi":  "<poi-id>"                    // optional, reveals a POI on completion
+  "unlocks_poi":  "<poi-id>",                   // optional, reveals a POI on completion (derived, not saved)
+  "encounter":    QuestStageEncounter,          // optional, a fight waiting at a place while the stage is active
+  "site":         "<site-id>"                   // optional, opens one of the quest's sites during this stage
 }
 ```
+
+### QuestSite
+
+A place that exists only for a quest: the sewers behind a tavern's cellar wall. It is **not** a POI. Nothing about it is discovered or saved. Its entrance shows at its spot only while the player is on a stage whose `site` names it, and it plays as a node walk with the same nodes as a POI. Use a POI with a `quest_stage`-gated branch instead when the place should also be visitable without the quest.
+
+```
+{
+  "name":        "The Old Sewers",
+  "description": "...",
+  "location":    "<city-id>",                    // where the entrance is; empty district/building/room match anywhere
+  "district":    "<district>",
+  "building":    "<building-id>",
+  "room":        "<room-id>",
+  "label":       "The breach in the wall",       // entrance button (defaults to name)
+  "start_node":  "<node-id>",
+  "nodes":       { "<node-id>": POIStep, ... }
+}
+```
+
+Waypoints inside a site are valid `explore` targets for its quest. See `quests-drafts/side/rats-of-goldenhaven.json`.
 
 ### QuestObjective
 
 | Type      | Required fields                          |
 |-----------|------------------------------------------|
 | `talk`    | `target` (npc-id)                        |
-| `fetch`   | `target` (item-id), `count`              |
-| `explore` | `target` (location-id or poi-id)         |
+| `fetch`   | `target` (item-id), `count` — counts what the player carries |
+| `explore` | `target` (location-id, poi-id, or a POI/site `waypoint`) |
 | `slay`    | `target` (monster-id), `count`           |
 | `check`   | `skill` (skill-id), `value` (DC)         |
 

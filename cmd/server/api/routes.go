@@ -393,6 +393,8 @@ func registerPOIRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/poi/enter", game.POIEnterHandler)
 	mux.HandleFunc("/api/poi/advance", game.POIAdvanceHandler)
 	mux.HandleFunc("/api/poi/list", game.POIListHandler)
+	mux.HandleFunc("/api/quest/sites", game.QuestSitesHandler)
+	mux.HandleFunc("/api/quest/site/enter", game.QuestSiteEnterHandler)
 }
 
 // ============================================================================

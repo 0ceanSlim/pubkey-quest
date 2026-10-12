@@ -23,6 +23,7 @@ func (f fakeCtx) Class() string                   { return "Fighter" }
 func (f fakeCtx) Race() string                    { return "Human" }
 func (f fakeCtx) Alignment() string               { return "neutral" }
 func (f fakeCtx) IsQuestCompleted(id string) bool { return false }
+func (f fakeCtx) QuestStage(id string) int        { return -1 }
 
 func rng() *rand.Rand { return rand.New(rand.NewSource(1)) }
 
@@ -164,5 +165,56 @@ func TestLootRangeQuantity(t *testing.T) {
 		if got < 2 || got > 5 {
 			t.Fatalf("seed %d: qty %d outside [2,5]", seed, got)
 		}
+	}
+}
+
+func TestGatedNodeTurnsAway(t *testing.T) {
+	node := types.POIStep{
+		Type: types.POIStepReward, Reward: &types.POIReward{Gold: 5}, Next: "n2", Waypoint: "vault",
+		Requirements: []types.POIRequirement{{Type: "item", ID: "silver-key"}},
+		FailureText:  "The vault is locked.", FailureNext: "outside",
+	}
+	granted := false
+	deps := poi.Deps{Ctx: fakeCtx{}, Rng: rng(), GrantReward: func(*types.SaveFile, *types.POIReward) { granted = true }}
+	res := poi.Resolve(node, "vault", &types.SaveFile{}, deps)
+	if granted || res.Next != "outside" || res.Waypoint != "" || res.Terminal {
+		t.Errorf("locked: granted=%v %+v", granted, res)
+	}
+	deps.Ctx = fakeCtx{items: map[string]bool{"silver-key": true}}
+	res = poi.Resolve(node, "vault", &types.SaveFile{}, deps)
+	if !granted || res.Next != "n2" || res.Waypoint != "vault" {
+		t.Errorf("unlocked: granted=%v %+v", granted, res)
+	}
+}
+
+func TestTransactionPaysOrRefuses(t *testing.T) {
+	node := types.POIStep{
+		Type: types.POIStepTransaction, Cost: &types.POICost{Gold: 10},
+		Reward: &types.POIReward{XP: 50}, Next: "after",
+	}
+	granted := 0
+	afford := false
+	deps := poi.Deps{
+		Ctx: fakeCtx{}, Rng: rng(),
+		GrantReward: func(*types.SaveFile, *types.POIReward) { granted++ },
+		PayCost:     func(*types.SaveFile, *types.POICost) bool { return afford },
+	}
+	res := poi.Resolve(node, "t", &types.SaveFile{}, deps)
+	if granted != 0 || !res.Terminal {
+		t.Errorf("unaffordable: granted=%d %+v", granted, res)
+	}
+	afford = true
+	res = poi.Resolve(node, "t", &types.SaveFile{}, deps)
+	if granted != 1 || res.Next != "after" {
+		t.Errorf("paid: granted=%d %+v", granted, res)
+	}
+}
+
+func TestMonsterNodeCarriesArena(t *testing.T) {
+	arena := []string{"..~~..", "..WW.."}
+	res := poi.Resolve(types.POIStep{Type: types.POIStepMonster, MonsterID: "giant-rat", Count: 3, Arena: arena, Next: "won"},
+		"m", &types.SaveFile{}, poi.Deps{Ctx: fakeCtx{}, Rng: rng()})
+	if res.Combat != "giant-rat" || len(res.CombatArena) != 2 || res.Next != "won" {
+		t.Errorf("monster: %+v", res)
 	}
 }

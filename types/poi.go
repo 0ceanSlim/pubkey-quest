@@ -37,10 +37,18 @@ const (
 //	{"type":"level","min":5}
 //	{"type":"quest_points","min":10}
 //	{"type":"quest_completed","id":"the-rising-shadow"}
+//	{"type":"quest_active","id":"rats-of-goldenhaven"}
+//	{"type":"quest_stage","id":"rats-of-goldenhaven","min":2,"max":3}
+//
+// quest_stage passes while the quest is active at a stage index (0-based) from
+// Min up to Max (no Max = no upper bound; "max":0 means stage 0 only); a
+// completed quest counts as being past every stage, so it passes any Min and
+// fails any Max.
 type POIRequirement struct {
 	Type        string   `json:"type"`
 	ID          string   `json:"id,omitempty"`
 	Min         int      `json:"min,omitempty"`
+	Max         *int     `json:"max,omitempty"` // quest_stage only
 	Values      []string `json:"values,omitempty"`
 	Consumed    bool     `json:"consumed,omitempty"`
 	Description string   `json:"description,omitempty"`
@@ -95,7 +103,7 @@ type POICost struct {
 //	choice          Text, Choices
 //	check           Text, Skill, DC, SuccessText, SuccessNext, FailureText, FailureNext
 //	passive_check   Skill, DC, SuccessNext, FailureNext (no player-visible text)
-//	monster         Text, MonsterID, Count, Surprise, Next
+//	monster         Text, MonsterID, Count, Surprise, Arena, Next
 //	loot            Text, LootTable, Next or IsTerminal
 //	damage          Text, Damage, Next
 //	effect          Text, Effect, Next
@@ -103,6 +111,13 @@ type POICost struct {
 //	transaction     Text, Cost, Reward, Next or IsTerminal
 //	exit            Text, IsTerminal=true (terminal nodes can use IsTerminal on any type)
 //	npc_interaction Text, NPCIDs, IsTerminal=true (handover)
+//
+// Any node may also carry:
+//
+//	Requirements  a gate: when unmet the node does nothing and the walk goes to
+//	              FailureNext (or ends), so a door can stay shut without a check
+//	Waypoint      a named spot inside the POI ("sewer-junction-a"); reaching the
+//	              node counts as exploring it, for quest explore objectives
 type POIStep struct {
 	ID           string           `json:"id,omitempty"` // Optional; map key is canonical
 	Type         POIStepType      `json:"type"`
@@ -126,6 +141,10 @@ type POIStep struct {
 	Cost         *POICost         `json:"cost,omitempty"`
 	Requirements []POIRequirement `json:"requirements,omitempty"`
 	NPCIDs       []string         `json:"npc_ids,omitempty"`
+	Waypoint     string           `json:"waypoint,omitempty"`
+	// Arena is a monster node's authored battlefield — rows of combat-terrain
+	// arena_key characters, as in QuestStageEncounter.Arena.
+	Arena []string `json:"arena,omitempty"`
 }
 
 // POILootTable describes drops at a loot node.

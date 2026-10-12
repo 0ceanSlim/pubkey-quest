@@ -18,6 +18,9 @@ type RoomView struct {
 	Accessible   bool   `json:"accessible"`
 	LockedReason string `json:"locked_reason,omitempty"`
 	IsCurrent    bool   `json:"is_current"`
+	// Sleepable marks the rented room itself — the only place Sleep works
+	// (game/npc/housing.go), so the UI offers Sleep only there.
+	Sleepable bool `json:"sleepable,omitempty"`
 }
 
 // RoomsResponse lists the rooms in the player's current building.
@@ -76,6 +79,7 @@ func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 					Accessible:   accessible,
 					LockedReason: reason,
 					IsCurrent:    room.ID == save.Room,
+					Sleepable:    isRented && room.Access != nil && room.Access.State == "rented",
 				})
 			}
 		}

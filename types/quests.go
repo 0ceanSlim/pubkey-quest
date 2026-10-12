@@ -45,6 +45,28 @@ type QuestStage struct {
 	// is active and the player stands in that place, a fight starts (see
 	// api/game/quest_encounters.go). Nil for stages that don't spawn anything.
 	Encounter *QuestStageEncounter `json:"encounter,omitempty"`
+	// Site opens one of the quest's places (QuestData.Sites) for this stage.
+	// Consecutive stages naming the same site keep it open across them.
+	Site string `json:"site,omitempty"`
+}
+
+// QuestSite is a place that exists only for a quest — the sewers behind the
+// tavern cellar. It isn't a POI: nothing about it is saved or discovered. Its
+// entrance shows at its spot only while the player is on a stage that names it,
+// and it plays as a node walk with the same nodes as a POI (types.POIStep), so
+// waypoints, checks and fights inside it feed the stage's objectives.
+type QuestSite struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	// Where the entrance is. Empty District/Building/Room match anywhere within.
+	Location string `json:"location"`
+	District string `json:"district,omitempty"`
+	Building string `json:"building,omitempty"`
+	Room     string `json:"room,omitempty"`
+	// Label is the entrance button ("Climb through the breach"); defaults to Name.
+	Label     string             `json:"label,omitempty"`
+	StartNode string             `json:"start_node"`
+	Nodes     map[string]POIStep `json:"nodes"`
 }
 
 // QuestStageEncounter places a quest stage's fight. Location is required; empty
@@ -116,6 +138,7 @@ type QuestData struct {
 	Prerequisites  []string             `json:"prerequisites,omitempty"`
 	Recommended    *QuestRecommendation `json:"recommended,omitempty"`
 	Dialogue       *QuestDialogue       `json:"dialogue,omitempty"`
+	Sites          map[string]QuestSite `json:"sites,omitempty"`
 	Stages         []QuestStage         `json:"stages"`
 }
 

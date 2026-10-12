@@ -112,12 +112,14 @@
         }
       },
       "is_terminal": true
+    },
+    "leave": {
+      "type": "exit",
+      "text": "You leave the hermit to his marsh and his muttering.",
+      "is_terminal": true
     }
   },
   "npc_ids": [
     "shadowmere-hermit"
   ]
 }
-
-
-

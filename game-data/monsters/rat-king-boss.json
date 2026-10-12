@@ -1,0 +1,135 @@
+{
+  "id": "rat-king-boss",
+  "name": "The Rat King",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Beast",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 36,
+  "hp_dice": "8d8",
+  "alignment": "unaligned",
+  "tags": ["Swarm"],
+  "img": "/static/img/monster/rat-king-boss.svg",
+  "environment": ["urban", "dungeon"],
+
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 20,
+    "climb": 20
+  },
+
+  "stats": {
+    "strength": 14,
+    "dexterity": 13,
+    "constitution": 12,
+    "intelligence": 4,
+    "wisdom": 10,
+    "charisma": 6
+  },
+
+  "saving_throws": {},
+
+  "skills": {},
+
+  "damage_resistances": ["piercing", "slashing"],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": ["frightened", "prone"],
+
+  "senses": {
+    "darkvision": 30,
+    "passive_perception": 12
+  },
+
+  "preferred_range": 0,
+
+  "actions": [
+    {
+      "name": "Brew-Soaked Bites",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 2,
+        "type": "piercing",
+        "special": {
+          "type": "poison_save",
+          "dc": 11,
+          "ability": "constitution",
+          "condition": "poisoned"
+        }
+      }
+    },
+    {
+      "name": "Writhing Lash",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "bludgeoning",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 12,
+          "effect": "knocked_prone",
+          "description": "The knot of fused tails sweeps the target's legs. On a failed DC 12 Strength save, the target is knocked prone."
+        }
+      }
+    }
+  ],
+
+  "special_abilities": [
+    {
+      "name": "Many Bodies, One Hunger",
+      "description": "A dozen rats knotted together at the tails and bound by something in the water. Its blue-glowing eyes never all close at once.",
+      "type": "passive"
+    },
+    {
+      "name": "Keen Smell",
+      "description": "The Rat King has advantage on Wisdom (Perception) checks that rely on smell.",
+      "type": "passive"
+    }
+  ],
+
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [8, 20] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 80,
+        "entries": [
+          { "item": "nothing", "weight": 100 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "healing", "weight": 100, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

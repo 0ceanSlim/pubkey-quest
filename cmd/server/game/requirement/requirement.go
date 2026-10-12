@@ -26,7 +26,16 @@ type Context interface {
 	Race() string
 	Alignment() string
 	IsQuestCompleted(questID string) bool
+	// QuestStage is the active stage index of a quest (0-based), StageNotStarted
+	// when it isn't active or done, and StageCompleted once it's finished.
+	QuestStage(questID string) int
 }
+
+// Quest-stage sentinels for Context.QuestStage.
+const (
+	StageNotStarted = -1
+	StageCompleted  = 1 << 20
+)
 
 // Result reports whether every requirement passed (AND semantics) and, when it
 // did not, exactly which ones failed — so callers can render a player-facing
@@ -73,6 +82,15 @@ func EvaluateOne(req types.POIRequirement, ctx Context) bool {
 		return containsFold(req.Values, ctx.Alignment())
 	case "quest_completed":
 		return ctx.IsQuestCompleted(req.ID)
+	case "quest_active":
+		s := ctx.QuestStage(req.ID)
+		return s != StageNotStarted && s != StageCompleted
+	case "quest_stage":
+		s := ctx.QuestStage(req.ID)
+		if s == StageNotStarted || s < req.Min {
+			return false
+		}
+		return req.Max == nil || s <= *req.Max
 	default:
 		return false
 	}

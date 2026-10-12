@@ -5,6 +5,7 @@ import (
 
 	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/quest"
+	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/types"
 )
 
@@ -28,6 +29,7 @@ func (f fakeCtx) Class() string                   { return f.class }
 func (f fakeCtx) Race() string                    { return f.race }
 func (f fakeCtx) Alignment() string               { return f.alignment }
 func (f fakeCtx) IsQuestCompleted(id string) bool { return f.completed[id] }
+func (f fakeCtx) QuestStage(id string) int        { return -1 }
 
 func testQuests() map[string]*types.QuestData {
 	return map[string]*types.QuestData{
@@ -83,6 +85,12 @@ func newSave() *types.SaveFile {
 		},
 		Stats: map[string]interface{}{},
 	}
+}
+
+// carry puts qty of itemID into a fresh general slot.
+func carry(save *types.SaveFile, itemID string, qty int) {
+	slots, _ := save.Inventory["general_slots"].([]interface{})
+	save.Inventory["general_slots"] = append(slots, map[string]interface{}{"item": itemID, "quantity": qty})
 }
 
 // goldOf reads the player's gold (the gold-piece stack in general_slots).
@@ -173,6 +181,12 @@ func TestMultiStageProgression(t *testing.T) {
 		t.Fatalf("should have advanced to stage 1, got %d", save.QuestsActive[0].Stage)
 	}
 
+	// Fetch counts what's carried: the event alone isn't enough.
+	r.Record(save, events.ItemAcquired, "item-x", 1)
+	if quest.IsCompleted(save, "two-step") {
+		t.Fatal("fetch completed without the item in the pack")
+	}
+	carry(save, "item-x", 1)
 	r.Record(save, events.ItemAcquired, "item-x", 1)
 	if !quest.IsCompleted(save, "two-step") {
 		t.Fatal("second stage should complete the quest")
@@ -243,4 +257,57 @@ func hasQuest(list []types.QuestData, id string) bool {
 		}
 	}
 	return false
+}
+
+func TestFetchCountsWhatIsCarried(t *testing.T) {
+	qs := testQuests()
+	save := newSave()
+	carry(save, "item-x", 1)
+	_ = quest.Accept(*qs["two-step"], save, fakeCtx{})
+
+	var r events.Recorder
+	r.Subscribe(quest.Consumer(lookupFrom(qs), nil))
+	// Already holding the stage-2 item: finishing stage 1 finishes stage 2 too.
+	r.Record(save, events.NPCTalked, "npc-a", 1)
+	if !quest.IsCompleted(save, "two-step") {
+		t.Fatal("a fetch stage should complete on arrival when the item is already carried")
+	}
+}
+
+func TestUnlocksPOIFromFinishedStages(t *testing.T) {
+	q := &types.QuestData{ID: "q", Stages: []types.QuestStage{
+		{ID: "a", UnlocksPOI: "hidden-cave", Objectives: []types.QuestObjective{{Type: types.ObjectiveTalk, Target: "n"}}},
+		{ID: "b", Objectives: []types.QuestObjective{{Type: types.ObjectiveTalk, Target: "n"}}},
+	}}
+	lookup := lookupFrom(map[string]*types.QuestData{"q": q})
+	save := newSave()
+	save.QuestsActive = []types.QuestProgress{{QuestID: "q", Stage: 0}}
+	if quest.UnlocksPOI(save, "hidden-cave", lookup) {
+		t.Fatal("unlocked before the stage was finished")
+	}
+	save.QuestsActive[0].Stage = 1
+	if !quest.UnlocksPOI(save, "hidden-cave", lookup) {
+		t.Fatal("not unlocked after the stage was finished")
+	}
+	save.QuestsActive = nil
+	save.QuestsCompleted = []string{"q"}
+	if !quest.UnlocksPOI(save, "hidden-cave", lookup) {
+		t.Fatal("not unlocked once the quest is done")
+	}
+}
+
+func TestStageOf(t *testing.T) {
+	save := newSave()
+	if quest.StageOf(save, "q") != requirement.StageNotStarted {
+		t.Error("unstarted quest")
+	}
+	save.QuestsActive = []types.QuestProgress{{QuestID: "q", Stage: 2}}
+	if quest.StageOf(save, "q") != 2 {
+		t.Error("active quest stage")
+	}
+	save.QuestsActive = nil
+	save.QuestsCompleted = []string{"q"}
+	if quest.StageOf(save, "q") != requirement.StageCompleted {
+		t.Error("completed quest")
+	}
 }

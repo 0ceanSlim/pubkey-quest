@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"pubkey-quest/cmd/server/game/events"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
 )
 
@@ -41,6 +42,16 @@ func advanceObjectives(save *types.SaveFile, ev events.Event, lookup QuestLookup
 				continue
 			}
 			need := objectiveTarget(obj)
+			if obj.Type == types.ObjectiveFetch {
+				// Fetch counts what you're carrying, not how often an item
+				// passed through your hands — so it can't be farmed by dropping
+				// and re-taking the same thing, and it falls if you sell it.
+				if held := min(gameutil.CountItem(save, obj.Target), need); held != qp.ObjectiveCounts[j] {
+					qp.ObjectiveCounts[j] = held
+					changed = true
+				}
+				continue
+			}
 			if qp.ObjectiveCounts[j] >= need {
 				continue
 			}
@@ -70,8 +81,54 @@ func completeStage(save *types.SaveFile, qp *types.QuestProgress, quest *types.Q
 	if qp.Stage < len(quest.Stages) {
 		// NOTE: wait stages (Stage.WaitMinutes) advance immediately for now —
 		// the ready_at clock gating is a later refinement.
-		qp.ObjectiveCounts = make([]int, len(quest.Stages[qp.Stage].Objectives))
+		next := quest.Stages[qp.Stage]
+		qp.ObjectiveCounts = make([]int, len(next.Objectives))
+		PrimeFetch(save, qp, next)
+		// Already holding everything the next stage asks for: it's done too.
+		if len(next.Objectives) > 0 && stageComplete(next, qp.ObjectiveCounts) {
+			completeStage(save, qp, quest, advancement)
+		}
 	}
+}
+
+// PrimeFetch fills a stage's fetch objectives from what the player already
+// carries, so "bring me three pelts" counts the pelts in your pack.
+func PrimeFetch(save *types.SaveFile, qp *types.QuestProgress, stage types.QuestStage) {
+	ensureCounts(qp, len(stage.Objectives))
+	for j, obj := range stage.Objectives {
+		if obj.Type == types.ObjectiveFetch {
+			qp.ObjectiveCounts[j] = min(gameutil.CountItem(save, obj.Target), objectiveTarget(obj))
+		}
+	}
+}
+
+// UnlocksPOI reports whether a quest stage the player has finished reveals the
+// POI (types.QuestStage.UnlocksPOI). Derived from quest progress rather than
+// stored, per the hydration rule.
+func UnlocksPOI(save *types.SaveFile, poiID string, lookup QuestLookup) bool {
+	unlockedBy := func(questID string, doneStages int) bool {
+		q, err := lookup(questID)
+		if err != nil || q == nil {
+			return false
+		}
+		for i := 0; i < doneStages && i < len(q.Stages); i++ {
+			if q.Stages[i].UnlocksPOI == poiID {
+				return true
+			}
+		}
+		return false
+	}
+	for _, qp := range save.QuestsActive {
+		if unlockedBy(qp.QuestID, qp.Stage) {
+			return true
+		}
+	}
+	for _, id := range save.QuestsCompleted {
+		if unlockedBy(id, 1<<30) {
+			return true
+		}
+	}
+	return false
 }
 
 // pruneCompleted moves any active quest whose stage index has run past its last

@@ -1,0 +1,17 @@
+{
+  "id": "ale-mug",
+  "name": "Salty Anchor Tankard",
+  "description": "A heavy pewter tankard stamped with the Salty Anchor's anchor. Bob keeps these for regulars — show it at the bar and he'll know you.",
+  "value": 50,
+  "type": "Adventuring Gear",
+  "weight": 1,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "vessel"
+  ],
+  "notes": [
+    "Reward from The Rats of Goldenhaven"
+  ],
+  "image": "/res/img/items/ale-mug.png"
+}

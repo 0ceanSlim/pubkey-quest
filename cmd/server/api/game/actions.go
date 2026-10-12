@@ -22,6 +22,7 @@ import (
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/movement"
 	"pubkey-quest/cmd/server/game/npc"
+	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
@@ -446,13 +447,23 @@ func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActio
 	}
 }
 
+// alreadyDiscovered reports whether the player knows a place: found on the road,
+// or revealed by a quest stage they've finished (unlocks_poi, derived).
 func alreadyDiscovered(state *SaveFile, id string) bool {
 	for _, d := range state.LocationsDiscovered {
 		if d == id {
 			return true
 		}
 	}
-	return false
+	return quest.UnlocksPOI(state, id, serverdb.GetQuestByID)
+}
+
+// noteAcquired tells the event recorder an item came into the player's hands,
+// so quest fetch objectives re-count what they carry. Called where items arrive
+// (buying, pickup, vault, loot) — not inside AddItemToInventory, which quest
+// rewards also use from within the quest consumer.
+func noteAcquired(state *SaveFile, itemID string) {
+	events.Record(state, events.ItemAcquired, itemID, 1)
 }
 
 // discoveryRoll decides whether a POI is discovered as the player passes it: a
@@ -765,6 +776,9 @@ func handlePickupItemAction(session *GameSession, state *SaveFile, params map[st
 	if added < taken {
 		session.Ground.Add(key, itemID, taken-added) // inventory full — leave the rest
 	}
+	if added > 0 {
+		noteAcquired(state, itemID)
+	}
 
 	msg := fmt.Sprintf("Picked up %s", itemID)
 	if added < taken {
@@ -942,6 +956,9 @@ func handleVaultWithdrawAction(state *SaveFile, params map[string]any) (*GameAct
 	resp, err := inventory.HandleVaultWithdraw(state, itemID, paramIntOr(params["quantity"], 1))
 	if err != nil {
 		return nil, err
+	}
+	if resp.Success {
+		noteAcquired(state, itemID)
 	}
 	return &GameActionResponse{
 		Success: resp.Success,

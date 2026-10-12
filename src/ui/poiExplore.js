@@ -72,6 +72,36 @@ export async function enterPOI(poiId) {
 }
 
 /**
+ * Quest-site entrances where the player stands (places that exist only for a
+ * quest stage, like the sewers behind the tavern cellar). Not cached: they come
+ * and go with quest progress.
+ * @returns {Promise<Array<{quest_id,site_id,name,label,description}>>}
+ */
+export async function loadQuestSites() {
+    const { npub, saveID } = gameAPI;
+    if (!npub || !saveID) return [];
+    try {
+        const resp = await fetch(`${API_BASE_URL}/quest/sites?npub=${npub}&save_id=${saveID}`);
+        const json = await resp.json();
+        return resp.ok && json.success && Array.isArray(json.data) ? json.data : [];
+    } catch (err) {
+        logger.error('loadQuestSites error:', err);
+        return [];
+    }
+}
+
+/** Enter a quest site and render its start node. */
+export async function enterQuestSite(questId, siteId) {
+    const json = await poiPost('/quest/site/enter', { quest_id: questId, site_id: siteId });
+    if (!json.success) {
+        showMessage(json.error ?? 'There is no way in here.', 'error');
+        return;
+    }
+    openOverlay();
+    handleStepData(json.data);
+}
+
+/**
  * Open the overlay on a step the server already produced — used when an authored
  * encounter fires on the world tick (the walk is already active server-side, so
  * advances flow through /poi/advance exactly like a POI).

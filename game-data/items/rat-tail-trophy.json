@@ -1,0 +1,17 @@
+{
+  "id": "rat-tail-trophy",
+  "name": "Rat King's Knot",
+  "description": "The fused knot of tails from the heart of the Rat King, dried stiff and still faintly blue. Disgusting, and proof.",
+  "value": 25,
+  "type": "Material",
+  "weight": 0.5,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "material"
+  ],
+  "notes": [
+    "Reward from The Rats of Goldenhaven"
+  ],
+  "image": "/res/img/items/rat-tail-trophy.png"
+}
