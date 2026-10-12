@@ -246,6 +246,9 @@ has a channel picker.
 
 ## Phase 5 — Multiplayer party combat
 
+**Design:** `docs/draft/party-combat-plan.md` (decisions 2026-10-11; terrain, grid size, loot
+fairness and healer XP still being brainstormed).
+
 - A `Combatant` sheet built from any member's `SaveFile`: engine functions take
   actor/target sheets instead of "the" save. This is the coupling P1 left in place.
 - One `CombatSession` shared by all member sessions; each member's turn is gated on its
