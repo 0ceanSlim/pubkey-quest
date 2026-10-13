@@ -109,7 +109,8 @@ func HandleEnterBuildingAction(state *types.SaveFile, params map[string]interfac
 // HandleMoveToRoomAction moves the player to another room within the current
 // building, validating that the room exists and is accessible (hours / key /
 // rental state). On a locked room it returns a clear, declined message.
-func HandleMoveToRoomAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
+// pickedOpen is the session's word that the player picked the door's lock today.
+func HandleMoveToRoomAction(state *types.SaveFile, params map[string]interface{}, pickedOpen bool) (*types.GameActionResponse, error) {
 	roomID, ok := params["room_id"].(string)
 	if !ok {
 		return nil, fmt.Errorf("missing or invalid room_id parameter")
@@ -132,9 +133,10 @@ func HandleMoveToRoomAction(state *types.SaveFile, params map[string]interface{}
 		return &types.GameActionResponse{Success: false, Message: "There's no such room here.", Color: "red"}, nil
 	}
 
-	hasKey := room.Access != nil && room.Access.Key != "" && gameutil.PlayerHasItem(state, room.Access.Key)
+	key := building.RoomKey(room)
+	unlocked := pickedOpen || (key != "" && gameutil.PlayerHasItem(state, key))
 	isRented := gameutil.HasActiveRental(state, state.Building)
-	if accessible, reason := building.RoomAccessible(room, state.TimeOfDay, hasKey, isRented); !accessible {
+	if accessible, reason := building.RoomAccessible(room, state.TimeOfDay, unlocked, isRented); !accessible {
 		return &types.GameActionResponse{Success: false, Message: reason, Color: "red"}, nil
 	}
 

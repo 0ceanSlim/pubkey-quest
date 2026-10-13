@@ -19,6 +19,7 @@ const (
 	POIStepTransaction    POIStepType = "transaction"     // Spend resources (gold/items) for a reward
 	POIStepExit           POIStepType = "exit"            // Terminal node (use IsTerminal on any node, but exit is explicit)
 	POIStepNPCInteraction POIStepType = "npc_interaction" // Hand off to NPC dialogue system
+	POIStepLock           POIStepType = "lock"            // A lock: its key, a pick, or walk away
 )
 
 // POIRequirement gates a node, choice, or whole POI/encounter/quest.
@@ -111,6 +112,8 @@ type POICost struct {
 //	transaction     Text, Cost, Reward, Next or IsTerminal
 //	exit            Text, IsTerminal=true (terminal nodes can use IsTerminal on any type)
 //	npc_interaction Text, NPCIDs, IsTerminal=true (handover)
+//	lock            Text, Lock, SuccessNext (opened), FailureNext (walk away;
+//	                empty = leave the POI)
 //
 // Any node may also carry:
 //
@@ -145,6 +148,8 @@ type POIStep struct {
 	// Arena is a monster node's authored battlefield — rows of combat-terrain
 	// arena_key characters, as in QuestStageEncounter.Arena.
 	Arena []string `json:"arena,omitempty"`
+	// Lock is a lock node's lock (see types.Lock).
+	Lock *Lock `json:"lock,omitempty"`
 }
 
 // POILootTable describes drops at a loot node.

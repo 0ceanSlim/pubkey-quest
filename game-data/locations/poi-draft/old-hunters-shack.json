@@ -76,15 +76,8 @@
       "type": "choice",
       "choices": [
         {
-          "label": "Use the Heavy Iron Key.",
-          "next": "cellar-entry",
-          "requirements": [
-            {
-              "type": "item",
-              "id": "heavy-iron-key",
-              "consumed": false
-            }
-          ]
+          "label": "Try the padlock.",
+          "next": "trapdoor-padlock"
         },
         {
           "label": "[Athletics 22] Attempt to wrench the padlock off.",
@@ -115,9 +108,15 @@
         ]
       },
       "is_terminal": true
+    },
+    "trapdoor-padlock": {
+      "type": "lock",
+      "text": "A massive iron padlock, rusted solid everywhere but the keyhole. No pick will turn a lock like this; it wants its key.",
+      "lock": {
+        "key": "heavy-iron-key"
+      },
+      "success_next": "cellar-entry",
+      "failure_next": "shack-interior"
     }
   }
 }
-
-
-

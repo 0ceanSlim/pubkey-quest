@@ -13,6 +13,9 @@ package poi
 import (
 	"fmt"
 	"math/rand"
+	"strings"
+
+	"pubkey-quest/cmd/server/game/locks"
 
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/game/skillcheck"
@@ -67,6 +70,34 @@ type Deps struct {
 	// PayCost takes a transaction node's price, all or nothing; false when the
 	// player can't afford it.
 	PayCost func(save *types.SaveFile, c *types.POICost) bool
+	// Locks serves lock nodes (nil: lock nodes only take their key).
+	Locks LockDeps
+}
+
+// LockDeps is what a lock node needs from the game: today's state of the lock,
+// the player's lockpicks, a quick pick attempt (which uses a pick on failure,
+// passes time and remembers the result), and item names for the key button.
+type LockDeps interface {
+	State(node string) (open, jammed bool)
+	Picks() int
+	Quick(node string, lock types.Lock) locks.Result
+	ItemName(id string) string
+}
+
+// Lock node sub-steps: a lock node's choices lead to "<node>#key" etc., which
+// resolve against the same node. "#pick" is the minigame — the client opens it
+// rather than advancing — so on the server it just re-presents the lock.
+const (
+	LockKey   = "#key"
+	LockQuick = "#quick"
+	LockPick  = "#pick"
+	LockLeave = "#leave"
+)
+
+// BaseNode strips a lock sub-step from a node id ("door#quick" → "door").
+func BaseNode(nodeID string) string {
+	base, _, _ := strings.Cut(nodeID, "#")
+	return base
 }
 
 // Resolve applies a node's effects to the save and computes its presentation.
@@ -163,6 +194,9 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 
 	case types.POIStepExit:
 		res.Terminal = true
+
+	case types.POIStepLock:
+		resolveLock(node, nodeID, save, deps, &res)
 	}
 
 	if node.IsTerminal {
@@ -346,4 +380,96 @@ func nonEmpty(s, fallback string) string {
 		return s
 	}
 	return fallback
+}
+
+// resolveLock plays a lock node: an unlocked (picked today) lock lets you
+// through; "#key" opens it with its key; "#quick" makes one quick pick attempt;
+// "#leave" walks away; anything else presents the ways to get past it.
+func resolveLock(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps, res *StepResult) {
+	base := BaseNode(nodeID)
+	action := strings.TrimPrefix(nodeID, base)
+	if node.Lock == nil {
+		res.Next = node.SuccessNext
+		return
+	}
+	lock := *node.Lock
+	open, jammed, picks := false, false, 0
+	if deps.Locks != nil {
+		open, jammed = deps.Locks.State(base)
+		picks = deps.Locks.Picks()
+	}
+	hasKey := lock.Key != "" && deps.Ctx != nil && deps.Ctx.HasItem(lock.Key)
+
+	opened := func(line string) {
+		res.Outcome = append(res.Outcome, line)
+		res.Next = node.SuccessNext
+		res.Terminal = node.SuccessNext == ""
+	}
+	switch {
+	case open:
+		opened("It's unlocked.")
+		return
+	case action == LockKey && hasKey:
+		opened(fmt.Sprintf("You unlock it with the %s.", itemName(deps, lock.Key)))
+		return
+	case action == LockLeave:
+		res.Next = node.FailureNext
+		res.Terminal = node.FailureNext == ""
+		return
+	case action == LockQuick && deps.Locks != nil:
+		if why := locks.CanPick(lock, jammed, picks); why != "" {
+			res.Outcome = append(res.Outcome, why)
+			break
+		}
+		r := deps.Locks.Quick(base, lock)
+		if r.Opened {
+			opened(r.Describe())
+			return
+		}
+		res.Outcome = append(res.Outcome, r.Describe())
+		open, jammed = deps.Locks.State(base)
+		picks = deps.Locks.Picks()
+	}
+
+	// The ways past it.
+	if hasKey {
+		res.Choices = append(res.Choices, Choice{Label: "Use the " + itemName(deps, lock.Key), Next: base + LockKey})
+	}
+	if lock.DC > 0 && deps.Locks != nil {
+		switch why := locks.CanPick(lock, jammed, picks); {
+		case why != "":
+			if action == "" || action == LockQuick {
+				res.Outcome = appendOnce(res.Outcome, why)
+			}
+		default:
+			res.Choices = append(res.Choices,
+				Choice{Label: fmt.Sprintf("Pick the lock (%d lockpicks)", picks), Next: base + LockPick},
+				Choice{Label: "Quick attempt", Next: base + LockQuick})
+		}
+	} else if lock.DC <= 0 && !hasKey && action == "" {
+		res.Outcome = append(res.Outcome, "There's no picking this one. You'd need its key.")
+	}
+	leave := node.FailureNext
+	if leave == "" {
+		leave = base + LockLeave
+	}
+	res.Choices = append(res.Choices, Choice{Label: "Leave it", Next: leave})
+}
+
+func itemName(deps Deps, id string) string {
+	if deps.Locks != nil {
+		if n := deps.Locks.ItemName(id); n != "" {
+			return n
+		}
+	}
+	return strings.ReplaceAll(id, "-", " ")
+}
+
+func appendOnce(lines []string, line string) []string {
+	for _, l := range lines {
+		if l == line {
+			return lines
+		}
+	}
+	return append(lines, line)
 }

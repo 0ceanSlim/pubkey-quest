@@ -1,0 +1,21 @@
+{
+  "id": "keyring",
+  "name": "Keyring",
+  "description": "An iron ring big enough for a jailer, with a clasp that keeps the keys from jangling.",
+  "value": 100,
+  "type": "Adventuring Gear",
+  "weight": 0.2,
+  "stack": 1,
+  "rarity": "common",
+  "container_slots": 8,
+  "allowed_types": [
+    "key"
+  ],
+  "tags": [
+    "container"
+  ],
+  "notes": [
+    "Holds up to 8 keys. Keys on the ring still open their locks."
+  ],
+  "image": "/res/img/items/keyring.png"
+}

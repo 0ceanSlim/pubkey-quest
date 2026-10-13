@@ -1,6 +1,9 @@
 {
   "description": "Clippers, mortar and pestle, vials, a small still, and pouches of reagents — a consolidated kit for herbalism, alchemy, and brewing. Used with the Medicine skill to craft potions, antidotes, and remedies.",
   "id": "herbalism-kit",
+  "skill_bonus": {
+    "medicine": 2
+  },
   "image": "/res/img/items/herbalism-kit.png",
   "name": "Herbalism Kit",
   "notes": [

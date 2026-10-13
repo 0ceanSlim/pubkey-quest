@@ -1,6 +1,9 @@
 {
   "description": "Charts, a compass, a sextant, dividers, and cartographer's pens bundled into one kit. Used with the Survival skill to read maps, hold a course, and avoid getting lost on the road or at sea.",
   "id": "navigator-kit",
+  "skill_bonus": {
+    "survival": 2
+  },
   "image": "/res/img/items/navigator-kit.png",
   "name": "Navigator Kit",
   "notes": [

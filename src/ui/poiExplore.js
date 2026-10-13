@@ -160,7 +160,13 @@ function renderStep(step) {
         });
     }
     if (Array.isArray(step.choices) && step.choices.length) {
-        step.choices.forEach((ch) => buttons.push({ label: ch.label, onClick: () => advancePOI(ch.next) }));
+        step.choices.forEach((ch) => {
+            // A lock's "Pick the lock" plays the minigame instead of advancing.
+            const onClick = ch.next.endsWith('#pick')
+                ? () => pickInWalk(ch.next.slice(0, -'#pick'.length))
+                : () => advancePOI(ch.next);
+            buttons.push({ label: ch.label, onClick });
+        });
     } else if (step.next) {
         buttons.push({ label: 'Continue', onClick: () => advancePOI(step.next) });
     } else {
@@ -181,6 +187,20 @@ function renderStep(step) {
         outcomes: step.outcome || [],
         buttons,
     });
+}
+
+// pickInWalk plays the lockpicking minigame on a lock node of the walk. The
+// server moves the walk on when it ends (through the door, or back to the
+// lock's choices) and sends that step back.
+async function pickInWalk(node) {
+    const { openLockpicking } = await import('./lockpicking.js');
+    const r = await openLockpicking({ kind: 'poi', node });
+    if (r.status === 'refused') {
+        showMessage(r.message || "You can't pick that.", 'error');
+        return;
+    }
+    await refreshGameState(true);
+    if (r.data?.step) renderStep(r.data.step);
 }
 
 // ─── overlay open/close (clock pause mirrors combat) ────────────────────────────

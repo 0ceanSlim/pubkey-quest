@@ -195,6 +195,16 @@
         "item_id": "mess-kit",
         "stock": 3,
         "max_stock": 8
+      },
+      {
+        "item_id": "lockpick",
+        "stock": 5,
+        "max_stock": 10
+      },
+      {
+        "item_id": "keyring",
+        "stock": 2,
+        "max_stock": 3
       }
     ]
   }

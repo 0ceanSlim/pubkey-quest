@@ -371,9 +371,14 @@ export async function displayCurrentLocation() {
             } else {
                 enterableRooms.forEach(rm => {
                     const label = rm.accessible ? rm.name : `🔒 ${rm.name}`;
+                    // A locked door you could pick (or one you jammed) gets the
+                    // lock's choices instead of a flat refusal.
+                    const onClick = !rm.accessible && (rm.pickable || rm.jammed)
+                        ? () => approachLockedDoor(rm)
+                        : () => moveToRoom(rm.id, rm.accessible, rm.locked_reason);
                     const roomBtn = createLocationButton(
                         label,
-                        () => moveToRoom(rm.id, rm.accessible, rm.locked_reason),
+                        onClick,
                         rm.accessible ? 'room' : 'building-closed'
                     );
                     if (!rm.accessible) roomBtn.classList.add('opacity-60');
@@ -1055,6 +1060,54 @@ export async function moveToRoom(roomId, accessible, lockedReason) {
     } catch (error) {
         logger.error('Failed to move to room:', error);
         showActionText("You can't enter that room right now.", 'red');
+    }
+}
+
+/**
+ * A locked door: pick it (the minigame), make a quick attempt, or leave it.
+ * Shown in the scene speech box. The server decides everything; a door that
+ * opens is walked through.
+ * @param {{id:string,name:string,pickable:boolean,jammed:boolean,locked_reason:string}} rm
+ */
+function approachLockedDoor(rm) {
+    const buttons = [];
+    if (rm.pickable) {
+        buttons.push({ label: 'Pick the lock', onClick: () => pickDoor(rm, false) });
+        buttons.push({ label: 'Quick attempt', onClick: () => pickDoor(rm, true) });
+    }
+    buttons.push({ label: 'Leave it', onClick: () => hideSceneSpeech() });
+    showSceneSpeech({
+        speaker: rm.name,
+        icon: '🔒',
+        text: rm.jammed
+            ? 'A broken pick is stuck fast in the lock. Only the key will open it today.'
+            : `${rm.locked_reason || 'It is locked.'} You could try to pick it.`,
+        buttons,
+    });
+}
+
+async function pickDoor(rm, quick) {
+    hideSceneSpeech();
+    let opened = false;
+    if (quick) {
+        try {
+            const result = await gameAPI.sendAction('pick_lock', { room_id: rm.id });
+            opened = !!result.data?.opened;
+            showActionText(result.message, opened ? 'green' : 'yellow');
+        } catch (err) {
+            showActionText(err.message || "You can't pick that.", 'red');
+        }
+    } else {
+        const { openLockpicking } = await import('./lockpicking.js');
+        const r = await openLockpicking({ kind: 'room', roomId: rm.id });
+        if (r.status === 'refused') showActionText(r.message || "You can't pick that.", 'red');
+        opened = r.opened;
+    }
+    await refreshGameState(true);
+    if (opened) {
+        await moveToRoom(rm.id, true, '');
+    } else {
+        await displayCurrentLocation();
     }
 }
 

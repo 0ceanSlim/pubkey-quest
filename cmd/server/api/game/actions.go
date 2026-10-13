@@ -239,6 +239,7 @@ var combatBlockedActions = map[string]bool{
 	"open_vault": true, "rest": true, "enter_building": true, "exit_building": true,
 	"move_to_room": true, "move": true, "talk_to_npc": true,
 	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
+	"lock_begin": true, "lock_act": true, "pick_lock": true,
 }
 
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
@@ -257,6 +258,11 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 			Success: false,
 			Message: "Something up ahead hasn't noticed you — decide what to do first.",
 		}, nil
+	}
+
+	// Doing anything else walks away from a lock you were picking.
+	if session.LockSession != nil && action.Type != "lock_act" && action.Type != "lock_begin" {
+		session.LockSession = nil
 	}
 
 	// Snapshot time before action (for travel progress calculation)
@@ -458,6 +464,40 @@ func alreadyDiscovered(state *SaveFile, id string) bool {
 	return quest.UnlocksPOI(state, id, serverdb.GetQuestByID)
 }
 
+// isQuestItem reports whether an item is tagged quest_item: it can be examined
+// and destroyed, but never dropped, sold or stored, so a quest can't be broken
+// (or its items traded around) by accident.
+func isQuestItem(itemID string) bool {
+	if itemID == "" {
+		return false
+	}
+	item, err := serverdb.GetItemByID(itemID)
+	return err == nil && item != nil && strings.Contains(item.Tags, `"quest_item"`)
+}
+
+func questItemRefusal(verb string) *GameActionResponse {
+	return &GameActionResponse{Success: false, Message: fmt.Sprintf("You can't %s a quest item. You can destroy it if you're sure.", verb), Color: "yellow"}
+}
+
+// slotItemID is the item in a general ("general") or backpack ("inventory") slot.
+func slotItemID(state *SaveFile, slotType string, index int) string {
+	var slots []interface{}
+	switch slotType {
+	case "general":
+		slots, _ = state.Inventory["general_slots"].([]interface{})
+	case "inventory":
+		gear, _ := state.Inventory["gear_slots"].(map[string]interface{})
+		bag, _ := gear["bag"].(map[string]interface{})
+		slots, _ = bag["contents"].([]interface{})
+	}
+	if index < 0 || index >= len(slots) {
+		return ""
+	}
+	slot, _ := slots[index].(map[string]interface{})
+	id, _ := slot["item"].(string)
+	return id
+}
+
 // noteAcquired tells the event recorder an item came into the player's hands,
 // so quest fetch objectives re-count what they carry. Called where items arrive
 // (buying, pickup, vault, loot) — not inside AddItemToInventory, which quest
@@ -502,10 +542,35 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 	case "unequip_item":
 		return inventory.HandleUnequipItemAction(state, action.Params)
 	case "drop_item":
+		if id, _ := action.Params["item_id"].(string); isQuestItem(id) {
+			return questItemRefusal("drop"), nil
+		}
 		return handleDropItemAction(session, state, action.Params)
-	case "remove_from_inventory":
+	case "destroy_item":
+		// Gone for good — the one way to be rid of a quest item.
 		return handleRemoveFromInventoryAction(state, action.Params)
+	case "lock_begin", "lock_act":
+		var resp *types.GameActionResponse
+		var err error
+		if action.Type == "lock_begin" {
+			resp, err = handleLockBegin(session, action.Params)
+		} else {
+			resp, err = handleLockAct(session, action.Params)
+		}
+		if resp == nil {
+			return nil, err
+		}
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
+	case "pick_lock":
+		resp, err := handlePickLockAction(session, action.Params)
+		if resp == nil {
+			return nil, err
+		}
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
 	case "stage_sell":
+		if id, _ := action.Params["item_id"].(string); isQuestItem(id) {
+			return questItemRefusal("sell"), nil
+		}
 		return handleStageSell(session, action.Params)
 	case "unstage_sell":
 		return handleUnstageSell(session, action.Params)
@@ -544,7 +609,7 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 	case "exit_building":
 		return handleExitBuildingAction(state, action.Params)
 	case "move_to_room":
-		return handleMoveToRoomAction(state, action.Params)
+		return handleMoveToRoomAction(session, action.Params)
 	case "talk_to_npc":
 		return handleTalkToNPCAction(session, action.Params)
 	case "npc_dialogue_choice":
@@ -926,6 +991,9 @@ func handleVaultDepositAction(state *SaveFile, params map[string]any) (*GameActi
 	if !ok {
 		return nil, fmt.Errorf("missing from_slot")
 	}
+	if isQuestItem(slotItemID(state, slotType, slotIndex)) {
+		return questItemRefusal("store"), nil
+	}
 
 	resp, err := inventory.HandleVaultDeposit(state, slotType, slotIndex, paramIntOr(params["quantity"], 0))
 	if err != nil {
@@ -1163,12 +1231,14 @@ func handleEnterBuildingAction(state *SaveFile, params map[string]any) (*GameAct
 }
 
 // handleMoveToRoomAction moves between rooms inside the current building
-func handleMoveToRoomAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+func handleMoveToRoomAction(session *GameSession, params map[string]any) (*GameActionResponse, error) {
+	state := &session.SaveData
 	paramsIface := make(map[string]interface{}, len(params))
 	for k, v := range params {
 		paramsIface[k] = v
 	}
-	resp, err := movement.HandleMoveToRoomAction(state, paramsIface)
+	roomID, _ := params["room_id"].(string)
+	resp, err := movement.HandleMoveToRoomAction(state, paramsIface, roomPickedOpen(session, roomID))
 	if resp != nil {
 		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color}, err
 	}

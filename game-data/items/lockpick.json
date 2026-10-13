@@ -1,0 +1,18 @@
+{
+  "id": "lockpick",
+  "name": "Lockpick",
+  "description": "A thin steel pick, filed and bent at the tip. Each failed attempt at a lock snaps one.",
+  "value": 50,
+  "type": "Tools",
+  "weight": 0.1,
+  "stack": 20,
+  "rarity": "common",
+  "tags": [
+    "tool",
+    "lockpick"
+  ],
+  "notes": [
+    "Used up by a failed pick (quick attempt or minigame). A Thieves' Kit adds +1 to the roll."
+  ],
+  "image": "/res/img/items/lockpick.png"
+}

@@ -305,6 +305,18 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 	case types.POIStepMonster:
 		c.checkRef("monster", n.MonsterID, c.idx.monsters)
 		c.checkArena(n.Arena)
+	case types.POIStepLock:
+		switch {
+		case n.Lock == nil:
+			c.errf("lock node has no lock")
+		case n.Lock.Key == "" && n.Lock.DC <= 0:
+			c.errf("lock has neither a key nor a pick DC — nothing can open it")
+		case n.Lock.Key != "":
+			c.checkRef("item", n.Lock.Key, c.idx.items)
+		}
+		if n.SuccessNext == "" {
+			c.errf("lock node needs success_next (where opening it leads)")
+		}
 	case types.POIStepNPCInteraction:
 		for _, id := range n.NPCIDs {
 			if id == "" {

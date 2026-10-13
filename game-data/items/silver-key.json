@@ -1,0 +1,17 @@
+{
+  "id": "silver-key",
+  "name": "Silver Key",
+  "description": "A slender silver key, tarnished black, with a twist of wire through its bow. Its teeth are finer than any common lock needs.",
+  "value": 10,
+  "type": "Adventuring Gear",
+  "weight": 0.1,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "key"
+  ],
+  "notes": [
+    "Opens the silver door in the Whispering Caverns"
+  ],
+  "image": "/res/img/items/silver-key.png"
+}

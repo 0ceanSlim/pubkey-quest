@@ -145,36 +145,15 @@
       "next": "thief-path-mid"
     },
     "thief-path-mid": {
-      "type": "choice",
-      "text": "You reach a locked silver door. The lock looks delicate.",
-      "choices": [
-        {
-          "label": "[Thieving 18] Attempt to pick the lock.",
-          "next": "thief-path-vault",
-          "requirements": [
-            {
-              "type": "skill",
-              "id": "thieving",
-              "min": 18
-            }
-          ]
-        },
-        {
-          "label": "Use the Silver Key.",
-          "next": "thief-path-vault",
-          "requirements": [
-            {
-              "type": "item",
-              "id": "silver-key",
-              "consumed": true
-            }
-          ]
-        },
-        {
-          "label": "Turn back to the fissure.",
-          "next": "cavern-mouth"
-        }
-      ]
+      "type": "lock",
+      "text": "You reach a door of tarnished silver set into the rock. The lock is delicate work, all fine wards and tiny pins.",
+      "lock": {
+        "key": "silver-key",
+        "dc": 16,
+        "jam_on_miss": 5
+      },
+      "success_next": "thief-path-vault",
+      "failure_next": "cavern-mouth"
     },
     "thief-path-vault": {
       "type": "loot",
@@ -216,6 +195,3 @@
     }
   }
 }
-
-
-

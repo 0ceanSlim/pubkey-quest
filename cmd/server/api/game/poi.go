@@ -88,7 +88,8 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	if sess.ActivePOI == nil {
 		return poi.StepResult{}, fmt.Errorf("no active walk")
 	}
-	node, ok := sess.ActivePOI.Nodes[nodeID]
+	// A lock node's sub-steps ("door#quick") resolve against the node itself.
+	node, ok := sess.ActivePOI.Nodes[poi.BaseNode(nodeID)]
 	if !ok {
 		return poi.StepResult{}, fmt.Errorf("node %q not found in %q", nodeID, sess.ActivePOI.POIID)
 	}
@@ -97,6 +98,7 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	if err != nil {
 		return poi.StepResult{}, err
 	}
+	deps.Locks = poiLocks{sess}
 
 	res := poi.Resolve(node, nodeID, state, deps)
 
@@ -324,6 +326,7 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusBadRequest, "no active POI")
 		return
 	}
+	sess.LockSession = nil // moving the walk on walks away from any lock being picked
 	if !sess.ActivePOI.AllowsNext(req.Next) {
 		writePOIError(w, http.StatusBadRequest, "invalid step")
 		return

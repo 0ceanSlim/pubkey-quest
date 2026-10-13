@@ -1,6 +1,9 @@
 {
   "description": "A consolidated set of artisan's tools — hammers, files, chisels, awls, needles, and shaping implements covering smithing, carpentry, masonry, leatherworking, weaving, woodcarving, glassblowing, and pottery. Used with the Crafting skill to build and repair equipment.",
   "id": "crafting-kit",
+  "skill_bonus": {
+    "crafting": 2
+  },
   "image": "/res/img/items/crafting-kit.png",
   "name": "Crafting Kit",
   "notes": [

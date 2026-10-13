@@ -7,6 +7,7 @@ import (
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/gameutil"
+	"pubkey-quest/types"
 )
 
 // RoomView is one room of the current building as the UI needs it: name +
@@ -21,6 +22,10 @@ type RoomView struct {
 	// Sleepable marks the rented room itself — the only place Sleep works
 	// (game/npc/housing.go), so the UI offers Sleep only there.
 	Sleepable bool `json:"sleepable,omitempty"`
+	// Pickable: the door is locked to you, its lock can be picked, and it isn't
+	// jammed today. Jammed: a pick jammed it today (only the key works).
+	Pickable bool `json:"pickable,omitempty"`
+	Jammed   bool `json:"jammed,omitempty"`
 }
 
 // RoomsResponse lists the rooms in the player's current building.
@@ -69,9 +74,16 @@ func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 		if rooms, defaultRoom, err := building.GetBuildingRooms(serverdb.GetDB(), save.Location, save.Building); err == nil {
 			resp.DefaultRoom = defaultRoom
 			for _, room := range rooms {
-				hasKey := room.Access != nil && room.Access.Key != "" && gameutil.PlayerHasItem(save, room.Access.Key)
+				key := building.RoomKey(room)
+				lockID, day := roomLockID(save, room.ID), save.CurrentDay
+				unlocked := sess.Locks.IsOpen(lockID, day) || (key != "" && gameutil.PlayerHasItem(save, key))
 				isRented := gameutil.HasActiveRental(save, save.Building)
-				accessible, reason := building.RoomAccessible(room, save.TimeOfDay, hasKey, isRented)
+				accessible, reason := building.RoomAccessible(room, save.TimeOfDay, unlocked, isRented)
+				lock := (*types.Lock)(nil)
+				if room.Access != nil {
+					lock = room.Access.Lock
+				}
+				jammed := lock != nil && sess.Locks.IsJammed(lockID, day)
 				resp.Rooms = append(resp.Rooms, RoomView{
 					ID:           room.ID,
 					Name:         room.Name,
@@ -79,7 +91,9 @@ func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 					Accessible:   accessible,
 					LockedReason: reason,
 					IsCurrent:    room.ID == save.Room,
-					Sleepable:    isRented && room.Access != nil && room.Access.State == "rented",
+					Sleepable:    room.Sleep || (isRented && room.Access != nil && room.Access.State == "rented"),
+					Pickable:     !unlocked && lock != nil && lock.DC > 0 && !jammed,
+					Jammed:       !unlocked && jammed,
 				})
 			}
 		}

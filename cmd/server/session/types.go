@@ -3,6 +3,7 @@ package session
 import (
 	"sync"
 
+	"pubkey-quest/cmd/server/game/locks"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -66,6 +67,13 @@ type GameSession struct {
 	POINPCs        map[string]bool `json:"-"`
 	POINPCPlace    string          `json:"-"`
 	POINPCProgress float64         `json:"-"`
+
+	// Locks remembers which locks this player picked open or jammed today
+	// (memory only; see game/locks).
+	Locks locks.Memory `json:"-"`
+	// LockSession is the lock being picked as a minigame right now (nil when
+	// not picking). Any other action abandons it.
+	LockSession *locks.Session `json:"-"`
 
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.

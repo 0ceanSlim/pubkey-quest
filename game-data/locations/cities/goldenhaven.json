@@ -166,7 +166,8 @@
             { "id": "taproom", "name": "Taproom", "description": "The rowdy main floor where the bar runs the length of one wall and river shanties drown out the rush of the water." },
             { "id": "galley", "name": "Galley", "description": "A cramped, steamy kitchen behind the bar where fish stew bubbles in iron pots." },
             { "id": "cellar", "name": "Dock Cellar", "description": "A dim store room below the waterline, stacked with barrels of ale and crates hauled off the barges." },
-            { "id": "hammock_deck", "name": "Hammock Below Deck", "description": "A low room strung with hammocks that rock you to sleep like a ship at anchor.", "access": { "state": "rented" } }
+            { "id": "hammock_deck", "name": "Hammock Below Deck", "description": "A low room strung with hammocks that rock you to sleep like a ship at anchor.", "access": { "state": "rented" } },
+            { "id": "spare_room", "name": "Bob's Spare Room", "description": "A narrow room over the galley with a real bed, a washstand, and a window onto the river. Bob keeps it locked for friends of the house.", "access": { "lock": { "key": "anchor-spare-key", "dc": 15, "jam_on_miss": 5 } }, "sleep": true }
           ],
           "shows": {
             "show_time": 1260,

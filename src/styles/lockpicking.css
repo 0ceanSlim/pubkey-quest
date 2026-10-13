@@ -1,0 +1,326 @@
+/* Lockpicking minigame window (src/ui/lockpicking.js).
+ * Warm wood, aged brass, dark iron; Win95 bevels; pixel edges. Sizes are real
+ * CSS px (the window sits on <body>, outside the scaled game canvas). */
+
+.lp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(8, 6, 4, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.lp-window {
+  --lp-iron: #2b2d31;
+  --lp-iron-dark: #17181b;
+  --lp-iron-light: #4a4d54;
+  --lp-brass: #c8963e;
+  --lp-brass-light: #f0c66b;
+  --lp-brass-dark: #7a5520;
+  --lp-wood: #5a3a22;
+  --lp-wood-dark: #3a2414;
+  --lp-wood-light: #7a5233;
+  --lp-parchment: #e8dcbc;
+  --lp-ink: #f3e9cf;
+  --lp-gold: #ffd75e;
+  --lp-bad: #e0573c;
+
+  width: min(440px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: #3a3a3a;
+  border: 2px solid;
+  border-color: #6a6a6a #0a0a0a #0a0a0a #6a6a6a;
+  box-shadow: 0 0 0 1px #000, 6px 6px 0 rgba(0, 0, 0, 0.5);
+  font-family: 'Dogica', monospace;
+  color: var(--lp-ink);
+  image-rendering: pixelated;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lp-window svg { shape-rendering: crispEdges; display: block; }
+
+/* Title bar */
+.lp-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 6px;
+  background: linear-gradient(90deg, #4a2c12, #7a5520);
+  border-bottom: 2px solid #0a0a0a;
+}
+.lp-title-text {
+  flex: 1;
+  font-size: 8px;
+  line-height: 1.4;
+  color: #fff3d0;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lp-close {
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 8px;
+  cursor: pointer;
+}
+.lp-close:active { border-color: #404040 #fff #fff #404040; }
+
+/* Lock viewport: a door with an iron lock plate */
+.lp-viewport {
+  margin: 8px;
+  padding: 12px 10px 10px;
+  background:
+    repeating-linear-gradient(90deg, var(--lp-wood) 0 22px, var(--lp-wood-dark) 22px 24px, var(--lp-wood-light) 24px 26px, var(--lp-wood) 26px 48px);
+  border: 2px solid;
+  border-color: #0a0a0a #6a6a6a #6a6a6a #0a0a0a;
+}
+.lp-plate {
+  position: relative;
+  margin: 0 auto;
+  padding: 10px 10px 8px;
+  max-width: 340px;
+  background: var(--lp-iron);
+  border: 4px solid;
+  border-color: var(--lp-iron-light) var(--lp-iron-dark) var(--lp-iron-dark) var(--lp-iron-light);
+  box-shadow: 0 0 0 2px #000;
+}
+.lp-rivet {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--lp-iron-light);
+  box-shadow: inset -2px -2px 0 var(--lp-iron-dark);
+}
+.lp-rivet.tl { top: 3px; left: 3px; }
+.lp-rivet.tr { top: 3px; right: 3px; }
+.lp-rivet.bl { bottom: 3px; left: 3px; }
+.lp-rivet.br { bottom: 3px; right: 3px; }
+
+.lp-pins {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 6px 0;
+}
+/* The shear line every pin must reach */
+.lp-pins::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52px;
+  height: 2px;
+  background: var(--lp-brass-dark);
+  box-shadow: 0 1px 0 #000;
+}
+
+.lp-pin {
+  position: relative;
+  width: 40px;
+  min-width: 34px;
+  height: 104px;
+  padding: 0;
+  background: var(--lp-iron-dark);
+  border: 2px solid;
+  border-color: #000 var(--lp-iron-light) var(--lp-iron-light) #000;
+  cursor: pointer;
+  font-family: inherit;
+  overflow: hidden;
+}
+.lp-pin:focus-visible { outline: 2px dashed var(--lp-gold); outline-offset: 2px; }
+.lp-pin.selected { border-color: var(--lp-gold); box-shadow: 0 0 0 2px var(--lp-gold); }
+
+/* Driver pin (iron, above) and key pin (brass, below); lifting raises both. */
+.lp-stack {
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: 24px; /* unset: the split between the pins sits below the shear line */
+  transition: transform 160ms steps(4);
+}
+.lp-driver {
+  height: 34px;
+  background: #8a8f98;
+  border: 2px solid;
+  border-color: #b8bcc4 #50545b #50545b #b8bcc4;
+}
+.lp-keypin {
+  height: 22px;
+  background: var(--lp-brass);
+  border: 2px solid;
+  border-color: var(--lp-brass-light) var(--lp-brass-dark) var(--lp-brass-dark) var(--lp-brass-light);
+}
+.lp-pin.is-set .lp-stack { transform: translateY(-10px); }
+.lp-pin.is-set .lp-keypin { background: var(--lp-brass-light); }
+
+/* Markers: set (notch), ruled out (cross), glint (sparkle) — shape + text, not colour alone */
+.lp-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 14px;
+  font-size: 8px;
+  line-height: 14px;
+  text-align: center;
+  color: var(--lp-parchment);
+}
+.lp-pin.is-set .lp-mark { color: var(--lp-gold); }
+.lp-pin.ruled-out .lp-stack { opacity: 0.55; }
+.lp-pin.ruled-out .lp-mark { color: #b0a890; }
+.lp-glint {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  width: 9px;
+  height: 9px;
+  display: none;
+}
+.lp-pin.glint .lp-glint { display: block; animation: lp-glint 900ms steps(2) infinite; }
+@keyframes lp-glint { 50% { opacity: 0.2; } }
+
+/* Feedback animations (played after the server answers) */
+.lp-pins.slip .lp-pin { animation: lp-shake 220ms steps(3); }
+@keyframes lp-shake { 33% { transform: translateX(-2px); } 66% { transform: translateX(2px); } }
+.lp-pin.clicked { animation: lp-click 260ms steps(2); }
+@keyframes lp-click { 50% { box-shadow: 0 0 0 2px #fff; } }
+.lp-plate.opened .lp-pin .lp-stack { transform: translateY(-10px); }
+.lp-plate.opened { animation: lp-open 500ms steps(4); border-color: var(--lp-brass-light) var(--lp-brass-dark) var(--lp-brass-dark) var(--lp-brass-light); }
+@keyframes lp-open { 0% { transform: rotate(0); } 50% { transform: rotate(-2deg); } 100% { transform: rotate(0); } }
+
+.lp-keyway {
+  width: 10px;
+  height: 22px;
+  margin: 8px auto 0;
+  background: #000;
+  border-radius: 5px 5px 0 0;
+  box-shadow: 0 0 0 2px var(--lp-iron-light);
+}
+
+/* Pin number buttons */
+.lp-numbers {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 8px 0;
+}
+.lp-num {
+  flex: 0 1 44px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+/* Win95 buttons */
+.lp-btn {
+  min-height: 36px;
+  padding: 6px 10px;
+  background: #c0c0c0;
+  color: #000;
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf;
+  font-family: 'Dogica', monospace;
+  font-size: 8px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.lp-btn:active:not(:disabled) { border-color: #404040 #fff #fff #404040; box-shadow: inset 1px 1px 0 #808080; }
+.lp-btn:disabled { color: #808080; text-shadow: 1px 1px 0 #fff; cursor: default; }
+.lp-btn.selected { background: var(--lp-gold); }
+.lp-btn.primary { font-weight: bold; }
+.lp-btn:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+
+/* Tool tray */
+.lp-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px;
+}
+.lp-tool {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  background: #2a2a2a;
+  border: 2px solid;
+  border-color: #0a0a0a #5a5a5a #5a5a5a #0a0a0a;
+  font-size: 8px;
+  line-height: 1.4;
+  color: var(--lp-parchment);
+}
+.lp-tool.off { opacity: 0.45; }
+
+/* Message panel: readable body text */
+.lp-message {
+  margin: 0 8px;
+  min-height: 64px;
+  padding: 8px 10px;
+  background: #15120d;
+  border: 2px solid;
+  border-color: #0a0a0a #5a5a5a #5a5a5a #0a0a0a;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--lp-ink);
+}
+.lp-message .lp-line + .lp-line { margin-top: 4px; }
+.lp-message .good { color: var(--lp-gold); }
+.lp-message .bad { color: #ff9b7a; }
+
+/* Status strip */
+.lp-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 8px;
+  font-size: 8px;
+  line-height: 1.4;
+}
+.lp-strain { display: flex; align-items: center; gap: 4px; }
+.lp-strain-cells { display: flex; gap: 2px; }
+.lp-cell {
+  width: 10px;
+  height: 12px;
+  background: #1a1a1a;
+  border: 1px solid #5a5a5a;
+}
+.lp-cell.full { background: var(--lp-bad); border-color: #ffb199; }
+.lp-strain.near .lp-cell.full { animation: lp-glint 600ms steps(2) infinite; }
+
+/* Bottom actions */
+.lp-actions {
+  display: flex;
+  gap: 6px;
+  margin: 0 8px 8px;
+}
+.lp-actions .lp-btn { flex: 1; }
+
+@media (max-width: 420px) {
+  .lp-backdrop { padding: 8px; align-items: flex-end; }
+  .lp-pin { width: 34px; height: 96px; }
+  .lp-pins::before { top: 48px; }
+  .lp-stack { top: 20px; }
+  .lp-keypin { height: 18px; }
+  .lp-actions { flex-wrap: wrap; }
+  .lp-actions .lp-btn { flex: 1 1 40%; min-height: 44px; }
+  .lp-num { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-window *, .lp-plate { animation: none !important; transition: none !important; }
+}

@@ -147,32 +147,15 @@ func DeductGold(state *types.SaveFile, amount int) bool {
 
 // PlayerHasItem checks if player has an item in inventory
 func PlayerHasItem(state *types.SaveFile, itemID string) bool {
-	// Check general slots
-	if generalSlots, ok := state.Inventory["general_slots"].([]interface{}); ok {
-		for _, slotData := range generalSlots {
-			if slotMap, ok := slotData.(map[string]interface{}); ok {
-				if item, ok := slotMap["item"].(string); ok && item == itemID {
+	for _, slots := range carriedSlotArrays(state) {
+		for _, raw := range slots {
+			if slot, ok := raw.(map[string]interface{}); ok {
+				if item, _ := slot["item"].(string); item == itemID {
 					return true
 				}
 			}
 		}
 	}
-
-	// Check backpack
-	if gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{}); ok {
-		if bag, ok := gearSlots["bag"].(map[string]interface{}); ok {
-			if contents, ok := bag["contents"].([]interface{}); ok {
-				for _, slotData := range contents {
-					if slotMap, ok := slotData.(map[string]interface{}); ok {
-						if item, ok := slotMap["item"].(string); ok && item == itemID {
-							return true
-						}
-					}
-				}
-			}
-		}
-	}
-
 	return false
 }
 
@@ -333,7 +316,8 @@ func ConsumeItem(state *types.SaveFile, itemID string, quantity int) bool {
 }
 
 // carriedSlotArrays returns the slot arrays the player carries items in: the
-// general slots and the equipped backpack's contents.
+// general slots, the equipped backpack's contents, and the contents of any
+// container sitting in those (a keyring, a pouch of lockpicks).
 func carriedSlotArrays(state *types.SaveFile) [][]interface{} {
 	var out [][]interface{}
 	if generalSlots, ok := state.Inventory["general_slots"].([]interface{}); ok {
@@ -346,5 +330,33 @@ func carriedSlotArrays(state *types.SaveFile) [][]interface{} {
 			}
 		}
 	}
+	// Containers never nest, so one level down is everything.
+	for _, slots := range out {
+		for _, raw := range slots {
+			if slot, ok := raw.(map[string]interface{}); ok {
+				if contents, ok := slot["contents"].([]interface{}); ok && len(contents) > 0 {
+					out = append(out, contents)
+				}
+			}
+		}
+	}
 	return out
+}
+
+// CarriedItemIDs lists the distinct items the player carries (see
+// carriedSlotArrays) — for "while carried" bonuses like a kit's skill bonus.
+func CarriedItemIDs(state *types.SaveFile) []string {
+	seen := map[string]bool{}
+	var ids []string
+	for _, slots := range carriedSlotArrays(state) {
+		for _, raw := range slots {
+			if slot, ok := raw.(map[string]interface{}); ok {
+				if id, _ := slot["item"].(string); id != "" && !seen[id] {
+					seen[id] = true
+					ids = append(ids, id)
+				}
+			}
+		}
+	}
+	return ids
 }

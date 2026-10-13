@@ -208,6 +208,7 @@ A `transaction` takes its `cost` all or nothing; when the player can't pay it go
 | `transaction`    | Spend resources, optionally receive reward               | `cost` (and usually `reward`)            | `next` or `is_terminal` |
 | `exit`           | Explicit terminal node                                   | -                                        | `is_terminal: true` |
 | `npc_interaction`| Hand off to NPC dialogue system                          | `npc_ids`                                | `is_terminal: true` |
+| `lock`           | A lock: its key, a pick (minigame or quick attempt), or walk away | `lock` (`{key, dc, jam_on_miss}`, see `docs/development/locks.md`) | `success_next` (opened), `failure_next` (walk away; empty leaves) |
 
 ---
 

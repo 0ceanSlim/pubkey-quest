@@ -1,0 +1,17 @@
+{
+  "id": "heavy-iron-key",
+  "name": "Heavy Iron Key",
+  "description": "A key as long as your hand, cold and pitted with rust. Whatever it opens was meant to stay shut.",
+  "value": 10,
+  "type": "Adventuring Gear",
+  "weight": 0.1,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "key"
+  ],
+  "notes": [
+    "Opens the padlocked trapdoor in the Old Hunter's Shack"
+  ],
+  "image": "/res/img/items/heavy-iron-key.png"
+}

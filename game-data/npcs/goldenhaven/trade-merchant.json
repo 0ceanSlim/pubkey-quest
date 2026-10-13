@@ -205,6 +205,11 @@
         "item_id": "parchment",
         "stock": 20,
         "max_stock": 20
+      },
+      {
+        "item_id": "keyring",
+        "stock": 1,
+        "max_stock": 2
       }
     ]
   }

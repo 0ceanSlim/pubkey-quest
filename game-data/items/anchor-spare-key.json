@@ -1,0 +1,19 @@
+{
+  "id": "anchor-spare-key",
+  "name": "Anchor Spare Key",
+  "description": "A brass key on a loop of tarred rope, stamped with an anchor. It opens Bob's spare room at the Salty Anchor, and the bed is yours whenever you need it.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 0.1,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "key",
+    "quest_item"
+  ],
+  "notes": [
+    "Reward from The Rats of Goldenhaven",
+    "Opens the Spare Room at the Salty Anchor: sleep there free"
+  ],
+  "image": "/res/img/items/anchor-spare-key.png"
+}

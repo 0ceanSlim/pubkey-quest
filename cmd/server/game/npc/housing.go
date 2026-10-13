@@ -93,6 +93,19 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 		return &types.GameActionResponse{Success: false, Message: "You can't sleep out here — rent a room at an inn.", Color: "red"}, nil
 	}
 
+	// A spare room with a bed (building.Room.Sleep) needs no rental: getting in
+	// (with its key) is the permission.
+	if database := db.GetDB(); database != nil {
+		if rooms, _, err := building.GetBuildingRooms(database, state.Location, buildingID); err == nil {
+			if room, found := building.FindRoom(rooms, state.Room); found && room.Sleep {
+				if !CanSleepNow(state.TimeOfDay) {
+					return &types.GameActionResponse{Success: false, Message: "It's too early to sleep — come back after 9 PM.", Color: "yellow"}, nil
+				}
+				return applySleep(state, comfortInn, false, session, npcIdsFunc)
+			}
+		}
+	}
+
 	// Must hold an active rental for this building.
 	if !gameutil.HasActiveRental(state, buildingID) {
 		log.Printf("😴 sleep rejected: no active rental for %s (rentals=%+v)", buildingID, state.Rentals)

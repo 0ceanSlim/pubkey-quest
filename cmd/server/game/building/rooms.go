@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"pubkey-quest/types"
 )
 
 // knownBuildingTypes are the type tokens we recognize when inferring a building's
@@ -53,12 +55,16 @@ type Room struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description,omitempty"`
 	Access      *RoomAccess `json:"access,omitempty"` // nil = always accessible
+	// Sleep marks a bed anyone who gets into the room may use (no rental) — a
+	// spare room you hold the key to.
+	Sleep bool `json:"sleep,omitempty"`
 }
 
 // RoomAccess gates a room. Every set check must pass; unset checks are open.
 type RoomAccess struct {
 	Hours *RoomHours `json:"hours,omitempty"` // time window (minutes), like building hours
 	Key   string     `json:"key,omitempty"`   // required item ID in the player's inventory
+	Lock  *types.Lock `json:"lock,omitempty"` // a lock: its key, or a pick (see types.Lock)
 	State string     `json:"state,omitempty"` // flag, e.g. "rented" — an active rental for this building
 }
 
@@ -100,7 +106,25 @@ func FindRoom(rooms []Room, roomID string) (Room, bool) {
 // RoomAccessible reports whether a room can be entered, with a player-facing
 // reason when it can't. hasKey/isRented are supplied by the caller since the
 // inventory and rentals live outside this package.
-func RoomAccessible(room Room, timeOfDay int, hasKey, isRented bool) (bool, string) {
+// RoomKey is the item that opens a room's door ("" for an unlocked room).
+func RoomKey(room Room) string {
+	if room.Access == nil {
+		return ""
+	}
+	if room.Access.Lock != nil && room.Access.Lock.Key != "" {
+		return room.Access.Lock.Key
+	}
+	return room.Access.Key
+}
+
+// RoomLocked reports whether a room's door is locked at all.
+func RoomLocked(room Room) bool {
+	return room.Access != nil && (room.Access.Key != "" || room.Access.Lock != nil)
+}
+
+// RoomAccessible reports whether the player can enter. unlocked is true when
+// they hold the key or picked the lock today.
+func RoomAccessible(room Room, timeOfDay int, unlocked, isRented bool) (bool, string) {
 	a := room.Access
 	if a == nil {
 		return true, ""
@@ -108,7 +132,7 @@ func RoomAccessible(room Room, timeOfDay int, hasKey, isRented bool) (bool, stri
 	if a.Hours != nil && !withinHours(a.Hours.Open, a.Hours.Close, timeOfDay) {
 		return false, fmt.Sprintf("%s is closed right now.", roomLabel(room))
 	}
-	if a.Key != "" && !hasKey {
+	if RoomLocked(room) && !unlocked {
 		return false, fmt.Sprintf("%s is locked — you need the right key.", roomLabel(room))
 	}
 	if a.State == "rented" && !isRented {

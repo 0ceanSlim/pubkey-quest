@@ -7,6 +7,7 @@
 
 // Import global styles (only imported here, shared across all bundles)
 import '../styles/main.css';
+import '../styles/lockpicking.css';
 
 // Core libraries
 import { logger } from '../lib/logger.js';

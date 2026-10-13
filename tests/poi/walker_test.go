@@ -1,9 +1,11 @@
 package poi_test
 
 import (
+	"strings"
 	"math/rand"
 	"testing"
 
+	"pubkey-quest/cmd/server/game/locks"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/types"
 )
@@ -216,5 +218,79 @@ func TestMonsterNodeCarriesArena(t *testing.T) {
 		"m", &types.SaveFile{}, poi.Deps{Ctx: fakeCtx{}, Rng: rng()})
 	if res.Combat != "giant-rat" || len(res.CombatArena) != 2 || res.Next != "won" {
 		t.Errorf("monster: %+v", res)
+	}
+}
+
+// fakeLocks serves lock nodes for the walker tests.
+type fakeLocks struct {
+	open, jammed bool
+	picks        int
+	quick        locks.Result
+	quickCalls   int
+}
+
+func (f *fakeLocks) State(string) (bool, bool) { return f.open, f.jammed }
+func (f *fakeLocks) Picks() int                { return f.picks }
+func (f *fakeLocks) Quick(string, types.Lock) locks.Result {
+	f.quickCalls++
+	return f.quick
+}
+func (f *fakeLocks) ItemName(id string) string { return "Silver Key" }
+
+func lockNode(lock types.Lock) types.POIStep {
+	return types.POIStep{Type: types.POIStepLock, Text: "A silver door.", Lock: &lock, SuccessNext: "vault", FailureNext: "back"}
+}
+
+func labels(res poi.StepResult) []string {
+	var out []string
+	for _, c := range res.Choices {
+		out = append(out, c.Label)
+	}
+	return out
+}
+
+func TestLockNodeOffersTheWaysPast(t *testing.T) {
+	fl := &fakeLocks{picks: 3}
+	deps := poi.Deps{Ctx: fakeCtx{items: map[string]bool{"silver-key": true}}, Rng: rng(), Locks: fl}
+	res := poi.Resolve(lockNode(types.Lock{Key: "silver-key", DC: 14}), "door", &types.SaveFile{}, deps)
+	got := strings.Join(labels(res), "|")
+	if got != "Use the Silver Key|Pick the lock (3 lockpicks)|Quick attempt|Leave it" {
+		t.Fatalf("choices: %s", got)
+	}
+	if res.Choices[1].Next != "door#pick" || res.Choices[2].Next != "door#quick" || res.Choices[3].Next != "back" {
+		t.Errorf("nexts: %+v", res.Choices)
+	}
+	if res := poi.Resolve(lockNode(types.Lock{Key: "silver-key", DC: 14}), "door#key", &types.SaveFile{}, deps); res.Next != "vault" {
+		t.Errorf("the key should open it: %+v", res)
+	}
+}
+
+func TestLockNodeQuickAttempt(t *testing.T) {
+	fl := &fakeLocks{picks: 2, quick: locks.Result{Opened: true}}
+	deps := poi.Deps{Ctx: fakeCtx{}, Rng: rng(), Locks: fl}
+	res := poi.Resolve(lockNode(types.Lock{DC: 12}), "door#quick", &types.SaveFile{}, deps)
+	if fl.quickCalls != 1 || res.Next != "vault" {
+		t.Fatalf("opened quick pick: %+v", res)
+	}
+	fl.quick = locks.Result{}
+	res = poi.Resolve(lockNode(types.Lock{DC: 12}), "door#quick", &types.SaveFile{}, deps)
+	if res.Next != "" || len(res.Choices) == 0 {
+		t.Errorf("a failed quick pick should offer the lock again: %+v", res)
+	}
+}
+
+func TestLockNodeJammedUnpickableAndOpen(t *testing.T) {
+	jam := &fakeLocks{picks: 3, jammed: true}
+	res := poi.Resolve(lockNode(types.Lock{DC: 12}), "door", &types.SaveFile{}, poi.Deps{Ctx: fakeCtx{}, Rng: rng(), Locks: jam})
+	if strings.Contains(strings.Join(labels(res), "|"), "Pick") || !strings.Contains(strings.Join(res.Outcome, " "), "jammed") {
+		t.Errorf("jammed: %+v", res)
+	}
+	res = poi.Resolve(lockNode(types.Lock{Key: "silver-key"}), "door", &types.SaveFile{}, poi.Deps{Ctx: fakeCtx{}, Rng: rng(), Locks: &fakeLocks{picks: 5}})
+	if got := strings.Join(labels(res), "|"); got != "Leave it" {
+		t.Errorf("unpickable without its key: %s", got)
+	}
+	res = poi.Resolve(lockNode(types.Lock{DC: 12}), "door", &types.SaveFile{}, poi.Deps{Ctx: fakeCtx{}, Rng: rng(), Locks: &fakeLocks{open: true}})
+	if res.Next != "vault" {
+		t.Errorf("a lock picked open today lets you through: %+v", res)
 	}
 }

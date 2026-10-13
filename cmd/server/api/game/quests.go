@@ -30,12 +30,36 @@ type questContext struct {
 	// (base stats already include spent ability points). Computed once so skill
 	// and stat gates read the same effective values a check would roll against.
 	effStats map[string]interface{}
+	// toolBonus is what carried tools add to skills (a Thieves' Kit's
+	// "skill_bonus": {"thieving": 2}), summed once per context.
+	toolBonus map[string]int
 }
 
 func buildQuestContext(save *types.SaveFile) requirement.Context {
 	defs, _ := data.LoadSkillDefinitions()
 	adv, _ := loadAdvancement()
-	return questContext{save: save, skillDefs: defs, advancement: adv, effStats: effects.EffectiveStats(save)}
+	return questContext{save: save, skillDefs: defs, advancement: adv, effStats: effects.EffectiveStats(save), toolBonus: carriedSkillBonus(save)}
+}
+
+// carriedSkillBonus sums the skill_bonus of every distinct item the player
+// carries. Kits help while they're in your pack; two of the same kit don't stack.
+func carriedSkillBonus(save *types.SaveFile) map[string]int {
+	out := map[string]int{}
+	for _, id := range gameutil.CarriedItemIDs(save) {
+		item, err := serverdb.GetItemByID(id)
+		if err != nil || item == nil || !strings.Contains(item.Properties, "skill_bonus") {
+			continue
+		}
+		var props struct {
+			SkillBonus map[string]int `json:"skill_bonus"`
+		}
+		if json.Unmarshal([]byte(item.Properties), &props) == nil {
+			for skill, n := range props.SkillBonus {
+				out[skill] += n
+			}
+		}
+	}
+	return out
 }
 
 func (c questContext) SkillValue(id string) int {
@@ -43,7 +67,7 @@ func (c questContext) SkillValue(id string) int {
 	if !ok {
 		return 0
 	}
-	return data.CalculateSkillValue(c.effStats, def.Ratio)
+	return data.CalculateSkillValue(c.effStats, def.Ratio) + c.toolBonus[id]
 }
 func (c questContext) StatValue(id string) int {
 	for k, v := range c.effStats {

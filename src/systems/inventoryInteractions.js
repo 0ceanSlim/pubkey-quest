@@ -88,6 +88,12 @@ export function getDefaultAction(itemData, isEquipped) {
 export function getItemActions(itemData, isEquipped) {
     const actions = [];
 
+    // Quest items can only be examined or destroyed: no dropping, selling or
+    // storing (the server refuses those too).
+    if (itemData.tags && itemData.tags.includes('quest_item')) {
+        return [{ action: 'examine', label: 'Examine' }, { action: 'destroy', label: 'Destroy' }];
+    }
+
     if (isEquipped) {
         actions.push({ action: 'unequip', label: 'Unequip' });
     } else {
@@ -244,6 +250,14 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
         equipment_slot: typeof toSlotOrType === 'string' ? toSlotOrType : '',
         quantity: 1
     };
+
+    // Destroy: gone for good, so ask first (the whole stack goes).
+    if (action === 'destroy') {
+        const qty = slotQuantity(fromSlot, fromSlotType);
+        const name = getItemById(itemId)?.name || itemId;
+        if (!(await confirmDestroy(name, qty))) return;
+        params.quantity = qty;
+    }
 
     // Special case: drop - prompt for quantity, but only add to ground after API success
     let dropInfo = null;  // Store drop details for later
@@ -978,3 +992,39 @@ if (document.readyState === 'loading') {
 }
 
 logger.debug('Inventory interactions module loaded');
+
+// slotQuantity reads how many items sit in a general/backpack slot (1 if unknown).
+function slotQuantity(slot, slotType) {
+    const state = getGameStateSync();
+    const slots = slotType === 'general'
+        ? (Array.isArray(state.inventory) ? state.inventory : [])
+        : (state.equipment?.bag?.contents || []);
+    return slots[slot]?.quantity || 1;
+}
+
+/**
+ * Ask before destroying an item, in the game's own dialog style.
+ * @returns {Promise<boolean>}
+ */
+function confirmDestroy(itemName, quantity) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;';
+        const what = quantity > 1 ? `${quantity}× ${itemName}` : itemName;
+        modal.innerHTML = `
+            <div style="background:#2a2a2a;border:2px solid #4a4a4a;padding:16px;max-width:320px;box-shadow:inset 1px 1px 0 #3a3a3a, inset -1px -1px 0 #000;color:#fff;font-size:12px;">
+                <h3 style="margin:0 0 10px 0;font-weight:bold;">Destroy ${what}?</h3>
+                <p style="margin:0 0 14px 0;color:#ccc;line-height:1.5;">It will be gone for good. If a quest needs it, you'll have to find another way.</p>
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button data-k="no" style="min-height:36px;padding:5px 15px;background:#3a3a3a;color:#fff;border:2px solid #4a4a4a;cursor:pointer;font-size:11px;">Keep it</button>
+                    <button data-k="yes" style="min-height:36px;padding:5px 15px;background:#7a2a1a;color:#fff;border:2px solid #a04a3a;cursor:pointer;font-size:11px;">Destroy</button>
+                </div>
+            </div>`;
+        const done = (ok) => { modal.remove(); resolve(ok); };
+        modal.querySelector('[data-k="no"]').onclick = () => done(false);
+        modal.querySelector('[data-k="yes"]').onclick = () => done(true);
+        modal.addEventListener('click', (e) => { if (e.target === modal) done(false); });
+        document.body.appendChild(modal);
+        modal.querySelector('[data-k="no"]').focus();
+    });
+}

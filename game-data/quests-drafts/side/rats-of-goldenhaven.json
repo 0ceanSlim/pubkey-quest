@@ -134,7 +134,7 @@
         "quest_points": 1,
         "items": [
           {
-            "id": "ale-mug",
+            "id": "anchor-spare-key",
             "quantity": 1
           }
         ]
@@ -526,11 +526,11 @@
         },
         "scold": {
           "label": "You made a monster out of a sewer full of rats.",
-          "text": "I know. I KNOW. No more Special Brew. Honest ale from now on. Keep the tankard, you'll always have a stool at the Anchor. And maybe don't tell the harbourmaster."
+          "text": "I know. I KNOW. No more Special Brew. Honest ale from now on. And here — the key to my spare room upstairs. It's yours. Sleep there whenever you're in port, no charge. And maybe don't tell the harbourmaster."
         },
         "forgive": {
           "label": "Accidents happen. Just don't brew it again.",
-          "text": "Never again. Honest ale, I swear it on the Anchor. Keep that tankard, you'll always have a stool here."
+          "text": "Never again. Honest ale, I swear it on the Anchor. Here, take this: the key to my spare room upstairs. Whenever you're in Goldenhaven, there's a bed for you, no charge."
         }
       }
     }

@@ -68,6 +68,16 @@
         "item_id": "fine-clothes",
         "stock": 1,
         "max_stock": 1
+      },
+      {
+        "item_id": "lockpick",
+        "stock": 8,
+        "max_stock": 12
+      },
+      {
+        "item_id": "keyring",
+        "stock": 1,
+        "max_stock": 2
       }
     ]
   }
