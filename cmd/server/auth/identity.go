@@ -135,8 +135,10 @@ func OwnerNpub(r *http.Request) string {
 // query parameter, or a top-level `npub` field in a JSON body. The body is
 // buffered and restored so the handler still reads it.
 func claimedNpub(r *http.Request) (string, error) {
+	// /api/saves/{npub}/… names the player in the path — but /api/saves/publish
+	// is an action, not a player, so only a key-shaped segment counts.
 	if rest, ok := strings.CutPrefix(r.URL.Path, "/api/saves/"); ok {
-		if npub, _, _ := strings.Cut(rest, "/"); npub != "" {
+		if npub, _, _ := strings.Cut(rest, "/"); looksLikeKey(npub) {
 			return npub, nil
 		}
 	}
@@ -184,4 +186,21 @@ func writeIdentityError(w http.ResponseWriter, status int, msg string, authRequi
 		"error":         msg,
 		"auth_required": authRequired,
 	})
+}
+
+// looksLikeKey reports whether a path segment is a player key (npub or hex)
+// rather than a route word like "publish".
+func looksLikeKey(s string) bool {
+	if strings.HasPrefix(s, "npub1") {
+		return true
+	}
+	if len(s) != 64 {
+		return false
+	}
+	for _, c := range s {
+		if !strings.ContainsRune("0123456789abcdefABCDEF", c) {
+			return false
+		}
+	}
+	return true
 }

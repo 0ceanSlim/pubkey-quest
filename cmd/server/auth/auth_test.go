@@ -118,6 +118,9 @@ func TestRequireIdentity(t *testing.T) {
 		{"own hex in body", "POST", "/api/game/action", `{"npub":"` + alice.PublicKey() + `","action":"x"}`, true, 200},
 		{"someone else's npub", "POST", "/api/combat/action", `{"npub":"` + bobNpub + `"}`, true, 403},
 		{"someone else's saves", "GET", "/api/saves/" + bobNpub, "", true, 403},
+		// /api/saves/publish is a route, not a player: the npub is in the body.
+		{"publish own save", "POST", "/api/saves/publish", `{"npub":"` + aliceNpub + `","save_id":"s"}`, true, 200},
+		{"publish someone else's save", "POST", "/api/saves/publish", `{"npub":"` + bobNpub + `","save_id":"s"}`, true, 403},
 		{"no session", "GET", "/api/session/state?npub=" + aliceNpub, "", false, 401},
 		{"public route", "GET", "/api/profile?npub=" + bobNpub, "", false, 200},
 		{"public sibling of exact route", "GET", "/api/skills/definitions?npub=" + bobNpub, "", false, 200},
