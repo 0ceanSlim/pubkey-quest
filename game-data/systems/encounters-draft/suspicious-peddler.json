@@ -136,20 +136,13 @@
       "is_terminal": true
     },
     "buy-fake": {
-      "text": "You hand over the gold. He vanishes into the brush suspiciously fast. You later realize the ring is worthless.",
-      "type": "loot",
-      "loot_table": {
-        "guaranteed": [
-          {
-            "item": "worthless-trinket",
-            "quantity": 1
-          }
-        ]
-      },
-      "is_terminal": true,
+      "type": "transaction",
+      "text": "You hand over the gold. He vanishes into the brush suspiciously fast, and when you look closer the 'gold' ring is painted brass. You toss it into the bushes.",
       "cost": {
         "gold": 50
-      }
+      },
+      "failure_text": "You don't have that much gold.",
+      "is_terminal": true
     },
     "combat-bandit": {
       "text": "The peddler lets out a whistle, and two of his associates emerge from the bushes!",
@@ -164,7 +157,14 @@
       "loot_table": {
         "guaranteed": [
           {
-            "item": "bandit-stash",
+            "item": "gold-piece",
+            "quantity": [
+              20,
+              50
+            ]
+          },
+          {
+            "item": "dagger",
             "quantity": 1
           }
         ]
@@ -179,6 +179,3 @@
   },
   "trigger": "travel"
 }
-
-
-

@@ -102,8 +102,23 @@
       "loot_table": {
         "guaranteed": [
           {
-            "item": "hunters-secret-cache",
+            "item": "longbow",
             "quantity": 1
+          },
+          {
+            "item": "arrows",
+            "quantity": 20
+          },
+          {
+            "item": "healing",
+            "quantity": 1
+          },
+          {
+            "item": "gold-piece",
+            "quantity": [
+              150,
+              250
+            ]
           }
         ]
       },

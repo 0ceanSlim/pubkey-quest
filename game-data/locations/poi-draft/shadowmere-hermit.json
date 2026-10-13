@@ -95,7 +95,11 @@
       "loot_table": {
         "guaranteed": [
           {
-            "item": "hermit-stash",
+            "item": "mushroom-spores",
+            "quantity": 3
+          },
+          {
+            "item": "healing",
             "quantity": 1
           }
         ]

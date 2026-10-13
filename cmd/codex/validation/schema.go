@@ -240,8 +240,8 @@ func (c *schemaChecker) checkSkill(skill string) {
 	if skill == "" {
 		return
 	}
-	if !schemaValidSkills[skill] {
-		c.errf("invalid skill %q (must be one of athletics/crafting/influence/medicine/perception/resolve/survival/thieving)", skill)
+	if !schemaValidSkills[skill] && !schemaValidStats[skill] {
+		c.errf("invalid skill %q (must be a skill — athletics/crafting/influence/medicine/perception/resolve/survival/thieving — or an ability score)", skill)
 	}
 }
 

@@ -134,7 +134,7 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		}
 
 	case types.POIStepCheck, types.POIStepPassiveCheck:
-		r := skillcheck.Resolve(deps.Ctx.SkillValue(node.Skill), node.DC, deps.Rng)
+		r := skillcheck.Resolve(checkValue(deps.Ctx, node.Skill), node.DC, deps.Rng)
 		res.CheckSkill = node.Skill
 		res.CheckSuccess = r.Success
 		if r.Success {
@@ -489,4 +489,21 @@ func appendOnce(lines []string, line string) []string {
 		}
 	}
 	return append(lines, line)
+}
+
+// abilities are the six ability scores a check can name instead of a skill
+// ("intelligence" to chant an ancient verse); the check then rolls against the
+// stat itself.
+var abilities = map[string]bool{
+	"strength": true, "dexterity": true, "constitution": true,
+	"intelligence": true, "wisdom": true, "charisma": true,
+}
+
+// checkValue is the score a check rolls against: the named skill, or the
+// ability score when the check names one.
+func checkValue(ctx requirement.Context, name string) int {
+	if abilities[strings.ToLower(name)] {
+		return ctx.StatValue(strings.ToLower(name))
+	}
+	return ctx.SkillValue(name)
 }

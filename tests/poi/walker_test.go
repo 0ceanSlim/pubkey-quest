@@ -309,3 +309,17 @@ func TestFatigueEffectRaisesTheStat(t *testing.T) {
 		t.Errorf("gained=%d applied=%q next=%q", gained, applied, res.Next)
 	}
 }
+
+// A check can name an ability score; it rolls against the stat, not a skill.
+func TestAbilityCheckUsesTheStat(t *testing.T) {
+	// The fake context reports Intelligence 0 (−5) as a stat but 30 as a
+	// "skill": a DC 16 check only passes if the skill value is wrongly used.
+	ctx := fakeCtx{skills: map[string]int{"intelligence": 30}}
+	for seed := int64(0); seed < 40; seed++ {
+		res := poi.Resolve(types.POIStep{Type: types.POIStepCheck, Skill: "intelligence", DC: 16, SuccessNext: "y", FailureNext: "n"},
+			"c", &types.SaveFile{}, poi.Deps{Ctx: ctx, Rng: rand.New(rand.NewSource(seed))})
+		if res.CheckSuccess {
+			t.Fatal("an intelligence check rolled against a skill value, not the stat")
+		}
+	}
+}
