@@ -84,6 +84,14 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 		return nil, fmt.Errorf("item '%s' not found in database: %v", itemID, err)
 	}
 
+	// A smoke bomb ("escape") only does anything mid-fight; don't waste it.
+	var props map[string]interface{}
+	if json.Unmarshal([]byte(propertiesJSON), &props) == nil {
+		if escape, _ := props["escape"].(bool); escape {
+			return &types.GameActionResponse{Success: false, Message: "That's for getting out of a fight.", Color: "yellow"}, nil
+		}
+	}
+
 	// Check for "consumable" tag
 	isConsumable := false
 	var tags []interface{}
@@ -219,6 +227,20 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 			if state.HP > oldHP {
 				effectMessages = append(effectMessages, fmt.Sprintf("Healed %d HP", state.HP-oldHP))
 				log.Printf("✅ %s healed %d HP (rolled %s)", itemID, state.HP-oldHP, healExpr)
+			}
+		}
+	}
+
+	// "cures": ["poisoned"] lifts the matching status effects (poisoned → the
+	// "poison" effect). In a fight the combat conditions are cured separately.
+	if cures, ok := properties["cures"].([]interface{}); ok {
+		for _, c := range cures {
+			name, _ := c.(string)
+			for _, id := range cureEffectIDs[strings.ToLower(name)] {
+				if effects.HasActiveEffect(state, id) {
+					effects.RemoveEffect(state, id)
+					effectMessages = append(effectMessages, fmt.Sprintf("No longer %s", name))
+				}
 			}
 		}
 	}
@@ -1028,4 +1050,10 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 	}
 
 	return nil, fmt.Errorf("inventory is full")
+}
+
+// cureEffectIDs maps a condition an item cures to the status effects that
+// represent it outside combat.
+var cureEffectIDs = map[string][]string{
+	"poisoned": {"poison"},
 }

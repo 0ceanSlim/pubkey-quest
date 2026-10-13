@@ -123,7 +123,7 @@
     "item_restock_interval": 10,
     "inventory": [
       {
-        "item_id": "rope-hemp",
+        "item_id": "rope",
         "stock": 8,
         "max_stock": 8
       },

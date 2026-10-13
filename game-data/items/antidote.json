@@ -1,0 +1,21 @@
+{
+  "id": "antidote",
+  "name": "Antidote",
+  "description": "A stoppered vial of bitter green tonic. Drink it to purge poison from your blood.",
+  "value": 5000,
+  "type": "Potion",
+  "weight": 0,
+  "stack": 5,
+  "rarity": "common",
+  "tags": [
+    "consumable"
+  ],
+  "cures": [
+    "poisoned"
+  ],
+  "effects": [],
+  "notes": [
+    "Ends the poisoned condition (in or out of combat)."
+  ],
+  "image": "/res/img/items/antidote.png"
+}

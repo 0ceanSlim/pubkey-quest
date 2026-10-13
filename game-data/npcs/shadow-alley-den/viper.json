@@ -65,12 +65,12 @@
         "max_stock": 10
       },
       {
-        "item_id": "poison-vial",
+        "item_id": "poison-basic",
         "stock": 3,
         "max_stock": 5
       },
       {
-        "item_id": "lock-pick",
+        "item_id": "lockpick",
         "stock": 20,
         "max_stock": 50
       },

@@ -55,19 +55,9 @@
         "max_stock": 5
       },
       {
-        "item_id": "silk-scrap",
-        "stock": 4,
-        "max_stock": 6
-      },
-      {
         "item_id": "healing",
         "stock": 2,
         "max_stock": 3
-      },
-      {
-        "item_id": "fine-clothes",
-        "stock": 1,
-        "max_stock": 1
       },
       {
         "item_id": "lockpick",

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 // Issue represents a validation issue found in game data
@@ -1148,7 +1149,76 @@ func validateNPCFile(filePath string) []Issue {
 		}
 	}
 
+	// Every item the NPC sells, charges or takes must exist: a shop listing an
+	// item that isn't in the catalog breaks buying it.
+	known := knownItemIDs()
+	for _, ref := range npcItemRefs(npc) {
+		if !known[ref.id] {
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "npcs",
+				File:     filename,
+				Field:    ref.where,
+				Message:  fmt.Sprintf("Unknown item %q in %s", ref.id, ref.where),
+			})
+		}
+	}
+
 	return issues
+}
+
+type npcItemRef struct{ id, where string }
+
+// npcItemRefs lists the items an NPC file names: shop stock, vault fees, and
+// items dialogue nodes require or consume.
+func npcItemRefs(npc map[string]interface{}) []npcItemRef {
+	var refs []npcItemRef
+	listIDs := func(raw interface{}, where string, keys ...string) {
+		list, _ := raw.([]interface{})
+		for _, e := range list {
+			m, _ := e.(map[string]interface{})
+			for _, k := range keys {
+				if id, _ := m[k].(string); id != "" {
+					refs = append(refs, npcItemRef{id, where})
+				}
+			}
+		}
+	}
+	if shop, ok := npc["shop_config"].(map[string]interface{}); ok {
+		listIDs(shop["inventory"], "shop_config.inventory", "item_id", "id")
+	}
+	if storage, ok := npc["storage_config"].(map[string]interface{}); ok {
+		listIDs(storage["registration_items"], "storage_config.registration_items", "id", "item_id")
+	}
+	if dialogue, ok := npc["dialogue"].(map[string]interface{}); ok {
+		for key, raw := range dialogue {
+			node, _ := raw.(map[string]interface{})
+			listIDs(node["consume_items"], "dialogue."+key+".consume_items", "id", "item_id")
+			if req, ok := node["requirements"].(map[string]interface{}); ok {
+				listIDs(req["items"], "dialogue."+key+".requirements.items", "id", "item_id")
+			}
+		}
+	}
+	return refs
+}
+
+var (
+	itemIDsOnce sync.Once
+	itemIDs     map[string]bool
+)
+
+// knownItemIDs is the set of item ids in game-data/items (loaded once).
+func knownItemIDs() map[string]bool {
+	itemIDsOnce.Do(func() {
+		itemIDs = map[string]bool{}
+		entries, _ := os.ReadDir("game-data/items")
+		for _, e := range entries {
+			if strings.HasSuffix(e.Name(), ".json") {
+				itemIDs[strings.TrimSuffix(e.Name(), ".json")] = true
+			}
+		}
+	})
+	return itemIDs
 }
 
 // ValidateStartingGear validates the starting gear configuration file

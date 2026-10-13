@@ -1,0 +1,19 @@
+{
+  "id": "smoke-bomb",
+  "name": "Smoke Bomb",
+  "description": "A clay ball packed with powder and soot. Smash it at your feet and you're gone before the smoke clears.",
+  "value": 2500,
+  "type": "Adventuring Gear",
+  "weight": 0.5,
+  "stack": 5,
+  "rarity": "uncommon",
+  "tags": [
+    "consumable"
+  ],
+  "escape": true,
+  "effects": [],
+  "notes": [
+    "In combat: you escape the fight, no roll. Uses your action."
+  ],
+  "image": "/res/img/items/smoke-bomb.png"
+}

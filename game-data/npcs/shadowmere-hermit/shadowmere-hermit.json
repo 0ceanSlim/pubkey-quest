@@ -10,7 +10,7 @@
     "starting_gold": 150,
     "inventory": [
       {
-        "item_id": "potion-of-healing",
+        "item_id": "healing",
         "stock": 2,
         "max_stock": 5
       },

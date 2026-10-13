@@ -354,6 +354,14 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	decrementSlotStack(slot)
 	state.ActionUsed = true
 
+	// A smoke bomb ("escape": true) gets you out, no roll.
+	if escape, _ := item["escape"].(bool); escape {
+		return escapeFight(cs, fmt.Sprintf("  You smash the %s at your feet and slip away in the smoke!", name)), nil
+	}
+	// An antidote ("cures": ["poisoned"]) ends those conditions in the fight
+	// too (ApplyItemEffects above already lifted the matching status effects).
+	cured := cureConditions(&tstate.Conditions, item["cures"])
+
 	line := fmt.Sprintf("  You use %s.", name)
 	if target != me {
 		line = fmt.Sprintf("  %s gives %s a %s.", me.Name, target.Name, name)
@@ -364,6 +372,9 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		line = strings.TrimSuffix(line, ".") + " — " + strings.Join(msgs, ", ") + "."
 	}
 	log := []string{line}
+	for _, c := range cured {
+		log = append(log, fmt.Sprintf("  %s is no longer %s.", target.Name, c))
+	}
 
 	// Healing the hurt wakes the fallen and earns the healer XP.
 	if healed := tstate.CurrentHP - before; healed > 0 {
@@ -379,6 +390,32 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		}
 	}
 	return log, nil
+}
+
+// cureConditions removes the conditions an item cures (its "cures" list) and
+// returns the ones that were actually there.
+func cureConditions(conds *[]types.CombatCondition, cures interface{}) []string {
+	list, _ := cures.([]interface{})
+	if len(list) == 0 {
+		return nil
+	}
+	want := map[string]bool{}
+	for _, c := range list {
+		if s, ok := c.(string); ok {
+			want[strings.ToLower(s)] = true
+		}
+	}
+	var kept []types.CombatCondition
+	var cured []string
+	for _, c := range *conds {
+		if want[strings.ToLower(c.Name)] {
+			cured = append(cured, c.Name)
+			continue
+		}
+		kept = append(kept, c)
+	}
+	*conds = kept
+	return cured
 }
 
 // processScrollUse resolves a spell scroll in combat: it casts the scroll's spell

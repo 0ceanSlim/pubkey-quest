@@ -1,0 +1,17 @@
+{
+  "id": "spices",
+  "name": "Spices",
+  "description": "A tied bundle of pepper, cloves and dried ginger from the southern markets. Worth more than its weight in most towns.",
+  "value": 200,
+  "type": "Adventuring Gear",
+  "weight": 1,
+  "stack": 10,
+  "rarity": "common",
+  "tags": [
+    "trade-good"
+  ],
+  "notes": [
+    "Trade good: sells well. Wanted by The Missing Mule."
+  ],
+  "image": "/res/img/items/spices.png"
+}

@@ -658,20 +658,7 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 	)}
 
 	if roll <= pct {
-		// In a party you slip away alone: out of the fight (and the party),
-		// keeping the XP you've earned; the others fight on.
-		if PartyFight(cs) {
-			me := actor(cs)
-			me.Fled = true
-			me.Loot = nil
-			log = append(log, fmt.Sprintf("  %s breaks away and escapes the fight!", me.Name))
-			return append(log, partyAfterDeparture(cs)...), nil
-		}
-		// Escape successful — end combat without a kill (XP already in actor(cs).XPEarned)
-		cs.Phase = "loot"
-		actor(cs).Loot = nil
-		log = append(log, "  You manage to put enough distance between you and the enemy to escape!")
-		return log, nil
+		return append(log, escapeFight(cs, "  You manage to put enough distance between you and the enemy to escape!")...), nil
 	}
 
 	// Escape failed — player's action is spent; monster responds when player ends turn
@@ -679,6 +666,23 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 	state.ActionUsed = true
 	log = append(log, fmt.Sprintf("  %s cuts off your escape! You're still in combat.", monster.Name))
 	return log, nil
+}
+
+// escapeFight takes the acting player out of the fight. Solo, the fight ends
+// without a kill (XP already earned is kept, no loot); in a party they slip
+// away alone and the others fight on. Shared by a successful flee and a smoke
+// bomb.
+func escapeFight(cs *types.CombatSession, line string) []string {
+	if PartyFight(cs) {
+		me := actor(cs)
+		me.Fled = true
+		me.Loot = nil
+		log := []string{fmt.Sprintf("  %s breaks away and escapes the fight!", me.Name)}
+		return append(log, partyAfterDeparture(cs)...)
+	}
+	cs.Phase = "loot"
+	actor(cs).Loot = nil
+	return []string{line}
 }
 
 // athleticsScore computes the athletics speed value from three raw ability scores.
