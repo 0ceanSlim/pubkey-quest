@@ -347,6 +347,10 @@ func createInventoryStructure(database *sql.DB, items []ItemWithQty) (map[string
 				}
 				log.Printf("✅ Equipped %s to mainhand slot", item.Item)
 				equipped = true
+				// A two-handed weapon (a greataxe) keeps the off hand free.
+				if hasTags(itemData, []string{"two-handed"}) {
+					twoHandedEquipped = true
+				}
 			}
 
 		case "offhand":
