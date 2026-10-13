@@ -105,6 +105,7 @@ window.doFlee           = combatSystem.doFlee;
 window.doEndTurn        = combatSystem.doEndTurn;
 window.rollDeathSave    = combatSystem.rollDeathSave;
 window.endCombat        = combatSystem.endCombat;
+window.reloadLastSave   = combatSystem.reloadLastSave;
 window.doHelpAlly        = combatSystem.doHelpAlly;
 window.doRetreat         = combatSystem.doRetreat;
 

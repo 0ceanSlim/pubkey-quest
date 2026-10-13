@@ -326,13 +326,23 @@
         <p style="font-size:10px; font-weight:bold; color:#fca5a5; margin:0 0 2px;">Defeated</p>
         <p id="defeat-message" style="font-size:8px; color:#d1d5db; margin:0 0 2px;"></p>
         <div id="defeat-kept-items" style="font-size:8px; color:#9ca3af; margin-bottom:4px;"></div>
-        <button onclick="window.endCombat()"
-                style="width:100%; padding:3px; font-weight:bold; color:#fff; font-size:9px;
-                       cursor:pointer; background:#7f1d1d;
-                       border-top:2px solid #dc2626; border-left:2px solid #dc2626;
-                       border-right:2px solid #450a0a; border-bottom:2px solid #450a0a;">
-            Continue
-        </button>
+        <div style="display:flex; gap:4px;">
+            <button onclick="window.endCombat()"
+                    style="flex:1; padding:3px; font-weight:bold; color:#fff; font-size:9px;
+                           cursor:pointer; background:#7f1d1d;
+                           border-top:2px solid #dc2626; border-left:2px solid #dc2626;
+                           border-right:2px solid #450a0a; border-bottom:2px solid #450a0a;">
+                Continue
+            </button>
+            <button id="defeat-reload-btn" onclick="window.reloadLastSave()"
+                    title="Go back to your last save, as if this never happened"
+                    style="flex:1; padding:3px; font-weight:bold; color:#fff; font-size:9px;
+                           cursor:pointer; background:#2a2a2a;
+                           border-top:2px solid #4a4a4a; border-left:2px solid #4a4a4a;
+                           border-right:2px solid #1a1a1a; border-bottom:2px solid #1a1a1a;">
+                Reload last save
+            </button>
+        </div>
     </div>
 
 </div>

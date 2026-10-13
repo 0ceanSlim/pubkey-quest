@@ -924,6 +924,32 @@ export async function rollDeathSave() {
     }
 }
 
+/**
+ * Defeated? Go back to the last save instead — fights aren't saved, so this is
+ * how you retry a boss you saved in front of, with nothing lost but the time
+ * since. The server rebuilds the session from the save (relay-aware); a full
+ * page reload then redraws everything from it.
+ */
+export async function reloadLastSave() {
+    const npub = getNpub(), saveID = getSaveID();
+    if (!npub || !saveID) return;
+    const btn = $id('defeat-reload-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Reloading…'; }
+    try {
+        const resp = await fetch('/api/session/reload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub, save_id: saveID }),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        window.location.reload();
+    } catch (err) {
+        logger.error('reloadLastSave error:', err);
+        _logError("Couldn't load your last save. Have you saved this character yet?");
+        if (btn) { btn.disabled = false; btn.textContent = 'Reload last save'; }
+    }
+}
+
 export async function endCombat() {
     const npub = getNpub(), saveID = getSaveID();
     if (!npub || !saveID) return;
