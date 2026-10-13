@@ -1,6 +1,7 @@
 package combat
 
 import (
+	"errors"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -100,12 +101,28 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		defer restore()
 		coverLog = lines
 	}
+	// Components must be at hand (general slots, or a pouch in one). Ones left
+	// in the backpack can be dug out — it costs the bonus action.
+	deps.ComponentsAtHand = true
 	res, err := spells.Cast(db, deps, save, spellID, level, monster)
+	dugOut := false
+	if errors.Is(err, spells.ErrComponentsInPack) {
+		if actionCost == "bonus_action" || state.BonusActionUsed {
+			return nil, fmt.Errorf("the components for that are in your pack, and digging them out takes your bonus action (keep them in your general slots or a pouch)")
+		}
+		deps.ComponentsAtHand = false
+		res, err = spells.Cast(db, deps, save, spellID, level, monster)
+		dugOut = err == nil
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	log := append(coverLog, res.Log...)
+	if dugOut {
+		state.BonusActionUsed = true
+		log = append([]string{"  You dig the components out of your pack (bonus action)."}, log...)
+	}
 
 	// Damage → monster HP + XP + kill.
 	if res.Damage > 0 && monster != nil {
@@ -317,12 +334,11 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		return nil, fmt.Errorf("%s can't be used in combat", name)
 	}
 
-	// Locate a stack of the item within reach (loose general slot or a general-
-	// slot container). Nil means the player isn't carrying one where they can grab
-	// it mid-fight.
-	slot := findReachableConsumable(save.Inventory, itemID)
-	if slot == nil {
-		return nil, fmt.Errorf("no %s within reach", name)
+	// Locate a stack of the item at hand (loose general slot or a general-slot
+	// container) — or in the backpack, which costs the bonus action to dig out.
+	slot, fromPack, err := reachItem(save.Inventory, state, itemID, name)
+	if err != nil {
+		return nil, err
 	}
 
 	// Who it's for: you, or an ally standing next to you (a potion to the lips
@@ -353,6 +369,9 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	// Consume one from the located stack.
 	decrementSlotStack(slot)
 	state.ActionUsed = true
+	if fromPack {
+		state.BonusActionUsed = true
+	}
 
 	// A smoke bomb ("escape": true) gets you out, no roll.
 	if escape, _ := item["escape"].(bool); escape {
@@ -372,6 +391,9 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		line = strings.TrimSuffix(line, ".") + " — " + strings.Join(msgs, ", ") + "."
 	}
 	log := []string{line}
+	if fromPack {
+		log = append([]string{fmt.Sprintf("  You dig the %s out of your pack (bonus action).", name)}, log...)
+	}
 	for _, c := range cured {
 		log = append(log, fmt.Sprintf("  %s is no longer %s.", target.Name, c))
 	}
@@ -390,6 +412,37 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		}
 	}
 	return log, nil
+}
+
+// reachItem finds an item to use mid-fight. At hand means the four general
+// slots and containers in them (a pouch, a sack); the backpack can be reached
+// too, but rummaging in it takes the bonus action. fromPack reports which.
+func reachItem(inv map[string]interface{}, state *types.PlayerCombatState, itemID, name string) (slot map[string]interface{}, fromPack bool, err error) {
+	if slot = findReachableConsumable(inv, itemID); slot != nil {
+		return slot, false, nil
+	}
+	if slot = findPackItem(inv, itemID); slot == nil {
+		return nil, false, fmt.Errorf("you aren't carrying a %s", name)
+	}
+	if state.BonusActionUsed {
+		return nil, false, fmt.Errorf("your %s is in your pack, and digging it out takes your bonus action (keep it in your general slots or a pouch)", name)
+	}
+	return slot, true, nil
+}
+
+// findPackItem finds a stack of itemID in the equipped backpack.
+func findPackItem(inv map[string]interface{}, itemID string) map[string]interface{} {
+	gear, _ := inv["gear_slots"].(map[string]interface{})
+	bag, _ := gear["bag"].(map[string]interface{})
+	contents, _ := bag["contents"].([]interface{})
+	for _, raw := range contents {
+		if s, ok := raw.(map[string]interface{}); ok {
+			if id, _ := s["item"].(string); id == itemID && slotQty(s, "quantity") > 0 {
+				return s
+			}
+		}
+	}
+	return nil
 }
 
 // cureConditions removes the conditions an item cures (its "cures" list) and
@@ -423,9 +476,9 @@ func cureConditions(conds *[]types.CombatCondition, cures interface{}) []string 
 // the same consequences as a normal cast, then consumes one scroll. Uses the action.
 func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, spellID, itemName, targetID string) ([]string, error) {
 	state := &actor(cs).CombatState
-	slot := findReachableConsumable(save.Inventory, itemID)
-	if slot == nil {
-		return nil, fmt.Errorf("no %s within reach", itemName)
+	slot, fromPack, err := reachItem(save.Inventory, state, itemID, itemName)
+	if err != nil {
+		return nil, err
 	}
 	monster, err := ResolveTarget(cs, targetID)
 	if err != nil {
@@ -469,6 +522,10 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 
 	decrementSlotStack(slot)
 	state.ActionUsed = true
+	if fromPack {
+		state.BonusActionUsed = true
+		log = append([]string{fmt.Sprintf("  You dig the %s out of your pack (bonus action).", itemName)}, log...)
+	}
 
 	if !monster.IsAlive {
 		log = append(log, handleMonsterKill(cs, monster, save, adv)...)
@@ -478,8 +535,8 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 
 // findReachableConsumable returns the slot map (a live reference) holding itemID,
 // searching loose general slots first, then the contents of any general-slot
-// container. Returns nil if none is reachable. The equipped backpack is excluded
-// on purpose — you can't rummage the pack mid-fight.
+// container. Returns nil if none is at hand. The equipped backpack is excluded
+// on purpose — rummaging the pack mid-fight costs the bonus action (reachItem).
 func findReachableConsumable(inv map[string]interface{}, itemID string) map[string]interface{} {
 	gen, ok := inv["general_slots"].([]interface{})
 	if !ok {

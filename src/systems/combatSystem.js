@@ -666,28 +666,36 @@ export function openCombatSpellMenu() {
     _openCombatChooser(`✨ Cast a spell — ${mana}/${maxMana}◆ mana`, entries);
 }
 
-/** Open the combat item menu: reachable consumables (loose + in general-slot pouches). */
+/**
+ * Open the combat item menu. Items at hand — the general slots and pouches in
+ * them — cost only your action. Items in your backpack are listed too, but
+ * digging one out costs your bonus action as well (the server enforces it).
+ */
 export function openCombatItemMenu() {
     const inv = window.getGameStateSync?.()?.character?.inventory ?? {};
     const gen = inv.general_slots ?? [];
-    const counts = new Map();
+    const pack = inv.gear_slots?.bag?.contents ?? [];
+    const atHand = new Map();
+    const inPack = new Map();
 
-    const tally = (slot) => {
+    const tally = (into, slot) => {
         const id = slot?.item;
         if (!id) return;
         const item = window.getItemById?.(id);
         const tags = (item?.tags ?? []).map(t => String(t).toLowerCase());
         if (!tags.includes('consumable')) return;
-        counts.set(id, (counts.get(id) ?? 0) + (slot.quantity ?? 0));
+        into.set(id, (into.get(id) ?? 0) + (slot.quantity ?? 0));
     };
     for (const slot of gen) {
         if (!slot) continue;
-        tally(slot);
-        for (const c of (slot.contents ?? [])) tally(c);
+        tally(atHand, slot);
+        for (const c of (slot.contents ?? [])) tally(atHand, c);
     }
+    for (const slot of pack) tally(inPack, slot);
 
+    const bonusUsed = _lastState?.bonus_action_used ?? false;
     const entries = [];
-    for (const [id, qty] of counts) {
+    for (const [id, qty] of atHand) {
         if (qty <= 0) continue;
         const item = window.getItemById?.(id);
         entries.push({
@@ -698,9 +706,22 @@ export function openCombatItemMenu() {
             onClick: () => window.doUseCombatItem(id),
         });
     }
+    for (const [id, qty] of inPack) {
+        if (qty <= 0 || atHand.has(id)) continue;
+        const item = window.getItemById?.(id);
+        entries.push({
+            label: `${item?.name ?? id} (in pack)`,
+            meta:  `×${qty} · +bonus action`,
+            disabled: bonusUsed,
+            tip: bonusUsed
+                ? 'In your backpack, and your bonus action is used. Keep what you need in your general slots or a pouch.'
+                : 'In your backpack: digging it out also uses your bonus action.',
+            onClick: () => window.doUseCombatItem(id),
+        });
+    }
 
     if (entries.length === 0) {
-        _logInfo('No usable items within reach.');
+        _logInfo('No usable items on you.');
         return;
     }
     _openCombatChooser('🧪 Use an item', entries);

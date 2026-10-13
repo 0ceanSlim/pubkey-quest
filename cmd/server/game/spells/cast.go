@@ -1,6 +1,7 @@
 package spells
 
 import (
+	"errors"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -43,7 +44,15 @@ type Deps struct {
 	// resistances/immunities/vulnerabilities, returning final damage (min 1 on a
 	// hit). It does NOT mutate monster HP — the caller applies it.
 	ResolveMonsterDamage func(diceExpr string, mod int, damageType string, crit bool, m *types.MonsterInstance) int
+	// ComponentsAtHand limits material components to what's at hand — the
+	// general slots and containers in them (a component pouch). Set in combat:
+	// components left in the backpack give ErrComponentsInPack, and digging them
+	// out costs the caster's bonus action (the combat layer retries without it).
+	ComponentsAtHand bool
 }
+
+// ErrComponentsInPack: a combat cast's components are only in the backpack.
+var ErrComponentsInPack = errors.New("components are in your pack")
 
 // CastResult describes the outcome of a resolved cast. Costs (mana/components/
 // buff-effect) are already applied to the save; damage/heal are returned for the
@@ -140,7 +149,7 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 	// them (consuming from the pouch, or free if a focus provides them).
 	var plan []componentUse
 	if !fromScroll {
-		p, err := resolveComponents(save, spell, focusProvides)
+		p, err := resolveComponents(save, spell, focusProvides, deps.ComponentsAtHand)
 		if err != nil {
 			return nil, err
 		}
@@ -393,7 +402,7 @@ type componentUse struct {
 // A required component is free when focusProvides reports an equipped focus
 // supplies it; otherwise the player must hold enough of it (component pouch /
 // general slots / backpack). Returns an error naming the first shortfall.
-func resolveComponents(save *types.SaveFile, spell map[string]interface{}, focusProvides func(string) bool) ([]componentUse, error) {
+func resolveComponents(save *types.SaveFile, spell map[string]interface{}, focusProvides func(string) bool, atHand bool) ([]componentUse, error) {
 	mc, ok := spell["material_component"].(map[string]interface{})
 	if !ok {
 		return nil, nil
@@ -422,6 +431,9 @@ func resolveComponents(save *types.SaveFile, spell map[string]interface{}, focus
 		}
 		if countComponent(save.Inventory, comp) < qty {
 			return nil, fmt.Errorf("need %d × %s (or a focus that provides it)", qty, comp)
+		}
+		if atHand && countAtHand(save.Inventory, comp) < qty {
+			return nil, fmt.Errorf("%w: %s", ErrComponentsInPack, comp)
 		}
 		plan = append(plan, componentUse{component: comp, quantity: qty})
 	}
@@ -456,6 +468,13 @@ func equippedFocusProvides(db *sql.DB, save *types.SaveFile, component string) b
 		}
 	}
 	return false
+}
+
+// countAtHand totals how many of itemID sit in the general slots, including
+// containers in them (a component pouch) — what can be reached mid-fight.
+func countAtHand(inv map[string]interface{}, itemID string) int {
+	gen, _ := inv["general_slots"].([]interface{})
+	return countInSlotList(gen, itemID)
 }
 
 // countComponent totals how many of itemID the player holds across general slots

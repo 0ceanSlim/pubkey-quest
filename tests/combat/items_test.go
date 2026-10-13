@@ -62,3 +62,27 @@ func TestAntidoteCuresPoison(t *testing.T) {
 		t.Error("the antidote should remove the Poisoned effect")
 	}
 }
+
+// Items at hand cost the action; ones in the backpack can be used too, but
+// digging them out takes the bonus action as well.
+func TestItemsFromThePackCostTheBonusAction(t *testing.T) {
+	cs, save := fightWithItem(t, "antidote")
+	save.Inventory["general_slots"] = []interface{}{}
+	save.Inventory["gear_slots"] = map[string]interface{}{"bag": map[string]interface{}{
+		"item": "backpack", "contents": []interface{}{map[string]interface{}{"item": "antidote", "quantity": 1}},
+	}}
+	st := &combat.Actor(cs).CombatState
+
+	st.BonusActionUsed = true
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "antidote", ""); err == nil {
+		t.Fatal("with the bonus action spent, the pack is out of reach")
+	}
+
+	st.BonusActionUsed, st.ActionUsed = false, false
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "antidote", ""); err != nil {
+		t.Fatal(err)
+	}
+	if !st.BonusActionUsed || !st.ActionUsed {
+		t.Errorf("using it from the pack should spend both: action=%v bonus=%v", st.ActionUsed, st.BonusActionUsed)
+	}
+}

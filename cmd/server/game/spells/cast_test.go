@@ -1,6 +1,7 @@
 package spells
 
 import (
+	"errors"
 	"testing"
 
 	"pubkey-quest/types"
@@ -429,5 +430,53 @@ func TestSpellShape(t *testing.T) {
 		if got := spellShape(c.spell); got != c.want {
 			t.Errorf("spellShape(%v) = %s, want %s", c.spell, got, c.want)
 		}
+	}
+}
+
+// In combat, components must be at hand (general slots / a pouch in one).
+// Ones only in the backpack give ErrComponentsInPack — nothing spent — and the
+// combat layer recasts without the limit when the caster spends their bonus
+// action digging them out.
+func TestCast_ComponentsInPackNeedDigging(t *testing.T) {
+	spell := map[string]interface{}{
+		"name": "Burn", "save_type": "dexterity", "damage": "3d6", "mana_cost": float64(2),
+		"material_component": map[string]interface{}{
+			"required": []interface{}{map[string]interface{}{"component": "sulfur", "quantity": float64(1)}},
+		},
+	}
+	packOnly := func() map[string]interface{} {
+		return map[string]interface{}{
+			"general_slots": []interface{}{},
+			"gear_slots": map[string]interface{}{"bag": map[string]interface{}{
+				"item": "backpack", "contents": []interface{}{map[string]interface{}{"item": "sulfur", "quantity": float64(2)}},
+			}},
+		}
+	}
+
+	save := saveWith("burn", 5)
+	save.Inventory = packOnly()
+	deps := testDeps(1, 0)
+	deps.ComponentsAtHand = true
+	if _, err := resolveCast(deps, save, spell, "burn", 1, testMonster(15, 10), noFocus, false); !errors.Is(err, ErrComponentsInPack) {
+		t.Fatalf("want ErrComponentsInPack, got %v", err)
+	}
+	if save.Mana != 5 || countComponent(save.Inventory, "sulfur") != 2 {
+		t.Fatal("a refused cast must spend nothing")
+	}
+
+	deps.ComponentsAtHand = false // dug out of the pack
+	if _, err := resolveCast(deps, save, spell, "burn", 1, testMonster(15, 10), noFocus, false); err != nil {
+		t.Fatalf("with the pack in reach: %v", err)
+	}
+	if countComponent(save.Inventory, "sulfur") != 1 {
+		t.Error("the component should come out of the pack")
+	}
+
+	// At hand in a pouch: fine with the limit on.
+	save = saveWith("burn", 5)
+	save.Inventory = invWithComponent("sulfur", 1)
+	deps.ComponentsAtHand = true
+	if _, err := resolveCast(deps, save, spell, "burn", 1, testMonster(15, 10), noFocus, false); err != nil {
+		t.Errorf("components at hand: %v", err)
 	}
 }
