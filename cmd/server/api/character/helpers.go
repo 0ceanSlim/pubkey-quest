@@ -254,10 +254,10 @@ func createInventoryStructure(database *sql.DB, items []ItemWithQty) (map[string
 		}
 	}
 
-	// Hands go to weapons first: a real weapon, then thrown ones, then anything
-	// else held (a spellbook, a focus). Otherwise a Wizard's spellbook took the
-	// main hand and the staff went to the off hand, and a Barbarian's javelins
-	// took the main hand so the greataxe never got equipped.
+	// Hands go to weapons first: a real weapon, then thrown ones, then a
+	// shield, then anything else held (an arcane focus). Otherwise a Wizard's
+	// spellbook took the main hand and the staff went to the off hand, and a
+	// Barbarian's javelins took the main hand so the greataxe never got equipped.
 	sort.SliceStable(remainingItems, func(a, b int) bool {
 		return handPriority(database, remainingItems[a].Item) < handPriority(database, remainingItems[b].Item)
 	})
@@ -275,6 +275,11 @@ func createInventoryStructure(database *sql.DB, items []ItemWithQty) (map[string
 		gearSlot := getGearSlot(itemData)
 		if gearSlot == "" {
 			continue // Not equipment
+		}
+		// A spellbook is carried, not held (5e): it starts in the pack, where
+		// it will hold scrolls, and the hands go to the weapon and the focus.
+		if gearSlot == "hands" && hasTags(itemData, []string{"container"}) {
+			continue
 		}
 
 		equipped := false
@@ -1012,7 +1017,7 @@ func saveToDisk(npub string, saveFile *types.SaveFile) error {
 
 // handPriority orders starting items for the hands: 0 a weapon, 1 a thrown
 // weapon, 2 a shield (or anything made for the off hand), 3 anything else that's
-// held (a spellbook, a holy symbol), 4 everything not held in the hands.
+// held (an arcane focus), 4 everything not held in the hands.
 func handPriority(database *sql.DB, itemID string) int {
 	itemData, err := getItemData(database, itemID)
 	if err != nil {
