@@ -8,8 +8,9 @@ import (
 )
 
 // Starting gear lands in the 5e places: the weapon in the main hand, a focus or
-// shield in the off hand, a two-handed weapon keeps the off hand free, and a
-// spellbook is carried in the pack rather than held.
+// shield in the off hand, a two-handed weapon (greataxe, bow) held in both hands
+// — the same item in both slots, as equipping stores it — and a spellbook is
+// carried in the pack rather than held.
 func TestStartingHands(t *testing.T) {
 	helpers.SetupTestEnvironment(t)
 	if err := serverdb.InitDatabase(); err != nil {
@@ -23,7 +24,9 @@ func TestStartingHands(t *testing.T) {
 		{"Wizard", []ItemWithQty{{Item: "spellbook", Quantity: 1}, {Item: "quarterstaff", Quantity: 1}, {Item: "staff", Quantity: 1}}, "quarterstaff", "staff"},
 		{"Wizard (wand)", []ItemWithQty{{Item: "spellbook", Quantity: 1}, {Item: "dagger", Quantity: 1}, {Item: "wand", Quantity: 1}}, "dagger", "wand"},
 		{"Cleric", []ItemWithQty{{Item: "shield", Quantity: 1}, {Item: "mace", Quantity: 1}, {Item: "emblem", Quantity: 1}}, "mace", "shield"},
-		{"Barbarian", []ItemWithQty{{Item: "javelin", Quantity: 4}, {Item: "greataxe", Quantity: 1}, {Item: "handaxe", Quantity: 2}}, "greataxe", nil},
+		{"Barbarian", []ItemWithQty{{Item: "javelin", Quantity: 4}, {Item: "greataxe", Quantity: 1}, {Item: "handaxe", Quantity: 2}}, "greataxe", "greataxe"},
+		{"Druid (staff first)", []ItemWithQty{{Item: "quarterstaff", Quantity: 1}, {Item: "shortbow", Quantity: 1}}, "quarterstaff", nil},
+		{"Druid (bow first)", []ItemWithQty{{Item: "shortbow", Quantity: 1}, {Item: "quarterstaff", Quantity: 1}}, "shortbow", "shortbow"},
 	}
 	for _, c := range cases {
 		inv, err := createInventoryStructure(serverdb.GetDB(), c.items)

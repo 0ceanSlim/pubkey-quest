@@ -11,6 +11,7 @@ import (
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -97,6 +98,8 @@ func loadAndHydrateSave(npub, saveID string) (*types.SaveFile, error) {
 		} else {
 			log.Printf("⚠️ Hydrate skipped — advancement load failed: %v", advErr)
 		}
+		// Repair hands that break the two-handed rule (older starting gear).
+		inventory.NormalizeHands(save)
 	}
 	return save, nil
 }

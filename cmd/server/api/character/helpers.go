@@ -317,12 +317,9 @@ func createInventoryStructure(database *sql.DB, items []ItemWithQty) (map[string
 			isTwoHanded := hasTags(itemData, []string{"two-handed"})
 
 			if isTwoHanded {
-				if gearSlots["mainhand"].(map[string]interface{})["item"] == nil {
-					gearSlots["mainhand"] = map[string]interface{}{
-						"item":     item.Item,
-						"quantity": item.Quantity,
-					}
-					log.Printf("✅ Equipped two-handed %s to mainhand", item.Item)
+				if gearSlots["mainhand"].(map[string]interface{})["item"] == nil &&
+					gearSlots["offhand"].(map[string]interface{})["item"] == nil {
+					equipBothHands(gearSlots, item)
 					twoHandedEquipped = true
 					equipped = true
 				}
@@ -345,17 +342,23 @@ func createInventoryStructure(database *sql.DB, items []ItemWithQty) (map[string
 			}
 
 		case "mainhand":
-			if gearSlots["mainhand"].(map[string]interface{})["item"] == nil {
+			// A two-handed weapon (a greataxe, a bow) takes both hands — held the
+			// way equipping one does it, the same item in both hand slots — so
+			// it only goes on when both are free.
+			if hasTags(itemData, []string{"two-handed"}) {
+				if gearSlots["mainhand"].(map[string]interface{})["item"] == nil &&
+					gearSlots["offhand"].(map[string]interface{})["item"] == nil {
+					equipBothHands(gearSlots, item)
+					twoHandedEquipped = true
+					equipped = true
+				}
+			} else if gearSlots["mainhand"].(map[string]interface{})["item"] == nil {
 				gearSlots["mainhand"] = map[string]interface{}{
 					"item":     item.Item,
 					"quantity": item.Quantity,
 				}
 				log.Printf("✅ Equipped %s to mainhand slot", item.Item)
 				equipped = true
-				// A two-handed weapon (a greataxe) keeps the off hand free.
-				if hasTags(itemData, []string{"two-handed"}) {
-					twoHandedEquipped = true
-				}
 			}
 
 		case "offhand":
@@ -1037,4 +1040,13 @@ func handPriority(database *sql.DB, itemID string) int {
 		return 0
 	}
 	return 3
+}
+
+// equipBothHands holds a two-handed weapon: the same item in both hand slots,
+// as the equip action stores it.
+func equipBothHands(gearSlots map[string]interface{}, item ItemWithQty) {
+	for _, slot := range []string{"mainhand", "offhand"} {
+		gearSlots[slot] = map[string]interface{}{"item": item.Item, "quantity": item.Quantity}
+	}
+	log.Printf("✅ Equipped two-handed %s in both hands", item.Item)
 }

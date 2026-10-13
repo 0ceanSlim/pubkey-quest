@@ -91,13 +91,21 @@ func CalculateTotalWeight(state *types.SaveFile) float64 {
 
 	// Equipment slots (can also contain containers — bag, ammo pouch, etc.)
 	if gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{}); ok {
-		for _, slotData := range gearSlots {
+		// A two-handed weapon sits in both hand slots; weigh it once.
+		mainID := ""
+		if m, ok := gearSlots["mainhand"].(map[string]interface{}); ok {
+			mainID, _ = m["item"].(string)
+		}
+		for slotName, slotData := range gearSlots {
 			slotMap, ok := slotData.(map[string]interface{})
 			if !ok {
 				continue
 			}
 			itemID, _ := slotMap["item"].(string)
 			if itemID == "" || itemID == "null" {
+				continue
+			}
+			if slotName == "offhand" && itemID == mainID && IsTwoHanded(itemID) {
 				continue
 			}
 			qty := 1.0
@@ -175,4 +183,28 @@ func getBaseWeightMultiplier() float64 {
 		}
 	}
 	return 5.0
+}
+
+// IsTwoHanded reports whether an item carries the "two-handed" tag. A
+// two-handed weapon is stored in both hand slots, so totals count it once
+// (two identical one-handers, one per hand, still count twice).
+func IsTwoHanded(itemID string) bool {
+	database := db.GetDB()
+	if database == nil {
+		return false
+	}
+	var tagsJSON string
+	if err := database.QueryRow("SELECT tags FROM items WHERE id = ?", itemID).Scan(&tagsJSON); err != nil {
+		return false
+	}
+	var tags []string
+	if json.Unmarshal([]byte(tagsJSON), &tags) != nil {
+		return false
+	}
+	for _, t := range tags {
+		if t == "two-handed" {
+			return true
+		}
+	}
+	return false
 }
