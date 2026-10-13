@@ -127,8 +127,12 @@ class TickManager {
             // markers so the new point of interest appears on the progress bar.
             if (data && data.poi_discovered) {
                 window.showMessage?.(`🗺️ ${data.poi_discovered.message}`, 'info');
+                // On the road: a new marker on the bar. In a city: a new place
+                // to enter in the district.
                 import('../ui/locationDisplay.js')
-                    .then((m) => m.refreshTravelPOIMarkers?.())
+                    .then((m) => (document.getElementById('travel-bar-container')
+                        ? m.refreshTravelPOIMarkers?.()
+                        : m.displayCurrentLocation?.()))
                     .catch(() => {});
             }
 

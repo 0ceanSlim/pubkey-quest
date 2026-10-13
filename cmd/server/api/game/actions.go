@@ -321,6 +321,7 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 		// business rather than the instant you arrive.
 		if state.Building == "" && state.District != "" && session.PlaceInCity {
 			maybeFireEncounter(session, "location", []string{state.Location + "-" + state.District}, 0, response)
+			maybeNoticeCityPOI(session, response)
 		}
 
 		// Likewise inside a building: a tavern brawler starts a brawl while
@@ -460,6 +461,51 @@ func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActio
 
 // alreadyDiscovered reports whether the player knows a place: found on the road,
 // or revealed by a quest stage they've finished (unlocks_poi, derived).
+// maybeNoticeCityPOI gives a player who's spent a while in a city district one
+// chance per visit to notice a hidden place there — a POI whose
+// parent_environment is the district ("goldenhaven-east"), like the Shadow
+// Alley Den. Found, it's discovered for good and shows up in the district.
+func maybeNoticeCityPOI(sess *GameSession, response *GameActionResponse) {
+	state := &sess.SaveData
+	if sess.PlaceSearched || sess.ActivePOI != nil || sess.ActiveCombat != nil {
+		return
+	}
+	if state.CurrentDay*1440+state.TimeOfDay-sess.PlaceSince < encounter.PlaceDwellMinutes {
+		return
+	}
+	sess.PlaceSearched = true
+	pois, err := serverdb.GetPOIsByEnvironment(state.Location + "-" + state.District)
+	if err != nil || len(pois) == 0 {
+		return
+	}
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for _, p := range pois {
+		if alreadyDiscovered(state, p.ID) || !discoveryRoll(p, state, rng) {
+			continue
+		}
+		state.LocationsDiscovered = append(state.LocationsDiscovered, p.ID)
+		events.Record(state, events.LocationDiscovered, p.ID, 1)
+		msg := p.Discovery.Message
+		if msg == "" {
+			msg = "You discover " + p.Name + "."
+		}
+		if response.Data == nil {
+			response.Data = make(map[string]interface{})
+		}
+		response.Data["poi_discovered"] = map[string]interface{}{"id": p.ID, "name": p.Name, "message": msg}
+		return // one discovery per visit
+	}
+}
+
+// poiHere reports whether the player is where a POI is entered from: on its
+// road (a travel POI), or standing outdoors in its district (a city POI).
+func poiHere(state *SaveFile, p *types.POIData) bool {
+	if p.ParentEnvironment == state.Location {
+		return true
+	}
+	return state.Building == "" && state.District != "" && p.ParentEnvironment == state.Location+"-"+state.District
+}
+
 func alreadyDiscovered(state *SaveFile, id string) bool {
 	for _, d := range state.LocationsDiscovered {
 		if d == id {

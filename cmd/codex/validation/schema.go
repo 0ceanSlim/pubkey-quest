@@ -408,7 +408,9 @@ func union(sets ...map[string]bool) map[string]bool {
 }
 
 func (c *schemaChecker) checkPOI(p types.POIData) {
-	c.checkRef("location", p.ParentEnvironment, c.idx.locations)
+	// A road (found while travelling it) or a city district (a hidden place
+	// noticed while spending time there).
+	c.checkRef("location/district", p.ParentEnvironment, union(c.idx.locations, c.idx.districts))
 	c.checkSkill(p.Discovery.Skill)
 	c.checkRequirements(p.Requirements)
 	for _, id := range p.NPCIDs {

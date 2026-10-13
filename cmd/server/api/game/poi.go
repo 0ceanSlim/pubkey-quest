@@ -270,6 +270,10 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "POI not found")
 		return
 	}
+	if !poiHere(&sess.SaveData, poiData) {
+		writePOIError(w, http.StatusBadRequest, "That place isn't here.")
+		return
+	}
 	// A POI can be shut to those who don't qualify (a rope to descend, the will
 	// to face what's inside); say why, in the author's words.
 	if res := requirement.Evaluate(poiData.Requirements, buildQuestContext(&sess.SaveData)); !res.OK {
@@ -358,7 +362,12 @@ func POIListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	state := &sess.SaveData
-	pois, _ := serverdb.GetPOIsByEnvironment(state.Location)
+	// On a road: the road's POIs. Outdoors in a city: the district's hidden places.
+	where := state.Location
+	if state.Building == "" && state.District != "" && isCityLocation(state.Location) {
+		where = state.Location + "-" + state.District
+	}
+	pois, _ := serverdb.GetPOIsByEnvironment(where)
 	env := travel.GetEnvironmentData(state.Location)
 	out := make([]map[string]any, 0)
 	for _, p := range pois {

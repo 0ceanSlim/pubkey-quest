@@ -98,6 +98,9 @@ type GameSession struct {
 	PlaceKey    string `json:"-"`
 	PlaceSince  int    `json:"-"`
 	PlaceRolled bool   `json:"-"`
+	// PlaceSearched: this arrival has had its one roll to notice a hidden city
+	// POI (separate from PlaceRolled, the encounter roll).
+	PlaceSearched bool `json:"-"`
 	// PlaceInCity caches whether the current location is a city rather than a
 	// travel environment, and PlaceBuildingType the current building's resolved
 	// type — both looked up once per move instead of once per action.

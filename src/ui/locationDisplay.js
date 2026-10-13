@@ -418,7 +418,19 @@ export async function displayCurrentLocation() {
                     buildingFragment.appendChild(button);
                 }
             });
-        } else {
+        }
+
+        // Hidden places found in this district (city POIs, e.g. a thieves' den).
+        if (!inBuilding) {
+            const hidden = await loadEnvPOIs();
+            hidden.forEach((p) => {
+                const b = createLocationButton(`🗺️ ${p.name}`, () => enterPOI(p.id), 'building');
+                if (p.description) b.title = p.description;
+                buildingFragment.appendChild(b);
+            });
+        }
+
+        if (!inBuilding && !(buildings && buildings.length) && !buildingFragment.childNodes.length) {
             // No buildings in this district
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'text-gray-400 text-xs p-2 text-center italic';

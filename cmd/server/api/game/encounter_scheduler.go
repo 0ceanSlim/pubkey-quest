@@ -35,6 +35,7 @@ func noteLocation(sess *session.GameSession) {
 	sess.PlaceKey = key
 	sess.PlaceSince = state.CurrentDay*1440 + state.TimeOfDay
 	sess.PlaceRolled = false
+	sess.PlaceSearched = false
 	sess.PlaceInCity = isCityLocation(state.Location)
 	sess.PlaceBuildingType = ""
 	if state.Building != "" {

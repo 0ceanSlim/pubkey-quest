@@ -121,7 +121,7 @@ A discoverable, revisitable location attached to an environment.
   "id":                   "<kebab-case-id>",
   "name":                 "Display Name",
   "category":             "dungeon | landmark | utility | settlement",
-  "parent_environment":   "<environment-id>",
+  "parent_environment":   "<environment-id> | <city>-<district>",   // a road, or a city district (a hidden city place)
   "position":             0.0..1.0,                 // position along the environment's path
   "description":          "...",
   "discovery": {
@@ -138,6 +138,8 @@ A discoverable, revisitable location attached to an environment.
 ```
 
 **NPC embedding rule.** NPCs that exist *only* at this POI live inline in `npcs`. Settlement-wide NPCs (the kingdom barkeep, etc.) live in `game-data/npcs/<location>/` and are not embedded. The split exists so the visual codex editor can ship a POI as a single unit.
+
+**Road POIs and city POIs.** A POI on a road (`parent_environment` is an environment) is found while travelling past its `position`. A POI in a city (`parent_environment` is a district id like `goldenhaven-east`) is a hidden place: a player who spends a while outdoors in that district gets one roll per visit to notice it (its `discovery` chance or passive skill check), and once found it's listed and entered from that district. Either kind is entered only from where it is.
 
 ### POIStep (a node in the graph)
 
