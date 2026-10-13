@@ -53,7 +53,7 @@
       "objectives": [
         {
           "type": "fetch",
-          "target": "heavy-crowbar",
+          "target": "crowbar",
           "count": 1,
           "description": "Obtain a Heavy Crowbar (Can be bought or found)."
         }

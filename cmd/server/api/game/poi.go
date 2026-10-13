@@ -17,6 +17,7 @@ import (
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
+	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/world"
@@ -57,6 +58,10 @@ func buildPOIDeps(state *types.SaveFile) (poi.Deps, error) {
 			}
 		},
 		PayCost: payPOICost,
+		ChangeFatigue: func(s *types.SaveFile, n int) {
+			s.Fatigue = min(max(s.Fatigue+n, 0), 10)
+			status.HandleFatigueChange(s)
+		},
 	}, nil
 }
 

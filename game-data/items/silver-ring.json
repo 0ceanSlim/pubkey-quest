@@ -1,0 +1,18 @@
+{
+  "id": "silver-ring",
+  "name": "Silver Ring",
+  "description": "A simple silver ring, tarnished at the edges. Worth something to the right buyer.",
+  "value": 1000,
+  "type": "Adventuring Gear",
+  "weight": 0,
+  "stack": 1,
+  "rarity": "common",
+  "tags": [
+    "jewelry",
+    "valuable"
+  ],
+  "notes": [
+    "Treasure: sell it"
+  ],
+  "image": "/res/img/items/silver-ring.png"
+}

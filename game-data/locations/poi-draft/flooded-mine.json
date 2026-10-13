@@ -14,7 +14,7 @@
   "requirements": [
     {
       "type": "item",
-      "id": "rope-hempen-50-feet",
+      "id": "rope",
       "consumed": false,
       "description": "The shaft is too deep to climb. You need a rope to descend."
     }

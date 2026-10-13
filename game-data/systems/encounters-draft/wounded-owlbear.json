@@ -112,7 +112,7 @@
           "requirements": [
             {
               "type": "item",
-              "id": "potion-of-healing",
+              "id": "healing",
               "consumed": true
             }
           ]

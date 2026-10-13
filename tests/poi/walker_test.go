@@ -294,3 +294,18 @@ func TestLockNodeJammedUnpickableAndOpen(t *testing.T) {
 		t.Errorf("a lock picked open today lets you through: %+v", res)
 	}
 }
+
+// An effect node with id "fatigue" raises the fatigue stat by its amount
+// instead of applying a status effect.
+func TestFatigueEffectRaisesTheStat(t *testing.T) {
+	gained, applied := 0, ""
+	deps := poi.Deps{Ctx: fakeCtx{}, Rng: rng(),
+		ChangeFatigue: func(_ *types.SaveFile, n int) { gained += n },
+		ApplyEffect:   func(_ *types.SaveFile, id string) { applied = id },
+	}
+	res := poi.Resolve(types.POIStep{Type: types.POIStepEffect, Effect: &types.POIEffect{ID: "fatigue", Amount: 2}, Next: "n"},
+		"e", &types.SaveFile{}, deps)
+	if gained != 2 || applied != "" || res.Next != "n" {
+		t.Errorf("gained=%d applied=%q next=%q", gained, applied, res.Next)
+	}
+}

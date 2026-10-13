@@ -353,7 +353,7 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 	c.checkLootTable(n.LootTable)
 	c.checkReward(n.Reward)
 	c.checkCost(n.Cost)
-	if n.Effect != nil {
+	if n.Effect != nil && n.Effect.ID != "fatigue" { // "fatigue" is the survival stat
 		c.checkRef("effect", n.Effect.ID, c.idx.effects)
 	}
 }

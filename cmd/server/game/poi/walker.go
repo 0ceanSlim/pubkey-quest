@@ -72,7 +72,14 @@ type Deps struct {
 	PayCost func(save *types.SaveFile, c *types.POICost) bool
 	// Locks serves lock nodes (nil: lock nodes only take their key).
 	Locks LockDeps
+	// ChangeFatigue raises (or lowers) the fatigue stat — an effect node whose
+	// id is FatigueEffect.
+	ChangeFatigue func(save *types.SaveFile, amount int)
 }
+
+// FatigueEffect is the effect id that means the fatigue survival stat rather
+// than a status effect: {"type":"effect","effect":{"id":"fatigue","amount":2}}.
+const FatigueEffect = "fatigue"
 
 // LockDeps is what a lock node needs from the game: today's state of the lock,
 // the player's lockpicks, a quick pick attempt (which uses a pick on failure,
@@ -160,6 +167,16 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.Next = node.Next
 
 	case types.POIStepEffect:
+		// "fatigue" isn't a status effect but the survival stat: it rises by
+		// Amount (and the Tired/Fatigued statuses follow from it).
+		if node.Effect != nil && node.Effect.ID == FatigueEffect {
+			if deps.ChangeFatigue != nil && node.Effect.Amount != 0 {
+				deps.ChangeFatigue(save, node.Effect.Amount)
+				res.Outcome = append(res.Outcome, fmt.Sprintf("Fatigue %+d.", node.Effect.Amount))
+			}
+			res.Next = node.Next
+			break
+		}
 		if node.Effect != nil && node.Effect.ID != "" && deps.ApplyEffect != nil {
 			deps.ApplyEffect(save, node.Effect.ID)
 			res.Outcome = append(res.Outcome, fmt.Sprintf("You gain %s.", node.Effect.ID))

@@ -36,7 +36,7 @@
           "requirements": [
             {
               "type": "item",
-              "id": "flask-of-oil",
+              "id": "oil",
               "consumed": true
             }
           ]
