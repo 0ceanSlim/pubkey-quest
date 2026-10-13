@@ -118,6 +118,7 @@ type schemaRefIndex struct {
 	quests    map[string]bool
 	pois      map[string]bool
 	waypoints map[string]bool // named spots inside POIs (node "waypoint")
+	districts map[string]bool // "{city}-{district}" ids, e.g. goldenhaven-east
 }
 
 func buildSchemaRefIndex(dirs SchemaDirs) *schemaRefIndex {
@@ -131,6 +132,21 @@ func buildSchemaRefIndex(dirs SchemaDirs) *schemaRefIndex {
 		quests:    schemaLoadIDs(dirs.Quests),
 		pois:      schemaLoadIDs(dirs.POIs),
 		waypoints: map[string]bool{},
+		districts: map[string]bool{},
+	}
+	for _, p := range schemaWalkJSON(dirs.Cities) {
+		var city struct {
+			Districts map[string]struct {
+				ID string `json:"id"`
+			} `json:"districts"`
+		}
+		if b, err := os.ReadFile(p); err == nil && json.Unmarshal(b, &city) == nil {
+			for _, d := range city.Districts {
+				if d.ID != "" {
+					idx.districts[d.ID] = true
+				}
+			}
+		}
 	}
 	for _, p := range schemaWalkJSON(dirs.POIs) {
 		var v types.POIData
@@ -380,6 +396,17 @@ func (c *schemaChecker) checkGraph(start string, nodes map[string]types.POIStep)
 	}
 }
 
+// union merges id sets for a check that accepts several kinds of place.
+func union(sets ...map[string]bool) map[string]bool {
+	out := map[string]bool{}
+	for _, s := range sets {
+		for k := range s {
+			out[k] = true
+		}
+	}
+	return out
+}
+
 func (c *schemaChecker) checkPOI(p types.POIData) {
 	c.checkRef("location", p.ParentEnvironment, c.idx.locations)
 	c.checkSkill(p.Discovery.Skill)
@@ -397,7 +424,11 @@ func (c *schemaChecker) checkPOI(p types.POIData) {
 func (c *schemaChecker) checkEncounter(e types.EncounterData) {
 	for _, loc := range e.ValidLocations {
 		// for `building` trigger, IDs are buildings (not currently indexed); skip
-		if e.Trigger == types.EncounterTriggerLocation || e.Trigger == types.EncounterTriggerTravel {
+		switch e.Trigger {
+		case types.EncounterTriggerLocation:
+			// Location encounters fire in a city district ("{city}-{district}").
+			c.checkRef("location/district", loc, union(c.idx.locations, c.idx.districts))
+		case types.EncounterTriggerTravel:
 			c.checkRef("location", loc, c.idx.locations)
 		}
 	}
@@ -454,7 +485,8 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 		c.checkNPCRef(q.StartCondition.Target)
 	}
 	if q.StartCondition.Location != "" {
-		c.checkRef("location", q.StartCondition.Location, c.idx.locations)
+		// Where to find the quest giver: a city, a district or a POI.
+		c.checkRef("location/district/poi", q.StartCondition.Location, union(c.idx.locations, c.idx.districts, c.idx.pois))
 	}
 	if d := q.Dialogue; d != nil {
 		save := c.context

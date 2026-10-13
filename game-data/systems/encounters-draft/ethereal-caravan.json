@@ -4,8 +4,7 @@
   "chance": 0.01,
   "repeatable": true,
   "valid_locations": [
-    "merchants-highway",
-    "goldenhaven-east"
+    "merchants-highway"
   ],
   "description": "The road ahead shimmer as if with heat, but the air is cold. A line of translucent wagons and figures slowly plods across the highway, heading toward the horizon.",
   "start_node": "caravan-initial",
