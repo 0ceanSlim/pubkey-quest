@@ -47,8 +47,7 @@
         "rolls": 1,
         "tiers": [
           { "name": "copper", "weight": 60, "entries": [ { "item": "copper-ore", "quantity": [1, 3] } ] },
-          { "name": "gem", "weight": 8, "entries": [ { "item": "rough-gem", "quantity": 1 } ] },
-          { "name": "nothing", "weight": 32, "entries": [] }
+          { "name": "nothing", "weight": 40, "entries": [] }
         ]
       },
       "next": "seam"

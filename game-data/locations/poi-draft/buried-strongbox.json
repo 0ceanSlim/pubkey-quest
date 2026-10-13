@@ -56,12 +56,11 @@
       "failure_next": "strongbox"
     },
     "clean-open": {
-      "text": "Inside: a purse of coin and a gemstone wrapped in oilcloth, untouched.",
+      "text": "Inside: a purse of coin, and a second, heavier one wrapped in oilcloth, untouched.",
       "type": "reward",
       "reward": {
         "xp": 25,
-        "gold": 150,
-        "items": [ { "id": "rough-gem", "quantity": 1 } ]
+        "gold": 300
       },
       "is_terminal": true
     },

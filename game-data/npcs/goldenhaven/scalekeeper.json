@@ -36,7 +36,7 @@
       ]
     },
     "ask_about_rite": {
-      "text": "The rite is simple and the rite is expensive, as all good rites are. Forty gold for the ember-wax, and two uncut gems — uncut, mind, I will know — to set in the seal. The hoard respects what glitters. It is not personal.",
+      "text": "The rite is simple and the rite is expensive, as all good rites are. A hundred gold: some for the ember-wax, the rest for the hoard. The hoard respects what glitters. It is not personal.",
       "requirements": {
         "not_native": true,
         "not_registered": true
@@ -47,30 +47,18 @@
       ]
     },
     "pay_rite": {
-      "text": "Ssss... the wax takes the gems, and the seal takes your name. Welcome to the Ember Vault, which is a grand name for something I should tell you plainly: it is not a room. It is the same warded hollow every keeper opens. I hold a key. So does the orc in his swamp, unfortunately. Your treasures are safe from all of us.",
+      "text": "Ssss... the wax takes the gold, and the seal takes your name. Welcome to the Ember Vault, which is a grand name for something I should tell you plainly: it is not a room. It is the same warded hollow every keeper opens. I hold a key. So does the orc in his swamp, unfortunately. Your treasures are safe from all of us.",
       "action": "register_storage",
-      "cost": 40,
+      "cost": 100,
       "requirements": {
-        "gold": 40,
-        "items": [
-          {
-            "id": "rough-gem",
-            "quantity": 2
-          }
-        ],
+        "gold": 100,
         "not_registered": true
       },
       "success": "Zarithax sealed your rite at the Ember Vault. You may store items here.",
-      "failure": "Forty gold and two uncut gems. The hoard does not haggle.",
+      "failure": "A hundred gold. The hoard does not haggle.",
       "options": [
         "use_storage",
         "goodbye"
-      ],
-      "consume_items": [
-        {
-          "id": "rough-gem",
-          "quantity": 2
-        }
       ]
     },
     "use_storage": {
@@ -94,7 +82,7 @@
       "action": "end_dialogue"
     },
     "claim_birthright": {
-      "text": "Ahh — scale and ember, you are kin. Then the rite was performed for you at hatching and the seal bears your bloodline already. Keep your gems. Even I do not charge the hoard's own children.",
+      "text": "Ahh — scale and ember, you are kin. Then the rite was performed for you at hatching and the seal bears your bloodline already. Keep your gold. Even I do not charge the hoard's own children.",
       "action": "register_storage",
       "requirements": {
         "native": true,
@@ -109,12 +97,6 @@
     }
   },
   "storage_config": {
-    "registration_fee": 40,
-    "registration_items": [
-      {
-        "id": "rough-gem",
-        "quantity": 2
-      }
-    ]
+    "registration_fee": 100
   }
 }
