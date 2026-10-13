@@ -425,10 +425,15 @@ func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActio
 	if err != nil || len(pois) == 0 {
 		return
 	}
-	newProgress := state.TravelProgress
+	// Compare on the route as authored: progress counts from where the player
+	// set out, POI positions from the route's first end.
+	env := travel.GetEnvironmentData(state.Location)
+	from := travel.RouteFraction(env, state.District, oldProgress)
+	to := travel.RouteFraction(env, state.District, state.TravelProgress)
+	lo, hi := min(from, to), max(from, to)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, poi := range pois {
-		if poi.Position <= oldProgress || poi.Position > newProgress {
+		if poi.Position <= lo || poi.Position > hi {
 			continue // not crossed this tick
 		}
 		if alreadyDiscovered(state, poi.ID) {

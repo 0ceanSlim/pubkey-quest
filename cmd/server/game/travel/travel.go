@@ -245,6 +245,19 @@ func GetTravelEndpoints(env *EnvironmentData, originDistrict string) (*TravelEnd
 	}, nil
 }
 
+// RouteFraction converts between the two ways of measuring a spot on a route.
+// The player's TravelProgress counts from where they set out (state.District
+// holds that end), and turning back flips it; POI positions are written along
+// the route as authored, Connects[0] → Connects[1]. Travelling from Connects[1]
+// mirrors one onto the other. The conversion is its own inverse, so it maps
+// either way.
+func RouteFraction(env *EnvironmentData, originDistrict string, f float64) float64 {
+	if env != nil && len(env.Connects) == 2 && originDistrict == env.Connects[1] {
+		return 1 - f
+	}
+	return f
+}
+
 // parseCityDistrict splits "kingdom-east" into city="kingdom", district="east"
 func parseCityDistrict(connectID string) (string, string) {
 	lastHyphen := strings.LastIndex(connectID, "-")

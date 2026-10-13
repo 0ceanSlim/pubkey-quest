@@ -17,6 +17,7 @@ import (
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
+	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -358,6 +359,7 @@ func POIListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	state := &sess.SaveData
 	pois, _ := serverdb.GetPOIsByEnvironment(state.Location)
+	env := travel.GetEnvironmentData(state.Location)
 	out := make([]map[string]any, 0)
 	for _, p := range pois {
 		if !alreadyDiscovered(state, p.ID) {
@@ -368,7 +370,8 @@ func POIListHandler(w http.ResponseWriter, r *http.Request) {
 			"name":        p.Name,
 			"category":    string(p.Category),
 			"description": p.Description,
-			"position":    p.Position,
+			// On the player's own bar: measured from where they set out.
+			"position": travel.RouteFraction(env, state.District, p.Position),
 		})
 	}
 	writePOIJSON(w, http.StatusOK, map[string]any{"success": true, "data": out})
