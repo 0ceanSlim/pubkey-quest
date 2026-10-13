@@ -302,7 +302,11 @@ func tickMonsterConditions(m *types.MonsterInstance) []string {
 // ─── Death saves ─────────────────────────────────────────────────────────────
 
 // ProcessDeathSave rolls the downed player's death saving throw (their turn),
-// then every monster in range takes a swing at them in initiative order.
+// then each monster takes its turn in initiative order. Only relentless
+// monsters (behavior.relentless — a dragon, a wolf pack's hunger) attack a
+// downed player; the rest stop, and a predator that's been badly hurt walks
+// off (runMonsterDeathSaveTurn). Three successes, or a natural 20, puts the
+// player back on their feet at 1 HP.
 // Returns log entries for this round. Caller appends them to cs.Log.
 func ProcessDeathSave(cs *types.CombatSession, save *types.SaveFile) []string {
 	if len(cs.Party) == 0 || cs.Phase != "death_saves" {
@@ -346,15 +350,25 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile, m *t
 	if IsIncapacitated(m.Conditions) {
 		return tickMonsterConditions(m)
 	}
+
+	// Not a killer: it stops attacking someone who's down. A hurt predator
+	// (or anything past its flee threshold) takes the chance to leave; the
+	// rest stand over you and wait to see if you get up.
+	if !m.Data.Behavior.Relentless {
+		if leavesTheDowned(m) {
+			return leaveDownedPlayer(cs, m, fmt.Sprintf("  %s backs off and limps away, leaving you where you fell.", m.Name))
+		}
+		if !m.WaitingOnDowned {
+			m.WaitingOnDowned = true
+			return append([]string{fmt.Sprintf("  %s stands over you, watching.", m.Name)}, tickMonsterConditions(m)...)
+		}
+		return tickMonsterConditions(m)
+	}
+
 	decision := DecideMonsterAction(cs, m)
 
 	if decision.Action == "retreat" || decision.Action == "escape" {
-		m.Fled = true
-		log := []string{fmt.Sprintf("  %s disengages and slips away.", m.Name)}
-		if v := checkVictory(cs); v != nil {
-			log = append(log, "  You are safe.")
-		}
-		return log
+		return leaveDownedPlayer(cs, m, fmt.Sprintf("  %s disengages and slips away.", m.Name))
 	}
 	if decision.Action != "attack" {
 		return nil
@@ -373,4 +387,34 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile, m *t
 		log = append(log, applyDeathSaveHit(cs, result.IsCrit))
 	}
 	return append(log, tickMonsterConditions(m)...)
+}
+
+// leavesTheDowned reports whether a monster walks away from a downed player
+// instead of waiting: past its flee threshold, or a beast/monstrosity hurt to
+// half its HP or worse — a predator that's had enough.
+func leavesTheDowned(m *types.MonsterInstance) bool {
+	frac := float64(m.CurrentHP) / float64(max(m.MaxHP, 1))
+	if m.Data.Behavior.Aggression == "berserker" {
+		return false
+	}
+	if frac <= m.Data.Behavior.FleeThreshold {
+		return true
+	}
+	switch strings.ToLower(m.Data.Type) {
+	case "beast", "monstrosity":
+		return frac <= 0.5
+	}
+	return false
+}
+
+// leaveDownedPlayer takes a monster out of the fight while the player is down.
+// When the last one goes, the player comes to on their own with 1 HP.
+func leaveDownedPlayer(cs *types.CombatSession, m *types.MonsterInstance, line string) []string {
+	m.Fled = true
+	log := []string{line}
+	if v := checkVictory(cs); v != nil {
+		reviveAtOneHP(&actor(cs).CombatState)
+		log = append(log, "  You are alone. After a while you come to, hurt but alive (1 HP).")
+	}
+	return log
 }

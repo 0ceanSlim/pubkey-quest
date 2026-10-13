@@ -6,7 +6,10 @@
 // site (the travel tick) supplies the biome's monster pool and starts combat.
 package encounter
 
-import "math/rand"
+import (
+	"math"
+	"math/rand"
+)
 
 // Candidate is a monster eligible to be rolled for a biome encounter.
 type Candidate struct {
@@ -46,23 +49,24 @@ const (
 	// walking in is never instantly interrupted; short enough to still catch
 	// someone who lingers.
 	PlaceDwellMinutes = 20
-	// crBudgetPerLevel sets the upper CR a level-L player is matched against
-	// (0.75 → level 1 faces CR ≤ ~0.75, level 5 ≤ ~3.75).
-	crBudgetPerLevel = 0.75
-	// minCRCap keeps a usable pool at level 1 even if crBudgetPerLevel*level is
-	// tiny, so the lowest-CR monsters are always eligible.
-	minCRCap = 0.5
+	// baseCRCap is the highest CR a level-1 player meets alone; the cap doubles
+	// each level (⅛, ¼, ½, 1, 2, 4 …). It follows 5e's solo-character XP
+	// thresholds: a single CR ½ monster is already deadly for one level-1 hero.
+	// A balance simulation on the real engine (tests/combat/balance_sim_test.go)
+	// puts solo survival at ~80–85% for levels 1–3 with this band.
+	baseCRCap = 0.125
+	// minCRCap keeps a usable pool even for odd inputs (level 0).
+	minCRCap = 0.125
 )
 
 // CRCap is the highest monster CR a player of the given level is matched
-// against. Exposed so callers (and a future "deadly fight" warning) can reason
-// about the band.
+// against: CR ⅛ at level 1, doubling each level. Exposed so callers (and the
+// "deadly fight" warning) can reason about the band.
 func CRCap(level int) float64 {
-	cap := float64(level) * crBudgetPerLevel
-	if cap < minCRCap {
-		cap = minCRCap
+	if level < 1 {
+		return minCRCap
 	}
-	return cap
+	return baseCRCap * math.Pow(2, float64(min(level, 20)-1))
 }
 
 // Difficulty classifies a fight for the player relative to the CR band their
@@ -75,14 +79,16 @@ func Difficulty(cr float64, level int) string {
 	if cap <= 0 {
 		cap = minCRCap
 	}
+	// The band doubles per level, so the steps are doublings: a monster one
+	// level's band above yours is tough, two or more is deadly.
 	switch r := cr / cap; {
-	case r < 0.35:
+	case r <= 0.3:
 		return "trivial"
-	case r < 0.75:
+	case r <= 0.6:
 		return "easy"
 	case r <= 1.05:
 		return "fair"
-	case r <= 1.75:
+	case r <= 2.05:
 		return "tough"
 	default:
 		return "deadly"

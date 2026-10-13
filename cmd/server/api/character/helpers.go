@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"pubkey-quest/cmd/server/game/building"
@@ -252,6 +253,14 @@ func createInventoryStructure(database *sql.DB, items []ItemWithQty) (map[string
 			remainingItems = append(remainingItems, item)
 		}
 	}
+
+	// Hands go to weapons first: a real weapon, then thrown ones, then anything
+	// else held (a spellbook, a focus). Otherwise a Wizard's spellbook took the
+	// main hand and the staff went to the off hand, and a Barbarian's javelins
+	// took the main hand so the greataxe never got equipped.
+	sort.SliceStable(remainingItems, func(a, b int) bool {
+		return handPriority(database, remainingItems[a].Item) < handPriority(database, remainingItems[b].Item)
+	})
 
 	// 2. Auto-equip equipment items (process in forward order - earlier choices have priority)
 	equippedIndices := []int{} // Track which items were equipped
@@ -995,4 +1004,28 @@ func saveToDisk(npub string, saveFile *types.SaveFile) error {
 	}
 
 	return ioutil.WriteFile(savePath, data, 0644)
+}
+
+// handPriority orders starting items for the hands: 0 a weapon, 1 a thrown
+// weapon, 2 a shield (or anything made for the off hand), 3 anything else that's
+// held (a spellbook, a holy symbol), 4 everything not held in the hands.
+func handPriority(database *sql.DB, itemID string) int {
+	itemData, err := getItemData(database, itemID)
+	if err != nil {
+		return 4
+	}
+	switch getGearSlot(itemData) {
+	case "offhand":
+		return 2
+	case "hands", "mainhand":
+	default:
+		return 4
+	}
+	switch {
+	case hasTags(itemData, []string{"thrown"}) && !hasTags(itemData, []string{"two-handed"}):
+		return 1
+	case hasTags(itemData, []string{"weapon"}):
+		return 0
+	}
+	return 3
 }

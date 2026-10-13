@@ -28,6 +28,13 @@ var acSlots = []string{
 //	"4"                 → additive flat value for non-chest slots  (isBase=false)
 //	7  (number)         → legacy numeric; uses "ac_base" bool if present
 func CalculatePlayerAC(db *sql.DB, inventory map[string]interface{}, stats map[string]interface{}) int {
+	return CalculatePlayerACFor(db, inventory, stats, "")
+}
+
+// CalculatePlayerACFor is CalculatePlayerAC with the class's Unarmored Defense:
+// a Barbarian in no body armour gets 10 + DEX + CON (a shield still adds); a
+// Monk in no armour and no shield gets 10 + DEX + WIS.
+func CalculatePlayerACFor(db *sql.DB, inventory map[string]interface{}, stats map[string]interface{}, class string) int {
 	dexMod := StatMod(GetStatFromMap(stats, "dexterity"))
 
 	baseAC := 10 + dexMod // Unarmored default
@@ -59,6 +66,16 @@ func CalculatePlayerAC(db *sql.DB, inventory map[string]interface{}, stats map[s
 		}
 	}
 
+	if !baseSet {
+		switch strings.ToLower(class) {
+		case "barbarian":
+			baseAC = 10 + dexMod + StatMod(GetStatFromMap(stats, "constitution"))
+		case "monk":
+			if additiveAC == 0 { // no shield (or anything else in the way)
+				baseAC = 10 + dexMod + StatMod(GetStatFromMap(stats, "wisdom"))
+			}
+		}
+	}
 	return baseAC + additiveAC
 }
 

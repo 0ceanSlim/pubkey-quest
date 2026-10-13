@@ -50,19 +50,19 @@ func TestQuestEncounterWaves(t *testing.T) {
 	if sess.ActiveCombat == nil {
 		t.Fatal("standing in the cellar on stage 0 should start the rat fight")
 	}
-	if got := ratsIn(sess.ActiveCombat); got != 3 {
-		t.Errorf("first wave: %d rats, want 3 (count cap)", got)
+	if got := ratsIn(sess.ActiveCombat); got != 1 {
+		t.Errorf("first wave: %d rats, want 1 (one rat at a time)", got)
 	}
 	if resp.Data["combat_started"] != true {
 		t.Error("response should hand the client the fight")
 	}
 
-	// Won the first wave: 3 of 5 killed. The next action brings the last two.
+	// Won the first wave: 1 of 5 killed. The next action brings the next rat.
 	sess.ActiveCombat = nil
-	sess.SaveData.QuestsActive[0].ObjectiveCounts = []int{3}
+	sess.SaveData.QuestsActive[0].ObjectiveCounts = []int{1}
 	maybeStartQuestEncounter(sess, &types.GameActionResponse{})
-	if sess.ActiveCombat == nil || ratsIn(sess.ActiveCombat) != 2 {
-		t.Fatalf("second wave should hold the 2 remaining rats, got %v", sess.ActiveCombat)
+	if sess.ActiveCombat == nil || ratsIn(sess.ActiveCombat) != 1 {
+		t.Fatalf("the next wave should be one more rat, got %v", sess.ActiveCombat)
 	}
 
 	// Fled without a kill: staying put doesn't restart it...

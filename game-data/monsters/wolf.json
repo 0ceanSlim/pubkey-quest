@@ -97,6 +97,6 @@
     "flee_threshold": 0.10,
     "preferred_range": 0,
     "target_priority": "lowest_hp",
-    "relentless": true
+    "relentless": false
   }
 }

@@ -17,13 +17,16 @@ func pool() []encounter.Candidate {
 }
 
 func TestEligibleScalesWithLevel(t *testing.T) {
-	// level 1 cap = 0.75 → rat, wolf
-	if got := len(encounter.Eligible(pool(), 1)); got != 2 {
-		t.Errorf("level 1: want 2 eligible, got %d", got)
+	// level 1 cap = ⅛ → rat; level 2 cap = ¼ → rat, wolf
+	if got := len(encounter.Eligible(pool(), 1)); got != 1 {
+		t.Errorf("level 1: want 1 eligible, got %d", got)
 	}
-	// level 5 cap = 3.75 → rat, wolf, owlbear
-	if got := len(encounter.Eligible(pool(), 5)); got != 3 {
-		t.Errorf("level 5: want 3 eligible, got %d", got)
+	if got := len(encounter.Eligible(pool(), 2)); got != 2 {
+		t.Errorf("level 2: want 2 eligible, got %d", got)
+	}
+	// level 6 cap = 4 → rat, wolf, owlbear
+	if got := len(encounter.Eligible(pool(), 6)); got != 3 {
+		t.Errorf("level 6: want 3 eligible, got %d", got)
 	}
 	// high level → everything, including the dragon
 	if got := len(encounter.Eligible(pool(), 30)); got != 4 {
@@ -32,7 +35,12 @@ func TestEligibleScalesWithLevel(t *testing.T) {
 }
 
 func TestCRCapHasFloor(t *testing.T) {
-	if encounter.CRCap(0) < 0.5 {
+	for lvl, want := range map[int]float64{1: 0.125, 2: 0.25, 3: 0.5, 4: 1, 5: 2} {
+		if got := encounter.CRCap(lvl); got != want {
+			t.Errorf("CRCap(%d) = %v, want %v", lvl, got, want)
+		}
+	}
+	if encounter.CRCap(0) < 0.125 {
 		t.Errorf("CR cap should never fall below the floor, got %v", encounter.CRCap(0))
 	}
 	if encounter.CRCap(10) <= encounter.CRCap(1) {
@@ -41,19 +49,19 @@ func TestCRCapHasFloor(t *testing.T) {
 }
 
 func TestDifficultyBands(t *testing.T) {
-	// level 1 cap = 0.75.
+	// Caps: level 1 ⅛, level 3 ½, level 5 2.
 	cases := []struct {
 		cr    float64
 		level int
 		want  string
 	}{
-		{0.125, 1, "trivial"}, // rat: well under band
-		{0.25, 1, "trivial"},  // wolf: 0.33 of cap
-		{0.5, 1, "easy"},      // 0.67 of cap
-		{0.75, 1, "fair"},     // right at the band
-		{1, 1, "tough"},       // 1.33× the band
-		{3, 1, "deadly"},      // 4× the band → warn
-		{3, 5, "fair"},        // owlbear vs level 5 (cap 3.75) → in band
+		{0.125, 1, "fair"},    // rat at level 1: right at the band
+		{0.25, 1, "tough"},    // wolf at level 1: one band up
+		{0.5, 1, "deadly"},    // CR ½ alone at level 1: deadly, as in 5e
+		{0.125, 3, "trivial"}, // rat at level 3
+		{0.25, 3, "easy"},     // wolf at level 3
+		{0.5, 3, "fair"},      // CR ½ at level 3: in band
+		{3, 5, "tough"},       // owlbear vs level 5 (cap 2)
 		{20, 5, "deadly"},     // dragon vs level 5 → deadly
 	}
 	for _, c := range cases {
@@ -118,11 +126,11 @@ func TestRollEventuallyFiresAndIsEligible(t *testing.T) {
 }
 
 func TestRollAvoidsImmediateRepeat(t *testing.T) {
-	// pool() at level 1 → rat + wolf eligible (2 options). Avoiding wolf must
+	// pool() at level 2 → rat + wolf eligible (2 options). Avoiding wolf must
 	// always yield rat — never the just-fought monster.
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < 300; i++ {
-		if m, ok := encounter.Roll(pool(), 1, 30, rng, "wolf"); ok && m.ID == "wolf" {
+		if m, ok := encounter.Roll(pool(), 2, 30, rng, "wolf"); ok && m.ID == "wolf" {
 			t.Fatalf("Roll returned the avoided monster despite an alternative")
 		}
 	}
@@ -132,7 +140,7 @@ func TestRollAvoidsImmediateRepeat(t *testing.T) {
 	rng2 := rand.New(rand.NewSource(1))
 	fired := false
 	for i := 0; i < 300; i++ {
-		if m, ok := encounter.Roll(single, 1, 30, rng2, "wolf"); ok {
+		if m, ok := encounter.Roll(single, 2, 30, rng2, "wolf"); ok {
 			fired = true
 			if m.ID != "wolf" {
 				t.Fatalf("single-monster pool should still return wolf, got %s", m.ID)

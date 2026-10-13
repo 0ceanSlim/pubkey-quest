@@ -20,14 +20,36 @@ func RollD(sides int) int {
 	return rand.Intn(sides) + 1
 }
 
-// ParseDice parses a dice string like "2d6" into count and sides.
+// ParseDice parses a dice string like "2d6" into count and sides, ignoring any
+// flat modifier ("2d8+2" → 2, 8; see ParseDiceExpr for the modifier).
 // For versatile weapons like "1d8,1d10", pass the substring you want first.
 func ParseDice(dice string) (int, int, error) {
-	dice = strings.TrimSpace(strings.ToLower(dice))
+	count, sides, _, err := ParseDiceExpr(dice)
+	return count, sides, err
+}
+
+// ParseDiceExpr parses "NdS", "NdS+M" or "NdS-M" into count, sides and the
+// flat modifier. Monster hit dice are written with a Constitution modifier
+// ("2d8+2"); reading those as malformed once spawned most monsters at 1 HP.
+func ParseDiceExpr(dice string) (int, int, int, error) {
+	dice = strings.ReplaceAll(strings.TrimSpace(strings.ToLower(dice)), " ", "")
 	// Take only the first variant for versatile weapons (e.g., "1d8,1d10" → "1d8")
 	if idx := strings.Index(dice, ","); idx >= 0 {
 		dice = dice[:idx]
 	}
+	mod := 0
+	if i := strings.IndexAny(dice, "+-"); i > 0 {
+		m, err := strconv.Atoi(dice[i:])
+		if err != nil {
+			return 0, 0, 0, fmt.Errorf("invalid dice modifier in %q: %v", dice, err)
+		}
+		mod, dice = m, dice[:i]
+	}
+	count, sides, err := parseCountSides(dice)
+	return count, sides, mod, err
+}
+
+func parseCountSides(dice string) (int, int, error) {
 	parts := strings.SplitN(dice, "d", 2)
 	if len(parts) != 2 {
 		return 0, 0, fmt.Errorf("invalid dice format: %s", dice)
@@ -58,8 +80,9 @@ func ParseVersatileDice(damage string) (oneHand, twoHand string) {
 
 // RollDice rolls the given dice expression and returns the total.
 // On a critical hit, the dice count is doubled.
+// A flat modifier ("2d8+2") is added once, never doubled.
 func RollDice(diceExpr string, isCrit bool) int {
-	count, sides, err := ParseDice(diceExpr)
+	count, sides, mod, err := ParseDiceExpr(diceExpr)
 	if err != nil {
 		return 1 // Fallback for malformed dice
 	}
@@ -68,9 +91,12 @@ func RollDice(diceExpr string, isCrit bool) int {
 		count *= 2
 	}
 
-	total := 0
+	total := mod
 	for i := 0; i < count; i++ {
 		total += RollD(sides)
+	}
+	if total < 1 {
+		total = 1
 	}
 	return total
 }
@@ -107,8 +133,21 @@ func StatMod(stat int) int {
 
 // GetStatFromMap safely reads an integer stat from a map[string]interface{}.
 // JSON numbers parse as float64, so handles both float64 and int.
+//
+// Saves store ability scores capitalised ("Strength"); callers ask for
+// "strength". The match ignores case — an exact-key-only lookup once made every
+// player stat read as the default 10 in combat.
 func GetStatFromMap(stats map[string]interface{}, key string) int {
-	if v, ok := stats[key]; ok {
+	v, ok := stats[key]
+	if !ok {
+		for k, val := range stats {
+			if strings.EqualFold(k, key) {
+				v, ok = val, true
+				break
+			}
+		}
+	}
+	if ok {
 		switch val := v.(type) {
 		case float64:
 			return int(val)

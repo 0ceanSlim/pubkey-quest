@@ -1544,7 +1544,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 
 // computePlayerAC queries the player's current AC from equipped items.
 func computePlayerAC(db *sql.DB, save *types.SaveFile) int {
-	return CalculatePlayerAC(db, save.Inventory, effectiveStats(save))
+	return CalculatePlayerACFor(db, save.Inventory, effectiveStats(save), save.Class)
 }
 
 // applyDamageToPlayer deducts HP and transitions to death_saves if HP reaches zero.
@@ -1615,12 +1615,19 @@ func resolveDeathSaveRoll(state *types.PlayerCombatState, cs *types.CombatSessio
 
 // reviveFromDeathSave handles a natural 20: player regains 1 HP and consciousness.
 func reviveFromDeathSave(state *types.PlayerCombatState, cs *types.CombatSession) string {
-	state.CurrentHP = 1
-	state.IsUnconscious = false
-	state.DeathSaveSuccesses = 0
-	state.DeathSaveFailures = 0
+	reviveAtOneHP(state)
 	cs.Phase = "active"
 	return "  Natural 20! You regain consciousness with 1 HP."
+}
+
+// reviveAtOneHP puts a downed player back on their feet at 1 HP with fresh
+// death saves.
+func reviveAtOneHP(state *types.PlayerCombatState) {
+	state.CurrentHP = 1
+	state.IsUnconscious = false
+	state.IsStable = false
+	state.DeathSaveSuccesses = 0
+	state.DeathSaveFailures = 0
 }
 
 // twoDeathSaveFailures handles a natural 1: counts as two failures.
@@ -1636,9 +1643,10 @@ func twoDeathSaveFailures(state *types.PlayerCombatState, cs *types.CombatSessio
 func oneDeathSaveSuccess(state *types.PlayerCombatState, cs *types.CombatSession) string {
 	state.DeathSaveSuccesses++
 	if state.DeathSaveSuccesses >= 3 {
-		state.IsStable = true
-		cs.Phase = "victory"
-		return "  Success! You are now stable."
+		// Back on your feet at 1 HP; whatever's still here is still here.
+		reviveAtOneHP(state)
+		cs.Phase = "active"
+		return "  Success! You drag yourself back to your feet with 1 HP."
 	}
 	return fmt.Sprintf("  Success. (%d/3 successes)", state.DeathSaveSuccesses)
 }

@@ -221,6 +221,9 @@ type MonsterInstance struct {
 	ReactionUsed bool           `json:"reaction_used"` // Reaction consumed this round (OA)
 	Disengaged   bool           `json:"disengaged"`    // Monster used Disengage this turn
 	Fled         bool           `json:"fled"`          // Escaped off the grid edge — out of the fight, no kill
+	// WaitingOnDowned: it has stopped attacking a downed player and is standing
+	// over them (said once, so the log doesn't repeat it every round).
+	WaitingOnDowned bool `json:"waiting_on_downed,omitempty"`
 	Surprised    bool           `json:"surprised,omitempty"` // Caught unaware by a sneak attack: loses its first turn
 	Pos          Position       `json:"pos"`           // Grid cell
 	// SpawnPos is set only for the opening response of an encounter when this

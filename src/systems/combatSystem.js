@@ -890,19 +890,37 @@ export async function doEndTurn() {
     }
 }
 
+// One death save at a time: the button locks on click and stays locked until
+// the roll's log and dice have played out and the bar is drawn again (or the
+// fight moves on), so mashing it can't queue rolls ahead of the animation.
+let _deathSaveBusy = false;
+
 export async function rollDeathSave() {
+    if (_deathSaveBusy) return;
     const npub = getNpub(), saveID = getSaveID();
     if (!npub || !saveID) return;
+    _deathSaveBusy = true;
+    const btn = $id('death-save-roll-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'default';
+        btn.textContent = 'Rolling…';
+    }
     try {
         const resp = await combatPost('/api/combat/death-save', { npub, save_id: saveID });
         const cs   = await resp.json();
         if (!resp.ok || !cs.success) {
             _logError(cs.error ?? `HTTP ${resp.status}`);
+            _deathSaveBusy = false;
+            if (_lastState) _renderDeathSaveBar(_lastState);
             return;
         }
-        renderCombatState(cs);
+        renderCombatState(cs); // releases the lock once the result has played out
     } catch (err) {
         logger.error('rollDeathSave error:', err);
+        _deathSaveBusy = false;
+        if (_lastState) _renderDeathSaveBar(_lastState);
     }
 }
 
@@ -1727,7 +1745,10 @@ function _showPhasePanel(cs) {
     _hide('loot-panel');
     _hide('defeat-panel');
 
-    if (cs.phase === 'active') return;
+    if (cs.phase === 'active') {
+        _deathSaveBusy = false; // back on your feet
+        return;
+    }
 
     // Hold the terminal/death-save UI until the killing-blow dice + log have
     // finished playing out. _logQueueTailAt is the absolute time of the last
@@ -1738,6 +1759,7 @@ function _showPhasePanel(cs) {
     setTimeout(() => {
         // Bail if a newer render has superseded this one or combat exited.
         if (_lastState !== cs) return;
+        _deathSaveBusy = false; // the roll has played out
 
         switch (cs.phase) {
         case 'death_saves':
@@ -1801,7 +1823,7 @@ function _renderDeathSaveBar(cs) {
     bldEl.innerHTML = `
         <h3 style="color:#fca5a5;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Dying</h3>
         <p style="font-size:9px;color:#d1d5db;line-height:1.3;margin:0 0 4px;">
-            You lie bleeding. Three successes stabilise you; three failures and you're gone.
+            You lie bleeding. Three successes and you get back up with 1 HP; three failures and you're gone.
         </p>
         <p style="font-size:8px;color:#9ca3af;margin:0;">
             ${s}/3 successes, ${f}/3 failures
@@ -1815,7 +1837,7 @@ function _renderDeathSaveBar(cs) {
         border-right:2px solid #450a0a;border-bottom:2px solid #450a0a;`;
     npcEl.innerHTML = `
         <h3 style="color:#9ca3af;font-size:8px;font-weight:bold;text-transform:uppercase;margin-bottom:2px;">Action</h3>
-        <button style="${rollBtnStyle}" onclick="window.rollDeathSave()" title="Roll a d20 — 10+ is a success, nat 20 revives, nat 1 = two failures">
+        <button id="death-save-roll-btn" style="${rollBtnStyle}" onclick="window.rollDeathSave()" title="Roll a d20 — 10+ is a success, nat 20 revives, nat 1 = two failures">
             🎲 Roll Death Save
         </button>
     `;
