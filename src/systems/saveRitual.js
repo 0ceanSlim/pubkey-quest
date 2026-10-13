@@ -12,7 +12,7 @@
 
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
-import { saveGameToLocal } from './saveSystem.js';
+import { saveGameToLocal, lastSaveError } from './saveSystem.js';
 import { getGameStateSync } from '../state/gameState.js';
 
 const LS_PREFIX = 'pq_last_saved';
@@ -112,7 +112,7 @@ export async function confirmSaveGame() {
         setTimeout(closeSaveModal, 900);
     } else {
         if (status) {
-            status.textContent = '❌ Save failed — try again';
+            status.textContent = '❌ ' + (lastSaveError || 'Save failed — try again');
             status.className = 'mb-2 font-bold text-red-400';
             status.classList.remove('hidden');
         }

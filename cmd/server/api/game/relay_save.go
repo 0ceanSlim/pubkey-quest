@@ -53,8 +53,8 @@ type UnsignedSave struct {
 // prepareRelaySave builds the save event for the session and remembers it as
 // pending.
 func prepareRelaySave(sess *session.GameSession, saveID string) (*UnsignedSave, error) {
-	if sess.ActiveCombat != nil {
-		return nil, fmt.Errorf("you can't save during a fight")
+	if why := saveBlocked(sess); why != "" {
+		return nil, fmt.Errorf("%s", why)
 	}
 	content, err := savecodec.Encode(&sess.SaveData)
 	if err != nil {

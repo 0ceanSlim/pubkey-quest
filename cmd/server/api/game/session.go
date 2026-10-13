@@ -338,6 +338,14 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Saves capture a resting state: never mid-fight or mid-something, in any
+	// save mode (this used to be checked only on the relay path).
+	if why := saveBlocked(sess); why != "" {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"success": false, "message": why})
+		return
+	}
+
 	// Items mid-sale go back in the pack before anything is saved.
 	ReturnStagedSales(sess)
 
@@ -476,4 +484,21 @@ func CleanupSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"message": "Session unloaded from memory",
 	})
+}
+
+// saveBlocked says why the game can't be saved right now ("" when it can):
+// mid-fight, with something about to notice you, partway through a POI or
+// encounter, or with a pick in a lock.
+func saveBlocked(sess *session.GameSession) string {
+	switch {
+	case sess.ActiveCombat != nil:
+		return "You can't save during a fight."
+	case sess.PendingEncounter != nil:
+		return "You can't save with something this close. Deal with it first."
+	case sess.ActivePOI != nil:
+		return "Finish what you're doing here before you save."
+	case sess.LockSession != nil:
+		return "Take your pick out of the lock before you save."
+	}
+	return ""
 }

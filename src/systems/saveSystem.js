@@ -42,9 +42,13 @@ export async function saveGameToLocal(showMessage) {
 
     } catch (error) {
         logger.error('Save failed:', error);
+        lastSaveError = error.message || '';
         if (messageFunc) messageFunc('Failed to save game: ' + error.message, 'error');
         return false;
     }
 }
+
+/** Why the last save failed (the server's reason, e.g. "You can't save during a fight."). */
+export let lastSaveError = '';
 
 logger.debug('Save system module loaded');
