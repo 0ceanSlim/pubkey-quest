@@ -67,7 +67,7 @@ func choose(t *testing.T, sess *session.GameSession, choice string) *GameActionR
 func TestTakeUpQuestInConversation(t *testing.T) {
 	sess := bobSession(t)
 
-	talk, err := handleTalkToNPCAction(&sess.SaveData, map[string]any{"npc_id": "tavern-owner-bob"})
+	talk, err := handleTalkToNPCAction(sess, map[string]any{"npc_id": "tavern-owner-bob"})
 	if err != nil || talk == nil || !talk.Success {
 		t.Fatalf("talk to Bob: %v %+v", err, talk)
 	}

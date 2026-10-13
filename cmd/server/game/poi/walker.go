@@ -51,6 +51,10 @@ type StepResult struct {
 
 	// Waypoint is the named spot this node reached (quest explore objectives).
 	Waypoint string `json:"-"`
+
+	// NPCs are the people an npc_interaction node hands the player to; the
+	// walk ends and the UI offers to talk to them where they stand.
+	NPCs []string `json:"npcs,omitempty"`
 }
 
 // Deps injects the systems a node may touch, so the walker stays testable.
@@ -153,7 +157,11 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.CombatArena = node.Arena
 		res.Next = node.Next
 
-	case types.POIStepExit, types.POIStepNPCInteraction:
+	case types.POIStepNPCInteraction:
+		res.NPCs = node.NPCIDs
+		res.Terminal = true
+
+	case types.POIStepExit:
 		res.Terminal = true
 	}
 

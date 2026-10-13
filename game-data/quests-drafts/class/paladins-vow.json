@@ -9,7 +9,7 @@
   "start_condition": {
     "type": "talk",
     "target": "high-priest-lawrence",
-    "location": "goldenhaven-temple",
+    "location": "goldenhaven",
     "start_hint": "Speak with High Priest Lawrence in the Goldenhaven Temple."
   },
   "requirements": [
@@ -86,6 +86,3 @@
     }
   ]
 }
-
-
-

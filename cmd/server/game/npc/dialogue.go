@@ -13,6 +13,13 @@ import (
 
 // HandleTalkToNPCAction initiates dialogue with an NPC
 func HandleTalkToNPCAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
+	return HandleTalkToNPC(state, params, false)
+}
+
+// HandleTalkToNPC initiates dialogue. present skips the "are they here?" check
+// for an NPC the server already knows the player is with (one a POI walk
+// handed them to); callers set it from session state, never from the client.
+func HandleTalkToNPC(state *types.SaveFile, params map[string]interface{}, present bool) (*types.GameActionResponse, error) {
 	npcID, ok := params["npc_id"].(string)
 	if !ok {
 		return nil, fmt.Errorf("missing or invalid npc_id parameter")
@@ -51,6 +58,17 @@ func HandleTalkToNPCAction(state *types.SaveFile, params map[string]interface{})
 		playerDistrictID := fmt.Sprintf("%s-%s", state.Location, state.District)
 		if playerDistrictID == scheduleInfo.Location {
 			playerAtLocation = true
+		}
+	}
+
+	if present {
+		playerAtLocation = true
+	}
+	// Without a schedule every dialogue key is "available", in map order — open
+	// on the main menu rather than a random node.
+	if scheduleInfo.CurrentSlot == nil {
+		if _, ok := npcData.Dialogue["main_menu"]; ok {
+			scheduleInfo.AvailableDialogue = append([]string{"main_menu"}, scheduleInfo.AvailableDialogue...)
 		}
 	}
 

@@ -1,0 +1,17 @@
+{
+  "id": "vial-of-pure-water",
+  "name": "Vial of Pure Water",
+  "description": "Water drawn from the one mouth of Goldenhaven's golden fountain that the city's coin has never touched. It's cold, and perfectly clear.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 0.5,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: The Rising Shadow"
+  ],
+  "image": "/res/img/items/vial-of-pure-water.png"
+}

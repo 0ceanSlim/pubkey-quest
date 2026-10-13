@@ -74,6 +74,12 @@ func advanceObjectives(save *types.SaveFile, ev events.Event, lookup QuestLookup
 // quest is finished; pruneCompleted then moves it to the completed list.
 func completeStage(save *types.SaveFile, qp *types.QuestProgress, quest *types.QuestData, advancement []types.AdvancementEntry) {
 	stage := quest.Stages[qp.Stage]
+	// Hand-ins: the items a "consume" fetch asked for go to whoever wanted them.
+	for _, obj := range stage.Objectives {
+		if obj.Type == types.ObjectiveFetch && obj.Consume {
+			gameutil.ConsumeItem(save, obj.Target, objectiveTarget(obj))
+		}
+	}
 	if stage.Rewards != nil {
 		GrantReward(save, stage.Rewards, advancement)
 	}

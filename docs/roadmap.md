@@ -335,8 +335,8 @@ Work the `poi-quest-followups.md` triage top to bottom:
 
 - [ ] **Fix all 116 broken refs** — remap where targets exist (`potion-of-healing`→`healing`, `chainmail`→`chainmail-set`, fatigue tiers, …), cut what isn't worth it, author the rest:
   - [ ] ~30 quest items as a `game-data/items/quest-items/` batch (1-line JSONs + pixellab sprites)
-  - [ ] ~10 monsters (kobold variants, dire-wolf, cave-bear, rat-king-boss, shadow-stalker, …) — C4 monster editor (validated hand-editing as fallback) + the priority-monster pattern
-  - [ ] 7 quest NPCs (oracle-seraphina, mayor-thomas, thistle-goldworthy ✅ drafted, tavern-owner-bob, high-priest-lawrence, …) with at least 2-slot schedules **and room placements** (M2)
+  - [ ] ~10 monsters (kobold variants, dire-wolf, cave-bear, ~~rat-king-boss~~ ✅, shadow-stalker, …) — C4 monster editor (validated hand-editing as fallback) + the priority-monster pattern
+  - [ ] 7 quest NPCs (oracle-seraphina ✅, mayor-thomas, thistle-goldworthy ✅ rebuilt in the real dialogue format + shop, tavern-owner-bob ✅, high-priest-lawrence ✅, …) with at least 2-slot schedules **and room placements** (M2)
   - [ ] 4 effects (blood-lust, divine-grace, mapped-terrain, wind-walker)
   - [ ] Resolve the district/building location-ref question (followups §1e) — recommend option 1 for alpha: city-level refs + flavor text; districts model is post-alpha
 - [ ] **Quest pool for liveness**: grow dailies 2→6 and weeklies 0→4 (templates exist; these are cheap — bounty/fetch/delivery/survey patterns) so the board never repeats inside a real-world week
@@ -345,7 +345,15 @@ Work the `poi-quest-followups.md` triage top to bottom:
 - [ ] **Room content floor** (from M2): taverns/inns 2–3 rooms each across the 9 cities; Goldenhaven temple rooms for the quest spine — authored with the C1 location editor (validated hand-editing as fallback if C1 slipped)
 - [ ] **Art floor for alpha** (placeholder quality fine, consistency matters): 4 missing city scenes — Goldenhaven first — and 7 missing environment scenes; pixellab-in-Codex makes this tractable. Time-of-day tint variants are a cheap big win if easy
 - [ ] Main quest stays *drafted* but ship its first 3–4 stages as the alpha "spine" to validate the multi-stage machinery (full act 1 is beta content)
+  - [x] **The Rising Shadow** ✅ — the spine, playable end to end: Seraphina in the new Temple of the Dawnflame (Goldenhaven), the golden fountain, Thistle's price, ghost lilies on the Forgotten Battlefield (a quest branch in a POI anyone can visit), the ritual and the vision. The watchtower half split off as **The Black Flame** (next: shadow-stalker, cult-manifesto, shadow-fragment, amulet-of-light, and the watchtower's quest branch).
 - [ ] Move `-draft` dirs to canonical paths; retire `--fix-schema`
+- [x] **Quest sites** ✅ — places that exist only for a quest stage (not POIs, nothing saved); POIs that are visitable on their own carry a quest's branch via `quest_stage` gates. Rats of Goldenhaven playable end-to-end (sewers, Rat King, Bob's dialogue).
+
+**Added 2026-10-12 — before the alpha gate opens** (separate pieces, in this order after the Oracle):
+
+- [ ] **Keys and locks.** Key items (`key` tag) and a **keyring** (container, ~8 keys, keys only). A **quest-item** tag: only Info and Destroy (no drop, sell or vault). Locks on rooms and POI nodes, each with its own DC, whether it can be picked, and when it jams. A **lockpick** item that breaks on a failed pick; you can retry until you run out. Picking costs time, and a bad miss can jam the lock (tunable per lock), after which only the key works. First keys: Bob's spare-room key (replaces the tankard; sleep free in a locked room at the Salty Anchor), plus `silver-key` / `heavy-iron-key` from the quest drafts. Settle the Thieves' Kit bonus too: `docs/draft/tools.txt` leaves the kit→skill mechanic open (a +1 Thieving while carried is the likely answer).
+- [ ] **Shared ground items.** Drops move from the per-session store to one world store keyed by place, despawning after a set real time. Anyone at that spot sees and can take them. Anti-dupe: a drop stays private to its dropper until they next save, and is voided if they reload or leave without saving (the item is still in that save). After a save it's public; on the official server only the latest save is playable, so it can't be reloaded past. Plus an indicator on the GROUND button when something's there.
+- [ ] **Basic teleportation** (`docs/draft/teleportation-design.md` §3 steps 1–2 plus the origin stone): Homeward Stones with the shared 1-week cooldown, the teleport action and guardrails, every character starting with their city's stone, and the keeper selling replacements. Stone quests and the waystone chain come after alpha.
 
 ### M8 — Alpha release engineering (M)
 

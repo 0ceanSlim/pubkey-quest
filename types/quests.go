@@ -16,7 +16,8 @@ const (
 // Field usage by objective type:
 //
 //	talk     Target=npc-id
-//	fetch    Target=item-id, Count (default 1)
+//	fetch    Target=item-id, Count (default 1); Consume hands the items over
+//	         (they're taken from the pack when the stage completes)
 //	explore  Target=location-id or poi-id
 //	slay     Target=monster-id, Count (default 1)
 //	check    Skill=skill-id, Value=DC
@@ -26,6 +27,7 @@ type QuestObjective struct {
 	Skill       string             `json:"skill,omitempty"`
 	Count       int                `json:"count,omitempty"`
 	Value       int                `json:"value,omitempty"`
+	Consume     bool               `json:"consume,omitempty"`
 	Description string             `json:"description"`
 }
 
@@ -170,6 +172,10 @@ type QuestDialogue struct {
 	Offer     *QuestDialogueTree `json:"offer,omitempty"`
 	Active    *QuestDialogueTree `json:"active,omitempty"`
 	Completed *QuestDialogueTree `json:"completed,omitempty"`
+	// With holds what other NPCs say about the quest while it's in progress
+	// (npc id → conversation): the merchant the oracle sends you to. Gate nodes
+	// on quest_stage to make a line belong to one stage.
+	With map[string]*QuestDialogueTree `json:"with,omitempty"`
 }
 
 // QuestDialogueTree is one conversation: the menu option that opens it, its

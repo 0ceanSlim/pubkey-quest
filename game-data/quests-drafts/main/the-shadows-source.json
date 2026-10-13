@@ -9,7 +9,7 @@
   "start_condition": {
     "type": "talk",
     "target": "oracle-seraphina",
-    "location": "goldenhaven-temple",
+    "location": "goldenhaven",
     "start_hint": "Speak with Oracle Seraphina after completing 'The Rising Shadow' and earning at least 5 Quest Points."
   },
   "requirements": [
@@ -20,7 +20,7 @@
     }
   ],
   "prerequisites": [
-    "the-rising-shadow"
+    "the-black-flame"
   ],
   "recommended": {
     "recommended_stats": [
@@ -82,6 +82,3 @@
     }
   ]
 }
-
-
-

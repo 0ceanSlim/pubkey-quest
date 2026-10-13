@@ -456,6 +456,13 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 				c.checkQuestDialogueTree(phase, tree)
 			}
 		}
+		for npcID, tree := range d.With {
+			c.context = save + "/dialogue/with." + npcID
+			c.checkNPCRef(npcID)
+			if tree != nil {
+				c.checkQuestDialogueTree("with", tree)
+			}
+		}
 		c.context = save
 	}
 	// Quest sites: their nodes, and the waypoints inside them that this quest's

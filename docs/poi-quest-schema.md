@@ -317,14 +317,20 @@ A place that exists only for a quest: the sewers behind a tavern's cellar wall. 
 }
 ```
 
-Waypoints inside a site are valid `explore` targets for its quest. See `quests-drafts/side/rats-of-goldenhaven.json`.
+Waypoints inside a site are valid `explore` targets for its quest.
+
+### Quest dialogue
+
+`dialogue` holds the giver's `offer`, `active` and `completed` conversations, plus `with`: what *other* NPCs say while the quest is in progress (`{"<npc-id>": QuestDialogueTree}`), e.g. the merchant the giver sends you to. A `talk` objective ticks the moment the player greets the NPC, so gate a `with`/`active` node on the stage *after* the talk (see `the-rising-shadow.json`).
+
+An `npc_interaction` node ends the walk and offers to talk to its `npc_ids` right there, which is how NPCs who live at a POI (Thistle at the Wayward Wagon) are reached. See `quests-drafts/side/rats-of-goldenhaven.json`.
 
 ### QuestObjective
 
 | Type      | Required fields                          |
 |-----------|------------------------------------------|
 | `talk`    | `target` (npc-id)                        |
-| `fetch`   | `target` (item-id), `count` — counts what the player carries |
+| `fetch`   | `target` (item-id), `count` — counts what the player carries; `consume: true` hands the items over when the stage completes |
 | `explore` | `target` (location-id, poi-id, or a POI/site `waypoint`) |
 | `slay`    | `target` (monster-id), `count`           |
 | `check`   | `skill` (skill-id), `value` (DC)         |

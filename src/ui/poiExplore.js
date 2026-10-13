@@ -22,6 +22,7 @@ import { smoothClock } from '../systems/smoothClock.js';
 import { refreshGameState } from '../state/gameState.js';
 import { showMessage } from './messaging.js';
 import { showSceneSpeech, hideSceneSpeech } from './sceneSpeech.js';
+import { getNPCById } from '../state/staticData.js';
 
 // Discovered POIs in the current environment (id, name, position, …), cached for
 // the travel-screen markers. Refreshed on entering a travel view and after a new
@@ -150,6 +151,14 @@ function renderStep(step) {
 
     // Build the node's choices as in-box buttons (POI has no bottom strip to use).
     const buttons = [];
+    if (Array.isArray(step.npcs) && step.npcs.length) {
+        // Handed to someone who lives here (a merchant at her wagon): the walk
+        // ends and the conversation opens where you stand.
+        step.npcs.forEach((id) => {
+            const name = getNPCById(id)?.name ?? id.replace(/-/g, ' ');
+            buttons.push({ label: `Talk to ${name}`, onClick: () => talkTo(id) });
+        });
+    }
     if (Array.isArray(step.choices) && step.choices.length) {
         step.choices.forEach((ch) => buttons.push({ label: ch.label, onClick: () => advancePOI(ch.next) }));
     } else if (step.next) {
@@ -157,6 +166,12 @@ function renderStep(step) {
     } else {
         // Terminal (or a dead-end) — the walk is over server-side; just leave.
         buttons.push({ label: 'Leave', onClick: () => closeOverlay() });
+    }
+
+    async function talkTo(npcId) {
+        await closeOverlay();
+        const m = await import('./locationDisplay.js');
+        m.talkToNPC(npcId);
     }
 
     showSceneSpeech({

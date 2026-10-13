@@ -71,6 +71,19 @@
           "description": "The most powerful guild in the city, controlling trade routes and merchant licenses.",
           "open": 480,
           "close": 1140
+        },
+        {
+          "id": "dawnflame_temple",
+          "name": "Temple of the Dawnflame",
+          "type": "temple",
+          "description": "A domed temple of white stone and beaten gold, raised by the Merchant Princes to the flame that rises with the sun. Merchants come at dawn to have their ledgers blessed; sailors come before a voyage to hear the Oracle.",
+          "open": 300,
+          "close": 1320,
+          "default_room": "sanctuary",
+          "rooms": [
+            { "id": "sanctuary", "name": "Sanctuary", "description": "Rows of gilded benches face an eternal flame burning in a bowl of red bronze. The air is thick with incense and murmured prices." },
+            { "id": "oracle_sanctum", "name": "Oracle's Sanctum", "description": "A small round chamber behind the altar, lit only by a slot of sky in the dome. A bowl of black glass sits on a low table, and the walls are scratched with tally marks: storms foretold, ships saved." }
+          ]
         }
       ]
     },
@@ -145,7 +158,7 @@
         {
           "id": "sailors_tavern",
           "name": "The Salty Anchor",
-          "description": "A rowdy port tavern run by Captain Reylia Stormwave, where bargemen, merchants, and adventurers gather for drinks, lodging, and loud music that carries across the river.",
+          "description": "A rowdy port tavern owned by Bob Cellarman and run by Captain Reylia Stormwave, where bargemen, merchants, and adventurers gather for drinks, lodging, and loud music that carries across the river.",
           "open": 1020,
           "close": 120,
           "default_room": "taproom",

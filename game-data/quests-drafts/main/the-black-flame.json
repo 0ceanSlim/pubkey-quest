@@ -1,0 +1,102 @@
+{
+  "id": "the-black-flame",
+  "name": "The Black Flame",
+  "category": "main",
+  "difficulty": "Intermediate",
+  "step_count": 4,
+  "total_qp": 2,
+  "description": "Seraphina's vision showed a black flame burning in the old watchtower on the Merchant's Highway, and kneeling men feeding it. Put it out.",
+  "start_condition": {
+    "type": "talk",
+    "target": "oracle-seraphina",
+    "location": "goldenhaven",
+    "start_hint": "Talk to Seraphina in the Temple of the Dawnflame once you've seen her vision."
+  },
+  "prerequisites": [
+    "the-rising-shadow"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Resolve 12",
+      "Perception 12"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "scout-watchtower",
+      "description": "The ritual points to the Abandoned Watchtower. Investigate the ruins.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "abandoned-watchtower",
+          "description": "Reach the Watchtower."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 14,
+          "description": "Find the entrance to the tower basement."
+        }
+      ]
+    },
+    {
+      "id": "bandit-camp",
+      "description": "The tower is occupied by bandits who seem to be worshipping the shadow.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "bandit",
+          "count": 8,
+          "description": "Neutralize the bandit presence."
+        },
+        {
+          "type": "fetch",
+          "target": "cult-manifesto",
+          "count": 1,
+          "description": "Find the cult's plans in the leader's desk."
+        }
+      ]
+    },
+    {
+      "id": "purge-shadow",
+      "description": "A Shadow Stalker is anchoring the darkness here. Destroy it.",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "shadow-stalker",
+          "count": 1,
+          "description": "Defeat the Shadow Stalker."
+        },
+        {
+          "type": "fetch",
+          "target": "shadow-fragment",
+          "count": 1,
+          "description": "Collect the fragment left behind."
+        }
+      ]
+    },
+    {
+      "id": "return-to-oracle",
+      "description": "The immediate threat is neutralized. Return to the Oracle with your findings.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "oracle-seraphina",
+          "description": "Deliver the Shadow Fragment and cult plans."
+        }
+      ],
+      "rewards": {
+        "xp": 1500,
+        "gold": 600,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "amulet-of-light",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ]
+}

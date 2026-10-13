@@ -76,6 +76,13 @@ func questPhase(qd *types.QuestData, npcData *serverdb.NPCData, all []types.Ques
 		return "", nil
 	}
 
+	// Someone other than the giver with something to say mid-quest.
+	if qd.Dialogue != nil && quest.IsActive(save, qd.ID) {
+		if t := qd.Dialogue.With[npcData.ID]; t != nil && npcData.ID != giver {
+			return "with", t
+		}
+	}
+
 	if giver == "" || giver != npcData.ID {
 		return "", nil
 	}
@@ -215,7 +222,7 @@ func handleQuestDialogueChoice(sess *session.GameSession, npcID, choice string) 
 			Delta: map[string]interface{}{"npc_dialogue": map[string]interface{}{"action": "close"}},
 		}, nil
 	case nodeBack:
-		return giverMenu(state, npcID)
+		return giverMenu(sess, npcID)
 	}
 
 	qd, err := serverdb.GetQuestByID(questID)
@@ -316,8 +323,9 @@ func threadEnded(npcID, questID, phase, text string) *types.GameActionResponse {
 
 // giverMenu returns to the NPC's main menu (without their greeting again),
 // with its quest options.
-func giverMenu(state *types.SaveFile, npcID string) (*types.GameActionResponse, error) {
-	resp, err := npc.HandleTalkToNPCAction(state, map[string]interface{}{"npc_id": npcID})
+func giverMenu(sess *session.GameSession, npcID string) (*types.GameActionResponse, error) {
+	state := &sess.SaveData
+	resp, err := npc.HandleTalkToNPC(state, map[string]interface{}{"npc_id": npcID}, metInPOI(sess, npcID))
 	if err != nil || resp == nil || !resp.Success {
 		return resp, err
 	}

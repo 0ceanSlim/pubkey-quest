@@ -1,0 +1,17 @@
+{
+  "id": "ghost-lily",
+  "name": "Ghost Lily",
+  "description": "A pale, nearly transparent lily that only grows where the dead fell in great numbers. Its petals are cold to the touch.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 0.1,
+  "stack": 5,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: The Rising Shadow"
+  ],
+  "image": "/res/img/items/ghost-lily.png"
+}

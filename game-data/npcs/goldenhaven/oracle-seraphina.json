@@ -1,0 +1,79 @@
+{
+  "id": "oracle-seraphina",
+  "name": "Seraphina",
+  "title": "Oracle of the Dawnflame",
+  "race": "Half-Elf",
+  "description": "A thin half-elf woman with ink-stained fingers and eyes that never quite settle on you. The dragonborn priests tolerate an outsider in their temple because her storm warnings have saved the barge fleet more times than anyone can count.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "dawnflame_temple",
+      "room": "oracle_sanctum",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 1320,
+      "location": "dawnflame_temple",
+      "room": "oracle_sanctum",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1320,
+      "end": 1440,
+      "location": "dawnflame_temple",
+      "room": "oracle_sanctum",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "You came. I wondered which of you it would be. Sit, if you like. The bowl has been very loud lately.",
+    "returning": "Back again. The water remembers you."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "What do you want to know?",
+      "options": [
+        "ask_bowl",
+        "ask_temple",
+        "goodbye"
+      ]
+    },
+    "ask_bowl": {
+      "text": "Black glass from the Cragspire. Fill it with clean water and it shows what's coming: storms, mostly. Lately it shows nothing but smoke.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "ask_temple": {
+      "text": "The Dawnflame is the princes' temple: gold in, blessings out. They keep me because I'm right about the weather. A half-elf seer is cheaper than a lost fleet.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "sleeping": {
+      "text": "(Seraphina is asleep on a pallet beside the bowl, murmuring.)",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "goodbye": {
+      "text": "Mind the smoke on your way out.",
+      "action": "end_dialogue"
+    }
+  }
+}

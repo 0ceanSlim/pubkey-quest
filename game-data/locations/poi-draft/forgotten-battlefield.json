@@ -42,6 +42,18 @@
           "next": "scavenge-field"
         },
         {
+          "label": "Look for the ghost lilies Thistle described.",
+          "next": "lily-search",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-rising-shadow",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        {
           "label": "Leave the battlefield.",
           "next": "leave"
         }
@@ -109,9 +121,50 @@
         ]
       },
       "is_terminal": true
+    },
+    "lily-search": {
+      "type": "check",
+      "text": "Thistle said they grow on the barrow mounds, where the most men fell. You walk the long grass looking for anything pale.",
+      "skill": "survival",
+      "dc": 11,
+      "success_text": "On the far side of a sunken barrow, a ring of white flowers glows faintly in the grass, cold as frost.",
+      "success_next": "lily-barrow",
+      "failure_text": "Grass, rust and bone. If the lilies are here, you can't find them.",
+      "failure_next": "lily-again"
+    },
+    "lily-again": {
+      "type": "choice",
+      "text": "The field is wide and the grass is long.",
+      "choices": [
+        {
+          "label": "Keep searching",
+          "next": "lily-search"
+        },
+        {
+          "label": "Leave the battlefield",
+          "next": "leave"
+        }
+      ]
+    },
+    "lily-barrow": {
+      "type": "monster",
+      "text": "As you kneel to pick them, the barrow shifts. Something under it does not want its flowers taken.",
+      "monster_id": "zombie",
+      "count": 2,
+      "next": "lily-pick"
+    },
+    "lily-pick": {
+      "type": "loot",
+      "text": "The dead lie still again. You pick the lilies carefully; they seem to dim in your hand.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "ghost-lily",
+            "quantity": 3
+          }
+        ]
+      },
+      "next": "leave"
     }
   }
 }
-
-
-

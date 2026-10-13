@@ -2,24 +2,24 @@
   "id": "the-rising-shadow",
   "name": "The Rising Shadow",
   "category": "main",
-  "step_count": 20,
-  "difficulty": "Intermediate",
-  "total_qp": 3,
-  "description": "Strange omens have been appearing across the kingdom. The Oracle of Goldenhaven seeks a champion to investigate the source of this darkness.",
+  "step_count": 7,
+  "difficulty": "Novice",
+  "total_qp": 1,
+  "description": "Oracle Seraphina of the Dawnflame has seen a dark cloud moving from the mountains. To see more she needs a ritual of revealing, and someone to fetch what it takes.",
   "start_condition": {
     "type": "talk",
     "target": "oracle-seraphina",
-    "location": "goldenhaven-temple",
-    "start_hint": "Seek out Oracle Seraphina in the Goldenhaven Temple after your first day of adventuring."
+    "location": "goldenhaven",
+    "start_hint": "Seek out Oracle Seraphina in the Temple of the Dawnflame, in Goldenhaven's Golden Square."
   },
   "requirements": [],
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
       "Resolve 12",
-      "Perception 12"
+      "Perception 10"
     ],
-    "combat_danger": "Moderate"
+    "combat_danger": "Low"
   },
   "stages": [
     {
@@ -34,163 +34,488 @@
       ]
     },
     {
-      "id": "gather-ritual-components",
-      "description": "The Oracle needs rare components to perform a ritual of revealing.",
+      "id": "pure-water",
+      "description": "The ritual needs water no coin has touched. Seraphina says one mouth of the golden fountain in Golden Square still runs pure.",
+      "site": "golden-fountain",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "vial-of-pure-water",
+          "count": 1,
+          "description": "Draw pure water from the golden fountain."
+        }
+      ]
+    },
+    {
+      "id": "thistles-price",
+      "description": "The ritual also needs Incense of Sight, and only Thistle Goldworthy sells it. Her wagon stands on the Merchant's Highway.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "thistle-goldworthy",
+          "description": "Find Thistle's wagon on the Merchant's Highway."
+        }
+      ]
+    },
+    {
+      "id": "ghost-lilies",
+      "description": "Thistle will make the incense, for a price: three ghost lilies from the Forgotten Battlefield, further down the Highway.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "ghost-lily",
+          "count": 3,
+          "description": "Gather ghost lilies on the Forgotten Battlefield."
+        }
+      ]
+    },
+    {
+      "id": "the-incense",
+      "description": "Bring the ghost lilies back to Thistle's wagon.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "ghost-lily",
+          "count": 3,
+          "consume": true,
+          "description": "Give Thistle the lilies."
+        },
+        {
+          "type": "talk",
+          "target": "thistle-goldworthy",
+          "description": "Collect the Incense of Sight."
+        }
+      ],
+      "rewards": {
+        "items": [
+          {
+            "id": "incense-of-sight",
+            "quantity": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "the-ritual",
+      "description": "Return to Seraphina's sanctum in the Temple of the Dawnflame and help her perform the ritual of revealing.",
+      "site": "scrying-bowl",
       "objectives": [
         {
           "type": "fetch",
           "target": "incense-of-sight",
           "count": 1,
-          "description": "Obtain Ritual Incense from Thistle Goldworthy."
+          "consume": true,
+          "description": "Bring the Incense of Sight."
         },
         {
           "type": "fetch",
           "target": "vial-of-pure-water",
           "count": 1,
-          "description": "Obtain Pure Water from the Merchant District fountain."
-        }
-      ]
-    },
-    {
-      "id": "oracle-translation",
-      "description": "The Oracle needs time to prepare the ritual and translate the ancient texts.",
-      "wait_minutes": 1440,
-      "objectives": [
-        {
-          "type": "talk",
-          "target": "oracle-seraphina",
-          "description": "Check back with Seraphina tomorrow."
-        }
-      ]
-    },
-    {
-      "id": "thistle-negotiation",
-      "description": "Thistle won't give up the incense for free. He needs Ghost Lilies from the wetlands.",
-      "objectives": [
-        {
-          "type": "talk",
-          "target": "thistle-goldworthy",
-          "description": "Negotiate with Thistle."
-        },
-        {
-          "type": "explore",
-          "target": "shadowmere-wetlands",
-          "description": "Travel to the wetlands."
-        },
-        {
-          "type": "fetch",
-          "target": "ghost-lily",
-          "count": 3,
-          "description": "Gather Ghost Lilies."
-        }
-      ]
-    },
-    {
-      "id": "perform-ritual",
-      "description": "Return the components to Seraphina and assist in the ritual.",
-      "objectives": [
-        {
-          "type": "talk",
-          "target": "oracle-seraphina",
-          "description": "Hand over the components."
+          "consume": true,
+          "description": "Bring the pure water."
         },
         {
           "type": "check",
           "skill": "resolve",
           "value": 12,
-          "description": "Maintain the ritual's mental focus."
-        }
-      ]
-    },
-    {
-      "id": "ritual-cooldown",
-      "description": "The ritual was taxing. Seraphina needs to recover before she can interpret the vision.",
-      "wait_minutes": 720,
-      "objectives": [
-        {
-          "type": "talk",
-          "target": "oracle-seraphina",
-          "description": "Wait for Seraphina to recover."
-        }
-      ]
-    },
-    {
-      "id": "scout-watchtower",
-      "description": "The ritual points to the Abandoned Watchtower. Investigate the ruins.",
-      "objectives": [
+          "description": "Hold your mind steady in the smoke."
+        },
         {
           "type": "explore",
-          "target": "abandoned-watchtower",
-          "description": "Reach the Watchtower."
-        },
-        {
-          "type": "check",
-          "skill": "perception",
-          "value": 14,
-          "description": "Find the entrance to the tower basement."
+          "target": "seraphinas-vision",
+          "description": "See the vision."
         }
       ]
     },
     {
-      "id": "bandit-camp",
-      "description": "The tower is occupied by bandits who seem to be worshipping the shadow.",
-      "objectives": [
-        {
-          "type": "slay",
-          "target": "bandit",
-          "count": 8,
-          "description": "Neutralize the bandit presence."
-        },
-        {
-          "type": "fetch",
-          "target": "cult-manifesto",
-          "count": 1,
-          "description": "Find the cult's plans in the leader's desk."
-        }
-      ]
-    },
-    {
-      "id": "purge-shadow",
-      "description": "A Shadow Stalker is anchoring the darkness here. Destroy it.",
-      "objectives": [
-        {
-          "type": "slay",
-          "target": "shadow-stalker",
-          "count": 1,
-          "description": "Defeat the Shadow Stalker."
-        },
-        {
-          "type": "fetch",
-          "target": "shadow-fragment",
-          "count": 1,
-          "description": "Collect the fragment left behind."
-        }
-      ]
-    },
-    {
-      "id": "return-to-oracle",
-      "description": "The immediate threat is neutralized. Return to the Oracle with your findings.",
+      "id": "read-the-vision",
+      "description": "Ask Seraphina what the vision meant.",
       "objectives": [
         {
           "type": "talk",
           "target": "oracle-seraphina",
-          "description": "Deliver the Shadow Fragment and cult plans."
+          "description": "Talk to Seraphina about the vision."
         }
       ],
       "rewards": {
-        "xp": 1500,
-        "gold": 600,
-        "quest_points": 3,
-        "items": [
-          {
-            "id": "amulet-of-light",
-            "quantity": 1
-          }
-        ]
+        "xp": 600,
+        "gold": 300,
+        "quest_points": 1
       }
     }
-  ]
+  ],
+  "sites": {
+    "golden-fountain": {
+      "name": "The Golden Fountain",
+      "description": "A dragon of beaten gold coiled around a great basin, water pouring from its seven mouths.",
+      "location": "goldenhaven",
+      "district": "center",
+      "label": "Draw water at the golden fountain",
+      "start_node": "fountain",
+      "nodes": {
+        "fountain": {
+          "type": "choice",
+          "text": "The golden dragon coils around the basin, water pouring from seven mouths. Merchants toss coins into it for luck, and the basin glitters with them. Seraphina said only one mouth runs pure.",
+          "choices": [
+            {
+              "label": "Study the seven mouths",
+              "next": "which-mouth"
+            },
+            {
+              "label": "Leave the fountain",
+              "next": "leave"
+            }
+          ]
+        },
+        "which-mouth": {
+          "type": "check",
+          "text": "You watch the water fall.",
+          "skill": "perception",
+          "dc": 10,
+          "success_text": "Six streams carry a faint copper sheen from the coins they splash over. The seventh, high up in the dragon's crest, falls straight into a small bowl of its own, and no coin has ever reached it.",
+          "success_next": "fill-vial",
+          "failure_text": "You fill your hand and taste it: copper and tin. That one's been running over money for a century.",
+          "failure_next": "try-again"
+        },
+        "try-again": {
+          "type": "choice",
+          "text": "Six of these mouths are wrong.",
+          "choices": [
+            {
+              "label": "Look again",
+              "next": "which-mouth"
+            },
+            {
+              "label": "Leave the fountain",
+              "next": "leave"
+            }
+          ]
+        },
+        "fill-vial": {
+          "type": "loot",
+          "text": "You climb onto the basin's rim and fill a vial from the dragon's crest. A merchant stares at you. You stare back.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "vial-of-pure-water",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "filled"
+        },
+        "filled": {
+          "type": "exit",
+          "text": "The water in the vial is so clear it barely seems to be there. Now for the incense.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step back from the fountain.",
+          "is_terminal": true
+        }
+      }
+    },
+    "scrying-bowl": {
+      "name": "The Ritual of Revealing",
+      "description": "Seraphina's bowl of black glass, ready for the ritual.",
+      "location": "goldenhaven",
+      "district": "center",
+      "building": "dawnflame_temple",
+      "room": "oracle_sanctum",
+      "label": "Begin the ritual",
+      "start_node": "prepare",
+      "nodes": {
+        "prepare": {
+          "type": "narrative",
+          "text": "Seraphina pours the pure water into the bowl of black glass and lights the incense in a brass dish. The smoke is grey, then silver. \"Breathe it in,\" she says. \"Look into the water. Whatever you see, don't look away. If you look away, it looks back.\"",
+          "next": "begin"
+        },
+        "begin": {
+          "type": "choice",
+          "text": "The smoke curls over the water.",
+          "choices": [
+            {
+              "label": "Breathe in and look into the bowl",
+              "next": "steady"
+            },
+            {
+              "label": "Not yet",
+              "next": "not-yet"
+            }
+          ]
+        },
+        "steady": {
+          "type": "check",
+          "text": "The smoke fills your head. The water goes dark, then deep.",
+          "skill": "resolve",
+          "dc": 12,
+          "success_text": "Something pulls at you from the bottom of the bowl. You hold still and let it show you.",
+          "success_next": "vision",
+          "failure_text": "Something in the water notices you. You jerk back, gasping, and the smoke tears at your mind as it goes.",
+          "failure_next": "recoil"
+        },
+        "recoil": {
+          "type": "damage",
+          "text": "Your head pounds like a struck bell.",
+          "damage": {
+            "type": "psychic",
+            "amount": 3
+          },
+          "next": "again"
+        },
+        "again": {
+          "type": "choice",
+          "text": "\"It saw you,\" Seraphina says quietly. \"That's not good. Again, if you can bear it.\"",
+          "choices": [
+            {
+              "label": "Try again",
+              "next": "steady"
+            },
+            {
+              "label": "Stop for now",
+              "next": "not-yet"
+            }
+          ]
+        },
+        "vision": {
+          "type": "narrative",
+          "waypoint": "seraphinas-vision",
+          "text": "You see the Cragspire Mountains under a sky the colour of a bruise, and a dark cloud rolling down out of them. You see a ruined tower beside a road, a black flame burning in its cellar, and men kneeling around it with their eyes shut. You see the cloud drawn out of the mountains like a thread, south and down into a swamp, into black water, under the water, where something very old is drinking. And under everything, faint as a hum, a song, going quiet one note at a time.",
+          "next": "wake"
+        },
+        "wake": {
+          "type": "exit",
+          "text": "You come back to yourself on the floor of the sanctum. The incense is ash, and the water in the bowl has turned black. Seraphina is staring at it, white-faced.",
+          "is_terminal": true
+        },
+        "not-yet": {
+          "type": "exit",
+          "text": "You step back from the bowl. The smoke waits.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "Ask about her visions",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Every night for a month, the same thing in the water: a dark cloud coming down out of the mountains. The bowl can show me more, but not on plain water and temple incense. I need a ritual of revealing, and I need someone who can walk the roads to fetch what it takes.",
+          "options": [
+            "what-cloud",
+            "accept",
+            "decline"
+          ]
+        },
+        "what-cloud": {
+          "label": "What kind of cloud?",
+          "text": "Not weather. I know weather; it's all I usually see. This moves against the wind. And when it reaches the edge of the bowl, the water goes cold.",
+          "options": [
+            "what-ritual",
+            "accept",
+            "decline"
+          ]
+        },
+        "what-ritual": {
+          "label": "What does the ritual need?",
+          "text": "Water no coin has touched, which in this city is harder than it sounds. And Incense of Sight, which only a halfling merchant on the Highway knows how to make. Thistle Goldworthy. She'll want paying.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll fetch what you need.",
+          "text": "Good. Start with the water: the golden fountain in the square. Six of its mouths run over the princes' coins. One doesn't. Find that one.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not now.",
+          "text": "The cloud won't wait for you. But the bowl will."
+        }
+      }
+    },
+    "active": {
+      "option": "About the ritual...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Have you got what we need?",
+          "options": [
+            "s-water",
+            "s-thistle",
+            "s-lilies",
+            "s-incense",
+            "s-ready",
+            "s-bye"
+          ]
+        },
+        "s-water": {
+          "label": "Which fountain mouth runs pure?",
+          "text": "Watch where the coins don't go. The princes have been throwing money into that fountain for a hundred years, and only one mouth has escaped it.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-rising-shadow",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-thistle": {
+          "label": "Where do I find Thistle?",
+          "text": "On the Merchant's Highway, between here and the Kingdom. Look for a wagon painted gold that has never been near gold.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-rising-shadow",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-lilies": {
+          "label": "Thistle wants ghost lilies.",
+          "text": "Of course she does. They grow where the dead fell thickest. The old battlefield on the Highway will have them, and the dead there don't like company.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-rising-shadow",
+              "min": 3,
+              "max": 4
+            }
+          ]
+        },
+        "s-ready": {
+          "label": "I have the water and the incense.",
+          "text": "Then come into the sanctum. Bring your nerve. The bowl has been very loud.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-rising-shadow",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        "s-incense": {
+          "label": "Still working on it.",
+          "text": "The cloud is still coming. Every night, a little closer.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-rising-shadow",
+              "min": 1,
+              "max": 4
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll be back.",
+          "text": "I know. I saw."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the vision...",
+      "start": "reading",
+      "nodes": {
+        "reading": {
+          "text": "The tower is the old watchtower on the Merchant's Highway. Whoever's kneeling around that black flame is feeding it, and the cloud is what's being fed. The swamp is Shadowmere. And the song... I think the song was the waystones. I think something under the swamp is drinking it.",
+          "options": [
+            "the-tower",
+            "the-song",
+            "what-now"
+          ]
+        },
+        "the-tower": {
+          "label": "Who would worship a black flame?",
+          "text": "Desperate people. Bandits who've been promised more than gold. Whatever they've been told, they don't know what they're feeding.",
+          "options": [
+            "the-song",
+            "what-now"
+          ]
+        },
+        "the-song": {
+          "label": "The waystones sing?",
+          "text": "The elves sang them into being, so the story goes. Every half-elf child in Verdant is told you can hear them if you're quiet enough. I never could. I heard it in the bowl. It was so faint.",
+          "options": [
+            "the-tower",
+            "what-now"
+          ]
+        },
+        "what-now": {
+          "label": "What do we do?",
+          "text": "Rest. Then start with the tower. Put out that flame and we'll learn who lit it. Come back to me when you're ready, and I'll tell you what I know about the road there."
+        }
+      }
+    },
+    "with": {
+      "thistle-goldworthy": {
+        "option": "Seraphina sent me for Incense of Sight",
+        "start": "thistle",
+        "nodes": {
+          "thistle": {
+            "text": "Incense of Sight? For the Oracle? Ooh. She must be seeing something nasty. Well, I can roll you a cone, but it wants ghost-lily ash, and I'm fresh out.",
+            "options": [
+              "t-price",
+              "t-where",
+              "t-done",
+              "t-bye"
+            ]
+          },
+          "t-price": {
+            "label": "What do you want for it?",
+            "text": "Three ghost lilies. Bring me three and I'll make the incense for nothing. Well, for the lilies. They're worth a fortune to the right buyer, and I am the right buyer.",
+            "options": [
+              "t-where",
+              "t-bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "the-rising-shadow",
+                "min": 3,
+                "max": 4
+              }
+            ]
+          },
+          "t-where": {
+            "label": "Where do ghost lilies grow?",
+            "text": "Where a lot of people died at once. The Forgotten Battlefield, further down the road. Pick them quick, and don't sing while you do it. The dead hate singing.",
+            "options": [
+              "t-price",
+              "t-bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "the-rising-shadow",
+                "min": 3,
+                "max": 4
+              }
+            ]
+          },
+          "t-done": {
+            "label": "Here are your lilies.",
+            "text": "Oh, lovely, look at them glow. Give me a moment... there. One cone of Incense of Sight, rolled with the good ash. Tell the Oracle Thistle sends her regards, and her prices.",
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "the-rising-shadow",
+                "min": 5
+              }
+            ]
+          },
+          "t-bye": {
+            "label": "I'll be back.",
+            "text": "The wagon will be here. Probably."
+          }
+        }
+      }
+    }
+  }
 }
-
-
-

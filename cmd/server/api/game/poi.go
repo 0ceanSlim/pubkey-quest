@@ -18,6 +18,7 @@ import (
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -129,6 +130,14 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	sess.ActivePOI.CurrentNode = nodeID
 	sess.ActivePOI.ValidNexts = poi.NextsFor(res)
 
+	if len(res.NPCs) > 0 {
+		sess.POINPCs = map[string]bool{}
+		for _, id := range res.NPCs {
+			sess.POINPCs[id] = true
+		}
+		sess.POINPCPlace, sess.POINPCProgress = world.GroundKey(state), state.TravelProgress
+	}
+
 	switch {
 	case res.Combat != "":
 		// Monster node — drop into the combat UI; the POI resumes at res.Next on
@@ -212,6 +221,14 @@ func resumePOIAfterVictory(sess *session.GameSession) *poi.StepResult {
 		return nil
 	}
 	return &res
+}
+
+// metInPOI reports whether the player is still with an NPC a POI walk handed
+// them to — the only way to talk to someone who lives at a POI.
+func metInPOI(sess *session.GameSession, npcID string) bool {
+	return sess.POINPCs[npcID] &&
+		sess.POINPCPlace == world.GroundKey(&sess.SaveData) &&
+		sess.POINPCProgress == sess.SaveData.TravelProgress
 }
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────

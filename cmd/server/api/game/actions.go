@@ -546,7 +546,7 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 	case "move_to_room":
 		return handleMoveToRoomAction(state, action.Params)
 	case "talk_to_npc":
-		return handleTalkToNPCAction(state, action.Params)
+		return handleTalkToNPCAction(session, action.Params)
 	case "npc_dialogue_choice":
 		return handleNPCDialogueChoiceAction(session, action.Params)
 	case "register_vault":
@@ -1189,13 +1189,15 @@ func handleExitBuildingAction(state *SaveFile, params map[string]any) (*GameActi
 }
 
 // handleTalkToNPCAction initiates dialogue with an NPC
-func handleTalkToNPCAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameActionResponse, error) {
+	state := &session.SaveData
 	// Convert params to map[string]interface{} for package compatibility
 	paramsIface := make(map[string]interface{}, len(params))
 	for k, v := range params {
 		paramsIface[k] = v
 	}
-	resp, err := npc.HandleTalkToNPCAction(state, paramsIface)
+	npcID, _ := params["npc_id"].(string)
+	resp, err := npc.HandleTalkToNPC(state, paramsIface, metInPOI(session, npcID))
 	if resp != nil && resp.Success {
 		if npcID, ok := params["npc_id"].(string); ok && npcID != "" {
 			// Feed the conversation to the event recorder so "talk" quest

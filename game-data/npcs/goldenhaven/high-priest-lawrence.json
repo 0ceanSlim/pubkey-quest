@@ -1,0 +1,79 @@
+{
+  "id": "high-priest-lawrence",
+  "name": "Lawrence Aurum",
+  "title": "High Priest of the Dawnflame",
+  "race": "Human",
+  "description": "A broad, silver-bearded man in gold-threaded vestments, as comfortable quoting scripture as quoting interest rates. The only human the Merchant Princes have ever raised to high priest, and he never lets anyone forget it.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 300,
+      "location": "dawnflame_temple",
+      "room": "sanctuary",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 300,
+      "end": 1320,
+      "location": "dawnflame_temple",
+      "room": "sanctuary",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1320,
+      "end": 1440,
+      "location": "dawnflame_temple",
+      "room": "sanctuary",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Welcome to the Temple of the Dawnflame. The flame rises for everyone, though it rises a little higher for donors.",
+    "returning": "The flame greets you again, friend."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "How may the Dawnflame serve you?",
+      "options": [
+        "ask_flame",
+        "ask_oracle",
+        "goodbye"
+      ]
+    },
+    "ask_flame": {
+      "text": "The Dawnflame was lit the morning the Compact was sealed. It has never gone out, and as long as it burns, Goldenhaven's word is good. That's the theology. The practice is that it's very good for business.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "ask_oracle": {
+      "text": "Seraphina? Through the door behind the altar. A gift, that one, though she's been sleeping badly. Don't let her frighten you. Or do. Frightened people tithe generously.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "sleeping": {
+      "text": "(The high priest dozes on a bench before the flame.)",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "goodbye": {
+      "text": "Go in light. Pay your tithes.",
+      "action": "end_dialogue"
+    }
+  }
+}

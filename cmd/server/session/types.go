@@ -60,6 +60,13 @@ type GameSession struct {
 	// memory-only. Drop moves an item here; pickup takes it back. Nil-safe.
 	Ground *world.GroundStore `json:"-"`
 
+	// POINPCs are the people a POI walk just introduced (Thistle at her wagon):
+	// they have no schedule in a city, so talking to them is allowed only while
+	// the player is still where they met (POINPCPlace + POINPCProgress).
+	POINPCs        map[string]bool `json:"-"`
+	POINPCPlace    string          `json:"-"`
+	POINPCProgress float64         `json:"-"`
+
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.
 	// Session-only.

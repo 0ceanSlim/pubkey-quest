@@ -1,0 +1,17 @@
+{
+  "id": "incense-of-sight",
+  "name": "Incense of Sight",
+  "description": "A cone of grey incense rolled with ghost-lily ash. Thistle swears the smoke lets an oracle see past her own eyes.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 0.2,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: The Rising Shadow"
+  ],
+  "image": "/res/img/items/incense-of-sight.png"
+}

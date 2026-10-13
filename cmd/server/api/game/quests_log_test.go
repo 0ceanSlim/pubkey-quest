@@ -76,8 +76,8 @@ func TestQuestLogStatusesAndReasons(t *testing.T) {
 		if q.ID != "the-shadows-source" {
 			continue
 		}
-		if len(q.Requirements) == 0 || q.Requirements[0].Description != "Complete The Rising Shadow" || q.Requirements[0].Met {
-			t.Errorf("the-shadows-source should lead with an unmet 'Complete The Rising Shadow', got %+v", q.Requirements)
+		if len(q.Requirements) == 0 || q.Requirements[0].Description != "Complete The Black Flame" || q.Requirements[0].Met {
+			t.Errorf("the-shadows-source should lead with an unmet 'Complete The Black Flame', got %+v", q.Requirements)
 		}
 	}
 }
