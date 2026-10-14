@@ -63,9 +63,6 @@ func main() {
 			fmt.Printf("❌ Wiki generation failed: %v\n", err)
 			os.Exit(1)
 		}
-		for _, s := range res.Seeded {
-			fmt.Printf("🔄 Seeded starter page %s\n", s)
-		}
 		fmt.Printf("✅ Wrote %d pages, %d images; removed %d stale pages\n", res.Pages, res.Images, res.Removed)
 		os.Exit(0)
 	}

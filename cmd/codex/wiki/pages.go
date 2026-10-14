@@ -142,6 +142,7 @@ func (g *gen) itemPage(it *item) string {
 	}
 	bullets(&b, "Dropped by", drops)
 	bullets(&b, "Found in packs", g.itemLinks(g.inPacks[it.ID]))
+	bullets(&b, "Found in", g.foundIn[it.ID])
 
 	if len(it.Tags) > 0 {
 		b.WriteString("**Tags:** " + strings.Join(it.Tags, ", ") + "\n")
@@ -203,7 +204,7 @@ func (g *gen) writeMonsters() error {
 	var rows [][]string
 	for _, id := range ids {
 		m := g.monsters[id]
-		rows = append(rows, []string{g.monsterImage(m, 32), link(m.Name, "Monsters/"+id), cr(m.CR),
+		rows = append(rows, []string{g.monsterImage(m, 96), link(m.Name, "Monsters/"+id), cr(m.CR),
 			fmt.Sprint(m.XP), titleCase(m.Size + " " + m.Type), strings.Join(m.Environment, ", ")})
 		if err := g.page("Monsters/"+id, m.Name, g.monsterPage(m)); err != nil {
 			return err
@@ -219,7 +220,7 @@ func (g *gen) monsterImage(m *monster, width int) string {
 
 func (g *gen) monsterPage(m *monster) string {
 	var b strings.Builder
-	if img := g.monsterImage(m, 128); img != "" {
+	if img := g.monsterImage(m, 192); img != "" { // sprites are 96×72: whole multiples stay crisp
 		b.WriteString(img + "\n\n")
 	}
 	b.WriteString(fmt.Sprintf("_%s %s, %s_\n\n", titleCase(m.Size), strings.ToLower(m.Type), m.Alignment))
@@ -264,6 +265,7 @@ func (g *gen) monsterPage(m *monster) string {
 	g.actionSection(&b, "Reactions", m.Reactions)
 	g.actionSection(&b, "Legendary actions", m.LegendaryActions)
 	g.lootSection(&b, m)
+	bullets(&b, "Met in", g.metIn[m.ID])
 	return b.String()
 }
 
@@ -474,7 +476,7 @@ func classList(cs []string) string {
 
 func (g *gen) spellPage(s *spell) string {
 	var b strings.Builder
-	if img := g.image("/res/img/spells/"+s.School+".png", s.School, 64); img != "" {
+	if img := g.image("/res/img/spells/"+s.School+".png", s.School, 70); img != "" {
 		b.WriteString(img + "\n\n")
 	}
 	kind := fmt.Sprintf("Level %d %s", s.Level, s.School)
@@ -531,8 +533,11 @@ func (g *gen) spellPage(s *spell) string {
 
 // ── locations ────────────────────────────────────────────────────────────────
 
-// homeLink links a city, environment or other named home (POIs stay plain text).
+// homeLink links a city, district, environment or place of interest.
 func (g *gen) homeLink(id string) string {
+	if _, ok := g.pois[id]; ok {
+		return g.poiLink(id)
+	}
 	if c, ok := g.cities[id]; ok {
 		return link(c.Name, "Locations/"+id)
 	}
@@ -573,6 +578,17 @@ func (g *gen) writeLocations() error {
 		}
 	}
 	table(&b, []string{"Region", "Terrain", "Difficulty", "Crossing time"}, rows)
+
+	b.WriteString("## Places of interest\n\nFound by exploring the wilds.\n\n")
+	rows = nil
+	for _, id := range sortedKeys(g.pois) {
+		p := g.pois[id]
+		rows = append(rows, []string{g.poiLink(id), titleCase(p.Category), g.homeLink(p.Environment)})
+		if err := g.page("Locations/"+id, p.Name, g.poiPage(p)); err != nil {
+			return err
+		}
+	}
+	table(&b, []string{"Place", "Kind", "Region"}, rows)
 	return g.page("Locations", "Locations", b.String())
 }
 
@@ -671,6 +687,15 @@ func (g *gen) envPage(e *environment) string {
 	if len(rows) > 0 {
 		b.WriteString("## Creatures you may meet\n\n")
 		table(&b, []string{"Monster", "CR"}, rows)
+	}
+	rows = nil
+	for _, id := range g.poisIn[e.ID] {
+		p := g.pois[id]
+		rows = append(rows, []string{g.poiLink(id), titleCase(p.Category)})
+	}
+	if len(rows) > 0 {
+		b.WriteString("## Places of interest\n\n")
+		table(&b, []string{"Place", "Kind"}, rows)
 	}
 	var people []string
 	for _, n := range g.npcsAt[e.ID] {

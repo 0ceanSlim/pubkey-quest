@@ -4,56 +4,52 @@
     <div class="p-6 md:p-8 text-center">
       <div class="text-6xl mb-6">📖</div>
       <h2 class="text-3xl font-bold mb-6" style="color: var(--color-textHighlighted);">
-        Community Wiki
+        Pubkey Quest Wiki
       </h2>
 
       <p class="text-lg mb-6" style="color: var(--color-textSecondary);">
-        Coming Soon!
+        The game's reference, built from its own data.
       </p>
 
       <div class="max-w-2xl mx-auto win95-inset p-6 rounded-lg text-left mb-8">
-        <h3 class="text-xl font-bold mb-4">What's Planned:</h3>
+        <h3 class="text-xl font-bold mb-4">What's in it:</h3>
         <ul class="space-y-3">
           <li class="flex items-start gap-2">
             <span style="color: var(--color-textHighlighted);">•</span>
-            <span><strong>Community-Editable Wiki:</strong> Anyone with a Nostr key can contribute</span>
+            <span><strong>Items, Monsters & Spells:</strong> stats, prices, loot tables, where to find them</span>
           </li>
           <li class="flex items-start gap-2">
             <span style="color: var(--color-textHighlighted);">•</span>
-            <span><strong>Nostr Authentication:</strong> Login with your npub to edit pages</span>
+            <span><strong>Characters:</strong> races, classes, skills, abilities and leveling</span>
           </li>
           <li class="flex items-start gap-2">
             <span style="color: var(--color-textHighlighted);">•</span>
-            <span><strong>Game Guides:</strong> Strategies, tips, character builds, quest walkthroughs</span>
+            <span><strong>The World:</strong> towns, regions, places of interest, NPCs and their shops</span>
           </li>
           <li class="flex items-start gap-2">
             <span style="color: var(--color-textHighlighted);">•</span>
-            <span><strong>Lore & Worldbuilding:</strong> Expand the Pubkey Quest universe together</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <span style="color: var(--color-textHighlighted);">•</span>
-            <span><strong>Technical Documentation:</strong> API docs, modding guides, data formats</span>
+            <span><strong>Quests & Encounters:</strong> how to start them and what they pay</span>
           </li>
         </ul>
-      </div>
-
-      <div class="max-w-2xl mx-auto win95-inset p-6 rounded-lg text-left">
-        <h3 class="text-xl font-bold mb-4">Technical Approach:</h3>
-        <p class="mb-4 text-sm">
-          The wiki will use <strong>Gollum</strong> (the same engine that powers GitHub wikis)
-          running as a headless service, with Pubkey Quest's Go backend acting as the frontend proxy.
-        </p>
-        <p class="text-sm" style="color: var(--color-textMuted);">
-          This allows full control over styling (matching the retro pixel aesthetic) while
-          leveraging Gollum's powerful Git-based wiki engine.
+        <p class="text-sm mt-4" style="color: var(--color-textMuted);">
+          Pages are rebuilt with every game update, so they always match the game.
         </p>
       </div>
 
-      <div class="mt-8">
-        <p class="text-sm" style="color: var(--color-textMuted);">
-          Want to help build this feature? See the <a href="#contribute" class="hover:opacity-80" style="color: var(--color-textHighlighted);">Contribute tab</a> for ways to get involved.
-        </p>
-      </div>
+      {{if .CustomData.WikiEnabled}}
+      <a href="/wiki/" class="inline-block px-6 py-3 font-bold hover:opacity-80 transition"
+         style="color: var(--color-textHighlighted); background: var(--color-bgTertiary); border: 2px solid var(--color-textHighlighted); box-shadow: 0 0 8px var(--color-textHighlighted);">
+        Open the wiki →
+      </a>
+      {{else}}
+      <p class="text-sm" style="color: var(--color-textMuted);">
+        This server doesn't host the wiki.
+      </p>
+      {{end}}
+
+      <p class="text-sm mt-8" style="color: var(--color-textMuted);">
+        Community pages (guides, strategy, lore) are planned but not open for submissions yet.
+      </p>
     </div>
   </div>
 </div>

@@ -273,6 +273,14 @@ a { color: var(--color-textHighlighted); }
   background: var(--color-bgSecondary);
 }
 .markdown-body table:not(:has(thead)) td { color: var(--color-textPrimary); }
+.markdown-body th.pq-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.markdown-body th.pq-sortable:hover { color: var(--color-textHighlighted); }
+.markdown-body th.pq-sortable::after { content: ' \2195'; color: var(--color-textMuted); }
+.markdown-body th[aria-sort=ascending]::after { content: ' \25B2'; color: var(--color-textHighlighted); }
+.markdown-body th[aria-sort=descending]::after { content: ' \25BC'; color: var(--color-textHighlighted); }
+.markdown-body th.pq-sortable:focus-visible { outline: 2px solid var(--color-textHighlighted); outline-offset: -2px; }
+/* Primer caps images at the cell's width, which squeezes sprite icons to nothing. */
+.markdown-body td img { vertical-align: middle; max-width: none; }
 .markdown-body img { background: transparent; }
 
 /* ── Flash/notice boxes, search hits ── */

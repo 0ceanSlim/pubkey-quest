@@ -37,7 +37,6 @@ type Result struct {
 	Pages   int
 	Images  int
 	Removed int
-	Seeded  []string
 }
 
 // Generate writes the generated pages into opt.OutDir.
@@ -58,7 +57,8 @@ func Generate(opt Options) (*Result, error) {
 
 	steps := []func() error{
 		g.writeItems, g.writeMonsters, g.writeSpells, g.writeLocations,
-		g.writeNPCs, g.writeRules, g.writeFooters, g.writeTheme, g.seed,
+		g.writeNPCs, g.writeQuests, g.writeEncounters, g.writeCharacters,
+		g.writeRules, g.writeHome, g.writeTheme,
 	}
 	for _, step := range steps {
 		if err := step(); err != nil {
@@ -86,6 +86,11 @@ type gen struct {
 	feats     []*feat
 	abilities []*ability
 
+	pois       map[string]*poi
+	encounters map[string]*encounter
+	quests     map[string]*quest
+	chars      *characters
+
 	// reverse indexes
 	droppedBy map[string][]string // item id → monster ids
 	soldBy    map[string][]string // item id → npc ids
@@ -95,6 +100,10 @@ type gen struct {
 	usedBy    map[string][]string // component item id → spell ids
 	npcsAt    map[string][]string // home id → npc ids
 	district  map[string]string   // district id → city id
+	foundIn   map[string][]string // item id → place/quest links it's found in
+	metIn     map[string][]string // monster id → place/quest links it's met in
+	poisIn    map[string][]string // environment id → poi ids
+	questsAt  map[string][]string // poi id → quest ids
 }
 
 // ── loading ──────────────────────────────────────────────────────────────────
@@ -171,6 +180,31 @@ func (g *gen) load() error {
 	if err != nil {
 		return err
 	}
+	pois, err := loadDir[poi](filepath.Join(d, "locations", "poi-draft"), false, nil)
+	if err != nil {
+		return err
+	}
+	encounters, err := loadDir[encounter](filepath.Join(d, "systems", "encounters-draft"), false, nil)
+	if err != nil {
+		return err
+	}
+	quests, err := loadDir[quest](filepath.Join(d, "quests-drafts"), true, func(q *quest) bool { return q.ID != "" })
+	if err != nil {
+		return err
+	}
+	if g.chars, err = loadCharacters(d); err != nil {
+		return err
+	}
+	g.pois, g.encounters, g.quests = map[string]*poi{}, map[string]*encounter{}, map[string]*quest{}
+	for _, p := range pois {
+		g.pois[p.ID] = p
+	}
+	for _, e := range encounters {
+		g.encounters[e.ID] = e
+	}
+	for _, q := range quests {
+		g.quests[q.ID] = q
+	}
 
 	g.items = map[string]*item{}
 	for _, it := range items {
@@ -242,6 +276,49 @@ func (g *gen) index() {
 			g.district[dist.ID] = c.ID
 		}
 	}
+
+	g.foundIn, g.metIn, g.poisIn, g.questsAt = map[string][]string{}, map[string][]string{}, map[string][]string{}, map[string][]string{}
+	place := func(where string, nodes map[string]node) {
+		s := g.summarize(nodes)
+		for _, id := range s.loot {
+			addOnce(g.foundIn, id, where)
+		}
+		for _, n := range nodes {
+			if n.MonsterID != "" {
+				addOnce(g.metIn, n.MonsterID, where)
+			}
+		}
+	}
+	for _, id := range sortedKeys(g.pois) {
+		p := g.pois[id]
+		addOnce(g.poisIn, p.Environment, id)
+		place(g.poiLink(id), p.Nodes)
+	}
+	for _, id := range sortedKeys(g.encounters) {
+		place(link(g.encounters[id].Name, "Encounters"), g.encounters[id].Nodes)
+	}
+	for _, id := range sortedKeys(g.quests) {
+		q := g.quests[id]
+		ql := g.questLink(id)
+		if g.pois[q.Start.Target] != nil {
+			addOnce(g.questsAt, q.Start.Target, id)
+		}
+		for _, st := range q.Stages {
+			for _, o := range st.Objectives {
+				if g.pois[o.Target] != nil {
+					addOnce(g.questsAt, o.Target, id)
+				}
+				if o.Type == "slay" && g.monsters[o.Target] != nil {
+					addOnce(g.metIn, o.Target, ql)
+				}
+			}
+			if st.Rewards != nil {
+				for _, it := range st.Rewards.Items {
+					addOnce(g.foundIn, it.ID, ql)
+				}
+			}
+		}
+	}
 }
 
 // ── writing ──────────────────────────────────────────────────────────────────
@@ -253,7 +330,7 @@ func (g *gen) page(rel, title string, body string) error {
 	if title != "" {
 		b.WriteString("# " + title + "\n\n")
 	}
-	b.WriteString(strings.TrimRight(body, "\n") + "\n")
+	b.WriteString(strings.TrimRight(body, "\n") + "\n" + dataNote)
 	return g.writeFile(rel+".md", b.String())
 }
 
@@ -343,21 +420,44 @@ func isGenerated(path string) bool {
 	return string(buf[:n]) == Marker
 }
 
-// writeFooters gives every generated folder a footer saying where edits belong.
-func (g *gen) writeFooters() error {
-	footer := Marker + "\n_This page is generated from the game's data and rebuilt on every update — " +
-		"edits made here are overwritten. Tips, strategy and lore belong on the community pages " +
-		"(see [[Home|/Home]])._\n"
-	for _, dir := range []string{"Items", "Monsters", "Spells", "Locations", "NPCs", "Rules"} {
-		if err := g.writeFile(dir+"/_Footer.md", footer); err != nil {
-			return err
-		}
+// codexURL is where game data is edited.
+const codexURL = "https://codex.pubkey.quest"
+
+// dataNote closes every generated page: where its content comes from.
+const dataNote = "\n---\n_Generated from the game's data. To change it, edit the data in [Codex](" + codexURL + ")._\n"
+
+// writeHome writes the front page and the sidebar.
+func (g *gen) writeHome() error {
+	sections := []struct{ name, about string }{
+		{"Items", fmt.Sprintf("%d weapons, armor, gear, potions and components", len(g.items))},
+		{"Monsters", fmt.Sprintf("%d creatures: stats, habitats, loot", len(g.monsters))},
+		{"Spells", fmt.Sprintf("%d spells by level and class", len(g.spells))},
+		{"Characters", "races, classes, skills, leveling"},
+		{"Locations", fmt.Sprintf("%d towns, %d regions, %d places of interest", len(g.cities), len(g.envs), len(g.pois))},
+		{"NPCs", fmt.Sprintf("%d people: schedules and shops", len(g.npcs))},
+		{"Quests", fmt.Sprintf("%d quests", len(g.quests))},
+		{"Encounters", "events on the road and in town"},
+		{"Rules", "conditions & effects, feats, class abilities"},
 	}
-	return nil
+	var b, side strings.Builder
+	b.WriteString("Reference for [Pubkey Quest](/), built from the game's own data so it matches the game.\n\n")
+	side.WriteString("**[[Home|/Home]]**\n\n")
+	for _, s := range sections {
+		b.WriteString("- " + link(s.name, s.name) + " — " + s.about + "\n")
+		side.WriteString("- " + link(s.name, s.name) + "\n")
+	}
+	b.WriteString("\n## About this wiki\n\n" +
+		"These pages are rebuilt from the game's data with every update. To change something here, " +
+		"edit the game data in [Codex](" + codexURL + ").\n\n" +
+		"Community pages (guides, strategy, lore) will be editable here in a future update.\n")
+	if err := g.writeFile("Home.md", Marker+"\n# Pubkey Quest Wiki\n\n"+b.String()); err != nil {
+		return err
+	}
+	return g.writeFile("_Sidebar.md", Marker+"\n"+side.String())
 }
 
-// The theme is generated (not seeded) so the wiki tracks the game's look; gollum
-// loads it with --css and --js.
+// The theme is generated so the wiki tracks the game's look; gollum loads it with
+// --css and --js.
 var (
 	//go:embed theme.css
 	themeCSS string
@@ -366,61 +466,14 @@ var (
 )
 
 func (g *gen) writeTheme() error {
-	for name, content := range map[string]string{"custom.css": themeCSS, "custom.js": themeJS} {
+	js := strings.ReplaceAll(themeJS, "__WIKI_BASE__", strings.TrimRight(g.opt.BasePath, "/")+"/")
+	for name, content := range map[string]string{"custom.css": themeCSS, "custom.js": js} {
 		path := filepath.Join(g.opt.OutDir, name)
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-// seed writes the hand-editable starter pages only if they don't exist yet.
-func (g *gen) seed() error {
-	for name, content := range seedPages {
-		path := filepath.Join(g.opt.OutDir, name)
-		if _, err := os.Stat(path); err == nil {
-			continue
-		}
-		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-			return err
-		}
-		g.res.Seeded = append(g.res.Seeded, name)
-	}
-	sort.Strings(g.res.Seeded)
-	return nil
-}
-
-var seedPages = map[string]string{
-	"Home.md": `# Pubkey Quest Wiki
-
-Welcome to the Pubkey Quest wiki — the player-run companion to [Pubkey Quest](/).
-
-## Reference
-These sections are generated straight from the game's data, so they always match the game:
-
-- [[Items|/Items]] — weapons, armor, gear, potions, spell components
-- [[Monsters|/Monsters]] — stat blocks, where they roam, what they drop
-- [[Spells|/Spells]] — every spell by level and class
-- [[Locations|/Locations]] — towns, districts, buildings and the wilds between them
-- [[NPCs|/NPCs]] — who's who, where to find them, what they sell
-- [[Rules|/Rules]] — conditions & effects, feats, class abilities
-
-## Guides
-Community pages — add yours!
-
-- _New player guide (wanted)_
-`,
-	"_Sidebar.md": `**[[Home|/Home]]**
-
-**Reference**
-- [[Items|/Items]]
-- [[Monsters|/Monsters]]
-- [[Spells|/Spells]]
-- [[Locations|/Locations]]
-- [[NPCs|/NPCs]]
-- [[Rules|/Rules]]
-`,
 }
 
 // ── markdown helpers ─────────────────────────────────────────────────────────

@@ -126,9 +126,26 @@ type lootTable struct {
 }
 
 type lootEntry struct {
-	Item     string `json:"item"`
-	Weight   int    `json:"weight"`
-	Quantity []int  `json:"quantity"`
+	Item     string   `json:"item"`
+	Weight   int      `json:"weight"`
+	Quantity qtyRange `json:"quantity"`
+}
+
+// qtyRange is a quantity written either as 3 or as [min, max].
+type qtyRange []int
+
+func (q *qtyRange) UnmarshalJSON(b []byte) error {
+	var n int
+	if json.Unmarshal(b, &n) == nil {
+		*q = qtyRange{n}
+		return nil
+	}
+	var r []int
+	if err := json.Unmarshal(b, &r); err != nil {
+		return err
+	}
+	*q = r
+	return nil
 }
 
 func (m *monster) lootItems() []string {
@@ -308,4 +325,183 @@ type ability struct {
 		MaxLevel int    `json:"max_level"`
 		Summary  string `json:"summary"`
 	} `json:"scaling_tiers"`
+}
+
+// ── authored content: POIs, encounters, quests ──────────────────────────────
+
+type requirement struct {
+	Type        string   `json:"type"`
+	ID          string   `json:"id"`
+	Values      []string `json:"values"`
+	Min         int      `json:"min"`
+	Description string   `json:"description"`
+}
+
+type reward struct {
+	XP    int `json:"xp"`
+	Gold  int `json:"gold"`
+	Items []struct {
+		ID       string `json:"id"`
+		Quantity int    `json:"quantity"`
+	} `json:"items"`
+}
+
+// node is one step of a POI or encounter's node graph; only what the pages
+// summarize is decoded.
+type node struct {
+	Type      string     `json:"type"`
+	Skill     string     `json:"skill"`
+	DC        int        `json:"dc"`
+	MonsterID string     `json:"monster_id"`
+	Count     int        `json:"count"`
+	Loot      *lootTable `json:"loot_table"`
+	Reward    *reward    `json:"reward"`
+	Lock      *struct {
+		Key string `json:"key"`
+	} `json:"lock"`
+	Choices []struct {
+		Requirements []requirement `json:"requirements"`
+	} `json:"choices"`
+	NPCIDs []string `json:"npc_ids"`
+}
+
+type poi struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Category    string `json:"category"`
+	Environment string `json:"parent_environment"`
+	Description string `json:"description"`
+	Discovery   struct {
+		Chance  float64 `json:"chance"`
+		Message string  `json:"message"`
+	} `json:"discovery"`
+	Nodes        map[string]node `json:"nodes"`
+	NPCIDs       []string        `json:"npc_ids"`
+	Requirements []requirement   `json:"requirements"`
+}
+
+type encounter struct {
+	ID            string          `json:"id"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
+	Trigger       string          `json:"trigger"`
+	Locations     []string        `json:"valid_locations"`
+	BuildingTypes []string        `json:"building_types"`
+	Chance        float64         `json:"chance"`
+	Repeatable    bool            `json:"repeatable"`
+	Cooldown      int             `json:"cooldown_minutes"`
+	Nodes         map[string]node `json:"nodes"`
+	NPCs          []struct {
+		Name  string `json:"name"`
+		Title string `json:"title"`
+	} `json:"npcs"`
+}
+
+type quest struct {
+	ID           string        `json:"id"`
+	Name         string        `json:"name"`
+	Category     string        `json:"category"`
+	Difficulty   string        `json:"difficulty"`
+	QuestPoints  int           `json:"total_qp"`
+	Description  string        `json:"description"`
+	Requirements []requirement `json:"requirements"`
+	Prereqs      []string      `json:"prerequisites"`
+	Randomized   bool          `json:"is_randomized"`
+	Start        struct {
+		Target   string `json:"target"`
+		Location string `json:"location"`
+		Hint     string `json:"start_hint"`
+	} `json:"start_condition"`
+	Recommended struct {
+		Stats  []string `json:"recommended_stats"`
+		Danger string   `json:"combat_danger"`
+	} `json:"recommended"`
+	Stages []struct {
+		Description string `json:"description"`
+		Objectives  []struct {
+			Type        string `json:"type"`
+			Target      string `json:"target"`
+			Count       int    `json:"count"`
+			Description string `json:"description"`
+		} `json:"objectives"`
+		Rewards *reward `json:"rewards"`
+	} `json:"stages"`
+}
+
+// ── character systems ────────────────────────────────────────────────────────
+
+type skill struct {
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Ratio       map[string]float64 `json:"ratio"`
+}
+
+type level struct {
+	XP            int `json:"ExperiencePoints"`
+	Level         int `json:"Level"`
+	AbilityPoints int `json:"AbilityPoints"`
+}
+
+type classResource struct {
+	Type  string         `json:"type"`
+	Label string         `json:"label"`
+	Max   int            `json:"max"`
+	Regen map[string]int `json:"regen"`
+	Start any            `json:"combat_start"`
+}
+
+type gearOption struct {
+	Type     string `json:"type"`
+	Item     string `json:"item"`
+	Quantity int    `json:"quantity"`
+	Items    []struct {
+		Item     string `json:"item"`
+		Quantity int    `json:"quantity"`
+	} `json:"items"`
+	Slots []struct {
+		Type     string   `json:"type"`
+		Item     string   `json:"item"`
+		Quantity int      `json:"quantity"`
+		Options  []string `json:"options"`
+	} `json:"slots"`
+}
+
+type startingGear struct {
+	Class string `json:"class"`
+	Gear  struct {
+		Choices []struct {
+			Description string       `json:"description"`
+			Options     []gearOption `json:"options"`
+		} `json:"equipment_choices"`
+		Given []struct {
+			Item     string `json:"item"`
+			Quantity int    `json:"quantity"`
+		} `json:"given_items"`
+	} `json:"starting_gear"`
+}
+
+// characters gathers the new-character and progression tables.
+type characters struct {
+	Skills       map[string]skill
+	Levels       []level
+	Resources    map[string]classResource
+	BaseHP       map[string]string
+	Gear         []startingGear
+	Spells       map[string]map[string][]string // class → cantrips/level1 → spell ids
+	Slots        map[string]json.RawMessage     // class → level → slot counts
+	Races        []string
+	RaceWeights  []int
+	ClassWeights map[string]map[string]int // race → class → weight
+	RaceInfo     map[string]struct {
+		City        string `json:"starting_city"`
+		Description string `json:"description"`
+	}
+	StartingGold [][]any // [background, gold]
+}
+
+// The quest drafts folder holds a template.json alongside the real quests.
+func (q *quest) setFile(path string) {
+	if filepath.Base(path) == "template.json" {
+		q.ID = ""
+	}
 }
