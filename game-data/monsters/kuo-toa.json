@@ -1,0 +1,125 @@
+{
+  "id": "kuo-toa",
+  "name": "Kuo-toa",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 18,
+  "hp_dice": "4d8",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/kuo-toa.svg",
+  "environment": [
+    "coast",
+    "swamp"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 30,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 13,
+    "dexterity": 10,
+    "constitution": 11,
+    "intelligence": 11,
+    "wisdom": 10,
+    "charisma": 8
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 120,
+    "passive_perception": 14
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Net",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 1,
+      "range_long": 3,
+      "hit": {
+        "dice": "0",
+        "mod": 0,
+        "type": "none",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 10,
+          "effect": "restrained"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Amphibious",
+      "description": "The kuo-toa can breathe air and water.",
+      "type": "passive"
+    },
+    {
+      "name": "Slippery",
+      "description": "The kuo-toa has advantage on checks and saves made to escape a grapple.",
+      "type": "passive"
+    },
+    {
+      "name": "Sunlight Sensitivity",
+      "description": "In sunlight the kuo-toa has disadvantage on attack rolls.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "raw-fish", "weight": 200, "quantity": [1, 2] },
+          { "item": "spear", "weight": 100, "quantity": [1, 1] },
+          { "item": "net", "weight": 80, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 450 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

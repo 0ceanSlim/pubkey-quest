@@ -1,8 +1,8 @@
 {
   "skill_scaling": {
-    "skill": "athletics",
+    "skill": "survival",
     "base_level": 10,
-    "bonus_per_level": 0.02,
-    "max_bonus_levels": 5
+    "bonus_per_level": 0.05,
+    "max_bonus_levels": 6
   }
 }

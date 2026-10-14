@@ -126,39 +126,29 @@
     "item_restock_interval": 10,
     "inventory": [
       {
-        "item_id": "rope",
-        "stock": 12,
-        "max_stock": 12
-      },
-      {
-        "item_id": "torch",
-        "stock": 18,
-        "max_stock": 18
-      },
-      {
         "item_id": "rations",
-        "stock": 35,
-        "max_stock": 35
+        "stock": 20,
+        "max_stock": 20
       },
       {
         "item_id": "waterskin",
-        "stock": 18,
-        "max_stock": 18
-      },
-      {
-        "item_id": "backpack",
         "stock": 6,
         "max_stock": 6
       },
       {
-        "item_id": "bedroll",
-        "stock": 10,
-        "max_stock": 10
+        "item_id": "torch",
+        "stock": 20,
+        "max_stock": 20
+      },
+      {
+        "item_id": "candle",
+        "stock": 20,
+        "max_stock": 20
       },
       {
         "item_id": "tinderbox",
-        "stock": 12,
-        "max_stock": 12
+        "stock": 5,
+        "max_stock": 5
       },
       {
         "item_id": "oil",
@@ -166,9 +156,71 @@
         "max_stock": 10
       },
       {
-        "item_id": "healers-kit",
+        "item_id": "lamp",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "bedroll",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "blanket",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "camp-set",
+        "stock": 2,
+        "max_stock": 2
+      },
+      {
+        "item_id": "backpack",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "sack",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "pouch",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "rope",
         "stock": 6,
         "max_stock": 6
+      },
+      {
+        "item_id": "crowbar",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "hammer",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "shovel",
+        "stock": 2,
+        "max_stock": 2
+      },
+      {
+        "item_id": "healers-kit",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "healing",
+        "stock": 1,
+        "max_stock": 2,
+        "restock_rate": 1,
+        "restock_interval": "30"
       },
       {
         "item_id": "herbalism-kit",
@@ -176,24 +228,9 @@
         "max_stock": 3
       },
       {
-        "item_id": "hunting-trap",
-        "stock": 4,
-        "max_stock": 4
-      },
-      {
-        "item_id": "net",
-        "stock": 5,
-        "max_stock": 5
-      },
-      {
-        "item_id": "quiver",
-        "stock": 8,
-        "max_stock": 8
-      },
-      {
-        "item_id": "arrows",
-        "stock": 40,
-        "max_stock": 40
+        "item_id": "fishing-rod",
+        "stock": 3,
+        "max_stock": 3
       }
     ]
   }

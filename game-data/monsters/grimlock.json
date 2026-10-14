@@ -1,0 +1,105 @@
+{
+  "id": "grimlock",
+  "name": "Grimlock",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 11,
+  "hp_dice": "2d8+2",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/grimlock.svg",
+  "environment": [
+    "mountain",
+    "dungeon",
+    "cave"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 16,
+    "dexterity": 12,
+    "constitution": 12,
+    "intelligence": 9,
+    "wisdom": 8,
+    "charisma": 6
+  },
+  "saving_throws": {},
+  "skills": {
+    "athletics": 5,
+    "perception": 3,
+    "stealth": 3
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [
+    "blinded"
+  ],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 13
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Spiked Bone Club",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 3,
+        "type": "bludgeoning"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Blind Senses",
+      "description": "The grimlock can't be blinded while not deafened; it hunts by sound and smell.",
+      "type": "passive"
+    },
+    {
+      "name": "Stone Camouflage",
+      "description": "The grimlock has advantage on Stealth checks in rocky terrain.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "club", "weight": 150, "quantity": [1, 1] },
+          { "item": "bone-dust", "weight": 100, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 580 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "ambush",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

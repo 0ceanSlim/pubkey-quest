@@ -1,0 +1,110 @@
+{
+  "id": "winged-kobold",
+  "name": "Winged Kobold",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Humanoid",
+  "size": "Small",
+  "armor_class": 13,
+  "hit_points": 7,
+  "hp_dice": "3d6-3",
+  "alignment": "lawful evil",
+  "tags": [],
+  "img": "/static/img/monster/winged-kobold.svg",
+  "environment": [
+    "mountain",
+    "hill"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 30,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 7,
+    "dexterity": 16,
+    "constitution": 9,
+    "intelligence": 8,
+    "wisdom": 7,
+    "charisma": 8
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 8
+  },
+  "preferred_range": 2,
+  "actions": [
+    {
+      "name": "Dagger",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 3,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Dropped Rock",
+      "type": "ranged_attack",
+      "attack_bonus": 5,
+      "reach": null,
+      "range": 2,
+      "range_long": 3,
+      "hit": {
+        "dice": "1d6",
+        "mod": 3,
+        "type": "bludgeoning"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Sunlight Sensitivity",
+      "description": "In sunlight the kobold has disadvantage on attack rolls.",
+      "type": "passive"
+    },
+    {
+      "name": "Pack Tactics",
+      "description": "The kobold has advantage on attack rolls when an ally is adjacent to its target.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "dagger", "weight": 150, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 680 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cowardly",
+    "flee_threshold": 0.5,
+    "preferred_range": 2,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

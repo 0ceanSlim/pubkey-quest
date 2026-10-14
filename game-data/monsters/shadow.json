@@ -1,0 +1,119 @@
+{
+  "id": "shadow",
+  "name": "Shadow",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 16,
+  "hp_dice": "3d8+3",
+  "alignment": "chaotic evil",
+  "tags": [],
+  "img": "/static/img/monster/shadow.svg",
+  "environment": [
+    "swamp",
+    "graveyard",
+    "dungeon"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 6,
+    "dexterity": 14,
+    "constitution": 13,
+    "intelligence": 6,
+    "wisdom": 10,
+    "charisma": 8
+  },
+  "saving_throws": {},
+  "skills": {
+    "stealth": 4
+  },
+  "damage_resistances": [
+    "acid",
+    "cold",
+    "fire",
+    "lightning",
+    "thunder",
+    "bludgeoning",
+    "piercing",
+    "slashing"
+  ],
+  "damage_immunities": [
+    "necrotic",
+    "poison"
+  ],
+  "damage_vulnerabilities": [
+    "radiant"
+  ],
+  "condition_immunities": [
+    "exhaustion",
+    "frightened",
+    "grappled",
+    "paralyzed",
+    "petrified",
+    "poisoned",
+    "prone",
+    "restrained"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Strength Drain",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 2,
+        "type": "necrotic"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Amorphous",
+      "description": "The shadow can move through a space as narrow as 1 inch wide.",
+      "type": "passive"
+    },
+    {
+      "name": "Shadow Stealth",
+      "description": "In dim light or darkness, the shadow can hide as a bonus action.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "spirit-dust", "weight": 250, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 750 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "ambush",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

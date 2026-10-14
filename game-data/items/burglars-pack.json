@@ -13,10 +13,6 @@
       1
     ],
     [
-      "bell",
-      1
-    ],
-    [
       "candle",
       5
     ],
@@ -58,7 +54,7 @@
   "image": "/res/img/items/burglars-pack.png",
   "name": "Burglar's Pack",
   "notes": [],
-  "value": 1725,
+  "value": 1600,
   "rarity": "common",
   "stack": 1,
   "tags": [

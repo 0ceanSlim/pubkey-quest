@@ -108,31 +108,27 @@
   "legendary_actions": [],
 
   "loot_table": {
-    "guaranteed": [],
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
     "rolls": 1,
     "tiers": [
       {
         "name": "common",
-        "weight": 70,
+        "weight": 920,
         "entries": [
-          { "item": "javelin",  "weight": 30, "quantity": [1, 2] },
-          { "item": "shield",   "weight": 20, "quantity": [1, 1] },
-          { "item": "nothing",  "weight": 50 }
+          { "item": "javelin", "weight": 150, "quantity": [1, 2] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 600 }
         ]
       },
       {
         "name": "rare",
-        "weight": 25,
+        "weight": 80,
         "entries": [
-          { "item": "healing", "weight": 60, "quantity": [1, 1] },
-          { "item": "nothing", "weight": 40 }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "shield", "weight": 40, "quantity": [1, 1] },
+          { "item": "healing", "weight": 40, "quantity": [1, 1] }
         ]
       }
     ]

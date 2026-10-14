@@ -116,24 +116,17 @@
     "tiers": [
       {
         "name": "common",
-        "weight": 80,
+        "weight": 950,
         "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "spider-silk", "weight": 600, "quantity": [1, 3] },
+          { "item": "nothing", "weight": 350 }
         ]
       },
       {
         "name": "rare",
-        "weight": 15,
+        "weight": 50,
         "entries": [
-          { "item": "healing", "weight": 40, "quantity": [1, 1] },
-          { "item": "nothing", "weight": 60 }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "healing", "weight": 50, "quantity": [1, 1] }
         ]
       }
     ]

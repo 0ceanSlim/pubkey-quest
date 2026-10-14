@@ -95,33 +95,32 @@
 
   "loot_table": {
     "guaranteed": [
-      { "item": "gold-piece", "quantity": [2, 8] }
+      { "item": "gold-piece", "quantity": [10, 200] }
     ],
     "rolls": 1,
     "tiers": [
       {
         "name": "common",
-        "weight": 60,
+        "weight": 800,
         "entries": [
-          { "item": "longsword",      "weight": 20, "quantity": [1, 1] },
-          { "item": "shield",         "weight": 15, "quantity": [1, 1] },
-          { "item": "arrows",         "weight": 20, "quantity": [5, 15] },
-          { "item": "chain-shirt",    "weight": 10, "quantity": [1, 1] },
-          { "item": "nothing",        "weight": 35 }
+          { "item": "arrows", "weight": 150, "quantity": [3, 8] },
+          { "item": "keyring", "weight": 20, "quantity": [1, 1] },
+          { "item": "case-map-and-scroll", "weight": 20, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 250, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 310 }
         ]
       },
       {
         "name": "rare",
-        "weight": 35,
+        "weight": 200,
         "entries": [
-          { "item": "healing", "weight": 100, "quantity": [1, 1] }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "longsword", "weight": 40, "quantity": [1, 1] },
+          { "item": "longbow", "weight": 30, "quantity": [1, 1] },
+          { "item": "glaive", "weight": 20, "quantity": [1, 1] },
+          { "item": "shield", "weight": 40, "quantity": [1, 1] },
+          { "item": "chain-shirt", "weight": 20, "quantity": [1, 1] },
+          { "item": "healing", "weight": 50, "quantity": [1, 1] }
         ]
       }
     ]

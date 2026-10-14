@@ -15,7 +15,8 @@
     "equipment",
     "martial-melee",
     "heavy",
-    "two-handed"
+    "two-handed",
+    "drop-only"
   ],
   "type": "Martial Melee Weapons",
   "weight": 6

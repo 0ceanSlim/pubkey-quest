@@ -39,6 +39,7 @@ claude.md
 # Generated assets
 /www/res/img/items/_history
 /www/res/img/items/_candidates
+/www/res/img/monsters/_candidates
 /www/res/style/output.css
 /docs/api/*
 

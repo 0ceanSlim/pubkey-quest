@@ -1,0 +1,23 @@
+{
+  "id": "tackle-box",
+  "name": "Tackle Box",
+  "description": "A tarred wooden box with a hinged lid and little compartments for hooks, line and the day's catch. Keeps the fish smell out of everything else.",
+  "value": 300,
+  "stack": 1,
+  "weight": 3,
+  "type": "Adventuring Gear",
+  "tags": [
+    "container",
+    "fishing"
+  ],
+  "container_slots": 6,
+  "allowed_types": [
+    "fishing",
+    "fish"
+  ],
+  "rarity": "common",
+  "notes": [
+    "Holds fishing gear and fish."
+  ],
+  "image": "/res/img/items/tackle-box.png"
+}

@@ -1,0 +1,116 @@
+{
+  "id": "satyr",
+  "name": "Satyr",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Fey",
+  "size": "Medium",
+  "armor_class": 14,
+  "hit_points": 31,
+  "hp_dice": "7d8",
+  "alignment": "chaotic neutral",
+  "tags": [],
+  "img": "/static/img/monster/satyr.svg",
+  "environment": [
+    "forest"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 12,
+    "dexterity": 16,
+    "constitution": 11,
+    "intelligence": 12,
+    "wisdom": 10,
+    "charisma": 14
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 2,
+    "performance": 6,
+    "stealth": 5
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 12
+  },
+  "preferred_range": 2,
+  "actions": [
+    {
+      "name": "Shortsword",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 3,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Shortbow",
+      "type": "ranged_attack",
+      "attack_bonus": 5,
+      "reach": null,
+      "range": 3,
+      "range_long": 5,
+      "hit": {
+        "dice": "1d6",
+        "mod": 3,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Magic Resistance",
+      "description": "The satyr has advantage on saves against spells.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [10, 200] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 920,
+        "entries": [
+          { "item": "arrows", "weight": 150, "quantity": [3, 8] },
+          { "item": "gold-piece", "weight": 250, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 470 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 80,
+        "entries": [
+          { "item": "shortsword", "weight": 50, "quantity": [1, 1] },
+          { "item": "pan-flute", "weight": 30, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.35,
+    "preferred_range": 2,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

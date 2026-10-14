@@ -1,0 +1,117 @@
+{
+  "id": "ice-mephit",
+  "name": "Ice Mephit",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Elemental",
+  "size": "Small",
+  "armor_class": 11,
+  "hit_points": 21,
+  "hp_dice": "6d6",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/ice-mephit.svg",
+  "environment": [
+    "arctic",
+    "mountain"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 30,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 7,
+    "dexterity": 13,
+    "constitution": 10,
+    "intelligence": 9,
+    "wisdom": 11,
+    "charisma": 12
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 2,
+    "stealth": 3
+  },
+  "damage_resistances": [],
+  "damage_immunities": [
+    "cold",
+    "poison"
+  ],
+  "damage_vulnerabilities": [
+    "bludgeoning",
+    "fire"
+  ],
+  "condition_immunities": [
+    "poisoned"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 12
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 1,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Frost Breath",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 2,
+      "range_long": 3,
+      "hit": {
+        "dice": "2d4",
+        "mod": 0,
+        "type": "cold"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Death Burst",
+      "description": "When the mephit dies, it explodes in a burst of jagged ice.",
+      "type": "passive"
+    },
+    {
+      "name": "False Appearance",
+      "description": "While motionless, the mephit is indistinguishable from a shard of ice.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "elemental-sparks", "weight": 150, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 850 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

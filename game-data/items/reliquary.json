@@ -10,7 +10,8 @@
   "gear_slot": "neck",
   "tags": [
     "equipment",
-    "focus"
+    "focus",
+    "drop-only"
   ],
   "notes": [
     "Can be used as a spellcasting focus for divine magic",

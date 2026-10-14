@@ -1,0 +1,20 @@
+{
+  "id": "perfumed",
+  "name": "Perfumed",
+  "description": "A pleasant scent that makes people warmer toward you",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 60
+  },
+  "modifiers": [
+    {
+      "stat": "charisma",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "You smell wonderful.",
+  "visible": true
+}

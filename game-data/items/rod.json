@@ -14,7 +14,8 @@
   "stack": 1,
   "tags": [
     "focus",
-    "equipment"
+    "equipment",
+    "drop-only"
   ],
   "type": "Arcane Focus",
   "weight": 2

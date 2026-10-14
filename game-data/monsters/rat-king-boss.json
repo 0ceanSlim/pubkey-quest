@@ -101,38 +101,24 @@
   "legendary_actions": [],
   "loot_table": {
     "guaranteed": [
-      {
-        "item": "gold-piece",
-        "quantity": [
-          8,
-          20
-        ]
-      }
+      { "item": "gold-piece", "quantity": [50, 400] }
     ],
     "rolls": 1,
     "tiers": [
       {
         "name": "common",
-        "weight": 80,
+        "weight": 800,
         "entries": [
-          {
-            "item": "nothing",
-            "weight": 100
-          }
+          { "item": "gold-piece", "weight": 250, "quantity": [500, 3000] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1500, 9000] },
+          { "item": "nothing", "weight": 500 }
         ]
       },
       {
         "name": "rare",
-        "weight": 20,
+        "weight": 200,
         "entries": [
-          {
-            "item": "healing",
-            "weight": 100,
-            "quantity": [
-              1,
-              1
-            ]
-          }
+          { "item": "healing", "weight": 200, "quantity": [1, 1] }
         ]
       }
     ]

@@ -1,0 +1,103 @@
+{
+  "id": "gray-ooze",
+  "name": "Gray Ooze",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Ooze",
+  "size": "Medium",
+  "armor_class": 8,
+  "hit_points": 22,
+  "hp_dice": "3d8+9",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/gray-ooze.svg",
+  "environment": [
+    "dungeon",
+    "cave",
+    "swamp"
+  ],
+  "speed": {
+    "walk": 10,
+    "fly": 0,
+    "swim": 0,
+    "climb": 10
+  },
+  "stats": {
+    "strength": 12,
+    "dexterity": 6,
+    "constitution": 16,
+    "intelligence": 1,
+    "wisdom": 6,
+    "charisma": 2
+  },
+  "saving_throws": {},
+  "skills": {
+    "stealth": 2
+  },
+  "damage_resistances": [
+    "acid",
+    "cold",
+    "fire"
+  ],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [
+    "blinded",
+    "charmed",
+    "deafened",
+    "exhaustion",
+    "frightened",
+    "prone"
+  ],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 8
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Pseudopod",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 1,
+        "type": "acid"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Amorphous",
+      "description": "The ooze can move through a space as narrow as 1 inch wide.",
+      "type": "passive"
+    },
+    {
+      "name": "Corrode Metal",
+      "description": "Nonmagical metal that touches the ooze corrodes.",
+      "type": "passive"
+    },
+    {
+      "name": "False Appearance",
+      "description": "While motionless, the ooze is indistinguishable from an oily pool or wet rock.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "ambush",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

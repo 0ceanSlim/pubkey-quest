@@ -3,7 +3,7 @@
   "name": "Beer",
   "description": "A frothy mug of ale. Restores a small amount of fatigue and satisfies thirst.",
   "rarity": "common",
-  "value": 5,
+  "value": 4,
   "weight": 1,
   "stack": 1,
   "type": "Food",
@@ -13,7 +13,9 @@
       "chance": 50
     }
   ],
-  "tags": ["consumable"],
+  "tags": [
+    "consumable"
+  ],
   "notes": [
     "should have effects array and I need to expand effects array to have effect delay duration etc.",
     "effects buzzed and drunk 50/50 chances, buzzed good drunk bad."

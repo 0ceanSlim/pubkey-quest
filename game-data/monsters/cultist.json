@@ -1,0 +1,108 @@
+{
+  "id": "cultist",
+  "name": "Cultist",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 9,
+  "hp_dice": "2d8",
+  "alignment": "chaotic evil",
+  "tags": [
+    "caster"
+  ],
+  "img": "/static/img/monster/cultist.svg",
+  "environment": [
+    "urban",
+    "dungeon",
+    "graveyard"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 11,
+    "dexterity": 12,
+    "constitution": 10,
+    "intelligence": 10,
+    "wisdom": 11,
+    "charisma": 10
+  },
+  "saving_throws": {},
+  "skills": {
+    "deception": 2,
+    "religion": 2
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 10
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Scimitar",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "slashing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Dark Devotion",
+      "description": "The cultist has advantage on saves against being charmed or frightened.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 980,
+        "entries": [
+          { "item": "spirit-dust", "weight": 100, "quantity": [1, 1] },
+          { "item": "ash", "weight": 100, "quantity": [1, 1] },
+          { "item": "dagger", "weight": 80, "quantity": [1, 1] },
+          { "item": "amulet", "weight": 20, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 510 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "scimitar", "weight": 20, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.3,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

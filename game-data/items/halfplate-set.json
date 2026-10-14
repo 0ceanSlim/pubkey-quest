@@ -9,7 +9,8 @@
   "type": "Armor Set",
   "tags": [
     "pack",
-    "armor-set"
+    "armor-set",
+    "drop-only"
   ],
   "contents": [
     [

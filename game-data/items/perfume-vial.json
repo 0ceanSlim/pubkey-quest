@@ -3,13 +3,21 @@
   "id": "perfume-vial",
   "image": "/res/img/items/perfume-vial.png",
   "name": "Perfume",
-  "notes": [],
+  "notes": [
+    "Consumable: +1 Charisma for an hour (better prices, smoother talk)."
+  ],
   "value": 500,
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "consumable",
     "vessel"
   ],
   "type": "Adventuring Gear",
-  "weight": 0.1
+  "weight": 0.1,
+  "effects": [
+    {
+      "apply_effect": "perfumed"
+    }
+  ]
 }

@@ -91,24 +91,11 @@
     "tiers": [
       {
         "name": "common",
-        "weight": 75,
+        "weight": 1000,
         "entries": [
-          { "item": "nothing", "weight": 100 }
-        ]
-      },
-      {
-        "name": "rare",
-        "weight": 20,
-        "entries": [
-          { "item": "gold-piece", "weight": 60, "quantity": [1, 10] },
-          { "item": "nothing",    "weight": 40 }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "bone-dust", "weight": 200, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [50, 400] },
+          { "item": "nothing", "weight": 650 }
         ]
       }
     ]

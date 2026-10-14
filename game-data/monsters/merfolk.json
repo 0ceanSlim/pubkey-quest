@@ -1,0 +1,107 @@
+{
+  "id": "merfolk",
+  "name": "Merfolk",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 11,
+  "hp_dice": "2d8+2",
+  "alignment": "neutral",
+  "tags": [],
+  "img": "/static/img/monster/merfolk.svg",
+  "environment": [
+    "coast"
+  ],
+  "speed": {
+    "walk": 10,
+    "fly": 0,
+    "swim": 40,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 10,
+    "dexterity": 13,
+    "constitution": 12,
+    "intelligence": 11,
+    "wisdom": 11,
+    "charisma": 12
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 2
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 12
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 2,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 0,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Thrown Spear",
+      "type": "ranged_attack",
+      "attack_bonus": 2,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 0,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Amphibious",
+      "description": "The merfolk can breathe air and water.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "raw-fish", "weight": 300, "quantity": [1, 2] },
+          { "item": "spear", "weight": 100, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 430 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.3,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

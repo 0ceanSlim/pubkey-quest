@@ -96,6 +96,30 @@ func RollAwareness(rng *rand.Rand, stealthMod, passivePerception int, monsters [
 	return out
 }
 
+// ReadTheSigns gives a traveller one Survival roll to turn an ambush into a
+// normal fight: tracks, broken twigs, birds gone quiet. The DC is 10 + the
+// sneakiest monster's Stealth. Anything but an ambush passes through unchanged.
+func ReadTheSigns(rng *rand.Rand, aw AwarenessRoll, survivalMod int, monsters []*types.MonsterData) AwarenessRoll {
+	if aw.Opening != OpeningAmbush || len(monsters) == 0 {
+		return aw
+	}
+	best := monsterStealthMod(monsters[0])
+	for _, m := range monsters[1:] {
+		best = max(best, monsterStealthMod(m))
+	}
+	dc := 10 + best
+	roll := rng.Intn(20) + 1
+	if roll+survivalMod >= dc {
+		aw.Opening = OpeningNormal
+		aw.Log = append(aw.Log, fmt.Sprintf("  🧭 Survival: rolled %d%s vs DC %d. You read the signs in time; no ambush.",
+			roll, formatModifier(survivalMod), dc))
+	} else {
+		aw.Log = append(aw.Log, fmt.Sprintf("  🧭 Survival: rolled %d%s vs DC %d. You miss the signs.",
+			roll, formatModifier(survivalMod), dc))
+	}
+	return aw
+}
+
 // SneakAway rolls to slip off unseen: your Stealth vs the sharpest passive
 // Perception. On a failure the fight starts normally.
 func SneakAway(rng *rand.Rand, stealthMod int, monsters []*types.MonsterData) (bool, string) {

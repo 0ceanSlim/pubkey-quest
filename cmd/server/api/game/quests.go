@@ -31,35 +31,25 @@ type questContext struct {
 	// and stat gates read the same effective values a check would roll against.
 	effStats map[string]interface{}
 	// toolBonus is what carried tools add to skills (a Thieves' Kit's
-	// "skill_bonus": {"thieving": 2}), summed once per context.
+	// "skill_bonus": {"thieving": 2}), the best per skill, once per context.
 	toolBonus map[string]int
 }
 
 func buildQuestContext(save *types.SaveFile) requirement.Context {
-	defs, _ := data.LoadSkillDefinitions()
-	adv, _ := loadAdvancement()
-	return questContext{save: save, skillDefs: defs, advancement: adv, effStats: effects.EffectiveStats(save), toolBonus: carriedSkillBonus(save)}
+	return newQuestContext(save, false)
 }
 
-// carriedSkillBonus sums the skill_bonus of every distinct item the player
-// carries. Kits help while they're in your pack; two of the same kit don't stack.
-func carriedSkillBonus(save *types.SaveFile) map[string]int {
-	out := map[string]int{}
-	for _, id := range gameutil.CarriedItemIDs(save) {
-		item, err := serverdb.GetItemByID(id)
-		if err != nil || item == nil || !strings.Contains(item.Properties, "skill_bonus") {
-			continue
-		}
-		var props struct {
-			SkillBonus map[string]int `json:"skill_bonus"`
-		}
-		if json.Unmarshal([]byte(item.Properties), &props) == nil {
-			for skill, n := range props.SkillBonus {
-				out[skill] += n
-			}
-		}
-	}
-	return out
+// buildTravelContext is buildQuestContext for checks made on the road, where
+// travel-only tools (a spyglass) also count.
+func buildTravelContext(save *types.SaveFile) requirement.Context {
+	return newQuestContext(save, true)
+}
+
+func newQuestContext(save *types.SaveFile, travelling bool) questContext {
+	defs, _ := data.LoadSkillDefinitions()
+	adv, _ := loadAdvancement()
+	return questContext{save: save, skillDefs: defs, advancement: adv, effStats: effects.EffectiveStats(save),
+		toolBonus: gameutil.CarriedSkillBonus(save, travelling)}
 }
 
 func (c questContext) SkillValue(id string) int {

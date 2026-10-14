@@ -1,0 +1,121 @@
+{
+  "id": "acolyte",
+  "name": "Acolyte",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 10,
+  "hit_points": 9,
+  "hp_dice": "2d8",
+  "alignment": "any alignment",
+  "tags": [
+    "caster"
+  ],
+  "img": "/static/img/monster/acolyte.svg",
+  "environment": [
+    "urban",
+    "grassland",
+    "graveyard"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 10,
+    "dexterity": 10,
+    "constitution": 10,
+    "intelligence": 10,
+    "wisdom": 14,
+    "charisma": 11
+  },
+  "saving_throws": {},
+  "skills": {
+    "medicine": 4,
+    "religion": 2
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 12
+  },
+  "preferred_range": 2,
+  "actions": [
+    {
+      "name": "Club",
+      "type": "melee_attack",
+      "attack_bonus": 2,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 0,
+        "type": "bludgeoning"
+      }
+    },
+    {
+      "name": "Sacred Flame",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 3,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d8",
+        "mod": 0,
+        "type": "radiant"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Spellcasting",
+      "description": "The acolyte calls down sacred flame and can bless its allies.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 970,
+        "entries": [
+          { "item": "blessed-incense", "weight": 120, "quantity": [1, 1] },
+          { "item": "salt", "weight": 100, "quantity": [1, 2] },
+          { "item": "emblem", "weight": 40, "quantity": [1, 1] },
+          { "item": "reliquary", "weight": 20, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 520 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 30,
+        "entries": [
+          { "item": "healing", "weight": 30, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.35,
+    "preferred_range": 2,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

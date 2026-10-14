@@ -29,10 +29,6 @@
       4
     ],
     [
-      "paper",
-      5
-    ],
-    [
       "parchment",
       5
     ],
@@ -50,7 +46,7 @@
   "image": "/res/img/items/diplomats-pack.png",
   "name": "Diplomat's Pack",
   "notes": [],
-  "value": 2300,
+  "value": 3900,
   "rarity": "common",
   "stack": 1,
   "tags": [

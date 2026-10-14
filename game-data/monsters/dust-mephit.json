@@ -1,0 +1,116 @@
+{
+  "id": "dust-mephit",
+  "name": "Dust Mephit",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Elemental",
+  "size": "Small",
+  "armor_class": 12,
+  "hit_points": 17,
+  "hp_dice": "5d6",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/dust-mephit.svg",
+  "environment": [
+    "desert"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 30,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 5,
+    "dexterity": 14,
+    "constitution": 10,
+    "intelligence": 9,
+    "wisdom": 11,
+    "charisma": 10
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 2,
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [
+    "poison"
+  ],
+  "damage_vulnerabilities": [
+    "fire"
+  ],
+  "condition_immunities": [
+    "poisoned"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 12
+  },
+  "preferred_range": 2,
+  "actions": [
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "slashing"
+      }
+    },
+    {
+      "name": "Blinding Breath",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 2,
+      "range_long": 3,
+      "hit": {
+        "dice": "0",
+        "mod": 0,
+        "type": "none",
+        "special": {
+          "type": "save",
+          "ability": "dexterity",
+          "dc": 10,
+          "effect": "blinded"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Death Burst",
+      "description": "When the mephit dies, it explodes in a cloud of dust.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "quartz-dust", "weight": 200, "quantity": [1, 1] },
+          { "item": "elemental-sparks", "weight": 50, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 750 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 2,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

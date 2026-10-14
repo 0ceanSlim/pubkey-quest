@@ -11,6 +11,7 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/combat"
+	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
@@ -60,20 +61,27 @@ type ApproachResponse struct {
 // playerAwareness returns the player's Stealth modifier (Thieving skill) and
 // passive Perception, from their effective stats.
 func playerAwareness(save *types.SaveFile) (stealthMod, passivePerception int) {
-	ctx := buildQuestContext(save)
+	return awarenessFrom(buildQuestContext(save))
+}
+
+func awarenessFrom(ctx requirement.Context) (stealthMod, passivePerception int) {
 	return skillcheck.Modifier(ctx.SkillValue("thieving")),
 		10 + skillcheck.Modifier(ctx.SkillValue("perception"))
 }
 
-// rollOpening rolls who noticed whom for an encounter about to start.
+// rollOpening rolls who noticed whom for an encounter met on the road. Travel
+// tools count (a spyglass), and if you'd be ambushed a Survival roll can still
+// catch the signs in time.
 func rollOpening(save *types.SaveFile, monsterIDs []string) (combat.AwarenessRoll, error) {
 	monsters, err := combat.LoadEncounterMonsters(serverdb.GetDB(), monsterIDs)
 	if err != nil {
 		return combat.AwarenessRoll{}, err
 	}
-	stealthMod, passive := playerAwareness(save)
+	ctx := buildTravelContext(save)
+	stealthMod, passive := awarenessFrom(ctx)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return combat.RollAwareness(rng, stealthMod, passive, monsters), nil
+	aw := combat.RollAwareness(rng, stealthMod, passive, monsters)
+	return combat.ReadTheSigns(rng, aw, skillcheck.Modifier(ctx.SkillValue("survival")), monsters), nil
 }
 
 // holdUnawareEncounter parks the encounter as pending and describes it.

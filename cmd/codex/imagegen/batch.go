@@ -23,6 +23,9 @@ const itemsImgDir = "www/res/img/items"
 type Spec struct {
 	Model    string `json:"model"`    // default model for jobs ("bitforge"|"pixflux")
 	Size     int    `json:"size"`     // default sprite size (px, square); 0 → 32
+	Width    int    `json:"width"`    // overrides Size for non-square sprites (e.g. 96×72 monsters)
+	Height   int    `json:"height"`
+	ImgDir   string `json:"img_dir"`  // sprite folder for ids + candidates; default www/res/img/items
 	Count    int    `json:"count"`    // default variants per job; 0 → 3
 	Negative string `json:"negative"` // default negative prompt
 	Jobs     []Job  `json:"jobs"`
@@ -66,6 +69,10 @@ func RunBatch(client *pixellab.Client, specPath string) error {
 		fmt.Printf("💳 PixelLab balance: $%.4f (ignored; monthly plans report $0)\n", bal.USD)
 	}
 
+	imgDir := firstNonEmpty(spec.ImgDir, itemsImgDir)
+	width := firstNonZero(spec.Width, spec.Size)
+	height := firstNonZero(spec.Height, spec.Size)
+
 	var total float64
 	var made, skipped, failed int
 	for _, job := range spec.Jobs {
@@ -83,20 +90,20 @@ func RunBatch(client *pixellab.Client, specPath string) error {
 			}
 		}
 
-		initImg, err := resolveRef(job.Anchor)
+		initImg, err := resolveRef(imgDir, job.Anchor)
 		if err != nil {
 			fmt.Printf("❌ %s: anchor %q: %v\n", job.ID, job.Anchor, err)
 			failed++
 			continue
 		}
-		styleImg, err := resolveRef(job.Style)
+		styleImg, err := resolveRef(imgDir, job.Style)
 		if err != nil {
 			fmt.Printf("❌ %s: style %q: %v\n", job.ID, job.Style, err)
 			failed++
 			continue
 		}
 
-		outDir := filepath.Join(itemsImgDir, "_candidates", job.ID)
+		outDir := filepath.Join(imgDir, "_candidates", job.ID)
 		if err := os.MkdirAll(outDir, 0755); err != nil {
 			return fmt.Errorf("mkdir %s: %w", outDir, err)
 		}
@@ -113,8 +120,8 @@ func RunBatch(client *pixellab.Client, specPath string) error {
 				Description:         job.Prompt,
 				NegativeDescription: negative,
 				Model:               model,
-				Width:               spec.Size,
-				Height:              spec.Size,
+				Width:               width,
+				Height:              height,
 				InitImage:           initImg,
 				InitImageStrength:   job.InitStrength,
 				StyleImage:          styleImg,
@@ -150,13 +157,14 @@ func RunBatch(client *pixellab.Client, specPath string) error {
 }
 
 // resolveRef turns an empty/id/path reference into raw PNG bytes. Empty → nil.
-func resolveRef(ref string) ([]byte, error) {
+// A bare id resolves to <imgDir>/<id>.png.
+func resolveRef(imgDir, ref string) ([]byte, error) {
 	if ref == "" {
 		return nil, nil
 	}
 	path := ref
 	if !strings.Contains(ref, "/") && !strings.Contains(ref, "\\") && !strings.HasSuffix(strings.ToLower(ref), ".png") {
-		path = filepath.Join(itemsImgDir, ref+".png")
+		path = filepath.Join(imgDir, ref+".png")
 	}
 	return os.ReadFile(path)
 }

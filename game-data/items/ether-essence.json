@@ -2,7 +2,7 @@
   "id": "ether-essence",
   "name": "Ether Essence",
   "description": "A shimmering substance that seems to exist between dimensions. Provided unlimited when using an Orb focus.",
-  "rarity": "common",
+  "rarity": "uncommon",
   "value": 100,
   "weight": 0.1,
   "stack": 10,

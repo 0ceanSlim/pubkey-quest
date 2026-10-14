@@ -11,7 +11,8 @@
   "ac": "11",
   "tags": [
     "equipment",
-    "heavy"
+    "heavy",
+    "drop-only"
   ],
   "set": "plate-set",
   "notes": [

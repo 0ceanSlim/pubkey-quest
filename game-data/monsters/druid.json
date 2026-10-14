@@ -1,0 +1,129 @@
+{
+  "id": "druid",
+  "name": "Druid",
+  "challenge_rating": 2,
+  "xp": 450,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 27,
+  "hp_dice": "5d8+5",
+  "alignment": "neutral",
+  "tags": [
+    "caster"
+  ],
+  "img": "/static/img/monster/druid.svg",
+  "environment": [
+    "forest",
+    "swamp",
+    "grassland"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 10,
+    "dexterity": 12,
+    "constitution": 13,
+    "intelligence": 12,
+    "wisdom": 15,
+    "charisma": 11
+  },
+  "saving_throws": {},
+  "skills": {
+    "medicine": 4,
+    "nature": 3,
+    "perception": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 14
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Shillelagh",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d8",
+        "mod": 2,
+        "type": "bludgeoning"
+      }
+    },
+    {
+      "name": "Thorn Whip",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 2,
+      "range_long": 3,
+      "hit": {
+        "dice": "1d6",
+        "mod": 0,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Spellcasting",
+      "description": "The druid wakes its staff with shillelagh and lashes foes with thorny vines.",
+      "type": "passive"
+    },
+    {
+      "name": "Barkskin",
+      "description": "When pressed, the druid's skin hardens like bark.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 930,
+        "entries": [
+          { "item": "pollen", "weight": 200, "quantity": [1, 2] },
+          { "item": "tree-sap", "weight": 150, "quantity": [1, 1] },
+          { "item": "sprig-of-mistletoe", "weight": 50, "quantity": [1, 1] },
+          { "item": "totem", "weight": 30, "quantity": [1, 1] },
+          { "item": "wooden-staff", "weight": 20, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 310 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 70,
+        "entries": [
+          { "item": "yew-wand", "weight": 20, "quantity": [1, 1] },
+          { "item": "healing", "weight": 50, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.3,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

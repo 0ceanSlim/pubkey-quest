@@ -1,0 +1,81 @@
+{
+  "id": "pteranodon",
+  "name": "Pteranodon",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Beast",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 13,
+  "hp_dice": "3d8",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/pteranodon.svg",
+  "environment": [
+    "coast",
+    "hill"
+  ],
+  "speed": {
+    "walk": 10,
+    "fly": 60,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 12,
+    "dexterity": 15,
+    "constitution": 10,
+    "intelligence": 2,
+    "wisdom": 9,
+    "charisma": 5
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 1
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 11
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 1,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Flyby",
+      "description": "The pteranodon doesn't provoke opportunity attacks when it flies out of reach.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.3,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

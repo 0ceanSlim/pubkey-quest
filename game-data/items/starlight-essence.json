@@ -8,7 +8,8 @@
   "stack": 1,
   "rarity": "legendary",
   "tags": [
-    "spell_component"
+    "spell_component",
+    "drop-only"
   ],
   "notes": [
     "Used for divine magic",

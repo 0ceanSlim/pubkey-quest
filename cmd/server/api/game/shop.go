@@ -45,6 +45,16 @@ func getCharismaFromSession(npub, saveID string) int {
 	return 10 // Default charisma if not found
 }
 
+// itemRestockMinutes is an item's own restock period: set when the stock entry
+// names a restock_interval ("daily", "weekly", or minutes), else 0 and the item
+// refills with the rest of the shop.
+func itemRestockMinutes(invItem types.ShopInventoryItem) int {
+	if invItem.RestockInterval == "" {
+		return 0
+	}
+	return parseIntervalToMinutes(invItem.RestockInterval)
+}
+
 // calculateBuyPrice delegates to game/shop package
 func calculateBuyPrice(basePrice int, shopConfig types.ShopConfig, charisma int) int {
 	return shop.CalculateBuyPrice(basePrice, shopConfig, charisma)
@@ -179,9 +189,11 @@ func handleGetShop(w http.ResponseWriter, r *http.Request, merchantID string) {
 	initialInventory := make([]world.MerchantInventoryItem, 0)
 	for _, invItem := range shopConfig.Inventory {
 		initialInventory = append(initialInventory, world.MerchantInventoryItem{
-			ItemID:       invItem.ItemID,
-			CurrentStock: invItem.Stock,
-			MaxStock:     invItem.MaxStock,
+			ItemID:         invItem.ItemID,
+			CurrentStock:   invItem.Stock,
+			MaxStock:       invItem.MaxStock,
+			RestockRate:    invItem.RestockRate,
+			RestockMinutes: itemRestockMinutes(invItem),
 		})
 	}
 
@@ -344,9 +356,11 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 	initialInventory := make([]world.MerchantInventoryItem, 0)
 	for _, invItem := range shopConfig.Inventory {
 		initialInventory = append(initialInventory, world.MerchantInventoryItem{
-			ItemID:       invItem.ItemID,
-			CurrentStock: invItem.Stock,
-			MaxStock:     invItem.MaxStock,
+			ItemID:         invItem.ItemID,
+			CurrentStock:   invItem.Stock,
+			MaxStock:       invItem.MaxStock,
+			RestockRate:    invItem.RestockRate,
+			RestockMinutes: itemRestockMinutes(invItem),
 		})
 	}
 
@@ -589,9 +603,11 @@ func handleSellToShop(w http.ResponseWriter, r *http.Request) {
 	initialInventory := make([]world.MerchantInventoryItem, 0)
 	for _, invItem := range shopConfig.Inventory {
 		initialInventory = append(initialInventory, world.MerchantInventoryItem{
-			ItemID:       invItem.ItemID,
-			CurrentStock: invItem.Stock,
-			MaxStock:     invItem.MaxStock,
+			ItemID:         invItem.ItemID,
+			CurrentStock:   invItem.Stock,
+			MaxStock:       invItem.MaxStock,
+			RestockRate:    invItem.RestockRate,
+			RestockMinutes: itemRestockMinutes(invItem),
 		})
 	}
 

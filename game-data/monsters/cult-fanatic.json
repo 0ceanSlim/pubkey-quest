@@ -1,0 +1,130 @@
+{
+  "id": "cult-fanatic",
+  "name": "Cult Fanatic",
+  "challenge_rating": 2,
+  "xp": 450,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 33,
+  "hp_dice": "6d8+6",
+  "alignment": "chaotic evil",
+  "tags": [
+    "caster"
+  ],
+  "img": "/static/img/monster/cult-fanatic.svg",
+  "environment": [
+    "urban",
+    "dungeon",
+    "graveyard",
+    "swamp"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 11,
+    "dexterity": 14,
+    "constitution": 12,
+    "intelligence": 10,
+    "wisdom": 13,
+    "charisma": 14
+  },
+  "saving_throws": {},
+  "skills": {
+    "deception": 4,
+    "persuasion": 4,
+    "religion": 2
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 11
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Inflict Wounds",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d8",
+        "mod": 2,
+        "type": "necrotic"
+      }
+    },
+    {
+      "name": "Thrown Dagger",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Dark Devotion",
+      "description": "The fanatic has advantage on saves against being charmed or frightened.",
+      "type": "passive"
+    },
+    {
+      "name": "Spellcasting",
+      "description": "The fanatic channels necrotic power through a touch and commands lesser cultists.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [50, 400] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 870,
+        "entries": [
+          { "item": "spirit-dust", "weight": 200, "quantity": [1, 2] },
+          { "item": "reliquary", "weight": 30, "quantity": [1, 1] },
+          { "item": "case-map-and-scroll", "weight": 30, "quantity": [1, 1] },
+          { "item": "demon-ichor", "weight": 20, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 250, "quantity": [500, 3000] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1500, 9000] },
+          { "item": "nothing", "weight": 290 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 130,
+        "entries": [
+          { "item": "rod", "weight": 30, "quantity": [1, 1] },
+          { "item": "orb", "weight": 20, "quantity": [1, 1] },
+          { "item": "healing", "weight": 80, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.15,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

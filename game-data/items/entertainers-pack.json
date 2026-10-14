@@ -9,15 +9,7 @@
       1
     ],
     [
-      "bell",
-      1
-    ],
-    [
       "lantern-bullseye",
-      1
-    ],
-    [
-      "mirror",
       1
     ],
     [
@@ -42,7 +34,7 @@
   "image": "/res/img/items/entertainers-pack.png",
   "name": "Entertainer's Pack",
   "notes": [],
-  "value": 2500,
+  "value": 4000,
   "rarity": "common",
   "stack": 1,
   "tags": [

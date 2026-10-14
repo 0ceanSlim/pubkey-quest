@@ -1,0 +1,109 @@
+{
+  "id": "court-arcanist",
+  "name": "Corvin Ashgrove",
+  "title": "Court Arcanist",
+  "race": "Half-Elf",
+  "description": "A tall, ink-stained half-elf in a deep blue robe, spectacles pushed up into silver-streaked hair. He corrects your pronunciation of reagents before you finish asking for them.",
+  "primary_home": "kingdom",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 420,
+      "location": "corvin_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 480,
+      "location": "kingdom-north",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 480,
+      "end": 1200,
+      "location": "mage_tower",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "kingdom-north",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1440,
+      "location": "corvin_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Corvin Ashgrove, Court Arcanist. You've the look of someone who has run out of something important. Reagents? Ink? Patience?",
+    "returning": "Ah, you again. Do try not to set anything on fire this time.",
+    "low_gold": "The tower's coffers are spent for today. Bring your curiosities back tomorrow."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*Behind the door, a voice mutters an incantation in its sleep, then a soft snore.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "The tower opens at eight, not a minute sooner. Magic keeps a schedule even if wizards don't.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "The counter is closed. Whatever you need will still be unstable tomorrow.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "I am reading, which is to say I am busy. The tower opens at eight.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Components, a focus, a fresh spellbook? State your need precisely.",
+      "options": ["browse_shop", "ask_about_tower", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Everything is labelled. Please do not lick the crystals.",
+      "action": "open_shop"
+    },
+    "ask_about_tower": {
+      "text": "The court's wizards study here; I keep them supplied. Spellbooks and component pouches are hand-stitched and slow to replace, so I keep only one of each. As for wands, orbs and the like, a proper focus is attuned by its maker, and those makers rarely part with them while they're alive.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Mind the third step on your way out. It bites.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 3000,
+    "gold_regen_rate": 300,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "staff", "stock": 3, "max_stock": 3},
+      {"item_id": "component-pouch", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "30"},
+      {"item_id": "spellbook", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "30"},
+      {"item_id": "mana-crystals", "stock": 10, "max_stock": 10},
+      {"item_id": "ash", "stock": 10, "max_stock": 10},
+      {"item_id": "iron-filings", "stock": 10, "max_stock": 10},
+      {"item_id": "arcane-powder", "stock": 10, "max_stock": 10},
+      {"item_id": "sulfur", "stock": 6, "max_stock": 6},
+      {"item_id": "elemental-sparks", "stock": 3, "max_stock": 3}
+    ]
+  }
+}

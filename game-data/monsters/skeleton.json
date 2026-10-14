@@ -84,26 +84,19 @@
     "tiers": [
       {
         "name": "common",
-        "weight": 70,
+        "weight": 890,
         "entries": [
-          { "item": "shortsword", "weight": 25, "quantity": [1, 1] },
-          { "item": "arrows",     "weight": 30, "quantity": [5, 15] },
-          { "item": "nothing",    "weight": 45 }
+          { "item": "bone-dust", "weight": 250, "quantity": [1, 1] },
+          { "item": "arrows", "weight": 150, "quantity": [2, 6] },
+          { "item": "nothing", "weight": 490 }
         ]
       },
       {
         "name": "rare",
-        "weight": 25,
+        "weight": 110,
         "entries": [
-          { "item": "shield",   "weight": 50, "quantity": [1, 1] },
-          { "item": "nothing",  "weight": 50 }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "shortsword", "weight": 80, "quantity": [1, 1] },
+          { "item": "shield", "weight": 30, "quantity": [1, 1] }
         ]
       }
     ]

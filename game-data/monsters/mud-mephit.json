@@ -1,0 +1,108 @@
+{
+  "id": "mud-mephit",
+  "name": "Mud Mephit",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Elemental",
+  "size": "Small",
+  "armor_class": 11,
+  "hit_points": 27,
+  "hp_dice": "6d6+6",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/mud-mephit.svg",
+  "environment": [
+    "swamp"
+  ],
+  "speed": {
+    "walk": 20,
+    "fly": 20,
+    "swim": 20,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 8,
+    "dexterity": 12,
+    "constitution": 12,
+    "intelligence": 9,
+    "wisdom": 11,
+    "charisma": 7
+  },
+  "saving_throws": {},
+  "skills": {
+    "stealth": 3
+  },
+  "damage_resistances": [],
+  "damage_immunities": [
+    "poison"
+  ],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [
+    "poisoned"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Fists",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "bludgeoning"
+      }
+    },
+    {
+      "name": "Mud Breath",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 2,
+      "range_long": 2,
+      "hit": {
+        "dice": "0",
+        "mod": 0,
+        "type": "none",
+        "special": {
+          "type": "save",
+          "ability": "dexterity",
+          "dc": 11,
+          "effect": "restrained"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Death Burst",
+      "description": "When the mephit dies, it explodes in a burst of sticky mud.",
+      "type": "passive"
+    },
+    {
+      "name": "False Appearance",
+      "description": "While motionless, the mephit is indistinguishable from an ordinary mound of mud.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

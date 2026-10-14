@@ -1,0 +1,96 @@
+{
+  "id": "warhorse-skeleton",
+  "name": "Warhorse Skeleton",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Undead",
+  "size": "Large",
+  "armor_class": 13,
+  "hit_points": 22,
+  "hp_dice": "3d10+6",
+  "alignment": "lawful evil",
+  "tags": [],
+  "img": "/static/img/monster/warhorse-skeleton.svg",
+  "environment": [
+    "grassland",
+    "graveyard"
+  ],
+  "speed": {
+    "walk": 60,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 18,
+    "dexterity": 12,
+    "constitution": 15,
+    "intelligence": 2,
+    "wisdom": 8,
+    "charisma": 5
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [],
+  "damage_immunities": [
+    "poison"
+  ],
+  "damage_vulnerabilities": [
+    "bludgeoning"
+  ],
+  "condition_immunities": [
+    "exhaustion",
+    "poisoned"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 9
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Hooves",
+      "type": "melee_attack",
+      "attack_bonus": 6,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 4,
+        "type": "bludgeoning"
+      }
+    }
+  ],
+  "special_abilities": [],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 970,
+        "entries": [
+          { "item": "bone-dust", "weight": 400, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 570 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 30,
+        "entries": [
+          { "item": "lance", "weight": 30, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

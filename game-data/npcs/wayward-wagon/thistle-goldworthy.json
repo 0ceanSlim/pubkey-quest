@@ -50,24 +50,41 @@
     "starting_gold": 400,
     "inventory": [
       {
-        "item_id": "spices",
+        "item_id": "rations",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "torch",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "rope",
         "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "waterskin",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "spices",
+        "stock": 5,
+        "max_stock": 5
+      },
+      {
+        "item_id": "lockpick",
+        "stock": 5,
         "max_stock": 5
       },
       {
         "item_id": "healing",
-        "stock": 2,
-        "max_stock": 3
-      },
-      {
-        "item_id": "lockpick",
-        "stock": 8,
-        "max_stock": 12
-      },
-      {
-        "item_id": "keyring",
         "stock": 1,
-        "max_stock": 2
+        "max_stock": 2,
+        "restock_rate": 1,
+        "restock_interval": "30"
       }
     ]
   }

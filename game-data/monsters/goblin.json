@@ -91,33 +91,28 @@
 
   "loot_table": {
     "guaranteed": [
-      { "item": "gold-piece", "quantity": [1, 6] }
+      { "item": "gold-piece", "quantity": [10, 200] }
     ],
     "rolls": 1,
     "tiers": [
       {
         "name": "common",
-        "weight": 70,
+        "weight": 910,
         "entries": [
-          { "item": "scimitar",  "weight": 15, "quantity": [1, 1] },
-          { "item": "dagger",    "weight": 20, "quantity": [1, 1] },
-          { "item": "shortbow",  "weight": 10, "quantity": [1, 1] },
-          { "item": "nothing",   "weight": 55 }
+          { "item": "dagger", "weight": 100, "quantity": [1, 1] },
+          { "item": "arrows", "weight": 100, "quantity": [2, 6] },
+          { "item": "gold-piece", "weight": 250, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 410 }
         ]
       },
       {
         "name": "rare",
-        "weight": 25,
+        "weight": 90,
         "entries": [
-          { "item": "healing",   "weight": 60, "quantity": [1, 1] },
-          { "item": "nothing",   "weight": 40 }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing",   "weight": 100 }
+          { "item": "scimitar", "weight": 30, "quantity": [1, 1] },
+          { "item": "shortbow", "weight": 30, "quantity": [1, 1] },
+          { "item": "healing", "weight": 30, "quantity": [1, 1] }
         ]
       }
     ]

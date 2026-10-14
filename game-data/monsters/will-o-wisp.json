@@ -1,0 +1,124 @@
+{
+  "id": "will-o-wisp",
+  "name": "Will-o'-Wisp",
+  "challenge_rating": 2,
+  "xp": 450,
+  "type": "Undead",
+  "size": "Tiny",
+  "armor_class": 19,
+  "hit_points": 22,
+  "hp_dice": "9d4",
+  "alignment": "chaotic evil",
+  "tags": [],
+  "img": "/static/img/monster/will-o-wisp.svg",
+  "environment": [
+    "swamp"
+  ],
+  "speed": {
+    "walk": 0,
+    "fly": 50,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 1,
+    "dexterity": 28,
+    "constitution": 10,
+    "intelligence": 13,
+    "wisdom": 14,
+    "charisma": 11
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [
+    "acid",
+    "cold",
+    "fire",
+    "necrotic",
+    "thunder",
+    "bludgeoning",
+    "piercing",
+    "slashing"
+  ],
+  "damage_immunities": [
+    "lightning",
+    "poison"
+  ],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [
+    "exhaustion",
+    "grappled",
+    "paralyzed",
+    "poisoned",
+    "prone",
+    "restrained",
+    "unconscious"
+  ],
+  "senses": {
+    "darkvision": 120,
+    "passive_perception": 12
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Shock",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d8",
+        "mod": 0,
+        "type": "lightning"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Ephemeral",
+      "description": "The wisp can't wear or carry anything.",
+      "type": "passive"
+    },
+    {
+      "name": "Incorporeal Movement",
+      "description": "The wisp can move through creatures and objects as if they were difficult terrain.",
+      "type": "passive"
+    },
+    {
+      "name": "Variable Illumination",
+      "description": "The wisp sheds dim light it can brighten or snuff at will.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 980,
+        "entries": [
+          { "item": "spirit-dust", "weight": 400, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 580 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 20,
+        "entries": [
+          { "item": "starlight-essence", "weight": 20, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

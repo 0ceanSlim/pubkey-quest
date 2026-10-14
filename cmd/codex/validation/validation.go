@@ -992,7 +992,10 @@ func validateMonsterFile(filePath string, validItemIDs map[string]bool) []Issue 
 						if itemID == "" {
 							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: "loot entry missing required field: item"})
 						} else if itemID != "nothing" && len(validItemIDs) > 0 && !validItemIDs[itemID] {
-							issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: fmt.Sprintf("loot item '%s' not found in game-data/items/", itemID)})
+							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: fmt.Sprintf("loot item '%s' not found in game-data/items/", itemID)})
+						}
+						if msg := lootQuantityProblem(entry["quantity"]); msg != "" {
+							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].quantity", i, j), Message: msg})
 						}
 						if _, exists := entry["weight"]; !exists {
 							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].weight", i, j), Message: "loot entry missing required field: weight"})
@@ -1007,7 +1010,10 @@ func validateMonsterFile(filePath string, validItemIDs map[string]bool) []Issue 
 				if drop, ok := dropRaw.(map[string]interface{}); ok {
 					itemID, _ := drop["item"].(string)
 					if itemID != "" && itemID != "nothing" && len(validItemIDs) > 0 && !validItemIDs[itemID] {
-						issues = append(issues, Issue{Type: "warning", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.guaranteed[%d].item", i), Message: fmt.Sprintf("guaranteed loot item '%s' not found in game-data/items/", itemID)})
+						issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.guaranteed[%d].item", i), Message: fmt.Sprintf("guaranteed loot item '%s' not found in game-data/items/", itemID)})
+					}
+					if msg := lootQuantityProblem(drop["quantity"]); msg != "" {
+						issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.guaranteed[%d].quantity", i), Message: msg})
 					}
 				}
 			}
@@ -1015,6 +1021,27 @@ func validateMonsterFile(filePath string, validItemIDs map[string]bool) []Issue 
 	}
 
 	return issues
+}
+
+// lootQuantityProblem checks an optional loot quantity: a [min, max] pair of
+// non-negative whole numbers with min <= max. Returns "" when it's fine.
+func lootQuantityProblem(raw interface{}) string {
+	if raw == nil {
+		return ""
+	}
+	q, ok := raw.([]interface{})
+	if !ok || len(q) != 2 {
+		return "quantity must be a [min, max] pair"
+	}
+	lo, ok1 := q[0].(float64)
+	hi, ok2 := q[1].(float64)
+	if !ok1 || !ok2 || lo != float64(int(lo)) || hi != float64(int(hi)) {
+		return "quantity must be whole numbers"
+	}
+	if lo < 0 || hi < lo {
+		return fmt.Sprintf("quantity [%d, %d] needs 0 <= min <= max", int(lo), int(hi))
+	}
+	return ""
 }
 
 // ValidateLocations validates all location files
@@ -1152,6 +1179,7 @@ func validateNPCFile(filePath string) []Issue {
 	// Every item the NPC sells, charges or takes must exist: a shop listing an
 	// item that isn't in the catalog breaks buying it.
 	known := knownItemIDs()
+	dropOnly := dropOnlyItemIDs()
 	for _, ref := range npcItemRefs(npc) {
 		if !known[ref.id] {
 			issues = append(issues, Issue{
@@ -1160,6 +1188,15 @@ func validateNPCFile(filePath string) []Issue {
 				File:     filename,
 				Field:    ref.where,
 				Message:  fmt.Sprintf("Unknown item %q in %s", ref.id, ref.where),
+			})
+		} else if dropOnly[ref.id] && ref.where == "shop_config.inventory" {
+			// "drop-only" items are found, never bought.
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "npcs",
+				File:     filename,
+				Field:    ref.where,
+				Message:  fmt.Sprintf("Shop sells %q, which is tagged drop-only", ref.id),
 			})
 		}
 	}
@@ -1219,6 +1256,41 @@ func knownItemIDs() map[string]bool {
 		}
 	})
 	return itemIDs
+}
+
+var (
+	dropOnlyOnce sync.Once
+	dropOnlyIDs  map[string]bool
+)
+
+// dropOnlyItemIDs is the set of items tagged "drop-only": rare finds that no
+// shop may stock (loaded once).
+func dropOnlyItemIDs() map[string]bool {
+	dropOnlyOnce.Do(func() {
+		dropOnlyIDs = map[string]bool{}
+		entries, _ := os.ReadDir("game-data/items")
+		for _, e := range entries {
+			if !strings.HasSuffix(e.Name(), ".json") {
+				continue
+			}
+			raw, err := os.ReadFile(filepath.Join("game-data/items", e.Name()))
+			if err != nil {
+				continue
+			}
+			var item struct {
+				Tags []string `json:"tags"`
+			}
+			if json.Unmarshal(raw, &item) != nil {
+				continue
+			}
+			for _, t := range item.Tags {
+				if t == "drop-only" {
+					dropOnlyIDs[strings.TrimSuffix(e.Name(), ".json")] = true
+				}
+			}
+		}
+	})
+	return dropOnlyIDs
 }
 
 // ValidateStartingGear validates the starting gear configuration file

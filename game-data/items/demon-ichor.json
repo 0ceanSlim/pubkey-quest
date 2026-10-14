@@ -8,7 +8,8 @@
   "stack": 3,
   "rarity": "rare",
   "tags": [
-    "spell_component"
+    "spell_component",
+    "drop-only"
   ],
   "notes": [
     "Used for dark magic",

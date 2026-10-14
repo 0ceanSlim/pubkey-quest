@@ -1,0 +1,108 @@
+{
+  "id": "jackalwere",
+  "name": "Jackalwere",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 18,
+  "hp_dice": "4d8",
+  "alignment": "chaotic evil",
+  "tags": [],
+  "img": "/static/img/monster/jackalwere.svg",
+  "environment": [
+    "desert",
+    "grassland"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 11,
+    "dexterity": 15,
+    "constitution": 11,
+    "intelligence": 13,
+    "wisdom": 11,
+    "charisma": 10
+  },
+  "saving_throws": {},
+  "skills": {
+    "deception": 4,
+    "perception": 2,
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 12
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Scimitar",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "slashing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Shapechanger",
+      "description": "The jackalwere can take the form of a jackal or a jackal-headed humanoid.",
+      "type": "passive"
+    },
+    {
+      "name": "Pack Tactics",
+      "description": "The jackalwere has advantage on attack rolls when an ally is adjacent to its target.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [10, 200] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 910,
+        "entries": [
+          { "item": "gold-piece", "weight": 250, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 610 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 90,
+        "entries": [
+          { "item": "scimitar", "weight": 40, "quantity": [1, 1] },
+          { "item": "healing", "weight": 50, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.3,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

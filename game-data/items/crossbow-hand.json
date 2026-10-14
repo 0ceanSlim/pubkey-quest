@@ -19,7 +19,8 @@
     "martial-ranged",
     "ammunition",
     "loading",
-    "light"
+    "light",
+    "drop-only"
   ],
   "notes": [
     "Requires bolts to fire",

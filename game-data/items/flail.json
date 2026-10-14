@@ -13,7 +13,8 @@
   "tags": [
     "weapon",
     "equipment",
-    "martial-melee"
+    "martial-melee",
+    "drop-only"
   ],
   "type": "Martial Melee Weapons",
   "weight": 2

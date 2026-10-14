@@ -18,7 +18,8 @@
     "reach",
     "topple",
     "heavy",
-    "two-handed"
+    "two-handed",
+    "drop-only"
   ],
   "type": "Martial Melee Weapons",
   "weight": 6

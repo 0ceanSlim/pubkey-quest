@@ -3,7 +3,10 @@
   "id": "spyglass",
   "image": "/res/img/items/spyglass.png",
   "name": "Spyglass",
-  "notes": [],
+  "notes": [
+    "+2 Perception while travelling: spot trouble on the road before it spots you.",
+    "Tool bonuses to the same skill don't stack; the best one counts."
+  ],
   "value": 100000,
   "rarity": "common",
   "stack": 1,
@@ -11,5 +14,9 @@
     "tool"
   ],
   "type": "Adventuring Gear",
-  "weight": 1
+  "weight": 1,
+  "skill_bonus": {
+    "perception": 2
+  },
+  "skill_bonus_when": "travel"
 }

@@ -10,6 +10,7 @@ import (
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/events"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
 )
 
@@ -158,8 +159,10 @@ func calculateSkillValue(stats map[string]interface{}, ratio map[string]float64)
 	return int(math.Round(value))
 }
 
-// getTravelSpeedMultiplier calculates the travel speed multiplier based on Athletics skill
-func getTravelSpeedMultiplier(stats map[string]interface{}) float64 {
+// getTravelSpeedMultiplier calculates the travel speed multiplier from the
+// configured travel skill (Survival: finding the better road), including what
+// carried tools add to it (a navigator's kit).
+func getTravelSpeedMultiplier(state *types.SaveFile) float64 {
 	config := loadTravelConfig()
 	if config == nil || config.SkillScaling == nil {
 		return 1.0
@@ -171,7 +174,7 @@ func getTravelSpeedMultiplier(stats map[string]interface{}) float64 {
 		return 1.0
 	}
 
-	skillValue := calculateSkillValue(stats, ratio)
+	skillValue := calculateSkillValue(state.Stats, ratio) + gameutil.CarriedSkillBonus(state, true)[scaling.Skill]
 
 	// No bonus at or below base level
 	if skillValue <= scaling.BaseLevel {
@@ -470,9 +473,9 @@ func MaybeAdvanceTravelProgress(state *types.SaveFile, minutesElapsed int) *Trav
 		}
 	}
 
-	// Advance progress proportionally (Athletics skill scaling applied)
+	// Advance progress proportionally (travel-skill scaling applied)
 	progressIncrement := float64(minutesElapsed) / float64(env.TravelTime)
-	progressIncrement *= getTravelSpeedMultiplier(state.Stats)
+	progressIncrement *= getTravelSpeedMultiplier(state)
 	state.TravelProgress += progressIncrement
 
 	// Check for arrival

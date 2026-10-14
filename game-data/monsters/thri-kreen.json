@@ -1,0 +1,121 @@
+{
+  "id": "thri-kreen",
+  "name": "Thri-kreen",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 15,
+  "hit_points": 33,
+  "hp_dice": "6d8+6",
+  "alignment": "chaotic neutral",
+  "tags": [],
+  "img": "/static/img/monster/thri-kreen.svg",
+  "environment": [
+    "desert",
+    "grassland"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 12,
+    "dexterity": 15,
+    "constitution": 13,
+    "intelligence": 8,
+    "wisdom": 12,
+    "charisma": 7
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 3,
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 13
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "piercing",
+        "special": {
+          "type": "poison_save",
+          "ability": "constitution",
+          "dc": 11
+        }
+      }
+    },
+    {
+      "name": "Chatkcha",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "slashing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Chameleon Carapace",
+      "description": "The thri-kreen has advantage on Stealth checks made to hide.",
+      "type": "passive"
+    },
+    {
+      "name": "Standing Leap",
+      "description": "The thri-kreen can long jump 30 feet without a running start.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 950,
+        "entries": [
+          { "item": "javelin", "weight": 150, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 800 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 50,
+        "entries": [
+          { "item": "healing", "weight": 50, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

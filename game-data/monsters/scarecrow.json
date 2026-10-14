@@ -1,0 +1,99 @@
+{
+  "id": "scarecrow",
+  "name": "Scarecrow",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Construct",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 36,
+  "hp_dice": "8d8",
+  "alignment": "chaotic evil",
+  "tags": [],
+  "img": "/static/img/monster/scarecrow.svg",
+  "environment": [
+    "grassland"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 11,
+    "dexterity": 13,
+    "constitution": 11,
+    "intelligence": 10,
+    "wisdom": 10,
+    "charisma": 13
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [
+    "bludgeoning",
+    "piercing",
+    "slashing"
+  ],
+  "damage_immunities": [
+    "poison"
+  ],
+  "damage_vulnerabilities": [
+    "fire"
+  ],
+  "condition_immunities": [
+    "charmed",
+    "exhaustion",
+    "frightened",
+    "paralyzed",
+    "poisoned",
+    "unconscious"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Claw",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d4",
+        "mod": 1,
+        "type": "slashing",
+        "special": {
+          "type": "save",
+          "ability": "wisdom",
+          "dc": 11,
+          "effect": "frightened"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "False Appearance",
+      "description": "While motionless, the scarecrow is indistinguishable from an ordinary, inanimate scarecrow.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "ambush",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

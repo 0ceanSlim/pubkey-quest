@@ -94,23 +94,18 @@
 
   "loot_table": {
     "guaranteed": [
-      { "item": "gold-piece", "quantity": [1, 4] }
+      { "item": "gold-piece", "quantity": [5, 100] }
     ],
     "rolls": 1,
     "tiers": [
       {
         "name": "common",
-        "weight": 80,
+        "weight": 1000,
         "entries": [
-          { "item": "dagger",  "weight": 30, "quantity": [1, 1] },
-          { "item": "nothing", "weight": 70 }
-        ]
-      },
-      {
-        "name": "rare",
-        "weight": 20,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "dagger", "weight": 150, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 680 }
         ]
       }
     ]

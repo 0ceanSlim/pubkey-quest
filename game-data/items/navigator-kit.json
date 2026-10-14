@@ -7,7 +7,7 @@
   "image": "/res/img/items/navigator-kit.png",
   "name": "Navigator Kit",
   "notes": [
-    "Used with the Survival skill for orientation and faster, safer travel"
+    "+2 Survival while carried. Survival speeds every journey and gives you a roll to spot an ambush before it springs."
   ],
   "value": 2500,
   "rarity": "common",

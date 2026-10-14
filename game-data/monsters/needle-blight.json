@@ -81,8 +81,17 @@
 
   "loot_table": {
     "guaranteed": [],
-    "rolls": 0,
-    "tiers": []
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "bark-shavings", "weight": 250, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 750 }
+        ]
+      }
+    ]
   },
 
   "behavior": {

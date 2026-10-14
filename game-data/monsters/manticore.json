@@ -110,23 +110,16 @@
     "tiers": [
       {
         "name": "common",
-        "weight": 75,
+        "weight": 920,
         "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "nothing", "weight": 920 }
         ]
       },
       {
         "name": "rare",
-        "weight": 20,
+        "weight": 80,
         "entries": [
-          { "item": "healing", "weight": 100, "quantity": [1, 1] }
-        ]
-      },
-      {
-        "name": "very_rare",
-        "weight": 5,
-        "entries": [
-          { "item": "nothing", "weight": 100 }
+          { "item": "healing", "weight": 80, "quantity": [1, 1] }
         ]
       }
     ]

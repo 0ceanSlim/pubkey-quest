@@ -1,0 +1,95 @@
+{
+  "id": "giant-crab",
+  "name": "Giant Crab",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Beast",
+  "size": "Medium",
+  "armor_class": 15,
+  "hit_points": 13,
+  "hp_dice": "3d8",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/giant-crab.svg",
+  "environment": [
+    "coast"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 30,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 13,
+    "dexterity": 15,
+    "constitution": 11,
+    "intelligence": 1,
+    "wisdom": 9,
+    "charisma": 3
+  },
+  "saving_throws": {},
+  "skills": {
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 9
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Claw",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "bludgeoning",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 11,
+          "effect": "restrained"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Amphibious",
+      "description": "The crab can breathe air and water.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "raw-fish", "weight": 300, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 700 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.2,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

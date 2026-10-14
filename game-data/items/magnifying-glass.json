@@ -4,7 +4,8 @@
   "image": "/res/img/items/magnifying-glass.png",
   "name": "Magnifying glass",
   "notes": [
-    "Provides advantage on investigation checks involving small details"
+    "+1 Perception while carried.",
+    "Tool bonuses to the same skill don't stack; the best one counts."
   ],
   "value": 10000,
   "rarity": "common",
@@ -13,5 +14,8 @@
     "tool"
   ],
   "type": "Adventuring Gear",
-  "weight": 0.1
+  "weight": 0.1,
+  "skill_bonus": {
+    "perception": 1
+  }
 }

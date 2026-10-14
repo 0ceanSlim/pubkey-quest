@@ -1,0 +1,90 @@
+{
+  "id": "worg",
+  "name": "Worg",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Monstrosity",
+  "size": "Large",
+  "armor_class": 13,
+  "hit_points": 26,
+  "hp_dice": "4d10+4",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/worg.svg",
+  "environment": [
+    "forest",
+    "grassland",
+    "hill",
+    "mountain",
+    "arctic"
+  ],
+  "speed": {
+    "walk": 50,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 16,
+    "dexterity": 13,
+    "constitution": 13,
+    "intelligence": 7,
+    "wisdom": 11,
+    "charisma": 8
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 14
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 3,
+        "type": "piercing",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 13,
+          "effect": "knocked_prone"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Keen Hearing and Smell",
+      "description": "The worg has advantage on Perception checks that rely on hearing or smell.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

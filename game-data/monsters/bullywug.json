@@ -1,0 +1,117 @@
+{
+  "id": "bullywug",
+  "name": "Bullywug",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 15,
+  "hit_points": 11,
+  "hp_dice": "2d8+2",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/bullywug.svg",
+  "environment": [
+    "swamp"
+  ],
+  "speed": {
+    "walk": 20,
+    "fly": 0,
+    "swim": 40,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 12,
+    "dexterity": 12,
+    "constitution": 13,
+    "intelligence": 7,
+    "wisdom": 7,
+    "charisma": 6
+  },
+  "saving_throws": {},
+  "skills": {
+    "stealth": 3
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 8
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Thrown Spear",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Amphibious",
+      "description": "The bullywug can breathe air and water.",
+      "type": "passive"
+    },
+    {
+      "name": "Swamp Camouflage",
+      "description": "The bullywug has advantage on Stealth checks in swampy terrain.",
+      "type": "passive"
+    },
+    {
+      "name": "Standing Leap",
+      "description": "The bullywug can leap 20 feet without a running start.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [5, 100] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "raw-fish", "weight": 200, "quantity": [1, 1] },
+          { "item": "spear", "weight": 100, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 530 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

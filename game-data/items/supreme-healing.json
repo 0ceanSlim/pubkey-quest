@@ -10,7 +10,7 @@
     "Takes an action to drink"
   ],
   "value": 50000,
-  "rarity": "common",
+  "rarity": "legendary",
   "stack": 1,
   "tags": [
     "consumable",

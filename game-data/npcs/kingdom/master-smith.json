@@ -1,0 +1,114 @@
+{
+  "id": "master-smith",
+  "name": "Edric Thorne",
+  "title": "Master Smith",
+  "race": "Human",
+  "description": "A broad-shouldered forgemaster with burn-scarred forearms and a beard singed short. He judges a customer by how they hold a blade, and he is rarely wrong.",
+  "primary_home": "kingdom",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "edric_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "kingdom-east",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1140,
+      "location": "grand_forge",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "kingdom-east",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1440,
+      "location": "edric_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Mind the anvil. I'm Edric Thorne, and everything on these racks came off my forge. Looking to arm yourself properly?",
+    "returning": "Back again. Something chip, or are you finally ready for real armour?",
+    "low_gold": "I've bought more steel today than I've sold. Come back tomorrow when the coffer's full."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*a deep, rumbling snore from behind the door*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "The forge has to be hot before the first customer walks in. Come by when the bell rings at seven.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "The fires are banked for the night. Steel will still be there in the morning.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "I'm done swinging a hammer for today. The Grand Forge opens at seven.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Blades, polearms, mail. What do you need?",
+      "options": ["browse_shop", "ask_about_forge", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Take your time. Heft them before you buy; a weapon should feel like part of your arm.",
+      "action": "open_shop"
+    },
+    "ask_about_forge": {
+      "text": "The Grand Forge has armed the royal guard for three generations. I buy back good steel at a fair price, but don't bring me tools or trinkets. Plate? I don't sell it. Plate that's worth wearing is taken off the dead, not bought.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Keep your edge oiled.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 8000,
+    "gold_regen_rate": 800,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "dagger", "stock": 6, "max_stock": 6},
+      {"item_id": "shortsword", "stock": 4, "max_stock": 4},
+      {"item_id": "longsword", "stock": 3, "max_stock": 3},
+      {"item_id": "battleaxe", "stock": 3, "max_stock": 3},
+      {"item_id": "mace", "stock": 3, "max_stock": 3},
+      {"item_id": "warhammer", "stock": 3, "max_stock": 3},
+      {"item_id": "spear", "stock": 6, "max_stock": 6},
+      {"item_id": "halberd", "stock": 2, "max_stock": 2},
+      {"item_id": "pike", "stock": 2, "max_stock": 2},
+      {"item_id": "shield", "stock": 4, "max_stock": 4},
+      {"item_id": "chain-shirt", "stock": 2, "max_stock": 2},
+      {"item_id": "chainmail-set", "stock": 2, "max_stock": 2},
+      {"item_id": "scalemail-set", "stock": 2, "max_stock": 2},
+      {"item_id": "breastplate", "stock": 1, "max_stock": 1}
+    ]
+  }
+}

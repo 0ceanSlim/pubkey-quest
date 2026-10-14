@@ -1,0 +1,82 @@
+{
+  "id": "cave-bear",
+  "name": "Cave Bear",
+  "challenge_rating": 2,
+  "xp": 450,
+  "type": "Beast",
+  "size": "Large",
+  "armor_class": 12,
+  "hit_points": 42,
+  "hp_dice": "5d10+15",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/cave-bear.svg",
+  "environment": [
+    "mountain",
+    "arctic",
+    "cave"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 30,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 20,
+    "dexterity": 10,
+    "constitution": 16,
+    "intelligence": 2,
+    "wisdom": 13,
+    "charisma": 7
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 3
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 13
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 7,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 5,
+        "type": "slashing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Keen Smell",
+      "description": "The bear has advantage on Perception checks that rely on smell.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.15,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

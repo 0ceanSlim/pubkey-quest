@@ -1,0 +1,87 @@
+{
+  "id": "death-dog",
+  "name": "Death Dog",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Monstrosity",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 39,
+  "hp_dice": "6d8+12",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/death-dog.svg",
+  "environment": [
+    "desert",
+    "hill"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 15,
+    "dexterity": 14,
+    "constitution": 14,
+    "intelligence": 3,
+    "wisdom": 13,
+    "charisma": 6
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 5,
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 120,
+    "passive_perception": 15
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing",
+        "special": {
+          "type": "poison_save",
+          "ability": "constitution",
+          "dc": 12
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Two-Headed",
+      "description": "The death dog has advantage on Perception checks and on saves against being blinded, charmed, frightened, stunned, or knocked unconscious.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

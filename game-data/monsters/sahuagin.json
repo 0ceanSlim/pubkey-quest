@@ -1,0 +1,119 @@
+{
+  "id": "sahuagin",
+  "name": "Sahuagin",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Humanoid",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 22,
+  "hp_dice": "4d8+4",
+  "alignment": "lawful evil",
+  "tags": [],
+  "img": "/static/img/monster/sahuagin.svg",
+  "environment": [
+    "coast"
+  ],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 40,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 13,
+    "dexterity": 11,
+    "constitution": 12,
+    "intelligence": 12,
+    "wisdom": 13,
+    "charisma": 9
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 5
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 120,
+    "passive_perception": 15
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 3,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    },
+    {
+      "name": "Thrown Spear",
+      "type": "ranged_attack",
+      "attack_bonus": 3,
+      "reach": null,
+      "range": 2,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d6",
+        "mod": 1,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Blood Frenzy",
+      "description": "The sahuagin has advantage on melee attacks against a creature that isn't at full hit points.",
+      "type": "passive"
+    },
+    {
+      "name": "Limited Amphibiousness",
+      "description": "The sahuagin can breathe air and water, but must submerge at least once every 4 hours.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [
+      { "item": "gold-piece", "quantity": [10, 200] }
+    ],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 960,
+        "entries": [
+          { "item": "raw-fish", "weight": 200, "quantity": [1, 2] },
+          { "item": "spear", "weight": 100, "quantity": [1, 1] },
+          { "item": "gold-piece", "weight": 250, "quantity": [300, 1800] },
+          { "item": "gold-piece", "weight": 50, "quantity": [1000, 6000] },
+          { "item": "nothing", "weight": 360 }
+        ]
+      },
+      {
+        "name": "rare",
+        "weight": 40,
+        "entries": [
+          { "item": "healing", "weight": 40, "quantity": [1, 1] }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.25,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

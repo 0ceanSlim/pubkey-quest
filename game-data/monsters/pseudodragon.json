@@ -1,0 +1,102 @@
+{
+  "id": "pseudodragon",
+  "name": "Pseudodragon",
+  "challenge_rating": 0.25,
+  "xp": 50,
+  "type": "Dragon",
+  "size": "Tiny",
+  "armor_class": 13,
+  "hit_points": 7,
+  "hp_dice": "2d4+2",
+  "alignment": "neutral good",
+  "tags": [],
+  "img": "/static/img/monster/pseudodragon.svg",
+  "environment": [
+    "forest",
+    "hill",
+    "mountain"
+  ],
+  "speed": {
+    "walk": 15,
+    "fly": 60,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 6,
+    "dexterity": 15,
+    "constitution": 13,
+    "intelligence": 10,
+    "wisdom": 12,
+    "charisma": 10
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 3,
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 13
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Sting",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing",
+        "special": {
+          "type": "poison_save",
+          "ability": "constitution",
+          "dc": 11
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Magic Resistance",
+      "description": "The pseudodragon has advantage on saves against spells.",
+      "type": "passive"
+    },
+    {
+      "name": "Limited Telepathy",
+      "description": "It can share simple feelings and images with creatures it can see.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "dragon-scale", "weight": 50, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 950 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.4,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

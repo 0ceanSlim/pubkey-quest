@@ -1,0 +1,100 @@
+{
+  "id": "vine-blight",
+  "name": "Vine Blight",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Plant",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 26,
+  "hp_dice": "4d8+8",
+  "alignment": "neutral evil",
+  "tags": [],
+  "img": "/static/img/monster/vine-blight.svg",
+  "environment": [
+    "forest",
+    "swamp"
+  ],
+  "speed": {
+    "walk": 10,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 15,
+    "dexterity": 8,
+    "constitution": 14,
+    "intelligence": 5,
+    "wisdom": 10,
+    "charisma": 3
+  },
+  "saving_throws": {},
+  "skills": {
+    "stealth": 1
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [
+    "blinded",
+    "deafened"
+  ],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 10
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Constrict",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 2,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 2,
+        "type": "bludgeoning",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 12,
+          "effect": "restrained"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "False Appearance",
+      "description": "While motionless, the blight is indistinguishable from a tangle of vines.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "bark-shavings", "weight": 300, "quantity": [1, 2] },
+          { "item": "tree-sap", "weight": 150, "quantity": [1, 1] },
+          { "item": "nothing", "weight": 550 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "ambush",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

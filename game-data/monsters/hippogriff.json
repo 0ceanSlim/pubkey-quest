@@ -1,0 +1,82 @@
+{
+  "id": "hippogriff",
+  "name": "Hippogriff",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Monstrosity",
+  "size": "Large",
+  "armor_class": 11,
+  "hit_points": 19,
+  "hp_dice": "3d10+3",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/hippogriff.svg",
+  "environment": [
+    "hill",
+    "mountain",
+    "grassland"
+  ],
+  "speed": {
+    "walk": 40,
+    "fly": 60,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 17,
+    "dexterity": 13,
+    "constitution": 13,
+    "intelligence": 2,
+    "wisdom": 12,
+    "charisma": 8
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 5
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 15
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Claws",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 3,
+        "type": "slashing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Keen Sight",
+      "description": "The hippogriff has advantage on Perception checks that rely on sight.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "territorial",
+    "flee_threshold": 0.3,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

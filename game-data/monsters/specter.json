@@ -1,0 +1,115 @@
+{
+  "id": "specter",
+  "name": "Specter",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Undead",
+  "size": "Medium",
+  "armor_class": 12,
+  "hit_points": 22,
+  "hp_dice": "5d8",
+  "alignment": "chaotic evil",
+  "tags": [],
+  "img": "/static/img/monster/specter.svg",
+  "environment": [
+    "graveyard",
+    "dungeon"
+  ],
+  "speed": {
+    "walk": 0,
+    "fly": 50,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 1,
+    "dexterity": 14,
+    "constitution": 11,
+    "intelligence": 10,
+    "wisdom": 10,
+    "charisma": 11
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [
+    "acid",
+    "cold",
+    "fire",
+    "lightning",
+    "thunder",
+    "bludgeoning",
+    "piercing",
+    "slashing"
+  ],
+  "damage_immunities": [
+    "necrotic",
+    "poison"
+  ],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [
+    "charmed",
+    "exhaustion",
+    "grappled",
+    "paralyzed",
+    "petrified",
+    "poisoned",
+    "prone",
+    "restrained",
+    "unconscious"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 10
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Life Drain",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "3d6",
+        "mod": 0,
+        "type": "necrotic"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Incorporeal Movement",
+      "description": "The specter can move through creatures and objects as if they were difficult terrain.",
+      "type": "passive"
+    },
+    {
+      "name": "Sunlight Sensitivity",
+      "description": "In sunlight the specter has disadvantage on attack rolls.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          { "item": "spirit-dust", "weight": 350, "quantity": [1, 2] },
+          { "item": "nothing", "weight": 650 }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

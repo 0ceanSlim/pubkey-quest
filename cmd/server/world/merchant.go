@@ -11,6 +11,30 @@ type MerchantInventoryItem struct {
 	ItemID       string `json:"item_id"`
 	CurrentStock int    `json:"current_stock"`
 	MaxStock     int    `json:"max_stock"`
+
+	// Optional per-item restock: RestockRate units come back every
+	// RestockMinutes (real minutes; 10 = one game day). 0 = the item refills
+	// with the whole shop on the shop's item_restock_interval instead.
+	RestockRate    int       `json:"restock_rate,omitempty"`
+	RestockMinutes int       `json:"restock_minutes,omitempty"`
+	LastRestock    time.Time `json:"last_restock,omitempty"`
+}
+
+// tickItemRestock adds back stock for an item on its own timer.
+func tickItemRestock(item *MerchantInventoryItem, now time.Time) {
+	if item.RestockMinutes <= 0 {
+		return
+	}
+	periods := int(now.Sub(item.LastRestock).Minutes()) / item.RestockMinutes
+	if periods <= 0 {
+		return
+	}
+	rate := item.RestockRate
+	if rate <= 0 {
+		rate = 1
+	}
+	item.CurrentStock = min(item.MaxStock, item.CurrentStock+periods*rate)
+	item.LastRestock = item.LastRestock.Add(time.Duration(periods*item.RestockMinutes) * time.Minute)
 }
 
 // MerchantState represents the current state of a merchant for a specific player
@@ -86,11 +110,9 @@ func (m *MerchantStateManager) GetMerchantState(npub, merchantID string, initial
 
 		// Copy initial inventory
 		for _, item := range initialInventory {
-			state.Inventory[item.ItemID] = &MerchantInventoryItem{
-				ItemID:       item.ItemID,
-				CurrentStock: item.CurrentStock,
-				MaxStock:     item.MaxStock,
-			}
+			copied := item
+			copied.LastRestock = time.Now()
+			state.Inventory[item.ItemID] = &copied
 		}
 
 		m.states[npub][merchantID] = state
@@ -124,6 +146,12 @@ func (m *MerchantStateManager) GetMerchantState(npub, merchantID string, initial
 			}
 		}
 
+		// Items with their own restock timer tick independently.
+		now := time.Now()
+		for _, item := range state.Inventory {
+			tickItemRestock(item, now)
+		}
+
 		// Check if inventory restock is due (default 10 minutes)
 		minutesSinceItemRestock := time.Since(state.LastItemRestock).Minutes()
 		if minutesSinceItemRestock >= float64(state.ItemRestockInterval) {
@@ -144,6 +172,10 @@ func (m *MerchantStateManager) restockMerchant(state *MerchantState, restoreInve
 	// Restore inventory to max stock (only if below max)
 	for _, item := range restoreInventory {
 		if invItem, exists := state.Inventory[item.ItemID]; exists {
+			// Items on their own timer are left to tickItemRestock.
+			if invItem.RestockMinutes > 0 {
+				continue
+			}
 			// Only restock if below max stock
 			if invItem.CurrentStock < invItem.MaxStock {
 				invItem.CurrentStock = invItem.MaxStock
@@ -151,11 +183,9 @@ func (m *MerchantStateManager) restockMerchant(state *MerchantState, restoreInve
 			}
 		} else {
 			// Item was added to shop config since last time - add it
-			state.Inventory[item.ItemID] = &MerchantInventoryItem{
-				ItemID:       item.ItemID,
-				CurrentStock: item.CurrentStock,
-				MaxStock:     item.MaxStock,
-			}
+			added := item
+			added.LastRestock = time.Now()
+			state.Inventory[item.ItemID] = &added
 			restockedItems++
 		}
 	}

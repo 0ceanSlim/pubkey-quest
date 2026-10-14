@@ -66,9 +66,16 @@
         {
           "id": "mage_tower",
           "name": "Mage Tower",
-          "description": "A crystalline spire where court wizards study the arcane arts.",
+          "description": "A crystalline spire where court wizards study the arcane arts. Magister Corvin Ashgrove keeps a counter of reagents and casting supplies on the ground floor.",
           "open": 480,
           "close": 1200
+        },
+        {
+          "id": "corvin_quarters",
+          "name": "Corvin's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ],
       "exit_to_environment": "greywind-plains"
@@ -124,7 +131,7 @@
         {
           "id": "grand_forge",
           "name": "Grand Forge",
-          "description": "The largest smithy in the kingdom, where master craftsmen create weapons and armor.",
+          "description": "The largest smithy in the kingdom, where master craftsmen create weapons and armor. Master Smith Edric Thorne sells blades, polearms and armour from the racks by the door.",
           "open": 420,
           "close": 1140
         },
@@ -138,6 +145,13 @@
         {
           "id": "melodia_home",
           "name": "Melodia's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "edric_quarters",
+          "name": "Edric's Private Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null
@@ -157,7 +171,7 @@
         {
           "id": "trading_post",
           "name": "Western Trading Post",
-          "description": "A massive warehouse where exotic goods from distant lands are bought and sold.",
+          "description": "A massive warehouse where exotic goods from distant lands are bought and sold. Yusuf al-Rami keeps the import counter, ledger open, by the loading doors.",
           "open": 420,
           "close": 1260
         },
@@ -187,6 +201,13 @@
         {
           "id": "marcus_quarters",
           "name": "Marcus's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "yusuf_quarters",
+          "name": "Yusuf's Private Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null

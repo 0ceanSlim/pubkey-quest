@@ -1,0 +1,82 @@
+{
+  "id": "hyena",
+  "name": "Hyena",
+  "challenge_rating": 0,
+  "xp": 10,
+  "type": "Beast",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 5,
+  "hp_dice": "1d8+1",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/static/img/monster/hyena.svg",
+  "environment": [
+    "grassland",
+    "desert",
+    "hill"
+  ],
+  "speed": {
+    "walk": 50,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 11,
+    "dexterity": 13,
+    "constitution": 12,
+    "intelligence": 2,
+    "wisdom": 12,
+    "charisma": 5
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 3
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 13
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 2,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 0,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "description": "The hyena has advantage on attack rolls when an ally is adjacent to its target.",
+      "type": "passive"
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.4,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

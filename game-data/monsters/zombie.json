@@ -87,17 +87,11 @@
     "tiers": [
       {
         "name": "common",
-        "weight": 85,
+        "weight": 1000,
         "entries": [
-          { "item": "nothing", "weight": 100 }
-        ]
-      },
-      {
-        "name": "rare",
-        "weight": 15,
-        "entries": [
+          { "item": "bone-dust", "weight": 150, "quantity": [1, 1] },
           { "item": "dagger", "weight": 50, "quantity": [1, 1] },
-          { "item": "nothing", "weight": 50 }
+          { "item": "nothing", "weight": 800 }
         ]
       }
     ]

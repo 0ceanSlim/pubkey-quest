@@ -1,9 +1,12 @@
 package gameutil
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
+	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/types"
 )
 
@@ -338,6 +341,34 @@ func carriedSlotArrays(state *types.SaveFile) [][]interface{} {
 					out = append(out, contents)
 				}
 			}
+		}
+	}
+	return out
+}
+
+// CarriedSkillBonus is what carried tools add to each skill (an item's
+// "skill_bonus", e.g. a Thieves' Kit's {"thieving": 2}). Tools don't stack:
+// for each skill only the best carried bonus counts. An item marked
+// "skill_bonus_when": "travel" (a spyglass) only helps while travelling.
+func CarriedSkillBonus(state *types.SaveFile, travelling bool) map[string]int {
+	out := map[string]int{}
+	for _, id := range CarriedItemIDs(state) {
+		item, err := db.GetItemByID(id)
+		if err != nil || item == nil || !strings.Contains(item.Properties, "skill_bonus") {
+			continue
+		}
+		var props struct {
+			SkillBonus map[string]int `json:"skill_bonus"`
+			When       string         `json:"skill_bonus_when"`
+		}
+		if json.Unmarshal([]byte(item.Properties), &props) != nil {
+			continue
+		}
+		if props.When == "travel" && !travelling {
+			continue
+		}
+		for skill, n := range props.SkillBonus {
+			out[skill] = max(out[skill], n)
 		}
 	}
 	return out

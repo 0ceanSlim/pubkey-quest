@@ -2,7 +2,7 @@
   "id": "arcane-powder",
   "name": "Arcane Powder",
   "description": "Pure magical energy in powdered form that crackles with raw power. Provided unlimited when using a Wand focus.",
-  "rarity": "common",
+  "rarity": "uncommon",
   "value": 75,
   "weight": 0.1,
   "stack": 10,

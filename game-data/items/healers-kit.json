@@ -1,14 +1,12 @@
 {
-  "description": "A collection of bandages, salves, and medical supplies for treating wounds.",
+  "description": "A roll of bandages, salves and splints. Binding a wound takes a few quiet minutes.",
   "id": "healers-kit",
   "image": "/res/img/items/healers-kit.png",
   "name": "Healer's kit",
   "notes": [
-    "Can be used to stabilize dying creatures",
-    "Contains 10 uses",
-    "Each use heals 2 hitpoints"
+    "One use: bind your wounds out of combat to heal 1d4+1."
   ],
-  "value": 500,
+  "value": 50,
   "rarity": "common",
   "stack": 10,
   "tags": [
@@ -16,5 +14,6 @@
     "consumable"
   ],
   "type": "Adventuring Gear",
-  "weight": 3
+  "weight": 0.3,
+  "heal": "1d4 + 1"
 }
