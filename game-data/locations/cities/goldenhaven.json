@@ -61,7 +61,7 @@
         {
           "id": "luxury_market",
           "name": "Golden Bazaar",
-          "description": "An upscale market selling rare and exotic goods from across the world.",
+          "description": "An upscale market selling rare and exotic goods from across the world. Saphra Goldscale's stall of fine blades and jewellery holds pride of place under the gilded awning.",
           "open": 420,
           "close": 1260
         },
@@ -82,8 +82,23 @@
           "default_room": "sanctuary",
           "rooms": [
             { "id": "sanctuary", "name": "Sanctuary", "description": "Rows of gilded benches face an eternal flame burning in a bowl of red bronze. The air is thick with incense and murmured prices." },
-            { "id": "oracle_sanctum", "name": "Oracle's Sanctum", "description": "A small round chamber behind the altar, lit only by a slot of sky in the dome. A bowl of black glass sits on a low table, and the walls are scratched with tally marks: storms foretold, ships saved." }
+            { "id": "oracle_sanctum", "name": "Oracle's Sanctum", "description": "A small round chamber behind the altar, lit only by a slot of sky in the dome. A bowl of black glass sits on a low table, and the walls are scratched with tally marks: storms foretold, ships saved." },
+            { "id": "almonry", "name": "Almonry", "description": "A side chapel lined with shelves of candles, oils and stoppered vials. Brother Aldwin keeps the temple's remedies and offerings here, and takes donations at a small brass-bound table." }
           ]
+        },
+        {
+          "id": "aldwin_quarters",
+          "name": "Aldwin's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "saphra_quarters",
+          "name": "Saphra's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ]
     },

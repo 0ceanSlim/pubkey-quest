@@ -43,6 +43,20 @@
           "description": "Private quarters.",
           "open": -1,
           "close": null
+        },
+        {
+          "id": "green_mortar",
+          "name": "The Green Mortar",
+          "description": "A low cottage hung thick with drying herbs, its shelves crowded with jars, sap and spores. Herbalist Mirelle Thornbloom sells remedies and the reagents druids and rangers cast with.",
+          "open": 480,
+          "close": 1080
+        },
+        {
+          "id": "mirelle_quarters",
+          "name": "Mirelle's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ]
     },
@@ -125,7 +139,22 @@
         "center": "verdant-center",
         "south": "suncrest-coastlands"
       },
-      "buildings": [],
+      "buildings": [
+        {
+          "id": "silverstring_bowyery",
+          "name": "Silverstring Bowyery",
+          "description": "An open-sided elven workshop beneath the trees, bow staves curing in the rafters and a practice range out back. Master Bowyer Aerin Silverstring sells bows, ammunition and light armour.",
+          "open": 480,
+          "close": 1140
+        },
+        {
+          "id": "aerin_quarters",
+          "name": "Aerin's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        }
+      ],
       "exit_to_environment": "suncrest-coastlands"
     }
   }

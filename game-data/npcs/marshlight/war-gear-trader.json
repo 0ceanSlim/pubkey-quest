@@ -1,0 +1,111 @@
+{
+  "id": "war-gear-trader",
+  "name": "Ruk Bonetooth",
+  "title": "War-Gear Trader",
+  "race": "Orc",
+  "description": "A huge, grinning orc with a tusk capped in iron and a necklace of teeth he swears are all from fair fights. He judges a weapon by how many enemies it has seen, and tells you the count.",
+  "primary_home": "marshlight",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 300,
+      "location": "ruk_hut",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 300,
+      "end": 360,
+      "location": "marshlight-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 1140,
+      "location": "gutting_post",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "marshlight-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1440,
+      "location": "ruk_hut",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "HA! Fresh blood! Ruk Bonetooth. You want something that bites? Everything here has bitten something.",
+    "returning": "You live! Good. Dead customers buy nothing.",
+    "low_gold": "Ruk's purse is empty today. Bring loot tomorrow, Ruk pays then."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*Snoring like a rockslide. A spear leans against the door, just in case.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "Post opens at six. Early for the hunt, early for the trade!",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "Ruk is done trading. Now Ruk eats. Come back at six.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "Not now. Ruk is eating. Six o'clock!",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Axes, spears, the little poison-sticks? What do you want to kill?",
+      "options": ["browse_shop", "ask_about_gear", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Go on, pick it up. Swing it. Not at Ruk.",
+      "action": "open_shop"
+    },
+    "ask_about_gear": {
+      "text": "Greataxe for the brave, javelins for the clever, blowgun for the very clever. The needles come from the marsh-folk; they hunt frogs with them, and bigger things. Ruk buys good blades, but Ruk does not buy trinkets. Shiny rings, take to Goldenhaven.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Go! Hunt well! Come back with stories!",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 4000,
+    "gold_regen_rate": 400,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "greataxe", "stock": 2, "max_stock": 2},
+      {"item_id": "handaxe", "stock": 4, "max_stock": 4},
+      {"item_id": "javelin", "stock": 10, "max_stock": 10},
+      {"item_id": "spear", "stock": 4, "max_stock": 4},
+      {"item_id": "club", "stock": 4, "max_stock": 4},
+      {"item_id": "greatclub", "stock": 2, "max_stock": 2},
+      {"item_id": "blowgun", "stock": 2, "max_stock": 2},
+      {"item_id": "blowgun-needle", "stock": 20, "max_stock": 20},
+      {"item_id": "net", "stock": 3, "max_stock": 3},
+      {"item_id": "hide-set", "stock": 2, "max_stock": 2},
+      {"item_id": "shield", "stock": 3, "max_stock": 3}
+    ]
+  }
+}

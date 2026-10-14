@@ -1,0 +1,112 @@
+{
+  "id": "tackle-keeper",
+  "name": "Finn Brackwater",
+  "title": "Net & Tackle Keeper",
+  "race": "Human",
+  "description": "A retired fisherman with a salt-white beard, a clay pipe and hands like knotted rope. Ask about any fish and he has caught it, or nearly caught it, which is a longer story.",
+  "primary_home": "saltwind",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 240,
+      "location": "finn_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 240,
+      "end": 300,
+      "location": "saltwind-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 300,
+      "end": 1140,
+      "location": "net_and_tackle",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "saltwind-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1440,
+      "location": "finn_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Ahoy. Finn Brackwater. You've the look of someone who's never gutted a fish. Well, we'll fix that.",
+    "returning": "Back again! Catch anything, or did it catch you?",
+    "low_gold": "Purse is empty till the boats come in. Try me tomorrow."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*Pipe smoke still drifts from the chimney. Finn is asleep.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "Shop opens at five, with the boats. Fish don't wait, and neither do I.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "Tide's turned, shop's shut. Five tomorrow.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "I'm off. Five o'clock, with the boats.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Rods, nets, a trident for the big ones? What'll it be?",
+      "options": ["browse_shop", "ask_about_coast", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Mind the hooks. They don't care whose thumb it is.",
+      "action": "open_shop"
+    },
+    "ask_about_coast": {
+      "text": "The Suncrest coast feeds this village and tries to eat it back. Giant crabs in the shallows, kuo-toa in the caves, sahuagin when the moon's wrong. Keep a tackle box for the catch, a net for the crabs, and a trident for anything bigger than you.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Fair winds and full nets.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": true,
+    "starting_gold": 2000,
+    "gold_regen_rate": 200,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "rations", "stock": 10, "max_stock": 10},
+      {"item_id": "raw-fish", "stock": 10, "max_stock": 10},
+      {"item_id": "torch", "stock": 10, "max_stock": 10},
+      {"item_id": "oil", "stock": 6, "max_stock": 6},
+      {"item_id": "rope", "stock": 6, "max_stock": 6},
+      {"item_id": "fishing-rod", "stock": 4, "max_stock": 4},
+      {"item_id": "tackle-box", "stock": 2, "max_stock": 2},
+      {"item_id": "net", "stock": 4, "max_stock": 4},
+      {"item_id": "trident", "stock": 2, "max_stock": 2},
+      {"item_id": "spear", "stock": 3, "max_stock": 3},
+      {"item_id": "healers-kit", "stock": 4, "max_stock": 4},
+      {"item_id": "healing", "stock": 1, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"}
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "id": "fur-trader",
+  "name": "Bjorn Frostmantle",
+  "title": "Trapper and Fur Trader",
+  "race": "Human",
+  "description": "A huge, quiet man wrapped in his own best stock: wolf, bear and white fox. He looks every traveller up and down, and you get the feeling he's counting how many days you'd last on the ice.",
+  "primary_home": "frosthold",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "bjorn_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "frosthold-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1200,
+      "location": "fur_trader",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "frosthold-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1440,
+      "location": "bjorn_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Bjorn. You're dressed for a summer picnic. Come in before you lose a finger.",
+    "returning": "Still got all your toes? Good.",
+    "low_gold": "No coin left for buying. Come back tomorrow."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*A deep, slow snore through a door thick with frost.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "Post opens at seven. Wait inside somewhere warm.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "Done for the day. Seven tomorrow.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "Closed. Go sit by a fire.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Need to stay warm, or need to stay alive? Usually both.",
+      "options": ["browse_shop", "ask_about_wastes", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Blankets on the left. Buy two.",
+      "action": "open_shop"
+    },
+    "ask_about_wastes": {
+      "text": "The Frozen Wastes don't kill you fast. The cold works slow: fingers, then feet, then judgement. Wolves and worgs finish the job. Carry a blanket, keep a fire, and don't stay out longer than you have to.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Stay warm.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": true,
+    "starting_gold": 2500,
+    "gold_regen_rate": 250,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "rations", "stock": 15, "max_stock": 15},
+      {"item_id": "torch", "stock": 10, "max_stock": 10},
+      {"item_id": "tinderbox", "stock": 4, "max_stock": 4},
+      {"item_id": "oil", "stock": 6, "max_stock": 6},
+      {"item_id": "blanket", "stock": 6, "max_stock": 6},
+      {"item_id": "bedroll", "stock": 3, "max_stock": 3},
+      {"item_id": "camp-set", "stock": 1, "max_stock": 1},
+      {"item_id": "rope", "stock": 4, "max_stock": 4},
+      {"item_id": "healers-kit", "stock": 6, "max_stock": 6},
+      {"item_id": "healing", "stock": 1, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"},
+      {"item_id": "handaxe", "stock": 3, "max_stock": 3},
+      {"item_id": "spear", "stock": 3, "max_stock": 3},
+      {"item_id": "hide-set", "stock": 2, "max_stock": 2}
+    ]
+  }
+}

@@ -41,7 +41,7 @@
         {
           "id": "net_and_tackle",
           "name": "Nets & Hooks",
-          "description": "A shop selling fishing gear and maritime supplies.",
+          "description": "A shop selling fishing gear and maritime supplies. Old Finn Brackwater mends nets on the step and sells everything a fisher or a coast-walker needs.",
           "open": 300,
           "close": 1140
         },
@@ -55,6 +55,13 @@
         {
           "id": "tobias_quarters",
           "name": "Tobias's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "finn_quarters",
+          "name": "Finn's Cottage",
           "description": "Private quarters.",
           "open": -1,
           "close": null

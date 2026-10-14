@@ -42,7 +42,7 @@
         {
           "id": "fur_trader",
           "name": "Northern Furs Trading Post",
-          "description": "A shop specializing in warm clothing and cold-weather gear.",
+          "description": "A shop specializing in warm clothing and cold-weather gear. Bjorn Frostmantle trades furs, blankets and hunting steel to anyone heading out onto the ice.",
           "open": 420,
           "close": 1200
         },
@@ -56,6 +56,13 @@
         {
           "id": "sigrid_quarters",
           "name": "Sigrid's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "bjorn_quarters",
+          "name": "Bjorn's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null

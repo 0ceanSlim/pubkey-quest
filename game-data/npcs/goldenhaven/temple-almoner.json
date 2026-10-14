@@ -1,0 +1,110 @@
+{
+  "id": "temple-almoner",
+  "name": "Brother Aldwin",
+  "title": "Temple Almoner",
+  "race": "Human",
+  "description": "A soft-spoken man in plain white and gold vestments, a ring of keys at his belt and wax on his cuffs. He is gentle in everything except one point: donations are not haggled.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "aldwin_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1200,
+      "location": "dawnflame_temple",
+      "room": "almonry",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1440,
+      "location": "aldwin_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Dawn's light on you, traveller. I am Brother Aldwin, almoner of the Dawnflame. The temple's remedies and offerings are kept here; the flame asks only a fair donation.",
+    "returning": "Welcome back. The flame remembers you, and so do I.",
+    "low_gold": "The almonry's coffer is empty until the evening offering is counted. Come back tomorrow."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*A quiet voice murmurs the night prayers, then falls silent.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "The almonry opens at seven, after the dawn rite. Walk with the light.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "The almonry is closed for the evening. The sanctuary stays open if you need to pray.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "I've laid down my keys for the night. The almonry opens at seven.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "How may the Dawnflame help you?",
+      "options": ["browse_shop", "ask_about_almonry", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Holy water and oils on the left, remedies on the right. Please don't touch the incense; it stains.",
+      "action": "open_shop"
+    },
+    "ask_about_almonry": {
+      "text": "The temple brews its own healing draughts. The stronger ones take days of prayer to steep, so there are never many. The reliquaries and amulets of the faithful? Those pass from hand to hand, priest to priest. When one leaves the Church, it's rarely by sale.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Go in the light.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 5000,
+    "gold_regen_rate": 500,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "emblem", "stock": 3, "max_stock": 3},
+      {"item_id": "holy-water", "stock": 6, "max_stock": 6},
+      {"item_id": "blessed-incense", "stock": 10, "max_stock": 10},
+      {"item_id": "sacred-oil", "stock": 6, "max_stock": 6},
+      {"item_id": "salt", "stock": 10, "max_stock": 10},
+      {"item_id": "spirit-dust", "stock": 8, "max_stock": 8},
+      {"item_id": "healing", "stock": 3, "max_stock": 3, "restock_rate": 1, "restock_interval": "daily"},
+      {"item_id": "greater-healing", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "30"},
+      {"item_id": "superior-healing", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "weekly"}
+    ]
+  }
+}

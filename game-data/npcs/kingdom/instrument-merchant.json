@@ -121,7 +121,7 @@
     }
   },
   "shop_config": {
-    "shop_type": "special",
+    "shop_type": "specialty",
     "buys_items": true,
     "starting_gold": 400,
     "gold_regen_rate": 80,

@@ -1,0 +1,113 @@
+{
+  "id": "caravan-outfitter",
+  "name": "Tariq Sandwalker",
+  "title": "Caravan Outfitter",
+  "race": "Human",
+  "description": "A lean, sun-dark man with a squint carved by twenty years of desert glare. He has outfitted a hundred caravans and buried a few, and he will tell you which supplies would have saved them.",
+  "primary_home": "dusthaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 300,
+      "location": "tariq_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 300,
+      "end": 360,
+      "location": "dusthaven-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 1080,
+      "location": "desert_supplies",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1080,
+      "end": 1140,
+      "location": "dusthaven-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1140,
+      "end": 1440,
+      "location": "tariq_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Tariq Sandwalker. Heading into the Sunscorch? Then let's make sure you come back out of it.",
+    "returning": "Still alive. Good. What did the desert take from you this time?",
+    "low_gold": "No coin to buy with today; the last caravan cleaned me out. Tomorrow."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*The shutters are closed. Only the wind answers.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "I open at six, before the heat. Smart travellers buy early and leave early.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "Shop's shut. Nobody sensible trades in the evening heat. Six tomorrow.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "Closed. Come back at six, and drink some water while you wait.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Water, food, a blade? The desert wants all three.",
+      "options": ["browse_shop", "ask_about_desert", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Waterskins first. Everything else second.",
+      "action": "open_shop"
+    },
+    "ask_about_desert": {
+      "text": "The Sunscorch kills three ways: thirst, heat, and the things that hunt in it. Gnolls, jackalweres, dust mephits that blind you before they bite. Carry more water than you think, travel at dawn, and keep a scimitar handy. The desert respects curved steel.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Travel at dawn. Come back.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": true,
+    "starting_gold": 2500,
+    "gold_regen_rate": 250,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "rations", "stock": 15, "max_stock": 15},
+      {"item_id": "waterskin", "stock": 8, "max_stock": 8},
+      {"item_id": "torch", "stock": 10, "max_stock": 10},
+      {"item_id": "tinderbox", "stock": 4, "max_stock": 4},
+      {"item_id": "bedroll", "stock": 3, "max_stock": 3},
+      {"item_id": "rope", "stock": 4, "max_stock": 4},
+      {"item_id": "shovel", "stock": 2, "max_stock": 2},
+      {"item_id": "healers-kit", "stock": 6, "max_stock": 6},
+      {"item_id": "healing", "stock": 1, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"},
+      {"item_id": "scimitar", "stock": 2, "max_stock": 2},
+      {"item_id": "shortbow", "stock": 2, "max_stock": 2},
+      {"item_id": "arrows", "stock": 15, "max_stock": 15},
+      {"item_id": "javelin", "stock": 6, "max_stock": 6}
+    ]
+  }
+}

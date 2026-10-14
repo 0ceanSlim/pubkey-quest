@@ -41,9 +41,9 @@
         {
           "id": "desert_supplies",
           "name": "Desert Walker's Supplies",
-          "description": "A shop specializing in desert survival gear and supplies.",
+          "description": "A shop specializing in desert survival gear and supplies. Tariq Sandwalker has outfitted caravans here for twenty years: water, rations, and the blades to protect them.",
           "open": 360,
-          "close": 1260
+          "close": 1080
         },
         {
           "id": "oasis_shrine",
@@ -55,6 +55,13 @@
         {
           "id": "zahra_quarters",
           "name": "Zahra's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "tariq_quarters",
+          "name": "Tariq's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null

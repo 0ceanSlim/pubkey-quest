@@ -1178,6 +1178,19 @@ func validateNPCFile(filePath string) []Issue {
 
 	// Every item the NPC sells, charges or takes must exist: a shop listing an
 	// item that isn't in the catalog breaks buying it.
+	// Pricing only knows two shop types; anything else silently prices as general.
+	if shop, ok := npc["shop_config"].(map[string]interface{}); ok {
+		if st, _ := shop["shop_type"].(string); st != "general" && st != "specialty" {
+			issues = append(issues, Issue{
+				Type:     "error",
+				Category: "npcs",
+				File:     filename,
+				Field:    "shop_config.shop_type",
+				Message:  fmt.Sprintf("shop_type %q must be \"general\" or \"specialty\"", st),
+			})
+		}
+	}
+
 	known := knownItemIDs()
 	dropOnly := dropOnlyItemIDs()
 	for _, ref := range npcItemRefs(npc) {

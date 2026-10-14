@@ -133,7 +133,22 @@
         "center": "ironpeak-center",
         "west": "frozen-wastes"
       },
-      "buildings": [],
+      "buildings": [
+        {
+          "id": "anvilheart_forge",
+          "name": "The Anvilheart",
+          "description": "A dwarven forge cut into the mountainside at the mouth of the pass, its chimneys glowing day and night. Forgemistress Brunhild Hammerfall sells clan steel, heavy armour and the finest crossbows in the realm.",
+          "open": 360,
+          "close": 1080
+        },
+        {
+          "id": "brunhild_quarters",
+          "name": "Brunhild's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        }
+      ],
       "exit_to_environment": "frozen-wastes"
     }
   }

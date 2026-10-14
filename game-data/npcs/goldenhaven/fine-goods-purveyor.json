@@ -1,0 +1,108 @@
+{
+  "id": "fine-goods-purveyor",
+  "name": "Saphra Goldscale",
+  "title": "Purveyor of Fine Goods",
+  "race": "Dragonborn",
+  "description": "A tall dragonborn whose bronze scales are flecked with gold, dressed in layered silks and a single heavy signet. She is unfailingly polite, in the way that makes you check your purse.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "saphra_quarters",
+      "state": "sleeping",
+      "dialogue_options": ["sleeping"],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_to_work"],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1260,
+      "location": "luxury_market",
+      "state": "working",
+      "dialogue_options": ["main_menu"],
+      "available_actions": ["open_shop"]
+    },
+    {
+      "start": 1260,
+      "end": 1320,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": ["traveling_home"],
+      "available_actions": []
+    },
+    {
+      "start": 1320,
+      "end": 1440,
+      "location": "saphra_quarters",
+      "state": "home",
+      "dialogue_options": ["off_duty"],
+      "available_actions": []
+    }
+  ],
+  "greeting": {
+    "first_time": "Welcome to the Golden Bazaar. Saphra Goldscale. You have the look of someone who appreciates quality. Let us find out if your purse agrees.",
+    "returning": "Ah, a returning patron. How lovely. Shall we see what has arrived?",
+    "low_gold": "I am afraid my coffers are committed elsewhere today. Do return tomorrow."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*A servant at the door shakes his head. The lady is not receiving.*",
+      "options": ["goodbye"]
+    },
+    "traveling_to_work": {
+      "text": "The Bazaar opens at seven. Quality is worth the wait.",
+      "options": ["goodbye"]
+    },
+    "traveling_home": {
+      "text": "My stall is closed for the evening. Tomorrow, at seven.",
+      "options": ["goodbye"]
+    },
+    "off_duty": {
+      "text": "I do not conduct business after hours. The Bazaar opens at seven.",
+      "options": ["goodbye"]
+    },
+    "main_menu": {
+      "text": "Blades with a little grace, or something to wear that is worth more than the hand wearing it?",
+      "options": ["browse_shop", "ask_about_goods", "goodbye"]
+    },
+    "browse_shop": {
+      "text": "Do look. Touching is permitted. Pocketing is not.",
+      "action": "open_shop"
+    },
+    "ask_about_goods": {
+      "text": "Rapiers from the coast, scimitars from beyond the desert, rings from the jewellers of three cities. Dragon scale and phoenix feather? Darling, nobody sells those. One takes them, at some risk, from whatever was wearing them.",
+      "options": ["main_menu"]
+    },
+    "goodbye": {
+      "text": "Until next time. Do spend wisely.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 8000,
+    "gold_regen_rate": 800,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {"item_id": "rapier", "stock": 2, "max_stock": 2},
+      {"item_id": "scimitar", "stock": 2, "max_stock": 2},
+      {"item_id": "whip", "stock": 2, "max_stock": 2},
+      {"item_id": "studded-leather-set", "stock": 1, "max_stock": 1},
+      {"item_id": "gold-ring", "stock": 2, "max_stock": 2},
+      {"item_id": "silver-ring", "stock": 3, "max_stock": 3},
+      {"item_id": "signet-ring", "stock": 1, "max_stock": 1},
+      {"item_id": "perfume-vial", "stock": 3, "max_stock": 3}
+    ]
+  }
+}

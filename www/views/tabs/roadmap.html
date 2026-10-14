@@ -270,6 +270,66 @@
             <span class="text-green-500">✓</span>
             <span>Building Rooms (enter inns/taverns, rent a room, sleep, room-scoped NPCs)</span>
           </div>
+
+          <!-- Social & multiplayer -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Friends, Chat &amp; Parties</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              See other players where you are and on your road, a Friends panel from your Nostr follows, say/area/party chat, encrypted whispers, and <strong>parties of up to five</strong> that travel, rest and fight together in shared battles.
+            </div>
+          </div>
+
+          <!-- Relay saves -->
+          <div class="bg-gray-800 p-3 rounded-lg">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-green-500 font-bold">✓</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Saves on Nostr Relays</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">
+              Saves signed by you and stored on relays in a compact format, checked by the official server; proof-of-key login, with all signing in your browser.
+            </div>
+          </div>
+
+          <!-- Combat depth -->
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Tactical Combat (terrain, cover &amp; line of sight, stealth openings and ambushes, several enemies at once)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Keys, Locks &amp; Lockpicking (keyrings, breakable lockpicks, the Tumblers minigame)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Main Quest, Chapter One (The Rising Shadow) + quest-only places like the Goldenhaven sewers</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Hidden City Places (found by spending time in a district)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Monster Roster (68 monsters, every one with a sprite, including enemy spellcasters)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Shops &amp; Loot (shopkeepers in every town, specialty smiths and arcanists, 5e treasure tables, found-only gear)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Character Portraits &amp; npub Crests</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Community Wiki (game reference at <a href="/wiki/" style="color: var(--color-textHighlighted);">/wiki</a>)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-500">✓</span>
+            <span>Release Pipeline (versioned, checksummed server builds)</span>
+          </div>
         </div>
       </div>
 
@@ -279,7 +339,7 @@
           <span>🔥</span> Current Focus: Road to Alpha
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          The core loop — explore, fight, cast, quest, level up — is in, and combat is complete.
+          The core loop — explore, fight, cast, quest, level up — is in, and so are friends, parties and relay saves.
           These are the last pieces before the alpha release:
         </p>
         <div class="space-y-3 win95-inset p-4 rounded-lg">
@@ -295,14 +355,28 @@
               <span class="text-orange-500">⟳</span>
               <span class="font-bold" style="color: var(--color-textHighlighted);">Crafting &amp; Minigames</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Craft spell scrolls at a workbench, and play little mining, fishing, and lockpicking minigames at the gathering nodes and locked chests.</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Craft spell scrolls at a workbench, and mining and fishing minigames to sit beside Tumblers, the lockpicking one.</div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-orange-500">⟳</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Survival &amp; Travel Gear</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Darkness that needs a torch or lantern, cold in the Frozen Wastes that a blanket fights off, water for the desert, whetstones and poisons for your blade, and Homeward Stones to teleport home.</div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-orange-500">⟳</span>
+              <span class="font-bold" style="color: var(--color-textHighlighted);">Shared World</span>
+            </div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Items dropped on the ground that other players can find and pick up.</div>
           </div>
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="text-orange-500">⟳</span>
               <span class="font-bold" style="color: var(--color-textHighlighted);">Content &amp; Release Pass</span>
             </div>
-            <div class="text-sm pl-6" style="color: var(--color-textMuted);">Author the remaining quest NPCs, items, and monsters, wire up a guided tutorial, and do the final release engineering.</div>
+            <div class="text-sm pl-6" style="color: var(--color-textMuted);">The remaining quest NPCs and monsters, The Black Flame (the main quest's next chapter), a guided tutorial, and the final release engineering.</div>
           </div>
         </div>
       </div>
@@ -313,7 +387,7 @@
           <span>🎯</span> Alpha to Beta
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          Once the presentation pass, crafting &amp; minigames, and content pass land, it's alpha. Road to beta:
+          Once the pieces above land, it's alpha. Road to beta:
         </p>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
@@ -340,6 +414,14 @@
             <span style="color: var(--color-textMuted);">&#9744;</span>
             <span>Content polish (improving existing content, no expansion)</span>
           </div>
+          <div class="flex items-center gap-2">
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Party content: bosses, multi-stage dungeons, and encounters built for groups</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>Gems and jewellery</span>
+          </div>
         </div>
       </div>
 
@@ -349,16 +431,16 @@
           <span>🌐</span> Beta Phase (Nostr Integration)
         </h3>
         <p class="mb-3 text-sm" style="color: var(--color-textSecondary);">
-          Beta begins when saves move to Nostr relays. No more local saves.
+          Saves already live on Nostr relays. Beta is when the save format is frozen and wipes stop for good.
         </p>
         <div class="space-y-2 win95-inset p-4 rounded-lg">
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span class="text-green-500">✓</span>
             <span>Nostr Relay Integration (save files as Nostr events)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span style="color: var(--color-textMuted);">&#9744;</span>
-            <span>Save file optimization (must be small for relay storage)</span>
+            <span class="text-green-500">✓</span>
+            <span>Save file optimization (compact, versioned format, with a save inspector)</span>
           </div>
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
@@ -367,10 +449,6 @@
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
             <span>Additional Nostr integrations (badges, in-game notes, long-form articles)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-green-500">✓</span>
-            <span>Community Wiki (game reference at <a href="/wiki/" style="color: var(--color-textHighlighted);">/wiki</a>)</span>
           </div>
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
@@ -394,7 +472,11 @@
           </div>
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
-            <span>Multiplayer (party system, trading, PvP)</span>
+            <span>Player Trading &amp; a PvP Arena</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span style="color: var(--color-textMuted);">&#9744;</span>
+            <span>NPC Companions</span>
           </div>
           <div class="flex items-center gap-2">
             <span style="color: var(--color-textMuted);">&#9744;</span>
@@ -405,8 +487,8 @@
 
       <div class="win95-inset p-4 rounded-lg">
         <p class="text-sm" style="color: var(--color-textMuted);">
-          <strong>Current Phase:</strong> Pre-Alpha — the full core loop is playable (explore, fight, cast, quest, level up), and combat, spellcasting, and progression are complete.<br>
-          <strong>Next Milestone:</strong> Alpha — a presentation/UI polish pass, scroll crafting and gathering minigames, and a content + tutorial pass.<br>
+          <strong>Current Phase:</strong> Pre-Alpha — the full core loop is playable (explore, fight, cast, quest, level up), with friends, parties and saves on Nostr relays.<br>
+          <strong>Next Milestone:</strong> Alpha — a presentation/UI polish pass, scroll crafting and the last minigames, survival gear, shared ground items, and a content + tutorial pass.<br>
           <strong>Contributions Welcome!</strong> See the Contribute tab to help build Pubkey Quest.
         </p>
       </div>

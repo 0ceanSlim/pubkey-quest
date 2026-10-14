@@ -62,6 +62,20 @@
           "description": "Private quarters.",
           "open": -1,
           "close": null
+        },
+        {
+          "id": "gutting_post",
+          "name": "The Gutting Post",
+          "description": "A stilted hut on the platforms, hung with trophy skulls and racks of notched blades. Ruk Bonetooth trades axes, spears, blowguns and hide armour to anyone who can pay.",
+          "open": 360,
+          "close": 1140
+        },
+        {
+          "id": "ruk_hut",
+          "name": "Ruk's Hut",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ]
     },

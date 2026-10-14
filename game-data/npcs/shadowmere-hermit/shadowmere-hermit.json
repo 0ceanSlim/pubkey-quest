@@ -5,7 +5,7 @@
   "title": "Alchemist",
   "primary_home": "shadowmere-hermit",
   "shop_config": {
-    "shop_type": "alchemist",
+    "shop_type": "specialty",
     "buys_items": true,
     "starting_gold": 150,
     "inventory": [
