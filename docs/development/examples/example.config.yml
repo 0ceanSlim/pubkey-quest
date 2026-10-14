@@ -30,3 +30,8 @@ saves:
   relay: false      # sign saves in the browser and publish them (kind 30078) to the player's relays
   validation: false # official only: play only the save this server last accepted (its ledger)
   max_slots: 0      # characters per key; official = 5, 0 = unlimited
+
+# Wiki (docs/development/deployment/wiki.md): forward /wiki to a Gollum wiki started
+# with --base-path wiki. Leave empty to serve no wiki.
+wiki:
+  url: "" # e.g. http://127.0.0.1:4567

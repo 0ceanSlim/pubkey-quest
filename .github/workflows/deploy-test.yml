@@ -128,6 +128,41 @@ jobs:
           done
           [ "$FAILED" -eq 0 ] || exit 1
 
+      # ── Wiki (non-blocking; skipped until the repo exists — docs/development/deployment/wiki.md) ──
+
+      - name: Publish wiki
+        id: wiki
+        continue-on-error: true
+        env:
+          WIKI_REPO: ${{ vars.WIKI_REPO || '/home/pubkey-test/wiki.git' }}
+        run: |
+          if [ ! -d "$WIKI_REPO" ]; then
+            echo "::notice::No wiki repo at $WIKI_REPO — skipping"
+            exit 0
+          fi
+          SHA=$(git rev-parse --short HEAD)
+          rm -rf wiki-work
+          git clone -q "$WIKI_REPO" wiki-work
+          git -C wiki-work symbolic-ref HEAD refs/heads/main
+          for attempt in 1 2 3; do
+            ./codex -wiki wiki-work
+            git -C wiki-work add -A
+            if git -C wiki-work diff --cached --quiet; then
+              echo "Wiki already up to date"
+              exit 0
+            fi
+            git -C wiki-work -c user.name="Pubkey Quest" -c user.email="wiki@pubkey.quest" \
+              commit -q -m "Regenerate from game data ${SHA}"
+            if git -C wiki-work push -q origin HEAD:main; then
+              echo "Wiki published"
+              exit 0
+            fi
+            # Someone edited the wiki meanwhile — regenerate on top of their commit.
+            git -C wiki-work fetch -q origin
+            git -C wiki-work reset -q --hard origin/main
+          done
+          exit 1
+
       # ── Report ──
 
       - name: Write job summary
@@ -175,6 +210,10 @@ jobs:
             echo "- Game Data Validation: passed" >> $GITHUB_STEP_SUMMARY
           else
             echo "- Game Data Validation: **FAILED** (non-blocking)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.wiki.outcome }}" = "failure" ]; then
+            echo "- Wiki: **FAILED** (non-blocking)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Show test output if tests failed

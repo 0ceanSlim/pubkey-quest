@@ -53,11 +53,18 @@ type LaunchConfig struct {
 	Allow   []string `yaml:"allow"`
 }
 
+// WikiConfig serves the Gollum wiki at /wiki (docs/development/deployment/wiki.md).
+// URL is where Gollum listens, started with --base-path wiki. Empty = no /wiki.
+type WikiConfig struct {
+	URL string `yaml:"url"`
+}
+
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	Report ReportConfig `yaml:"report"`
 	Saves  SavesConfig  `yaml:"saves"`
 	Launch LaunchConfig `yaml:"launch"`
+	Wiki   WikiConfig   `yaml:"wiki"`
 }
 
 // Global variable to hold the config after loading

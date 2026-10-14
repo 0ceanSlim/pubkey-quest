@@ -53,6 +53,9 @@ jobs:
       - name: Validate game data
         run: ./codex -validate
 
+      - name: Generate wiki pages
+        run: ./codex -wiki "$RUNNER_TEMP/wiki"
+
       - name: Install swag
         run: go install github.com/swaggo/swag/cmd/swag@latest
 

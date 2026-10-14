@@ -18,8 +18,8 @@ import (
 // a release on the real server before opening it.
 
 // openWhileClosed are paths anyone may reach while closed: assets, sign-in,
-// and the public profile lookup the sign-in screen uses.
-var openWhileClosed = []string{"/res/", "/dist/", "/api/auth/", "/api/profile", "/manifest.json", "/sw.js", "/pwa.js", "/favicon.ico"}
+// the public profile lookup the sign-in screen uses, and the wiki.
+var openWhileClosed = []string{"/res/", "/dist/", "/api/auth/", "/api/profile", "/manifest.json", "/sw.js", "/pwa.js", "/favicon.ico", "/wiki"}
 
 // LaunchGate wraps the server while launch.closed is set.
 func LaunchGate(next http.Handler) http.Handler {

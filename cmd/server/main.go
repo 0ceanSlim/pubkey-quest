@@ -55,6 +55,7 @@ func main() {
 
 	routes.RegisterStatic(mux)
 	routes.RegisterPages(mux)
+	routes.RegisterWiki(mux)
 	api.RegisterRoutes(mux)
 
 	app.Start(mux)

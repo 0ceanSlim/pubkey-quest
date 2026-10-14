@@ -18,6 +18,7 @@ import (
 	"pubkey-quest/cmd/codex/staging"
 	"pubkey-quest/cmd/codex/systemseditor"
 	"pubkey-quest/cmd/codex/validation"
+	"pubkey-quest/cmd/codex/wiki"
 	gamecharacter "pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/savecodec"
 	"pubkey-quest/types"
@@ -47,10 +48,26 @@ func main() {
 	generateImagesFlag := flag.String("generate-images", "", "Generate sprite candidates from a batch spec JSON and exit (dev tool)")
 	configFlag := flag.String("config", "", "Path to config file (default: ./codex-config.yml)")
 	decodeSaveFlag := flag.String("decode-save", "", "Print a save (compact, a signed save event, or a disk save file) as a readable character sheet and exit")
+	wikiFlag := flag.String("wiki", "", "Generate the Gollum wiki's reference pages from game-data into this wiki repo checkout and exit")
+	wikiBaseFlag := flag.String("wiki-base", "/wiki", "With -wiki: the path the wiki is served under (gollum --base-path)")
 	flag.Parse()
 
 	if *decodeSaveFlag != "" {
 		os.Exit(decodeSave(*decodeSaveFlag))
+	}
+
+	if *wikiFlag != "" {
+		fmt.Printf("📖 Generating wiki pages into %s...\n", *wikiFlag)
+		res, err := wiki.Generate(wiki.Options{DataDir: "game-data", ImageDir: "www/res/img", OutDir: *wikiFlag, BasePath: *wikiBaseFlag})
+		if err != nil {
+			fmt.Printf("❌ Wiki generation failed: %v\n", err)
+			os.Exit(1)
+		}
+		for _, s := range res.Seeded {
+			fmt.Printf("🔄 Seeded starter page %s\n", s)
+		}
+		fmt.Printf("✅ Wrote %d pages, %d images; removed %d stale pages\n", res.Pages, res.Images, res.Removed)
+		os.Exit(0)
 	}
 
 	if *versionFlag {

@@ -1,0 +1,26 @@
+[Unit]
+Description=Pubkey Quest Wiki (Gollum)
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=USER
+# Serve the bare wiki repo on localhost only; the game server forwards /wiki to it
+# (config.yml wiki.url). --user must own WIKI_REPO (git refuses repos owned by someone
+# else). Drop --no-edit only once edits have an auth layer in front (docs: wiki.md).
+ExecStartPre=-/usr/bin/docker rm -f pubkey-wiki
+ExecStart=/usr/bin/docker run --rm --name pubkey-wiki \
+  --user UID:GID \
+  -p 127.0.0.1:4567:4567 \
+  -v /home/pubkey-test/wiki.git:/wiki \
+  gollumwiki/gollum:6.1.0 \
+  --bare --ref main --base-path wiki --h1-title --css --js --no-edit
+ExecStop=/usr/bin/docker stop pubkey-wiki
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
