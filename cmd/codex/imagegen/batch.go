@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"pubkey-quest/cmd/codex/pixellab"
 )
@@ -108,7 +109,7 @@ func RunBatch(client *pixellab.Client, specPath string) error {
 				skipped++
 				continue
 			}
-			resp, genErr := client.Generate(pixellab.GenerateOptions{
+			resp, genErr := generateWithRetry(client, pixellab.GenerateOptions{
 				Description:         job.Prompt,
 				NegativeDescription: negative,
 				Model:               model,
@@ -176,4 +177,19 @@ func firstNonZero(vals ...int) int {
 		}
 	}
 	return 0
+}
+
+// generateWithRetry waits and retries when PixelLab reports too many
+// concurrent jobs (HTTP 429), so several batches can run side by side.
+func generateWithRetry(client *pixellab.Client, opts pixellab.GenerateOptions) (*pixellab.Response, error) {
+	var lastErr error
+	for attempt := 0; attempt < 12; attempt++ {
+		resp, err := client.Generate(opts)
+		if err == nil || !strings.Contains(err.Error(), "API error 429") {
+			return resp, err
+		}
+		lastErr = err
+		time.Sleep(time.Duration(5+attempt*5) * time.Second)
+	}
+	return nil, lastErr
 }
