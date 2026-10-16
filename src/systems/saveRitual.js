@@ -138,10 +138,10 @@ export function openQuitModal() {
     overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: flex; align-items: center; justify-content: center;';
     overlay.innerHTML = `
         <div class="bg-win95-bgDark" style="border: 2px solid #808080; width: 260px; box-shadow: 0 0 16px rgba(0,0,0,0.6);">
-            <div class="px-2 py-1 text-white font-bold" style="font-size: 9px; background: #7f1d1d;">🚪 QUIT TO TITLE</div>
+            <div class="px-2 py-1 text-white font-bold" style="font-size: 9px; background: #7f1d1d;">🚪 LEAVE THE GAME</div>
             <div class="p-3 text-center">
                 <div class="text-white font-bold mb-1" style="font-size: 9px;">Save before you go?</div>
-                <div class="text-gray-400 mb-2" style="font-size: 7px; line-height: 1.6;">${lastSavedText()}. Anything since then is lost if you quit without saving.</div>
+                <div class="text-gray-400 mb-2" style="font-size: 7px; line-height: 1.6;">${lastSavedText()}. Quitting without saving goes back to that save: everything since is discarded.</div>
                 <div id="quit-modal-status" class="hidden mb-2 font-bold text-red-400" style="font-size: 8px;"></div>
                 <div class="flex flex-col gap-1">
                     <button data-quit="save" style="${QUIT_BTN} background: #166534;">💾 Save &amp; quit</button>
