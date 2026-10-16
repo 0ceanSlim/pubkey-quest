@@ -1282,8 +1282,35 @@ func migrateEncounterFile(filePath string) error {
 
 	stmt := `INSERT INTO encounters (id, name, trigger, chance, repeatable, cooldown_minutes, properties)
 	         VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err = database.Exec(stmt, id, name, trigger, chance, repeatable, int(cooldown), string(propertiesJSON))
-	return err
+	if _, err = database.Exec(stmt, id, name, trigger, chance, repeatable, int(cooldown), string(propertiesJSON)); err != nil {
+		return err
+	}
+
+	// Encounter NPCs live inline (types.EncounterData.NPCs), but talking to one
+	// reads the npcs table like anyone else — so they go in there too, homed at
+	// the encounter. migrateNPCs runs first and clears the table.
+	npcs, _ := enc["npcs"].([]interface{})
+	for _, raw := range npcs {
+		npc, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		npcID, _ := npc["id"].(string)
+		if npcID == "" {
+			log.Printf("⚠️ encounter %s: inline NPC without an id skipped", id)
+			continue
+		}
+		npcName, _ := npc["name"].(string)
+		npcTitle, _ := npc["title"].(string)
+		npcRace, _ := npc["race"].(string)
+		npcDesc, _ := npc["description"].(string)
+		npcJSON, _ := json.Marshal(npc)
+		if _, err := database.Exec(`INSERT INTO npcs (id, name, title, race, location, building, description, properties)
+		         VALUES (?, ?, ?, ?, ?, '', ?, ?)`, npcID, npcName, npcTitle, npcRace, id, npcDesc, string(npcJSON)); err != nil {
+			log.Printf("⚠️ encounter %s: NPC %s not migrated: %v", id, npcID, err)
+		}
+	}
+	return nil
 }
 
 // migrateGenericJSON migrates a generic JSON file to a dynamically created table

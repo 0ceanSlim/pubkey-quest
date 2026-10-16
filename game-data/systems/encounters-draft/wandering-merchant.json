@@ -37,69 +37,23 @@
         "main_menu": {
           "text": "What can I get for you today?",
           "options": [
-            {
-              "label": "Show me what you've got.",
-              "action": "open_shop"
-            },
-            {
-              "label": "[Wizard] Do you have any reagents for a fellow seeker of knowledge?",
-              "next": "arcane_shop",
-              "requirements": [
-                {
-                  "type": "class",
-                  "values": [
-                    "Wizard",
-                    "Sorcerer"
-                  ]
-                }
-              ]
-            },
-            {
-              "label": "[Paladin/Cleric] Any holy icons or blessed supplies?",
-              "next": "holy_shop",
-              "requirements": [
-                {
-                  "type": "class",
-                  "values": [
-                    "Paladin",
-                    "Cleric"
-                  ]
-                }
-              ]
-            },
-            {
-              "label": "[Influence 12] Any 'wayfarer's special' today?",
-              "next": "discount",
-              "requirements": [
-                {
-                  "type": "skill",
-                  "id": "influence",
-                  "min": 12
-                }
-              ]
-            },
-            {
-              "label": "Farewell, Barnaby.",
-              "next": "goodbye"
-            }
+            "browse_shop",
+            "sell_items",
+            "goodbye"
           ]
         },
-        "arcane_shop": {
-          "text": "A spellcaster! I have just the thing - some fine silver dust and a few rare herbs.",
-          "action": "open_shop_filtered_arcane"
-        },
-        "holy_shop": {
-          "text": "Always room for the divine! I have some blessed incense tucked away.",
-          "action": "open_shop_filtered_holy"
-        },
-        "discount": {
-          "text": "For a friendly face? Always! I'll knock a few coins off the basics.",
-          "action": "apply_temporary_discount",
+        "browse_shop": {
+          "text": "Rations, torches, and a few odds and ends for the spell-minded. Take a look!",
+          "action": "open_shop",
           "options": [
-            {
-              "label": "Thanks!",
-              "next": "main_menu"
-            }
+            "main_menu"
+          ]
+        },
+        "sell_items": {
+          "text": "Got something to lighten your pack? My pony won't thank you, but I will.",
+          "action": "open_sell",
+          "options": [
+            "main_menu"
           ]
         },
         "goodbye": {
@@ -137,6 +91,3 @@
     }
   ]
 }
-
-
-

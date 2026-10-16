@@ -1249,7 +1249,16 @@ export function showNPCDialogue(dialogueData, npcMessage) {
             optionsGrid.appendChild(button);
         });
     } else {
+        // Never strand the player in a conversation with nothing to click (an
+        // NPC whose options the engine can't read): always leave a way out.
         logger.warn('No dialogue options provided!');
+        const leave = document.createElement('button');
+        leave.className = 'text-white transition-all';
+        leave.style.cssText = 'font-size: 7px; background: #9e8b6b; color: #fff; cursor: pointer; padding: 2px 4px; ' +
+            'border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #000; border-bottom: 1px solid #000;';
+        leave.textContent = 'Goodbye';
+        leave.addEventListener('click', () => closeNPCDialogue());
+        optionsGrid.appendChild(leave);
     }
 
     dialogueOverlay.appendChild(optionsGrid);
