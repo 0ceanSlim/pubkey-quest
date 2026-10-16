@@ -261,6 +261,10 @@ async function routeClick(src) {
     // Vault open: click moves between inventory and vault, as many as the
     // quantity bar says (1 / 5 / 10 / X / All).
     if (vaultOpen) {
+        if (src.surface === 'equipment') {
+            await storeInVault(src.slotName, 'equipment');
+            return;
+        }
         if (src.surface === 'vault') {
             await withdrawFromVault(src.itemId, leftClickAmount(vaultEntryQuantity(src)));
         } else if (src.surface === 'general' || src.surface === 'inventory') {
@@ -393,8 +397,17 @@ function openContextMenu(desc, x, y, ev) {
     }
     if (vaultOpen && (desc.surface === 'general' || desc.surface === 'inventory')) {
         const held = readSlotQuantity(desc);
+        // The item's own actions (Equip, Use, …) stay available under the amounts.
+        const extras = getItemActions({ ...itemData, quantity: held }, false)
+            .filter(({ action }) => action !== 'examine' && action !== 'drop')
+            .map(({ action, label }) => ({
+                label,
+                onClick: () => performAction(action, desc.itemId, desc.index,
+                    action === 'equip' ? itemData.gear_slot : undefined,
+                    desc.surface, undefined, showMessage, showVaultUI, showActionText),
+            }));
         showVaultMenu(x, y, 'Deposit', desc.itemId, held,
-            (n) => storeInVault(desc.index, desc.surface, n >= held ? 0 : n));
+            (n) => storeInVault(desc.index, desc.surface, n >= held ? 0 : n), extras);
         return;
     }
     const quantity = readSlotQuantity(desc);
@@ -471,7 +484,10 @@ function onHoverMove(e) {
         : getDefaultAction(itemData, desc.surface === 'equipment');
     let label = ACTION_LABELS[action] || 'Info';
     let color = ACTION_COLORS[action] || '#ff8c00';
-    if (vaultOpen && (desc.surface === 'vault' || desc.surface === 'general' || desc.surface === 'inventory')) {
+    if (vaultOpen && desc.surface === 'equipment') {
+        label = 'Deposit';
+        color = '#facc15';
+    } else if (vaultOpen && (desc.surface === 'vault' || desc.surface === 'general' || desc.surface === 'inventory')) {
         const available = desc.surface === 'vault' ? vaultEntryQuantity(desc) : readSlotQuantity(desc);
         const n = leftClickAmount(available);
         label = `${desc.surface === 'vault' ? 'Withdraw' : 'Deposit'}-${n >= available ? 'All' : n}`;

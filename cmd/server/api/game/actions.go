@@ -1126,6 +1126,9 @@ func handleVaultDepositAction(state *SaveFile, params map[string]any) (*GameActi
 		return nil, fmt.Errorf("no vault keeper here will open the vault for you")
 	}
 	slotType, _ := params["from_slot_type"].(string)
+	if slotType == "equipment" {
+		return depositEquipped(state, params)
+	}
 	slotIndex, ok := paramInt(params["from_slot"])
 	if !ok {
 		return nil, fmt.Errorf("missing from_slot")
@@ -1145,6 +1148,76 @@ func handleVaultDepositAction(state *SaveFile, params map[string]any) (*GameActi
 		Color:   resp.Color,
 		Delta:   resp.Delta,
 	}, nil
+}
+
+// depositEquipped banks something you're wearing (OSRS: click a worn item at the
+// bank). It's taken off the normal way — two-handers, worn effects and all —
+// and whatever that put in your pack goes straight into the vault.
+func depositEquipped(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
+	slotName, _ := params["from_slot"].(string)
+	if slotName == "" {
+		return nil, fmt.Errorf("missing from_slot")
+	}
+	held := func() map[string]int {
+		out := map[string]int{}
+		for _, t := range []string{"general", "inventory"} {
+			for i := range packSlots(state, t) {
+				if q := slotQty(state, t, i); q > 0 {
+					out[fmt.Sprintf("%s:%d", t, i)] = q
+				}
+			}
+		}
+		return out
+	}
+	before := held()
+	off, err := inventory.HandleUnequipItemAction(state, map[string]interface{}{"equipment_slot": slotName})
+	if err != nil {
+		return nil, err
+	}
+	if !off.Success {
+		return &GameActionResponse{Success: false, Message: off.Message, Error: off.Error, Color: off.Color}, nil
+	}
+	for key, qty := range held() {
+		if added := qty - before[key]; added > 0 {
+			var t string
+			var i int
+			fmt.Sscanf(strings.Replace(key, ":", " ", 1), "%s %d", &t, &i)
+			resp, err := inventory.HandleVaultDeposit(state, t, i, added)
+			if err != nil {
+				return nil, err
+			}
+			return &GameActionResponse{Success: resp.Success, Message: resp.Message, Error: resp.Error, Color: resp.Color, Delta: resp.Delta}, nil
+		}
+	}
+	return &GameActionResponse{Success: true, Message: "Taken off, but it didn't land in your pack to bank."}, nil
+}
+
+// packSlots are the general ("general") or backpack ("inventory") slots.
+func packSlots(state *SaveFile, slotType string) []interface{} {
+	switch slotType {
+	case "general":
+		slots, _ := state.Inventory["general_slots"].([]interface{})
+		return slots
+	case "inventory":
+		gear, _ := state.Inventory["gear_slots"].(map[string]interface{})
+		bag, _ := gear["bag"].(map[string]interface{})
+		slots, _ := bag["contents"].([]interface{})
+		return slots
+	}
+	return nil
+}
+
+// slotQty is the stack size in a general/backpack slot (0 when empty).
+func slotQty(state *SaveFile, slotType string, index int) int {
+	slots := packSlots(state, slotType)
+	if index < 0 || index >= len(slots) {
+		return 0
+	}
+	slot, _ := slots[index].(map[string]interface{})
+	if id, _ := slot["item"].(string); id == "" {
+		return 0
+	}
+	return inventory.GetSlotQuantity(slot)
 }
 
 // handleVaultWithdrawAction takes a quantity of one item back out of the shared

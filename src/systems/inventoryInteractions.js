@@ -782,7 +782,8 @@ export function showItemDetails(itemId) {
 
     // Modal overlay within the scene — sized to the scene, scrolls only if needed.
     const modal = document.createElement('div');
-    modal.className = 'item-detail-modal absolute inset-0 flex items-center justify-center z-50';
+    modal.className = 'item-detail-modal absolute inset-0 flex items-center justify-center';
+    modal.style.zIndex = '150'; // above the shop (50) and the vault (100)
     modal.style.background = 'rgba(0,0,0,0.8)';
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
@@ -815,7 +816,11 @@ export function showItemDetails(itemId) {
 
     // Description + lore (notes).
     let lore = `<div style="padding:8px; line-height:1.4;"><div style="color:#d1d5db;">${esc(itemData.description || itemData.ai_description || 'No description available.')}</div>`;
-    if (itemData.notes) lore += `<div style="color:#8b8b8b; font-style:italic; margin-top:3px;">${esc(itemData.notes)}</div>`;
+    // Notes say what the item does in play — one line each.
+    const notes = Array.isArray(itemData.notes) ? itemData.notes : (itemData.notes ? [itemData.notes] : []);
+    if (notes.length) {
+        lore += `<ul style="color:#a8b0bd; margin:4px 0 0; padding-left:12px; list-style:disc;">${notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>`;
+    }
     lore += `</div>`;
 
     // Combat.
@@ -837,7 +842,25 @@ export function showItemDetails(itemId) {
     if (has(getProp('heal'))) consumeRows.push(row('Healing', esc(getProp('heal')), '#86efac'));
     const effects = props.effects || itemData.effects;
     if (Array.isArray(effects) && effects.length) {
-        consumeRows.push(row('Effects', effects.map((e) => `${esc(e.type)} ${e.value > 0 ? '+' : ''}${esc(e.value)}`).join(', '), '#86efac'));
+        const label = (e) => {
+            if (e.apply_effect) {
+                const name = String(e.apply_effect).replace(/-/g, ' ');
+                return e.chance && e.chance < 100 ? `${esc(name)} (${esc(e.chance)}%)` : esc(name);
+            }
+            return `${esc(e.type)} ${e.value > 0 ? '+' : ''}${esc(e.value)}`;
+        };
+        consumeRows.push(row('Effects', effects.map(label).join(', '), '#86efac'));
+    }
+    const cures = getProp('cures');
+    if (Array.isArray(cures) && cures.length) consumeRows.push(row('Cures', cures.map(esc).join(', '), '#86efac'));
+    if (getProp('escape')) consumeRows.push(row('Escape', 'Ends a fight, no roll', '#86efac'));
+    if (has(getProp('restrain'))) consumeRows.push(row('Restrains', esc(getProp('restrain')), '#86efac'));
+    const bonus = getProp('skill_bonus');
+    if (bonus && typeof bonus === 'object') {
+        const when = getProp('skill_bonus_when') === 'travel' ? ' while travelling' : ' while carried';
+        for (const [skill, n] of Object.entries(bonus)) {
+            consumeRows.push(row('Skill bonus', `+${esc(n)} ${esc(skill.charAt(0).toUpperCase() + skill.slice(1))}${when}`, '#fde68a'));
+        }
     }
 
     // Container.
@@ -876,7 +899,7 @@ export function showItemDetails(itemId) {
 
     content.innerHTML = header + lore
         + section('Combat', combatRows)
-        + section('Consumable', consumeRows)
+        + section('In play', consumeRows)
         + section('Container', containRows)
         + section('Focus', focusRows)
         + section('Details', detailRows)
@@ -1028,6 +1051,9 @@ if (document.readyState === 'loading') {
 } else {
     initializeInventoryInteractions();
 }
+
+// The item card, for menus outside the inventory (shop Info, vault Examine).
+window.showItemDetails = showItemDetails;
 
 logger.debug('Inventory interactions module loaded');
 

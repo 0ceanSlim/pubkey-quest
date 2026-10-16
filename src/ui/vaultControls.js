@@ -179,8 +179,10 @@ document.addEventListener('click', (e) => {
  * @param {string} itemId
  * @param {number} available - how many are there
  * @param {(n: number) => Promise<void>} move - move n of the item
+ * @param {Array<{label: string, onClick: () => any}>} [extras] - the item's
+ *   own actions (Equip, Use, …), listed after the amounts
  */
-export function showVaultMenu(x, y, verb, itemId, available, move) {
+export function showVaultMenu(x, y, verb, itemId, available, move, extras = []) {
     closeMenu();
     const name = getItemById(itemId)?.name ?? itemId;
     const options = [
@@ -226,9 +228,10 @@ export function showVaultMenu(x, y, verb, itemId, available, move) {
             await move(Math.min(n, available));
         });
     }
+    for (const extra of extras) add(extra.label, extra.onClick);
     add('Examine', async () => {
-        const item = getItemById(itemId);
-        window.showMessage?.(`${name}: ${item?.description ?? 'Nothing special.'}`, 'info');
+        if (window.showItemDetails) window.showItemDetails(itemId);
+        else window.showMessage?.(`${name}: ${getItemById(itemId)?.description ?? 'Nothing special.'}`, 'info');
     });
 
     document.body.appendChild(menu);

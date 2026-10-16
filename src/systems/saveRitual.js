@@ -127,7 +127,7 @@ export async function confirmSaveGame() {
 
 // ─── Quit to the title screen ────────────────────────────────────────────────
 
-const QUIT_BTN = 'padding: 4px 8px; font-weight: bold; color: #fff; font-size: 8px; cursor: pointer; ' +
+const QUIT_BTN = 'padding: 6px 10px; font-weight: bold; color: #fff; font-size: 11px; cursor: pointer; ' +
     'border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;';
 
 /** Ask whether to save, then leave the game for the home page. */
@@ -137,12 +137,12 @@ export function openQuitModal() {
     overlay.id = 'quit-modal';
     overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: flex; align-items: center; justify-content: center;';
     overlay.innerHTML = `
-        <div class="bg-win95-bgDark" style="border: 2px solid #808080; width: 260px; box-shadow: 0 0 16px rgba(0,0,0,0.6);">
-            <div class="px-2 py-1 text-white font-bold" style="font-size: 9px; background: #7f1d1d;">🚪 LEAVE THE GAME</div>
-            <div class="p-3 text-center">
-                <div class="text-white font-bold mb-1" style="font-size: 9px;">Save before you go?</div>
-                <div class="text-gray-400 mb-2" style="font-size: 7px; line-height: 1.6;">${lastSavedText()}. Quitting without saving goes back to that save: everything since is discarded.</div>
-                <div id="quit-modal-status" class="hidden mb-2 font-bold text-red-400" style="font-size: 8px;"></div>
+        <div class="bg-win95-bgDark" style="border: 2px solid #808080; width: 340px; max-width: 92vw; box-shadow: 0 0 16px rgba(0,0,0,0.6);">
+            <div class="px-3 py-1 text-white font-bold" style="font-size: 12px; background: #7f1d1d;">🚪 LEAVE THE GAME</div>
+            <div class="p-4 text-center">
+                <div class="text-white font-bold mb-2" style="font-size: 13px;">Save before you go?</div>
+                <div class="text-gray-300 mb-3" style="font-size: 10px; line-height: 1.6;">${lastSavedText()}. Quitting without saving goes back to that save: everything since is discarded.</div>
+                <div id="quit-modal-status" class="hidden mb-2 font-bold text-red-400" style="font-size: 10px;"></div>
                 <div class="flex flex-col gap-1">
                     <button data-quit="save" style="${QUIT_BTN} background: #166534;">💾 Save &amp; quit</button>
                     <button data-quit="nosave" style="${QUIT_BTN} background: #7f1d1d;">Quit without saving</button>

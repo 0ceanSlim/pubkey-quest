@@ -6,13 +6,13 @@
         <!-- Game -->
         <div class="border border-gray-700 p-1.5" style="background: #1a1a1a;">
             <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">Game</h3>
-            <div class="grid grid-cols-3 gap-1">
+            <div class="grid grid-cols-1 gap-1">
                 <button id="manual-save-btn" onclick="window.openSaveModal && window.openSaveModal()"
-                        class="settings-btn" title="Save (Ctrl+S)">💾 Save</button>
+                        class="settings-btn" title="Save (Ctrl+S)">💾 Save game</button>
                 <button onclick="reloadFromSave()" class="settings-btn"
-                        title="Discard everything since your last save and load it again">↩️ Reload</button>
+                        title="Discard everything since your last save and load it again">↩️ Reload last save</button>
                 <button onclick="window.openQuitModal && window.openQuitModal()" class="settings-btn"
-                        title="Leave the game (save first, or go back to your last save)">🚪 Quit</button>
+                        title="Leave the game (save first, or go back to your last save)">🚪 Quit to title</button>
             </div>
             <div id="save-status" data-last-saved class="mt-1 text-gray-400" style="font-size: 7px;">Last saved: never this session</div>
             <div id="settings-save-where" class="text-gray-500" style="font-size: 7px; line-height: 1.5;"></div>
@@ -56,7 +56,7 @@
     </div>
     <style>
         #settings-panel .settings-btn {
-            padding: 3px 2px; font-weight: bold; color: #fff; font-size: 8px; cursor: pointer;
+            padding: 4px 6px; font-weight: bold; color: #fff; font-size: 9px; cursor: pointer; text-align: left;
             background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a;
             border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; white-space: nowrap;
         }

@@ -425,6 +425,13 @@ function showBuyContextMenu(e, shopItem) {
         min-width: 150px;
     `;
 
+    // Info: the full item card (what it is and what it does)
+    const infoBtn = createMenuButton('Info', () => {
+        closeContextMenu();
+        window.showItemDetails?.(shopItem.item_id);
+    });
+    menu.appendChild(infoBtn);
+
     // Value button
     const valueBtn = createMenuButton('Value', () => {
         showItemValue(shopItem);
