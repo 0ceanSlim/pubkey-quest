@@ -38,20 +38,6 @@
           "close": null
         },
         {
-          "id": "goldenhaven_trade_goods",
-          "name": "Goldscale Trading House",
-          "description": "Aurelia Goldscale's prestigious trading house, offering quality general supplies for discerning adventurers.",
-          "open": 480,
-          "close": 1200
-        },
-        {
-          "id": "aurelia_home",
-          "name": "Aurelia's Private Residence",
-          "description": "Private quarters.",
-          "open": -1,
-          "close": null
-        },
-        {
           "id": "grand_exchange",
           "name": "Grand Exchange",
           "description": "The financial heart of the city where currencies are exchanged and large transactions occur.",
@@ -85,20 +71,6 @@
             { "id": "oracle_sanctum", "name": "Oracle's Sanctum", "description": "A small round chamber behind the altar, lit only by a slot of sky in the dome. A bowl of black glass sits on a low table, and the walls are scratched with tally marks: storms foretold, ships saved." },
             { "id": "almonry", "name": "Almonry", "description": "A side chapel lined with shelves of candles, oils and stoppered vials. Brother Aldwin keeps the temple's remedies and offerings here, and takes donations at a small brass-bound table." }
           ]
-        },
-        {
-          "id": "aldwin_quarters",
-          "name": "Aldwin's Private Quarters",
-          "description": "Private quarters.",
-          "open": -1,
-          "close": null
-        },
-        {
-          "id": "saphra_quarters",
-          "name": "Saphra's Private Residence",
-          "description": "Private quarters.",
-          "open": -1,
-          "close": null
         }
       ]
     },
@@ -131,6 +103,13 @@
             { "id": "store_room", "name": "Store Room", "description": "A locked back room where guests stow caravan cargo and saddle gear overnight." },
             { "id": "guest_room", "name": "Guest Room", "description": "A clean, secure room on the upper floor with a bolted door and a comfortable bed.", "access": { "state": "rented" } }
           ]
+        },
+        {
+          "id": "goldenhaven_trade_goods",
+          "name": "Goldscale Trading House",
+          "description": "Aurelia Goldscale's prestigious trading house, offering quality general supplies for discerning adventurers.",
+          "open": 480,
+          "close": 1200
         }
       ],
       "exit_to_environment": "merchants-highway"
@@ -150,6 +129,27 @@
           "description": "A major trading post for ores, gems, and mining equipment.",
           "open": 420,
           "close": 1140
+        },
+        {
+          "id": "aurelia_home",
+          "name": "Aurelia's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "aldwin_quarters",
+          "name": "Aldwin's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "saphra_quarters",
+          "name": "Saphra's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ],
       "exit_to_environment": "cragspire-mountains"
