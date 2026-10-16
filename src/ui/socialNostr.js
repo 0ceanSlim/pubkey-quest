@@ -216,22 +216,79 @@ async function sendWhisper(to, text) {
         rumor.id = getEventHash(rumor);
         _sentRumors.add(rumor.id);
         const wraps = [await sealAndWrap(signer, rumor, toHex), await sealAndWrap(signer, rumor, me)];
-        const resp = await fetch('/api/dm/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ wraps }),
-        });
-        const out = await resp.json().catch(() => ({}));
-        if (!resp.ok || !out.success) throw new Error(out.error ?? `HTTP ${resp.status}`);
+        let out = await postWraps(wraps);
+        // Their inbox relays want to know who's writing first: sign in to them
+        // as yourself (NIP-42), then send again.
+        if (!out.success && out.needs_auth) {
+            await answerChallenges(signer, out.challenges ?? []);
+            out = await postWraps(wraps);
+        }
+        if (!out.success) {
+            const why = (out.rejected ?? []).map(r => `${shortRelay(r.relay)}: ${r.reason || 'refused'}`).join('; ');
+            throw new Error(why ? `${out.error ?? 'not delivered'} (${why})` : (out.error ?? 'not delivered'));
+        }
         appendChatLine({ channel: 'whisper', from_npub: gameAPI.npub, to_name: to.name, text });
     } catch (err) {
         appendChatLine({ channel: 'system', text: `Whisper not sent: ${err.message}` });
     }
 }
 
+function shortRelay(url) {
+    return String(url ?? '').replace(/^wss?:\/\//, '');
+}
+
+async function postWraps(wraps) {
+    const resp = await fetch('/api/dm/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wraps }),
+    });
+    const out = await resp.json().catch(() => ({}));
+    if (!resp.ok && !out.error) out.error = `HTTP ${resp.status}`;
+    return out;
+}
+
+/** Answer relays' NIP-42 challenges as yourself. Returns how many succeeded. */
+async function answerChallenges(signer, challenges) {
+    let ok = 0;
+    for (const ch of challenges) {
+        try {
+            const ev = await signer.signEvent({
+                kind: 22242,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [['relay', ch.relay], ['challenge', ch.challenge]],
+                content: '',
+            });
+            const resp = await fetch('/api/dm/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ relay: ch.relay, event: ev }),
+            });
+            if (resp.ok) ok++;
+        } catch (err) {
+            logger.debug('relay sign-in failed:', ch.relay, err);
+        }
+    }
+    return ok;
+}
+
 const _seenWraps = new Set();
 const _seenRumors = new Set();
-const _loadedAt = Math.floor(Date.now() / 1000);
+// Whispers newer than this have been shown (kept per player, so ones sent while
+// you were away still show next time; the first time, the last day's).
+function sinceKey() { return `pq_whisper_since:${myHex() ?? ''}`; }
+function shownSince() {
+    try {
+        const v = Number(localStorage.getItem(sinceKey()));
+        if (v > 0) return v;
+    } catch (_) { /* storage blocked */ }
+    return Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+}
+function markShown(createdAt) {
+    try {
+        if (createdAt > shownSince()) localStorage.setItem(sinceKey(), String(createdAt));
+    } catch (_) { /* storage blocked */ }
+}
 let _inboxSince = 0;
 const _names = new Map();
 
@@ -251,15 +308,18 @@ async function nameFor(hex) {
 }
 
 // NIP-42: answer the AUTH challenges of DM relays that want to know it's you
-// before they hand over your whispers (once per session; a relay that won't
-// take it is skipped and noted once).
-let _authDone = false;
+// before they hand over your whispers. Checked again every few minutes (a
+// dropped connection loses the sign-in); a relay that won't take it is noted.
+let _authCheckedAt = 0;
+const _authFailedNoted = new Set();
 async function authDMRelays() {
-    if (_authDone) return;
-    _authDone = true;
+    if (Date.now() - _authCheckedAt < 5 * 60 * 1000) return;
     const signer = getActiveSigner();
     try {
-        const out = await (await fetch('/api/dm/auth')).json();
+        const resp = await fetch('/api/dm/auth');
+        if (!resp.ok) return; // relay client not ready yet: try again next poll
+        const out = await resp.json();
+        _authCheckedAt = Date.now();
         for (const ch of (out?.challenges ?? [])) {
             try {
                 const ev = await signer.signEvent({
@@ -275,7 +335,10 @@ async function authDMRelays() {
                 });
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             } catch (err) {
-                appendChatLine({ channel: 'system', text: `Couldn't sign in to ${ch.relay.replace(/^wss?:\/\//, '')} — some whispers there may not arrive.` });
+                if (!_authFailedNoted.has(ch.relay)) {
+                    _authFailedNoted.add(ch.relay);
+                    appendChatLine({ channel: 'system', text: `Couldn't sign in to ${shortRelay(ch.relay)} — some whispers there may not arrive.` });
+                }
             }
         }
     } catch (err) {
@@ -292,18 +355,30 @@ async function pollInbox() {
         const q = _inboxSince ? `?since=${_inboxSince}` : '';
         const out = await (await fetch(`/api/dm/inbox${q}`)).json();
         _inboxSince = Math.floor(Date.now() / 1000);
+        const since = shownSince();
+        const fresh = [];
         for (const wrap of (out?.wraps ?? [])) {
             if (_seenWraps.has(wrap.id)) continue;
-            _seenWraps.add(wrap.id);
+            let seal, rumor;
             try {
-                const seal = JSON.parse(await signer.nip44.decrypt(wrap.pubkey, wrap.content));
-                if (!verifyEvent(seal)) continue;
-                const rumor = JSON.parse(await signer.nip44.decrypt(seal.pubkey, seal.content));
-                if (rumor.pubkey !== seal.pubkey || rumor.kind !== 14) continue;
-                if (_seenRumors.has(rumor.id) || _sentRumors.has(rumor.id)) continue;
-                _seenRumors.add(rumor.id);
-                // Only whispers from this session show in the log, not your whole history.
-                if ((rumor.created_at ?? 0) < _loadedAt - 60) continue;
+                seal = JSON.parse(await signer.nip44.decrypt(wrap.pubkey, wrap.content));
+                rumor = JSON.parse(await signer.nip44.decrypt(seal.pubkey, seal.content));
+            } catch (_) {
+                continue; // couldn't open it now (signer busy?): try again next poll
+            }
+            _seenWraps.add(wrap.id);
+            if (!verifyEvent(seal) || rumor.pubkey !== seal.pubkey || rumor.kind !== 14) continue;
+            if (_seenRumors.has(rumor.id) || _sentRumors.has(rumor.id)) continue;
+            _seenRumors.add(rumor.id);
+            // Show what's new since you last saw your whispers (including ones
+            // sent while you were away), not your whole history.
+            if ((rumor.created_at ?? 0) <= since) continue;
+            fresh.push({ seal, rumor });
+        }
+        fresh.sort((a, b) => (a.rumor.created_at ?? 0) - (b.rumor.created_at ?? 0));
+        for (const { seal, rumor } of fresh) {
+            markShown(rumor.created_at ?? 0);
+            try {
                 if (seal.pubkey === me) continue; // your own copy from another client
                 if (_mutes.has(seal.pubkey)) continue;
                 const fromNpub = npubOf(seal.pubkey);

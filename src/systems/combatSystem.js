@@ -104,9 +104,10 @@ export async function debugStartCombat() {
 
 export function enterCombatMode(cs) {
     logger.info('⚔️  Entering combat mode');
-    // Freeze in-game time while fighting — combat is turn-based; the world tick
-    // resumes on exit. (Combat actions use their own endpoints, not the tick.)
-    smoothClock.pause();
+    // Freeze in-game time while fighting — combat is turn-based. A hold, not a
+    // pause: when the fight ends the clock goes back to whatever the player had
+    // chosen. (Combat actions use their own endpoints, not the tick.)
+    smoothClock.hold('combat');
     _baseExperience = window.getGameStateSync?.()?.character?.experience ?? 0;
     // Clear any stale pacing timers from a prior combat that ended mid-flush.
     _logQueueTailAt = 0;
@@ -135,7 +136,7 @@ export function enterCombatMode(cs) {
 
 export function exitCombatMode() {
     logger.info('🏳️  Exiting combat mode');
-    smoothClock.unpause(); // resume the world tick now the fight is over
+    smoothClock.release('combat'); // the clock returns to the player's choice
     _hide('combat-overlay');
     _restoreGameText();
     _restoreActionButtons();
@@ -1033,7 +1034,7 @@ async function checkActiveCombatOnLoad() {
  */
 export function showUnawareChoice(view) {
     if (!view) return;
-    smoothClock.pause();
+    smoothClock.hold('encounter');
     const names = [...new Set((view.monsters ?? []).map(m => m.name))].join(', ');
     showSceneSpeech({
         speaker: names ? `Unseen — ${names}` : 'Unseen',
@@ -1061,26 +1062,44 @@ async function _answerUnaware(choice) {
         if (!resp.ok || !out.success) {
             window.showMessage?.(out.error ?? `HTTP ${resp.status}`, 'error');
             hideSceneSpeech();
-            smoothClock.unpause();
+            smoothClock.release('encounter');
             return;
         }
         hideSceneSpeech();
         if (out.slipped_away) {
             for (const line of (out.log ?? [])) window.addGameLog?.(line.trim());
             window.showMessage?.(`🤫 ${out.message}`, 'success');
-            smoothClock.unpause();
+            smoothClock.release('encounter');
             return;
         }
         if (out.combat) enterCombatMode(out.combat);
+        smoothClock.release('encounter'); // the fight holds the clock now
     } catch (err) {
         logger.error('approach error:', err);
         window.showMessage?.('Network error — try again.', 'error');
+        smoothClock.release('encounter');
     } finally {
         _answeringUnaware = false;
     }
 }
 
 eventBus.on('combat:unaware', showUnawareChoice);
+
+// Death outside combat (starvation, a road hazard, a POI trap). The server has
+// already applied it — you wake in town, stripped — so, like a lost fight,
+// offer to go back to the last save instead.
+eventBus.on('player:died', (death) => {
+    window.refreshGameState?.(true);
+    showSceneSpeech({
+        speaker: 'Fallen',
+        icon: '💀',
+        text: death?.message || 'You have fallen. You wake stripped of your belongings, but your spirit endures.',
+        buttons: [
+            { label: 'Carry on', onClick: () => hideSceneSpeech() },
+            { label: 'Reload last save', onClick: () => reloadLastSave() },
+        ],
+    });
+});
 
 // A party member started a fight we're in (we hear it from the social poll):
 // pull the fight's state and join in.

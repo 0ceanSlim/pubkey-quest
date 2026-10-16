@@ -1,9 +1,6 @@
 package api
 
 import (
-	"pubkey-quest/cmd/server/utils"
-	"pubkey-quest/cmd/server/ledger"
-	"pubkey-quest/cmd/server/api/game"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,10 +8,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"pubkey-quest/cmd/server/api/game"
+	"pubkey-quest/cmd/server/ledger"
+	"pubkey-quest/cmd/server/utils"
 	"strings"
 	"time"
 
 	"github.com/0ceanslim/grain/client/core/tools"
+	nostr "github.com/0ceanslim/grain/server/types"
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/session"
 
@@ -108,6 +109,10 @@ func SavesHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
+		if len(pathParts) == 3 && pathParts[2] == "event" {
+			handleGetSaveEvent(w, npub, pathParts[1])
+			return
+		}
 		handleGetSaves(w, r, npub)
 	case "POST":
 		handleCreateSave(w, r, npub)
@@ -208,6 +213,11 @@ func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
 		if n := notes[save.InternalID]; n != "" {
 			saveMap["relay_note"] = n
 		}
+		// What the saves screen needs to show and delete the relay copy.
+		saveMap["relay_d"] = game.SaveDTag(save.InternalID)
+		if ev := readCachedEvent(npub, save.InternalID); ev != nil {
+			saveMap["event_id"] = ev.ID
+		}
 		savesWithID = append(savesWithID, saveMap)
 	}
 
@@ -299,13 +309,56 @@ func handleCreateSave(w http.ResponseWriter, r *http.Request, npub string) {
 	})
 }
 
-// Delete a save
-func handleDeleteSave(w http.ResponseWriter, _ *http.Request, npub string, saveID string) {
+// handleGetSaveEvent returns a save's signed relay event and this server's
+// record of it, for the saves screen's "save event" view. A character that
+// hasn't been signed yet has no event.
+func handleGetSaveEvent(w http.ResponseWriter, npub, saveID string) {
+	resp := map[string]interface{}{
+		"success":    true,
+		"relay_mode": utils.AppConfig.Saves.Relay,
+		"d":          game.SaveDTag(saveID),
+	}
+	if ev := readCachedEvent(npub, saveID); ev != nil {
+		resp["event"] = ev
+	}
+	if entry, ok := ledger.Get(npub, game.SaveDTag(saveID)); ok {
+		resp["ledger"] = entry
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// Delete a save. With relay saves the body may carry a browser-signed NIP-09
+// deletion request (kind 5) for it, which is published to the player's relays
+// first; the local copy goes either way.
+func handleDeleteSave(w http.ResponseWriter, r *http.Request, npub string, saveID string) {
+	var body struct {
+		Deletion *nostr.Event `json:"deletion"`
+	}
+	if r.Body != nil {
+		json.NewDecoder(r.Body).Decode(&body)
+	}
+	accepted, relays := 0, []string(nil)
+	if body.Deletion != nil {
+		var err error
+		accepted, relays, err = publishSaveDeletion(r, npub, saveID, body.Deletion)
+		if err != nil {
+			log.Printf("❌ Save deletion request for %s/%s failed: %v", npub, saveID, err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+			return
+		}
+		log.Printf("🗑️ Save deletion request for %s accepted by %d/%d relay(s)", saveID, accepted, len(relays))
+	}
+
 	savePath := filepath.Join(SavesDirectory, npub, saveID+".json")
-	// The cached signed event and this server's record go with it. (The event
-	// stays on the player's relays: they own it.)
+	// The cached signed event, this server's record, and any live session or
+	// crash journal go with it.
 	os.Remove(eventPath(npub, saveID))
 	ledger.Remove(npub, game.SaveDTag(saveID))
+	session.GetSessionManager().UnloadSession(npub, saveID)
+	session.RemoveJournal(npub, saveID)
 
 	if err := os.Remove(savePath); err != nil {
 		if os.IsNotExist(err) {
@@ -321,8 +374,10 @@ func handleDeleteSave(w http.ResponseWriter, _ *http.Request, npub string, saveI
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Save deleted successfully",
+		"success":         true,
+		"message":         "Save deleted successfully",
+		"relays":          relays,
+		"relays_accepted": accepted,
 	})
 }
 

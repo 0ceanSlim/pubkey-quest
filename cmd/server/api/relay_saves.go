@@ -270,6 +270,11 @@ func relaySaveSource(npub, saveID string) (*types.SaveFile, error) {
 			newest = ev
 		}
 	}
+	// No copy here means it's being pulled from relays: a save the player
+	// deleted mustn't come back from a relay that ignored the request.
+	if newest != nil && cacheErr != nil && newest.CreatedAt <= deletedSaveTimes(pubkey)[saveID] {
+		newest = nil
+	}
 	if newest != nil && (cachedEv == nil || newest.ID != cachedEv.ID) &&
 		(cacheErr != nil || cachedEv == nil || newest.CreatedAt > cachedEv.CreatedAt) {
 		if save, err := decodeSaveEvent(newest, pubkey, d); err == nil {
@@ -282,6 +287,83 @@ func relaySaveSource(npub, saveID string) (*types.SaveFile, error) {
 		return nil, cacheErr
 	}
 	return cached, nil
+}
+
+// ─── Deleting ────────────────────────────────────────────────────────────────
+//
+// Deleting a save is a NIP-09 deletion request (kind 5) the player signs in the
+// browser: it names the save by its address ("a": 30078:<pubkey>:<d>) and by
+// the last event id the server holds. Relays that honour NIP-09 drop the save;
+// for the ones that don't, the deletion request is itself stored, so loading
+// and listing skip any save event at or before it (deletedSaveTimes).
+
+// saveAddress is a save's NIP-01 address: kind:pubkey:d-tag.
+func saveAddress(pubkey, saveID string) string {
+	return fmt.Sprintf("%d:%s:%s", game.SaveKind, pubkey, game.SaveDTag(saveID))
+}
+
+// publishSaveDeletion checks a browser-signed deletion request for one of the
+// signed-in player's saves and publishes it to their write relays. It returns
+// how many relays accepted it.
+func publishSaveDeletion(r *http.Request, npub, saveID string, ev *nostr.Event) (int, []string, error) {
+	user := grainsession.SessionMgr.GetCurrentUser(r)
+	if user == nil {
+		return 0, nil, fmt.Errorf("you need to be signed in to delete a save from your relays")
+	}
+	pubkey, err := tools.DecodeNpub(npub)
+	if err != nil || pubkey != user.PublicKey || ev.PubKey != pubkey {
+		return 0, nil, fmt.Errorf("that deletion was signed by a different key")
+	}
+	if ev.Kind != 5 {
+		return 0, nil, fmt.Errorf("a deletion request must be kind 5")
+	}
+	if tagValue(ev, "a") != saveAddress(pubkey, saveID) {
+		return 0, nil, fmt.Errorf("the deletion request doesn't name this save")
+	}
+	if !core.VerifyEventSignature(ev) {
+		return 0, nil, fmt.Errorf("the deletion request's signature is invalid")
+	}
+	uc := connection.UserFor(pubkey)
+	if uc == nil {
+		return 0, nil, fmt.Errorf("relay client not ready — try again in a moment")
+	}
+	relays := uc.RoutePublish(ev)
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	results, err := uc.PublishEvent(ctx, ev, relays)
+	if err != nil {
+		return 0, relays, err
+	}
+	accepted := 0
+	for _, res := range results {
+		if res.Success {
+			accepted++
+		}
+	}
+	return accepted, relays, nil
+}
+
+// deletedSaveTimes reads the player's deletion requests (kind 5) for saves and
+// returns, per save id, the time of the newest one. Any save event created at or
+// before that time is deleted, whether or not the relay honoured the request.
+func deletedSaveTimes(pubkey string) map[string]int64 {
+	out := map[string]int64{}
+	prefix := fmt.Sprintf("%d:%s:", game.SaveKind, pubkey)
+	for _, ev := range fetchEvents(pubkey, nostr.Filter{Authors: []string{pubkey}, Kinds: []int{5}}, nil, 4*time.Second) {
+		if ev.PubKey != pubkey || !core.VerifyEventSignature(ev) {
+			continue
+		}
+		for _, t := range ev.Tags {
+			if len(t) < 2 || t[0] != "a" || len(t[1]) <= len(prefix) || t[1][:len(prefix)] != prefix {
+				continue
+			}
+			id := game.SaveIDFromDTag(t[1][len(prefix):])
+			if id != "" && ev.CreatedAt > out[id] {
+				out[id] = ev.CreatedAt
+			}
+		}
+	}
+	return out
 }
 
 // SaveNote explains, for the saves screen, when relays hold a different
@@ -300,10 +382,11 @@ func syncRelaySaves(npub string) []SaveNote {
 		return nil
 	}
 	evs := fetchEvents(pubkey, nostr.Filter{Authors: []string{pubkey}, Kinds: []int{game.SaveKind}}, nil, 5*time.Second)
+	deleted := deletedSaveTimes(pubkey)
 	newestBySlot := map[string]*nostr.Event{}
 	for _, ev := range evs {
 		id := game.SaveIDFromDTag(tagValue(ev, "d"))
-		if id == "" {
+		if id == "" || ev.CreatedAt <= deleted[id] {
 			continue
 		}
 		if cur := newestBySlot[id]; cur == nil || ev.CreatedAt > cur.CreatedAt {

@@ -4,32 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"strings"
 	"time"
 
-	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/api/data"
+	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/events"
-	"pubkey-quest/cmd/server/game/skillcheck"
-	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/gametime"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/movement"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/quest"
+	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/game/vault"
+	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
-	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/cmd/server/social"
+	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -131,11 +133,12 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 		sleepKind = kind
 	}
 	before := placeOf(session)
+	discoveredBefore := len(session.SaveData.LocationsDiscovered)
 
 	// Track last action time for player actions (not tick-type actions)
 	if request.Action.Type != "update_time" {
 		session.LastActionTime = time.Now().Unix()
-		session.LastActionGameTime = session.SaveData.TimeOfDay
+		session.LastActionGameTime = session.SaveData.CurrentDay*1440 + session.SaveData.TimeOfDay
 	}
 
 	// Process the action based on type
@@ -159,7 +162,7 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 		if request.Action.Type != "sleep" {
 			sleepKind = ""
 		}
-		queuePartyMoves(session, before, request.Action.Type, sleepKind)
+		queuePartyMoves(session, before, request.Action.Type, sleepKind, leaderNews(session, discoveredBefore, response))
 	}
 	publishPresence(session)
 	if partySynced {
@@ -219,6 +222,8 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	response.Data["weight_capacity"] = status.CalculateWeightCapacity(&session.SaveData)
 	// Server-authoritative ground items at the player's current spot (drives the GROUND modal).
 	response.Data["ground"] = session.Ground.List(world.GroundKey(&session.SaveData))
+	// The play/pause button's source of truth (a follower sees the leader's).
+	response.Data["clock_running"] = clockRunningFor(session)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
@@ -302,7 +307,7 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					// we just travelled past.
 					maybeRollTravelEncounter(session, state, minutesElapsed, response)
 					maybeFireEncounter(session, "travel", []string{state.Location}, minutesElapsed, response)
-					maybeDiscoverPOIs(state, oldProgress, response)
+					maybeDiscoverPOIs(session, oldProgress, response)
 				}
 			}
 		}
@@ -334,6 +339,21 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 	return response, err
 }
 
+// leaderNews collects what a party leader's action found for the party: the
+// places it added to their discoveries, and a log line for each named find.
+func leaderNews(leader *GameSession, discoveredBefore int, response *GameActionResponse) partyNews {
+	var news partyNews
+	if found := leader.SaveData.LocationsDiscovered; len(found) > discoveredBefore {
+		news.Discovered = append([]string(nil), found[discoveredBefore:]...)
+	}
+	if d, ok := response.Data["poi_discovered"].(map[string]interface{}); ok {
+		if name, _ := d["name"].(string); name != "" {
+			news.Notes = append(news.Notes, "🗺️ Your party discovers "+name+".")
+		}
+	}
+	return news
+}
+
 // maybeRollTravelEncounter rolls a biome monster encounter on a travel tick.
 // On a hit it starts combat server-side, stores it on the session, and flags
 // the result on the response so the client drops into the combat UI. The biome
@@ -344,8 +364,9 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	if sess.ActiveCombat != nil || sess.PendingEncounter != nil {
 		return
 	}
-	// Parties get no random encounters until party-built encounters exist.
-	if social.PartyOf(sess.Npub) != nil {
+	// A party's road fights are the leader's to roll; everyone with them fights.
+	inParty := social.PartyOf(sess.Npub) != nil
+	if social.IsFollower(sess.Npub) {
 		return
 	}
 	// Cooldown: don't fire another biome encounter within CooldownMinutes of the
@@ -392,15 +413,24 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	if aw, err := rollOpening(state, ids); err == nil {
 		switch aw.Opening {
 		case combat.OpeningUnaware:
-			response.Data["encounter_unaware"] = holdUnawareEncounter(sess, ids, state.Location, aw.Log)
-			log.Printf("👁 Travel encounter (unaware): %s in biome %q", monster.ID, biome)
-			return
+			// The sneak-away / sneak-attack choice is one player's; a party
+			// that spots them first simply meets them.
+			if !inParty {
+				response.Data["encounter_unaware"] = holdUnawareEncounter(sess, ids, state.Location, aw.Log)
+				log.Printf("👁 Travel encounter (unaware): %s in biome %q", monster.ID, biome)
+				return
+			}
 		case combat.OpeningAmbush:
 			spec.Surprise = true
 		}
 	}
 
-	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
+	var cs *types.CombatSession
+	if inParty {
+		cs, err = startFight(sess, spec, advancement, true)
+	} else {
+		cs, err = combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
+	}
 	if err != nil {
 		log.Printf("⚠️ travel encounter: StartEncounter failed: %v", err)
 		return
@@ -421,7 +451,8 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 // fires the discovery event (XP + "explore" quest objectives). A POI with a
 // discovery skill+DC is found automatically on a passing passive check,
 // otherwise on the flat discovery chance (see discoveryRoll).
-func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActionResponse) {
+func maybeDiscoverPOIs(sess *GameSession, oldProgress float64, response *GameActionResponse) {
+	state := &sess.SaveData
 	pois, err := serverdb.GetPOIsByEnvironment(state.Location)
 	if err != nil || len(pois) == 0 {
 		return
@@ -440,7 +471,7 @@ func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActio
 		if alreadyDiscovered(state, poi.ID) {
 			continue
 		}
-		if !discoveryRoll(poi, state, rng) {
+		if !partyDiscoveryRoll(sess, poi, rng) {
 			continue // missed the discovery roll
 		}
 		state.LocationsDiscovered = append(state.LocationsDiscovered, poi.ID)
@@ -467,7 +498,8 @@ func maybeDiscoverPOIs(state *SaveFile, oldProgress float64, response *GameActio
 // Alley Den. Found, it's discovered for good and shows up in the district.
 func maybeNoticeCityPOI(sess *GameSession, response *GameActionResponse) {
 	state := &sess.SaveData
-	if sess.PlaceSearched || sess.ActivePOI != nil || sess.ActiveCombat != nil {
+	// A party's leader looks for the party (finds are shared on the sync).
+	if sess.PlaceSearched || sess.ActivePOI != nil || sess.ActiveCombat != nil || social.IsFollower(sess.Npub) {
 		return
 	}
 	if state.CurrentDay*1440+state.TimeOfDay-sess.PlaceSince < encounter.PlaceDwellMinutes {
@@ -480,7 +512,7 @@ func maybeNoticeCityPOI(sess *GameSession, response *GameActionResponse) {
 	}
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, p := range pois {
-		if alreadyDiscovered(state, p.ID) || !discoveryRoll(p, state, rng) {
+		if alreadyDiscovered(state, p.ID) || !partyDiscoveryRoll(sess, p, rng) {
 			continue
 		}
 		state.LocationsDiscovered = append(state.LocationsDiscovered, p.ID)
@@ -573,12 +605,56 @@ func discoveryRoll(poi types.POIData, state *SaveFile, rng *rand.Rand) bool {
 	// Treat the passing-by as a few effective attempts: eff = 1-(1-chance)^N. A
 	// decent chance (0.6) then reliably lands (~0.94), while a genuinely rare POI
 	// (0.05) stays rare (~0.14).
+	return rng.Float64() < effectiveDiscoveryChance(poi.Discovery.Chance)
+}
+
+// effectiveDiscoveryChance treats passing a POI as a few attempts at its flat
+// chance (see discoveryRoll).
+func effectiveDiscoveryChance(chance float64) float64 {
 	const discoveryAttempts = 3
 	eff := 0.0
 	for i := 0; i < discoveryAttempts; i++ {
-		eff += (1 - eff) * poi.Discovery.Chance
+		eff += (1 - eff) * chance
 	}
-	return rng.Float64() < eff
+	return eff
+}
+
+// discoveryRollOnce is one look: the passive skill check, else a single roll at
+// the chance as given (already the effective, per-member chance).
+func discoveryRollOnce(poi types.POIData, state *SaveFile, rng *rand.Rand) bool {
+	if poi.Discovery.Skill != "" && poi.Discovery.DC > 0 {
+		if skillcheck.Passive(buildQuestContext(state).SkillValue(poi.Discovery.Skill), poi.Discovery.DC) {
+			return true
+		}
+	}
+	return rng.Float64() < poi.Discovery.Chance
+}
+
+// partyDiscoveryRoll is discoveryRoll for whoever is travelling together. Each
+// party member gets a look, but at a chance lowered so the party as a whole is
+// about as likely to find a place as one traveller: per member
+// 1 - (1 - chance)^(1/n). A passing passive skill check still finds it outright
+// (someone in the party has the sharp eyes). Solo it is discoveryRoll.
+func partyDiscoveryRoll(sess *GameSession, poi types.POIData, rng *rand.Rand) bool {
+	members := []*SaveFile{&sess.SaveData}
+	if p := social.PartyOf(sess.Npub); p != nil && p.Leader().Npub == sess.Npub {
+		for _, m := range p.Members[1:] {
+			if s, err := session.GetSessionManager().GetSession(m.Npub, m.SaveID); err == nil {
+				members = append(members, &s.SaveData)
+			}
+		}
+	}
+	if len(members) == 1 {
+		return discoveryRoll(poi, &sess.SaveData, rng)
+	}
+	shared := poi
+	shared.Discovery.Chance = 1 - math.Pow(1-effectiveDiscoveryChance(poi.Discovery.Chance), 1/float64(len(members)))
+	for _, s := range members {
+		if discoveryRollOnce(shared, s, rng) {
+			return true
+		}
+	}
+	return false
 }
 
 // processActionSwitch dispatches to specific action handlers
@@ -687,8 +763,11 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleResumeTravelAction(state, action.Params)
 	case "turn_back":
 		return handleTurnBackAction(state, action.Params)
-	case "reset_idle_timer":
-		return handleResetIdleTimerAction(session)
+	case "set_clock":
+		running, _ := action.Params["running"].(bool)
+		return handleSetClockAction(session, running)
+	case "reset_idle_timer": // older clients: the play button
+		return handleSetClockAction(session, true)
 	default:
 		return nil, fmt.Errorf("unknown action type: %s", action.Type)
 	}
@@ -1011,7 +1090,16 @@ func handleUpdateTimeAction(state *SaveFile, params map[string]any) (*GameAction
 		}, nil
 	}
 
+	// A paused clock doesn't move, whatever the client sends. (A follower's
+	// tick was already pinned to the leader's clock.)
+	if session != nil && !social.IsFollower(session.Npub) && !session.ClockRunning {
+		return &GameActionResponse{Success: true, Data: map[string]interface{}{"clock_running": false}}, nil
+	}
+
 	resp, err := gametime.HandleUpdateTimeAction(state, paramsIface, session, data.GetNPCIDsAtLocation)
+	if resp != nil && session != nil && resp.Data["auto_pause"] == true {
+		session.ClockRunning = false
+	}
 
 	// Resolve any spell prep tasks that finished during this time tick
 	if session != nil {
@@ -1566,14 +1654,25 @@ func handleTurnBackAction(state *SaveFile, params map[string]any) (*GameActionRe
 	return nil, err
 }
 
-// handleResetIdleTimerAction resets the auto-pause idle timer
-// Called when the play button is pressed to prevent immediate re-triggering of auto-pause
-func handleResetIdleTimerAction(session *GameSession) (*GameActionResponse, error) {
-	resp, err := gametime.HandleResetIdleTimerAction(session, time.Now().Unix())
-	if resp != nil {
-		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, err
+// handleSetClockAction is the play/pause button: it records the player's choice
+// (GameSession.ClockRunning). Pressing play also restarts the idle auto-pause
+// count, so it can't fire again straight away.
+func handleSetClockAction(session *GameSession, running bool) (*GameActionResponse, error) {
+	session.ClockRunning = running
+	if running {
+		gametime.HandleResetIdleTimerAction(session, time.Now().Unix())
 	}
-	return nil, err
+	return &GameActionResponse{Success: true, Data: map[string]interface{}{"clock_running": running}}, nil
+}
+
+// clockRunningFor is whether a player's clock is running: their own choice, or
+// for a party follower, the leader's.
+func clockRunningFor(sess *GameSession) bool {
+	if p := social.PartyOf(sess.Npub); p != nil && p.Leader().Npub != sess.Npub {
+		e, ok := presence.Get(p.Leader().Npub)
+		return ok && e.ClockRunning && !e.ClockHeld && !e.InCombat
+	}
+	return sess.ClockRunning
 }
 
 // handleBookShowAction books a performance at a tavern

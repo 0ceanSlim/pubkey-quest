@@ -170,7 +170,7 @@ func objectiveMatches(obj types.QuestObjective, ev events.Event) bool {
 	case types.ObjectiveFetch:
 		return ev.Kind == events.ItemAcquired && obj.Target == ev.Target
 	case types.ObjectiveExplore:
-		return ev.Kind == events.LocationDiscovered && obj.Target == ev.Target
+		return (ev.Kind == events.LocationDiscovered || ev.Kind == events.LocationVisited) && obj.Target == ev.Target
 	case types.ObjectiveTalk:
 		return ev.Kind == events.NPCTalked && obj.Target == ev.Target
 	case types.ObjectiveCheck:

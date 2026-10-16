@@ -1,6 +1,7 @@
 package gametime
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -29,7 +30,33 @@ type TimeSessionProvider interface {
 type IdleResetSessionProvider interface {
 	SetLastActionTime(unixTime int64)
 	SetLastActionGameTime(gameTime int)
-	GetSaveDataTimeOfDay() int
+	GetSaveDataAbsMinutes() int
+}
+
+// idlePauseDefault is used when game-data/systems/time-config.json is missing.
+const idlePauseDefault = 60
+
+var cachedIdlePause int
+
+// IdleAutoPauseMinutes is how many in-game minutes the clock may run with no
+// player action before the game pauses itself (time-config.json).
+func IdleAutoPauseMinutes() int {
+	if cachedIdlePause > 0 {
+		return cachedIdlePause
+	}
+	cachedIdlePause = idlePauseDefault
+	if database := db.GetDB(); database != nil {
+		var props string
+		if database.QueryRow("SELECT properties FROM systems WHERE id = 'time-config'").Scan(&props) == nil {
+			var cfg struct {
+				IdleAutoPauseMinutes int `json:"idle_auto_pause_minutes"`
+			}
+			if json.Unmarshal([]byte(props), &cfg) == nil && cfg.IdleAutoPauseMinutes > 0 {
+				cachedIdlePause = cfg.IdleAutoPauseMinutes
+			}
+		}
+	}
+	return cachedIdlePause
 }
 
 // HandleAdvanceTimeAction advances game time by segments (hours)
@@ -71,24 +98,12 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 		}, nil
 	}
 
-	// Check for auto-pause: if 6+ in-game hours have passed since last player action
+	// Auto-pause: the clock ran IdleAutoPauseMinutes of game time with no
+	// player action. Both sides are absolute minutes, so midnight doesn't matter.
 	autoPause := false
-	if session != nil && session.GetLastActionGameTime() > 0 {
-		// Calculate in-game minutes since last action
-		newTime := int(newTimeOfDay)
-		newDay := int(newCurrentDay)
-
-		// Calculate total minutes elapsed since last action
-		var minutesSinceAction int
-		if newDay == state.CurrentDay {
-			minutesSinceAction = newTime - session.GetLastActionGameTime()
-		} else {
-			// Handle day wrap
-			minutesSinceAction = (1440 - session.GetLastActionGameTime()) + newTime + ((newDay - state.CurrentDay - 1) * 1440)
-		}
-
-		// Auto-pause after 6 in-game hours (360 minutes) of idle
-		if minutesSinceAction >= 360 {
+	if session != nil {
+		minutesSinceAction := int(newCurrentDay)*1440 + int(newTimeOfDay) - session.GetLastActionGameTime()
+		if minutesSinceAction >= IdleAutoPauseMinutes() {
 			autoPause = true
 			log.Printf("⏸️ Auto-pause triggered: %d in-game minutes since last action", minutesSinceAction)
 		}
@@ -344,9 +359,7 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 func HandleResetIdleTimerAction(session IdleResetSessionProvider, currentUnixTime int64) (*types.GameActionResponse, error) {
 	// Reset the idle tracking to current time
 	session.SetLastActionTime(currentUnixTime)
-	session.SetLastActionGameTime(session.GetSaveDataTimeOfDay())
-
-	log.Printf("⏱️ Idle timer reset - LastActionGameTime: %d", session.GetSaveDataTimeOfDay())
+	session.SetLastActionGameTime(session.GetSaveDataAbsMinutes())
 
 	return &types.GameActionResponse{
 		Success: true,

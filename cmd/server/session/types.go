@@ -130,7 +130,13 @@ type GameSession struct {
 
 	// Auto-pause tracking: tracks time since last player action
 	LastActionTime     int64 `json:"-"` // Real-time timestamp of last player action
-	LastActionGameTime int   `json:"-"` // In-game time (TimeOfDay) of last player action
+	LastActionGameTime int   `json:"-"` // In-game time of last player action, absolute minutes (CurrentDay*1440 + TimeOfDay)
+
+	// ClockRunning is the player's play/pause choice — the one source of truth
+	// the play button shows. update_time only advances the world while it's on
+	// (a follower's clock follows the leader's instead). Combat, POI walks and
+	// encounters hold the clock in the client without changing it.
+	ClockRunning bool `json:"-"`
 
 	// Delta system: cached state for surgical updates
 	LastSnapshot       *SessionSnapshot `json:"-"` // Previous state for delta calculation
@@ -241,6 +247,11 @@ func (s *GameSession) GetSaveDataTimeOfDay() int {
 	return s.SaveData.TimeOfDay
 }
 
+// GetSaveDataAbsMinutes returns the save's absolute in-game minute.
+func (s *GameSession) GetSaveDataAbsMinutes() int {
+	return s.SaveData.CurrentDay*1440 + s.SaveData.TimeOfDay
+}
+
 // GetNPCsAtLocation returns the cached NPCs at current location
 func (s *GameSession) GetNPCsAtLocation() []string {
 	return s.NPCsAtLocation
@@ -293,6 +304,10 @@ type PartySync struct {
 	TimeOfDay      int
 	TravelProgress float64
 	TravelStopped  bool
+	// Discovered are places the leader (and so the party) just found; Notes are
+	// lines for the followers' log (the leader's travel, discoveries, walks).
+	Discovered []string
+	Notes      []string
 	// AccrueFatigue: whether the time this sync covers builds fatigue (false
 	// for waiting).
 	AccrueFatigue bool
@@ -322,8 +337,8 @@ func (s *GameSession) TakePartySyncs() []PartySync {
 
 // PendingSave is an unsigned save event waiting for the player's signature.
 type PendingSave struct {
-	D         string   // the event's d tag
-	Content   string   // compact save (savecodec) — the signed content must match exactly
+	D         string // the event's d tag
+	Content   string // compact save (savecodec) — the signed content must match exactly
 	Tags      [][]string
 	CreatedAt int64
 	DiskJSON  []byte // the full save as it was when prepared, written to disk on success

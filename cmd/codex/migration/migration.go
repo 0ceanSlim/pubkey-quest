@@ -1370,6 +1370,7 @@ func migrateSystemsFiles() error {
 		"skills.json",
 		"travel-config.json",
 		"combat-terrain.json",
+		"time-config.json",
 	}
 
 	count := 0

@@ -30,8 +30,14 @@ class SmoothClock {
         this.lastSyncRealTime = 0;     // Real timestamp (ms) of last sync
         this.lastSyncDay = 1;
 
-        // Animation state
+        // Animation state. The clock ticks only while the player's play/pause
+        // choice is "running" (mirrored from the server's clock_running) and
+        // nothing holds it: combat, POI walks and encounters hold the clock
+        // without touching the player's choice, so ending a fight never starts
+        // a clock the player had paused.
         this.isPaused = true;
+        this.running = false;
+        this.holds = new Set();
         this.animationId = null;
         this.hasInitialSync = false;  // Don't display until first sync from backend
 
@@ -244,27 +250,63 @@ class SmoothClock {
     }
 
     /**
-     * Pause the clock (stops interpolation)
+     * Set the player's play/pause choice (the server's clock_running).
+     * @param {boolean} running
      */
-    pause() {
-        this.isPaused = true;
-        // Many systems pause the clock directly (combat, POI/encounter overlays,
-        // auto-pause) — announce it so the play/pause button can follow.
-        eventBus.emit('clock:pauseChanged', true);
-        logger.debug('Clock paused');
+    setRunning(running) {
+        if (this.running === Boolean(running)) return;
+        this.running = Boolean(running);
+        this.applyPauseState();
     }
 
     /**
-     * Unpause the clock and re-anchor to current time
+     * Hold the clock for a reason (combat, poi, encounter) without changing the
+     * player's choice. Release it with the same reason.
+     * @param {string} reason
      */
+    hold(reason) {
+        this.holds.add(reason);
+        this.applyPauseState();
+    }
+
+    /** @param {string} reason */
+    release(reason) {
+        if (this.holds.delete(reason)) this.applyPauseState();
+    }
+
+    isHeld() {
+        return this.holds.size > 0;
+    }
+
+    isRunning() {
+        return this.running;
+    }
+
+    applyPauseState() {
+        const paused = !this.running || this.holds.size > 0;
+        if (paused === this.isPaused) {
+            eventBus.emit('clock:pauseChanged', paused);
+            return;
+        }
+        if (!paused) {
+            // Re-anchor to current interpolated time so we don't jump
+            this.lastSyncTime = this.gameTime;
+            this.lastSyncRealTime = performance.now();
+            this.lastSyncDay = this.gameDay;
+        }
+        this.isPaused = paused;
+        eventBus.emit('clock:pauseChanged', paused);
+        logger.debug(paused ? 'Clock paused' : 'Clock running');
+    }
+
+    /** Player pause (kept for older callers). */
+    pause() {
+        this.setRunning(false);
+    }
+
+    /** Player play (kept for older callers). */
     unpause() {
-        // Re-anchor to current interpolated time so we don't jump
-        this.lastSyncTime = this.gameTime;
-        this.lastSyncRealTime = performance.now();
-        this.lastSyncDay = this.gameDay;
-        this.isPaused = false;
-        eventBus.emit('clock:pauseChanged', false);
-        logger.debug('Clock unpaused');
+        this.setRunning(true);
     }
 
     /**
@@ -325,11 +367,7 @@ class SmoothClock {
      * Toggle play/pause state
      */
     togglePause() {
-        if (this.isPaused) {
-            this.unpause();
-        } else {
-            this.pause();
-        }
+        this.setRunning(!this.running);
         return this.isPaused;
     }
 
@@ -368,6 +406,8 @@ window.smoothClock = {
     togglePause: () => smoothClock.togglePause(),
     pause: () => smoothClock.pause(),
     unpause: () => smoothClock.unpause(),
+    hold: (reason) => smoothClock.hold(reason),
+    release: (reason) => smoothClock.release(reason),
     getCurrentTime: () => smoothClock.getCurrentTime(),
     isPaused: () => smoothClock.isPausedState(),
     resetForNewGame: () => smoothClock.resetForNewGame()

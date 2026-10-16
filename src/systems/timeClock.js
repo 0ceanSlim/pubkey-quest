@@ -18,8 +18,13 @@ import { eventBus } from '../lib/events.js';
 import { smoothClock } from './smoothClock.js';
 import { tickManager } from './tickManager.js';
 import { deltaApplier } from './deltaApplier.js';
+import { getSocialState } from './socialPoll.js';
 
-let isPaused = true;
+/** A party member who isn't the leader: the clock is the leader's to run. */
+export function isPartyFollower() {
+    const party = getSocialState()?.party;
+    return Boolean(party && !party.you_lead);
+}
 
 /**
  * Initialize the clock system
@@ -29,11 +34,11 @@ export function initTimeClock() {
 
     initDeltaSystem();
 
-    // Keep the play/pause button in step with the clock, however it was paused.
-    eventBus.on('clock:pauseChanged', (paused) => {
-        isPaused = paused;
-        updatePlayPauseButton();
-    });
+    // The button follows the clock; the clock follows the server's
+    // clock_running (on every action response and every social poll).
+    eventBus.on('clock:pauseChanged', () => updatePlayPauseButton());
+    eventBus.on('clock:running', (running) => smoothClock.setRunning(running));
+    eventBus.on('social:party', () => updatePlayPauseButton());
 
     // Update button state
     updatePlayPauseButton();
@@ -126,9 +131,7 @@ function syncClockToGameState(stateOverride = null) {
  * Toggle play/pause
  */
 export function togglePause() {
-    isPaused = smoothClock.togglePause();
-    updatePlayPauseButton();
-    logger.info(isPaused ? 'Time paused' : 'Time playing');
+    return smoothClock.isRunning() ? pause() : play();
 }
 
 /**
@@ -148,34 +151,35 @@ export function getCurrentTime() {
 }
 
 /**
- * Force pause (called when loading game, etc.)
+ * Pause: the player's choice, recorded on the server. Stops locally at once.
  */
-export function pause() {
-    smoothClock.pause();
-    isPaused = true;
-    updatePlayPauseButton();
-    logger.info('Time force-paused');
+export async function pause() {
+    if (isPartyFollower()) return;
+    smoothClock.setRunning(false);
+    try {
+        if (gameAPI.initialized) await gameAPI.sendAction('set_clock', { running: false });
+    } catch (error) {
+        logger.warn('Failed to pause the clock:', error);
+    }
 }
 
 /**
- * Force play (optional - for auto-play on actions)
+ * Play: the player's choice (the ▶ button, and actions that set time moving).
+ * The clock only starts once the server has it — otherwise a tick could reach
+ * the server first, find the clock stopped, and stop it again.
+ * Followers can't: the leader runs the party's clock.
  */
 export async function play() {
-    smoothClock.unpause();
-    isPaused = false;
-    updatePlayPauseButton();
-
-    // Reset the auto-pause idle timer when play is pressed
-    try {
-        if (gameAPI.initialized) {
-            await gameAPI.sendAction('reset_idle_timer', {});
-            logger.debug('Idle timer reset on play');
-        }
-    } catch (error) {
-        logger.warn('Failed to reset idle timer:', error);
+    if (isPartyFollower()) return;
+    if (!gameAPI.initialized) {
+        smoothClock.setRunning(true);
+        return;
     }
-
-    logger.info('Time force-played');
+    try {
+        await gameAPI.sendAction('set_clock', { running: true });
+    } catch (error) {
+        logger.warn('Failed to start the clock:', error);
+    }
 }
 
 /**
@@ -184,17 +188,28 @@ export async function play() {
 function updatePlayPauseButton() {
     const playButton = document.getElementById('time-play-button');
     const pauseButton = document.getElementById('time-pause-button');
+    const waitButton = document.getElementById('time-wait-button');
 
     if (!playButton || !pauseButton) {
         return;
     }
 
-    if (isPaused) {
-        playButton.style.display = '';
-        pauseButton.style.display = 'none';
-    } else {
-        playButton.style.display = 'none';
-        pauseButton.style.display = '';
+    const running = smoothClock.isRunning();
+    playButton.style.display = running ? 'none' : '';
+    pauseButton.style.display = running ? '' : 'none';
+
+    // Followers ride the leader's clock; a held clock (a fight, a POI) can't be
+    // started or stopped until it's released.
+    const follower = isPartyFollower();
+    const locked = follower || smoothClock.isHeld();
+    for (const btn of [playButton, pauseButton, waitButton]) {
+        if (!btn) continue;
+        btn.disabled = locked;
+        btn.style.opacity = locked ? '0.45' : '';
+        btn.style.cursor = locked ? 'not-allowed' : 'pointer';
+        btn.title = follower ? "Your party leader keeps the time"
+            : smoothClock.isHeld() ? 'Time is stopped for now'
+            : btn === waitButton ? 'Wait' : '';
     }
 }
 

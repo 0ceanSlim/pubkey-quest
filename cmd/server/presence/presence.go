@@ -38,7 +38,12 @@ type Entry struct {
 	Spot       string
 	AbsMinutes int // CurrentDay*1440 + TimeOfDay
 	InCombat   bool
-	LastSeen   time.Time
+	// ClockRunning is the player's play/pause choice; a party follower's clock
+	// follows their leader's. ClockHeld: something stops it for now (a POI walk
+	// or an unaware choice; a fight is InCombat).
+	ClockRunning bool
+	ClockHeld    bool
+	LastSeen     time.Time
 
 	// Location is the city or road (environment) id — the "area" for the
 	// headcount and the Area list. AreaName is its display name.

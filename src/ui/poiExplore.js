@@ -140,6 +140,14 @@ function handleStepData(data) {
         eventBus.emit('combat:started', data.combat);
         return;
     }
+    if (data.death) {
+        // The walk killed you: the walk is over server-side.
+        hideOverlay();
+        smoothClock.release('poi');
+        const last = (data.step?.outcome ?? []).slice(-1)[0];
+        eventBus.emit('player:died', { ...data.death, message: last });
+        return;
+    }
     renderStep(data.step);
 }
 
@@ -206,7 +214,7 @@ async function pickInWalk(node) {
 // ─── overlay open/close (clock pause mirrors combat) ────────────────────────────
 
 function openOverlay() {
-    smoothClock.pause(); // freeze the world while exploring → travel progress holds
+    smoothClock.hold('poi'); // freeze the world while exploring → travel progress holds
 }
 
 // hideOverlay tucks the speech box away WITHOUT resuming the clock — used when
@@ -217,7 +225,7 @@ function hideOverlay() {
 
 async function closeOverlay() {
     hideSceneSpeech();
-    smoothClock.unpause(); // resume the world tick now the walk is done
+    smoothClock.release('poi'); // back to the player's play/pause choice
     await refreshGameState(true);
     // Re-render the scene we returned to so the travel markers/progress refresh.
     try {

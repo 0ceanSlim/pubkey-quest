@@ -67,10 +67,15 @@ export function refreshLastSavedIndicators() {
     document.querySelectorAll('[data-last-saved]').forEach((el) => { el.textContent = text; });
 }
 
-/** Open the save ritual modal. */
-export function openSaveModal() {
+/**
+ * Open the save ritual modal.
+ * @param {{firstSave?: boolean}} [opts] firstSave: a new character that has
+ *   never been signed to relays (shown once after the intro).
+ */
+export function openSaveModal(opts = {}) {
     const modal = document.getElementById('save-modal');
     if (!modal) return;
+    document.getElementById('save-modal-first')?.classList.toggle('hidden', !opts.firstSave);
     setText('save-modal-summary', summaryText());
     setText('save-modal-last', lastSavedText());
     const status = document.getElementById('save-modal-status');

@@ -1,0 +1,6 @@
+{
+  "idle_auto_pause_minutes": 60,
+  "notes": [
+    "idle_auto_pause_minutes: in-game minutes the clock may run with no player action before the game pauses itself. At 144x speed, 60 in-game minutes is about 25 real seconds."
+  ]
+}

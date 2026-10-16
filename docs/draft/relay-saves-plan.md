@@ -143,6 +143,23 @@ These go in `config.yml`. The official build refuses to start with debug tools o
 4. **The last wipe:** the official server starts empty. From the first save there on, no wipes
    ever.
 
+## 7b. Deleting a save, viewing it, and the first save (2026-10-15)
+
+- **Delete** (saves screen → 🗑 Delete → confirm): if the save is on relays, the
+  browser signs a NIP-09 deletion request (kind 5) with `["a", "30078:<pubkey>:<d>"]`,
+  `["e", <last event id>]` and `["k", "30078"]`; `DELETE /api/saves/{npub}/{id}`
+  checks it names that save and was signed by the player, publishes it to their write
+  relays, then removes the disk copy, the cached event, the ledger row, any live
+  session and the crash journal. Relays that ignore NIP-09 still store the deletion
+  request, so listing and loading skip any save event created at or before the
+  newest deletion for that save (`deletedSaveTimes`).
+- **Save details** (a collapsed dropdown on each save): `GET /api/saves/{npub}/{id}/event`
+  returns the signed event as cached here plus this server's ledger record.
+- **First save:** creating a character still writes only the server's disk copy (the
+  server can't sign). With relay saves on, `/api/session/init` returns
+  `needs_first_save` when the character has never been signed, and the game opens the
+  save dialog with a note asking the player to save.
+
 ## 8. Not in scope
 
 - Encrypted saves (decided public).

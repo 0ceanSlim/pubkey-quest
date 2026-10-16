@@ -159,7 +159,7 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 		LoadedAt:           currentTimestamp(),
 		UpdatedAt:          currentTimestamp(),
 		LastActionTime:     currentTimestamp(),
-		LastActionGameTime: saveData.TimeOfDay,
+		LastActionGameTime: saveData.CurrentDay*1440 + saveData.TimeOfDay,
 		BuildingStates:     make(map[string]bool),
 		Ground:             world.NewGroundStore(),
 	}
@@ -220,7 +220,7 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 		LoadedAt:           currentTimestamp(),
 		UpdatedAt:          currentTimestamp(),
 		LastActionTime:     currentTimestamp(),
-		LastActionGameTime: saveData.TimeOfDay,
+		LastActionGameTime: saveData.CurrentDay*1440 + saveData.TimeOfDay,
 		BuildingStates:     make(map[string]bool),
 		Ground:             world.NewGroundStore(),
 	}

@@ -17,13 +17,14 @@ import "pubkey-quest/types"
 type Kind string
 
 const (
-	MonsterKilled     Kind = "monster_killed"     // Target = monster id   → quest "slay"
-	ItemAcquired      Kind = "item_acquired"      // Target = item id      → quest "fetch"
-	LocationDiscovered Kind = "location_discovered" // Target = location/POI id → quest "explore"
-	NPCTalked         Kind = "npc_talked"         // Target = npc id       → quest "talk"
-	SkillCheckPassed  Kind = "skill_check_passed" // Target = skill id     → quest "check"
-	ShopTransaction   Kind = "shop_transaction"   // Target = item id
-	Slept             Kind = "slept"              // Target = building id
+	MonsterKilled      Kind = "monster_killed"      // Target = monster id   → quest "slay"
+	ItemAcquired       Kind = "item_acquired"       // Target = item id      → quest "fetch"
+	LocationDiscovered Kind = "location_discovered" // Target = location/POI id → quest "explore" (+ discovery XP)
+	LocationVisited    Kind = "location_visited"    // Target = a place already known, entered again → quest "explore", no XP
+	NPCTalked          Kind = "npc_talked"          // Target = npc id       → quest "talk"
+	SkillCheckPassed   Kind = "skill_check_passed"  // Target = skill id     → quest "check"
+	ShopTransaction    Kind = "shop_transaction"    // Target = item id
+	Slept              Kind = "slept"               // Target = building id
 )
 
 // Event is one recorded occurrence. Count is the magnitude (monsters slain,

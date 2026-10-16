@@ -20,6 +20,7 @@ import (
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/social"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -43,8 +44,8 @@ func buildPOIDeps(state *types.SaveFile) (poi.Deps, error) {
 		return poi.Deps{}, err
 	}
 	return poi.Deps{
-		Ctx:         buildQuestContext(state), // effective-stats aware (base + active effects)
-		Rng:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Ctx: buildQuestContext(state), // effective-stats aware (base + active effects)
+		Rng: rand.New(rand.NewSource(time.Now().UnixNano())),
 		GrantReward: func(s *types.SaveFile, r *types.POIReward) {
 			quest.GrantReward(s, r, advancement)
 			for _, it := range r.Items {
@@ -132,7 +133,14 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 		events.Record(state, events.SkillCheckPassed, res.CheckSkill, 1)
 	}
 	if res.Waypoint != "" {
-		events.Record(state, events.LocationDiscovered, res.Waypoint, 1)
+		// The first time a named spot is reached it's a discovery (XP); after
+		// that it still counts for quest "explore" objectives, but pays nothing.
+		if alreadyDiscovered(state, res.Waypoint) {
+			events.Record(state, events.LocationVisited, res.Waypoint, 1)
+		} else {
+			state.LocationsDiscovered = append(state.LocationsDiscovered, res.Waypoint)
+			events.Record(state, events.LocationDiscovered, res.Waypoint, 1)
+		}
 	}
 
 	sess.ActivePOI.CurrentNode = nodeID
@@ -183,12 +191,36 @@ func bridgePOICombat(sess *session.GameSession, res *poi.StepResult) error {
 		Surprise:      res.CombatSurprise,
 		Arena:         res.CombatArena,
 	}
+	// A party leader's walk is the party's: everyone with them fights.
+	if social.PartyOf(sess.Npub) != nil && !social.IsFollower(sess.Npub) {
+		_, err := startFight(sess, spec, advancement, true)
+		return err
+	}
 	cs, err := combat.StartEncounter(serverdb.GetDB(), state, sess.Npub, spec, advancement)
 	if err != nil {
 		return err
 	}
 	sess.ActiveCombat = cs
 	return nil
+}
+
+// partyStepLog mirrors a party leader's POI step into the followers' logs.
+func partyStepLog(leader *session.GameSession, res poi.StepResult) {
+	if social.PartyOf(leader.Npub) == nil || social.IsFollower(leader.Npub) {
+		return
+	}
+	text := res.Text
+	if len(text) > 280 {
+		text = text[:277] + "…"
+	}
+	lines := []string{}
+	if text != "" {
+		lines = append(lines, "📜 "+text)
+	}
+	for _, o := range res.Outcome {
+		lines = append(lines, "   "+o)
+	}
+	partyLog(leader, lines...)
 }
 
 // buildCombatPayload writes the opening combat state onto data so the client
@@ -266,6 +298,18 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "session not found")
 		return
 	}
+	// One request at a time per session, after any moves the leader made.
+	sess.Lock()
+	defer sess.Unlock()
+	applyPartySyncs(sess)
+	if social.IsFollower(sess.Npub) {
+		writePOIError(w, http.StatusForbidden, "Your party leader leads the way in.")
+		return
+	}
+	if sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil {
+		writePOIError(w, http.StatusConflict, "You're busy.")
+		return
+	}
 	if !alreadyDiscovered(&sess.SaveData, req.POIID) {
 		writePOIError(w, http.StatusBadRequest, "POI not discovered")
 		return
@@ -291,8 +335,13 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Going in counts as exploring it — a quest taken after the POI was first
-	// found can still send you there.
-	events.Record(&sess.SaveData, events.LocationDiscovered, req.POIID, 1)
+	// found can still send you there. (Not a discovery: it was found already.)
+	events.Record(&sess.SaveData, events.LocationVisited, req.POIID, 1)
+
+	// A leader takes the party in: whoever hadn't found it has now.
+	if social.PartyOf(sess.Npub) != nil {
+		partyShare(sess, []string{req.POIID}, "🗺️ "+sess.SaveData.D+" leads the party into "+poiData.Name+".")
+	}
 
 	sess.ActivePOI = &poi.Session{POIID: req.POIID, Title: poiData.Name, Nodes: poiData.Nodes, CurrentNode: poiData.StartNode}
 	data := map[string]any{}
@@ -302,6 +351,7 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	partyStepLog(sess, res)
 	data["step"] = res
 	writePOIJSON(w, http.StatusOK, map[string]any{"success": true, "data": data})
 }
@@ -332,6 +382,8 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "session not found")
 		return
 	}
+	sess.Lock()
+	defer sess.Unlock()
 	if sess.ActivePOI == nil {
 		writePOIError(w, http.StatusBadRequest, "no active POI")
 		return
@@ -347,6 +399,7 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	partyStepLog(sess, res)
 	data["step"] = res
 	writePOIJSON(w, http.StatusOK, map[string]any{"success": true, "data": data})
 }

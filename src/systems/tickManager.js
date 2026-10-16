@@ -207,14 +207,13 @@ class TickManager {
 
             if (data) {
 
-                // Check for auto-pause (6+ in-game hours of idle)
+                // Idle auto-pause: the server stopped the clock (clock_running
+                // false arrives with this response and flips the button).
                 if (data.auto_pause) {
                     logger.info('Auto-pause triggered by backend');
-                    smoothClock.pause();
-
-                    // Show notification to user
+                    smoothClock.setRunning(false);
                     eventBus.emit('notification:show', {
-                        message: 'Game auto-paused after 6 hours of idle time.',
+                        message: 'Time paused — nothing has happened for a while. Press ▶ to carry on.',
                         color: 'yellow',
                         duration: 5000
                     });

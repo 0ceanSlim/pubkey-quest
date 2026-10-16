@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/vault"
+	"pubkey-quest/cmd/server/ledger"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/types"
@@ -82,8 +85,26 @@ func InitSessionHandler(w http.ResponseWriter, r *http.Request) {
 			"npub":      sess.Npub,
 			"save_id":   sess.SaveID,
 			"loaded_at": sess.LoadedAt,
+			// With relay saves a new character only lives on this server until
+			// the player signs a first save; the game prompts for it.
+			"needs_first_save": needsFirstSave(sess.Npub, sess.SaveID),
 		},
 	})
+}
+
+// needsFirstSave: relay saves are on and this character has never been signed
+// (no cached save event, no ledger record).
+func needsFirstSave(npub, saveID string) bool {
+	if !utils.AppConfig.Saves.Relay {
+		return false
+	}
+	if _, err := os.Stat(filepath.Join(session.SavesDirectory, npub, saveID+".event.json")); err == nil {
+		return false
+	}
+	if _, ok := ledger.Get(npub, SaveDTag(saveID)); ok {
+		return false
+	}
+	return true
 }
 
 // ReloadSessionHandler godoc

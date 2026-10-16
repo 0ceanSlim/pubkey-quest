@@ -19,6 +19,13 @@ import { moveToLocation } from '../logic/mechanics.js';
 import { updateAllDisplays } from './displayCoordinator.js';
 import { eventBus } from '../lib/events.js';
 import { loadEnvPOIs, getEnvPOIs, enterPOI, loadQuestSites, enterQuestSite } from './poiExplore.js';
+import { getSocialState } from '../systems/socialPoll.js';
+
+/** In a party but not leading it: the leader travels and leads the way in. */
+function isPartyFollower() {
+    const party = getSocialState()?.party;
+    return Boolean(party && !party.you_lead);
+}
 
 // How close the player must be to a discovered POI's marker for its Enter
 // button to appear. Expressed in in-game minutes of travel rather than a flat
@@ -421,7 +428,8 @@ export async function displayCurrentLocation() {
         }
 
         // Hidden places found in this district (city POIs, e.g. a thieves' den).
-        if (!inBuilding) {
+        // A party follower goes in when the leader does.
+        if (!inBuilding && !isPartyFollower()) {
             const hidden = await loadEnvPOIs();
             hidden.forEach((p) => {
                 const b = createLocationButton(`🗺️ ${p.name}`, () => enterPOI(p.id), 'building');
@@ -644,7 +652,12 @@ function displayTravelView(state, envData) {
     const controlsSection = document.createElement('div');
     controlsSection.style.cssText = 'width: 100%; display: flex; gap: 4px; flex: 1;';
 
-    if (isStopped) {
+    if (isPartyFollower()) {
+        const follow = document.createElement('div');
+        follow.style.cssText = 'flex: 1; text-align: center; color: #fbbf24; font-size: 8px; padding: 4px;';
+        follow.textContent = '👑 Your party leader sets the pace.';
+        controlsSection.appendChild(follow);
+    } else if (isStopped) {
         const continueBtn = createLocationButton('Continue Journey', () => resumeTravel(), 'building');
         continueBtn.style.flex = '1';
         continueBtn.style.fontSize = '9px';
@@ -708,7 +721,8 @@ function paintPOIEnterButtons(progress) {
     const reach = poiEnterWindow();
     const near = getEnvPOIs().filter((p) => Math.abs(progress - p.position) <= reach);
     row.innerHTML = '';
-    if (!near.length) {
+    // Followers go in when the leader does.
+    if (!near.length || isPartyFollower()) {
         row.style.display = 'none';
         return;
     }

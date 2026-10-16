@@ -37,7 +37,7 @@ type PlayerView struct {
 	Level       int    `json:"level"        example:"3"`
 	InCombat    bool   `json:"in_combat"`
 	Where       string `json:"where"        example:"Salty Anchor · Taproom"`
-	Here        bool   `json:"here"`         // at your exact spot (or nearby on your road) and within the hour
+	Here        bool   `json:"here"`                      // at your exact spot (or nearby on your road) and within the hour
 	ClockOffset int    `json:"clock_offset" example:"40"` // minutes their clock is ahead of yours (negative = behind)
 	PortraitSrc string `json:"portrait_src,omitempty"`
 }
@@ -45,15 +45,16 @@ type PlayerView struct {
 // SocialPollResponse is the envelope the client polls.
 // swagger:model SocialPollResponse
 type SocialPollResponse struct {
-	Success   bool         `json:"success"`
-	Here      []PlayerView `json:"here"`       // People column: players you can see
-	AreaCount int          `json:"area_count"` // headcount: others online in this city / on this road
-	AreaName  string       `json:"area_name"`
-	Chat      []ChatLine   `json:"chat"`
-	Invites   []InviteView `json:"invites"`
-	Party     *PartyView   `json:"party"`
-	PartySync bool         `json:"party_sync,omitempty"` // the leader moved you: refresh the world
-	InCombat  bool         `json:"in_combat"`            // you're in a fight (a party member may have started it)
+	Success      bool         `json:"success"`
+	Here         []PlayerView `json:"here"`       // People column: players you can see
+	AreaCount    int          `json:"area_count"` // headcount: others online in this city / on this road
+	AreaName     string       `json:"area_name"`
+	Chat         []ChatLine   `json:"chat"`
+	Invites      []InviteView `json:"invites"`
+	Party        *PartyView   `json:"party"`
+	PartySync    bool         `json:"party_sync,omitempty"` // the leader moved you: refresh the world
+	InCombat     bool         `json:"in_combat"`            // you're in a fight (a party member may have started it)
+	ClockRunning bool         `json:"clock_running"`        // play/pause (a follower's mirrors the leader's)
 }
 
 // advancementOnce caches the advancement table for presence levels.
@@ -167,20 +168,22 @@ func publishPresence(sess *session.GameSession) {
 	refreshPresencePlace(sess)
 	s := &sess.SaveData
 	e := presence.Entry{
-		Npub:       sess.Npub,
-		SaveID:     sess.SaveID,
-		Name:       s.D,
-		Race:       s.Race,
-		Class:      s.Class,
-		Level:      character.GetLevelFromXP(s.Experience, cachedAdvancement()),
-		Spot:       sess.PresenceSpot,
-		AbsMinutes: s.CurrentDay*1440 + s.TimeOfDay,
-		InCombat:   sess.ActiveCombat != nil,
-		LastSeen:   time.Now(),
-		Location:   s.Location,
-		AreaName:   sess.PresenceArea,
-		Where:      sess.PresenceWhere,
-		Portrait:   s.Portrait,
+		Npub:         sess.Npub,
+		SaveID:       sess.SaveID,
+		Name:         s.D,
+		Race:         s.Race,
+		Class:        s.Class,
+		Level:        character.GetLevelFromXP(s.Experience, cachedAdvancement()),
+		Spot:         sess.PresenceSpot,
+		AbsMinutes:   s.CurrentDay*1440 + s.TimeOfDay,
+		InCombat:     sess.ActiveCombat != nil,
+		ClockRunning: sess.ClockRunning,
+		ClockHeld:    sess.ActivePOI != nil || sess.PendingEncounter != nil,
+		LastSeen:     time.Now(),
+		Location:     s.Location,
+		AreaName:     sess.PresenceArea,
+		Where:        sess.PresenceWhere,
+		Portrait:     s.Portrait,
 	}
 	if sess.PresenceSpot == "" && sess.RouteFirstEnd != "" {
 		e.Route = s.Location
@@ -257,6 +260,7 @@ func SocialPollHandler(w http.ResponseWriter, r *http.Request) {
 	resp.Invites = invitesFor(sess.Npub)
 	resp.Party = partyViewFor(sess.Npub)
 	resp.InCombat = sess.ActiveCombat != nil
+	resp.ClockRunning = clockRunningFor(sess)
 	writeCombatJSON(w, http.StatusOK, resp)
 }
 

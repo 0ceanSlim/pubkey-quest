@@ -287,6 +287,7 @@ export function removeItemFromGround() { return null; }
  */
 export async function initializeGame() {
     logger.info('🎮 Initializing Pubkey Quest...');
+    let needsFirstSave = false;
 
     // Wait for session manager to be ready
     if (!window.sessionManager) {
@@ -383,6 +384,7 @@ export async function initializeGame() {
 
                 const initResult = await initResponse.json();
                 logger.info('✅ Session loaded into Go memory:', initResult);
+                needsFirstSave = Boolean(initResult.session?.needs_first_save);
 
                 // Fetch initial game state from Go
                 await refreshGameState();
@@ -433,6 +435,12 @@ export async function initializeGame() {
         // This allows time clock to sync to the correct time from save
         eventBus.emit('gameStateLoaded', loadedState);
         logger.info('📢 Emitted gameStateLoaded event');
+
+        // A relay-saves character that has never been signed (fresh from the
+        // intro, or never saved since): prompt for the first save.
+        if (needsFirstSave) {
+            window.openSaveModal?.({ firstSave: true });
+        }
 
         logger.info('✅ Game initialized and ready to play!');
 

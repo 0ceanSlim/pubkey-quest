@@ -42,6 +42,9 @@ if (typeof showMessage === 'undefined') {
   }
 }
 
+// The signed-in player (set once the session is up).
+let currentNpub = null;
+
 // Save slot configuration
 const SAVE_SLOTS = [
   { id: 1, unlockLevel: 0, label: 'Start New Adventure' },
@@ -73,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     const session = window.sessionManager.getSession();
     console.log('✅ User authenticated:', session.npub);
+    currentNpub = session.npub;
 
     await loadSaveSlots(session.npub);
 
@@ -176,9 +180,15 @@ function createSaveSlot(slot, saveData, isUnlocked, rosterSlot) {
   const div = document.createElement('div');
 
   if (saveData) {
-    div.className = 'win95-outset rounded-lg p-4 hover:opacity-80 transition-all cursor-pointer';
-    div.onclick = () => loadSave(saveData.id || saveData.internal_id);
+    const saveId = saveData.id || saveData.internal_id;
+    div.className = 'win95-outset rounded-lg p-4 transition-all cursor-pointer';
+    // The details/delete row is not part of "click to continue".
+    div.onclick = (e) => { if (!e.target.closest('[data-no-load]')) loadSave(saveId); };
     div.innerHTML = renderOccupied(saveData);
+    const details = div.querySelector('details[data-save-event]');
+    if (details) details.addEventListener('toggle', () => { if (details.open) loadSaveEvent(details, saveId); });
+    const del = div.querySelector('[data-delete-save]');
+    if (del) del.addEventListener('click', () => confirmDeleteSave(saveData));
     return div;
   }
 
@@ -228,7 +238,134 @@ function renderOccupied(saveData) {
     </div>
     ${renderStats(stats, 'normal')}
     ${saveData.relay_note ? `<p class="text-xs mt-1" style="color: var(--color-textMuted);">⚠ ${escapeHtml(saveData.relay_note)}</p>` : ''}
+    <div class="flex items-start justify-between gap-2 mt-2" data-no-load style="cursor: default;">
+      <details data-save-event class="flex-1 min-w-0 text-xs" style="color: var(--color-textMuted);">
+        <summary class="cursor-pointer select-none">📜 Save details</summary>
+        <div data-save-event-body class="mt-2">Loading…</div>
+      </details>
+      <button type="button" data-delete-save class="win95-button px-2 py-1 rounded text-xs flex-shrink-0"
+              style="color: var(--color-textPrimary);" title="Delete this character">🗑 Delete</button>
+    </div>
   `;
+}
+
+// ─── Save details: the signed relay event behind a save ──────────────────────
+
+async function loadSaveEvent(details, saveId) {
+  const body = details.querySelector('[data-save-event-body]');
+  if (!body || body.dataset.loaded) return;
+  try {
+    const res = await fetch(`/api/saves/${currentNpub}/${encodeURIComponent(saveId)}/event`);
+    const data = await res.json();
+    body.dataset.loaded = '1';
+    body.innerHTML = renderSaveEvent(data);
+  } catch (error) {
+    body.textContent = 'Could not load the save details: ' + error.message;
+  }
+}
+
+function renderSaveEvent(data) {
+  const ev = data.event;
+  const lines = [];
+  if (!data.relay_mode) {
+    lines.push('This server keeps saves on its own disk; there is no relay event.');
+  } else if (!ev) {
+    lines.push('Not on your relays yet. This character only exists on this server until you save it in game.');
+  } else {
+    lines.push(`Event <span style="color: var(--color-textSecondary);">${escapeHtml(ev.id)}</span>`);
+    lines.push(`Signed ${escapeHtml(new Date(ev.created_at * 1000).toLocaleString())} · ${(ev.content || '').length} bytes of save data`);
+  }
+  if (data.ledger) {
+    const relays = (data.ledger.relays || []).map(escapeHtml).join(', ') || 'unknown relays';
+    lines.push(`This server's record: accepted from ${relays}`);
+  }
+  const json = ev ? `<pre class="win95-inset p-2 mt-2 overflow-auto" style="max-height: 240px; font-size: 10px; white-space: pre-wrap; word-break: break-all; color: var(--color-textSecondary);">${escapeHtml(JSON.stringify(ev, null, 2))}</pre>` : '';
+  return lines.map(l => `<p class="mb-1">${l}</p>`).join('') + json;
+}
+
+// ─── Deleting a save ─────────────────────────────────────────────────────────
+
+function confirmDeleteSave(saveData) {
+  const name = saveData.d || 'this character';
+  const onRelays = Boolean(saveData.event_id);
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 flex items-center justify-center p-4';
+  overlay.style.cssText = 'background: rgba(0,0,0,0.7); z-index: 200;';
+  overlay.innerHTML = `
+    <div class="win95-outset rounded-lg p-5 max-w-md w-full" style="background: var(--color-bgPrimary, #1f1f1f);">
+      <h3 class="font-bold mb-3" style="color: var(--color-textHighlighted);">Delete ${escapeHtml(name)}?</h3>
+      <p class="text-sm mb-2" style="color: var(--color-textSecondary);">
+        ${onRelays
+          ? 'This removes the character from this server and asks your relays to delete its save (you\'ll sign a deletion request).'
+          : 'This removes the character from this server.'}
+      </p>
+      <p class="text-sm mb-4" style="color: var(--color-textMuted);">
+        ${onRelays ? 'Some relays may keep a copy anyway, but the game won\'t load a deleted save again. ' : ''}This can't be undone.
+      </p>
+      <p data-delete-status class="text-sm mb-3 hidden" style="color: var(--color-textHighlighted);"></p>
+      <div class="flex justify-end gap-2">
+        <button type="button" data-cancel class="win95-button px-4 py-2 rounded" style="color: var(--color-textPrimary);">Keep it</button>
+        <button type="button" data-confirm class="win95-button px-4 py-2 rounded font-bold" style="color: #f87171;">Delete forever</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('[data-cancel]').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('[data-confirm]').onclick = async (e) => {
+    const btn = e.currentTarget;
+    const status = overlay.querySelector('[data-delete-status]');
+    btn.disabled = true;
+    try {
+      await deleteSave(saveData, (text) => { status.textContent = text; status.classList.remove('hidden'); });
+      close();
+      showMessage(`🗑 ${name} deleted`, 'info');
+      await loadSaveSlots(currentNpub);
+    } catch (error) {
+      status.textContent = error.message;
+      status.classList.remove('hidden');
+      btn.disabled = false;
+    }
+  };
+}
+
+async function deleteSave(saveData, setStatus) {
+  const saveId = saveData.id || saveData.internal_id;
+  let deletion = null;
+  if (saveData.event_id) {
+    // NIP-09: ask the relays to delete the save by its address and last event.
+    const signer = window.pqSigner;
+    const pubkey = window.sessionManager?.getPublicKey?.();
+    if (!signer?.signEvent || !pubkey) {
+      throw new Error('Your signer isn\'t ready — sign in again to delete a save from your relays.');
+    }
+    setStatus('Sign the deletion request…');
+    try {
+      deletion = await signer.signEvent({
+        kind: 5,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+          ['a', `30078:${pubkey}:${saveData.relay_d}`],
+          ['e', saveData.event_id],
+          ['k', '30078'],
+        ],
+        content: 'Deleted a Pubkey Quest save',
+      });
+    } catch (_) {
+      throw new Error('Not deleted — the deletion request wasn\'t signed.');
+    }
+    setStatus('Asking your relays to delete it…');
+  }
+  const res = await fetch(`/api/saves/${currentNpub}/${encodeURIComponent(saveId)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deletion }),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || out.success === false) {
+    throw new Error(out.error || `Delete failed (${res.status})`);
+  }
+  return out;
 }
 
 function renderStartable(slot, preview, custom) {

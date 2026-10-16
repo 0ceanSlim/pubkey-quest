@@ -8,6 +8,7 @@
  */
 
 import { logger } from './logger.js';
+import { eventBus } from './events.js';
 import { API_BASE_URL } from '../config/constants.js';
 import { handleWorldHandoff } from '../systems/worldHandoff.js';
 
@@ -81,6 +82,16 @@ class GameAPI {
             }
 
             logger.info(`Action completed: ${actionType}`, result.message);
+
+            // Every action response carries the server's play/pause state.
+            if (typeof result.data?.clock_running === 'boolean') {
+                eventBus.emit('clock:running', result.data.clock_running);
+            }
+            // Death outside a fight (starving, a hazard on the road): the server
+            // already woke the player in town; offer the last save instead.
+            if (result.data?.death) {
+                eventBus.emit('player:died', { ...result.data.death, message: result.message });
+            }
 
             // Any action can award XP; surface a level-up moment generically so
             // every XP source (shows, quests, …) shows it without bespoke wiring.

@@ -457,9 +457,16 @@ func DMSendHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSONStatus(w, http.StatusServiceUnavailable, map[string]any{"success": false, "error": "Relay client not ready"})
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
-	defer cancel()
-	delivered := 0
+	// The whisper counts as sent only when the recipient's copy lands; your own
+	// copy (p = you) is a convenience for your other clients.
+	type rejection struct {
+		Relay  string `json:"relay"`
+		Reason string `json:"reason"`
+	}
+	var delivered []string
+	var rejected []rejection
+	var authNeeded []string
+	recipientSeen := false
 	for _, wrap := range req.Wraps {
 		var to []string
 		for _, t := range wrap.Tags {
@@ -471,23 +478,79 @@ func DMSendHandler(w http.ResponseWriter, r *http.Request) {
 			writeJSONStatus(w, http.StatusBadRequest, map[string]any{"success": false, "error": "Malformed wrap"})
 			return
 		}
-		ur := c.ResolveRelays(to[0])
-		relays := ur.DMInbox
-		if len(relays) == 0 {
-			relays = ur.Inbox
+		relays := dmRelaysFor(c, to[0])
+		ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
+		results, err := uc.PublishEvent(ctx, wrap, relays)
+		cancel()
+		if to[0] == user.PublicKey {
+			continue // your own copy: best effort
 		}
-		if len(relays) == 0 {
-			relays = c.AppRelays(core.RoleIndexer)
+		recipientSeen = true
+		if err != nil {
+			log.Printf("⚠️ Whisper to %s...: publish failed: %v", shortKey(to[0]), err)
 		}
-		results, _ := uc.PublishEvent(ctx, wrap, relays)
 		for _, res := range results {
-			if res.Accepted { // the relay's OK, not just "sent"
-				delivered++
-				break
+			switch {
+			case res.Accepted: // the relay's OK, not just "sent"
+				delivered = append(delivered, res.RelayURL)
+			case strings.HasPrefix(res.Reason, "auth-required"):
+				authNeeded = append(authNeeded, res.RelayURL)
+			default:
+				reason := res.Reason
+				if reason == "" && res.Error != nil {
+					reason = res.Error.Error()
+				}
+				rejected = append(rejected, rejection{res.RelayURL, reason})
 			}
 		}
 	}
-	writeJSON(w, map[string]any{"success": delivered > 0, "delivered": delivered})
+	if !recipientSeen {
+		writeJSONStatus(w, http.StatusBadRequest, map[string]any{"success": false, "error": "No wrap for the recipient"})
+		return
+	}
+	if len(delivered) > 0 {
+		writeJSON(w, map[string]any{"success": true, "relays": delivered})
+		return
+	}
+	// The recipient's inbox wants to know who's writing before it takes the
+	// wrap: hand the browser those relays' challenges to answer as the sender
+	// (POST /api/dm/auth), then it sends again.
+	if len(authNeeded) > 0 {
+		var challenges []AuthChallengeView
+		for _, relay := range authNeeded {
+			ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+			if ch, err := uc.AuthChallenge(ctx, relay); err == nil && ch != "" {
+				challenges = append(challenges, AuthChallengeView{Relay: relay, Challenge: ch})
+			} else {
+				rejected = append(rejected, rejection{relay, "auth-required (no challenge offered)"})
+			}
+			cancel()
+		}
+		if len(challenges) > 0 {
+			writeJSON(w, map[string]any{"success": false, "needs_auth": true, "challenges": challenges})
+			return
+		}
+	}
+	log.Printf("⚠️ Whisper from %s... not accepted by any recipient relay: %+v", shortKey(user.PublicKey), rejected)
+	writeJSON(w, map[string]any{"success": false, "error": "None of their inbox relays took it", "rejected": rejected})
+}
+
+// dmFallbackRelays are where whispers go for a player who has published no relay
+// lists at all — busy public relays that accept gift wraps. The inbox reads the
+// same ones, so two such players still reach each other.
+var dmFallbackRelays = []string{"wss://relay.damus.io", "wss://nos.lol", "wss://relay.primal.net"}
+
+// dmRelaysFor is a player's DM inbox: their kind 10050 relays, else their
+// NIP-65 read relays, else the fallback set.
+func dmRelaysFor(c *core.Client, pubkey string) []string {
+	ur := c.ResolveRelays(pubkey)
+	if len(ur.DMInbox) > 0 {
+		return ur.DMInbox
+	}
+	if len(ur.Inbox) > 0 {
+		return ur.Inbox
+	}
+	return dmFallbackRelays
 }
 
 // DMInboxHandler godoc
@@ -517,11 +580,7 @@ func DMInboxHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		since = time.Now().Add(-72 * time.Hour)
 	}
-	ur := c.ResolveRelays(user.PublicKey)
-	relays := ur.DMInbox
-	if len(relays) == 0 {
-		relays = ur.Inbox
-	}
+	relays := dmRelaysFor(c, user.PublicKey)
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 	f := nostr.Filter{Kinds: []int{1059}, Tags: map[string][]string{"p": {user.PublicKey}}, Since: &since}
@@ -586,11 +645,7 @@ func DMAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ur := c.ResolveRelays(user.PublicKey)
-	relays := ur.DMInbox
-	if len(relays) == 0 {
-		relays = ur.Inbox
-	}
+	relays := dmRelaysFor(c, user.PublicKey)
 	out := []AuthChallengeView{}
 	var mu sync.Mutex
 	var wg sync.WaitGroup

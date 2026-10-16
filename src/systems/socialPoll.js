@@ -47,6 +47,8 @@ async function poll() {
         if (out.chat?.length) eventBus.emit('social:chat', out.chat);
         eventBus.emit('social:invites', out.invites ?? []);
         eventBus.emit('social:party', out.party ?? null);
+        // A follower's clock is the leader's: follow it between our own actions.
+        if (out.party && !out.party.you_lead) eventBus.emit('clock:running', Boolean(out.clock_running));
         if (out.party_sync) eventBus.emit('social:party-sync');
         if (out.in_combat) eventBus.emit('social:in-combat');
     } catch (err) {

@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"pubkey-quest/cmd/server/api/data"
-	"pubkey-quest/cmd/server/game/gameutil"
+	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gametime"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/presence"
@@ -404,6 +405,9 @@ var followerBlockedActions = map[string]bool{
 	"move": true, "enter_building": true, "exit_building": true, "move_to_room": true,
 	"start_travel": true, "stop_travel": true, "resume_travel": true, "turn_back": true,
 	"wait": true, "sleep": true, "rest": true, "advance_time": true, "play_show": true,
+	// The clock is the leader's, and picking a lock spends time.
+	"set_clock": true, "reset_idle_timer": true,
+	"lock_begin": true, "lock_act": true, "pick_lock": true,
 }
 
 // partyPlace is what the leader's moves change.
@@ -430,20 +434,37 @@ func syncFromLeader(leader *session.GameSession, note string) session.PartySync 
 	}
 }
 
+// partyNews is what a leader's action tells the party besides where they are:
+// places just found, and lines for the followers' log.
+type partyNews struct {
+	Discovered []string
+	Notes      []string
+}
+
+func (n partyNews) empty() bool { return len(n.Discovered) == 0 && len(n.Notes) == 0 }
+
+// travelNotes are the followers' log lines for the leader's road decisions.
+var travelNotes = map[string]string{
+	"stop_travel":   "⏸ Your party stops on the road.",
+	"resume_travel": "🚶 Your party carries on.",
+	"turn_back":     "↩ Your party turns back.",
+	"wait":          "⏳ Your party waits a while.",
+}
+
 // queuePartyMoves sends the leader's change to every follower after an action.
 // sleepKind is non-empty when the leader just slept (the followers sleep too).
-func queuePartyMoves(leader *session.GameSession, before partyPlace, actionType, sleepKind string) {
+func queuePartyMoves(leader *session.GameSession, before partyPlace, actionType, sleepKind string, news partyNews) {
 	p := social.PartyOf(leader.Npub)
 	if p == nil || p.Leader().Npub != leader.Npub {
 		return
 	}
 	after := placeOf(leader)
-	if after == before && sleepKind == "" {
+	if after == before && sleepKind == "" && news.empty() {
 		return
 	}
-	note := ""
-	if after.Location != before.Location || after.District != before.District ||
-		after.Building != before.Building || after.Room != before.Room {
+	note := travelNotes[actionType]
+	if note == "" && (after.Location != before.Location || after.District != before.District ||
+		after.Building != before.Building || after.Room != before.Room) {
 		refreshPresencePlace(leader)
 		note = "🚶 Your party moves on — " + leader.PresenceWhere + "."
 		if leader.PresenceWhere == "on the road" {
@@ -451,6 +472,7 @@ func queuePartyMoves(leader *session.GameSession, before partyPlace, actionType,
 		}
 	}
 	sync := syncFromLeader(leader, note)
+	sync.Discovered, sync.Notes = news.Discovered, news.Notes
 	switch actionType {
 	case "wait":
 		sync.AccrueFatigue = false
@@ -517,7 +539,12 @@ func partyBedCheck(leader *session.GameSession) (string, error) {
 
 // applyPartySyncs applies the leader's queued moves to this follower. Call with
 // the follower's own lock held. Returns whether anything was applied.
+// A follower who is busy — in a fight, a walk, an unaware choice or a lock —
+// isn't moved out from under it: the syncs wait until they're free.
 func applyPartySyncs(sess *session.GameSession) bool {
+	if sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil || sess.LockSession != nil {
+		return false
+	}
 	syncs := sess.TakePartySyncs()
 	if len(syncs) == 0 {
 		return false
@@ -526,6 +553,42 @@ func applyPartySyncs(sess *session.GameSession) bool {
 		applyPartySync(sess, p)
 	}
 	return true
+}
+
+// partyShare gives every party member standing with the leader the places
+// the leader just found, with a line in their log.
+func partyShare(leader *session.GameSession, ids []string, note string) {
+	p := social.PartyOf(leader.Npub)
+	if p == nil || p.Leader().Npub != leader.Npub || len(ids) == 0 {
+		return
+	}
+	for _, m := range p.Members[1:] {
+		if fs, err := session.GetSessionManager().GetSession(m.Npub, m.SaveID); err == nil {
+			fs.QueuePartySync(session.PartySync{
+				Location: fs.SaveData.Location, District: fs.SaveData.District, Building: fs.SaveData.Building, Room: fs.SaveData.Room,
+				CurrentDay: fs.SaveData.CurrentDay, TimeOfDay: fs.SaveData.TimeOfDay,
+				TravelProgress: fs.SaveData.TravelProgress, TravelStopped: fs.SaveData.TravelStopped,
+				AccrueFatigue: true, Discovered: ids, Notes: []string{note},
+			})
+		}
+	}
+}
+
+// partyLog sends lines to the leader's followers' logs (a POI walk, a find).
+func partyLog(leader *session.GameSession, lines ...string) {
+	p := social.PartyOf(leader.Npub)
+	if p == nil || p.Leader().Npub != leader.Npub {
+		return
+	}
+	var to []string
+	for _, m := range p.Members[1:] {
+		to = append(to, m.Npub)
+	}
+	for _, l := range lines {
+		if l != "" {
+			systemLine(l, to...)
+		}
+	}
 }
 
 func applyPartySync(sess *session.GameSession, p session.PartySync) {
@@ -558,6 +621,18 @@ func applyPartySync(sess *session.GameSession, p session.PartySync) {
 	if s.Location != wasLocation && travel.GetEnvironmentData(s.Location) == nil {
 		travel.RecordArrival(s, s.Location)
 	}
+	// So does anything the leader found on the way.
+	for _, id := range p.Discovered {
+		if !alreadyDiscovered(s, id) {
+			s.LocationsDiscovered = append(s.LocationsDiscovered, id)
+			events.Record(s, events.LocationDiscovered, id, 1)
+		}
+	}
+	for _, line := range p.Notes {
+		if line != "" {
+			systemLine(line, sess.Npub)
+		}
+	}
 
 	// The world around you changed: refresh buildings and NPCs on the next tick.
 	sess.NPCsAtLocation = nil
@@ -582,5 +657,5 @@ func followerClock(sess *session.GameSession, params map[string]any) {
 	params["current_day"] = float64(abs / 1440)
 	params["time_of_day"] = float64(abs % 1440)
 	// Followers don't act on their own, so never auto-pause them.
-	sess.LastActionGameTime = abs % 1440
+	sess.LastActionGameTime = abs
 }

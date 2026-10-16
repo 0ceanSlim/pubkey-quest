@@ -10,7 +10,9 @@
 package wiki
 
 import (
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -361,8 +363,20 @@ func (g *gen) image(webPath, alt string, width int) string {
 	}
 	// Raw <img>: Gollum 6 drops the width option of its [[image]] tag.
 	// Gollum prefixes its own [[links]] with the base path, but not raw HTML.
-	return fmt.Sprintf(`<img src="%s/media/%s" alt="%s" width="%d">`,
-		strings.TrimRight(g.opt.BasePath, "/"), rel, html.EscapeString(alt), width)
+	// The ?v= fingerprint changes when the art does, so a redrawn sprite isn't
+	// hidden behind the old one in browser and CDN caches (media is cached for hours).
+	return fmt.Sprintf(`<img src="%s/media/%s?v=%s" alt="%s" width="%d">`,
+		strings.TrimRight(g.opt.BasePath, "/"), rel, fileFingerprint(dst), html.EscapeString(alt), width)
+}
+
+// fileFingerprint is a short content hash for cache-busting image URLs.
+func fileFingerprint(path string) string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "0"
+	}
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:4])
 }
 
 func copyFile(src, dst string) error {
