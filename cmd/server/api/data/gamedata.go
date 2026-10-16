@@ -1,7 +1,9 @@
 package data
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -166,12 +168,28 @@ func GameDataHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache for 1 hour
-
-	if err := json.NewEncoder(w).Encode(gameData); err != nil {
+	body, err := json.Marshal(gameData)
+	if err != nil {
 		log.Printf("Error encoding game data: %v", err)
 		http.Error(w, "Failed to encode game data", http.StatusInternalServerError)
+		return
+	}
+
+	// Revalidate on every load: a fingerprint of the data, so a re-migrate shows
+	// up on the next page load instead of after an hour of the browser's copy.
+	// Unchanged data costs a 304 with no body.
+	sum := sha256.Sum256(body)
+	etag := `"` + hex.EncodeToString(sum[:8]) + `"`
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("ETag", etag)
+	if r.Header.Get("If-None-Match") == etag {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
+	if _, err := w.Write(body); err != nil {
+		log.Printf("Error writing game data: %v", err)
 		return
 	}
 
