@@ -12,6 +12,7 @@ import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { showMessage } from '../ui/messaging.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
 import { getItemById } from '../state/staticData.js';
+import { smoothClock } from './smoothClock.js';
 
 // Module state
 let currentMerchantID = null;
@@ -52,6 +53,7 @@ export async function openShop(merchantID) {
         // Show modal
         const modal = document.getElementById('shop-modal');
         modal.classList.remove('hidden');
+        smoothClock.hold('shop'); // shopping takes no time
 
         // Update header
         document.getElementById('shop-merchant-name').textContent = currentShopData.merchant_name || 'Shop';
@@ -78,6 +80,7 @@ export async function closeShop() {
 
     const modal = document.getElementById('shop-modal');
     modal.classList.add('hidden');
+    smoothClock.release('shop');
     currentMerchantID = null;
     currentShopData = null;
     shopIsOpen = false;

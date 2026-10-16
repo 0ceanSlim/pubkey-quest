@@ -908,11 +908,49 @@ export function showItemDetails(itemId) {
  * where the player is standing. It refuses only a container that still has
  * something inside it.
  */
-export async function storeInVault(fromSlot, fromSlotType) {
+export async function storeInVault(fromSlot, fromSlotType, quantity = 0) {
     await vaultTransfer('vault_deposit', {
         from_slot: fromSlot,
         from_slot_type: fromSlotType,
+        quantity, // 0 = the whole stack
     }, 'Failed to store item');
+}
+
+/**
+ * Deposit everything carried (general slots and backpack) into the vault, like
+ * the OSRS bank's "deposit inventory". What you wear stays on; a container with
+ * something inside, or a quest item, is refused and left where it is.
+ */
+export async function depositInventory() {
+    const state = getGameStateSync();
+    const general = Array.isArray(state.inventory) ? state.inventory : [];
+    const backpack = state.equipment?.bag?.contents || [];
+    const slots = [
+        ...general.map((s, i) => ({ s, i, type: 'general' })),
+        ...backpack.map((s, i) => ({ s, i, type: 'inventory' })),
+    ].filter(({ s }) => s && s.item);
+    if (!slots.length) {
+        showMessage('You have nothing to deposit.', 'info');
+        return;
+    }
+    let lastDelta = null, stored = 0, kept = 0;
+    for (const { i, type } of slots) {
+        try {
+            const result = await gameAPI.sendAction('vault_deposit', { from_slot: i, from_slot_type: type, quantity: 0 });
+            if (result.success) {
+                stored++;
+                if (result.delta) { deltaApplier.applyDelta(result.delta); lastDelta = result.delta; }
+            } else {
+                kept++;
+            }
+        } catch (_) {
+            kept++;
+        }
+    }
+    await refreshGameState(true);
+    await updateCharacterDisplay();
+    showMessage(kept ? `Deposited ${stored} stack(s); ${kept} couldn't go in.` : `Deposited ${stored} stack(s).`, kept ? 'yellow' : 'success');
+    if (lastDelta?.vault) showVaultUI(lastDelta.vault);
 }
 
 /**

@@ -11,7 +11,7 @@ import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { API_BASE_URL } from '../config/constants.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
-import { getLocationById, getNPCById } from '../state/staticData.js';
+import { getLocationById, getNPCById, getItemById } from '../state/staticData.js';
 import { updateTimeDisplay, formatTime } from './timeDisplay.js';
 import { showActionText, showMessage } from './messaging.js';
 import { showSceneSpeech, hideSceneSpeech } from './sceneSpeech.js';
@@ -20,6 +20,14 @@ import { updateAllDisplays } from './displayCoordinator.js';
 import { eventBus } from '../lib/events.js';
 import { loadEnvPOIs, getEnvPOIs, enterPOI, loadQuestSites, enterQuestSite } from './poiExplore.js';
 import { getSocialState } from '../systems/socialPoll.js';
+import { smoothClock } from '../systems/smoothClock.js';
+import { createQuantityBar, formatCount } from './vaultControls.js';
+
+/** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
+async function depositInventoryToVault() {
+    const m = await import('../systems/inventoryInteractions.js');
+    await m.depositInventory();
+}
 
 /** In a party but not leading it: the leader travels and leads the way in. */
 function isPartyFollower() {
@@ -1639,7 +1647,7 @@ export function showVaultUI(vaultData) {
     const title = document.createElement('h2');
     title.className = 'text-yellow-400 font-bold';
     title.style.fontSize = '12px';
-    title.textContent = '🏦 Vault Storage';
+    title.textContent = '🏦 Vault';
 
     const closeButton = document.createElement('button');
     closeButton.className = 'text-white px-2 py-1 font-bold';
@@ -1647,7 +1655,14 @@ export function showVaultUI(vaultData) {
     closeButton.textContent = 'Close';
     closeButton.addEventListener('click', closeVaultUI);
 
+    const entries = vaultData?.entries || [];
+    const count = document.createElement('span');
+    count.className = 'text-gray-400';
+    count.style.cssText = 'font-size: 8px; flex: 1; margin-left: 8px;';
+    count.textContent = `${entries.length} item${entries.length === 1 ? '' : 's'}`;
+
     header.appendChild(title);
+    header.appendChild(count);
     header.appendChild(closeButton);
     vaultContainer.appendChild(header);
 
@@ -1658,30 +1673,26 @@ export function showVaultUI(vaultData) {
     entriesGrid.id = 'vault-entries-grid';
     entriesGrid.style.gridAutoRows = 'min-content';
 
-    const entries = vaultData?.entries || [];
     entries.forEach((entry, i) => {
         entriesGrid.appendChild(createVaultEntry(entry, i));
     });
-
-    if (entries.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'text-gray-500 text-center';
-        empty.style.cssText = 'grid-column: 1 / -1; font-size: 8px; padding: 16px 0;';
-        empty.textContent = 'The vault is empty.';
-        entriesGrid.appendChild(empty);
+    // Empty squares after the items: always at least five rows, and the last
+    // row filled out, so the vault reads as a place to put things.
+    const cols = 8;
+    const shown = Math.max(40, Math.ceil((entries.length + 1) / cols) * cols);
+    for (let i = entries.length; i < shown; i++) {
+        entriesGrid.appendChild(createEmptyVaultCell(i));
     }
 
     vaultContainer.appendChild(entriesGrid);
 
-    // Instructions
-    const instructions = document.createElement('div');
-    instructions.className = 'text-gray-400 text-center mt-1';
-    instructions.style.fontSize = '8px';
-    instructions.textContent = 'Click inventory items to store. Click vault items to withdraw. Containers must be empty.';
-    vaultContainer.appendChild(instructions);
+    // Quantity bar (what a left-click moves) + deposit inventory, OSRS-style.
+    vaultContainer.appendChild(createQuantityBar(() => depositInventoryToVault()));
 
     vaultOverlay.appendChild(vaultContainer);
     vaultOverlay.style.display = 'flex';
+    // Banking takes no time: the clock holds while the vault is open.
+    smoothClock.hold('vault');
 
     // Mark vault as open - sync both window and module state
     window.vaultOpen = true;
@@ -1707,16 +1718,30 @@ export function showVaultUI(vaultData) {
  * @param {number} index - Display position
  * @returns {HTMLElement}
  */
+const VAULT_CELL_STYLE = `aspect-ratio: 1; min-height: 24px; background: #1a1a1a; border-top: 2px solid #000000; border-left: 2px solid #000000; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);`;
+
+/** An empty vault square (a drop target, nothing to click). */
+function createEmptyVaultCell(index) {
+    const cell = document.createElement('div');
+    cell.className = 'vault-slot relative';
+    cell.style.cssText = VAULT_CELL_STYLE + ' opacity: 0.6;';
+    cell.setAttribute('data-vault-entry', index);
+    cell.setAttribute('data-slot-type', 'vault');
+    return cell;
+}
+
 export function createVaultEntry(entry, index) {
     const cell = document.createElement('div');
     cell.className = 'vault-slot relative cursor-pointer hover:bg-gray-800 flex items-center justify-center';
     // Match backpack slot styling exactly
-    cell.style.cssText = `aspect-ratio: 1; background: #1a1a1a; border-top: 2px solid #000000; border-left: 2px solid #000000; border-right: 2px solid #3a3a3a; border-bottom: 2px solid #3a3a3a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);`;
+    cell.style.cssText = VAULT_CELL_STYLE;
 
     // Data attributes for the pointer-interaction core (slotInteractions.js)
     cell.setAttribute('data-vault-entry', index);
     cell.setAttribute('data-slot-type', 'vault');
     cell.setAttribute('data-item-id', entry.item_id);
+    cell.setAttribute('data-quantity', entry.quantity);
+    cell.title = `${getItemById(entry.item_id)?.name ?? entry.item_id} ×${entry.quantity}`;
 
     const imgDiv = document.createElement('div');
     imgDiv.className = 'w-full h-full flex items-center justify-center p-1';
@@ -1734,10 +1759,12 @@ export function createVaultEntry(entry, index) {
     imgDiv.appendChild(img);
     cell.appendChild(imgDiv);
 
+    // OSRS-style stack count, top-left: yellow, then 100K white, 10M green.
+    const fmt = formatCount(entry.quantity);
     const quantityLabel = document.createElement('div');
-    quantityLabel.className = 'absolute bottom-0 right-0 text-white';
-    quantityLabel.style.cssText = 'font-size: 10px; text-shadow: 1px 1px 0 #000;';
-    quantityLabel.textContent = `${entry.quantity}`;
+    quantityLabel.className = 'absolute top-0 left-0';
+    quantityLabel.style.cssText = `font-size: 8px; padding: 1px 2px; color: ${fmt.color}; text-shadow: 1px 1px 0 #000;`;
+    quantityLabel.textContent = fmt.text;
     cell.appendChild(quantityLabel);
 
     return cell;
@@ -1751,6 +1778,8 @@ export function closeVaultUI() {
     if (vaultOverlay) {
         vaultOverlay.style.display = 'none';
     }
+
+    smoothClock.release('vault');
 
     // Mark vault as closed - sync both window and module state
     window.vaultOpen = false;

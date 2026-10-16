@@ -30,6 +30,7 @@ import { showVaultUI } from '../ui/locationDisplay.js';
 import { openContainer, getOpenContainer, addToOpenContainer, removeFromContainer } from './containers.js';
 import { isShopOpen, getCurrentTab, addItemToSell } from './shopSystem.js';
 import { deltaApplier } from './deltaApplier.js';
+import { leftClickAmount, showVaultMenu } from '../ui/vaultControls.js';
 import {
     performAction,
     getDefaultAction,
@@ -257,10 +258,16 @@ async function routeClick(src) {
         return;
     }
 
-    // Vault open: click moves between inventory and vault.
+    // Vault open: click moves between inventory and vault, as many as the
+    // quantity bar says (1 / 5 / 10 / X / All).
     if (vaultOpen) {
-        if (src.surface === 'vault') await withdrawFromVault(src.itemId);
-        else if (src.surface === 'general' || src.surface === 'inventory') await storeInVault(src.index, src.surface);
+        if (src.surface === 'vault') {
+            await withdrawFromVault(src.itemId, leftClickAmount(vaultEntryQuantity(src)));
+        } else if (src.surface === 'general' || src.surface === 'inventory') {
+            const held = readSlotQuantity(src);
+            const n = leftClickAmount(held);
+            await storeInVault(src.index, src.surface, n >= held ? 0 : n);
+        }
         return;
     }
 
@@ -377,10 +384,29 @@ function openContextMenu(desc, x, y, ev) {
     if (ev) { ev.preventDefault(); ev.stopPropagation(); }
     const itemData = getItemById(desc.itemId);
     if (!itemData) return;
+
+    // At the vault, right-click offers every amount (OSRS bank style).
+    if (vaultOpen && desc.surface === 'vault') {
+        showVaultMenu(x, y, 'Withdraw', desc.itemId, vaultEntryQuantity(desc),
+            (n) => withdrawFromVault(desc.itemId, n));
+        return;
+    }
+    if (vaultOpen && (desc.surface === 'general' || desc.surface === 'inventory')) {
+        const held = readSlotQuantity(desc);
+        showVaultMenu(x, y, 'Deposit', desc.itemId, held,
+            (n) => storeInVault(desc.index, desc.surface, n >= held ? 0 : n));
+        return;
+    }
     const quantity = readSlotQuantity(desc);
     const actions = getItemActions({ ...itemData, quantity }, desc.surface === 'equipment');
     const ref = desc.surface === 'equipment' ? desc.slotName : desc.index;
     showContextMenu(x, y, desc.itemId, ref, desc.surface, actions);
+}
+
+/** How many of a vault entry are stored (from the cell the player clicked). */
+function vaultEntryQuantity(desc) {
+    const cell = document.querySelector(`#vault-entries-grid [data-item-id="${CSS.escape(desc.itemId)}"]`);
+    return parseInt(cell?.getAttribute('data-quantity'), 10) || 1;
 }
 
 /** Read the live stack quantity at a slot (for the Split action gate). */
@@ -438,12 +464,19 @@ function onHoverMove(e) {
     const itemData = getItemById(desc.itemId);
     if (!itemData) { hideTip(); return; }
 
-    // What a tap will do: container slot → remove; otherwise the item's default.
+    // What a tap will do: container slot → remove; at the vault, withdraw or
+    // deposit the quantity-bar amount; otherwise the item's default.
     const action = desc.surface === 'container'
         ? 'remove'
         : getDefaultAction(itemData, desc.surface === 'equipment');
-    const label = ACTION_LABELS[action] || 'Info';
-    const color = ACTION_COLORS[action] || '#ff8c00';
+    let label = ACTION_LABELS[action] || 'Info';
+    let color = ACTION_COLORS[action] || '#ff8c00';
+    if (vaultOpen && (desc.surface === 'vault' || desc.surface === 'general' || desc.surface === 'inventory')) {
+        const available = desc.surface === 'vault' ? vaultEntryQuantity(desc) : readSlotQuantity(desc);
+        const n = leftClickAmount(available);
+        label = `${desc.surface === 'vault' ? 'Withdraw' : 'Deposit'}-${n >= available ? 'All' : n}`;
+        color = '#facc15';
+    }
 
     const tip = ensureTip();
     tip.textContent = '';
