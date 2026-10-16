@@ -125,6 +125,71 @@ export async function confirmSaveGame() {
     }
 }
 
+// ─── Quit to the title screen ────────────────────────────────────────────────
+
+const QUIT_BTN = 'padding: 4px 8px; font-weight: bold; color: #fff; font-size: 8px; cursor: pointer; ' +
+    'border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;';
+
+/** Ask whether to save, then leave the game for the home page. */
+export function openQuitModal() {
+    document.getElementById('quit-modal')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'quit-modal';
+    overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: flex; align-items: center; justify-content: center;';
+    overlay.innerHTML = `
+        <div class="bg-win95-bgDark" style="border: 2px solid #808080; width: 260px; box-shadow: 0 0 16px rgba(0,0,0,0.6);">
+            <div class="px-2 py-1 text-white font-bold" style="font-size: 9px; background: #7f1d1d;">🚪 QUIT TO TITLE</div>
+            <div class="p-3 text-center">
+                <div class="text-white font-bold mb-1" style="font-size: 9px;">Save before you go?</div>
+                <div class="text-gray-400 mb-2" style="font-size: 7px; line-height: 1.6;">${lastSavedText()}. Anything since then is lost if you quit without saving.</div>
+                <div id="quit-modal-status" class="hidden mb-2 font-bold text-red-400" style="font-size: 8px;"></div>
+                <div class="flex flex-col gap-1">
+                    <button data-quit="save" style="${QUIT_BTN} background: #166534;">💾 Save &amp; quit</button>
+                    <button data-quit="nosave" style="${QUIT_BTN} background: #7f1d1d;">Quit without saving</button>
+                    <button data-quit="stay" style="${QUIT_BTN} background: #2a2a2a;">Keep playing</button>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('[data-quit="stay"]').onclick = () => overlay.remove();
+    overlay.querySelector('[data-quit="nosave"]').onclick = () => quitToTitle();
+    overlay.querySelector('[data-quit="save"]').onclick = async (e) => {
+        const btn = e.currentTarget;
+        const status = overlay.querySelector('#quit-modal-status');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        let ok = false;
+        try {
+            ok = await saveGameToLocal(window.showMessage);
+        } catch (error) {
+            logger.error('Save before quitting failed:', error);
+        }
+        if (ok) {
+            setLastSaved(Date.now());
+            quitToTitle();
+            return;
+        }
+        status.textContent = '❌ ' + (lastSaveError || 'Save failed. Quit without saving, or keep playing.');
+        status.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = '💾 Save & quit';
+    };
+}
+
+/** Let the server drop the session, then go home. */
+async function quitToTitle() {
+    try {
+        if (gameAPI.npub && gameAPI.saveID) {
+            const q = new URLSearchParams({ npub: gameAPI.npub, save_id: gameAPI.saveID });
+            await fetch(`/api/session/cleanup?${q}`, { method: 'DELETE' });
+        }
+    } catch (error) {
+        logger.warn('Session cleanup on quit failed:', error);
+    }
+    window.location.href = '/';
+}
+
 // Ctrl/Cmd+S opens the save ritual (and stops the browser's "save page" dialog).
 function onKey(e) {
     if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
@@ -137,6 +202,7 @@ if (typeof window !== 'undefined') {
     window.openSaveModal = openSaveModal;
     window.closeSaveModal = closeSaveModal;
     window.confirmSaveGame = confirmSaveGame;
+    window.openQuitModal = openQuitModal;
     document.addEventListener('keydown', onKey);
     // Keep "last saved: N min ago" current.
     refreshLastSavedIndicators();
