@@ -203,7 +203,6 @@ async function renderContainerSlots(grid, totalSlots, contents) {
                     showContainerContextMenu(e, slotItem.item, i);
                 });
 
-                slot.title = itemData.name;
 
                 logger.debug(`✅ Bound events to container slot ${i} (${slotItem.item})`);
             }

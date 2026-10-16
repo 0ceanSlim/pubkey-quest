@@ -441,7 +441,7 @@ export async function displayCurrentLocation() {
             const hidden = await loadEnvPOIs();
             hidden.forEach((p) => {
                 const b = createLocationButton(`🗺️ ${p.name}`, () => enterPOI(p.id), 'building');
-                if (p.description) b.title = p.description;
+                if (p.description) b.dataset.tip = p.description;
                 buildingFragment.appendChild(b);
             });
         }
@@ -485,7 +485,7 @@ export async function displayCurrentLocation() {
         const sites = await loadQuestSites();
         sites.forEach(site => {
             const siteBtn = createLocationButton(`🕳️ ${site.label}`, () => enterQuestSite(site.quest_id, site.site_id), 'action');
-            if (site.description) siteBtn.title = site.description;
+            if (site.description) siteBtn.dataset.tip = site.description;
             npcFragment.appendChild(siteBtn);
             actionCount++;
         });
@@ -710,10 +710,9 @@ function paintPOIMarkers() {
         const pct = Math.min(Math.max(p.position * 100, 0), 100);
         const dot = document.createElement('div');
         dot.className = 'poi-marker';
-        // Name the place on hover. The title was always set here, but
-        // pointer-events:none meant the browser could never show it — the marker
-        // has to be hoverable for a tooltip to exist at all.
-        dot.title = p.name;
+        // Name the place on hover with the game's own tip (hoverTip.js): instant
+        // and styled, unlike the browser's title tooltip.
+        dot.dataset.tip = p.name;
         dot.style.cssText =
             `position:absolute; top:-3px; left:${pct}%; transform:translateX(-50%); width:5px; height:16px; ` +
             'background:#fbbf24; border:1px solid #000; cursor:help; box-shadow:0 0 3px rgba(251,191,36,0.8);';
@@ -1741,7 +1740,6 @@ export function createVaultEntry(entry, index) {
     cell.setAttribute('data-slot-type', 'vault');
     cell.setAttribute('data-item-id', entry.item_id);
     cell.setAttribute('data-quantity', entry.quantity);
-    cell.title = `${getItemById(entry.item_id)?.name ?? entry.item_id} ×${entry.quantity}`;
 
     const imgDiv = document.createElement('div');
     imgDiv.className = 'w-full h-full flex items-center justify-center p-1';
