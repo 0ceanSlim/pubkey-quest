@@ -399,7 +399,7 @@ function openContextMenu(desc, x, y, ev) {
         const held = readSlotQuantity(desc);
         // The item's own actions (Equip, Use, …) stay available under the amounts.
         const extras = getItemActions({ ...itemData, quantity: held }, false)
-            .filter(({ action }) => action !== 'examine' && action !== 'drop')
+            .filter(({ action }) => action !== 'examine' && action !== 'wiki' && action !== 'drop')
             .map(({ action, label }) => ({
                 label,
                 onClick: () => performAction(action, desc.itemId, desc.index,

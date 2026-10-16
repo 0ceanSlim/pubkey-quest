@@ -442,6 +442,8 @@ export async function displayCurrentLocation() {
             hidden.forEach((p) => {
                 const b = createLocationButton(`🗺️ ${p.name}`, () => enterPOI(p.id), 'building');
                 if (p.description) b.dataset.tip = p.description;
+                b.dataset.wiki = `Locations/${p.id}`;
+                b.dataset.wikiName = p.name;
                 buildingFragment.appendChild(b);
             });
         }
@@ -474,6 +476,8 @@ export async function displayCurrentLocation() {
             const displayName = npcData ? npcData.name : npcId.replace(/_/g, ' ');
             const button = createLocationButton(displayName, () => talkToNPC(npcId), 'npc');
             button.dataset.npcId = npcId; // For delta applier
+            button.dataset.wiki = `NPCs/${npcId}`;
+            button.dataset.wikiName = displayName;
             npcFragment.appendChild(button);
         });
 
@@ -715,6 +719,8 @@ function paintPOIMarkers() {
         // Name the place on hover with the game's own tip (hoverTip.js): instant
         // and styled, unlike the browser's title tooltip.
         dot.dataset.tip = p.name;
+        dot.dataset.wiki = `Locations/${p.id}`;
+        dot.dataset.wikiName = p.name;
         dot.style.cssText =
             `position:absolute; top:-3px; left:${pct}%; transform:translateX(-50%); width:5px; height:16px; ` +
             'background:#fbbf24; border:1px solid #000; cursor:help; box-shadow:0 0 3px rgba(251,191,36,0.8);';

@@ -14,6 +14,7 @@ import { getItemById } from '../state/staticData.js';
 import { showMessage, showActionText } from '../ui/messaging.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
 import { inventoryDragState } from './inventoryInteractions.js';
+import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
 
 let currentOpenContainer = null;
 
@@ -417,10 +418,22 @@ function showContainerContextMenu(e, itemId, slotIndex) {
     examineBtn.textContent = 'Examine';
     examineBtn.style.fontSize = '9px';
     examineBtn.onclick = () => {
-        showMessage('📋 Item examination coming soon', 'info');
+        window.showItemDetails?.(itemId);
         menu.remove();
     };
     menu.appendChild(examineBtn);
+
+    if (wikiEnabled()) {
+        const wikiBtn = document.createElement('button');
+        wikiBtn.className = 'w-full px-3 py-1 text-left hover:bg-gray-700 text-xs border-t border-gray-700';
+        wikiBtn.textContent = WIKI_LABEL;
+        wikiBtn.style.fontSize = '9px';
+        wikiBtn.onclick = () => {
+            openWiki('Items', itemId);
+            menu.remove();
+        };
+        menu.appendChild(wikiBtn);
+    }
 
     document.body.appendChild(menu);
 

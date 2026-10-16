@@ -15,6 +15,7 @@ import { getClassResourceSync } from '../data/classResources.js';
 import { getDamageEmoji } from '../lib/damageTypes.js';
 import { gameAPI } from '../lib/api.js';
 import { showActionText } from './messaging.js';
+import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
 
 // Cache fetched abilities
 let abilitiesCache = {};
@@ -187,6 +188,7 @@ function openSlotMenu(e, slotLevel, slotIndex, spellId) {
         menu.appendChild(it);
     };
     add('Info', () => window.openSpellModal && window.openSpellModal(spellId));
+    if (wikiEnabled()) add(WIKI_LABEL, () => openWiki('Spells', spellId));
     // Cast is offered only for spells that resolve outside combat (heal / buff /
     // utility). Attack and save shapes need an enemy, so they're combat-only.
     const spell = getSpellById(spellId);

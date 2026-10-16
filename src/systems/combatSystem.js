@@ -303,6 +303,11 @@ function _renderTargetPanel(cs) {
     const monster = _targetMonster(cs);
     if (!monster) return;
     _setText('combat-monster-name', monster.name ?? 'Unknown');
+    const nameEl = $id('combat-monster-name');
+    if (nameEl && monster.template_id) {
+        nameEl.dataset.wiki = `Monsters/${monster.template_id}`;
+        nameEl.dataset.wikiName = monster.name ?? '';
+    }
     _setText('combat-monster-ac-badge', `AC ${monster.armor_class ?? '?'}`);
     _renderConditionsInto('combat-monster-conditions', monster.conditions || [], '#c4b5fd');
     const img = $id('combat-monster-img');
@@ -357,6 +362,10 @@ function _renderTurnStrip(cs) {
         const label = document.createElement('span');
         label.textContent = m.name;
         chip.appendChild(label);
+        if (m.template_id) {
+            chip.dataset.wiki = `Monsters/${m.template_id}`;
+            chip.dataset.wikiName = m.name;
+        }
         if (_isActive(m)) {
             chip.classList.add('foe');
             if (m.instance_id === _targetID) chip.classList.add('target');
@@ -1576,6 +1585,8 @@ function _paintGrid(cs) {
             cell.title = '';
             cell.className = 'combat-cell';
             delete cell.dataset.foe;
+            delete cell.dataset.wiki;
+            delete cell.dataset.wikiName;
             _paintTerrainCell(cs, cell, c, r);
         }
     }
@@ -1615,6 +1626,10 @@ function _paintGrid(cs) {
         cell.innerHTML = _monsterFace(m) + sight
             + `<div class="combat-token-hp"><div data-hp-for="${m.instance_id}" style="width:${_hpPct(hp.cur, hp.max)}%"></div></div>`;
         cell.dataset.foe = m.instance_id;
+        if (m.template_id) {
+            cell.dataset.wiki = `Monsters/${m.template_id}`;
+            cell.dataset.wikiName = m.name;
+        }
         const sightNote = m.in_sight === false ? ' — no line of sight' : m.cover > 0 ? ` — cover +${m.cover} AC` : '';
         cell.title = `${m.name} (${m.current_hp}/${m.max_hp} HP)${sightNote} — click to target`;
         if (m.instance_id === _targetID) cell.classList.add('target');

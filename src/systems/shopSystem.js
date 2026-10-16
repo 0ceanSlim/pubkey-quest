@@ -13,6 +13,7 @@ import { showMessage } from '../ui/messaging.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
 import { getItemById } from '../state/staticData.js';
 import { smoothClock } from './smoothClock.js';
+import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
 
 // Module state
 let currentMerchantID = null;
@@ -431,6 +432,12 @@ function showBuyContextMenu(e, shopItem) {
         window.showItemDetails?.(shopItem.item_id);
     });
     menu.appendChild(infoBtn);
+    if (wikiEnabled()) {
+        menu.appendChild(createMenuButton(WIKI_LABEL, () => {
+            closeContextMenu();
+            openWiki('Items', shopItem.item_id);
+        }));
+    }
 
     // Value button
     const valueBtn = createMenuButton('Value', () => {

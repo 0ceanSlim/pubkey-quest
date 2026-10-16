@@ -9,6 +9,7 @@
  */
 
 import { getItemById } from '../state/staticData.js';
+import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
 
 const QTY_KEY = 'pq_vault_qty';
 const X_KEY = 'pq_vault_x';
@@ -233,6 +234,7 @@ export function showVaultMenu(x, y, verb, itemId, available, move, extras = []) 
         if (window.showItemDetails) window.showItemDetails(itemId);
         else window.showMessage?.(`${name}: ${getItemById(itemId)?.description ?? 'Nothing special.'}`, 'info');
     });
+    if (wikiEnabled()) add(WIKI_LABEL, () => openWiki('Items', itemId));
 
     document.body.appendChild(menu);
     _menu = menu;

@@ -21,11 +21,12 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 		Title: "Pubkey Quest - Game",
 		Theme: "dark",
 		CustomData: map[string]interface{}{
-			"GameMode":  true,
-			"SaveID":    saveID,
-			"NewGame":   newGame == "true",
-			"DebugMode":  utils.AppConfig.Server.DebugMode,
-			"RelaySaves": utils.AppConfig.Saves.Relay,
+			"GameMode":    true,
+			"SaveID":      saveID,
+			"NewGame":     newGame == "true",
+			"DebugMode":   utils.AppConfig.Server.DebugMode,
+			"RelaySaves":  utils.AppConfig.Saves.Relay,
+			"WikiEnabled": utils.AppConfig.Wiki.URL != "",
 		},
 	}
 

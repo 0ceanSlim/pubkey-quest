@@ -664,6 +664,7 @@
        ?v={{.Version}} busts the browser cache on every deploy: this entry chunk
        is not content-hashed (its imported chunks are), so without a version
        query mobile browsers serve a stale game.js after a rebuild. -->
+  <script>window.PQ_WIKI = {{if .CustomData.WikiEnabled}}true{{else}}false{{end}};</script>
   <script type="module" src="/dist/game.js?v={{.Version}}"></script>
 
   {{end}}

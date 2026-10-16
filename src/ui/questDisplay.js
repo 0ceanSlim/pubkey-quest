@@ -147,7 +147,7 @@ function row(q) {
         ? `<div class="qj-prog"><div style="width:${Math.round((100 * (q.stage ?? 0)) / q.stage_count)}%"></div></div>`
         : '';
     return `
-    <div class="qj-row qj-${q.status}" data-quest="${esc(q.id)}">
+    <div class="qj-row qj-${q.status}" data-quest="${esc(q.id)}" data-wiki="Quests/${esc(q.id)}" data-wiki-name="${esc(q.name)}">
         <div class="qj-bar"></div>
         <div class="qj-body">
             <div class="qj-l1">${tracked}<span class="qj-name" title="${esc(q.name)}">${esc(q.name)}</span></div>

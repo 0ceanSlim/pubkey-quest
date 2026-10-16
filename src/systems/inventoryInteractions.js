@@ -17,6 +17,7 @@ import { showVaultUI } from '../ui/locationDisplay.js';
 import { openContainer } from './containers.js';
 import { isShopOpen, getCurrentTab, addItemToSell } from './shopSystem.js';
 import { deltaApplier } from './deltaApplier.js';
+import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
 
 // State for drag-and-drop
 let draggedItem = null;
@@ -91,7 +92,10 @@ export function getItemActions(itemData, isEquipped) {
     // Quest items can only be examined or destroyed: no dropping, selling or
     // storing (the server refuses those too).
     if (itemData.tags && itemData.tags.includes('quest_item')) {
-        return [{ action: 'examine', label: 'Examine' }, { action: 'destroy', label: 'Destroy' }];
+        const quest = [{ action: 'examine', label: 'Examine' }];
+        if (wikiEnabled()) quest.push({ action: 'wiki', label: WIKI_LABEL });
+        quest.push({ action: 'destroy', label: 'Destroy' });
+        return quest;
     }
 
     if (isEquipped) {
@@ -133,6 +137,7 @@ export function getItemActions(itemData, isEquipped) {
 
     // Examine is always available
     actions.push({ action: 'examine', label: 'Examine' });
+    if (wikiEnabled()) actions.push({ action: 'wiki', label: WIKI_LABEL });
 
     // Drop is always last
     actions.push({ action: 'drop', label: 'Drop' });
@@ -215,6 +220,10 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
     // Special case: examine (no backend call needed)
     if (action === 'examine') {
         showItemDetails(itemId);
+        return;
+    }
+    if (action === 'wiki') {
+        openWiki('Items', itemId);
         return;
     }
 
