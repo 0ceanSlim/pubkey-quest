@@ -6,7 +6,10 @@
   "id": "greataxe",
   "image": "/res/img/items/greataxe.png",
   "name": "Greataxe",
-  "notes": [],
+  "notes": [
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage."
+  ],
   "value": 3000,
   "rarity": "common",
   "stack": 1,

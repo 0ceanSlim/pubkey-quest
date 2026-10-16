@@ -4,7 +4,8 @@
   "image": "/res/img/items/crowbar.png",
   "name": "Crowbar",
   "notes": [
-    "Provides advantage when forcing open objects"
+    "Pries open things that are stuck or sealed.",
+    "Some encounters and places need one."
   ],
   "value": 200,
   "rarity": "common",

@@ -7,7 +7,7 @@
   "image": "/res/img/items/net.png",
   "name": "Net",
   "notes": [
-    "Deals no damage; restrains the target on a hit until they escape or the net is cut away (engine mechanic not yet implemented — see item-mechanics-proposals.md)"
+    "No use in play yet."
   ],
   "value": 100,
   "range": "1",

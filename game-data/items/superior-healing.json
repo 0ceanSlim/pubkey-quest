@@ -6,8 +6,8 @@
   "image": "/res/img/items/superior-healing.png",
   "name": "Superior healing",
   "notes": [
-    "Single use item",
-    "Takes an action to drink"
+    "Drink to heal 8d4+8 HP, in or out of combat.",
+    "In combat it uses your action."
   ],
   "value": 20000,
   "rarity": "rare",

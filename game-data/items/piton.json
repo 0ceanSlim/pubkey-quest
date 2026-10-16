@@ -3,7 +3,9 @@
   "id": "piton",
   "image": "/res/img/items/piton.png",
   "name": "Piton",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 5,
   "rarity": "common",
   "stack": 20,

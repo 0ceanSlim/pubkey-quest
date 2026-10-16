@@ -1,9 +1,12 @@
 {
-  "description": "A musical instrument based on the principle of the closed tube, consisting of multiple pipes of gradually increasing length. Also known as panpipes. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
+  "description": "A musical instrument based on the principle of the closed tube, consisting of multiple pipes of gradually increasing length. Also known as panpipes.",
   "id": "pan-flute",
   "image": "/res/img/items/pan-flute.png",
   "name": "Pan Flute",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Medium to play: 60% base success, +6% per Charisma above 10."
+  ],
   "value": 1200,
   "rarity": "common",
   "stack": 1,

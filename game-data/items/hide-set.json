@@ -34,7 +34,8 @@
     ]
   },
   "notes": [
-    "Maximum Dexterity bonus of +2"
+    "Bundle of both armor pieces; starting gear is split into them.",
+    "Worn together the two pieces give AC 12 + Dex (max 2)."
   ],
   "image": "/res/img/items/hide-set.png"
 }

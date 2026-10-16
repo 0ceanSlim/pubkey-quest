@@ -3,7 +3,9 @@
   "id": "chain",
   "image": "/res/img/items/chain.png",
   "name": "Chain",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 500,
   "rarity": "common",
   "stack": 1,

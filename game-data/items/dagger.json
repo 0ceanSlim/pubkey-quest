@@ -7,7 +7,9 @@
   "image": "/res/img/items/dagger.png",
   "name": "Dagger",
   "notes": [
-    "Can be thrown at targets within 60 feet"
+    "Finesse: uses the better of Strength or Dexterity.",
+    "Light: with another light weapon, you can attack off-hand as a bonus action.",
+    "Can be thrown up to 2 tiles; a thrown weapon is used up."
   ],
   "value": 200,
   "range": "1",

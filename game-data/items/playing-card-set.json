@@ -3,7 +3,9 @@
   "id": "playing-card-set",
   "image": "/res/img/items/playing-card-set.png",
   "name": "Playing card set",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 50,
   "rarity": "common",
   "stack": 1,

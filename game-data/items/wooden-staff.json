@@ -5,8 +5,8 @@
   "image": "/res/img/items/wooden-staff.png",
   "name": "Wooden Staff",
   "notes": [
-    "Can be used as a spellcasting focus for druidic magic",
-    "Provides unlimited Bark Shavings for growth and healing spells"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Bark Shavings to any spell that needs it, at no cost."
   ],
   "value": 500,
   "provides": "bark-shavings",

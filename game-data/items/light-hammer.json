@@ -6,7 +6,10 @@
   "id": "light-hammer",
   "image": "/res/img/items/light-hammer.png",
   "name": "Light hammer",
-  "notes": [],
+  "notes": [
+    "Light: with another light weapon, you can attack off-hand as a bonus action.",
+    "Can be thrown up to 2 tiles; a thrown weapon is used up."
+  ],
   "value": 200,
   "range": "1",
   "range_long": "2",

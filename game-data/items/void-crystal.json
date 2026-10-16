@@ -12,9 +12,8 @@
     "drop-only"
   ],
   "notes": [
-    "Used for banishment magic",
-    "Extremely rare drop from void creatures",
-    "Dangerous to study for too long"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet."
   ],
   "image": "/res/img/items/void-crystal.png"
 }

@@ -38,8 +38,8 @@
     }
   },
   "notes": [
-    "Disadvantage on Stealth when full set is worn",
-    "Maximum Dexterity bonus of +2"
+    "Bundle of both armor pieces; starting gear is split into them.",
+    "Worn together the two pieces give AC 15 + Dex (max 2)."
   ],
   "image": "/res/img/items/halfplate-set.png"
 }

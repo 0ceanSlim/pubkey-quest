@@ -6,7 +6,10 @@
   "id": "trident",
   "image": "/res/img/items/trident.png",
   "name": "Trident",
-  "notes": [],
+  "notes": [
+    "Versatile: 1d8 damage with an empty off hand.",
+    "Can be thrown up to 2 tiles; a thrown weapon is used up."
+  ],
   "value": 500,
   "range": "1",
   "range_long": "2",

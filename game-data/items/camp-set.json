@@ -4,7 +4,7 @@
   "image": "/res/img/items/camp-set.png",
   "name": "Camp Set",
   "notes": [
-    "Party camping: when the party sleeps in the wild, one camp set in any member's pack gives everyone a bed."
+    "Party camping: one camp set in any member's pack beds the whole party in the wild."
   ],
   "value": 600,
   "rarity": "common",

@@ -16,9 +16,8 @@
   ],
   "set": "plate-set",
   "notes": [
-    "Part of the Plate Armor Set",
-    "Requires Strength 15 to wear effectively",
-    "Disadvantage on Stealth"
+    "Body armor: AC 11; your Dexterity doesn't add.",
+    "Wear with the Plate Greaves for AC 18."
   ],
   "image": "/res/img/items/plate-cuirass.png"
 }

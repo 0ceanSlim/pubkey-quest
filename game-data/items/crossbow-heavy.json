@@ -8,9 +8,11 @@
   "image": "/res/img/items/crossbow-heavy.png",
   "name": "Crossbow heavy",
   "notes": [
-    "Requires bolts to fire",
-    "Loading property requires action to reload",
-    "Heavy weapon"
+    "Fires bolts; keep them in a quiver in the ammo slot.",
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage.",
+    "Range 3 tiles; out to 5 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
   ],
   "value": 5000,
   "range": "3",

@@ -3,7 +3,9 @@
   "id": "poison-basic",
   "image": "/res/img/items/poison-basic.png",
   "name": "Poison basic",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 10000,
   "rarity": "common",
   "stack": 1,

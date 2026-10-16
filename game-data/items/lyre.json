@@ -1,9 +1,12 @@
 {
-  "description": "A stringed musical instrument known for its use in ancient times. It has a sound box formed from a tortoise shell, two curved arms, and strings stretched between a crossbar and the sound box. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
+  "description": "A stringed musical instrument known for its use in ancient times. It has a sound box formed from a tortoise shell, two curved arms, and strings stretched between a crossbar and the sound box.",
   "id": "lyre",
   "image": "/res/img/items/lyre.png",
   "name": "Lyre",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Medium to play: 65% base success, +5% per Charisma above 10."
+  ],
   "value": 3000,
   "rarity": "common",
   "stack": 1,

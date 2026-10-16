@@ -13,8 +13,8 @@
     "focus"
   ],
   "notes": [
-    "Can be used as a spellcasting focus for divine magic",
-    "Provides unlimited Sacred Oil for healing and blessing spells"
+    "Spellcasting focus: worn at the neck.",
+    "Supplies Sacred Oil to any spell that needs it, at no cost."
   ],
   "image": "/res/img/items/emblem.png",
   "provides": "sacred-oil"

@@ -15,9 +15,8 @@
   ],
   "set": "splint-set",
   "notes": [
-    "Part of the Splint Armor Set",
-    "Requires Strength 15 to wear effectively",
-    "Disadvantage on Stealth"
+    "Body armor: AC 10; your Dexterity doesn't add.",
+    "Wear with the Splint Greaves for AC 17."
   ],
   "image": "/res/img/items/splint-cuirass.png"
 }

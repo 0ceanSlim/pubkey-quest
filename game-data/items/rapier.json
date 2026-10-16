@@ -6,7 +6,9 @@
   "id": "rapier",
   "image": "/res/img/items/rapier.png",
   "name": "Rapier",
-  "notes": [],
+  "notes": [
+    "Finesse: uses the better of Strength or Dexterity."
+  ],
   "value": 2500,
   "rarity": "common",
   "stack": 1,

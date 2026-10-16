@@ -6,7 +6,7 @@
   "image": "/res/img/items/chain-shirt.png",
   "name": "Chain Shirt",
   "notes": [
-    "Maximum Dexterity bonus of +2"
+    "Body armor: base AC 13 plus Dexterity bonus (max +2)."
   ],
   "value": 5000,
   "rarity": "common",

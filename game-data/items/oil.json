@@ -3,7 +3,10 @@
   "id": "oil",
   "image": "/res/img/items/oil.png",
   "name": "Oil",
-  "notes": [],
+  "notes": [
+    "Used up by some quest steps.",
+    "Lamp fuel isn't in play yet."
+  ],
   "value": 10,
   "rarity": "common",
   "stack": 1,

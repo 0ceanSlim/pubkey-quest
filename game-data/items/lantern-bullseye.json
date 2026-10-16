@@ -4,8 +4,7 @@
   "image": "/res/img/items/lantern-bullseye.png",
   "name": "Lantern Bullseye",
   "notes": [
-    "Casts bright light in a 60-foot cone",
-    "Burns for 6 hours on one flask of oil"
+    "No use in play yet."
   ],
   "value": 1000,
   "rarity": "common",

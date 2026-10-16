@@ -14,8 +14,8 @@
     "drop-only"
   ],
   "notes": [
-    "Can be used as a spellcasting focus for divine magic",
-    "Provides unlimited Holy Water for turning undead and cleansing spells"
+    "Spellcasting focus: worn at the neck.",
+    "Supplies Holy Water to any spell that needs it, at no cost."
   ],
   "image": "/res/img/items/reliquary.png",
   "provides": "holy-water"

@@ -15,7 +15,8 @@
     "container"
   ],
   "notes": [
-    "Holds up to 8 keys. Keys on the ring still open their locks."
+    "Holds up to 8 keys.",
+    "Keys on the ring still open their locks."
   ],
   "image": "/res/img/items/keyring.png"
 }

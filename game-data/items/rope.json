@@ -3,7 +3,9 @@
   "id": "rope",
   "image": "/res/img/items/rope.png",
   "name": "Rope",
-  "notes": [],
+  "notes": [
+    "Needed to climb or descend at some places, like a deep mine shaft."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 1,

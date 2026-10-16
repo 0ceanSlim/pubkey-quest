@@ -1,9 +1,12 @@
 {
-  "description": "A musical wind instrument with enclosed reeds fed from a constant reservoir of air in the form of a bag. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
+  "description": "A musical wind instrument with enclosed reeds fed from a constant reservoir of air in the form of a bag.",
   "id": "bagpipe",
   "image": "/res/img/items/bagpipe.png",
   "name": "Bagpipe",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Hard to play: 55% base success, +6% per Charisma above 10."
+  ],
   "value": 3000,
   "rarity": "common",
   "stack": 1,

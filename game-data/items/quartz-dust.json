@@ -12,9 +12,9 @@
     "focus_provided"
   ],
   "notes": [
-    "Used for light and divination spells",
-    "Unlimited when Crystal focus is equipped",
-    "Consumed on use if no Crystal focus"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet.",
+    "Free while a Crystal is equipped."
   ],
   "image": "/res/img/items/quartz-dust.png"
 }

@@ -37,8 +37,8 @@
     }
   },
   "notes": [
-    "Light armor allows full dexterity bonus",
-    "Disadvantage on Stealth when full set is worn"
+    "Bundle of both armor pieces; starting gear is split into them.",
+    "Worn together the two pieces give AC 11 + Dex."
   ],
   "image": "/res/img/items/padded-set.png"
 }

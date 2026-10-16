@@ -5,8 +5,8 @@
   "image": "/res/img/items/crystal.png",
   "name": "Crystal",
   "notes": [
-    "Can be used as a spellcasting focus for arcane magic",
-    "Provides unlimited Quartz Dust for light and divination spells"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Quartz Dust to any spell that needs it, at no cost."
   ],
   "value": 1000,
   "provides": "quartz-dust",

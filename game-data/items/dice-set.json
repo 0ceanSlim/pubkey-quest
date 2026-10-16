@@ -3,7 +3,9 @@
   "id": "dice-set",
   "image": "/res/img/items/dice-set.png",
   "name": "Dice set",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 10,
   "rarity": "common",
   "stack": 1,

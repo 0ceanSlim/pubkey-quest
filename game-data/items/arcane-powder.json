@@ -11,9 +11,9 @@
     "spell_component"
   ],
   "notes": [
-    "Used for evocation and force spells",
-    "Unlimited when Wand focus is equipped",
-    "Consumed on use if no Wand focus"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Find Familiar.",
+    "Free while a Wand is equipped."
   ],
   "image": "/res/img/items/arcane-powder.png"
 }

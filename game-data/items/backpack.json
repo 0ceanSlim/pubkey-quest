@@ -20,10 +20,9 @@
     "backpack-capacity"
   ],
   "notes": [
-    "Expands carrying capacity for adventuring",
-    "adds 20 slots to inventory",
-    "Increases weight capacity by 35 lbs",
-    "Cannot be placed inside of another container"
+    "Wear it in the bag slot: adds 20 inventory slots.",
+    "Adds 25 lbs of carrying capacity while worn.",
+    "Can't be stored inside another container."
   ],
   "image": "/res/img/items/backpack.png"
 }

@@ -6,7 +6,9 @@
   "id": "quarterstaff",
   "image": "/res/img/items/quarterstaff.png",
   "name": "Quarterstaff",
-  "notes": [],
+  "notes": [
+    "Versatile: 1d8 damage with an empty off hand."
+  ],
   "value": 20,
   "rarity": "common",
   "stack": 1,

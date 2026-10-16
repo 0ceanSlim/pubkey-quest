@@ -6,7 +6,10 @@
   "id": "maul",
   "image": "/res/img/items/maul.png",
   "name": "Maul",
-  "notes": [],
+  "notes": [
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage."
+  ],
   "value": 1000,
   "rarity": "common",
   "stack": 1,

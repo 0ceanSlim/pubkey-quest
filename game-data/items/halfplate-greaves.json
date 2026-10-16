@@ -16,8 +16,8 @@
   ],
   "set": "halfplate-set",
   "notes": [
-    "Part of the Half Plate Set",
-    "Disadvantage on Stealth"
+    "Leg armor: adds 6 AC on top of your body armor.",
+    "Wear with the Half Plate Cuirass for AC 15 + Dex (max 2)."
   ],
   "image": "/res/img/items/halfplate-greaves.png"
 }

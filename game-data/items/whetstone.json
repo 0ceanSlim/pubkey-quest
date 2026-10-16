@@ -3,7 +3,9 @@
   "id": "whetstone",
   "image": "/res/img/items/whetstone.png",
   "name": "Whetstone",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 1,
   "rarity": "common",
   "stack": 10,

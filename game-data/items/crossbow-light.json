@@ -2,14 +2,16 @@
   "ammunition": "crossbow-bolts",
   "damage": "1d6",
   "damage_type": "piercing",
-  "description": "A compact crossbow that can be operated with one hand.",
+  "description": "A compact crossbow, simple to span and shoot, though it still wants both hands.",
   "gear_slot": "mainhand",
   "id": "crossbow-light",
   "image": "/res/img/items/crossbow-light.png",
   "name": "Crossbow light",
   "notes": [
-    "Requires bolts to fire",
-    "Loading property requires action to reload"
+    "Fires bolts; keep them in a quiver in the ammo slot.",
+    "Two-handed: takes both hands.",
+    "Range 2 tiles; out to 4 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
   ],
   "value": 2500,
   "range": "2",

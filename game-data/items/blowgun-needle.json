@@ -1,10 +1,14 @@
 {
-  "description": "A tiny, hollow-fletched dart no longer than a finger, made to be puffed silently from a blowgun. Barely scratches unarmored skin but can carry a poison coating.",
+  "description": "A tiny, hollow-fletched dart no longer than a finger, made to be puffed silently from a blowgun. It barely scratches unarmored skin.",
   "gear_slot": "ammo",
   "id": "blowgun-needle",
   "image": "/res/img/items/blowgun-needle.png",
   "name": "Blowgun Needle",
-  "notes": [],
+  "notes": [
+    "Ammunition for the blowgun.",
+    "Carry it in a quiver in the ammo slot.",
+    "About half of what you fire is recovered after a won fight."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 50,

@@ -53,7 +53,9 @@
   "id": "burglars-pack",
   "image": "/res/img/items/burglars-pack.png",
   "name": "Burglar's Pack",
-  "notes": [],
+  "notes": [
+    "Starting kit: opens into a backpack holding all its gear when a character is created."
+  ],
   "value": 1600,
   "rarity": "common",
   "stack": 1,

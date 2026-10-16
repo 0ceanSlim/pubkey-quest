@@ -3,7 +3,9 @@
   "id": "bedroll",
   "image": "/res/img/items/bedroll.png",
   "name": "Bedroll",
-  "notes": [],
+  "notes": [
+    "Lets you sleep in the wild."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 1,

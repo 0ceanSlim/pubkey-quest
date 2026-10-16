@@ -1,9 +1,11 @@
 {
-  "description": "A popular card game involving bluffing and betting, played with a special deck featuring dragons. The goal is to control the most powerful flight of dragons. Proficiency with Three-Dragon Ante allows you to add your proficiency bonus to ability checks made to play the game.",
+  "description": "A popular card game involving bluffing and betting, played with a special deck featuring dragons. The goal is to control the most powerful flight of dragons.",
   "id": "three-dragon-ante-set",
   "image": "/res/img/items/three-dragon-ante-set.png",
   "name": "Three-Dragon Ante set",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 1,

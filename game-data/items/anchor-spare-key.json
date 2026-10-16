@@ -12,8 +12,9 @@
     "quest_item"
   ],
   "notes": [
-    "Reward from The Rats of Goldenhaven",
-    "Opens the Spare Room at the Salty Anchor: sleep there free"
+    "Quest item: can't be dropped, sold or stored.",
+    "Opens the Spare Room at the Salty Anchor: sleep there free.",
+    "Reward from The Rats of Goldenhaven."
   ],
   "image": "/res/img/items/anchor-spare-key.png"
 }

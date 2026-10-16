@@ -11,9 +11,8 @@
     "spell_component"
   ],
   "notes": [
-    "Used for decay and disease magic",
-    "Commonly drops from fungal creatures",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet."
   ],
   "image": "/res/img/items/mushroom-spores.png"
 }

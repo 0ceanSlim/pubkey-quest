@@ -11,9 +11,9 @@
     "spell_component"
   ],
   "notes": [
-    "Used for healing and blessing spells",
-    "Provided unlimited by Holy Symbol (Emblem)",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Spiritual Weapon.",
+    "Free while a Emblem is equipped."
   ],
   "image": "/res/img/items/sacred-oil.png"
 }

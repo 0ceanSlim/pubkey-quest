@@ -15,7 +15,8 @@
   ],
   "set": "leather-set",
   "notes": [
-    "Part of the Leather Armor Set"
+    "Leg armor: adds 4 AC on top of your body armor.",
+    "Wear with the Leather Vest for AC 11 + Dex."
   ],
   "image": "/res/img/items/leather-leggings.png"
 }

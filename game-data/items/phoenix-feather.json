@@ -12,9 +12,8 @@
     "drop-only"
   ],
   "notes": [
-    "Used for resurrection magic",
-    "Extremely rare drop from phoenix",
-    "Considered priceless by mages"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet."
   ],
   "image": "/res/img/items/phoenix-feather.png"
 }

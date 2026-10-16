@@ -9,8 +9,18 @@
   "weight": 0.5,
   "image": "/res/img/items/raw-fish.png",
   "effects": [
-    { "type": "hunger", "value": 1 }
+    {
+      "type": "hunger",
+      "value": 1
+    }
   ],
-  "tags": ["consumable", "material", "fish"],
-  "notes": ["Gathered from fishing nodes", "Cooking is a follow-up"]
+  "tags": [
+    "consumable",
+    "material",
+    "fish"
+  ],
+  "notes": [
+    "Caught at fishing spots.",
+    "Eat it to restore 1 hunger level."
+  ]
 }

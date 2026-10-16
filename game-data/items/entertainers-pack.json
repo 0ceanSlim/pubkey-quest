@@ -33,7 +33,9 @@
   "id": "entertainers-pack",
   "image": "/res/img/items/entertainers-pack.png",
   "name": "Entertainer's Pack",
-  "notes": [],
+  "notes": [
+    "Starting kit: opens into a backpack holding all its gear when a character is created."
+  ],
   "value": 4000,
   "rarity": "common",
   "stack": 1,

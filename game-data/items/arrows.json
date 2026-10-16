@@ -4,7 +4,11 @@
   "id": "arrows",
   "image": "/res/img/items/arrows.png",
   "name": "Arrows",
-  "notes": [],
+  "notes": [
+    "Ammunition for bows.",
+    "Carry it in a quiver in the ammo slot.",
+    "About half of what you fire is recovered after a won fight."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 25,

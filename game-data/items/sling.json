@@ -7,7 +7,11 @@
   "id": "sling",
   "image": "/res/img/items/sling.png",
   "name": "Sling",
-  "notes": [],
+  "notes": [
+    "Fires bullets; keep them in a quiver in the ammo slot.",
+    "Range 1 tile; out to 3 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
+  ],
   "value": 10,
   "range": "1",
   "range_long": "3",

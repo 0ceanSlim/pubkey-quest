@@ -11,8 +11,7 @@
     "light-source"
   ],
   "notes": [
-    "Burns for 1 hour when lit",
-    "Provides dim light in a 5-foot radius"
+    "No use in play yet."
   ],
   "image": "/res/img/items/candle.png"
 }

@@ -33,7 +33,9 @@
   "id": "explorers-pack",
   "image": "/res/img/items/explorers-pack.png",
   "name": "Explorer's Pack",
-  "notes": [],
+  "notes": [
+    "Starting kit: opens into a backpack holding all its gear when a character is created."
+  ],
   "value": 1000,
   "rarity": "common",
   "stack": 1,

@@ -12,9 +12,9 @@
     "focus_provided"
   ],
   "notes": [
-    "Used for fire and explosion spells",
-    "Unlimited when Rod focus is equipped",
-    "Consumed on use if no Rod focus"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Fireball.",
+    "Free while a Rod is equipped."
   ],
   "image": "/res/img/items/sulfur.png"
 }

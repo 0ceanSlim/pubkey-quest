@@ -7,7 +7,8 @@
   "image": "/res/img/items/navigator-kit.png",
   "name": "Navigator Kit",
   "notes": [
-    "+2 Survival while carried. Survival speeds every journey and gives you a roll to spot an ambush before it springs."
+    "+2 Survival while carried. Only the best carried bonus to a skill counts.",
+    "Survival speeds travel and gives you a roll to spot an ambush."
   ],
   "value": 2500,
   "rarity": "common",

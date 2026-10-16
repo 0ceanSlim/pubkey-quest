@@ -5,8 +5,8 @@
   "image": "/res/img/items/rod.png",
   "name": "Rod",
   "notes": [
-    "Can be used as a spellcasting focus for arcane magic",
-    "Provides unlimited Sulfur for fire and explosion spells"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Sulfur to any spell that needs it, at no cost."
   ],
   "value": 1000,
   "provides": "sulfur",

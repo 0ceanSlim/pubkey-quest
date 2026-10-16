@@ -4,7 +4,11 @@
   "id": "sling-bullet",
   "image": "/res/img/items/sling-bullet.png",
   "name": "Sling Bullets",
-  "notes": [],
+  "notes": [
+    "Ammunition for slings.",
+    "Carry it in a quiver in the ammo slot.",
+    "About half of what you fire is recovered after a won fight."
+  ],
   "value": 4,
   "rarity": "common",
   "stack": 8,

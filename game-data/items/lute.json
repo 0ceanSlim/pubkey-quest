@@ -4,7 +4,8 @@
   "image": "/res/img/items/lute.png",
   "name": "Lute",
   "notes": [
-    "Can be used to perform music and entertain crowds"
+    "Play it at booked bard shows that call for it.",
+    "Medium to play: 60% base success, +6% per Charisma above 10."
   ],
   "value": 3500,
   "rarity": "common",

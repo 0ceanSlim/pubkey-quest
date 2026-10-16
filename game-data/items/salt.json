@@ -11,9 +11,8 @@
     "spell_component"
   ],
   "notes": [
-    "Used for protection magic",
-    "Commonly found from various sources",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Protection from Evil and Good."
   ],
   "image": "/res/img/items/salt.png"
 }

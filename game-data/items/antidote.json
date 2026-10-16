@@ -15,7 +15,8 @@
   ],
   "effects": [],
   "notes": [
-    "Ends the poisoned condition (in or out of combat)."
+    "Drink to end the poisoned condition, in or out of combat.",
+    "In combat it uses your action."
   ],
   "image": "/res/img/items/antidote.png"
 }

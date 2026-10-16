@@ -21,7 +21,9 @@
     "loading"
   ],
   "notes": [
-    "maybe add some poision effect later or another couple items poison to dip these in and a new poisoned dart, need to figure out poison effects mechanic first"
+    "Fires needles; keep them in a quiver in the ammo slot.",
+    "Range 1 tile; out to 3 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
   ],
   "image": "/res/img/items/blowgun.png"
 }

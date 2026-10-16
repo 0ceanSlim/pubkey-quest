@@ -15,8 +15,8 @@
   ],
   "set": "scalemail-set",
   "notes": [
-    "Part of the Scale Mail Set",
-    "Disadvantage on Stealth"
+    "Leg armor: adds 6 AC on top of your body armor.",
+    "Wear with the Scale Mail Cuirass for AC 14 + Dex (max 2)."
   ],
   "image": "/res/img/items/scalemail-greaves.png"
 }

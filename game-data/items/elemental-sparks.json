@@ -11,8 +11,8 @@
     "spell_component"
   ],
   "notes": [
-    "Used for elemental manipulation spells",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Scorching Ray."
   ],
   "image": "/res/img/items/elemental-sparks.png"
 }

@@ -3,7 +3,9 @@
   "id": "acid",
   "image": "/res/img/items/acid.png",
   "name": "Acid",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 2500,
   "rarity": "common",
   "stack": 1,

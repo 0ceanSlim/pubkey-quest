@@ -4,8 +4,7 @@
   "image": "/res/img/items/lantern-hooded.png",
   "name": "Lantern hooded",
   "notes": [
-    "Light can be dimmed or blocked by closing shutters",
-    "Burns for 6 hours on one flask of oil"
+    "No use in play yet."
   ],
   "value": 500,
   "rarity": "common",

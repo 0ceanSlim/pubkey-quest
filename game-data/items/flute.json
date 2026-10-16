@@ -3,7 +3,10 @@
   "id": "flute",
   "image": "/res/img/items/flute.png",
   "name": "Flute",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Easy to play: 75% base success, +5% per Charisma above 10."
+  ],
   "value": 200,
   "rarity": "common",
   "stack": 1,

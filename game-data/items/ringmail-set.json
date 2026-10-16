@@ -36,7 +36,8 @@
     }
   },
   "notes": [
-    "Disadvantage on Stealth when full set is worn"
+    "Bundle of both armor pieces; starting gear is split into them.",
+    "Worn together the two pieces give AC 14."
   ],
   "image": "/res/img/items/ringmail-set.png"
 }

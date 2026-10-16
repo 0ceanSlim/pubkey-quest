@@ -15,8 +15,8 @@
   ],
   "set": "studded-leather-set",
   "notes": [
-    "Part of the Studded Leather Set",
-    "Light armor allows full dexterity bonus"
+    "Body armor: base AC 7 plus your full Dexterity bonus.",
+    "Wear with the Studded Leather Leggings for AC 12 + Dex."
   ],
   "image": "/res/img/items/studded-leather-vest.png"
 }

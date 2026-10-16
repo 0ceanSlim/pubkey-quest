@@ -41,7 +41,9 @@
   "id": "dungeoneers-pack",
   "image": "/res/img/items/dungeoneers-pack.png",
   "name": "Dungeoneer's Pack",
-  "notes": [],
+  "notes": [
+    "Starting kit: opens into a backpack holding all its gear when a character is created."
+  ],
   "value": 1200,
   "rarity": "common",
   "stack": 1,

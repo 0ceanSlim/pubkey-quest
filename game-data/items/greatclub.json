@@ -6,7 +6,9 @@
   "id": "greatclub",
   "image": "/res/img/items/greatclub.png",
   "name": "Greatclub",
-  "notes": [],
+  "notes": [
+    "Two-handed: takes both hands."
+  ],
   "value": 20,
   "rarity": "common",
   "stack": 1,

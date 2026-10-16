@@ -15,9 +15,8 @@
   ],
   "set": "chainmail-set",
   "notes": [
-    "Part of the Chain Mail Set",
-    "Requires Strength 13 to wear effectively",
-    "Disadvantage on Stealth"
+    "Body armor: AC 10; your Dexterity doesn't add.",
+    "Wear with the Chain Mail Chausses for AC 16."
   ],
   "image": "/res/img/items/chainmail-hauberk.png"
 }

@@ -1,9 +1,12 @@
 {
-  "description": "A conical wooden wind instrument fitted with a double reed, the predecessor of the oboe. It produces a loud, penetrating sound. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
+  "description": "A conical wooden wind instrument fitted with a double reed, the predecessor of the oboe. It produces a loud, penetrating sound.",
   "id": "shawm",
   "image": "/res/img/items/shawm.png",
   "name": "Shawm",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Hard to play: 50% base success, +6% per Charisma above 10."
+  ],
   "value": 200,
   "rarity": "common",
   "stack": 1,

@@ -11,9 +11,8 @@
     "spell_component"
   ],
   "notes": [
-    "Used for destruction magic",
-    "Commonly drops from fire creatures",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Burning Hands, Hellish Rebuke."
   ],
   "image": "/res/img/items/ash.png"
 }

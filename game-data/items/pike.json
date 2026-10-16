@@ -6,7 +6,10 @@
   "id": "pike",
   "image": "/res/img/items/pike.png",
   "name": "Pike",
-  "notes": [],
+  "notes": [
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage."
+  ],
   "value": 500,
   "range": "1",
   "rarity": "common",

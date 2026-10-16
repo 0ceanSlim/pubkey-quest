@@ -6,7 +6,9 @@
   "id": "whip",
   "image": "/res/img/items/whip.png",
   "name": "Whip",
-  "notes": [],
+  "notes": [
+    "Finesse: uses the better of Strength or Dexterity."
+  ],
   "value": 200,
   "range": "1",
   "rarity": "common",

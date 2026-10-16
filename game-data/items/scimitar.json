@@ -6,7 +6,10 @@
   "id": "scimitar",
   "image": "/res/img/items/scimitar.png",
   "name": "Scimitar",
-  "notes": [],
+  "notes": [
+    "Finesse: uses the better of Strength or Dexterity.",
+    "Light: with another light weapon, you can attack off-hand as a bonus action."
+  ],
   "value": 2500,
   "rarity": "common",
   "stack": 1,

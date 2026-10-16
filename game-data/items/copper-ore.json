@@ -8,6 +8,12 @@
   "stack": 50,
   "weight": 1,
   "image": "/res/img/items/copper-ore.png",
-  "tags": ["material", "ore"],
-  "notes": ["Gathered from mining nodes"]
+  "tags": [
+    "material",
+    "ore"
+  ],
+  "notes": [
+    "Mined at mining spots with a miner's pick.",
+    "Worth selling; smelting isn't in play yet."
+  ]
 }

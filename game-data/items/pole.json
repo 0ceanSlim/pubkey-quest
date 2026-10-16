@@ -4,7 +4,9 @@
   "id": "pole",
   "image": "/res/img/items/pole.png",
   "name": "Pole",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 5,
   "rarity": "common",
   "stack": 1,

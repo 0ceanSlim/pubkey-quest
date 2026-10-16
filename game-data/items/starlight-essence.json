@@ -12,9 +12,8 @@
     "drop-only"
   ],
   "notes": [
-    "Used for divine magic",
-    "Extremely rare gift from celestials",
-    "Said to contain fragments of creation itself"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet."
   ],
   "image": "/res/img/items/starlight-essence.png"
 }

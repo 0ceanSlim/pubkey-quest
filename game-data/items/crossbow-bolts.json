@@ -4,7 +4,11 @@
   "id": "crossbow-bolts",
   "image": "/res/img/items/crossbow-bolts.png",
   "name": "Crossbow Bolts",
-  "notes": [],
+  "notes": [
+    "Ammunition for crossbows.",
+    "Carry it in a quiver in the ammo slot.",
+    "About half of what you fire is recovered after a won fight."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 20,

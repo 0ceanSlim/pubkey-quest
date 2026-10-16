@@ -15,7 +15,8 @@
   ],
   "set": "studded-leather-set",
   "notes": [
-    "Part of the Studded Leather Set"
+    "Leg armor: adds 5 AC on top of your body armor.",
+    "Wear with the Studded Leather Vest for AC 12 + Dex."
   ],
   "image": "/res/img/items/studded-leather-leggings.png"
 }

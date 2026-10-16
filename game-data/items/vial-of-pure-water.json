@@ -11,7 +11,8 @@
     "quest_item"
   ],
   "notes": [
-    "Quest item: The Rising Shadow"
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Rising Shadow."
   ],
   "image": "/res/img/items/vial-of-pure-water.png"
 }

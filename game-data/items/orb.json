@@ -5,8 +5,8 @@
   "image": "/res/img/items/orb.png",
   "name": "Orb",
   "notes": [
-    "Can be used as a spellcasting focus for arcane magic",
-    "Provides unlimited Ether Essence for teleportation and dimensional magic"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Ether Essence to any spell that needs it, at no cost."
   ],
   "value": 2000,
   "provides": "ether-essence",

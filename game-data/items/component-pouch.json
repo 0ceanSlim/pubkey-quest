@@ -15,7 +15,8 @@
     "container"
   ],
   "notes": [
-    "Can be used as a spellcasting focus for material components"
+    "Holds 4 spell components.",
+    "Carry it in a general slot to cast from it in combat."
   ],
   "image": "/res/img/items/component-pouch.png"
 }

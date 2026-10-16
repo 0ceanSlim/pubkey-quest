@@ -4,8 +4,7 @@
   "image": "/res/img/items/caltrops.png",
   "name": "Caltrops",
   "notes": [
-    "Can be scattered to create difficult terrain",
-    "A bag holds 20 caltrops"
+    "No use in play yet."
   ],
   "value": 100,
   "rarity": "common",

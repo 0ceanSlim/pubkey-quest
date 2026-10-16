@@ -4,8 +4,7 @@
   "image": "/res/img/items/lock.png",
   "name": "Lock",
   "notes": [
-    "Comes with a key",
-    "Can be picked with thieves' tools"
+    "No use in play yet."
   ],
   "value": 1000,
   "rarity": "common",

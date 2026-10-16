@@ -4,7 +4,9 @@
   "id": "pick-miners",
   "image": "/res/img/items/pick-miners.png",
   "name": "Pickaxe",
-  "notes": [],
+  "notes": [
+    "Needed to mine ore at mining spots."
+  ],
   "value": 200,
   "rarity": "common",
   "stack": 1,

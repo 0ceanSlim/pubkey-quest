@@ -15,7 +15,8 @@
   ],
   "set": "hide-set",
   "notes": [
-    "Part of the Hide Armor Set"
+    "Leg armor: adds 5 AC on top of your body armor.",
+    "Wear with the Hide Cuirass for AC 12 + Dex (max 2)."
   ],
   "image": "/res/img/items/hide-chaps.png"
 }

@@ -5,7 +5,9 @@
   "id": "alchemists-fire",
   "image": "/res/img/items/alchemists-fire.png",
   "name": "Alchemist's Fire",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 5000,
   "range": "1",
   "range_long": "2",

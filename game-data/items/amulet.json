@@ -14,8 +14,8 @@
     "drop-only"
   ],
   "notes": [
-    "Can be used as a spellcasting focus for divine magic",
-    "Provides unlimited Blessed Incense for holy and protective spells"
+    "Spellcasting focus: worn at the neck.",
+    "Supplies Blessed Incense to any spell that needs it, at no cost."
   ],
   "image": "/res/img/items/amulet.png",
   "provides": "blessed-incense"

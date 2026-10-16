@@ -3,7 +3,9 @@
   "id": "ball-bearings",
   "image": "/res/img/items/ball-bearings.png",
   "name": "Ball Bearings",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 1,

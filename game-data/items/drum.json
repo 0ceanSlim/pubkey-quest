@@ -3,7 +3,10 @@
   "id": "drum",
   "image": "/res/img/items/drum.png",
   "name": "Drum",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Easy to play: 75% base success, +5% per Charisma above 10."
+  ],
   "value": 600,
   "rarity": "common",
   "stack": 1,

@@ -11,9 +11,9 @@
     "spell_component"
   ],
   "notes": [
-    "Used for turning undead and cleansing spells",
-    "Provided unlimited by Holy Symbol (Reliquary)",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet.",
+    "Free while a Reliquary is equipped."
   ],
   "image": "/res/img/items/holy-water.png"
 }

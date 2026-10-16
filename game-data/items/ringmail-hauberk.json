@@ -15,8 +15,8 @@
   ],
   "set": "ringmail-set",
   "notes": [
-    "Part of the Ring Mail Set",
-    "Disadvantage on Stealth"
+    "Body armor: AC 8; your Dexterity doesn't add.",
+    "Wear with the Ring Mail Chausses for AC 14."
   ],
   "image": "/res/img/items/ringmail-hauberk.png"
 }

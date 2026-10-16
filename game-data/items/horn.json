@@ -1,9 +1,12 @@
 {
-  "description": "A wind instrument, typically made of metal or horn, that produces sound from the vibration of the player's lips. Can also be used as a signaling device. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
+  "description": "A wind instrument, typically made of metal or horn, that produces sound from the vibration of the player's lips. Can also be used as a signaling device.",
   "id": "horn",
   "image": "/res/img/items/horn.png",
   "name": "Horn",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Easy to play: 70% base success, +5% per Charisma above 10."
+  ],
   "value": 300,
   "rarity": "common",
   "stack": 1,

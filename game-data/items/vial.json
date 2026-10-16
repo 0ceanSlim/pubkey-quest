@@ -3,7 +3,9 @@
   "id": "vial",
   "image": "/res/img/items/vial.png",
   "name": "Vial",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 10,

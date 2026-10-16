@@ -34,7 +34,8 @@
     ]
   },
   "notes": [
-    "Light armor allows full dexterity bonus"
+    "Bundle of both armor pieces; starting gear is split into them.",
+    "Worn together the two pieces give AC 11 + Dex."
   ],
   "image": "/res/img/items/leather-set.png"
 }

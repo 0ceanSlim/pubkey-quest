@@ -4,7 +4,7 @@
   "image": "/res/img/items/hammer.png",
   "name": "Hammer",
   "notes": [
-    "Useful for construction and basic repairs"
+    "No use in play yet."
   ],
   "value": 100,
   "rarity": "common",

@@ -15,9 +15,8 @@
   ],
   "set": "padded-set",
   "notes": [
-    "Part of the Padded Armor Set",
-    "Light armor allows full dexterity bonus",
-    "Disadvantage on Stealth"
+    "Body armor: base AC 7 plus your full Dexterity bonus.",
+    "Wear with the Padded Leggings for AC 11 + Dex."
   ],
   "image": "/res/img/items/padded-gambeson.png"
 }

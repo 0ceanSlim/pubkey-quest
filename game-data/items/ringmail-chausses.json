@@ -15,8 +15,8 @@
   ],
   "set": "ringmail-set",
   "notes": [
-    "Part of the Ring Mail Set",
-    "Disadvantage on Stealth"
+    "Leg armor: adds 6 AC on top of your body armor.",
+    "Wear with the Ring Mail Hauberk for AC 14."
   ],
   "image": "/res/img/items/ringmail-chausses.png"
 }

@@ -11,8 +11,8 @@
     "spell_component"
   ],
   "notes": [
-    "Used for summoning and animal magic",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Arms of Hadar, Bane, Hex, Inflict Wounds, Exhausting Hex."
   ],
   "image": "/res/img/items/spirit-dust.png"
 }

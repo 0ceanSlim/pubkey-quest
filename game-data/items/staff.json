@@ -5,8 +5,8 @@
   "image": "/res/img/items/staff.png",
   "name": "Staff",
   "notes": [
-    "Can be used as a spellcasting focus for arcane magic",
-    "Provides unlimited Mana Crystals for large and ritual spells"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Mana Crystals to any spell that needs it, at no cost."
   ],
   "value": 500,
   "provides": "mana-crystals",

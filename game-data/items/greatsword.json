@@ -6,7 +6,10 @@
   "id": "greatsword",
   "image": "/res/img/items/greatsword.png",
   "name": "Greatsword",
-  "notes": [],
+  "notes": [
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage."
+  ],
   "value": 5000,
   "rarity": "common",
   "stack": 1,

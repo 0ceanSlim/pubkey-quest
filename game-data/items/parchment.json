@@ -3,7 +3,9 @@
   "id": "parchment",
   "image": "/res/img/items/parchment.png",
   "name": "Parchment",
-  "notes": [],
+  "notes": [
+    "Writing supply: fits in a map & scroll case. No other use in play yet."
+  ],
   "value": 10,
   "rarity": "common",
   "stack": 10,

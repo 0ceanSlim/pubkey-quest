@@ -6,7 +6,9 @@
   "id": "battleaxe",
   "image": "/res/img/items/battleaxe.png",
   "name": "Battleaxe",
-  "notes": [],
+  "notes": [
+    "Versatile: 1d10 damage with an empty off hand."
+  ],
   "value": 1000,
   "rarity": "common",
   "stack": 1,

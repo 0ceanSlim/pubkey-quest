@@ -4,8 +4,7 @@
   "image": "/res/img/items/magnifying-glass.png",
   "name": "Magnifying glass",
   "notes": [
-    "+1 Perception while carried.",
-    "Tool bonuses to the same skill don't stack; the best one counts."
+    "+1 Perception while carried. Only the best carried bonus to a skill counts."
   ],
   "value": 10000,
   "rarity": "common",

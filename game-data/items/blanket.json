@@ -3,7 +3,9 @@
   "id": "blanket",
   "image": "/res/img/items/blanket.png",
   "name": "Blanket",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 50,
   "rarity": "common",
   "stack": 1,

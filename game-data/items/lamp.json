@@ -4,8 +4,7 @@
   "image": "/res/img/items/lamp.png",
   "name": "Lamp",
   "notes": [
-    "Burns for 6 hours on one flask of oil",
-    "Provides bright light in 15-foot radius"
+    "No use in play yet."
   ],
   "value": 50,
   "rarity": "common",

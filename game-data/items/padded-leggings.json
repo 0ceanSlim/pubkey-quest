@@ -15,8 +15,8 @@
   ],
   "set": "padded-set",
   "notes": [
-    "Part of the Padded Armor Set",
-    "Disadvantage on Stealth"
+    "Leg armor: adds 4 AC on top of your body armor.",
+    "Wear with the Padded Gambeson for AC 11 + Dex."
   ],
   "image": "/res/img/items/padded-leggings.png"
 }

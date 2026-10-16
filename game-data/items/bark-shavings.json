@@ -12,9 +12,9 @@
     "focus_provided"
   ],
   "notes": [
-    "Used for growth and healing spells",
-    "Unlimited when Wooden Staff focus is equipped",
-    "Consumed on use if no Wooden Staff focus"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet.",
+    "Free while a Wooden Staff is equipped."
   ],
   "image": "/res/img/items/bark-shavings.png"
 }

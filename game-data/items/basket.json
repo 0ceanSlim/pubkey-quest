@@ -7,7 +7,9 @@
   "id": "basket",
   "image": "/res/img/items/basket.png",
   "name": "Basket",
-  "notes": [],
+  "notes": [
+    "Holds 4 food items."
+  ],
   "value": 40,
   "rarity": "common",
   "stack": 1,

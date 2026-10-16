@@ -5,8 +5,8 @@
   "image": "/res/img/items/totem.png",
   "name": "Totem",
   "notes": [
-    "Can be used as a spellcasting focus for druidic magic",
-    "Provides unlimited Bone Dust for necromancy and summoning magic"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Bone Dust to any spell that needs it, at no cost."
   ],
   "value": 100,
   "provides": "bone-dust",

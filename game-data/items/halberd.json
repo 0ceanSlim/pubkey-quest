@@ -6,7 +6,10 @@
   "id": "halberd",
   "image": "/res/img/items/halberd.png",
   "name": "Halberd",
-  "notes": [],
+  "notes": [
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage."
+  ],
   "value": 2000,
   "range": "1",
   "rarity": "common",

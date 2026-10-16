@@ -15,8 +15,8 @@
   ],
   "set": "hide-set",
   "notes": [
-    "Part of the Hide Armor Set",
-    "Maximum Dexterity bonus of +2"
+    "Body armor: base AC 7 plus Dexterity bonus (max +2).",
+    "Wear with the Hide Chaps for AC 12 + Dex (max 2)."
   ],
   "image": "/res/img/items/hide-cuirass.png"
 }

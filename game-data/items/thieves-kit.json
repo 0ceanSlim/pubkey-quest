@@ -1,5 +1,5 @@
 {
-  "description": "A discreet roll of lockpicks, fine files, skeleton keys, disguise paints, and a forger's pen — everything a rogue needs for delicate, deniable work. Used with the Thieving skill to pick locks, disarm traps, forge documents, brew poisons, and go unseen.",
+  "description": "A discreet roll of lockpicks, fine files, skeleton keys, disguise paints, and a forger's pen — everything a rogue needs for delicate, deniable work. Built for the quiet work of locks and shadows.",
   "id": "thieves-kit",
   "skill_bonus": {
     "thieving": 2
@@ -7,7 +7,8 @@
   "image": "/res/img/items/thieves-kit.png",
   "name": "Thieves' Kit",
   "notes": [
-    "Used with the Thieving skill for lockpicking, traps, forgery, poisons, and disguise"
+    "+2 Thieving while carried. Only the best carried bonus to a skill counts.",
+    "You still need lockpicks to pick a lock."
   ],
   "value": 2500,
   "rarity": "common",

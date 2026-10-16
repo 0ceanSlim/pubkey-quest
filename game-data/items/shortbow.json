@@ -8,7 +8,10 @@
   "image": "/res/img/items/shortbow.png",
   "name": "Shortbow",
   "notes": [
-    "Requires arrows to fire"
+    "Fires arrows; keep them in a quiver in the ammo slot.",
+    "Two-handed: takes both hands.",
+    "Range 2 tiles; out to 4 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
   ],
   "value": 2500,
   "range": "2",

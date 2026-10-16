@@ -6,7 +6,9 @@
   "id": "warhammer",
   "image": "/res/img/items/warhammer.png",
   "name": "Warhammer",
-  "notes": [],
+  "notes": [
+    "Versatile: 1d10 damage with an empty off hand."
+  ],
   "value": 1500,
   "rarity": "common",
   "stack": 1,

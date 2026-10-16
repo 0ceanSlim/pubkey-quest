@@ -11,9 +11,9 @@
     "spell_component"
   ],
   "notes": [
-    "Used for holy and protective spells",
-    "Provided unlimited by Holy Symbol (Amulet)",
-    "Must be gathered or purchased"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Bless, Guiding Bolt.",
+    "Free while a Amulet is equipped."
   ],
   "image": "/res/img/items/blessed-incense.png"
 }

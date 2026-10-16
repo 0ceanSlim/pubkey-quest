@@ -3,7 +3,9 @@
   "id": "book",
   "image": "/res/img/items/book.png",
   "name": "Book",
-  "notes": [],
+  "notes": [
+    "Writing supply: fits in a map & scroll case. No other use in play yet."
+  ],
   "value": 2500,
   "rarity": "common",
   "stack": 1,

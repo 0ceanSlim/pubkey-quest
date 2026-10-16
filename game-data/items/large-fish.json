@@ -9,8 +9,18 @@
   "weight": 2,
   "image": "/res/img/items/large-fish.png",
   "effects": [
-    { "type": "hunger", "value": 2 }
+    {
+      "type": "hunger",
+      "value": 2
+    }
   ],
-  "tags": ["consumable", "material", "fish"],
-  "notes": ["Rare catch from fishing nodes"]
+  "tags": [
+    "consumable",
+    "material",
+    "fish"
+  ],
+  "notes": [
+    "Caught at fishing spots.",
+    "Eat it to restore 2 hunger levels."
+  ]
 }

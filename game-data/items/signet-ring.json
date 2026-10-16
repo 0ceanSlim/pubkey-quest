@@ -3,7 +3,9 @@
   "id": "signet-ring",
   "image": "/res/img/items/signet-ring.png",
   "name": "Signet ring",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 500,
   "rarity": "common",
   "stack": 1,

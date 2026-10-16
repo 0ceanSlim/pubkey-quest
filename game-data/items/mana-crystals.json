@@ -11,9 +11,9 @@
     "spell_component"
   ],
   "notes": [
-    "Used for large and ritual spells",
-    "Unlimited when Staff focus is equipped",
-    "Consumed on use if no Staff focus"
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Mage Armor, Shield.",
+    "Free while a Staff is equipped."
   ],
   "image": "/res/img/items/mana-crystals.png"
 }

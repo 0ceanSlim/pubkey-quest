@@ -23,9 +23,9 @@
     "drop-only"
   ],
   "notes": [
-    "Requires bolts to fire",
-    "Light weapon",
-    "Loading property requires action to reload"
+    "Fires bolts; keep them in a quiver in the ammo slot.",
+    "Range 1 tile; out to 3 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
   ],
   "image": "/res/img/items/crossbow-hand.png"
 }

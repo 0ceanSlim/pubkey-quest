@@ -1,9 +1,12 @@
 {
-  "description": "A bowed stringed instrument, typically having six strings and played upright between the legs. It's the predecessor to the violin family. Proficiency with this instrument allows you to add your proficiency bonus to any ability checks you make to play music with it.",
+  "description": "A bowed stringed instrument, typically having six strings and played upright between the legs. It's the predecessor to the violin family.",
   "id": "viol",
   "image": "/res/img/items/viol.png",
   "name": "Viol",
-  "notes": [],
+  "notes": [
+    "Play it at booked bard shows that call for it.",
+    "Hard to play: 40% base success, +7% per Charisma above 10."
+  ],
   "value": 3000,
   "rarity": "common",
   "stack": 1,

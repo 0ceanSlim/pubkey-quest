@@ -33,7 +33,9 @@
   "id": "priests-pack",
   "image": "/res/img/items/priests-pack.png",
   "name": "Priest's Pack",
-  "notes": [],
+  "notes": [
+    "Starting kit: opens into a backpack holding all its gear when a character is created."
+  ],
   "value": 1900,
   "rarity": "common",
   "stack": 1,

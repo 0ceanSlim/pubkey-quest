@@ -6,7 +6,9 @@
   "id": "sickle",
   "image": "/res/img/items/sickle.png",
   "name": "Sickle",
-  "notes": [],
+  "notes": [
+    "Light: with another light weapon, you can attack off-hand as a bonus action."
+  ],
   "value": 100,
   "rarity": "common",
   "stack": 1,

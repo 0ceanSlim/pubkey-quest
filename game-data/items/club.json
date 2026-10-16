@@ -6,7 +6,9 @@
   "id": "club",
   "image": "/res/img/items/club.png",
   "name": "Club",
-  "notes": [],
+  "notes": [
+    "Light: with another light weapon, you can attack off-hand as a bonus action."
+  ],
   "value": 10,
   "rarity": "common",
   "stack": 1,

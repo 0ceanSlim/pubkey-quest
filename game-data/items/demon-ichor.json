@@ -12,9 +12,8 @@
     "drop-only"
   ],
   "notes": [
-    "Used for dark magic",
-    "Rarely drops from demons",
-    "Dangerous to handle without protection"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet."
   ],
   "image": "/res/img/items/demon-ichor.png"
 }

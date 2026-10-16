@@ -20,6 +20,8 @@
       "value": -3
     }
   ],
-  "notes": [],
+  "notes": [
+    "Eat to restore 1 hunger level and ease fatigue by 3."
+  ],
   "image": "/res/img/items/rations.png"
 }

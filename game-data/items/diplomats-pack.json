@@ -45,7 +45,9 @@
   "id": "diplomats-pack",
   "image": "/res/img/items/diplomats-pack.png",
   "name": "Diplomat's Pack",
-  "notes": [],
+  "notes": [
+    "Starting kit: opens into a backpack holding all its gear when a character is created."
+  ],
   "value": 3900,
   "rarity": "common",
   "stack": 1,

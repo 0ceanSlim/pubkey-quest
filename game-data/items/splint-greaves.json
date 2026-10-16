@@ -14,9 +14,8 @@
     "heavy"
   ],
   "notes": [
-    "Part of the Splint Armor Set",
-    "Requires Strength 15 to wear effectively",
-    "Disadvantage on Stealth"
+    "Leg armor: adds 7 AC on top of your body armor.",
+    "Wear with the Splint Cuirass for AC 17."
   ],
   "image": "/res/img/items/splint-greaves.png",
   "set": "splint-set"

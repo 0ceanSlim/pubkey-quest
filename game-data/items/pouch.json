@@ -8,7 +8,10 @@
   "id": "pouch",
   "image": "/res/img/items/pouch.png",
   "name": "Pouch",
-  "notes": [],
+  "notes": [
+    "Holds 20 items of any kind.",
+    "Goes in the bag slot like a backpack, without the extra carrying capacity."
+  ],
   "value": 50,
   "rarity": "common",
   "stack": 1,

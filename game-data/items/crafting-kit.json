@@ -1,5 +1,5 @@
 {
-  "description": "A consolidated set of artisan's tools — hammers, files, chisels, awls, needles, and shaping implements covering smithing, carpentry, masonry, leatherworking, weaving, woodcarving, glassblowing, and pottery. Used with the Crafting skill to build and repair equipment.",
+  "description": "A consolidated set of artisan's tools — hammers, files, chisels, awls, needles, and shaping implements covering smithing, carpentry, masonry, leatherworking, weaving, woodcarving, glassblowing, and pottery. The tools of a maker who builds and mends.",
   "id": "crafting-kit",
   "skill_bonus": {
     "crafting": 2
@@ -7,7 +7,8 @@
   "image": "/res/img/items/crafting-kit.png",
   "name": "Crafting Kit",
   "notes": [
-    "Used with the Crafting skill to craft and repair equipment"
+    "+2 Crafting while carried. Only the best carried bonus to a skill counts.",
+    "No crafting in play yet."
   ],
   "value": 2000,
   "rarity": "common",

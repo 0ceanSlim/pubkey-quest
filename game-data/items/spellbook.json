@@ -9,7 +9,8 @@
   "image": "/res/img/items/spellbook.png",
   "name": "Spellbook",
   "notes": [
-    "when equipped, should add a d3 to spell damages, maybe other bonuses"
+    "Holds up to 20 spell scrolls.",
+    "No other effect yet."
   ],
   "value": 5000,
   "rarity": "common",

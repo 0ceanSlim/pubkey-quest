@@ -3,7 +3,9 @@
   "id": "waterskin",
   "image": "/res/img/items/waterskin.png",
   "name": "Waterskin",
-  "notes": [],
+  "notes": [
+    "No use in play yet."
+  ],
   "value": 20,
   "rarity": "common",
   "stack": 1,

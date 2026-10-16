@@ -39,8 +39,8 @@
     }
   },
   "notes": [
-    "Requires Strength 15 to wear effectively",
-    "Disadvantage on Stealth when full set is worn"
+    "Bundle of both armor pieces; starting gear is split into them.",
+    "Worn together the two pieces give AC 17."
   ],
   "image": "/res/img/items/splint-set.png"
 }

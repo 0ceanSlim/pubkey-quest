@@ -4,7 +4,7 @@
   "image": "/res/img/items/grappling-hook.png",
   "name": "Grappling Hook",
   "notes": [
-    "+2 Athletics while carried."
+    "+2 Athletics while carried. Only the best carried bonus to a skill counts."
   ],
   "value": 200,
   "rarity": "common",

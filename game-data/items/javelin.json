@@ -6,7 +6,9 @@
   "id": "javelin",
   "image": "/res/img/items/javelin.png",
   "name": "Javelin",
-  "notes": [],
+  "notes": [
+    "Can be thrown up to 3 tiles; a thrown weapon is used up."
+  ],
   "value": 50,
   "range": "1",
   "range_long": "3",

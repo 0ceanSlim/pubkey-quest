@@ -11,9 +11,9 @@
     "spell_component"
   ],
   "notes": [
-    "Used for teleportation and dimensional magic",
-    "Unlimited when Orb focus is equipped",
-    "Consumed on use if no Orb focus"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet.",
+    "Free while a Orb is equipped."
   ],
   "image": "/res/img/items/ether-essence.png"
 }

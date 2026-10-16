@@ -5,7 +5,9 @@
   "id": "shovel",
   "image": "/res/img/items/shovel.png",
   "name": "Shovel",
-  "notes": [],
+  "notes": [
+    "Needed to dig at digging spots."
+  ],
   "value": 200,
   "rarity": "common",
   "stack": 1,

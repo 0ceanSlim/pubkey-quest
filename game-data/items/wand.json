@@ -5,8 +5,8 @@
   "image": "/res/img/items/wand.png",
   "name": "Wand",
   "notes": [
-    "Can be used as a spellcasting focus for arcane magic",
-    "Provides unlimited Arcane Powder for evocation and force spells"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Arcane Powder to any spell that needs it, at no cost."
   ],
   "value": 1000,
   "provides": "arcane-powder",

@@ -7,7 +7,13 @@
   "id": "longbow",
   "image": "/res/img/items/longbow.png",
   "name": "Longbow",
-  "notes": [],
+  "notes": [
+    "Fires arrows; keep them in a quiver in the ammo slot.",
+    "Two-handed: takes both hands.",
+    "Heavy: halflings and gnomes attack with disadvantage.",
+    "Range 3 tiles; out to 6 tiles at disadvantage.",
+    "Shooting an adjacent foe is at disadvantage."
+  ],
   "value": 5000,
   "range": "3",
   "range_long": "6",

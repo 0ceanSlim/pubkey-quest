@@ -4,7 +4,7 @@
   "image": "/res/img/items/ink-pen.png",
   "name": "Ink pen",
   "notes": [
-    "Used for writing with ink"
+    "Writing supply: fits in a map & scroll case. No other use in play yet."
   ],
   "value": 2,
   "rarity": "common",

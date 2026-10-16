@@ -3,7 +3,9 @@
   "id": "ink",
   "image": "/res/img/items/ink.png",
   "name": "Ink",
-  "notes": [],
+  "notes": [
+    "Writing supply: fits in a map & scroll case. No other use in play yet."
+  ],
   "value": 1000,
   "rarity": "common",
   "stack": 1,

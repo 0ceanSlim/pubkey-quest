@@ -15,9 +15,8 @@
   ],
   "set": "chainmail-set",
   "notes": [
-    "Part of the Chain Mail Set",
-    "Requires Strength 13 to wear effectively",
-    "Disadvantage on Stealth"
+    "Leg armor: adds 6 AC on top of your body armor.",
+    "Wear with the Chain Mail Hauberk for AC 16."
   ],
   "image": "/res/img/items/chainmail-chausses.png"
 }

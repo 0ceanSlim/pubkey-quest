@@ -5,8 +5,8 @@
   "image": "/res/img/items/yew-wand.png",
   "name": "Yew Wand",
   "notes": [
-    "Can be used as a spellcasting focus for druidic magic",
-    "Provides unlimited Tree Sap for poison and transformation magic"
+    "Spellcasting focus: held in a hand.",
+    "Supplies Tree Sap to any spell that needs it, at no cost."
   ],
   "value": 1000,
   "provides": "tree-sap",

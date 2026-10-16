@@ -12,9 +12,8 @@
     "drop-only"
   ],
   "notes": [
-    "Used for high-level fire and ice magic",
-    "Rarely drops from dragonlings",
-    "Very valuable and sought after"
+    "Spell component: used up when you cast a spell that needs it.",
+    "No spell needs it yet."
   ],
   "image": "/res/img/items/dragon-scale.png"
 }

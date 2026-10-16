@@ -6,8 +6,8 @@
   "image": "/res/img/items/supreme-healing.png",
   "name": "Supreme healing",
   "notes": [
-    "Single use item",
-    "Takes an action to drink"
+    "Drink to heal 10d4+20 HP, in or out of combat.",
+    "In combat it uses your action."
   ],
   "value": 50000,
   "rarity": "legendary",

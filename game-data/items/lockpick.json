@@ -12,7 +12,8 @@
     "lockpick"
   ],
   "notes": [
-    "Used up by a failed pick (quick attempt or minigame). A Thieves' Kit adds +1 to the roll."
+    "Needed to pick locks. A failed pick breaks one.",
+    "A Thieves' Kit (+2 Thieving) improves your odds."
   ],
   "image": "/res/img/items/lockpick.png"
 }

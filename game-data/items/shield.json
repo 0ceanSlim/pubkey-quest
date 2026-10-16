@@ -5,7 +5,9 @@
   "id": "shield",
   "image": "/res/img/items/shield.png",
   "name": "Shield",
-  "notes": [],
+  "notes": [
+    "Adds +2 AC and takes your off hand: no two-handed or off-hand weapon."
+  ],
   "value": 1000,
   "rarity": "common",
   "stack": 1,

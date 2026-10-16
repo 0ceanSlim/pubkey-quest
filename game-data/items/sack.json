@@ -8,7 +8,8 @@
   "image": "/res/img/items/sack.png",
   "name": "Sack",
   "notes": [
-    "adds 4 inventory slots, change to contain anything that weighs less than a certain weight to limit item size"
+    "Holds 4 items of any kind.",
+    "Carry it in a general slot to reach its contents in combat."
   ],
   "value": 1,
   "rarity": "common",

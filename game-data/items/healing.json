@@ -6,8 +6,8 @@
   "image": "/res/img/items/healing.png",
   "name": "Healing",
   "notes": [
-    "Single use item",
-    "Takes an action to drink"
+    "Drink to heal 2d4+2 HP, in or out of combat.",
+    "In combat it uses your action."
   ],
   "value": 5000,
   "rarity": "common",
