@@ -18,6 +18,7 @@ import { getItemById, getSpellById, getLocationById, getNPCById, getAllMusicTrac
 // Systems
 import { saveGameToLocal } from '../systems/saveSystem.js';
 import '../systems/saveRitual.js'; // Auto-initializes save modal (Ctrl+S) + last-saved indicator
+import '../ui/settingsPanel.js'; // Settings tab: About section + where saves go
 import * as inventoryInteractions from '../systems/inventoryInteractions.js';
 import { initSlotInteractions } from '../systems/slotInteractions.js';
 import { openContainer, closeContainer } from '../systems/containers.js';

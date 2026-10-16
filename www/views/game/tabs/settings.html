@@ -1,47 +1,71 @@
 {{define "game/tabs/settings.html"}}
-<!-- Settings Panel -->
-<div id="settings-panel" class="hidden h-full overflow-y-auto text-white" style="font-size: 11px;">
-    <div class="p-2 space-y-3">
-        <!-- Save Section -->
-        <div class="border border-gray-600 p-2" style="background: #1a1a1a;">
-            <h3 class="font-bold text-yellow-400 mb-2">Save Game</h3>
-            <button id="manual-save-btn" onclick="window.openSaveModal && window.openSaveModal()" class="w-full py-2 px-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
-                💾 Save Game
-            </button>
-            <button onclick="reloadFromSave()" class="w-full mt-2 py-2 px-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
-                ↩️ Reload from Save
-            </button>
-            <button onclick="window.openQuitModal && window.openQuitModal()" class="w-full mt-2 py-2 px-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
-                🚪 Quit to Title
-            </button>
-            <div id="save-status" data-last-saved class="mt-2 text-xs text-gray-400">Last saved: never this session</div>
-            <p class="mt-1 text-gray-500" style="font-size: 9px;">Save writes to disk (Ctrl+S). Reload discards unsaved changes and restores your last save.</p>
+<!-- Settings Panel: compact, in the rail's own 7-9px style. -->
+<div id="settings-panel" class="hidden h-full overflow-y-auto text-white" style="font-size: 8px;"
+     data-version="{{.Version}}" data-relay-saves="{{.CustomData.RelaySaves}}">
+    <div class="p-1 space-y-1">
+        <!-- Game -->
+        <div class="border border-gray-700 p-1.5" style="background: #1a1a1a;">
+            <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">Game</h3>
+            <div class="grid grid-cols-3 gap-1">
+                <button id="manual-save-btn" onclick="window.openSaveModal && window.openSaveModal()"
+                        class="settings-btn" title="Save (Ctrl+S)">💾 Save</button>
+                <button onclick="reloadFromSave()" class="settings-btn"
+                        title="Discard everything since your last save and load it again">↩️ Reload</button>
+                <button onclick="window.openQuitModal && window.openQuitModal()" class="settings-btn"
+                        title="Leave the game (save first, or go back to your last save)">🚪 Quit</button>
+            </div>
+            <div id="save-status" data-last-saved class="mt-1 text-gray-400" style="font-size: 7px;">Last saved: never this session</div>
+            <div id="settings-save-where" class="text-gray-500" style="font-size: 7px; line-height: 1.5;"></div>
         </div>
 
-        <!-- Text Section -->
-        <div class="border border-gray-600 p-2" style="background: #1a1a1a;">
-            <h3 class="font-bold text-yellow-400 mb-2">Text</h3>
-            <label for="text-speed-select" class="block mb-1" style="font-size: 10px;">Dialogue text speed</label>
+        <!-- Text -->
+        <div class="border border-gray-700 p-1.5" style="background: #1a1a1a;">
+            <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">Text</h3>
+            <label for="text-speed-select" class="block mb-0.5 text-gray-300" style="font-size: 7px;">Dialogue text speed</label>
             <select id="text-speed-select" onchange="window.setTextSpeed && window.setTextSpeed(this.value)"
-                    class="w-full py-1 px-2 text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
+                    class="w-full py-0.5 px-1 text-white" style="font-size: 8px; background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
                 <option value="slow">Slow</option>
                 <option value="normal">Normal</option>
                 <option value="fast">Fast</option>
                 <option value="instant">Instant</option>
             </select>
-            <p class="mt-1 text-gray-500" style="font-size: 9px;">How fast NPC and exploration text types out. Click the speech box to skip to the full line.</p>
+            <p class="mt-0.5 text-gray-500" style="font-size: 7px; line-height: 1.5;">Click the speech box to skip to the full line.</p>
         </div>
 
-        <!-- Debug Section -->
-        <div class="border border-gray-600 p-2" style="background: #1a1a1a;">
-            <h3 class="font-bold text-yellow-400 mb-2">Debug</h3>
-            <button onclick="console.log(getGameState())" class="w-full py-2 px-3 font-bold text-white" style="background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;">
-                📋 Log Game State
-            </button>
-            {{if .CustomData.DebugMode}}
-            <p class="mt-2 text-gray-500" style="font-size: 9px;">Test tools (combat, state console) live in the 🐛 Debug Console.</p>
-            {{end}}
+        <!-- About this game -->
+        <div class="border border-gray-700 p-1.5" style="background: #1a1a1a;">
+            <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">About</h3>
+            <dl class="settings-info" id="settings-info">
+                <dt>Character</dt><dd id="settings-character">—</dd>
+                <dt>Signed in as</dt>
+                <dd><span id="settings-npub">—</span>
+                    <button id="settings-npub-copy" class="ml-1 text-gray-400 hover:text-white" title="Copy your npub">📋</button></dd>
+                <dt>Save id</dt><dd id="settings-save-id">—</dd>
+                <dt>Version</dt><dd id="settings-version">—</dd>
+            </dl>
         </div>
+
+        {{if .CustomData.DebugMode}}
+        <!-- Debug -->
+        <div class="border border-gray-700 p-1.5" style="background: #1a1a1a;">
+            <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">Debug</h3>
+            <button onclick="console.log(getGameState())" class="settings-btn w-full">📋 Log game state</button>
+            <p class="mt-0.5 text-gray-500" style="font-size: 7px;">Test tools live in the 🐛 Debug Console.</p>
+        </div>
+        {{end}}
     </div>
+    <style>
+        #settings-panel .settings-btn {
+            padding: 3px 2px; font-weight: bold; color: #fff; font-size: 8px; cursor: pointer;
+            background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a;
+            border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; white-space: nowrap;
+        }
+        #settings-panel .settings-btn:active {
+            border-top-color: #1a1a1a; border-left-color: #1a1a1a; border-right-color: #4a4a4a; border-bottom-color: #4a4a4a;
+        }
+        #settings-panel .settings-info { display: grid; grid-template-columns: auto 1fr; gap: 2px 6px; font-size: 7px; line-height: 1.5; }
+        #settings-panel .settings-info dt { color: #9ca3af; }
+        #settings-panel .settings-info dd { color: #e5e7eb; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
 </div>
 {{end}}

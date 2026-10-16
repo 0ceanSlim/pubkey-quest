@@ -24,7 +24,8 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 			"GameMode":  true,
 			"SaveID":    saveID,
 			"NewGame":   newGame == "true",
-			"DebugMode": utils.AppConfig.Server.DebugMode,
+			"DebugMode":  utils.AppConfig.Server.DebugMode,
+			"RelaySaves": utils.AppConfig.Saves.Relay,
 		},
 	}
 

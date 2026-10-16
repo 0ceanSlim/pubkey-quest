@@ -270,6 +270,7 @@
   <!-- JavaScript -->
   <script>
     function switchTab(tabName) {
+      if (tabName === "settings") window.refreshSettingsPanel?.();
       const tabs = ["equipment", "inventory", "spells", "questlog", "stats", "music", "settings", "friends"];
       const panels = {
         equipment: document.getElementById("equipment-panel"),
