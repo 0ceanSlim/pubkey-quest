@@ -610,9 +610,11 @@ function displayTravelView(state, envData) {
     const actionButtons = document.getElementById('action-buttons');
     if (!actionButtons) return;
 
-    // Switch from 3-column grid to single-column travel layout
+    // Switch from 3-column grid to single-column travel layout. A conversation
+    // on the road (a merchant at a POI) keeps the buttons hidden until it ends.
     actionButtons.innerHTML = '';
-    actionButtons.style.display = 'flex';
+    actionButtons.dataset.layout = 'travel';
+    actionButtons.style.display = _dialogueOpen ? 'none' : 'flex';
     actionButtons.style.flexDirection = 'column';
     actionButtons.style.gap = '4px';
     actionButtons.style.padding = '4px';
@@ -785,10 +787,11 @@ export function restoreActionButtonsLayout() {
     const actionButtons = document.getElementById('action-buttons');
     if (!actionButtons) return;
 
-    // Check if we need to restore (travel view sets display to flex)
-    if (actionButtons.style.display === 'flex') {
+    // Check if we need to restore (the travel view marks its layout)
+    if (actionButtons.dataset.layout === 'travel') {
         // Reset to original grid layout
-        actionButtons.style.display = '';
+        delete actionButtons.dataset.layout;
+        actionButtons.style.display = _dialogueOpen ? 'none' : '';
         actionButtons.style.flexDirection = '';
         actionButtons.style.gap = '';
         actionButtons.style.padding = '';
@@ -1148,6 +1151,10 @@ async function pickDoor(rm, quick) {
  * Initiate dialogue with an NPC
  * @param {string} npcId - NPC ID to talk to
  */
+// True while an NPC conversation holds the bottom strip; layout redraws (the
+// travel view, the city grid) keep the action buttons hidden until it closes.
+let _dialogueOpen = false;
+
 export async function talkToNPC(npcId) {
     logger.debug('Initiating dialogue with NPC:', npcId);
 
@@ -1172,6 +1179,7 @@ export async function talkToNPC(npcId) {
  */
 export function showNPCDialogue(dialogueData, npcMessage) {
     logger.debug('Showing NPC dialogue:', dialogueData);
+    _dialogueOpen = true;
 
     // The People list stays clickable under the vault overlay — starting a
     // conversation closes the vault rather than typing the NPC's line behind it.
@@ -1369,6 +1377,7 @@ export async function selectDialogueOption(npcId, choice) {
  */
 export function closeNPCDialogue() {
     logger.debug('Closing NPC dialogue');
+    _dialogueOpen = false;
 
     // Clear the on-scene speech box (M6).
     hideSceneSpeech();
@@ -1382,7 +1391,8 @@ export function closeNPCDialogue() {
     // Restore action buttons
     const actionButtonsArea = document.getElementById('action-buttons');
     if (actionButtonsArea) {
-        actionButtonsArea.style.display = 'grid'; // Restore grid display
+        // Back to whichever layout is underneath: the travel column or the city grid.
+        actionButtonsArea.style.display = actionButtonsArea.dataset.layout === 'travel' ? 'flex' : '';
     }
 
     logger.debug('Dialogue closed, action buttons restored');
