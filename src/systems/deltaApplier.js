@@ -153,8 +153,15 @@ class DeltaApplier {
         }
 
         // XP
+        // The XP bar, level and "+N XP" flair are drawn from cached state by the
+        // character display, so update the cache and redraw: a discovery on the
+        // road shows at once, not at the next full refresh (stopping to rest).
         if (charDelta.xp !== undefined) {
-            this.updateElement('xp-amount', charDelta.xp);
+            const character = getGameStateSync()?.character;
+            if (character && character.experience !== charDelta.xp) {
+                character.experience = charDelta.xp;
+                import('../ui/characterDisplay.js').then((m) => m.updateCharacterDisplay());
+            }
         }
 
         // Time - sync to smooth clock
