@@ -1,6 +1,18 @@
 {
-  "idle_auto_pause_minutes": 60,
+  "idle_auto_pause_seconds": 300,
+  "town_time_scale": 0.5,
+  "pause_on_effects": [
+    "hungry",
+    "starving",
+    "tired",
+    "very-tired",
+    "fatigued",
+    "exhaustion"
+  ],
   "notes": [
-    "idle_auto_pause_minutes: in-game minutes the clock may run with no player action before the game pauses itself. At 144x speed, 60 in-game minutes is about 25 real seconds."
+    "The clock runs by default and stops itself when something needs the player: an encounter or fight (held), a newly discovered place, or one of pause_on_effects starting. Shops, the vault, conversations and POI walks hold it.",
+    "idle_auto_pause_seconds: real seconds with no player input before the game pauses itself — only a backstop for someone who has walked away.",
+    "town_time_scale: the clock's pace in a city as a fraction of the road's (144x). 0.5 = 72x: an hour in town is about 50 real seconds, a day about 20 minutes.",
+    "Night (more combat XP, see combat.IsNight) runs 23:00-05:00; the game shows a splash as it falls and as dawn breaks."
   ]
 }

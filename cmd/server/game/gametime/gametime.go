@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
+	"time"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
@@ -17,6 +19,7 @@ import (
 // TimeSessionProvider defines the session interface needed for time operations
 type TimeSessionProvider interface {
 	GetLastActionGameTime() int
+	GetLastActionTime() int64
 	ShouldRefreshBuildings(newTime int) bool
 	UpdateBuildingStates(buildingStates map[string]bool, time int)
 	ShouldRefreshNPCs(currentHour int) bool
@@ -33,30 +36,52 @@ type IdleResetSessionProvider interface {
 	GetSaveDataAbsMinutes() int
 }
 
-// idlePauseDefault is used when game-data/systems/time-config.json is missing.
-const idlePauseDefault = 60
+// TimeConfig is game-data/systems/time-config.json: how the clock flows.
+type TimeConfig struct {
+	// IdleAutoPauseSeconds is the backstop for a player who has walked away:
+	// real seconds with no input before the game pauses itself. Day to day
+	// the clock is stopped by events instead (see PauseOnEffects, discoveries).
+	IdleAutoPauseSeconds int `json:"idle_auto_pause_seconds"`
+	// TownTimeScale slows (or speeds) the clock in a city, as a fraction of the
+	// road's pace: 0.5 is half speed. The client applies it; the road is 1.
+	TownTimeScale float64 `json:"town_time_scale"`
+	// PauseOnEffects stops the clock the moment one of these effects starts
+	// (hungry, tired, …) so a penalty never lands unnoticed.
+	PauseOnEffects []string `json:"pause_on_effects"`
+}
 
-var cachedIdlePause int
+var (
+	timeConfigOnce sync.Once
+	timeConfig     TimeConfig
+)
 
-// IdleAutoPauseMinutes is how many in-game minutes the clock may run with no
-// player action before the game pauses itself (time-config.json).
-func IdleAutoPauseMinutes() int {
-	if cachedIdlePause > 0 {
-		return cachedIdlePause
-	}
-	cachedIdlePause = idlePauseDefault
-	if database := db.GetDB(); database != nil {
-		var props string
-		if database.QueryRow("SELECT properties FROM systems WHERE id = 'time-config'").Scan(&props) == nil {
-			var cfg struct {
-				IdleAutoPauseMinutes int `json:"idle_auto_pause_minutes"`
-			}
-			if json.Unmarshal([]byte(props), &cfg) == nil && cfg.IdleAutoPauseMinutes > 0 {
-				cachedIdlePause = cfg.IdleAutoPauseMinutes
-			}
+// Config returns the time config, read once from the systems table, with
+// defaults for anything missing.
+func Config() TimeConfig {
+	timeConfigOnce.Do(func() {
+		timeConfig = TimeConfig{IdleAutoPauseSeconds: 300, TownTimeScale: 1}
+		database := db.GetDB()
+		if database == nil {
+			return
 		}
-	}
-	return cachedIdlePause
+		var props string
+		if database.QueryRow("SELECT properties FROM systems WHERE id = 'time-config'").Scan(&props) != nil {
+			return
+		}
+		var cfg TimeConfig
+		if err := json.Unmarshal([]byte(props), &cfg); err != nil {
+			log.Printf("⚠️ time-config: %v", err)
+			return
+		}
+		if cfg.IdleAutoPauseSeconds > 0 {
+			timeConfig.IdleAutoPauseSeconds = cfg.IdleAutoPauseSeconds
+		}
+		if cfg.TownTimeScale > 0 {
+			timeConfig.TownTimeScale = cfg.TownTimeScale
+		}
+		timeConfig.PauseOnEffects = cfg.PauseOnEffects
+	})
+	return timeConfig
 }
 
 // HandleAdvanceTimeAction advances game time by segments (hours)
@@ -98,14 +123,14 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 		}, nil
 	}
 
-	// Auto-pause: the clock ran IdleAutoPauseMinutes of game time with no
-	// player action. Both sides are absolute minutes, so midnight doesn't matter.
+	// Auto-pause: nobody has touched the game for IdleAutoPauseSeconds of
+	// real time — they've likely walked away. (Events pause it otherwise.)
 	autoPause := false
 	if session != nil {
-		minutesSinceAction := int(newCurrentDay)*1440 + int(newTimeOfDay) - session.GetLastActionGameTime()
-		if minutesSinceAction >= IdleAutoPauseMinutes() {
+		idle := time.Now().Unix() - session.GetLastActionTime()
+		if idle >= int64(Config().IdleAutoPauseSeconds) {
 			autoPause = true
-			log.Printf("⏸️ Auto-pause triggered: %d in-game minutes since last action", minutesSinceAction)
+			log.Printf("⏸️ Auto-pause triggered: %ds with no player input", idle)
 		}
 	}
 

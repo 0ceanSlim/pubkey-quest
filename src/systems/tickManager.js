@@ -213,9 +213,21 @@ class TickManager {
                     logger.info('Auto-pause triggered by backend');
                     smoothClock.setRunning(false);
                     eventBus.emit('notification:show', {
-                        message: 'Time paused — nothing has happened for a while. Press ▶ to carry on.',
+                        message: 'Time paused — you\'ve been away a while. Press ▶ to carry on.',
                         color: 'yellow',
                         duration: 5000
+                    });
+                }
+
+                // Event pause: something the player should see first (a place
+                // found, hunger or fatigue setting in). The server stopped it.
+                if (data.pause_reason) {
+                    logger.info('Clock paused on event:', data.pause_reason);
+                    smoothClock.setRunning(false);
+                    eventBus.emit('notification:show', {
+                        message: `⏸ ${data.pause_reason} Time stopped — press ▶ to carry on.`,
+                        color: 'yellow',
+                        duration: 6000
                     });
                 }
             }

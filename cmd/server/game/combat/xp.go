@@ -40,7 +40,7 @@ func KillBonusXP(monster *types.MonsterData) int {
 // IsNight returns true if the current in-game time falls in the night window (23:00–05:00).
 // timeOfDay is minutes since midnight (0–1439).
 func IsNight(timeOfDay int) bool {
-	return timeOfDay >= 1380 || timeOfDay < 300 // 23:00–04:59
+	return timeOfDay >= types.NightStart || timeOfDay < types.NightEnd // 23:00–04:59
 }
 
 // NightMultiplier returns 1.25 at night, 1.0 otherwise.

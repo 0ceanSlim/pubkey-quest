@@ -22,6 +22,7 @@ import { loadEnvPOIs, getEnvPOIs, enterPOI, loadQuestSites, enterQuestSite } fro
 import { getSocialState } from '../systems/socialPoll.js';
 import { smoothClock } from '../systems/smoothClock.js';
 import { createQuantityBar, formatCount } from './vaultControls.js';
+import { setTownPace } from '../systems/dayCycle.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
 async function depositInventoryToVault() {
@@ -170,9 +171,11 @@ export async function displayCurrentLocation() {
         // Check if player is in an environment (traveling)
         const currentLocData = getLocationById(cityId);
         if (currentLocData && currentLocData.location_type === 'environment') {
+            setTownPace(false);
             displayTravelView(state, currentLocData);
             return;
         }
+        setTownPace(true); // time runs slower in town
 
         // Restore normal grid layout if coming back from travel view
         restoreActionButtonsLayout();

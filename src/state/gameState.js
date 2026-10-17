@@ -11,6 +11,7 @@ import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { eventBus } from '../lib/events.js';
 import { stepDone, finishLoading, failLoading } from '../ui/loadingScreen.js';
+import { configureDayCycle } from '../systems/dayCycle.js';
 
 // Cache the last fetched state for immediate UI access
 let cachedGameState = null;
@@ -382,6 +383,9 @@ export async function initializeGame() {
 
         logger.info(`Loaded game data: ${gameData.items?.length || 0} items, ${gameData.spells?.length || 0} spells, ${gameData.monsters?.length || 0} monsters, ${gameData.locations?.length || 0} locations, ${gameData.music_tracks?.length || 0} music tracks`);
 
+        // The clock's rules: pace in town, when night falls.
+        configureDayCycle(gameData.clock);
+
         // Trigger game data loaded event for music system
         document.dispatchEvent(new Event('gameDataLoaded'));
         stepDone('world');
@@ -431,6 +435,11 @@ export async function initializeGame() {
         await displayCurrentLocation();
         await updateAllDisplays();
         finishLoading();
+
+        // Time runs by default: the world stops itself when something needs
+        // you (a fight, a find, hunger setting in), not because you sat still.
+        // (A party follower's clock is the leader's; play() leaves it alone.)
+        import('../systems/timeClock.js').then((m) => m.play()).catch(() => {});
 
         // Emit event to notify systems that game state is loaded and UI is ready
         // This allows time clock to sync to the correct time from save

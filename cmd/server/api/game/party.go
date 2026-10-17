@@ -658,4 +658,5 @@ func followerClock(sess *session.GameSession, params map[string]any) {
 	params["time_of_day"] = float64(abs % 1440)
 	// Followers don't act on their own, so never auto-pause them.
 	sess.LastActionGameTime = abs
+	sess.LastActionTime = time.Now().Unix()
 }

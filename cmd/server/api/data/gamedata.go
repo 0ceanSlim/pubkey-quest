@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/gametime"
+	"pubkey-quest/types"
 )
 
 // GameData represents the complete static game data bundle
@@ -22,6 +24,15 @@ type GameData struct {
 	Locations   []Location   `json:"locations"`
 	Packs       []Pack       `json:"packs"`
 	MusicTracks []MusicTrack `json:"music_tracks"`
+	Clock       ClockConfig  `json:"clock"`
+}
+
+// ClockConfig is what the client's clock needs from the rules: its pace in
+// town and when night falls and lifts.
+type ClockConfig struct {
+	TownTimeScale float64 `json:"town_time_scale"`
+	NightStart    int     `json:"night_start"`
+	NightEnd      int     `json:"night_end"`
 }
 
 // Item represents game items
@@ -118,7 +129,11 @@ func GameDataHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gameData := GameData{}
+	gameData := GameData{Clock: ClockConfig{
+		TownTimeScale: gametime.Config().TownTimeScale,
+		NightStart:    types.NightStart,
+		NightEnd:      types.NightEnd,
+	}}
 
 	// Load all static data in parallel
 	errChan := make(chan error, 6)

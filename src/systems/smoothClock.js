@@ -38,6 +38,9 @@ class SmoothClock {
         this.isPaused = true;
         this.running = false;
         this.holds = new Set();
+
+        // Pace: 1 on the road, time-config's town_time_scale in a city.
+        this.speedScale = 1;
         this.animationId = null;
         this.hasInitialSync = false;  // Don't display until first sync from backend
 
@@ -139,7 +142,7 @@ class SmoothClock {
             const realElapsedSeconds = realElapsedMs / 1000;
 
             // Calculate interpolated game time
-            const gameSecondsElapsed = realElapsedSeconds * TIME_MULTIPLIER;
+            const gameSecondsElapsed = realElapsedSeconds * TIME_MULTIPLIER * this.speedScale;
             const gameMinutesElapsed = gameSecondsElapsed / 60;
 
             let newTime = this.lastSyncTime + gameMinutesElapsed;
@@ -297,6 +300,20 @@ class SmoothClock {
         this.isPaused = paused;
         eventBus.emit('clock:pauseChanged', paused);
         logger.debug(paused ? 'Clock paused' : 'Clock running');
+    }
+
+    /**
+     * Change the clock's pace (1 = the road's 144x). Re-anchors first so the
+     * time shown doesn't jump.
+     * @param {number} scale
+     */
+    setSpeedScale(scale) {
+        const next = scale > 0 ? scale : 1;
+        if (next === this.speedScale) return;
+        this.lastSyncTime = this.gameTime;
+        this.lastSyncRealTime = performance.now();
+        this.lastSyncDay = this.gameDay;
+        this.speedScale = next;
     }
 
     /** Player pause (kept for older callers). */

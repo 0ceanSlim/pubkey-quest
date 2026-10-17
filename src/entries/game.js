@@ -21,6 +21,7 @@ import '../systems/saveRitual.js'; // Auto-initializes save modal (Ctrl+S) + las
 import '../ui/settingsPanel.js'; // Settings tab: About section + where saves go
 import '../ui/hoverTip.js'; // instant styled tips for [data-tip]
 import '../lib/wiki.js'; // right-click "Wiki" on game data (window.openWiki)
+import '../systems/dayCycle.js'; // town pace + nightfall/dawn splashes
 import * as inventoryInteractions from '../systems/inventoryInteractions.js';
 import { initSlotInteractions } from '../systems/slotInteractions.js';
 import { openContainer, closeContainer } from '../systems/containers.js';

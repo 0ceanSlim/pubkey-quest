@@ -270,9 +270,11 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 		session.LockSession = nil
 	}
 
-	// Snapshot time before action (for travel progress calculation)
+	// Snapshot time before action (for travel progress calculation), and the
+	// effects on the player (a tick that starts a penalty pauses the clock)
 	oldTimeOfDay := state.TimeOfDay
 	oldCurrentDay := state.CurrentDay
+	effectsBefore := activeEffectIDs(state)
 
 	response, err := processActionSwitch(session, state, action)
 
@@ -310,6 +312,12 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					maybeDiscoverPOIs(session, oldProgress, response)
 				}
 			}
+		}
+
+		// The clock stops itself when something needs the player: a place just
+		// found, or a hunger/fatigue penalty just starting.
+		if action.Type == "update_time" && !social.IsFollower(session.Npub) {
+			pauseOnEvent(session, effectsBefore, response)
 		}
 
 		// Keep the dwell timer honest: any action can have moved the player, and
@@ -443,6 +451,47 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	response.Data["combat_started"] = true
 	response.Data["combat"] = combatPayload
 	log.Printf("⚔️  Travel encounter: %s (CR %.2f) in biome %q at level %d", monster.ID, monster.CR, biome, level)
+}
+
+// activeEffectIDs is the set of effects on the player right now.
+func activeEffectIDs(state *SaveFile) map[string]bool {
+	out := make(map[string]bool, len(state.ActiveEffects))
+	for _, e := range state.ActiveEffects {
+		out[e.EffectID] = true
+	}
+	return out
+}
+
+// pauseOnEvent stops the clock when a tick brought something the player should
+// see before time runs on: a newly discovered place, or one of the
+// time-config's pause_on_effects (hungry, tired, …) starting. The reason goes
+// to the client as pause_reason.
+func pauseOnEvent(sess *GameSession, effectsBefore map[string]bool, response *GameActionResponse) {
+	if response.Data == nil {
+		response.Data = make(map[string]interface{})
+	}
+	reason := ""
+	if found, ok := response.Data["poi_discovered"].(map[string]interface{}); ok {
+		reason = fmt.Sprintf("You found %v.", found["name"])
+	} else {
+		now := activeEffectIDs(&sess.SaveData)
+		for _, id := range gametime.Config().PauseOnEffects {
+			if now[id] && !effectsBefore[id] {
+				_, _, _, name, err := effects.GetEffectTemplate(id, 0)
+				if err != nil || name == "" {
+					name = id
+				}
+				reason = fmt.Sprintf("You're %s.", strings.ToLower(name))
+				break
+			}
+		}
+	}
+	if reason == "" || !sess.ClockRunning {
+		return
+	}
+	sess.ClockRunning = false
+	response.Data["pause_reason"] = reason
+	log.Printf("⏸️ Clock paused on event: %s", reason)
 }
 
 // maybeDiscoverPOIs rolls discovery for any POI the player just travelled past

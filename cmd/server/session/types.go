@@ -232,6 +232,11 @@ func (s *GameSession) GetLastActionGameTime() int {
 	return s.LastActionGameTime
 }
 
+// GetLastActionTime returns the real-time timestamp (unix seconds) of the last player action
+func (s *GameSession) GetLastActionTime() int64 {
+	return s.LastActionTime
+}
+
 // SetLastActionTime sets the real-time timestamp of last player action
 func (s *GameSession) SetLastActionTime(unixTime int64) {
 	s.LastActionTime = unixTime
