@@ -1186,6 +1186,7 @@ export async function talkToNPC(npcId) {
 export function showNPCDialogue(dialogueData, npcMessage) {
     logger.debug('Showing NPC dialogue:', dialogueData);
     _dialogueOpen = true;
+    smoothClock.hold('dialogue'); // talking takes no time: no road fight mid-sentence
 
     // The People list stays clickable under the vault overlay — starting a
     // conversation closes the vault rather than typing the NPC's line behind it.
@@ -1393,6 +1394,7 @@ export async function selectDialogueOption(npcId, choice) {
 export function closeNPCDialogue() {
     logger.debug('Closing NPC dialogue');
     _dialogueOpen = false;
+    smoothClock.release('dialogue');
 
     // Clear the on-scene speech box (M6).
     hideSceneSpeech();

@@ -361,7 +361,7 @@ func leaderNews(leader *GameSession, discoveredBefore int, response *GameActionR
 // is the generic, scheduled travel-combat source (see the encounter package),
 // separate from the hand-authored encounter vignettes.
 func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed int, response *GameActionResponse) {
-	if sess.ActiveCombat != nil || sess.PendingEncounter != nil {
+	if sess.ActiveCombat != nil || sess.PendingEncounter != nil || sess.ActivePOI != nil {
 		return
 	}
 	// A party's road fights are the leader's to roll; everyone with them fights.
