@@ -185,6 +185,26 @@
   </div>
 </div>
 
+<!-- Loading screen: in the page itself so it's up before the bundle runs.
+     src/ui/loadingScreen.js ticks the steps off and removes it. -->
+<div id="pq-loading" style="position: fixed; inset: 0; z-index: 3000; background: #000; display: flex; align-items: center; justify-content: center;">
+  <div style="width: 300px; max-width: 90vw; background: #2a2a2a; border-top: 2px solid #6a6a6a; border-left: 2px solid #6a6a6a; border-right: 2px solid #111; border-bottom: 2px solid #111; box-shadow: 0 0 24px rgba(0,0,0,0.8);">
+    <div style="padding: 3px 6px; font-size: 9px; font-weight: bold; color: #fff; background: #7c5c12;">⚔️ PUBKEY QUEST</div>
+    <div style="padding: 10px 10px 8px;">
+      <ul id="pq-loading-steps" style="list-style: none; margin: 0 0 8px; padding: 0; font-size: 8px; line-height: 2; color: #9ca3af;">
+        <li data-step="key"><span data-mark>○</span> Checking your key</li>
+        <li data-step="save"><span data-mark>○</span> {{if .CustomData.RelaySaves}}Fetching your save from your relays{{else}}Loading your save{{end}}</li>
+        <li data-step="world"><span data-mark>○</span> Loading the world</li>
+        <li data-step="scene"><span data-mark>○</span> Setting the scene</li>
+      </ul>
+      <div style="height: 12px; background: #111; border-top: 2px solid #111; border-left: 2px solid #111; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; padding: 1px;">
+        <div id="pq-loading-bar" style="height: 100%; width: 4%; background: repeating-linear-gradient(90deg, #22c55e 0 8px, transparent 8px 10px); transition: width 0.3s ease;"></div>
+      </div>
+      <div id="pq-loading-note" style="margin-top: 6px; font-size: 7px; color: #6b7280; min-height: 9px;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Main Game Container - Full Screen with Dark Win95 Style -->
 <div
   id="game-app"

@@ -10,6 +10,7 @@
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { eventBus } from '../lib/events.js';
+import { stepDone, finishLoading, failLoading } from '../ui/loadingScreen.js';
 
 // Cache the last fetched state for immediate UI access
 let cachedGameState = null;
@@ -318,6 +319,7 @@ export async function initializeGame() {
             gameAPI.init(session.npub, saveID);
             logger.info('🎮 Game API initialized with save:', saveID);
         }
+        stepDone('key');
 
     } catch (error) {
         logger.error('❌ Session initialization failed:', error);
@@ -325,10 +327,39 @@ export async function initializeGame() {
         return;
     }
 
+    const session = window.sessionManager.getSession();
+    const saveID = new URLSearchParams(window.location.search).get('save');
+    if (!saveID) {
+        // No save specified, redirect to saves page
+        logger.info('🔄 No save specified, redirecting to save selection');
+        window.location.href = '/saves';
+        return;
+    }
+
+    // The world's data and the save don't depend on each other: fetch the one
+    // while the server loads the other (which, with relay saves, waits on the
+    // player's relays).
+    const loadingSave = (async () => {
+        logger.info('🔄 Initializing session in Go memory...');
+        const initResponse = await fetch('/api/session/init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: session.npub, save_id: saveID }),
+        });
+        if (!initResponse.ok) {
+            throw new Error(`Failed to initialize session: ${initResponse.status}`);
+        }
+        const initResult = await initResponse.json();
+        logger.info('✅ Session loaded into Go memory:', initResult);
+        stepDone('save');
+        return initResult;
+    })();
+    loadingSave.catch(() => {}); // handled where it's awaited below
+
     try {
         // Load static game data
         logger.info('📦 Loading static game data...');
-        const gameDataResponse = await fetch('/api/game-data');
+        const [gameDataResponse, npcsResponse] = await Promise.all([fetch('/api/game-data'), fetch('/api/npcs')]);
         if (!gameDataResponse.ok) {
             throw new Error('Failed to load game data');
         }
@@ -343,8 +374,6 @@ export async function initializeGame() {
         document.getElementById('all-packs').textContent = JSON.stringify(gameData.packs || []);
         document.getElementById('all-music-tracks').textContent = JSON.stringify(gameData.music_tracks || []);
 
-        // Load NPCs separately
-        const npcsResponse = await fetch('/api/npcs');
         if (npcsResponse.ok) {
             const npcs = await npcsResponse.json();
             document.getElementById('all-npcs').textContent = JSON.stringify(npcs || []);
@@ -355,57 +384,28 @@ export async function initializeGame() {
 
         // Trigger game data loaded event for music system
         document.dispatchEvent(new Event('gameDataLoaded'));
+        stepDone('world');
 
-        // Check if we're loading a specific save
-        const session = window.sessionManager.getSession();
-        const urlParams = new URLSearchParams(window.location.search);
-        const saveID = urlParams.get('save');
+        // The save, loaded into Go memory alongside the world data above.
+        try {
+            const initResult = await loadingSave;
+            needsFirstSave = Boolean(initResult.session?.needs_first_save);
 
-        if (saveID) {
-            // Load specific save into Go memory
-            try {
-                logger.info('🔄 Initializing session in Go memory...');
+            // Fetch initial game state from Go
+            await refreshGameState();
 
-                // Initialize session in backend memory
-                const initResponse = await fetch('/api/session/init', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        npub: session.npub,
-                        save_id: saveID
-                    })
-                });
+            logger.info('✅ Save file loaded successfully!');
 
-                if (!initResponse.ok) {
-                    throw new Error(`Failed to initialize session: ${initResponse.status}`);
-                }
-
-                const initResult = await initResponse.json();
-                logger.info('✅ Session loaded into Go memory:', initResult);
-                needsFirstSave = Boolean(initResult.session?.needs_first_save);
-
-                // Fetch initial game state from Go
-                await refreshGameState();
-
-                logger.info('✅ Save file loaded successfully!');
-
-                // Auto-play location music now that state is loaded
-                if (window.musicSystem && window.musicSystem.playLocationMusic) {
-                    window.musicSystem.playLocationMusic();
-                }
-
-            } catch (saveError) {
-                logger.error('Failed to load specific save:', saveError);
-                // Redirect back to saves page
-                setTimeout(() => window.location.href = '/saves', 2000);
-                return;
+            // Auto-play location music now that state is loaded
+            if (window.musicSystem && window.musicSystem.playLocationMusic) {
+                window.musicSystem.playLocationMusic();
             }
-        } else {
-            // No save specified, redirect to saves page
-            logger.info('🔄 No save specified, redirecting to save selection');
-            window.location.href = '/saves';
+
+        } catch (saveError) {
+            logger.error('Failed to load specific save:', saveError);
+            failLoading("Couldn't load this save. Back to your saves…");
+            // Redirect back to saves page
+            setTimeout(() => window.location.href = '/saves', 2000);
             return;
         }
 
@@ -430,6 +430,7 @@ export async function initializeGame() {
 
         await displayCurrentLocation();
         await updateAllDisplays();
+        finishLoading();
 
         // Emit event to notify systems that game state is loaded and UI is ready
         // This allows time clock to sync to the correct time from save
@@ -446,6 +447,7 @@ export async function initializeGame() {
 
     } catch (error) {
         logger.error('Failed to initialize game:', error);
+        failLoading(`Couldn't start the game: ${error.message}. Try reloading.`);
         throw error;
     }
 }
