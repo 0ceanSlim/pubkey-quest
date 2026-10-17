@@ -128,14 +128,16 @@ func SavesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get all saves for a user
-func handleGetSaves(w http.ResponseWriter, _ *http.Request, npub string) {
+func handleGetSaves(w http.ResponseWriter, r *http.Request, npub string) {
 	log.Printf("📂 Loading saves for npub: %s", npub)
 
 	// Relay saves: bring every character on the player's relays (or, on the
 	// official server, in its ledger) into the cache first, and note copies
-	// that differ from what this server will load.
+	// that differ from what this server will load. ?sync=0 skips that and lists
+	// the disk cache at once — the saves screen shows it, then asks again with
+	// the sync and redraws.
 	notes := map[string]string{}
-	if utils.AppConfig.Saves.Relay {
+	if utils.AppConfig.Saves.Relay && r.URL.Query().Get("sync") != "0" {
 		for _, n := range syncRelaySaves(npub) {
 			notes[n.SaveID] = n.Note
 		}

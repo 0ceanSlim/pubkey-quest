@@ -17,6 +17,9 @@
       <p class="mt-4" style="color: var(--color-textMuted);">Loading save slots...</p>
     </div>
 
+    <!-- Shown while the relay sync runs behind the disk list -->
+    <p id="saves-syncing" class="hidden text-center text-xs" style="color: var(--color-textMuted);">🔄 Checking your relays…</p>
+
     <!-- Save Slots Container -->
     <div id="save-slots-container" class="space-y-4 hidden">
       <!-- Slots will be populated here by JavaScript -->
@@ -100,18 +103,22 @@ async function loadSaveSlots(npub) {
   console.log('📂 Loading save slots for:', npub);
 
   try {
-    const saves = await fetchSaves(npub);
-    const highestLevel = calculateHighestLevel(saves);
-    console.log('🎖️ Highest character level:', highestLevel);
-
-    // Who each slot would create. Derived from the npub alone, so a slot shows
-    // its character whether or not it is unlocked or occupied.
-    const roster = await fetchRoster(npub, highestLevel);
-
-    displaySaveSlots(saves, highestLevel, roster);
-
-    document.getElementById('saves-loading').classList.add('hidden');
-    document.getElementById('save-slots-container').classList.remove('hidden');
+    // Two passes: what this server already has on disk (instant), then again
+    // after it has checked the player's relays (can take a few seconds), which
+    // redraws only if something changed.
+    const syncing = fetchSaves(npub, true);
+    const local = await fetchSaves(npub, false);
+    const shown = JSON.stringify(local);
+    await renderSaves(npub, local);
+    document.getElementById('saves-syncing').classList.remove('hidden');
+    try {
+      const synced = await syncing;
+      if (JSON.stringify(synced) !== shown) await renderSaves(npub, synced);
+    } catch (err) {
+      console.warn('Relay check failed; showing the saves on this server:', err);
+    } finally {
+      document.getElementById('saves-syncing').classList.add('hidden');
+    }
 
   } catch (error) {
     console.error('❌ Error loading save slots:', error);
@@ -125,8 +132,20 @@ async function loadSaveSlots(npub) {
   }
 }
 
-async function fetchSaves(npub) {
-  const response = await fetch(`/api/saves/${npub}`);
+// renderSaves draws the slots for a save list.
+async function renderSaves(npub, saves) {
+  const highestLevel = calculateHighestLevel(saves);
+  // Who each slot would create. Derived from the npub alone, so a slot shows
+  // its character whether or not it is unlocked or occupied.
+  const roster = await fetchRoster(npub, highestLevel);
+  displaySaveSlots(saves, highestLevel, roster);
+  document.getElementById('saves-loading').classList.add('hidden');
+  document.getElementById('save-slots-container').classList.remove('hidden');
+}
+
+// fetchSaves lists the player's saves; sync=false skips the relay check.
+async function fetchSaves(npub, sync = true) {
+  const response = await fetch(`/api/saves/${npub}${sync ? '' : '?sync=0'}`);
   if (!response.ok) {
     console.log('📭 No save files found');
     return [];

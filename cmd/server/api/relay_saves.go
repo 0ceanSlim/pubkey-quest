@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/0ceanslim/grain/client/connection"
@@ -381,8 +382,20 @@ func syncRelaySaves(npub string) []SaveNote {
 	if err != nil {
 		return nil
 	}
-	evs := fetchEvents(pubkey, nostr.Filter{Authors: []string{pubkey}, Kinds: []int{game.SaveKind}}, nil, 5*time.Second)
-	deleted := deletedSaveTimes(pubkey)
+	// The saves and the deletions are separate queries; ask both at once.
+	var evs []*nostr.Event
+	var deleted map[string]int64
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		evs = fetchEvents(pubkey, nostr.Filter{Authors: []string{pubkey}, Kinds: []int{game.SaveKind}}, nil, 5*time.Second)
+	}()
+	go func() {
+		defer wg.Done()
+		deleted = deletedSaveTimes(pubkey)
+	}()
+	wg.Wait()
 	newestBySlot := map[string]*nostr.Event{}
 	for _, ev := range evs {
 		id := game.SaveIDFromDTag(tagValue(ev, "d"))
@@ -394,6 +407,19 @@ func syncRelaySaves(npub string) []SaveNote {
 		}
 	}
 
+	// Characters with no disk cache yet are fetched in parallel, not one
+	// relay round-trip after another.
+	var fetch sync.WaitGroup
+	cacheMissing := func(saveID string) {
+		if _, err := os.Stat(session.GetSavePath(npub, saveID)); err != nil {
+			fetch.Add(1)
+			go func() {
+				defer fetch.Done()
+				relaySaveSource(npub, saveID)
+			}()
+		}
+	}
+
 	var notes []SaveNote
 	if utils.AppConfig.Saves.Validation {
 		for d, entry := range ledger.List(npub) {
@@ -401,20 +427,18 @@ func syncRelaySaves(npub string) []SaveNote {
 			if saveID == "" {
 				continue
 			}
-			if _, err := os.Stat(session.GetSavePath(npub, saveID)); err != nil {
-				relaySaveSource(npub, saveID) // fetch the accepted copy into the cache
-			}
+			cacheMissing(saveID) // fetch the accepted copy into the cache
 			if ev := newestBySlot[saveID]; ev != nil && ev.ID != entry.EventID {
 				notes = append(notes, SaveNote{SaveID: saveID, Note: "A different copy of this character is on your relays (edited, from another game, or older). This server loads the last save it accepted."})
 			}
 		}
+		fetch.Wait()
 		return notes
 	}
 	for saveID := range newestBySlot {
-		if _, err := os.Stat(session.GetSavePath(npub, saveID)); err != nil {
-			relaySaveSource(npub, saveID)
-		}
+		cacheMissing(saveID)
 	}
+	fetch.Wait()
 	return notes
 }
 
