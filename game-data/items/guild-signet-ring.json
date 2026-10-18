@@ -1,0 +1,23 @@
+{
+  "id": "guild-signet-ring",
+  "name": "Guild Signet Ring",
+  "description": "A heavy ring with a coiled viper set in black enamel. Show it in the right alley and doors open; show it in the wrong one and they close for good.",
+  "rarity": "uncommon",
+  "value": 5000,
+  "weight": 0,
+  "stack": 1,
+  "type": "Ring",
+  "gear_slot": "ring",
+  "tags": [
+    "equipment",
+    "drop-only"
+  ],
+  "notes": [
+    "Wear it on either hand: +2 Thieving (locks, traps, stealth, picking pockets).",
+    "Reward from The Rogue's Shadow Trial."
+  ],
+  "effects_when_worn": [
+    "guild-signet"
+  ],
+  "image": "/res/img/items/guild-signet-ring.png"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "soul-gem-fragment",
+  "name": "Soul-Gem Fragment",
+  "description": "A translucent gem from the ethereal caravan, solid now, with a faint light turning slowly inside it.",
+  "rarity": "rare",
+  "value": 5000,
+  "weight": 0.1,
+  "stack": 5,
+  "type": "Treasure",
+  "tags": [
+    "treasure",
+    "material"
+  ],
+  "notes": [
+    "Treasure: temples and arcanists pay well for it."
+  ],
+  "image": "/res/img/items/soul-gem-fragment.png"
+}

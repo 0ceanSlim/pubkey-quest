@@ -126,6 +126,13 @@
           "skill": "resolve",
           "value": 15,
           "description": "Perform the clan ritual."
+        },
+        {
+          "type": "fetch",
+          "target": "ancestral-blade",
+          "count": 1,
+          "consume": true,
+          "description": "Lay the blade in the geode cache."
         }
       ],
       "rewards": {
@@ -145,6 +152,3 @@
     }
   ]
 }
-
-
-

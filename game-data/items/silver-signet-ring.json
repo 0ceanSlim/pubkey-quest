@@ -1,0 +1,18 @@
+{
+  "id": "silver-signet-ring",
+  "name": "Silver Signet Ring",
+  "description": "The Mayor's family signet, stamped with the town's crest. A bandit's grimy thumbprint smudges the silver.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 0.1,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Missing Heirloom."
+  ],
+  "image": "/res/img/items/silver-signet-ring.png"
+}

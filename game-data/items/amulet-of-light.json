@@ -1,0 +1,25 @@
+{
+  "id": "amulet-of-light",
+  "name": "Amulet of Light",
+  "description": "A sunburst of white gold that Seraphina blessed over the ashes of the Black Flame. It glows softly, and brighter when shadow is near.",
+  "rarity": "rare",
+  "value": 20000,
+  "weight": 0.5,
+  "stack": 1,
+  "type": "Wondrous Item",
+  "gear_slot": "neck",
+  "tags": [
+    "equipment",
+    "light-source",
+    "drop-only"
+  ],
+  "notes": [
+    "Wear it at the neck: it lights the dark, so night fights carry no darkness penalty, and your hands stay free.",
+    "+2 Resolve while worn.",
+    "Reward from The Black Flame."
+  ],
+  "effects_when_worn": [
+    "amulet-of-light-ward"
+  ],
+  "image": "/res/img/items/amulet-of-light.png"
+}

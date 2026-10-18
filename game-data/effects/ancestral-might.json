@@ -1,0 +1,19 @@
+{
+  "id": "ancestral-might",
+  "name": "Ancestral Might",
+  "description": "The strength of your forebears: +1 Strength while wielded.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "equipment"
+  },
+  "modifiers": [
+    {
+      "stat": "strength",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "You feel the weight of your ancestors behind the blade.",
+  "visible": true
+}

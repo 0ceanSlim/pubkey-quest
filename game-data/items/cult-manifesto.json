@@ -1,0 +1,18 @@
+{
+  "id": "cult-manifesto",
+  "name": "Cult Manifesto",
+  "description": "Pages of cramped writing praising the Black Flame, with a crude map of the watchtower's cellar and a list of names.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 0.5,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Black Flame."
+  ],
+  "image": "/res/img/items/cult-manifesto.png"
+}

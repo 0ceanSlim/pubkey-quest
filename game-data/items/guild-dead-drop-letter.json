@@ -1,0 +1,18 @@
+{
+  "id": "guild-dead-drop-letter",
+  "name": "Dead-Drop Letter",
+  "description": "A folded note sealed with plain wax, pulled from behind a loose brick. The hand is cramped and careful.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 0.1,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Rogue's Shadow Trial."
+  ],
+  "image": "/res/img/items/guild-dead-drop-letter.png"
+}

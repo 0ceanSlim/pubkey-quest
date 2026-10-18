@@ -96,6 +96,13 @@
           "skill": "thieving",
           "value": 18,
           "description": "Disarm the heavy vault lock."
+        },
+        {
+          "type": "fetch",
+          "target": "guild-dead-drop-letter",
+          "count": 1,
+          "consume": true,
+          "description": "Hand the dead-drop letter to Jack."
         }
       ]
     },
@@ -125,6 +132,13 @@
           "type": "talk",
           "target": "viper",
           "description": "Hand over the Golden Viper to the Master."
+        },
+        {
+          "type": "fetch",
+          "target": "golden-viper-statue",
+          "count": 1,
+          "consume": true,
+          "description": "Hand over the Golden Viper."
         }
       ],
       "rewards": {
@@ -136,8 +150,8 @@
             "quantity": 1
           },
           {
-            "id": "poison-basic",
-            "quantity": 3
+            "id": "lockpick",
+            "quantity": 5
           },
           {
             "id": "guild-signet-ring",
@@ -148,6 +162,3 @@
     }
   ]
 }
-
-
-

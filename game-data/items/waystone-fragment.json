@@ -1,0 +1,23 @@
+{
+  "id": "waystone-fragment",
+  "name": "Waystone Fragment",
+  "description": "A chip of the restored elven waystone, threaded on a cord. It hums, faintly, whenever you set foot on a road.",
+  "rarity": "rare",
+  "value": 15000,
+  "weight": 0.5,
+  "stack": 1,
+  "type": "Wondrous Item",
+  "gear_slot": "neck",
+  "tags": [
+    "equipment",
+    "drop-only"
+  ],
+  "notes": [
+    "Wear it at the neck: you travel 15% faster.",
+    "Reward from Elven Heritage."
+  ],
+  "effects_when_worn": [
+    "waystone-wind"
+  ],
+  "image": "/res/img/items/waystone-fragment.png"
+}

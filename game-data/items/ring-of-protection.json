@@ -1,0 +1,23 @@
+{
+  "id": "ring-of-protection",
+  "name": "Ring of Protection",
+  "description": "The Mayor's family ring, a plain silver band worn smooth by generations, with a ward woven into the metal that turns a blow aside.",
+  "rarity": "uncommon",
+  "value": 10000,
+  "weight": 0,
+  "stack": 1,
+  "type": "Ring",
+  "gear_slot": "ring",
+  "tags": [
+    "equipment",
+    "drop-only"
+  ],
+  "notes": [
+    "Wear it on either hand: +1 AC, whatever armour you wear.",
+    "Reward from The Missing Heirloom."
+  ],
+  "effects_when_worn": [
+    "ring-of-protection"
+  ],
+  "image": "/res/img/items/ring-of-protection.png"
+}

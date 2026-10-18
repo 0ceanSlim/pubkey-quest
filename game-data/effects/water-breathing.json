@@ -1,0 +1,25 @@
+{
+  "id": "water-breathing",
+  "name": "Water Breathing",
+  "description": "Breathe where the water is thick: +5 Athletics (swimming, holding on) and +2 Constitution.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 60
+  },
+  "modifiers": [
+    {
+      "stat": "skill_athletics",
+      "type": "constant",
+      "value": 5
+    },
+    {
+      "stat": "constitution",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "Your lungs feel strangely full.",
+  "visible": true
+}

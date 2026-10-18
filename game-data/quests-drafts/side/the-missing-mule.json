@@ -5,12 +5,12 @@
   "difficulty": "Moderate",
   "step_count": 4,
   "total_qp": 1,
-  "description": "A traveling merchant has lost his mule and cargo in the mountain pass.",
+  "description": "Thistle Goldworthy's mule, Buttercup, has bolted into the mountain pass with half the wagon's stock.",
   "start_condition": {
     "type": "explore",
     "target": "wayward-wagon",
     "location": "merchants-highway",
-    "start_hint": "Find Barnaby the Merchant at the Wayward Wagon on the Merchant's Highway."
+    "start_hint": "Talk to Thistle Goldworthy at the Wayward Wagon on the Merchant's Highway."
   },
   "requirements": [],
   "prerequisites": [],
@@ -23,12 +23,12 @@
   "stages": [
     {
       "id": "talk-to-merchant",
-      "description": "Speak with Barnaby at the Wayward Wagon.",
+      "description": "Speak with Thistle at the Wayward Wagon.",
       "objectives": [
         {
           "type": "talk",
-          "target": "barnaby-merchant",
-          "description": "Ask about his lost mule, 'Buttercup'."
+          "target": "thistle-goldworthy",
+          "description": "Ask about her lost mule, 'Buttercup'."
         }
       ]
     },
@@ -57,12 +57,12 @@
     },
     {
       "id": "return-to-barnaby",
-      "description": "Bring Buttercup (or at least her cargo) back to Barnaby.",
+      "description": "Bring Buttercup (or at least her cargo) back to Thistle.",
       "objectives": [
         {
           "type": "talk",
-          "target": "barnaby-merchant",
-          "description": "Inform Barnaby of the rescue."
+          "target": "thistle-goldworthy",
+          "description": "Inform Thistle of the rescue."
         }
       ],
       "rewards": {
@@ -78,6 +78,3 @@
     }
   ]
 }
-
-
-

@@ -1,0 +1,18 @@
+{
+  "id": "eye-of-the-abyss",
+  "name": "Eye of the Abyss",
+  "description": "A black gem the size of a fist, warm and faintly pulsing. Holding it, you hear whispering just past the edge of hearing.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 1,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Shadow's Source."
+  ],
+  "image": "/res/img/items/eye-of-the-abyss.png"
+}

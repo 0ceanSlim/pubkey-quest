@@ -1,0 +1,19 @@
+{
+  "id": "waystone-wind",
+  "name": "Waystone Fragment",
+  "description": "The waystone's song carries you: 15% faster travel while worn.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "equipment"
+  },
+  "modifiers": [
+    {
+      "stat": "travel_speed",
+      "type": "constant",
+      "value": 15
+    }
+  ],
+  "message": "The road feels shorter already.",
+  "visible": true
+}

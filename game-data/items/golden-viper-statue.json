@@ -1,0 +1,18 @@
+{
+  "id": "golden-viper-statue",
+  "name": "Golden Viper",
+  "description": "A gilded statuette of a coiled viper, heavier than it looks, with garnet eyes that seem to follow you.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 2,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Rogue's Shadow Trial."
+  ],
+  "image": "/res/img/items/golden-viper-statue.png"
+}

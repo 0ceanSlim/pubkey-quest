@@ -84,6 +84,20 @@
           "type": "talk",
           "target": "oracle-seraphina",
           "description": "Deliver the Shadow Fragment and cult plans."
+        },
+        {
+          "type": "fetch",
+          "target": "cult-manifesto",
+          "count": 1,
+          "consume": true,
+          "description": "Give Seraphina the cult's plans."
+        },
+        {
+          "type": "fetch",
+          "target": "shadow-fragment",
+          "count": 1,
+          "consume": true,
+          "description": "Give Seraphina the Shadow Fragment."
         }
       ],
       "rewards": {

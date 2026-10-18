@@ -11,7 +11,9 @@
       "end": 420,
       "location": "mirelle_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -19,7 +21,9 @@
       "end": 480,
       "location": "verdant-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -27,15 +31,21 @@
       "end": 1080,
       "location": "green_mortar",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1080,
       "end": 1140,
       "location": "verdant-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,7 +53,9 @@
       "end": 1440,
       "location": "mirelle_quarters",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     }
   ],
@@ -55,23 +67,35 @@
   "dialogue": {
     "sleeping": {
       "text": "*A cat on the windowsill watches you. Inside, all is quiet.*",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_to_work": {
       "text": "I open at eight, once the morning herbs are cut. Come by then!",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "traveling_home": {
       "text": "That's the day done. If it's an emergency, chew willow bark and come at eight.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "off_duty": {
       "text": "The Mortar's closed for the night, dear. Eight o'clock.",
-      "options": ["goodbye"]
+      "options": [
+        "goodbye"
+      ]
     },
     "main_menu": {
       "text": "Now, what can the Green Mortar do for you?",
-      "options": ["browse_shop", "ask_about_herbs", "goodbye"]
+      "options": [
+        "browse_shop",
+        "ask_about_herbs",
+        "goodbye"
+      ]
     },
     "browse_shop": {
       "text": "Everything's labelled. The spores are the ones that glow; don't sniff them.",
@@ -79,7 +103,9 @@
     },
     "ask_about_herbs": {
       "text": "Pollen, sap and bark for the druids, silk and spores for the rangers' snares and charms. Potions take me days to brew, so I keep only a couple on the shelf. Totems and yew wands? Those are made by the old circles for their own. You won't find one for sale.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Eat something green, and come back in one piece!",
@@ -95,15 +121,63 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
-      {"item_id": "healing", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"},
-      {"item_id": "antidote", "stock": 3, "max_stock": 3},
-      {"item_id": "sprig-of-mistletoe", "stock": 3, "max_stock": 3},
-      {"item_id": "herbalism-kit", "stock": 2, "max_stock": 2},
-      {"item_id": "pollen", "stock": 10, "max_stock": 10},
-      {"item_id": "tree-sap", "stock": 8, "max_stock": 8},
-      {"item_id": "bark-shavings", "stock": 10, "max_stock": 10},
-      {"item_id": "spider-silk", "stock": 6, "max_stock": 6},
-      {"item_id": "mushroom-spores", "stock": 6, "max_stock": 6}
+      {
+        "item_id": "healing",
+        "stock": 2,
+        "max_stock": 2,
+        "restock_rate": 1,
+        "restock_interval": "30"
+      },
+      {
+        "item_id": "antidote",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "sprig-of-mistletoe",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "herbalism-kit",
+        "stock": 2,
+        "max_stock": 2
+      },
+      {
+        "item_id": "pollen",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "tree-sap",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "bark-shavings",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "spider-silk",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "mushroom-spores",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "marsh-willow-bark",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "silver-moss",
+        "stock": 4,
+        "max_stock": 4
+      }
     ]
   }
 }

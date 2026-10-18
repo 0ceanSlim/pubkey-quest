@@ -1,0 +1,17 @@
+{
+  "id": "owlbear-fur",
+  "name": "Owlbear Fur",
+  "description": "A thick pelt of feathered fur, warm and nearly waterproof. Tanners prize it.",
+  "rarity": "uncommon",
+  "value": 600,
+  "weight": 2,
+  "stack": 5,
+  "type": "Material",
+  "tags": [
+    "material"
+  ],
+  "notes": [
+    "Material: sells to tanners and general stores."
+  ],
+  "image": "/res/img/items/owlbear-fur.png"
+}

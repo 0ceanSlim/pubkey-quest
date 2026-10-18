@@ -1,0 +1,20 @@
+{
+  "id": "marsh-willow-bark",
+  "name": "Marsh Willow Bark",
+  "description": "Strips of grey bark from the willows that lean over Shadowmere's still water. Chewed, it dulls fever and pain.",
+  "rarity": "uncommon",
+  "value": 40,
+  "weight": 0.1,
+  "stack": 10,
+  "type": "Spell Component",
+  "tags": [
+    "spell_component",
+    "herb"
+  ],
+  "notes": [
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Lesser Restoration.",
+    "Gathered in the Shadowmere Wetlands; herbalists sell it."
+  ],
+  "image": "/res/img/items/marsh-willow-bark.png"
+}

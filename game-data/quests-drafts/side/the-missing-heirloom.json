@@ -75,6 +75,13 @@
           "type": "talk",
           "target": "mayor-thomas",
           "description": "Hand over the signet ring."
+        },
+        {
+          "type": "fetch",
+          "target": "silver-signet-ring",
+          "count": 1,
+          "consume": true,
+          "description": "Return the signet ring."
         }
       ],
       "rewards": {
@@ -83,7 +90,7 @@
         "quest_points": 1,
         "items": [
           {
-            "id": "cloak-of-protection",
+            "id": "ring-of-protection",
             "quantity": 1
           }
         ]
@@ -91,6 +98,3 @@
     }
   ]
 }
-
-
-

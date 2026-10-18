@@ -67,6 +67,13 @@
           "skill": "resolve",
           "value": 16,
           "description": "Withstand the Eye's corrupting whispers."
+        },
+        {
+          "type": "fetch",
+          "target": "eye-of-the-abyss",
+          "count": 1,
+          "consume": true,
+          "description": "Lay the Eye on the shrine to be purified."
         }
       ],
       "rewards": {

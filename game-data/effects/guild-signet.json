@@ -1,0 +1,19 @@
+{
+  "id": "guild-signet",
+  "name": "Guild Signet",
+  "description": "Guild training at your fingertips: +2 Thieving while worn.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "equipment"
+  },
+  "modifiers": [
+    {
+      "stat": "skill_thieving",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "The ring sits like a promise.",
+  "visible": true
+}

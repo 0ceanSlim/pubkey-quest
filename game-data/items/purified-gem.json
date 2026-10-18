@@ -1,0 +1,19 @@
+{
+  "id": "purified-gem",
+  "name": "Purified Gem",
+  "description": "What was left of the Eye of the Abyss after the Raven Shrine's light burned it clean: a flawless deep-blue stone, cold and very still.",
+  "rarity": "rare",
+  "value": 100000,
+  "weight": 0.1,
+  "stack": 1,
+  "type": "Treasure",
+  "tags": [
+    "treasure",
+    "gem"
+  ],
+  "notes": [
+    "Treasure: worth a great deal to any merchant.",
+    "Reward from The Shadow's Source."
+  ],
+  "image": "/res/img/items/purified-gem.png"
+}

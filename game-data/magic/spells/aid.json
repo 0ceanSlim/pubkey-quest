@@ -37,7 +37,12 @@
     "Out of combat: for 8 hours you start every fight with 5 temporary HP."
   ],
   "material_component": {
-    "required": [],
+    "required": [
+      {
+        "component": "silver-moss",
+        "quantity": 1
+      }
+    ],
     "focus_provided": ""
   },
   "combat_buff": {

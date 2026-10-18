@@ -1,0 +1,20 @@
+{
+  "id": "silver-moss",
+  "name": "Silver Moss",
+  "description": "A soft, pale moss that grows only on old stone in the marsh, and shines faintly silver when wet.",
+  "rarity": "uncommon",
+  "value": 60,
+  "weight": 0.1,
+  "stack": 10,
+  "type": "Spell Component",
+  "tags": [
+    "spell_component",
+    "herb"
+  ],
+  "notes": [
+    "Spell component: used up when you cast a spell that needs it.",
+    "Needed by: Aid.",
+    "Gathered in the Shadowmere Wetlands; herbalists sell it."
+  ],
+  "image": "/res/img/items/silver-moss.png"
+}

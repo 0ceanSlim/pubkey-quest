@@ -1,0 +1,23 @@
+{
+  "id": "owlbear-feather-enchanted",
+  "name": "Glowing Owlbear Feather",
+  "description": "A long feather the owlbear left you, faintly glowing at the tip. It's warm, and it never quite stops moving.",
+  "rarity": "uncommon",
+  "value": 2500,
+  "weight": 0,
+  "stack": 1,
+  "type": "Wondrous Item",
+  "gear_slot": "neck",
+  "tags": [
+    "equipment",
+    "drop-only"
+  ],
+  "notes": [
+    "Wear it at the neck: +1 Perception, +1 Survival.",
+    "The reward for sparing the wounded owlbear."
+  ],
+  "effects_when_worn": [
+    "owlbear-charm"
+  ],
+  "image": "/res/img/items/owlbear-feather-enchanted.png"
+}

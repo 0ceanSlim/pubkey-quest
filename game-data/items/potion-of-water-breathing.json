@@ -1,0 +1,23 @@
+{
+  "id": "potion-of-water-breathing",
+  "name": "Potion of Water Breathing",
+  "description": "A murky green draught that smells of pondweed. Mother Muriel swears by it.",
+  "rarity": "uncommon",
+  "value": 3000,
+  "weight": 0.5,
+  "stack": 1,
+  "type": "Potion",
+  "tags": [
+    "consumable"
+  ],
+  "effects": [
+    {
+      "apply_effect": "water-breathing"
+    }
+  ],
+  "notes": [
+    "Drink it: +5 Athletics and +2 Constitution for an hour.",
+    "Made for flooded places: the Sunken Temple's and the Flooded Mine's swim and breath checks."
+  ],
+  "image": "/res/img/items/potion-of-water-breathing.png"
+}

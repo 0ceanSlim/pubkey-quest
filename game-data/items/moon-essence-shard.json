@@ -1,0 +1,18 @@
+{
+  "id": "moon-essence-shard",
+  "name": "Moon Essence Shard",
+  "description": "Moonlight caught from the Mirror Pool and set solid: a pale shard that glows even in daylight.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 0.1,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for Elven Heritage."
+  ],
+  "image": "/res/img/items/moon-essence-shard.png"
+}

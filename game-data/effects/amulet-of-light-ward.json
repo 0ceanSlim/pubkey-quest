@@ -1,0 +1,19 @@
+{
+  "id": "amulet-of-light-ward",
+  "name": "Amulet of Light",
+  "description": "A steady inner light: +2 Resolve while worn.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "equipment"
+  },
+  "modifiers": [
+    {
+      "stat": "skill_resolve",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "Warm light gathers at your throat.",
+  "visible": true
+}

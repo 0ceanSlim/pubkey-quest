@@ -1,0 +1,18 @@
+{
+  "id": "shadow-fragment",
+  "name": "Shadow Fragment",
+  "description": "A shard of solid darkness left behind by the Shadow Stalker. Light bends away from it.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 0.1,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Black Flame."
+  ],
+  "image": "/res/img/items/shadow-fragment.png"
+}

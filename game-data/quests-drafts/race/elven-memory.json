@@ -72,13 +72,15 @@
           "type": "fetch",
           "target": "marsh-willow-bark",
           "count": 5,
-          "description": "Gather Willow Bark."
+          "description": "Gather Willow Bark.",
+          "consume": true
         },
         {
           "type": "fetch",
           "target": "silver-moss",
           "count": 3,
-          "description": "Harvest Silver Moss from the temple exterior."
+          "description": "Harvest Silver Moss from the temple exterior.",
+          "consume": true
         }
       ]
     },
@@ -182,6 +184,13 @@
           "type": "talk",
           "target": "ancient-elven-waystone",
           "description": "Offer the purified moon essence."
+        },
+        {
+          "type": "fetch",
+          "target": "moon-essence-shard",
+          "count": 1,
+          "consume": true,
+          "description": "Offer the purified moon essence."
         }
       ],
       "rewards": {
@@ -201,6 +210,3 @@
     }
   ]
 }
-
-
-

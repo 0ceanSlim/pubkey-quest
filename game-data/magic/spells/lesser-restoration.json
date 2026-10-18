@@ -37,7 +37,12 @@
     "In combat it takes your action."
   ],
   "material_component": {
-    "required": [],
+    "required": [
+      {
+        "component": "marsh-willow-bark",
+        "quantity": 1
+      }
+    ],
     "focus_provided": ""
   },
   "cures": [
