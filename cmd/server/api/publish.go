@@ -101,7 +101,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	relays := uc.RoutePublish(req.Event)
+	relays := routeWrites(uc, req.Event)
 	results, err := uc.PublishEvent(r.Context(), req.Event, relays)
 	if err != nil {
 		log.Printf("❌ Failed to publish %s for %s...: %v", label, shortKey(user.PublicKey), err)

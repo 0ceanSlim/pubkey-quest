@@ -40,6 +40,9 @@ type RelayListResponse struct {
 	// Connected are the relays actually held open for this player right now —
 	// useful for showing which of their choices are reachable.
 	Connected []string `json:"connected"`
+	// Defaults is the game's default relay set, where saves go while the
+	// player has no relays of their own.
+	Defaults []string `json:"defaults"`
 }
 
 // RelaysHandler godoc
@@ -69,7 +72,7 @@ func RelaysHandler(w http.ResponseWriter, r *http.Request) {
 
 // relayState describes where a player's events currently go.
 func relayState(pubKey string) RelayListResponse {
-	resp := RelayListResponse{Relays: []RelayEntry{}, Connected: []string{}}
+	resp := RelayListResponse{Relays: []RelayEntry{}, Connected: []string{}, Defaults: DefaultRelays()}
 	if npub, err := tools.EncodePubkey(pubKey); err == nil {
 		resp.Npub = npub
 	}

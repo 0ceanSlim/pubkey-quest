@@ -65,6 +65,13 @@ type Config struct {
 	Saves  SavesConfig  `yaml:"saves"`
 	Launch LaunchConfig `yaml:"launch"`
 	Wiki   WikiConfig   `yaml:"wiki"`
+	Relays RelaysConfig `yaml:"relays"`
+}
+
+// RelaysConfig overrides the game's default relay set: where players with no
+// relay list of their own keep their saves (api.DefaultRelays).
+type RelaysConfig struct {
+	Defaults []string `yaml:"defaults"`
 }
 
 // Global variable to hold the config after loading

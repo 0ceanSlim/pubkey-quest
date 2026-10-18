@@ -133,7 +133,7 @@ func PublishSaveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
 	defer cancel()
-	relays := uc.RoutePublish(ev)
+	relays := routeWrites(uc, ev)
 	results, _ := uc.PublishEvent(ctx, ev, relays)
 	var accepted, refused []string
 	for _, res := range results {
@@ -199,6 +199,8 @@ func fetchEvents(pubkey string, filter nostr.Filter, extra []string, timeout tim
 	}
 	relays := append([]string{}, extra...)
 	relays = append(relays, c.OwnListRelays(pubkey)...)
+	// Saves made before the player had relays of their own sit on the defaults.
+	relays = append(relays, DefaultRelays()...)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	return c.QueryEvents(ctx, filter, relays, core.WithTimeout(timeout))
@@ -328,7 +330,7 @@ func publishSaveDeletion(r *http.Request, npub, saveID string, ev *nostr.Event) 
 	if uc == nil {
 		return 0, nil, fmt.Errorf("relay client not ready — try again in a moment")
 	}
-	relays := uc.RoutePublish(ev)
+	relays := routeWrites(uc, ev)
 	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
 	results, err := uc.PublishEvent(ctx, ev, relays)

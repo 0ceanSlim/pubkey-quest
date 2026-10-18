@@ -321,7 +321,7 @@ func listHandler(kind int, label string) http.HandlerFunc {
 			writeJSONStatus(w, http.StatusServiceUnavailable, map[string]any{"success": false, "error": "Relay client not ready — try again in a moment"})
 			return
 		}
-		relays := uc.RoutePublish(ev)
+		relays := routeWrites(uc, ev)
 		results, err := uc.PublishEvent(ctx, ev, relays)
 		accepted := 0
 		for _, res := range results {

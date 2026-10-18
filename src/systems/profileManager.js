@@ -14,11 +14,12 @@ class ProfileManager {
     this.profile = null;
     this.pubkey = null;
     this.npub = null;
+    // The game's default relays (api.DefaultRelays on the server).
     this.relays = [
-      'wss://relay.damus.io',
-      'wss://nos.lol',
-      'wss://relay.nostr.band',
-      'wss://nostr.wine'
+      'wss://offchain.pub',
+      'wss://relay.ditto.pub',
+      'wss://relay.nostr.net',
+      'wss://nos.lol'
     ];
   }
 

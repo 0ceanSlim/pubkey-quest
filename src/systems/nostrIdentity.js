@@ -154,6 +154,7 @@ export async function loadRelays() {
         relays: data.relays || [],
         pinned: Boolean(data.pinned),
         connected: data.connected || [],
+        defaults: data.defaults || [],
     };
 }
 

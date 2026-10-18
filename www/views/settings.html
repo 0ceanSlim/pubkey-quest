@@ -132,6 +132,7 @@
   // so a half-finished list never goes out.
 
   let relayDraft = [];
+  let relayDefaults = [];
 
   function isSignedIn() {
     return Boolean(window.sessionManager?.isAuthenticated?.());
@@ -214,6 +215,7 @@
     try {
       const state = await window.nostrIdentity.loadRelays();
       relayDraft = (state.relays || []).map((r) => ({ ...r }));
+      relayDefaults = state.defaults || [];
       document.getElementById('relay-pinned-toggle').checked = Boolean(state.pinned);
       renderRelayList();
       setStatus('relay-save-status', '');
@@ -228,7 +230,13 @@
 
     if (!relayDraft.length) {
       container.innerHTML = '<div class="text-center py-4 text-sm" style="color: var(--color-textMuted);">'
-        + 'No relays yet. Add one above - wss://relay.damus.io is a common starting point.</div>';
+        + 'No relays yet, so your saves go to the game's default relays:'
+        + '<div class="font-mono text-xs my-2" style="color: var(--color-textPrimary);">'
+        + relayDefaults.map(escapeHtml).join('<br />') + '</div>'
+        + (relayDefaults.length
+          ? '<button onclick="useDefaultRelays()" class="pixel-button pixel-clip px-3 py-1 text-xs" style="color: var(--color-textPrimary);">Make these my relays</button>'
+          : '')
+        + '</div>';
       return;
     }
 
@@ -245,6 +253,13 @@
       +   '</label>'
       +   '<button onclick="removeRelay(' + i + ')" class="text-xs px-2 py-1 win95-button rounded" style="color: rgb(239, 68, 68);">X</button>'
       + '</div>').join('');
+  }
+
+  // Start the list from the game's defaults (then Publish to make it yours).
+  function useDefaultRelays() {
+    relayDraft = relayDefaults.map((url) => ({ url: url, read: true, write: true }));
+    renderRelayList();
+    setStatus('relay-save-status', 'Unpublished changes');
   }
 
   function setRelayRole(index, role, enabled) {

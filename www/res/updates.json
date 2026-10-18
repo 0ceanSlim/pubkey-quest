@@ -2,6 +2,18 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-18-default-relays",
+      "when": "October 18, 2026",
+      "icon": "📡",
+      "size": "minor",
+      "title": "New to Nostr? Your Saves Have a Home",
+      "summary": "Players without a relay list of their own now save to four default public relays (offchain.pub, relay.ditto.pub, relay.nostr.net, nos.lol). Settings can make them your list in one click.",
+      "highlights": [
+        "Saves from a brand-new key go to the game's default relays instead of being refused",
+        "Settings → Your Relays shows the defaults and can make them your published list"
+      ]
+    },
+    {
       "id": "2026-10-18-items",
       "when": "October 18, 2026",
       "icon": "🎒",
