@@ -21,6 +21,14 @@ const SHOWN_MAX = 4;     // updates listed before "and N older"
 const OLDER_HIGHLIGHTS = 3;
 const AFTER_LOAD_MS = 1600; // let the loading screen fade first
 
+// First rollout (Oct 2026): every browser is unmarked, so existing testers
+// would all count as newcomers and miss the two updates the popup launched
+// with. While the last update before the popup existed is at most this many
+// entries back, an unmarked browser is treated as having seen it. After the
+// next update, newcomers start clean again.
+const ROLLOUT_BASELINE = '2026-10-14-shops';
+const ROLLOUT_WINDOW = 2;
+
 function getSeen() {
     try { return localStorage.getItem(SEEN_KEY); } catch (_) { return undefined; }
 }
@@ -95,11 +103,16 @@ async function check() {
     } catch (_) { return; }
     if (!updates.length) return;
     const newest = updates[0].id;
-    if (seen === null) {
-        setSeen(newest); // a newcomer isn't missing anything
-        return;
+    let since = seen;
+    if (since === null) {
+        const base = updates.findIndex((u) => u.id === ROLLOUT_BASELINE);
+        if (base < 1 || base > ROLLOUT_WINDOW) {
+            setSeen(newest); // a newcomer isn't missing anything
+            return;
+        }
+        since = ROLLOUT_BASELINE;
     }
-    const missed = missedUpdates(updates, seen);
+    const missed = missedUpdates(updates, since);
     if (missed.length) show(missed, () => setSeen(newest));
 }
 
