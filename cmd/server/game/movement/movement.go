@@ -33,6 +33,11 @@ func HandleMoveAction(state *types.SaveFile, params map[string]interface{}) (*ty
 		// Feed discovery to the event recorder so "explore" objectives advance.
 		events.Record(state, events.LocationDiscovered, location, 1)
 	}
+	// Walking into a district is a visit to it ("goldenhaven-east"), so quest
+	// "explore" objectives can send you to one part of a city.
+	if district != "" {
+		events.Record(state, events.LocationVisited, location+"-"+district, 1)
+	}
 
 	return &types.GameActionResponse{
 		Success: true,

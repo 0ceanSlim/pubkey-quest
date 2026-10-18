@@ -553,7 +553,7 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 			case types.ObjectiveFetch:
 				c.checkRef("item", o.Target, c.idx.items)
 			case types.ObjectiveExplore:
-				if !c.idx.locations[o.Target] && !c.idx.pois[o.Target] && !c.idx.waypoints[o.Target] && !siteWaypoints[o.Target] {
+				if !c.idx.locations[o.Target] && !c.idx.districts[o.Target] && !c.idx.pois[o.Target] && !c.idx.waypoints[o.Target] && !siteWaypoints[o.Target] {
 					c.errf("unknown location/poi/waypoint: %q", o.Target)
 				}
 			case types.ObjectiveSlay:
