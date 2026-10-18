@@ -55,7 +55,9 @@
             {
               "type": "alignment",
               "values": [
-                "evil"
+                "Lawful Evil",
+                "Neutral Evil",
+                "Chaotic Evil"
               ]
             }
           ]
@@ -191,6 +193,3 @@
   },
   "trigger": "travel"
 }
-
-
-

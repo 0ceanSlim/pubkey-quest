@@ -53,10 +53,9 @@
             {
               "type": "alignment",
               "values": [
-                "good",
-                "neutral_good",
-                "lawful_good",
-                "chaotic_good"
+                "Lawful Good",
+                "Neutral Good",
+                "Chaotic Good"
               ]
             }
           ]
@@ -79,9 +78,9 @@
             {
               "type": "alignment",
               "values": [
-                "lawful_good",
-                "lawful_neutral",
-                "lawful_evil"
+                "Lawful Good",
+                "Lawful Neutral",
+                "Lawful Evil"
               ]
             }
           ]
@@ -163,6 +162,3 @@
     }
   }
 }
-
-
-
