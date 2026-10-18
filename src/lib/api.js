@@ -87,6 +87,15 @@ class GameAPI {
             if (typeof result.data?.clock_running === 'boolean') {
                 eventBus.emit('clock:running', result.data.clock_running);
             }
+            // A quest finished or moved on: say so, and refresh the tracker and
+            // the journal now rather than on the next full reload.
+            const done = result.data?.quests_completed ?? [];
+            const moved = result.data?.quests_advanced ?? [];
+            for (const q of done) window.showMessage?.(`📜 Quest complete: ${q.name}`, 'success');
+            if (done.length || moved.length) {
+                window.updateQuestTracker?.();
+                window.questDisplay?.loadQuestLog?.();
+            }
             // Death outside a fight (starving, a hazard on the road): the server
             // already woke the player in town; offer the last save instead.
             if (result.data?.death) {

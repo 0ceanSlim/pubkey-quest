@@ -135,6 +135,7 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	before := placeOf(session)
 	discoveredBefore := len(session.SaveData.LocationsDiscovered)
+	questsBefore := markQuests(&session.SaveData)
 
 	// Track last action time for player actions (not tick-type actions)
 	if request.Action.Type != "update_time" {
@@ -185,6 +186,12 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		response.Data["death"] = map[string]any{"outcome": "defeat", "location": session.SaveData.Location, "loot_kept": kept}
 		response.Message = fmt.Sprintf("You have fallen. You wake in %s, stripped of your belongings — but your experience endures.", session.SaveData.Location)
+	}
+
+	// Quests this action finished or moved on (a bounty claimed from a vault
+	// keeper, a stage's last kill): the client announces them and refreshes.
+	if response != nil {
+		questNews(questsBefore, &session.SaveData, response)
 	}
 
 	// Update session in memory
