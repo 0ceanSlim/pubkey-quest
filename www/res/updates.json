@@ -1,0 +1,188 @@
+{
+  "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
+  "updates": [
+    {
+      "id": "2026-10-18-quests",
+      "when": "October 18, 2026",
+      "icon": "📜",
+      "size": "major",
+      "title": "Nine New Quests",
+      "summary": "Nine quests are playable, with seven new monsters, new rewards that are worth wearing, and dice that tell you what they are.",
+      "highlights": [
+        "The Missing Mule: Thistle's mule bolted up the Cragspire pass. Find her at the new Mountain Pass Overlook, past a wolf pack and its dire-wolf leader",
+        "The Missing Heirloom: bandits hold the old watchtower, and the Mayor's signet is hidden upstairs. Reward: a Ring of Protection",
+        "The Black Flame continues the main story: a hidden cellar, cultists, and the Shadow Stalker. Reward: the Amulet of Light, a light you wear",
+        "The Shadow's Source: the Sunken Temple's drowned sanctum, and the Eye of the Abyss cleansed at the Raven Shrine",
+        "Class and race quests: The Paladin's Vow, The Rogue's Shadow Trial, The Axe of the Ancestors for dwarves, and Elven Heritage for elves",
+        "Daily bounties from any vault keeper: Highway Rats and the Cragspire Survey",
+        "New monsters: dire wolf, restless spirit, shadow stalker, kobold warrior and shaman, shadow tentacle, corrupted dryad",
+        "Combat dice show their shape and type (d4 to d100) and who is rolling, and damage lines name their dice",
+        "Rings can be worn, and NPCs can answer to your race, class, stats and skills"
+      ]
+    },
+    {
+      "id": "2026-10-17-day-and-night",
+      "when": "October 17, 2026",
+      "icon": "🌙",
+      "size": "major",
+      "title": "Day, Night & Every Spell",
+      "summary": "Time flows on its own, night is dangerous, and every spell does something.",
+      "highlights": [
+        "The clock runs by default and stops itself when something needs you: a fight, a discovery, hunger or tiredness setting in",
+        "Time runs at half speed in town, so there's room to shop and talk",
+        "Night falls: undead and shapeshifters roam, road fights come more often, and without darkvision or a torch in hand you fight at disadvantage. Fights pay 25% more XP until dawn",
+        "Torches, lamps and lanterns can be held in your off hand",
+        "Every spell has an effect in play, 23 new spells arrive, area spells hit everything in the area, and spells respect their range",
+        "A loading screen with sayings while the world wakes, and a saves screen that lists your saves at once",
+        "The vault works like a bank, and the clock holds while you're at the vault, in a shop or in conversation",
+        "Right-click anything for its wiki page",
+        "You're warned to save before the server restarts for an update"
+      ]
+    },
+    {
+      "id": "2026-10-14-shops",
+      "when": "October 2026",
+      "icon": "🛒",
+      "size": "major",
+      "title": "Monsters, Loot & a Town Full of Shops",
+      "summary": "36 new monsters, rebuilt loot, and eleven new shopkeepers.",
+      "highlights": [
+        "36 new monsters for levels 1–5: every road now has something new to meet, from hyenas and giant crabs to kuo-toa, worgs, specters and hippogriffs",
+        "Enemy spellcasters — cultists, acolytes, apprentice wizards, cult fanatics and druids — and the wands, orbs and spellbooks they carry",
+        "Every monster has a sprite, and every item has art",
+        "Loot rebuilt: purses follow the 5e treasure tables, creatures drop their parts (spider silk, bone dust, spirit dust), and the best gear — plate, greatswords, rare foci — is found, never bought",
+        "11 new shopkeepers: the Grand Forge, the Mage Tower, a dwarven crossbow forge, an elven bowyer, an herbalist, the Dawnflame almonry, the Golden Bazaar, an orc war-gear trader, and the first shops in Dusthaven, Frosthold and Saltwind",
+        "General stores carry one dependable list of travel basics, and potions come back slowly instead of all at once",
+        "Survival matters on the road: it sets how fast you travel and gives you a roll to spot an ambush before it springs. A navigator's kit or a spyglass helps",
+        "Useful odds and ends: healer's kits bind wounds, perfume sweetens prices, a tackle box keeps the fish smell contained",
+        "A community wiki at /wiki, built straight from the game's data"
+      ]
+    },
+    {
+      "id": "2026-10-locks",
+      "when": "October 2026",
+      "icon": "🗝️",
+      "size": "major",
+      "title": "Locks, Secrets & Smarter Fights",
+      "summary": "Keys and lockpicking, the first main quest, and combat terrain.",
+      "highlights": [
+        "Keys and locks: locked rooms and chests, a keyring for your keys, lockpicks that break, and Tumblers — a lockpicking minigame",
+        "The Rising Shadow is playable: meet the Oracle in the new Temple of the Dawnflame and follow the main quest's first chapter",
+        "The Rats of Goldenhaven: down into the sewers to face the Rat King",
+        "Hidden places in every city, found by spending time in a district",
+        "Combat terrain: rough ground, water, cover and high ground, with line of sight and monsters that use it",
+        "Stealth openings: catch monsters unaware and sneak past, strike first, or walk up — or get ambushed yourself",
+        "Fight several enemies at once, in true initiative order",
+        "Fairer fights at low levels, gentler downing, and death saves you can watch",
+        "Use what's at hand: only items in your quick slots are free in combat — digging in your pack costs a bonus action",
+        "Lose a fight and you can reload your last save instead of taking the loss"
+      ]
+    },
+    {
+      "id": "2026-10-social",
+      "when": "October 2026",
+      "icon": "🤝",
+      "size": "major",
+      "title": "Friends, Parties & Saves on Nostr",
+      "summary": "Other players, chat and whispers, parties, and saves on your relays.",
+      "highlights": [
+        "See who else is playing: players at your spot, travellers on your road, and a Friends panel built from your Nostr follows",
+        "Chat — say, area and party — and private whispers sent as encrypted Nostr DMs, sealed in your browser",
+        "Parties of up to five: travel together, sleep together, and fight together in shared turn-based battles with flanking, healing and help actions",
+        "Your saves can live on Nostr relays: signed by you, loadable anywhere, checked by the official server",
+        "Character portraits — describe one, link one, or upload one — and a unique crest for every npub",
+        "Proof-of-key login: you prove you hold your key, and all signing stays in your browser",
+        "Your Nostr profile and relays, viewable and editable in game",
+        "Quest journal reworked: sortable, filterable, with a badges tab"
+      ]
+    },
+    {
+      "id": "2026-07-feats",
+      "when": "July 2026",
+      "icon": "📜",
+      "size": "major",
+      "title": "Feats, Scrolls, Gathering & a Web App",
+      "summary": "Feats at level-up, spell scrolls, gathering, a new sign-in, and an installable app.",
+      "highlights": [
+        "Feats — take a feat instead of ability points at level-up (Tough, War Caster, Elemental Adept, and the stat feats)",
+        "Spell scrolls — read a scroll to cast its spell in or out of combat (still costs mana, no preparation needed)",
+        "Gathering & lockpicking — mining and fishing nodes and locked chests, worked with the right tool and a skill check, with tiered loot",
+        "New MILL sign-in — one modal for every Nostr login (extension, Amber, remote bunker, private key, or a brand-new identity); all signing stays in your browser",
+        "Installable as an app — add Pubkey Quest to your home screen, and links now unfurl with a preview card",
+        "Mobile polish and bug fixes ahead of open testing"
+      ]
+    },
+    {
+      "id": "2026-06-adventure",
+      "when": "June 2026",
+      "icon": "🐉",
+      "size": "major",
+      "title": "The Adventure Comes Alive",
+      "summary": "Quests, dungeons, encounters, real spellcasting and levelling up.",
+      "highlights": [
+        "Quests, dungeons & encounters are playable — pick up quests from NPCs and boards, explore points of interest as branching node-walks, and hit random and hand-authored encounters while travelling",
+        "Rotating daily quests handed out by innkeepers",
+        "Spellcasting is real — cast spells in and out of combat with mana and material components, and drink potions or throw items mid-fight",
+        "Combat depth — class abilities (Rage, Second Wind, Ki…), conditions (poisoned, prone, frightened…), and saving throws",
+        "Character progression — level up from XP, spend ability points, and grow your HP and mana",
+        "Building interiors — enter inns and taverns, rent a room, and sleep the night"
+      ]
+    },
+    {
+      "id": "2026-02-rebrand",
+      "when": "February 2026",
+      "icon": "🎨",
+      "size": "minor",
+      "title": "Project Rebrand & Effects Polish",
+      "summary": "Nostr Hero becomes Pubkey Quest, and worn items and consumables apply their effects.",
+      "highlights": [
+        "Complete rebrand from Nostr Hero to Pubkey Quest",
+        "Worn item effects system (armor/weapons apply stat bonuses)",
+        "Consumable items fixed (food, potions apply effects correctly)",
+        "Effects system now fully data-driven via CODEX",
+        "Weight system cleanup and optimization",
+        "Inventory delta system fix (no more full re-renders)"
+      ]
+    },
+    {
+      "id": "2026-01-codex",
+      "when": "January 2026",
+      "icon": "🛠️",
+      "size": "minor",
+      "title": "CODEX Expansion & Architecture",
+      "summary": "Content tools, a restructured codebase, and automatic deploys.",
+      "highlights": [
+        "CODEX Starting Gear Editor (edit class equipment visually)",
+        "CODEX Systems/Effects Editor (manage all 27+ game effects)",
+        "Massive effects system refactor and CODEX integration",
+        "Major repository restructure (clean game module organization)",
+        "CI/CD pipeline (GitHub Actions, auto-deploy to test server)",
+        "API documentation setup (Swagger)",
+        "Item database improvements and validation"
+      ]
+    },
+    {
+      "id": "2025-12-shops",
+      "when": "December 2025",
+      "icon": "⚔️",
+      "size": "minor",
+      "title": "Shops, NPCs & Game Systems",
+      "summary": "Merchants, NPC schedules, vaults, resting, music and the day/night clock.",
+      "highlights": [
+        "Full merchant system (buy/sell, charisma scaling, gold tracking, restocks)",
+        "NPC schedule system with time-aware dialogue",
+        "Vault storage system (per-city secure storage)",
+        "Wait/rest system with inn/tavern integration",
+        "Music system with location-based tracks",
+        "New time system with day/night cycle",
+        "Delta architecture (surgical DOM updates, backend-authoritative)",
+        "Effects system first implementation (hunger, fatigue, status conditions)",
+        "Stats tab, abilities tab, equipment refactors",
+        "Massive Go code reorganization (api → game modules)",
+        "ES6 module migration with Vite build system",
+        "CODEX initial implementation (item editor, migration, validation)",
+        "Multiple frontend cleanup passes (dead code removal, JS consolidation)"
+      ]
+    }
+  ]
+}

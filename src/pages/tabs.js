@@ -24,20 +24,23 @@ class TabManager {
      * Initialize tab manager
      */
     init() {
-        // Load tab from URL hash if present
-        const hash = window.location.hash.slice(1);
+        // Load tab from URL hash if present. "#updates/<id>" opens a tab and
+        // scrolls to one entry in it (the in-game "what's new" links).
+        const [hash, anchor] = window.location.hash.slice(1).split('/');
         if (hash && this.tabs.includes(hash)) {
             this.currentTab = hash;
         }
 
         // Show initial tab
         this.showTab(this.currentTab);
+        this.scrollToEntry(anchor);
 
         // Listen for hash changes
         window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.slice(1);
+            const [hash, anchor] = window.location.hash.slice(1).split('/');
             if (hash && this.tabs.includes(hash)) {
                 this.showTab(hash);
+                this.scrollToEntry(anchor);
             }
         });
 
@@ -50,6 +53,16 @@ class TabManager {
                 });
             }
         });
+    }
+
+    /**
+     * Scroll to an entry inside the open tab ("#updates/<id>" → #update-<id>).
+     * @param {string} [id]
+     */
+    scrollToEntry(id) {
+        if (!id) return;
+        const el = document.getElementById(`update-${id}`);
+        if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     }
 
     /**

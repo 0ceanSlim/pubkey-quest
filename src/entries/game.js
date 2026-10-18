@@ -23,6 +23,7 @@ import '../ui/hoverTip.js'; // instant styled tips for [data-tip]
 import '../lib/wiki.js'; // right-click "Wiki" on game data (window.openWiki)
 import '../systems/dayCycle.js'; // town pace + nightfall/dawn splashes
 import '../ui/restartNotice.js'; // "the server updates in 2:00 — save now" banner
+import '../ui/whatsNew.js'; // once per update: what changed since you last played
 import * as inventoryInteractions from '../systems/inventoryInteractions.js';
 import { initSlotInteractions } from '../systems/slotInteractions.js';
 import { openContainer, closeContainer } from '../systems/containers.js';

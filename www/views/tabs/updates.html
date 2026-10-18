@@ -6,194 +6,27 @@
         📰 Development Updates
       </h2>
 
-      <!-- Update Entries -->
+      <!-- Entries come from www/res/updates.json (also the in-game "what's new" popup). -->
       <div class="space-y-6">
-
-        <!-- October 2026: monsters, loot, shops -->
-        <div class="win95-inset p-4 rounded-lg">
+        {{range .CustomData.Updates}}
+        <div id="update-{{.ID}}" class="win95-inset p-4 rounded-lg">
           <div class="flex items-start gap-3">
-            <div class="text-2xl">🛒</div>
+            <div class="text-2xl">{{.Icon}}</div>
             <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Monsters, Loot &amp; a Town Full of Shops</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">October 2026</span>
+              <div class="flex items-center gap-2 mb-2 flex-wrap">
+                <h3 class="font-bold" style="color: var(--color-textPrimary);">{{.Title}}</h3>
+                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">{{.When}}</span>
               </div>
+              {{if .Summary}}<p class="text-sm mb-2" style="color: var(--color-textPrimary);">{{.Summary}}</p>{{end}}
               <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• 36 new monsters for levels 1–5: every road now has something new to meet, from hyenas and giant crabs to kuo-toa, worgs, specters and hippogriffs</li>
-                <li>• Enemy spellcasters — cultists, acolytes, apprentice wizards, cult fanatics and druids — and the wands, orbs and spellbooks they carry</li>
-                <li>• Every monster has a sprite, and every item has art</li>
-                <li>• Loot rebuilt: purses follow the 5e treasure tables, creatures drop their parts (spider silk, bone dust, spirit dust), and the best gear — plate, greatswords, rare foci — is found, never bought</li>
-                <li>• 11 new shopkeepers: the Grand Forge, the Mage Tower, a dwarven crossbow forge, an elven bowyer, an herbalist, the Dawnflame almonry, the Golden Bazaar, an orc war-gear trader, and the first shops in Dusthaven, Frosthold and Saltwind</li>
-                <li>• General stores carry one dependable list of travel basics, and potions come back slowly instead of all at once</li>
-                <li>• Survival matters on the road: it sets how fast you travel and gives you a roll to spot an ambush before it springs. A navigator's kit or a spyglass helps</li>
-                <li>• Useful odds and ends: healer's kits bind wounds, perfume sweetens prices, a tackle box keeps the fish smell contained</li>
-                <li>• A community wiki at /wiki, built straight from the game's data</li>
+                {{range .Highlights}}<li>• {{.}}</li>{{end}}
               </ul>
             </div>
           </div>
         </div>
-
-        <!-- October 2026: world and combat -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🗝️</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Locks, Secrets &amp; Smarter Fights</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">October 2026</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• Keys and locks: locked rooms and chests, a keyring for your keys, lockpicks that break, and Tumblers — a lockpicking minigame</li>
-                <li>• The Rising Shadow is playable: meet the Oracle in the new Temple of the Dawnflame and follow the main quest's first chapter</li>
-                <li>• The Rats of Goldenhaven: down into the sewers to face the Rat King</li>
-                <li>• Hidden places in every city, found by spending time in a district</li>
-                <li>• Combat terrain: rough ground, water, cover and high ground, with line of sight and monsters that use it</li>
-                <li>• Stealth openings: catch monsters unaware and sneak past, strike first, or walk up — or get ambushed yourself</li>
-                <li>• Fight several enemies at once, in true initiative order</li>
-                <li>• Fairer fights at low levels, gentler downing, and death saves you can watch</li>
-                <li>• Use what's at hand: only items in your quick slots are free in combat — digging in your pack costs a bonus action</li>
-                <li>• Lose a fight and you can reload your last save instead of taking the loss</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- October 2026: social and saves -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🤝</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Friends, Parties &amp; Saves on Nostr</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">October 2026</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• See who else is playing: players at your spot, travellers on your road, and a Friends panel built from your Nostr follows</li>
-                <li>• Chat — say, area and party — and private whispers sent as encrypted Nostr DMs, sealed in your browser</li>
-                <li>• Parties of up to five: travel together, sleep together, and fight together in shared turn-based battles with flanking, healing and help actions</li>
-                <li>• Your saves can live on Nostr relays: signed by you, loadable anywhere, checked by the official server</li>
-                <li>• Character portraits — describe one, link one, or upload one — and a unique crest for every npub</li>
-                <li>• Proof-of-key login: you prove you hold your key, and all signing stays in your browser</li>
-                <li>• Your Nostr profile and relays, viewable and editable in game</li>
-                <li>• Quest journal reworked: sortable, filterable, with a badges tab</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- July 2026 -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">📜</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Feats, Scrolls, Gathering &amp; a Web App</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">July 2026</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• Feats — take a feat instead of ability points at level-up (Tough, War Caster, Elemental Adept, and the stat feats)</li>
-                <li>• Spell scrolls — read a scroll to cast its spell in or out of combat (still costs mana, no preparation needed)</li>
-                <li>• Gathering &amp; lockpicking — mining and fishing nodes and locked chests, worked with the right tool and a skill check, with tiered loot</li>
-                <li>• New MILL sign-in — one modal for every Nostr login (extension, Amber, remote bunker, private key, or a brand-new identity); all signing stays in your browser</li>
-                <li>• Installable as an app — add Pubkey Quest to your home screen, and links now unfurl with a preview card</li>
-                <li>• Mobile polish and bug fixes ahead of open testing</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- June 2026 -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🐉</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">The Adventure Comes Alive</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">June 2026</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• Quests, dungeons &amp; encounters are playable — pick up quests from NPCs and boards, explore points of interest as branching node-walks, and hit random and hand-authored encounters while travelling</li>
-                <li>• Rotating daily quests handed out by innkeepers</li>
-                <li>• Spellcasting is real — cast spells in and out of combat with mana and material components, and drink potions or throw items mid-fight</li>
-                <li>• Combat depth — class abilities (Rage, Second Wind, Ki…), conditions (poisoned, prone, frightened…), and saving throws</li>
-                <li>• Character progression — level up from XP, spend ability points, and grow your HP and mana</li>
-                <li>• Building interiors — enter inns and taverns, rent a room, and sleep the night</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- February 2026 -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🎨</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Project Rebrand & Effects Polish</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">February 2026</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• Complete rebrand from Nostr Hero to Pubkey Quest</li>
-                <li>• Worn item effects system (armor/weapons apply stat bonuses)</li>
-                <li>• Consumable items fixed (food, potions apply effects correctly)</li>
-                <li>• Effects system now fully data-driven via CODEX</li>
-                <li>• Weight system cleanup and optimization</li>
-                <li>• Inventory delta system fix (no more full re-renders)</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- January 2026 -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">🛠️</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">CODEX Expansion & Architecture</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">January 2026</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• CODEX Starting Gear Editor (edit class equipment visually)</li>
-                <li>• CODEX Systems/Effects Editor (manage all 27+ game effects)</li>
-                <li>• Massive effects system refactor and CODEX integration</li>
-                <li>• Major repository restructure (clean game module organization)</li>
-                <li>• CI/CD pipeline (GitHub Actions, auto-deploy to test server)</li>
-                <li>• API documentation setup (Swagger)</li>
-                <li>• Item database improvements and validation</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- December 2025 -->
-        <div class="win95-inset p-4 rounded-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl">⚔️</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <h3 class="font-bold" style="color: var(--color-textPrimary);">Shops, NPCs & Game Systems</h3>
-                <span class="text-xs px-2 py-1 win95-button rounded" style="color: var(--color-textMuted);">December 2025</span>
-              </div>
-              <ul class="text-sm space-y-1" style="color: var(--color-textSecondary);">
-                <li>• Full merchant system (buy/sell, charisma scaling, gold tracking, restocks)</li>
-                <li>• NPC schedule system with time-aware dialogue</li>
-                <li>• Vault storage system (per-city secure storage)</li>
-                <li>• Wait/rest system with inn/tavern integration</li>
-                <li>• Music system with location-based tracks</li>
-                <li>• New time system with day/night cycle</li>
-                <li>• Delta architecture (surgical DOM updates, backend-authoritative)</li>
-                <li>• Effects system first implementation (hunger, fatigue, status conditions)</li>
-                <li>• Stats tab, abilities tab, equipment refactors</li>
-                <li>• Massive Go code reorganization (api → game modules)</li>
-                <li>• ES6 module migration with Vite build system</li>
-                <li>• CODEX initial implementation (item editor, migration, validation)</li>
-                <li>• Multiple frontend cleanup passes (dead code removal, JS consolidation)</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
+        {{else}}
+        <p class="text-sm" style="color: var(--color-textMuted);">No updates yet.</p>
+        {{end}}
       </div>
 
       <p class="mt-4 text-sm" style="color: var(--color-textMuted);">

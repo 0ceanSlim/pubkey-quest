@@ -15,7 +15,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	data := utils.PageData{
 		Title: "discover",
 		// The Wiki tab links to /wiki only on servers that serve one.
-		CustomData: map[string]interface{}{"WikiEnabled": utils.AppConfig.Wiki.URL != ""},
+		CustomData: map[string]interface{}{
+			"WikiEnabled": utils.AppConfig.Wiki.URL != "",
+			"Updates":     loadUpdates(),
+		},
 	}
 
 	utils.RenderTemplate(w, data, "index.html", false)
