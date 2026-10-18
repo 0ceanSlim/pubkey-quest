@@ -1,5 +1,11 @@
 # Content gaps — review sheet (2026-10-17)
 
+> **Status: done (2026-10-18).** Approved and built; `--check-schema` is clean. Beyond the sheet,
+> all nine unwired quests were made playable (sites, stage encounters, item sources, quest
+> dialogue): see the `quest: … is playable` commits. Deviations: B3 is a longsword (the quest is
+> the *Sword* of the Ancestors), H1 became "claim bounties from any vault keeper" (no board),
+> and the new items and monsters still need sprites.
+
 **Why:** every gap the schema check reports (`go run ./cmd/codex --check-schema`), plus Thok's
 dialogue. Each one gets a concrete fix here.
 
