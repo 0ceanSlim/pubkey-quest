@@ -250,7 +250,7 @@ export function renderCombatState(cs) {
     // round, action with no damage), update synchronously so initial bars are
     // populated.
     const newLines = Array.isArray(cs.new_log) ? cs.new_log : [];
-    const hasTimedHP = newLines.some(l => _diceDamageNumber(l) !== null)
+    const hasTimedHP = newLines.some(l => _isDamageLine(l))
                     || newLines.some(l => /^\s*\+\d+\s*XP/i.test(l));
     if (!hasTimedHP) {
         _renderMonsterHP(cs);
@@ -1384,6 +1384,23 @@ function _playDiceAnimation(result, atMs, kind = 'd20', info = {}) {
     }, startIn);
 }
 
+// _isDamageLine reports whether a log line announces damage to anyone: weapon
+// and monster hits, spells ("💥 X strikes for 7 fire damage", "✘ X fails — 7
+// fire damage"), riders and burning. Every one of them repaints the HP bars as
+// it emits, so no hit leaves a bar stale until the next round.
+function _isDamageLine(line) {
+    return /\b\d+\s+\w+\s+damage\b/i.test(line) || /\bfor\s+\d+\s+damage\b/i.test(line);
+}
+
+// _syncHPBars repaints both sides' HP from a combat state (the newest one if
+// the state this was scheduled for has been replaced since).
+function _syncHPBars(cs) {
+    const state = (cs && _lastState !== cs) ? _lastState : cs;
+    if (!state) return;
+    _renderMonsterHP(state);
+    _renderPlayerHP(state);
+}
+
 // _diceDamageNumber extracts the rolled damage from a damage line. Returns
 // null when the line isn't a damage announcement.
 function _diceDamageNumber(line) {
@@ -1450,13 +1467,13 @@ function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval
                 //   attack spell "💥 X strikes for N damage"
                 //   save spell  "✔ X resists — N damage (half)" / "✘ X fails — N damage"
                 // A monster hit reads "<Name> deals N damage", which matches none.
-                const isPlayerAttack = /^(You |💥|✔|✘)/.test(line);
-                const ctxCs = gridCtx?.cs ?? null;
-                setTimeout(() => {
-                    if (ctxCs && _lastState !== ctxCs) return;
-                    if (isPlayerAttack) _renderMonsterHP(ctxCs);
-                    else                _renderPlayerHP(ctxCs);
-                }, Math.max(0, drainAt - now));
+                const ctxCs = gridCtx?.cs ?? _lastState;
+                setTimeout(() => _syncHPBars(ctxCs), Math.max(0, drainAt - now));
+            } else if (_isDamageLine(line)) {
+                // Damage without a die animation (spells, riders, burning):
+                // the bars move as the line appears.
+                const ctxCs = gridCtx?.cs ?? _lastState;
+                setTimeout(() => _syncHPBars(ctxCs), Math.max(0, atAbsolute - now));
             }
 
             // XP tick lands as the line emits.
@@ -1488,6 +1505,10 @@ function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval
     });
 
     _logQueueTailAt = t;
+    if (!isError && fixedInterval === null) {
+        const ctxCs = gridCtx?.cs ?? _lastState;
+        setTimeout(() => _syncHPBars(ctxCs), Math.max(0, t - now) + DICE_TUMBLE_MS);
+    }
 }
 
 function _logError(msg) {
