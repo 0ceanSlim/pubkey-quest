@@ -23,10 +23,9 @@
     {
       "type": "alignment",
       "values": [
-        "good",
-        "lawful_good",
-        "neutral_good",
-        "chaotic_good"
+        "Lawful Good",
+        "Neutral Good",
+        "Chaotic Good"
       ],
       "description": "You must be of pure heart."
     }
@@ -34,6 +33,7 @@
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
+      "Level 2+",
       "Resolve 14",
       "Charisma 14"
     ],
@@ -53,7 +53,7 @@
     },
     {
       "id": "perform-rite",
-      "description": "Perform the Rite of Rest at the center of the field.",
+      "description": "Perform the Rite of Rest at the broken monument in the middle of the field.",
       "objectives": [
         {
           "type": "check",
@@ -84,5 +84,89 @@
         ]
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "You wished to see me, High Priest?",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "I did. Travellers on the Merchant's Highway talk of cold lights moving over the Forgotten Battlefield, and voices in the long grass. The dead there were never given the Rite of Rest. It is a paladin's duty, and you took the vow.",
+          "options": [
+            "the-rite",
+            "accept",
+            "decline"
+          ]
+        },
+        "the-rite": {
+          "label": "What does the rite ask of me?",
+          "text": "Stand at the broken monument and hold the words of rest in your mind until they are heard. The angry ones will try to break you. Hold, and lay them down. Steel works on them, but the light works better.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I will lay them to rest.",
+          "text": "Then go with the dawn behind you. Take this blessing, and come back to tell me it is done.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "The dead are patient. I am less so, but I will wait."
+        }
+      }
+    },
+    "active": {
+      "option": "About the battlefield...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Have the dead found rest?",
+          "options": [
+            "going",
+            "rite",
+            "back-to-it"
+          ]
+        },
+        "going": {
+          "label": "I'm on my way.",
+          "text": "East along the Merchant's Highway. You'll know it by the rust in the grass.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "paladins-vow",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "rite": {
+          "label": "The rite is hard to hold.",
+          "text": "It is meant to be. Steady your heart and try again. The monument will wait.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "paladins-vow",
+              "min": 1,
+              "max": 2
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I will see it done.",
+          "text": "I know."
+        }
+      }
+    },
+    "completed": {
+      "option": "The battlefield is quiet.",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "I felt it, I think, the morning you finished. The whole temple was warmer. You have done a good thing."
+        }
+      }
+    }
+  }
 }

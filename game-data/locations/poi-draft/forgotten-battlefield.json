@@ -54,6 +54,18 @@
           ]
         },
         {
+          "label": "[Paladin] Perform the Rite of Rest at the broken monument.",
+          "next": "rite-of-rest",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "paladins-vow",
+              "min": 1,
+              "max": 2
+            }
+          ]
+        },
+        {
           "label": "Leave the battlefield.",
           "next": "leave"
         }
@@ -165,6 +177,28 @@
         ]
       },
       "next": "leave"
+    },
+    "rite-of-rest": {
+      "type": "check",
+      "text": "You kneel at the foot of the broken monument and begin the words of rest. The wind drops. Somewhere in the grass, something starts to wail.",
+      "skill": "resolve",
+      "dc": 15,
+      "success_text": "You hold the words through the wailing. Cold lights rise from the grass and come at you, furious, but the rite holds.",
+      "success_next": "angry-dead",
+      "failure_text": "The wailing gets inside your head and the words scatter. The lights sink back into the grass. You will have to begin again.",
+      "failure_next": "the-field"
+    },
+    "angry-dead": {
+      "type": "monster",
+      "monster_id": "restless-spirit",
+      "count": 3,
+      "text": "Three spirits tear free of the field, faces twisted, hands reaching for your throat.",
+      "next": "at-rest"
+    },
+    "at-rest": {
+      "type": "narrative",
+      "text": "The last light thins to nothing. For the first time in a hundred years, the Forgotten Battlefield is quiet. Even the wind sounds gentler.",
+      "is_terminal": true
     }
   }
 }
