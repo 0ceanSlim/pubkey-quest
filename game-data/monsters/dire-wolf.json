@@ -1,0 +1,90 @@
+{
+  "id": "dire-wolf",
+  "name": "Dire Wolf",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Beast",
+  "size": "Large",
+  "armor_class": 14,
+  "hit_points": 37,
+  "hp_dice": "5d10+10",
+  "alignment": "unaligned",
+  "tags": [],
+  "img": "/res/img/monsters/dire-wolf.png",
+  "environment": [],
+  "speed": {
+    "walk": 50,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 17,
+    "dexterity": 15,
+    "constitution": 15,
+    "intelligence": 3,
+    "wisdom": 12,
+    "charisma": 7
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 3,
+    "stealth": 4
+  },
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 0,
+    "passive_perception": 13
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Bite",
+      "type": "melee_attack",
+      "attack_bonus": 5,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 3,
+        "type": "piercing",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 13,
+          "effect": "knocked_prone"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "type": "passive",
+      "description": "The dire wolf has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated."
+    },
+    {
+      "name": "Keen Hearing and Smell",
+      "type": "passive",
+      "description": "The dire wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell."
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.1,
+    "preferred_range": 0,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

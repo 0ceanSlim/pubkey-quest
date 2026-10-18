@@ -7,8 +7,8 @@
   "total_qp": 1,
   "description": "Thistle Goldworthy's mule, Buttercup, has bolted into the mountain pass with half the wagon's stock.",
   "start_condition": {
-    "type": "explore",
-    "target": "wayward-wagon",
+    "type": "talk",
+    "target": "thistle-goldworthy",
     "location": "merchants-highway",
     "start_hint": "Talk to Thistle Goldworthy at the Wayward Wagon on the Merchant's Highway."
   },
@@ -16,6 +16,7 @@
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
+      "Level 3+ for the pack leader",
       "Strength 12"
     ],
     "combat_danger": "Moderate"
@@ -30,34 +31,35 @@
           "target": "thistle-goldworthy",
           "description": "Ask about her lost mule, 'Buttercup'."
         }
-      ]
+      ],
+      "unlocks_poi": "mountain-pass-overlook"
     },
     {
       "id": "find-buttercup",
-      "description": "Search the mountain pass for signs of the mule.",
+      "description": "Search the mountain pass for signs of the mule. Thistle says Buttercup likes high places and turnips.",
       "objectives": [
         {
           "type": "explore",
           "target": "mountain-pass-overlook",
-          "description": "Find the clearing where Buttercup was last seen."
+          "description": "Find the overlook above the Cragspire pass."
         }
       ]
     },
     {
       "id": "rescue-mule",
-      "description": "Buttercup is cornered by wolves!",
+      "description": "Buttercup is cornered by a wolf pack.",
       "objectives": [
         {
           "type": "slay",
           "target": "dire-wolf",
-          "count": 3,
-          "description": "Defeat the wolves threatening the mule."
+          "count": 1,
+          "description": "Defeat the pack's leader."
         }
       ]
     },
     {
-      "id": "return-to-barnaby",
-      "description": "Bring Buttercup (or at least her cargo) back to Thistle.",
+      "id": "return-to-thistle",
+      "description": "Bring Buttercup back to Thistle at the Wayward Wagon.",
       "objectives": [
         {
           "type": "talk",
@@ -68,13 +70,98 @@
       "rewards": {
         "xp": 300,
         "gold": 150,
+        "quest_points": 1,
         "items": [
           {
-            "id": "spices",
-            "quantity": 2
+            "id": "lantern-hooded",
+            "quantity": 1
           }
         ]
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "You look worried.",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Worried? Me? I'm ruined, is what I am. Buttercup bolted at a thunderclap last night and took half my stock with her: the good silks, the saffron, and a whole sack of turnips I was saving for her. She went up the pass. She always goes up. She thinks she's a goat.",
+          "options": [
+            "why-not-you",
+            "accept",
+            "decline"
+          ]
+        },
+        "why-not-you": {
+          "label": "Why not go after her yourself?",
+          "text": "And leave the wagon? On the Merchant's Highway? I'd come back to the axles. Besides, there's wolves up there this time of year, and I'm three foot six. Bring her back and I'll make it worth your while. I always do. Eventually.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll find Buttercup.",
+          "text": "Bless you! She likes high places and turnips. Look for the shelf of rock above the pass, the goat track off the road. She'll be up there admiring the view, the fat little traitor.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not right now.",
+          "text": "No, no, of course. I'll just sit here. Mule-less. Ruined."
+        }
+      }
+    },
+    "active": {
+      "option": "About Buttercup...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any sign of her?",
+          "options": [
+            "looking",
+            "wolves",
+            "back-to-it"
+          ]
+        },
+        "looking": {
+          "label": "Still looking.",
+          "text": "The shelf of rock above the Cragspire pass, a goat track off the road. Follow the turnips.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-mule",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "wolves": {
+          "label": "Wolves have her cornered.",
+          "text": "Wolves?! Then what are you doing down here? Go! Go!",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-mule",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll keep at it.",
+          "text": "Hurry. She frightens easily. And she has my saffron."
+        }
+      }
+    },
+    "completed": {
+      "option": "How is Buttercup?",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Fat, smug and eating my profits, same as ever. She's taken a shine to you, you know. She only bites people she likes."
+        }
+      }
+    }
+  }
 }

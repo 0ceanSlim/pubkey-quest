@@ -1,0 +1,85 @@
+{
+  "id": "mountain-pass-overlook",
+  "name": "Mountain Pass Overlook",
+  "category": "landmark",
+  "parent_environment": "cragspire-mountains",
+  "position": 0.3,
+  "description": "A shelf of rock above the pass, scattered with wind-bent pines. On a clear day you can see clear down to Goldenhaven.",
+  "discovery": {
+    "chance": 0.3,
+    "message": "A goat track leaves the road and climbs to a wide shelf of rock overlooking the pass."
+  },
+  "start_node": "overlook",
+  "nodes": {
+    "overlook": {
+      "type": "choice",
+      "text": "The wind tugs at your cloak. Below, the pass winds away between the peaks; behind you, the pines lean all one way.",
+      "choices": [
+        {
+          "label": "Follow the fresh hoofprints into the pines.",
+          "next": "hoofprints",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-mule",
+              "min": 1,
+              "max": 2
+            }
+          ]
+        },
+        {
+          "label": "Take in the view.",
+          "next": "the-view"
+        },
+        {
+          "label": "Head back down to the road.",
+          "next": "leave"
+        }
+      ]
+    },
+    "the-view": {
+      "type": "narrative",
+      "text": "Far below, a caravan crawls toward Goldenhaven, its wagons no bigger than beetles. Up here it is very quiet.",
+      "next": "overlook"
+    },
+    "hoofprints": {
+      "type": "narrative",
+      "waypoint": "mountain-pass-overlook",
+      "text": "Small, neat hoofprints, and a trail of dropped turnips. Ahead, something brays in terror, and something else answers it with a growl.",
+      "next": "the-pack"
+    },
+    "the-pack": {
+      "type": "monster",
+      "monster_id": "wolf",
+      "count": 2,
+      "text": "Two grey wolves have a fat little mule backed against a boulder. They turn on you, hackles up.",
+      "arena": [
+        "...^^........",
+        "..#..,,...#..",
+        ".....,,......",
+        "..=.......=..",
+        ".............",
+        "....#....,,..",
+        "............."
+      ],
+      "next": "the-leader"
+    },
+    "the-leader": {
+      "type": "monster",
+      "monster_id": "dire-wolf",
+      "count": 1,
+      "text": "A wolf the size of a pony pads out of the pines, the pack's leader, and it is not afraid of you at all.",
+      "next": "buttercup"
+    },
+    "buttercup": {
+      "type": "narrative",
+      "text": "Buttercup is shaking but whole, her panniers still strapped on and only a little chewed. She lets you take her lead rope, then tries to eat your sleeve.",
+      "is_terminal": true
+    },
+    "leave": {
+      "type": "exit",
+      "text": "You pick your way back down the goat track to the road.",
+      "is_terminal": true
+    }
+  }
+}
