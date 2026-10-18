@@ -68,7 +68,8 @@
           "name": "Mage Tower",
           "description": "A crystalline spire where court wizards study the arcane arts. Magister Corvin Ashgrove keeps a counter of reagents and casting supplies on the ground floor.",
           "open": 480,
-          "close": 1200
+          "close": 1200,
+          "crafting_stations": ["scribe_arcane"]
         },
         {
           "id": "corvin_quarters",

@@ -388,6 +388,10 @@ func migrateFromJSON(callback StatusCallback) error {
 	if err := migrateSpells(callback); err != nil {
 		return fmt.Errorf("failed to migrate spells: %v", err)
 	}
+	// Scroll items for spells with no hand-written scroll (needs items in place).
+	if err := generateScrollItems(); err != nil {
+		log.Printf("⚠️ Warning: failed to generate scroll items: %v", err)
+	}
 
 	// Migrate content data (monsters, locations, NPCs)
 	if callback != nil {
@@ -1364,6 +1368,11 @@ func migrateSystemData() error {
 	spellSlotsPath := "game-data/magic/spell-slots.json"
 	if err := migrateGenericJSON(spellSlotsPath, "spell_slots_progression"); err != nil {
 		log.Printf("Warning: failed to migrate spell-slots.json: %v", err)
+	}
+
+	// Migrate scroll-scribing.json (scribing costs, stations' traditions)
+	if err := migrateGenericJSON(scrollScribingPath, "scroll_scribing"); err != nil {
+		log.Printf("Warning: failed to migrate scroll-scribing.json: %v", err)
 	}
 
 	// Migrate spell-progression.json (spells known per level; 99 = whole class list)

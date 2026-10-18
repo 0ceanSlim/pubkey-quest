@@ -713,6 +713,11 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Router       /api/progression/learn-spell [post]
 	mux.HandleFunc("/api/progression/learn-spell", game.LearnSpellHandler)
 
+	// @Router       /api/scrolls/scribable [get]
+	mux.HandleFunc("/api/scrolls/scribable", game.GetScribableHandler)
+	// @Router       /api/scrolls/scribe [post]
+	mux.HandleFunc("/api/scrolls/scribe", game.ScribeHandler)
+
 	// @Summary      Level-up progression guide
 	// @Description  Returns the character's full 1→20 path (XP, ability points, feats, abilities, spell slots)
 	// @Tags         Progression

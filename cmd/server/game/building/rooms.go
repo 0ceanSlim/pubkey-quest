@@ -242,3 +242,20 @@ func findBuilding(db *sql.DB, locationID, buildingID string) (map[string]interfa
 	}
 	return nil, fmt.Errorf("building not found: %s", buildingID)
 }
+
+// Stations returns a building's crafting stations ("scribe_divine", …): where
+// casters scribe scrolls (docs/draft/spell-scroll-system.md). Empty when none.
+func Stations(db *sql.DB, locationID, buildingID string) []string {
+	b, err := findBuilding(db, locationID, buildingID)
+	if err != nil {
+		return nil
+	}
+	raw, _ := b["crafting_stations"].([]interface{})
+	var out []string
+	for _, s := range raw {
+		if id, ok := s.(string); ok && id != "" {
+			out = append(out, id)
+		}
+	}
+	return out
+}

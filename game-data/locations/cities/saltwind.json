@@ -50,7 +50,8 @@
           "name": "Shrine to the Sea Mother",
           "description": "A shrine dedicated to the goddess of the sea, where fishermen pray for safe voyages.",
           "open": "always",
-          "close": null
+          "close": null,
+          "crafting_stations": ["scribe_divine"]
         },
         {
           "id": "tobias_quarters",

@@ -374,6 +374,26 @@ class GameAPI {
         return await response.json();
     }
 
+    /** Spells this caster can scribe here ({success, data: {here, tradition, where, ability, options}}). */
+    async getScribable() {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/scrolls/scribable?npub=${this.npub}&save_id=${this.saveID}`);
+        if (!response.ok) throw new Error(`scribable failed: ${response.status}`);
+        return await response.json();
+    }
+
+    /** Scribe a scroll of a known spell at this station. */
+    async scribeScroll(spellId) {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/scrolls/scribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: this.npub, save_id: this.saveID, spell_id: spellId })
+        });
+        if (!response.ok) throw new Error(`scribe failed: ${response.status}`);
+        return await response.json();
+    }
+
     /** Fetch the in-progress spell prep queue (also lazily completes finished preps). */
     async getPrepQueue() {
         this.ensureInitialized();

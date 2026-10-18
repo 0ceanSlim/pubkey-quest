@@ -23,6 +23,7 @@ import { getSocialState } from '../systems/socialPoll.js';
 import { smoothClock } from '../systems/smoothClock.js';
 import { createQuantityBar, formatCount } from './vaultControls.js';
 import { setTownPace } from '../systems/dayCycle.js';
+import { openScrollScribe } from './scrollScribe.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
 async function depositInventoryToVault() {
@@ -501,6 +502,14 @@ export async function displayCurrentLocation() {
             if (canSleepHere) {
                 const sleepButton = createLocationButton('Sleep', () => sleepInRoom(), 'action');
                 npcFragment.appendChild(sleepButton);
+                actionCount++;
+            }
+            // A scribing station (temple, herbary, mage tower), for anyone with spell slots.
+            const here = (buildings || []).find(b => b.id === currentBuildingId);
+            const isCaster = Object.keys(state.character?.spell_slots || {}).length > 0;
+            if (here?.crafting_stations?.length && isCaster) {
+                const scribeBtn = createLocationButton('📜 Scribe', () => openScrollScribe(), 'action');
+                npcFragment.appendChild(scribeBtn);
                 actionCount++;
             }
             if (checkIfShowReady(currentBuildingId, timeInMinutes)) {

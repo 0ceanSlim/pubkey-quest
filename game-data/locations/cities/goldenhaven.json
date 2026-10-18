@@ -65,6 +65,7 @@
           "description": "A domed temple of white stone and beaten gold, raised by the Merchant Princes to the flame that rises with the sun. Merchants come at dawn to have their ledgers blessed; sailors come before a voyage to hear the Oracle.",
           "open": 300,
           "close": 1320,
+          "crafting_stations": ["scribe_divine"],
           "default_room": "sanctuary",
           "rooms": [
             { "id": "sanctuary", "name": "Sanctuary", "description": "Rows of gilded benches face an eternal flame burning in a bowl of red bronze. The air is thick with incense and murmured prices." },

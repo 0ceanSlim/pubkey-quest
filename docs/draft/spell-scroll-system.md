@@ -17,9 +17,10 @@ one source of truth.
 | Part | Status |
 |---|---|
 | **Use** a scroll (`spells.CastFromScroll`: any caster, costs mana, consumed, skips known/prepared/component gates) | ✅ built (`a5314e5`). 3 scroll items exist |
-| **Scribe** a scroll at a station | ⬜ to build |
+| **Scribe** a scroll at a station | ✅ built: `game/spells/scribe.go`, `GET /api/scrolls/scribable`, `POST /api/scrolls/scribe`, the 📜 Scribe panel (`src/ui/scrollScribe.js`), `scroll-scribing.json`, `crafting_stations` on 5 buildings |
 | **Copy** a scroll into a wizard's spellbook | ⬜ to build (see spell-learning.md → Wizard) |
-| Scroll items for every spell + sprites | ⬜ to build |
+| Scroll items for every spell + sprites | ✅ generated at migrate (`cmd/codex/migration/scrolls.go`, 104 items); 3 tradition sprites |
+| Scrolls in loot tables | ⬜ to do (M7 content) |
 
 ## The four rules
 
@@ -76,7 +77,7 @@ adding one is a data edit.
 | Tradition | Classes | Stations (current world) |
 |---|---|---|
 | `scribe_divine` | cleric, paladin | Temple of the Dawnflame, Goldenhaven (`dawnflame_temple`, Sanctuary) · Shrine of the Sacred Well, Dusthaven (`oasis_shrine`) · Shrine to the Sea Mother, Saltwind (`sea_shrine`) |
-| `scribe_nature` | druid, ranger | Thalindra's Grove, Verdant (`thalindra_grove`) |
+| `scribe_nature` | druid, ranger | The Green Mortar, Verdant (`green_mortar`): the herbalist who sells druid and ranger reagents. Thalindra's Grove is an NPC's private quarters, not a station |
 | `scribe_arcane` | wizard, sorcerer, warlock, bard | Mage Tower, Kingdom (`mage_tower`) |
 
 Gaps to fill in M7 content: a second arcane station (only the Kingdom has one)
@@ -122,8 +123,8 @@ on scribe more of it.
 
 ## Build
 
-1. **Engine:** a `game/scroll` service (`Scribable(save)`,
-   `Scribe(save, spellID, station)`) on top of `game/spellbook`.
+1. **Engine:** `game/spells/scribe.go` (`Scribable`, `Scribe`; it sits beside
+   casting to reuse its component and focus rules) on top of `game/spellbook`.
    - Validate: known, slot level, station tradition, parchment, components,
      ink and pen, gold.
    - Then: roll, consume, advance time, add the scroll.

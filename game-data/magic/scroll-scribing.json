@@ -1,0 +1,20 @@
+{
+  "description": "Scroll scribing (docs/draft/spell-scroll-system.md): a caster scribes a scroll of a spell they know at a station of their class's tradition. Cost is parchment + carried ink and pen + the spell's own material component + the gold and time below. Success = base + per_mod x casting-ability modifier, clamped to [min_chance, max_chance]. Failure spends everything but makes no scroll. Scroll items are generated at migrate for every spell up to max_spell_level that has no hand-written scroll; value = the tier's gold.",
+  "tiers": {
+    "0": { "gold": 1500, "minutes": 60, "base_chance": 85 },
+    "1": { "gold": 2500, "minutes": 120, "base_chance": 85 },
+    "2": { "gold": 10000, "minutes": 240, "base_chance": 75 },
+    "3": { "gold": 25000, "minutes": 480, "base_chance": 65 }
+  },
+  "max_spell_level": 3,
+  "per_mod": 5,
+  "min_chance": 25,
+  "max_chance": 95,
+  "consumes": [{ "item": "parchment", "quantity": 1 }],
+  "carried": ["ink", "ink-pen"],
+  "traditions": {
+    "scribe_arcane": { "name": "arcane", "station": "a mage's study", "classes": ["wizard", "sorcerer", "warlock", "bard"], "image": "/res/img/items/scroll-arcane.png" },
+    "scribe_divine": { "name": "divine", "station": "a temple or shrine", "classes": ["cleric", "paladin"], "image": "/res/img/items/scroll-divine.png" },
+    "scribe_nature": { "name": "nature", "station": "a druid's herbary", "classes": ["druid", "ranger"], "image": "/res/img/items/scroll-nature.png" }
+  }
+}

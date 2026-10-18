@@ -50,7 +50,8 @@
           "name": "Shrine of the Sacred Well",
           "description": "A modest shrine dedicated to the water spirits that bless the oasis.",
           "open": "always",
-          "close": null
+          "close": null,
+          "crafting_stations": ["scribe_divine"]
         },
         {
           "id": "zahra_quarters",
