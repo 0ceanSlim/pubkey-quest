@@ -308,6 +308,8 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 					// Still out in the wild — roll for a biome monster encounter,
 					// for an authored travel encounter, and for discovering any POI
 					// we just travelled past.
+					// A quest's road fight comes first: it's what you're out here for.
+					maybeStartRoadQuestEncounter(session, minutesElapsed, response)
 					maybeRollTravelEncounter(session, state, minutesElapsed, response)
 					maybeFireEncounter(session, "travel", []string{state.Location}, minutesElapsed, response)
 					maybeDiscoverPOIs(session, oldProgress, response)

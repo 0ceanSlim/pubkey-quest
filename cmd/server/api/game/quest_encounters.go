@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"math/rand"
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/combat"
@@ -18,6 +19,23 @@ import (
 // the monster as the stage's slay objective still needs, up to the encounter's
 // per-fight Count. Kills feed the objective through the normal event recorder,
 // so a stage needing more than one fight comes in waves.
+//
+// Places in town (a cellar, a district) start their fight the moment you're
+// there. Roads are different: a stage's monsters "waiting on the Cragspire
+// road" find you while you travel it, rolled each travel tick like any road
+// encounter (only likelier), never the instant you load in or while you're
+// stopped.
+
+// roadQuestChancePerMinute is the per-minute odds that a road quest fight finds
+// a moving traveller: about one every 50 in-game minutes, so it arrives a short
+// way into the trip. Capped per tick like road encounters.
+const (
+	roadQuestChancePerMinute = 0.02
+	roadQuestMaxTickChance   = 0.5
+)
+
+// questRoll is the road quest fight's dice (swapped in tests).
+var questRoll = rand.Float64
 
 // questEncounter is a stage encounter the player is standing in, with what's owed.
 type questEncounter struct {
@@ -41,12 +59,35 @@ func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameAct
 		sess.QuestEncounterOwed = -1
 	}
 
-	qe := findQuestEncounter(&sess.SaveData)
+	qe := findQuestEncounter(&sess.SaveData, false)
 	if qe == nil || qe.owed == sess.QuestEncounterOwed {
 		return // nothing here, or this wave already fired and nothing changed since
 	}
 	sess.QuestEncounterOwed = qe.owed
+	startQuestEncounter(sess, qe, response)
+}
 
+// maybeStartRoadQuestEncounter rolls for a quest stage's road fight while the
+// player travels that road (minutesElapsed of movement this tick). Called from
+// the travel tick, after travel progress advanced and only while not stopped.
+func maybeStartRoadQuestEncounter(sess *session.GameSession, minutesElapsed int, response *types.GameActionResponse) {
+	if minutesElapsed <= 0 || sess.SaveData.TravelStopped ||
+		sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil || social.IsFollower(sess.Npub) {
+		return
+	}
+	qe := findQuestEncounter(&sess.SaveData, true)
+	if qe == nil {
+		return
+	}
+	if questRoll() >= min(roadQuestChancePerMinute*float64(minutesElapsed), roadQuestMaxTickChance) {
+		return
+	}
+	startQuestEncounter(sess, qe, response)
+}
+
+// startQuestEncounter starts a quest stage's fight: as many of the monster as
+// still owed, up to the encounter's per-fight Count.
+func startQuestEncounter(sess *session.GameSession, qe *questEncounter, response *types.GameActionResponse) {
 	count := qe.owed
 	if qe.enc.Count > 0 && count > qe.enc.Count {
 		count = qe.enc.Count
@@ -83,8 +124,9 @@ func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameAct
 }
 
 // findQuestEncounter returns the first active quest whose current stage has an
-// encounter at the player's place and still owes kills, or nil.
-func findQuestEncounter(save *types.SaveFile) *questEncounter {
+// encounter at the player's place and still owes kills, or nil. road picks
+// which kind: encounters out on a road (an environment) or in a town.
+func findQuestEncounter(save *types.SaveFile, road bool) *questEncounter {
 	for _, qp := range save.QuestsActive {
 		qd, err := serverdb.GetQuestByID(qp.QuestID)
 		if err != nil || qd == nil || qp.Stage >= len(qd.Stages) {
@@ -92,7 +134,7 @@ func findQuestEncounter(save *types.SaveFile) *questEncounter {
 		}
 		stage := qd.Stages[qp.Stage]
 		enc := stage.Encounter
-		if enc == nil || !encounterHere(enc, save) {
+		if enc == nil || !encounterHere(enc, save) || isRoad(enc.Location) != road {
 			continue
 		}
 		if owed := killsOwed(stage, qp.ObjectiveCounts, enc.MonsterID); owed > 0 {
@@ -100,6 +142,12 @@ func findQuestEncounter(save *types.SaveFile) *questEncounter {
 		}
 	}
 	return nil
+}
+
+// isRoad reports whether a location is out in the world (an environment).
+func isRoad(location string) bool {
+	biome, err := serverdb.GetEnvironmentType(location)
+	return err == nil && biome != ""
 }
 
 // encounterHere reports whether the player stands where the encounter is.
