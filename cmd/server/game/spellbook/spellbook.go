@@ -35,44 +35,49 @@ const wholeListMarker = 99
 type tables struct {
 	slots    map[string]map[int]map[string]int // class → level → slot type → count
 	known    map[string][]int                  // class → spells_known per level (index 0 = level 1)
-	byClass  map[string]map[int][]string        // class → spell level → spell ids
-	levelOf  map[string]int                     // spell id → spell level
-	starting map[string]map[string]bool         // class → its creation spell list
+	byClass  map[string]map[int][]string       // class → spell level → spell ids
+	levelOf  map[string]int                    // spell id → spell level
+	starting map[string]map[string]bool        // class → its creation spell list
 	advanced []types.AdvancementEntry
 }
 
 var (
-	once sync.Once
-	tbl  *tables
+	mu  sync.Mutex
+	tbl *tables
 )
 
+// load reads the tables once the database is open, and caches them. Before
+// that (an early call in tests) it returns empty tables without caching, so a
+// later call still loads.
 func load() *tables {
-	once.Do(func() {
-		t := &tables{slots: map[string]map[int]map[string]int{}, known: map[string][]int{}, byClass: map[string]map[int][]string{},
-			levelOf: map[string]int{}, starting: map[string]map[string]bool{}}
-		database := db.GetDB()
-		if database == nil {
-			tbl = t
-			return
-		}
-		loadSlots(database, t)
-		loadProgression(database, t)
-		loadStarting(database, t)
-		if spells, err := gamedata.LoadAllSpells(database); err == nil {
-			for _, s := range spells {
-				t.levelOf[s.ID] = s.Level
-				for _, c := range s.Classes {
-					c = strings.ToLower(strings.TrimSpace(c))
-					if t.byClass[c] == nil {
-						t.byClass[c] = map[int][]string{}
-					}
-					t.byClass[c][s.Level] = append(t.byClass[c][s.Level], s.ID)
+	mu.Lock()
+	defer mu.Unlock()
+	if tbl != nil {
+		return tbl
+	}
+	t := &tables{slots: map[string]map[int]map[string]int{}, known: map[string][]int{}, byClass: map[string]map[int][]string{},
+		levelOf: map[string]int{}, starting: map[string]map[string]bool{}}
+	database := db.GetDB()
+	if database == nil {
+		return t
+	}
+	loadSlots(database, t)
+	loadProgression(database, t)
+	loadStarting(database, t)
+	if spells, err := gamedata.LoadAllSpells(database); err == nil {
+		for _, s := range spells {
+			t.levelOf[s.ID] = s.Level
+			for _, c := range s.Classes {
+				c = strings.ToLower(strings.TrimSpace(c))
+				if t.byClass[c] == nil {
+					t.byClass[c] = map[int][]string{}
 				}
+				t.byClass[c][s.Level] = append(t.byClass[c][s.Level], s.ID)
 			}
 		}
-		t.advanced, _ = character.LoadAdvancement(database)
-		tbl = t
-	})
+	}
+	t.advanced, _ = character.LoadAdvancement(database)
+	tbl = t
 	return tbl
 }
 

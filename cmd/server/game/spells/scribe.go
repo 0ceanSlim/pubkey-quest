@@ -53,22 +53,28 @@ type ScribingTable struct {
 }
 
 var (
-	scribeOnce sync.Once
-	scribeTbl  *ScribingTable
+	scribeMu  sync.Mutex
+	scribeTbl *ScribingTable
 	// scribeRoll is the d100 for a scribing attempt (1–100); tests replace it.
 	scribeRoll = func() int { return rand.Intn(100) + 1 }
 )
 
+// scribingTable reads scroll-scribing.json from the database once it's open
+// (not cached until then).
 func scribingTable(db *sql.DB) *ScribingTable {
-	scribeOnce.Do(func() {
-		t := &ScribingTable{}
-		var blob string
-		if db != nil && db.QueryRow("SELECT data FROM scroll_scribing WHERE id = 'scroll-scribing'").Scan(&blob) == nil {
-			json.Unmarshal([]byte(blob), t)
-		}
-		scribeTbl = t
-	})
-	return scribeTbl
+	scribeMu.Lock()
+	defer scribeMu.Unlock()
+	if scribeTbl != nil {
+		return scribeTbl
+	}
+	t := &ScribingTable{}
+	var blob string
+	if db == nil || db.QueryRow("SELECT data FROM scroll_scribing WHERE id = 'scroll-scribing'").Scan(&blob) != nil {
+		return t
+	}
+	json.Unmarshal([]byte(blob), t)
+	scribeTbl = t
+	return t
 }
 
 // ScrollItemID is the item id of a spell's scroll (generated at migrate when
