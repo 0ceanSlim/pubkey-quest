@@ -29,6 +29,28 @@
               "min": 14
             }
           ]
+        },
+        {
+          "label": "Search for the cellar Seraphina saw.",
+          "next": "find-cellar",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-black-flame",
+              "min": 0,
+              "max": 2
+            }
+          ]
+        },
+        {
+          "label": "Look in on the burnt-out cellar.",
+          "next": "cellar-after",
+          "requirements": [
+            {
+              "type": "quest_completed",
+              "id": "the-black-flame"
+            }
+          ]
         }
       ]
     },
@@ -162,6 +184,124 @@
       "type": "exit",
       "text": "You climb back out into the daylight.",
       "is_terminal": true
+    },
+    "find-cellar": {
+      "type": "check",
+      "text": "You circle the tower looking for a way down. The ivy is thickest by the old hearth wall, and the ground there is trampled.",
+      "skill": "perception",
+      "dc": 14,
+      "success_text": "Behind the ivy, a trapdoor of new planks. Warm, greasy smoke curls up through the gaps, and you can hear chanting.",
+      "success_next": "cellar-stairs",
+      "failure_text": "Ivy, stone, and a lot of nettles. Nothing that looks like a way down.",
+      "failure_next": "approach"
+    },
+    "cellar-stairs": {
+      "type": "narrative",
+      "waypoint": "watchtower-cellar",
+      "text": "You lift the trapdoor. Stone steps lead down into a long vaulted cellar lit by a single flame that gives no light at all: black, and burning upward into nothing. A dozen figures in black kneel around it.",
+      "next": "cellar-door"
+    },
+    "cellar-door": {
+      "type": "monster",
+      "monster_id": "cultist",
+      "count": 2,
+      "text": "The two nearest the stairs rise, drawing curved blades, and come for you without a word.",
+      "arena": [
+        "..#.......#..",
+        ".............",
+        "...=.....=...",
+        "......!......",
+        "...=.....=...",
+        ".............",
+        "..#.......#.."
+      ],
+      "next": "the-flame"
+    },
+    "the-flame": {
+      "type": "monster",
+      "monster_id": "cultist",
+      "count": 3,
+      "text": "The chanting stops. Three more turn from the flame, their eyes reflecting nothing.",
+      "arena": [
+        "..#.......#..",
+        ".............",
+        "...=.....=...",
+        "......!......",
+        "...=.....=...",
+        ".............",
+        "..#.......#.."
+      ],
+      "next": "leaders-desk"
+    },
+    "leaders-desk": {
+      "type": "loot",
+      "text": "In an alcove, a writing desk covered in candle stubs. On it, a stack of close-written pages tied with black cord.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "cult-manifesto",
+            "quantity": 1
+          }
+        ]
+      },
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "the-black-flame",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "failure_next": "the-stalker",
+      "next": "the-stalker"
+    },
+    "the-stalker": {
+      "type": "monster",
+      "monster_id": "shadow-stalker",
+      "count": 1,
+      "text": "The black flame gutters, then bulges. Something the size of a pony pulls itself out of it, all shadow and teeth, and the cellar goes cold.",
+      "arena": [
+        "..#.......#..",
+        ".............",
+        "...=.....=...",
+        "......!......",
+        "...=.....=...",
+        ".............",
+        "..#.......#.."
+      ],
+      "next": "the-fragment"
+    },
+    "the-fragment": {
+      "type": "loot",
+      "text": "The thing comes apart like smoke in wind. Where it died, a shard of solid darkness lies on the flagstones. The black flame is gone.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "shadow-fragment",
+            "quantity": 1
+          }
+        ]
+      },
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "the-black-flame",
+          "min": 2,
+          "max": 2
+        }
+      ],
+      "failure_next": "flame-out",
+      "next": "flame-out"
+    },
+    "flame-out": {
+      "type": "narrative",
+      "text": "Without the flame the cellar is only a cellar: damp, cold, smelling of tallow. Somewhere far off, you think you hear something howl in frustration.",
+      "is_terminal": true
+    },
+    "cellar-after": {
+      "type": "narrative",
+      "text": "The trapdoor hangs open. Below, a scorched ring on the flagstones and a lot of melted candle wax. Nothing burns here any more.",
+      "next": "approach"
     }
   }
 }

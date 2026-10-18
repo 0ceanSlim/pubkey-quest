@@ -17,6 +17,7 @@
   ],
   "recommended": {
     "recommended_stats": [
+      "Level 3+",
       "Resolve 12",
       "Perception 12"
     ],
@@ -25,7 +26,7 @@
   "stages": [
     {
       "id": "scout-watchtower",
-      "description": "The ritual points to the Abandoned Watchtower. Investigate the ruins.",
+      "description": "The vision showed the flame below the watchtower. Find the way down to its cellar.",
       "objectives": [
         {
           "type": "explore",
@@ -42,19 +43,19 @@
     },
     {
       "id": "bandit-camp",
-      "description": "The tower is occupied by bandits who seem to be worshipping the shadow.",
+      "description": "The cellar is full of kneeling men in black. Stop them, and find out what they were promised.",
       "objectives": [
         {
           "type": "slay",
-          "target": "bandit",
-          "count": 8,
-          "description": "Neutralize the bandit presence."
+          "target": "cultist",
+          "count": 5,
+          "description": "Stop the cultists."
         },
         {
           "type": "fetch",
           "target": "cult-manifesto",
           "count": 1,
-          "description": "Find the cult's plans in the leader's desk."
+          "description": "Find the cult's plans."
         }
       ]
     },
@@ -112,5 +113,102 @@
         ]
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "I am ready to start with the tower.",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Then listen. The flame is below the tower, not in it. In the vision I was looking up at the stairs. There is a cellar the bandits found, or made. Whatever is down there, it is anchored to that flame. Put it out, and bring me anything they wrote down. People who kneel always write things down.",
+          "options": [
+            "anchored",
+            "accept",
+            "decline"
+          ]
+        },
+        "anchored": {
+          "label": "Anchored?",
+          "text": "Something that is not supposed to be here is being held here. I felt it watching me through the bowl. It knew it was being looked at. I don't think it liked it.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll put out the flame.",
+          "text": "Go carefully. Take light with you. Whatever waits there hates the light, I'm sure of that much.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Rest, then. It will still be burning."
+        }
+      }
+    },
+    "active": {
+      "option": "About the black flame...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Is it out?",
+          "options": [
+            "cellar",
+            "cultists",
+            "stalker",
+            "back-to-it"
+          ]
+        },
+        "cellar": {
+          "label": "I haven't found the cellar yet.",
+          "text": "Look low. The old towers had root cellars for the garrison's stores, and the way down is usually by the hearth.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-black-flame",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "cultists": {
+          "label": "The cellar is full of cultists.",
+          "text": "Then they are still feeding it. Stop them, and look for their writings. Someone gave them orders.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-black-flame",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "stalker": {
+          "label": "Something else is down there. It's made of shadow.",
+          "text": "That is what it was anchoring. You'll want light, and steady nerves. When it dies it will leave something behind: bring it to me.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-black-flame",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll see it done.",
+          "text": "The Dawnflame go with you."
+        }
+      }
+    },
+    "completed": {
+      "option": "What did the manifesto say?",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Enough to frighten me. The flame was one of several. They speak of an Eye, under the water in Shadowmere, that the flames were feeding. The fragment you brought is cold as a grave and it points toward the swamp. The amulet is yours. Wear it where the dark is thickest."
+        }
+      }
+    }
+  }
 }
