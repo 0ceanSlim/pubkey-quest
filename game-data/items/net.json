@@ -7,7 +7,8 @@
   "image": "/res/img/items/net.png",
   "name": "Net",
   "notes": [
-    "No use in play yet."
+    "In combat: throw it at a foe (Dexterity attack, range 2/3 squares): on a hit it is restrained (attacks against it have advantage, it can't move) until it beats a DC 10 Strength save.",
+    "Used up whether it hits or not."
   ],
   "value": 100,
   "range": "2",
@@ -19,8 +20,16 @@
     "equipment",
     "martial-ranged",
     "thrown",
-    "restraint"
+    "restraint",
+    "consumable"
   ],
   "type": "Martial Ranged Weapons",
-  "weight": 3
+  "weight": 3,
+  "throw": {
+    "condition": {
+      "condition": "restrained",
+      "save_each_turn": "strength"
+    },
+    "dc": 10
+  }
 }

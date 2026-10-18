@@ -4,7 +4,8 @@
   "image": "/res/img/items/acid.png",
   "name": "Acid",
   "notes": [
-    "No use in play yet."
+    "In combat: throw it at a foe (Dexterity attack, range 2/3 squares): 2d6 acid on a hit.",
+    "Used up whether it hits or not."
   ],
   "value": 2500,
   "rarity": "common",
@@ -16,5 +17,9 @@
   "type": "Adventuring Gear",
   "weight": 1,
   "range": "2",
-  "range_long": "3"
+  "range_long": "3",
+  "throw": {
+    "damage": "2d6",
+    "damage_type": "acid"
+  }
 }

@@ -6,7 +6,8 @@
   "image": "/res/img/items/alchemists-fire.png",
   "name": "Alchemist's Fire",
   "notes": [
-    "No use in play yet."
+    "In combat: throw it at a foe (Dexterity attack, range 2/3 squares): 1d4 fire, and it keeps burning for 1d4 a turn until it beats a DC 10 Dexterity save.",
+    "Used up whether it hits or not."
   ],
   "value": 5000,
   "range": "2",
@@ -18,5 +19,16 @@
     "consumable"
   ],
   "type": "Adventuring Gear",
-  "weight": 1
+  "weight": 1,
+  "throw": {
+    "damage": "1d4",
+    "damage_type": "fire",
+    "condition": {
+      "condition": "burning",
+      "save_each_turn": "dexterity",
+      "damage_dice": "1d4",
+      "damage_type": "fire"
+    },
+    "dc": 10
+  }
 }

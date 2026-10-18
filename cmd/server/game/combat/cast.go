@@ -426,6 +426,11 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		return nil, err
 	}
 
+	// Thrown at a foe (acid, alchemist's fire, a net): an attack, not a drink.
+	if throw, ok := item["throw"].(map[string]interface{}); ok {
+		return throwItem(cs, save, item, throw, itemID, name, slot, fromPack, targetID)
+	}
+
 	// Who it's for: you, or an ally standing next to you (a potion to the lips
 	// of a fallen friend gets them back up).
 	me := actor(cs)

@@ -545,7 +545,7 @@ export async function doUseCombatItem(itemId) {
         // yourself; a scroll's spell picks like a cast.
         const it = window.getItemById?.(itemId);
         const sp = it?.spell_id ? window.getSpellById?.(it.spell_id) : null;
-        const offensive = !!(sp && (sp.spell_attack || sp.save_type || sp.damage));
+        const offensive = !!(it?.throw || (sp && (sp.spell_attack || sp.save_type || sp.damage)));
         const target = offensive ? (_targetID ?? '') : (_allyTargetID ?? '');
         const resp = await combatPost('/api/combat/use-item', { npub, save_id: saveID, item_id: itemId, target_id: target });
         const cs = await resp.json();
