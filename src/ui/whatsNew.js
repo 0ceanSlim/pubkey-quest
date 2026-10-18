@@ -27,7 +27,7 @@ const AFTER_LOAD_MS = 1600; // let the loading screen fade first
 // entries back, an unmarked browser is treated as having seen it. After the
 // next update, newcomers start clean again.
 const ROLLOUT_BASELINE = '2026-10-14-shops';
-const ROLLOUT_WINDOW = 2;
+const ROLLOUT_WINDOW = 3;
 
 function getSeen() {
     try { return localStorage.getItem(SEEN_KEY); } catch (_) { return undefined; }

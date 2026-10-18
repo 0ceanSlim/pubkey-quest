@@ -2,6 +2,19 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-18-fixes",
+      "when": "October 18, 2026",
+      "icon": "🔧",
+      "size": "minor",
+      "title": "Fixes: HP Bars, Quest Turn-ins & Road Fights",
+      "summary": "HP bars move on every hit, finished quests say so, and road quest fights wait until you're travelling.",
+      "highlights": [
+        "HP bars update the moment a hit lands, spells included",
+        "Finishing a quest shows \"Quest complete\" and the journal updates at once",
+        "Quest fights waiting on a road find you while you travel, not the instant you load in"
+      ]
+    },
+    {
       "id": "2026-10-18-quests",
       "when": "October 18, 2026",
       "icon": "📜",
