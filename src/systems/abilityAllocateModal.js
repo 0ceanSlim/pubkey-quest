@@ -45,6 +45,7 @@ export async function openAbilityAllocate() {
         if (header) header.textContent = 'Could not load ability points.';
     }
     loadFeats();
+    loadSpellPicks();
 }
 
 /** Close the modal and resync the rest of the UI if anything was allocated. */
@@ -210,6 +211,67 @@ async function takeFeat(featId, choice) {
     }
 }
 
+// ── Spells: known casters and wizards learn new spells as they level ───────────
+
+/** Load + render the learn-spells section. */
+async function loadSpellPicks() {
+    const section = document.getElementById('spell-learn-section');
+    if (!section) return;
+    try {
+        renderSpellPicks(await gameAPI.getSpellPicks());
+    } catch (error) {
+        logger.debug('spell picks load skipped:', error);
+        section.classList.add('hidden');
+    }
+}
+
+function renderSpellPicks(data) {
+    const section = document.getElementById('spell-learn-section');
+    const picksEl = document.getElementById('spell-learn-picks');
+    const list = document.getElementById('spell-learn-list');
+    if (!section || !list) return;
+
+    const picks = data.picks ?? 0;
+    const options = data.options ?? [];
+    if (picks <= 0 || !options.length) {
+        section.classList.add('hidden');
+        return;
+    }
+    section.classList.remove('hidden');
+    if (picksEl) picksEl.textContent = `📖 ${picks} spell${picks === 1 ? '' : 's'} to learn`;
+
+    list.innerHTML = '';
+    for (const s of options) {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:3px 2px; border-bottom:1px solid #2f2f2f;';
+        const school = s.school ? s.school.charAt(0).toUpperCase() + s.school.slice(1) : '';
+        row.innerHTML =
+            `<div style="display:flex; align-items:center; gap:4px;">` +
+            `<span style="flex:1; font-size:8px; color:#e5e7eb; font-weight:bold;">${s.name || s.id}</span>` +
+            `<span style="font-size:7px; color:#93c5fd;">L${s.level}${school ? ' · ' + school : ''}</span>` +
+            `<button class="spell-learn" style="font-size:8px; color:#fff; background:#1e3a8a; border-top:1px solid #93c5fd; border-left:1px solid #93c5fd; border-right:1px solid #172554; border-bottom:1px solid #172554; padding:1px 6px; cursor:pointer;">Learn</button></div>` +
+            `<div style="font-size:6px; color:#9ca3af; line-height:1.3;">${s.description || ''}</div>`;
+        row.querySelector('.spell-learn').addEventListener('click', () => learnSpell(s.id));
+        list.appendChild(row);
+    }
+}
+
+async function learnSpell(spellId) {
+    if (busy) return;
+    busy = true;
+    try {
+        await gameAPI.learnSpell(spellId);
+        dirty = true;
+        renderSpellPicks(await gameAPI.getSpellPicks());
+    } catch (error) {
+        logger.error('Failed to learn spell:', error);
+        const picksEl = document.getElementById('spell-learn-picks');
+        if (picksEl) picksEl.textContent = error.message || 'Could not learn that spell.';
+    } finally {
+        busy = false;
+    }
+}
+
 async function resyncDisplays() {
     // Pull fresh state so the stats tab + HP/MP bars reflect the new scores.
     try {
@@ -228,9 +290,15 @@ export async function refreshLevelUpPointsPrompt() {
     const prompt = document.getElementById('level-up-points-prompt');
     if (!prompt) return;
     try {
-        const data = await gameAPI.getAbilityPoints();
-        if (data.unspent > 0) {
-            setText('level-up-points-count', data.unspent);
+        const [data, spells] = await Promise.all([
+            gameAPI.getAbilityPoints(),
+            gameAPI.getSpellPicks().catch(() => ({ picks: 0 })),
+        ]);
+        const parts = [];
+        if (data.unspent > 0) parts.push(`${data.unspent} ability point${data.unspent === 1 ? '' : 's'} to spend`);
+        if (spells.picks > 0) parts.push(`${spells.picks} spell${spells.picks === 1 ? '' : 's'} to learn`);
+        if (parts.length) {
+            setText('level-up-points-text', parts.join(' · ') + '!');
             prompt.classList.remove('hidden');
         } else {
             prompt.classList.add('hidden');

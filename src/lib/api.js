@@ -305,6 +305,37 @@ class GameAPI {
      * @param {string} [choice] - stat for half-feats (e.g. "constitution")
      * @returns {Promise<Object>} { feat, chosen, slots_available, unspent, scores, max_hp }
      */
+    /** Spells this character can learn now ({picks, options}). */
+    async getSpellPicks() {
+        this.ensureInitialized();
+        const response = await fetch(
+            `${API_BASE_URL}/progression/spell-picks?npub=${this.npub}&save_id=${this.saveID}`
+        );
+        if (!response.ok) throw new Error(`Failed to fetch spell picks: ${response.status}`);
+        const result = await response.json();
+        if (!result.success) throw new Error('Failed to fetch spell picks');
+        return result;
+    }
+
+    /**
+     * Learn a spell (spends a spell pick).
+     * @param {string} spellId
+     */
+    async learnSpell(spellId) {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/progression/learn-spell`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ npub: this.npub, save_id: this.saveID, spell_id: spellId })
+        });
+        if (!response.ok) {
+            let reason = `learn-spell failed: ${response.status}`;
+            try { reason = (await response.text()).trim() || reason; } catch { /* ignore */ }
+            throw new Error(reason);
+        }
+        return await response.json();
+    }
+
     async chooseFeat(featId, choice = '') {
         this.ensureInitialized();
         const response = await fetch(`${API_BASE_URL}/progression/choose-feat`, {

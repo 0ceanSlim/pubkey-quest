@@ -104,3 +104,66 @@ func TestLevelUpGrowsSlots(t *testing.T) {
 		t.Errorf("level-2 slots after leveling: %d", slotLen(s, "level_2"))
 	}
 }
+
+// Known casters learn a spell for each step up spells_known since level 1.
+func TestBardPicks(t *testing.T) {
+	setup(t)
+	bard := &types.SaveFile{Class: "Bard", KnownSpells: []string{"vicious-mockery", "healing-word"}}
+	if Picks(bard) != 0 {
+		t.Fatalf("a level-1 bard has no picks yet, got %d", Picks(bard))
+	}
+	bard.Experience = xpFor(t, 3)
+	sk := load().known["bard"]
+	want := sk[2] - sk[0]
+	if got := Picks(bard); got != want || want <= 0 {
+		t.Fatalf("level-3 bard picks: got %d, want %d", got, want)
+	}
+	opts := PickOptions(bard)
+	hasL2 := false
+	for _, id := range opts {
+		if id == "healing-word" {
+			t.Error("a known spell isn't an option")
+		}
+		if load().levelOf[id] == 2 {
+			hasL2 = true
+		}
+		if load().levelOf[id] > MaxSpellLevel("Bard", 3) {
+			t.Errorf("%s is above the bard's slot level", id)
+		}
+	}
+	if !hasL2 {
+		t.Error("a level-3 bard should be offered level-2 spells")
+	}
+	if err := Learn(bard, "fireball"); err == nil {
+		t.Error("fireball isn't a bard spell")
+	}
+	if err := Learn(bard, opts[0]); err != nil {
+		t.Fatal(err)
+	}
+	if !Knows(bard, opts[0]) || Picks(bard) != want-1 {
+		t.Errorf("learning spends a pick: knows=%v picks=%d", Knows(bard, opts[0]), Picks(bard))
+	}
+	for Picks(bard) > 0 {
+		if err := Learn(bard, PickOptions(bard)[0]); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := Learn(bard, PickOptions(bard)[0]); err == nil {
+		t.Error("no picks left should refuse")
+	}
+}
+
+// Wizards get two a level; whole-list casters get none (they know everything).
+func TestPickCounts(t *testing.T) {
+	setup(t)
+	wiz := &types.SaveFile{Class: "Wizard", Experience: xpFor(t, 3)}
+	if got := Picks(wiz); got != 4 {
+		t.Errorf("level-3 wizard: %d picks, want 4 (2 per level)", got)
+	}
+	if got := Picks(&types.SaveFile{Class: "Druid", Experience: xpFor(t, 3)}); got != 0 {
+		t.Errorf("druids know their whole list: %d picks", got)
+	}
+	if got := Picks(&types.SaveFile{Class: "Fighter", Experience: xpFor(t, 3)}); got != 0 {
+		t.Errorf("fighters learn no spells: %d picks", got)
+	}
+}

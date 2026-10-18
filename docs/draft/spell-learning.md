@@ -16,8 +16,17 @@ to learn.
 | Caster type | Classes | Rule | Status |
 |---|---|---|---|
 | Whole-list | cleric, druid (`spells_known` = 99 in `spell-progression.json`) | Know every class spell of each spell level they have slots for | ✅ **built** (derived, nothing stored) |
-| Known | bard, sorcerer, warlock, paladin, ranger | Pick new spells at level-up, up to `spells_known[level]` | ⬜ to build |
-| Spellbook | wizard | 2 free spells per level, plus copying scrolls | ⬜ to build |
+| Known | bard, sorcerer, warlock, paladin, ranger | Pick new spells at level-up, up to `spells_known[level]` | ✅ **built** (picks; swap still to do) |
+| Spellbook | wizard | 2 free spells per level, plus copying scrolls | 🔶 level-up picks ✅ built; copying scrolls ⬜ (needs scroll scribing) |
+
+**Picks as built** (`spellbook.Picks` / `PickOptions` / `Learn`):
+- Open picks = `spells_known[level] − spells_known[1]` (the rise since level
+  1) − the spells already picked (known spells off the class's creation list).
+  The starting lists are longer than `spells_known[1]`, so counting the rise,
+  not the total, is what keeps picks flowing.
+- `GET /api/progression/spell-picks` and `POST /api/progression/learn-spell`.
+- The picker is a "Learn spells" section in the allocate-points modal. The
+  level-up popup says when picks are waiting.
 
 Spell slots also grow with level now: `spellbook.SyncSlots` brings the save's
 slot arrays up to the `spell-slots.json` row on load and on every level-up

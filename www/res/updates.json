@@ -6,10 +6,11 @@
       "when": "October 18, 2026",
       "icon": "✨",
       "size": "minor",
-      "title": "Druids and Clerics Learn as They Level",
-      "summary": "Reaching a new spell level now teaches druids and clerics that level's spells, and every caster gets the spell slots their level grants.",
+      "title": "Casters Learn as They Level",
+      "summary": "Casters gain spells as they level (druids and clerics learn their whole list, the rest pick), and every caster gets the spell slots their level grants.",
       "highlights": [
         "Druids and clerics know every class spell of each spell level they reach: a level-3 druid gets barkskin, moonbeam, hold person, lesser restoration and pass without trace",
+        "Bards, sorcerers, warlocks, paladins, rangers and wizards learn new spells as they level: pick them in the Learn spells list when you allocate points",
         "Spell slots grow with your level (they were stuck at level-1 counts). Existing characters catch up the next time they load in"
       ]
     },
