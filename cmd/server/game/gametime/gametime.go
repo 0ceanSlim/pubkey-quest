@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -48,6 +49,20 @@ type TimeConfig struct {
 	// PauseOnEffects stops the clock the moment one of these effects starts
 	// (hungry, tired, …) so a penalty never lands unnoticed.
 	PauseOnEffects []string `json:"pause_on_effects"`
+
+	// Monsters marked "active": "night" or "day" join the road pool only inside
+	// their window ([from, to) in minutes since midnight; may wrap midnight).
+	// The windows overlap at dusk and dawn. Unmarked monsters roam any time.
+	NightMonsterHours [2]int `json:"night_monster_hours"`
+	DayMonsterHours   [2]int `json:"day_monster_hours"`
+	// NightEncounterMultiplier scales the road-fight chance during the night
+	// window (types.NightStart/NightEnd).
+	NightEncounterMultiplier float64 `json:"night_encounter_multiplier"`
+	// DarkvisionRaces see in the dark: no attack disadvantage at night.
+	DarkvisionRaces []string `json:"darkvision_races"`
+	// SunlightHours is when monsters with Sunlight Sensitivity are at
+	// disadvantage outdoors.
+	SunlightHours [2]int `json:"sunlight_hours"`
 }
 
 var (
@@ -59,7 +74,14 @@ var (
 // defaults for anything missing.
 func Config() TimeConfig {
 	timeConfigOnce.Do(func() {
-		timeConfig = TimeConfig{IdleAutoPauseSeconds: 300, TownTimeScale: 1}
+		timeConfig = TimeConfig{
+			IdleAutoPauseSeconds:     300,
+			TownTimeScale:            1,
+			NightMonsterHours:        [2]int{1260, 540},
+			DayMonsterHours:          [2]int{420, 1380},
+			NightEncounterMultiplier: 1,
+			SunlightHours:            [2]int{360, 1200},
+		}
 		database := db.GetDB()
 		if database == nil {
 			return
@@ -80,8 +102,50 @@ func Config() TimeConfig {
 			timeConfig.TownTimeScale = cfg.TownTimeScale
 		}
 		timeConfig.PauseOnEffects = cfg.PauseOnEffects
+		if cfg.NightMonsterHours != [2]int{} {
+			timeConfig.NightMonsterHours = cfg.NightMonsterHours
+		}
+		if cfg.DayMonsterHours != [2]int{} {
+			timeConfig.DayMonsterHours = cfg.DayMonsterHours
+		}
+		if cfg.NightEncounterMultiplier > 0 {
+			timeConfig.NightEncounterMultiplier = cfg.NightEncounterMultiplier
+		}
+		timeConfig.DarkvisionRaces = cfg.DarkvisionRaces
+		if cfg.SunlightHours != [2]int{} {
+			timeConfig.SunlightHours = cfg.SunlightHours
+		}
 	})
 	return timeConfig
+}
+
+// MonsterActiveAt reports whether a monster with this "active" value ("night",
+// "day", or "" for any time) roams at a time of day.
+func MonsterActiveAt(active string, timeOfDay int) bool {
+	cfg := Config()
+	switch active {
+	case "night":
+		return types.InWindow(timeOfDay, cfg.NightMonsterHours[0], cfg.NightMonsterHours[1])
+	case "day":
+		return types.InWindow(timeOfDay, cfg.DayMonsterHours[0], cfg.DayMonsterHours[1])
+	}
+	return true
+}
+
+// HasDarkvision reports whether a race sees in the dark.
+func HasDarkvision(race string) bool {
+	for _, r := range Config().DarkvisionRaces {
+		if strings.EqualFold(r, race) {
+			return true
+		}
+	}
+	return false
+}
+
+// IsSunlit reports whether it's bright day (for Sunlight Sensitivity).
+func IsSunlit(timeOfDay int) bool {
+	cfg := Config()
+	return types.InWindow(timeOfDay, cfg.SunlightHours[0], cfg.SunlightHours[1])
 }
 
 // HandleAdvanceTimeAction advances game time by segments (hours)

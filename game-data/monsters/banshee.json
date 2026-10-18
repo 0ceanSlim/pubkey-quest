@@ -13,6 +13,7 @@
   "tags": ["Undead"],
   "img": "/static/img/monster/banshee.svg",
   "environment": ["dungeon", "graveyard", "forest"],
+  "active": "night",
 
   "speed": {
     "walk": 0,

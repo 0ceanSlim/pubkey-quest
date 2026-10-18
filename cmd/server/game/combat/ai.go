@@ -471,6 +471,11 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 		// Conditions: the monster's own (poisoned/frightened/…) impose disadvantage;
 		// the player's (prone/restrained/…) grant the monster advantage.
 		monsterAdvantage += ConditionAttackAdvantage(monster.Conditions, playerConds)
+		// Sunlight Sensitivity: the creatures of the dark fight badly by day.
+		if sunlightHampers(cs, monster, save) {
+			monsterAdvantage--
+			logEntries = append(logEntries, fmt.Sprintf("  ☀️ %s squints in the sunlight — disadvantage.", monster.Data.Name))
+		}
 		// Spells: the target's wards (blur, protection from evil, sanctuary) and
 		// what's been cast on the monster (bane, a compelled duel).
 		if target != nil {

@@ -4,15 +4,17 @@
   "image": "/res/img/items/lamp.png",
   "name": "Lamp",
   "notes": [
-    "No use in play yet."
+    "Hold it in your off hand: night fights outdoors without the darkness penalty (no need with darkvision)."
   ],
   "value": 50,
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "equipment",
     "light-source",
     "oil-burning"
   ],
   "type": "Adventuring Gear",
+  "gear_slot": "offhand",
   "weight": 1
 }

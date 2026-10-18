@@ -15,6 +15,7 @@
     "coast",
     "hill"
   ],
+  "active": "day",
   "speed": {
     "walk": 10,
     "fly": 60,

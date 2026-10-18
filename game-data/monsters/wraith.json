@@ -13,6 +13,7 @@
   "tags": ["Undead"],
   "img": "/static/img/monster/wraith.svg",
   "environment": ["dungeon", "cave", "graveyard"],
+  "active": "night",
 
   "speed": {
     "walk": 0,

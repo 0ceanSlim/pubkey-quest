@@ -6,10 +6,12 @@
   "stack": 5,
   "weight": 1,
   "type": "Adventuring Gear",
+  "gear_slot": "offhand",
   "notes": [
-    "No use in play yet."
+    "Hold it in your off hand: night fights outdoors without the darkness penalty (no need with darkvision)."
   ],
   "tags": [
+    "equipment",
     "light-source"
   ],
   "rarity": "common",

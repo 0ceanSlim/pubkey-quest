@@ -12,6 +12,7 @@
   "tags": [],
   "img": "/static/img/monster/blood-hawk.svg",
   "environment": ["mountain", "coast", "grassland", "hill"],
+  "active": "day",
 
   "speed": {
     "walk": 10,

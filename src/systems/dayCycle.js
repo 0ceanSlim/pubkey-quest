@@ -81,9 +81,10 @@ function nightIntro() {
             <div style="padding:10px; font-size:8px; line-height:1.8; color:#d1d5db;">
                 <p style="margin:0 0 6px; color:#c7d2fe;">From ${fmt(clock.night_start)} until ${fmt(clock.night_end)} the world is dark.</p>
                 <ul style="margin:0 0 8px; padding-left:12px; list-style:disc;">
+                    <li><b style="color:#fca5a5;">The roads grow dangerous.</b> Fights come more often, and the dead and the shapeshifters walk only by night.</li>
+                    <li><b style="color:#fca5a5;">You fight half-blind outdoors:</b> your attacks are at disadvantage, unless you see in the dark (elves, dwarves, gnomes, orcs, tieflings and their kin) or hold a torch or lantern in your off hand.</li>
                     <li><b style="color:#facc15;">Fights pay 25% more XP</b> until dawn, for those bold enough to take them.</li>
-                    <li>Most shops have shut and townsfolk have gone home to bed. Come back in the morning.</li>
-                    <li>An inn will rent you a room: sleep to rest up and wake to a new day.</li>
+                    <li>Most shops have shut and townsfolk have gone home to bed. An inn will rent you a room to sleep until morning.</li>
                 </ul>
                 <button data-ok style="width:100%; padding:4px; font-size:9px; font-weight:bold; color:#fff; cursor:pointer; background:#2e3a6e; border-top:2px solid #6a7a9a; border-left:2px solid #6a7a9a; border-right:2px solid #0b0e16; border-bottom:2px solid #0b0e16;">Into the night</button>
             </div>
@@ -118,10 +119,10 @@ function check() {
     }
     if (abs === lastAbs) return;
     if (crossed(lastAbs, abs, clock.night_start)) {
-        if (seenIntro()) splash('🌙 Night falls', 'Fights pay more XP until dawn.', '#a5b4fc');
+        if (seenIntro()) splash('🌙 Night falls', 'More danger, more XP. Keep a light in hand.', '#a5b4fc');
         else nightIntro();
     } else if (crossed(lastAbs, abs, clock.night_end)) {
-        splash('☀️ Dawn breaks', 'The night\'s XP bonus is over.', '#fde68a');
+        splash('☀️ Dawn breaks', 'The dark lifts, and the night\'s dangers with it.', '#fde68a');
     }
     lastAbs = abs;
 }

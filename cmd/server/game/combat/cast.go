@@ -145,6 +145,10 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		deps.AttackBonus = b
 		deps.AttackAdvantage = a + ConditionAttackAdvantage(state.Conditions, monster.Conditions)
 		preLog = append(preLog, lines...)
+		if inDarkness(cs, save) {
+			deps.AttackAdvantage--
+			preLog = append(preLog, "  🌑 It's dark — disadvantage (no darkvision, no light in hand).")
+		}
 	}
 	// Components must be at hand (general slots, or a pouch in one). Ones left
 	// in the backpack can be dug out — it costs the bonus action.

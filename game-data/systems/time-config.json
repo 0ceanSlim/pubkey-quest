@@ -9,10 +9,34 @@
     "fatigued",
     "exhaustion"
   ],
+  "night_encounter_multiplier": 1.5,
+  "night_monster_hours": [
+    1260,
+    540
+  ],
+  "day_monster_hours": [
+    420,
+    1380
+  ],
+  "darkvision_races": [
+    "Elf",
+    "Dwarf",
+    "Gnome",
+    "Orc",
+    "Half-Elf",
+    "Tiefling",
+    "Half-Orc"
+  ],
+  "sunlight_hours": [
+    360,
+    1200
+  ],
   "notes": [
     "The clock runs by default and stops itself when something needs the player: an encounter or fight (held), a newly discovered place, or one of pause_on_effects starting. Shops, the vault, conversations and POI walks hold it.",
     "idle_auto_pause_seconds: real seconds with no player input before the game pauses itself — only a backstop for someone who has walked away.",
     "town_time_scale: the clock's pace in a city as a fraction of the road's (144x). 0.5 = 72x: an hour in town is about 50 real seconds, a day about 20 minutes.",
-    "Night (more combat XP, see combat.IsNight) runs 23:00-05:00; the game shows a splash as it falls and as dawn breaks."
+    "Night (23:00-05:00, types.NightStart/NightEnd): +25% combat XP, road fights night_encounter_multiplier times as likely, and outdoors your attacks are at disadvantage unless your race is in darkvision_races or you hold a light source in a hand. The game shows a splash as night falls and as dawn breaks.",
+    "night_monster_hours / day_monster_hours: when monsters marked \"active\": \"night\" / \"day\" join the road pool, [from, to) in minutes since midnight (21:00-09:00 and 07:00-23:00, overlapping at dusk and dawn). Unmarked monsters roam any time.",
+    "sunlight_hours: when monsters with Sunlight Sensitivity attack at disadvantage outdoors (06:00-20:00)."
   ]
 }

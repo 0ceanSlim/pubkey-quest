@@ -15,6 +15,7 @@
     "grassland",
     "graveyard"
   ],
+  "active": "night",
   "speed": {
     "walk": 60,
     "fly": 0,

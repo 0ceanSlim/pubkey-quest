@@ -396,14 +396,23 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 		return
 	}
 
+	// Night monsters roam after dark, day monsters by day (time-config's
+	// windows overlap at dusk and dawn); the rest any time.
 	candidates := make([]encounter.Candidate, 0, len(refs))
 	for _, r := range refs {
+		if !gametime.MonsterActiveAt(r.Active, state.TimeOfDay) {
+			continue
+		}
 		candidates = append(candidates, encounter.Candidate{ID: r.ID, Name: r.Name, CR: r.CR})
 	}
 	level := character.GetLevelFromXP(state.Experience, advancement)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	monster, ok := encounter.Roll(candidates, level, minutesElapsed, rng, sess.LastEncounterMonster)
+	rate := 1.0
+	if types.IsNight(state.TimeOfDay) {
+		rate = gametime.Config().NightEncounterMultiplier
+	}
+	monster, ok := encounter.RollAtRate(candidates, level, minutesElapsed, rate, rng, sess.LastEncounterMonster)
 	if !ok {
 		return
 	}

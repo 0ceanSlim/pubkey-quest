@@ -13,6 +13,7 @@
   "tags": ["Undead"],
   "img": "/static/img/monster/vampire-spawn.svg",
   "environment": ["dungeon", "urban", "graveyard"],
+  "active": "night",
 
   "speed": {
     "walk": 30,

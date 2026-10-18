@@ -797,6 +797,11 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
 	// the target monster's (restrained/blinded/outlined/…) grant advantage.
 	advantage += ConditionAttackAdvantage(state.Conditions, monster.Conditions)
+	// Night outdoors: without darkvision or a light in hand, you swing blind.
+	if inDarkness(cs, save) {
+		advantage--
+		log = append(log, "  🌑 It's dark — disadvantage (no darkvision, no light in hand).")
+	}
 	// A sneak attack's opening turn: they don't see it coming.
 	if state.Ambushing {
 		advantage++

@@ -16,6 +16,7 @@
     "graveyard",
     "dungeon"
   ],
+  "active": "night",
   "speed": {
     "walk": 40,
     "fly": 0,

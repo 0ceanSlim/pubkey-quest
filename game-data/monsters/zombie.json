@@ -12,6 +12,7 @@
   "tags": ["Undead"],
   "img": "/static/img/monster/zombie.svg",
   "environment": ["dungeon", "cave", "graveyard"],
+  "active": "night",
 
   "speed": {
     "walk": 20,

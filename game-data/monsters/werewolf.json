@@ -13,6 +13,7 @@
   "tags": ["Shapechanger", "Human"],
   "img": "/static/img/monster/werewolf.svg",
   "environment": ["forest", "urban"],
+  "active": "night",
 
   "speed": {
     "walk": 30,

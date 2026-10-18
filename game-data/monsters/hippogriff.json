@@ -16,6 +16,7 @@
     "mountain",
     "grassland"
   ],
+  "active": "day",
   "speed": {
     "walk": 40,
     "fly": 60,

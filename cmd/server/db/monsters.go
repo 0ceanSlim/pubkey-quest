@@ -5,9 +5,10 @@ import "fmt"
 // MonsterRef is a lightweight monster reference for biome encounter rolling —
 // just what the roller needs to pick a fight and hand the id to StartCombat.
 type MonsterRef struct {
-	ID   string
-	Name string
-	CR   float64
+	ID     string
+	Name   string
+	CR     float64
+	Active string // "night", "day", or "" for any time (gametime.MonsterActiveAt)
 }
 
 // GetMonstersByBiome returns the monsters whose environment tags include the
@@ -33,13 +34,14 @@ func GetMonstersByBiome(biome string) ([]MonsterRef, error) {
 		}
 		var m struct {
 			Environment []string `json:"environment"`
+			Active      string   `json:"active"`
 		}
 		if err := parseJSON(statsJSON, &m); err != nil {
 			continue
 		}
 		for _, e := range m.Environment {
 			if e == biome {
-				refs = append(refs, MonsterRef{ID: id, Name: name, CR: cr})
+				refs = append(refs, MonsterRef{ID: id, Name: name, CR: cr, Active: m.Active})
 				break
 			}
 		}
