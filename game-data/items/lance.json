@@ -8,10 +8,11 @@
   "name": "Lance",
   "notes": [
     "Two-handed: takes both hands.",
-    "Heavy: halflings and gnomes attack with disadvantage."
+    "Heavy: halflings and gnomes attack with disadvantage.",
+    "Reach: strikes enemies two squares away."
   ],
   "value": 1000,
-  "range": "1",
+  "range": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [

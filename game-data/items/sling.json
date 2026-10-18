@@ -13,8 +13,8 @@
     "Shooting an adjacent foe is at disadvantage."
   ],
   "value": 10,
-  "range": "1",
-  "range_long": "3",
+  "range": "2",
+  "range_long": "4",
   "rarity": "common",
   "stack": 1,
   "tags": [

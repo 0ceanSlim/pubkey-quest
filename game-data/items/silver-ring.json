@@ -8,11 +8,13 @@
   "stack": 1,
   "rarity": "common",
   "tags": [
+    "equipment",
     "jewelry",
     "valuable"
   ],
   "notes": [
-    "Worth selling; no use in play yet."
+    "Wear it on either hand (no magic in it), or sell it."
   ],
-  "image": "/res/img/items/silver-ring.png"
+  "image": "/res/img/items/silver-ring.png",
+  "gear_slot": "ring"
 }

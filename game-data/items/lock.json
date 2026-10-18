@@ -4,7 +4,7 @@
   "image": "/res/img/items/lock.png",
   "name": "Lock",
   "notes": [
-    "No use in play yet."
+    "Millhaven's keywarden fits one (with two candles and 10 gold) to open your vault there."
   ],
   "value": 1000,
   "rarity": "common",

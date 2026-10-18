@@ -10,8 +10,8 @@
     "Can be thrown up to 3 tiles; a thrown weapon is used up."
   ],
   "value": 50,
-  "range": "1",
-  "range_long": "3",
+  "range": "2",
+  "range_long": "4",
   "rarity": "common",
   "stack": 5,
   "tags": [

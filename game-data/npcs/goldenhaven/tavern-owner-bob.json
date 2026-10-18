@@ -11,7 +11,9 @@
       "end": 1440,
       "location": "sailors_tavern",
       "state": "working",
-      "dialogue_options": ["main_menu"],
+      "dialogue_options": [
+        "main_menu"
+      ],
       "available_actions": []
     }
   ],
@@ -22,15 +24,48 @@
   "dialogue": {
     "main_menu": {
       "text": "What can I do for you?",
-      "options": ["ask_about_tavern", "goodbye"]
+      "options": [
+        "ask_about_tavern",
+        {
+          "label": "Show Bob the Rat King's tails.",
+          "next": "rat-tails",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "rat-tail-trophy"
+            }
+          ],
+          "cost": {
+            "items": [
+              {
+                "id": "rat-tail-trophy",
+                "quantity": 1
+              }
+            ]
+          }
+        },
+        "goodbye"
+      ]
     },
     "ask_about_tavern": {
       "text": "The Salty Anchor's the finest tavern on the Goldenhaven docks — or it was, before the cellar started... squeaking. Best ale in the city, when I can get to the casks.",
-      "options": ["main_menu"]
+      "options": [
+        "main_menu"
+      ]
     },
     "goodbye": {
       "text": "Mind the cellar steps on your way out.",
       "action": "end_dialogue"
+    },
+    "rat-tails": {
+      "text": "Gods, put that away. ...No, give it here. I'm nailing it over the bar. Nobody will believe me otherwise. Here, for your trouble, and drink's on the house tonight.",
+      "reward": {
+        "gold": 200,
+        "xp": 50
+      },
+      "options": [
+        "main_menu"
+      ]
     }
   }
 }

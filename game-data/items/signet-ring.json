@@ -4,14 +4,16 @@
   "image": "/res/img/items/signet-ring.png",
   "name": "Signet ring",
   "notes": [
-    "No use in play yet."
+    "Wear it on either hand (no magic in it), or sell it."
   ],
   "value": 500,
   "rarity": "common",
   "stack": 1,
   "tags": [
+    "equipment",
     "jewelry"
   ],
   "type": "Adventuring Gear",
-  "weight": 0.1
+  "weight": 0.1,
+  "gear_slot": "ring"
 }

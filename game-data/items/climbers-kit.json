@@ -11,7 +11,8 @@
     "pack"
   ],
   "notes": [
-    "No use in play yet."
+    "+2 Athletics while carried: climbing, scrambling, holding on.",
+    "Tool bonuses to the same skill don't stack; the best one counts."
   ],
   "image": "/res/img/items/climbers-kit.png",
   "contents": [
@@ -27,5 +28,8 @@
       "hammer",
       1
     ]
-  ]
+  ],
+  "skill_bonus": {
+    "athletics": 2
+  }
 }

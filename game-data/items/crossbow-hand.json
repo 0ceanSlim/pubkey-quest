@@ -11,8 +11,8 @@
   "damage": "1d6",
   "damage_type": "piercing",
   "ammunition": "crossbow-bolts",
-  "range": "1",
-  "range_long": "3",
+  "range": "2",
+  "range_long": "4",
   "tags": [
     "weapon",
     "equipment",

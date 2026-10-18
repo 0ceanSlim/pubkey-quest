@@ -7,10 +7,11 @@
   "image": "/res/img/items/whip.png",
   "name": "Whip",
   "notes": [
-    "Finesse: uses the better of Strength or Dexterity."
+    "Finesse: uses the better of Strength or Dexterity.",
+    "Reach: strikes enemies two squares away."
   ],
   "value": 200,
-  "range": "1",
+  "range": "2",
   "rarity": "common",
   "stack": 1,
   "tags": [

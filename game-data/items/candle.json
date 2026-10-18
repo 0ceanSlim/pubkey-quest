@@ -8,10 +8,13 @@
   "stack": 10,
   "type": "Adventuring Gear",
   "tags": [
+    "equipment",
     "light-source"
   ],
   "notes": [
-    "No use in play yet."
+    "Hold it in your off hand: a small light, enough to fight by at night (no need with darkvision).",
+    "Millhaven's keywarden wants two to fit a vault lock."
   ],
-  "image": "/res/img/items/candle.png"
+  "image": "/res/img/items/candle.png",
+  "gear_slot": "offhand"
 }

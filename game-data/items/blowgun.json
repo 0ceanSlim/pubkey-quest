@@ -11,7 +11,7 @@
   "damage": "1",
   "damage_type": "piercing",
   "ammunition": "blowgun-needle",
-  "range": "1",
+  "range": "2",
   "range_long": "3",
   "tags": [
     "weapon",
