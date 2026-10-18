@@ -1545,6 +1545,11 @@ func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameAc
 			// objectives advance, then add the quests this NPC talks about
 			// to their menu (see quest_dialogue.go).
 			events.Record(state, events.NPCTalked, npcID, 1)
+			// Bounties are posted and claimed with any town's vault keeper: a
+			// talk objective naming "vault-keeper" is met by whichever one.
+			if n, err := serverdb.GetNPCByID(npcID); err == nil && n != nil && len(n.StorageConfig) > 0 {
+				events.Record(state, events.NPCTalked, quest.AnyVaultKeeper, 1)
+			}
 			addLabelledOptions(resp, npcID, state)
 			injectQuestOptions(resp, npcID, state)
 		}

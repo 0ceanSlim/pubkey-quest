@@ -336,6 +336,9 @@ func HandleStartTravel(state *types.SaveFile, params map[string]interface{}) (*t
 		events.Record(state, events.LocationDiscovered, envID, 1)
 		envDiscovered = true
 		log.Printf("🗺️ New environment discovered: %s", env.Name)
+	} else {
+		// Every later trip is a visit, for repeatable "explore" objectives.
+		events.Record(state, events.LocationVisited, envID, 1)
 	}
 
 	log.Printf("🚶 Started travel through %s: %s → %s (travel_time: %d min)",
@@ -540,6 +543,8 @@ func RecordArrival(state *types.SaveFile, destCity string) (bool, []string) {
 		log.Printf("🗺️ New location discovered: %s", lookupCityName(destCity))
 		// Feed discovery to the event recorder so "explore" objectives advance.
 		events.Record(state, events.LocationDiscovered, destCity, 1)
+	} else {
+		events.Record(state, events.LocationVisited, destCity, 1)
 	}
 	return newlyDiscovered, checkMusicUnlocks(state, destCity)
 }

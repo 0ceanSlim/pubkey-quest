@@ -2,7 +2,7 @@
   "id": "daily-mountain-survey",
   "name": "Daily Bounty: Cragspire Survey",
   "category": "daily",
-  "step_count": 6,
+  "step_count": 5,
   "difficulty": "Novice",
   "total_qp": 0,
   "is_randomized": true,
@@ -27,7 +27,7 @@
         {
           "type": "explore",
           "target": "cragspire-mountains",
-          "description": "Reach the mountain pass."
+          "description": "Ride the Cragspire pass."
         }
       ]
     },
@@ -48,31 +48,31 @@
       ]
     },
     {
-      "id": "survey-peak",
-      "description": "Survey the pass from the highest reachable ledge.",
+      "id": "clear-trail",
+      "description": "Wolves have been harrying travellers on the pass. Clear them off the trail.",
+      "encounter": {
+        "location": "cragspire-mountains",
+        "monster_id": "wolf",
+        "count": 2,
+        "text": "Two lean wolves slink out from behind a rockfall, between you and the road ahead."
+      },
       "objectives": [
         {
-          "type": "check",
-          "skill": "perception",
-          "value": 14,
-          "description": "Scan for blocked trails."
-        },
-        {
           "type": "slay",
-          "target": "zombie",
+          "target": "wolf",
           "count": 2,
-          "description": "Clear any stragglers on the trail."
+          "description": "Clear the wolves off the trail."
         }
       ]
     },
     {
       "id": "return-to-board",
-      "description": "Return to the board to file your daily report.",
+      "description": "Return to any vault keeper to file your report.",
       "objectives": [
         {
           "type": "talk",
-          "target": "town-square-board",
-          "description": "File the report."
+          "target": "vault-keeper",
+          "description": "File your report with any vault keeper."
         }
       ],
       "rewards": {

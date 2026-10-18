@@ -228,7 +228,8 @@ func (c *schemaChecker) checkRef(kind, id string, set map[string]bool) {
 // NPCs are an authoring TODO (the NPC file needs to be created), not a
 // schema bug. Item/monster/location/effect/quest/poi refs stay hard errors.
 func (c *schemaChecker) checkNPCRef(id string) {
-	if id == "" {
+	// "vault-keeper" means any town's vault keeper (quest.AnyVaultKeeper on the server).
+	if id == "" || id == "vault-keeper" {
 		return
 	}
 	if !c.idx.npcs[id] {
