@@ -1366,6 +1366,11 @@ func migrateSystemData() error {
 		log.Printf("Warning: failed to migrate spell-slots.json: %v", err)
 	}
 
+	// Migrate spell-progression.json (spells known per level; 99 = whole class list)
+	if err := migrateGenericJSON("game-data/magic/spell-progression.json", "spell_progression"); err != nil {
+		log.Printf("Warning: failed to migrate spell-progression.json: %v", err)
+	}
+
 	// Migrate shop-pricing.json
 	shopPricingPath := filepath.Join(systemDataPath, "shop-pricing.json")
 	if err := migrateGenericJSON(shopPricingPath, "shop_pricing"); err != nil {

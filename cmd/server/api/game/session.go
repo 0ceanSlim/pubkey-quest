@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/types"
+	"pubkey-quest/cmd/server/game/spellbook"
 )
 
 // SessionRequest represents a session identification request
@@ -229,7 +230,7 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"time_of_day":           sess.SaveData.TimeOfDay,
 		"inventory":             sess.SaveData.Inventory,
 		"vault":                 vault.Response(&sess.SaveData),
-		"known_spells":          sess.SaveData.KnownSpells,
+		"known_spells":          spellbook.Known(&sess.SaveData),
 		"spell_slots":           sess.SaveData.SpellSlots,
 		"locations_discovered":  sess.SaveData.LocationsDiscovered,
 		"music_tracks_unlocked": sess.SaveData.MusicTracksUnlocked,

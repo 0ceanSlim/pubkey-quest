@@ -2,6 +2,18 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-18-spell-levels",
+      "when": "October 18, 2026",
+      "icon": "✨",
+      "size": "minor",
+      "title": "Druids and Clerics Learn as They Level",
+      "summary": "Reaching a new spell level now teaches druids and clerics that level's spells, and every caster gets the spell slots their level grants.",
+      "highlights": [
+        "Druids and clerics know every class spell of each spell level they reach: a level-3 druid gets barkskin, moonbeam, hold person, lesser restoration and pass without trace",
+        "Spell slots grow with your level (they were stuck at level-1 counts). Existing characters catch up the next time they load in"
+      ]
+    },
+    {
       "id": "2026-10-18-default-relays",
       "when": "October 18, 2026",
       "icon": "📡",

@@ -11,6 +11,7 @@ import (
 	"pubkey-quest/cmd/server/game/effects"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
+	"pubkey-quest/cmd/server/game/spellbook"
 )
 
 // ─── Casting engine (M4 Phase A) ─────────────────────────────────────────────
@@ -533,12 +534,7 @@ func monsterAbilityScore(s types.MonsterStats, ability string) int {
 // ─── Known / prepared checks ────────────────────────────────────────────────
 
 func knowsSpell(save *types.SaveFile, spellID string) bool {
-	for _, id := range save.KnownSpells {
-		if id == spellID {
-			return true
-		}
-	}
-	return false
+	return spellbook.Knows(save, spellID)
 }
 
 // IsSpellPrepared reports whether spellID currently occupies any prepared slot in

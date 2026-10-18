@@ -85,6 +85,10 @@ func WillLevelUp(currentXP, gainedXP int, advancement []types.AdvancementEntry) 
 // amounts first — combat per hit via BonusXP, other sources via BonusedXP — so
 // the advancement XPMultiplier reaches experience from every source, not just
 // combat.
+// OnLevelUp runs after GrantXP raises a character's level (set by the spellbook
+// package: new spell slots appear at once). nil = nothing to do.
+var OnLevelUp func(save *types.SaveFile)
+
 func GrantXP(save *types.SaveFile, amount int, advancement []types.AdvancementEntry) types.LevelUpResult {
 	res := types.LevelUpResult{GainedXP: amount}
 	if save == nil {
@@ -113,6 +117,9 @@ func GrantXP(save *types.SaveFile, amount int, advancement []types.AdvancementEn
 		// Level-up reward: restore to the new maxima.
 		save.HP = save.MaxHP
 		save.Mana = save.MaxMana
+		if OnLevelUp != nil {
+			OnLevelUp(save)
+		}
 	} else {
 		// Keep current vitals within the (unchanged) maxima.
 		if save.HP > save.MaxHP {

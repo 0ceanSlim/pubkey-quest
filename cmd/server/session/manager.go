@@ -12,6 +12,7 @@ import (
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -100,6 +101,8 @@ func loadAndHydrateSave(npub, saveID string) (*types.SaveFile, error) {
 		}
 		// Repair hands that break the two-handed rule (older starting gear).
 		inventory.NormalizeHands(save)
+		// Spell slots grow with level (older saves stayed at level-1 counts).
+		spellbook.SyncSlots(save)
 	}
 	return save, nil
 }

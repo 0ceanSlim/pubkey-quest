@@ -35,6 +35,7 @@ import (
 	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
+	"pubkey-quest/cmd/server/game/spellbook"
 )
 
 // Type aliases for backward compatibility
@@ -1473,7 +1474,7 @@ func GetGameStateHandler(w http.ResponseWriter, r *http.Request) {
 			"time_of_day":           session.SaveData.TimeOfDay,
 			"inventory":             session.SaveData.Inventory,
 			"vault":                 vault.Response(&session.SaveData),
-			"known_spells":          session.SaveData.KnownSpells,
+			"known_spells":          spellbook.Known(&session.SaveData),
 			"spell_slots":           session.SaveData.SpellSlots,
 			"locations_discovered":  session.SaveData.LocationsDiscovered,
 			"music_tracks_unlocked": session.SaveData.MusicTracksUnlocked,

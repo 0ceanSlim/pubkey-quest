@@ -10,6 +10,7 @@ import (
 	gameSpells "pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
+	"pubkey-quest/cmd/server/game/spellbook"
 )
 
 // ============================================================================
@@ -160,15 +161,8 @@ func PrepareSpellHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate spell is known
-	knownFound := false
-	for _, k := range sess.SaveData.KnownSpells {
-		if k == req.SpellID {
-			knownFound = true
-			break
-		}
-	}
-	if !knownFound {
+	// Validate spell is known (a druid/cleric knows their class list per level)
+	if !spellbook.Knows(&sess.SaveData, req.SpellID) {
 		http.Error(w, "Spell not in known_spells", http.StatusBadRequest)
 		return
 	}
