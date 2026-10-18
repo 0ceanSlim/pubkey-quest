@@ -1,0 +1,24 @@
+{
+  "id": "clans-endurance",
+  "name": "Clan's Endurance",
+  "description": "The axe knows its own blood: +2 Constitution and +2 Resolve while a dwarf wields it.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "equipment"
+  },
+  "modifiers": [
+    {
+      "stat": "constitution",
+      "type": "constant",
+      "value": 2
+    },
+    {
+      "stat": "skill_resolve",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "Your ancestors stand behind you.",
+  "visible": true
+}

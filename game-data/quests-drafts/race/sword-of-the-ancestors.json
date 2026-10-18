@@ -1,11 +1,11 @@
 {
   "id": "sword-of-the-ancestors",
-  "name": "The Sword of the Ancestors",
+  "name": "The Axe of the Ancestors",
   "category": "race",
   "difficulty": "Experienced",
   "step_count": 6,
   "total_qp": 3,
-  "description": "A legendary dwarven blade was lost when the Flooded Mine was abandoned. It must be recovered to restore the honor of your clan, but you'll need the right tools and connections to reach the lowest depths.",
+  "description": "A legendary dwarven axe was lost when the Flooded Mine was abandoned. It must be recovered to restore the honor of your clan, but you'll need the right tools and connections to reach the lowest depths.",
   "start_condition": {
     "type": "talk",
     "target": "thistle-goldworthy",
@@ -33,7 +33,7 @@
   "stages": [
     {
       "id": "clue-gathering",
-      "description": "Thistle saw kobolds carrying a rusted but ornate dwarven hilt up into the Cragspire Mountains.",
+      "description": "Thistle saw kobolds carrying a rusted but ornate dwarven axe up into the Cragspire Mountains.",
       "objectives": [
         {
           "type": "talk",
@@ -78,7 +78,7 @@
     },
     {
       "id": "kobold-skirmish",
-      "description": "Clear the kobolds defending the stolen blade.",
+      "description": "Clear the kobolds defending the stolen axe.",
       "objectives": [
         {
           "type": "slay",
@@ -90,13 +90,13 @@
           "type": "slay",
           "target": "kobold-shaman",
           "count": 1,
-          "description": "Defeat the shaman guarding the hilt."
+          "description": "Defeat the shaman guarding the axe."
         }
       ]
     },
     {
       "id": "recover-blade",
-      "description": "Retrieve the Ancestral Blade. It's partially embedded in a geode.",
+      "description": "Retrieve the Ancestral Axe. It's partially embedded in a geode.",
       "objectives": [
         {
           "type": "check",
@@ -106,9 +106,9 @@
         },
         {
           "type": "fetch",
-          "target": "ancestral-blade",
+          "target": "ancestral-axe",
           "count": 1,
-          "description": "Recover the blade."
+          "description": "Recover the axe."
         }
       ]
     },
@@ -129,10 +129,10 @@
         },
         {
           "type": "fetch",
-          "target": "ancestral-blade",
+          "target": "ancestral-axe",
           "count": 1,
           "consume": true,
-          "description": "Lay the blade in the geode cache."
+          "description": "Lay the axe in the geode cache."
         }
       ],
       "rewards": {
@@ -140,7 +140,7 @@
         "gold": 300,
         "items": [
           {
-            "id": "ancestral-blade-restored",
+            "id": "ancestral-axe-restored",
             "quantity": 1
           },
           {
@@ -157,7 +157,7 @@
       "start": "offer",
       "nodes": {
         "offer": {
-          "text": "Did I? Oh, I did. Last week on the Cragspire pass, a whole column of the little horrors, and two of them carrying a sword between them like a dead hog. Big, old, dwarf-made, all runes and rust. You've got that look, friend. Like I just told you where your grandmother's buried.",
+          "text": "Did I? Oh, I did. Last week on the Cragspire pass, a whole column of the little horrors, and two of them carrying an axe between them like a dead hog. Big, old, dwarf-made, all runes and rust. You've got that look, friend. Like I just told you where your grandmother's buried.",
           "options": [
             "where",
             "accept",
@@ -173,7 +173,7 @@
           ]
         },
         "accept": {
-          "label": "That blade belongs to my clan. I'll get it back.",
+          "label": "That axe belongs to my clan. I'll get it back.",
           "text": "Thought you might say that. If they've gone deep, you'll want a crowbar: those old mines have grates on the lower levels. I'd sell you one, but I'm out. Try any general store.",
           "action": "accept"
         },
@@ -184,7 +184,7 @@
       }
     },
     "active": {
-      "option": "About the dwarven sword...",
+      "option": "About the dwarven axe...",
       "start": "status",
       "nodes": {
         "status": {
@@ -239,7 +239,7 @@
       }
     },
     "completed": {
-      "option": "About the sword...",
+      "option": "About the axe...",
       "start": "after",
       "nodes": {
         "after": {

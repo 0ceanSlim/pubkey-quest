@@ -1,0 +1,18 @@
+{
+  "id": "ancestral-axe",
+  "name": "Ancestral Axe",
+  "description": "A rusted dwarven battleaxe, still half-sunk in a geode. Under the grime, clan runes run along the haft and the bearded blade.",
+  "rarity": "uncommon",
+  "value": 0,
+  "weight": 4,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Sword of the Ancestors."
+  ],
+  "image": "/res/img/items/ancestral-axe.png"
+}

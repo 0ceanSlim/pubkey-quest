@@ -1,0 +1,35 @@
+{
+  "id": "ancestral-axe-restored",
+  "name": "Axe of the Ancestors",
+  "description": "A dwarven battleaxe reforged in the light of the geode cache. Clan runes burn faintly along the haft, and in a dwarf's hands it feels like it remembers every battle it has seen.",
+  "rarity": "rare",
+  "value": 20000,
+  "weight": 4,
+  "stack": 1,
+  "type": "Martial Melee Weapons",
+  "gear_slot": "hands",
+  "damage": "1d8,1d10",
+  "damage_type": "slashing",
+  "tags": [
+    "weapon",
+    "equipment",
+    "martial-melee",
+    "versatile",
+    "drop-only"
+  ],
+  "notes": [
+    "Versatile: 1d10 damage with an empty off hand.",
+    "+1 Strength while wielded.",
+    "Dwarves: Clan's Endurance, +2 Constitution and +2 Resolve while wielded.",
+    "Reward from The Axe of the Ancestors."
+  ],
+  "effects_when_worn": [
+    "ancestral-might"
+  ],
+  "image": "/res/img/items/ancestral-axe-restored.png",
+  "effects_when_worn_by_race": {
+    "Dwarf": [
+      "clans-endurance"
+    ]
+  }
+}

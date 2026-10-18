@@ -101,31 +101,23 @@ func InitializeEquipmentEffects(state *types.SaveFile) error {
 			continue
 		}
 
-		// Check for effects_when_worn
-		effectsWhenWorn, ok := properties["effects_when_worn"].([]interface{})
-		if !ok {
-			continue
-		}
-
-		// Apply each effect
-		for _, effectID := range effectsWhenWorn {
-			if effectIDStr, ok := effectID.(string); ok {
-				// Check if effect is already active (don't duplicate)
-				alreadyActive := false
-				for _, ae := range state.ActiveEffects {
-					if ae.EffectID == effectIDStr {
-						alreadyActive = true
-						break
-					}
+		// Apply each effect the item grants this wearer (incl. race-only ones)
+		for _, effectIDStr := range effects.WornEffectIDs(properties, state.Race) {
+			// Check if effect is already active (don't duplicate)
+			alreadyActive := false
+			for _, ae := range state.ActiveEffects {
+				if ae.EffectID == effectIDStr {
+					alreadyActive = true
+					break
 				}
+			}
 
-				if !alreadyActive {
-					// Apply effect silently
-					if err := effects.ApplyEffect(state, effectIDStr); err != nil {
-						log.Printf("⚠️ Failed to initialize equipment effect '%s' from %s: %v", effectIDStr, itemID, err)
-					} else {
-						log.Printf("🔄 Initialized equipment effect: %s from %s", effectIDStr, itemID)
-					}
+			if !alreadyActive {
+				// Apply effect silently
+				if err := effects.ApplyEffect(state, effectIDStr); err != nil {
+					log.Printf("⚠️ Failed to initialize equipment effect '%s' from %s: %v", effectIDStr, itemID, err)
+				} else {
+					log.Printf("🔄 Initialized equipment effect: %s from %s", effectIDStr, itemID)
 				}
 			}
 		}

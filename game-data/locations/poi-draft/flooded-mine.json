@@ -195,7 +195,7 @@
       "type": "monster",
       "monster_id": "kobold-shaman",
       "count": 1,
-      "text": "At the back of the cavern, a kobold with bones knotted in its crest raises a burning hand. Behind it, half-sunk in a glittering geode, is a sword.",
+      "text": "At the back of the cavern, a kobold with bones knotted in its crest raises a burning hand. Behind it, half-sunk in a glittering geode, is an axe.",
       "arena": [
         "#...........#",
         "..,,.....,,..",
@@ -220,7 +220,7 @@
         }
       ],
       "failure_next": "geode-retry",
-      "text": "The blade is half-sunk in a geode the size of a barrel, the crystal grown right over the guard. Strike it wrong and you will shatter both.",
+      "text": "The axe is half-sunk in a geode the size of a cart wheel, the crystal grown right over the head. Strike it wrong and you will shatter both.",
       "success_text": "You find the hairline seam where the crystal grew around the steel, and tap it. The geode splits clean down the middle.",
       "success_next": "the-blade",
       "failure_text": "You can't see where to strike. Better look again before you ruin it."
@@ -236,11 +236,11 @@
         }
       ],
       "failure_next": "cache-or-leave",
-      "text": "The Ancestral Blade: rusted, pitted, and still beautiful, clan runes running the length of the fuller.",
+      "text": "The Ancestral Axe: rusted, pitted, and still beautiful, clan runes running the length of the haft.",
       "loot_table": {
         "guaranteed": [
           {
-            "item": "ancestral-blade",
+            "item": "ancestral-axe",
             "quantity": 1
           }
         ]
@@ -279,15 +279,15 @@
       "type": "check",
       "skill": "resolve",
       "dc": 15,
-      "text": "You lay the blade on the anvil and speak the names of your ancestors, as many as you know, as steadily as you can.",
-      "success_text": "The forge roars white. When it fades, the rust is gone and the runes burn gold, then cool to bright steel. The blade is whole.",
+      "text": "You lay the axe on the anvil and speak the names of your ancestors, as many as you know, as steadily as you can.",
+      "success_text": "The forge roars white. When it fades, the rust is gone and the runes burn gold, then cool to bright steel. The axe is whole.",
       "success_next": "blade-restored",
       "failure_text": "Your voice catches and the forge dims. Breathe. Begin again.",
       "failure_next": "ritual-retry"
     },
     "blade-restored": {
       "type": "narrative",
-      "text": "You lift the Blade of the Ancestors. It's lighter than it has any right to be, and it fits your hand as though it was made for it. In a way, it was.",
+      "text": "You lift the Axe of the Ancestors. It's lighter than it has any right to be, and it fits your hand as though it was made for it. In a way, it was.",
       "is_terminal": true
     },
     "geode-retry": {

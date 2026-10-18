@@ -445,16 +445,12 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 		if err == nil {
 			var properties map[string]interface{}
 			if err := json.Unmarshal([]byte(propertiesJSON), &properties); err == nil {
-				if effectsWhenWorn, ok := properties["effects_when_worn"].([]interface{}); ok {
-					for _, effectID := range effectsWhenWorn {
-						if effectIDStr, ok := effectID.(string); ok {
-							// Apply effect silently (no message)
-							if err := effects.ApplyEffect(state, effectIDStr); err != nil {
-								log.Printf("⚠️ Failed to apply equipment effect '%s': %v", effectIDStr, err)
-							} else {
-								log.Printf("⚙️ Applied equipment effect: %s from %s", effectIDStr, itemID)
-							}
-						}
+				for _, effectIDStr := range effects.WornEffectIDs(properties, state.Race) {
+					// Apply effect silently (no message)
+					if err := effects.ApplyEffect(state, effectIDStr); err != nil {
+						log.Printf("⚠️ Failed to apply equipment effect '%s': %v", effectIDStr, err)
+					} else {
+						log.Printf("⚙️ Applied equipment effect: %s from %s", effectIDStr, itemID)
 					}
 				}
 			}
@@ -679,14 +675,9 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		if err == nil {
 			var properties map[string]interface{}
 			if err := json.Unmarshal([]byte(propertiesJSON), &properties); err == nil {
-				if effectsWhenWorn, ok := properties["effects_when_worn"].([]interface{}); ok {
-					for _, effectID := range effectsWhenWorn {
-						if effectIDStr, ok := effectID.(string); ok {
-							// Remove effect
-							effects.RemoveEffect(state, effectIDStr)
-							log.Printf("⚙️ Removed equipment effect: %s from %s", effectIDStr, itemID)
-						}
-					}
+				for _, effectIDStr := range effects.WornEffectIDs(properties, state.Race) {
+					effects.RemoveEffect(state, effectIDStr)
+					log.Printf("⚙️ Removed equipment effect: %s from %s", effectIDStr, itemID)
 				}
 			}
 		}
