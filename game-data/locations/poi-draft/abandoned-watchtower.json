@@ -111,6 +111,56 @@
           }
         ]
       },
+      "next": "upper-floor"
+    },
+    "upper-floor": {
+      "type": "choice",
+      "text": "Bedrolls, empty bottles and a cold fire pit fill the upper floor. Wind whistles through the collapsed roof.",
+      "choices": [
+        {
+          "label": "Search for a hidden compartment.",
+          "next": "hidden-compartment",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-heirloom",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        {
+          "label": "Leave the tower.",
+          "next": "leave"
+        }
+      ]
+    },
+    "hidden-compartment": {
+      "type": "check",
+      "text": "You run your hands along the floorboards by the bandits' bedrolls, feeling for one that moves.",
+      "skill": "perception",
+      "dc": 12,
+      "success_text": "One board shifts under your palm. Beneath it, wrapped in a rag, is a silver signet stamped with the city crest.",
+      "success_next": "signet-loot",
+      "failure_text": "Splinters, mouse droppings, nothing else. It must be here somewhere.",
+      "failure_next": "upper-floor"
+    },
+    "signet-loot": {
+      "type": "loot",
+      "text": "The Mayor's signet ring.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "silver-signet-ring",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "upper-floor"
+    },
+    "leave": {
+      "type": "exit",
+      "text": "You climb back out into the daylight.",
       "is_terminal": true
     }
   }

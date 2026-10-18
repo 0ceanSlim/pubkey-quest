@@ -2,10 +2,10 @@
   "id": "the-missing-heirloom",
   "name": "The Missing Heirloom",
   "category": "side",
-  "step_count": 8,
+  "step_count": 7,
   "difficulty": "Novice",
   "total_qp": 1,
-  "description": "The Mayor's family ring has been stolen by bandits. It must be recovered.",
+  "description": "Bandits robbed the Mayor's coach on the Merchant's Highway and took his family's signet ring. He wants it back, quietly.",
   "start_condition": {
     "type": "talk",
     "target": "mayor-thomas",
@@ -16,6 +16,7 @@
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
+      "Level 2+",
       "Perception 10"
     ],
     "combat_danger": "Moderate"
@@ -34,7 +35,7 @@
     },
     {
       "id": "locate-bandit-den",
-      "description": "Search the Darkwood Forest for the bandit camp.",
+      "description": "The robbers were seen holed up in the old watchtower on the Merchant's Highway.",
       "objectives": [
         {
           "type": "explore",
@@ -44,20 +45,26 @@
       ]
     },
     {
-      "id": "recover-ring",
-      "description": "Retrieve the Silver Signet Ring from the bandit leader.",
+      "id": "clear-the-tower",
+      "description": "Deal with the bandits holding the tower.",
       "objectives": [
         {
           "type": "slay",
           "target": "bandit",
-          "count": 3,
+          "count": 2,
           "description": "Defeat the bandits guarding the tower."
-        },
+        }
+      ]
+    },
+    {
+      "id": "recover-ring",
+      "description": "The ring is not on them. Bandits hide their best takings somewhere above the fire.",
+      "objectives": [
         {
           "type": "check",
           "skill": "perception",
           "value": 12,
-          "description": "Find the hidden compartment in the tower's upper floor."
+          "description": "Find the hidden compartment on the tower's upper floor."
         },
         {
           "type": "fetch",
@@ -96,5 +103,102 @@
         ]
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "You seem troubled, Mayor.",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Troubled. Yes. Bandits stopped my coach on the Merchant's Highway three nights ago. They took my purse, which I can bear, and my grandfather's signet ring, which I cannot. Every mayor of this city has worn it. I would rather the Merchant Princes didn't hear I'd lost it.",
+          "options": [
+            "where",
+            "accept",
+            "decline"
+          ]
+        },
+        "where": {
+          "label": "Where did they go?",
+          "text": "The coachman says they rode for the old watchtower, west along the highway. Nobody has manned it in forty years. Apparently somebody does now.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll get your ring back.",
+          "text": "Thank you. Discreetly, if you can manage it. The family has a ring of its own for whoever brings the signet home: an old ward, still good.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not right now.",
+          "text": "I understand. If you change your mind, I will still be here, trying not to look at my bare hand."
+        }
+      }
+    },
+    "active": {
+      "option": "About your ring...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any word?",
+          "options": [
+            "going",
+            "cleared",
+            "searching",
+            "back-to-it"
+          ]
+        },
+        "going": {
+          "label": "I'm on my way to the watchtower.",
+          "text": "West along the Merchant's Highway. Do be careful.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-heirloom",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "cleared": {
+          "label": "Bandits hold the tower.",
+          "text": "Then they'll have it on them, or near them. Bandits are not imaginative people.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-heirloom",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "searching": {
+          "label": "The bandits are dealt with, but no ring.",
+          "text": "They'll have hidden it. Up high, where they sleep, if I know thieves. Look for a loose board.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-missing-heirloom",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll keep looking.",
+          "text": "Thank you. Discreetly."
+        }
+      }
+    },
+    "completed": {
+      "option": "How is the ring?",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Back where it belongs, and nobody the wiser. Wear the other one in good health. It kept my grandmother alive through a war."
+        }
+      }
+    }
+  }
 }
