@@ -341,12 +341,12 @@ The targeted fixes, in priority order:
 
 Work the `poi-quest-followups.md` triage top to bottom:
 
-- [ ] **Fix all broken refs** (116 → **18 error blocks** as of 2026-10-14) — remap where targets exist, cut what isn't worth it, author the rest:
-  - [ ] quest items as a `game-data/items/quest-items/` batch (1-line JSONs + pixellab sprites)
-  - [ ] monsters: ~~rat-king-boss~~ ✅, ~~cave-bear~~ ✅, ~~will-o-wisp~~ ✅; still dire-wolf, kobold-warrior, kobold-shaman, restless-spirit, corrupted-dryad, shadow-tentacle, shadow-stalker (some can point at existing monsters: dire-wolf→worg, restless-spirit→specter)
-  - [ ] 7 quest NPCs (oracle-seraphina ✅, mayor-thomas, thistle-goldworthy ✅ rebuilt in the real dialogue format + shop, tavern-owner-bob ✅, high-priest-lawrence ✅, …) with at least 2-slot schedules **and room placements** (M2)
-  - [ ] 4 effects (blood-lust, divine-grace, mapped-terrain, wind-walker)
-  - [ ] Resolve the district/building location-ref question (followups §1e) — recommend option 1 for alpha: city-level refs + flavor text; districts model is post-alpha
+- [x] **Fix all broken refs** ✅ (116 → 18 → **0** on 2026-10-18; `--check-schema` clean; plan and decisions in `docs/draft/content-gaps.md`):
+  - [x] quest items ✅ — authored in `game-data/items/` with sprites; hand-ins are consumed (`"consume": true`), every reward does something in play
+  - [x] monsters ✅ — rat-king-boss, cave-bear, will-o-wisp, then dire-wolf, kobold-warrior, kobold-shaman, restless-spirit, corrupted-dryad, shadow-tentacle, shadow-stalker (quest-placed only, sprited)
+  - [ ] quest NPCs — all exist and give their quests (offer/active/completed lines); the waystone spirit is new. Still to do: 2-slot schedules **and room placements** (M2) where they're missing
+  - [x] 4 effects ✅ (blood-lust, divine-grace, mapped-terrain, wind-walker)
+  - [x] District refs ✅ — moving into a district records a visit to `<city>-<district>`, so quests can send you to one part of a city
 - [ ] **Quest pool for liveness**: grow dailies 2→6 and weeklies 0→4 (templates exist; these are cheap — bounty/fetch/delivery/survey patterns) so the board never repeats inside a real-world week
 - [ ] **Bulletin board**: a board "building" or fixture per city center wired to the real-time daily/weekly roll (schema already anticipates `bulletin_board` start conditions)
 - [ ] Design-quality pass from followups §2 (cooldowns on repeatables, walk-away paths, DC sanity vs skill formulas, perception over-use)
@@ -354,6 +354,7 @@ Work the `poi-quest-followups.md` triage top to bottom:
 - [ ] **Art floor for alpha** (placeholder quality fine, consistency matters): 4 missing city scenes — Goldenhaven first — and 7 missing environment scenes; pixellab-in-Codex makes this tractable. Time-of-day tint variants are a cheap big win if easy
 - [ ] Main quest stays *drafted* but ship its first 3–4 stages as the alpha "spine" to validate the multi-stage machinery (full act 1 is beta content)
   - [x] **The Rising Shadow** ✅ — the spine, playable end to end: Seraphina in the new Temple of the Dawnflame (Goldenhaven), the golden fountain, Thistle's price, ghost lilies on the Forgotten Battlefield (a quest branch in a POI anyone can visit), the ritual and the vision. The watchtower half split off as **The Black Flame** (next: shadow-stalker, cult-manifesto, shadow-fragment, amulet-of-light, and the watchtower's quest branch).
+- [x] **Every drafted quest is playable** ✅ (2026-10-18): The Missing Mule, The Missing Heirloom, The Paladin's Vow, both daily bounties (claimed from any vault keeper), The Black Flame, The Shadow's Source, The Rogue's Shadow Trial, The Axe of the Ancestors, Elven Heritage — sites, stage encounters, item sources and dialogue. Not yet playtested end to end. Party sharing of quest progress is next (memory: party quests).
 - [ ] Move `-draft` dirs to canonical paths; retire `--fix-schema`
 - [x] **Quest sites** ✅ — places that exist only for a quest stage (not POIs, nothing saved); POIs that are visitable on their own carry a quest's branch via `quest_stage` gates. Rats of Goldenhaven playable end-to-end (sewers, Rat King, Bob's dialogue).
 
@@ -362,8 +363,8 @@ Work the `poi-quest-followups.md` triage top to bottom:
 - [x] **Keys and locks** ✅ (see `docs/development/locks.md`). Built: key items, the keyring, the quest-item tag (Examine/Destroy only, enforced server-side), lockpicks, locks on rooms and POI `lock` nodes, per-lock jamming, Bob's spare room + key (sleep free), kit skill bonuses while carried, and the **Tumblers** lockpicking minigame alongside the quick roll. Sweet Spot and Wards are future styles on the same session engine. Original ask: Key items (`key` tag) and a **keyring** (container, ~8 keys, keys only). A **quest-item** tag: only Info and Destroy (no drop, sell or vault). Locks on rooms and POI nodes, each with its own DC, whether it can be picked, and when it jams. A **lockpick** item that breaks on a failed pick; you can retry until you run out. Picking costs time, and a bad miss can jam the lock (tunable per lock), after which only the key works. First keys: Bob's spare-room key (replaces the tankard; sleep free in a locked room at the Salty Anchor), plus `silver-key` / `heavy-iron-key` from the quest drafts. Settle the Thieves' Kit bonus too: `docs/draft/tools.txt` leaves the kit→skill mechanic open (a +1 Thieving while carried is the likely answer).
 - [ ] **Shared ground items.** Drops move from the per-session store to one world store keyed by place, despawning after a set real time. Anyone at that spot sees and can take them. Anti-dupe: a drop stays private to its dropper until they next save, and is voided if they reload or leave without saving (the item is still in that save). After a save it's public; on the official server only the latest save is playable, so it can't be reloaded past. Plus an indicator on the GROUND button when something's there.
 - [ ] **Basic teleportation** (`docs/draft/teleportation-design.md` §3 steps 1–2 plus the origin stone): Homeward Stones with the shared 1-week cooldown, the teleport action and guardrails, every character starting with their city's stone, and the keeper selling replacements. Stone quests and the waystone chain come after alpha.
-- [ ] **Survival-gear mechanics** (approved 2026-10-14, one at a time): light/darkness, cold (Frozen Wastes; blanket + heat sources), water (waterskin, desert), weapon coatings (whetstone, poison), ball bearings, signal whistle. See §1 "Missing entirely".
-- [ ] **The Black Flame** (main quest chapter 2): shadow-stalker, cult-manifesto, shadow-fragment, amulet-of-light (its role — light source, protection, or a key to The Shadow's Source — still to decide), and the watchtower's quest branch.
+- [ ] **Survival-gear mechanics** (approved 2026-10-14, one at a time): ~~light/darkness~~ ✅ (night fights at disadvantage without darkvision or a held/worn light, 2026-10-17), cold (Frozen Wastes; blanket + heat sources), water (waterskin, desert), weapon coatings (whetstone, poison), ball bearings, signal whistle. See §1 "Missing entirely".
+- [x] **The Black Flame** ✅ (main quest chapter 2): the watchtower cellar, cultists, the Shadow Stalker; the Amulet of Light is a worn light (+2 Resolve). The Shadow's Source (chapter 3) follows it.
 
 **Done 2026-10-13/14 — monsters, items, loot and shops:**
 
