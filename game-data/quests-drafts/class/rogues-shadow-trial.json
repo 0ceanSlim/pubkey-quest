@@ -3,7 +3,7 @@
   "name": "The Rogue's Shadow Trial",
   "category": "class",
   "difficulty": "Experienced",
-  "step_count": 6,
+  "step_count": 9,
   "total_qp": 3,
   "description": "The Master of Shadows has a task to test your stealth and guile. Success means entry into the inner circle.",
   "start_condition": {
@@ -24,22 +24,17 @@
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
-      "Dexterity 16",
-      "Perception 14",
-      "Intelligence 12"
+      "Level 3+",
+      "Thieving 14",
+      "Perception 14"
     ],
     "combat_danger": "Low"
   },
   "stages": [
     {
       "id": "find-the-den",
-      "description": "Locate the secret entrance to the Shadow Alley Den and convince Whispering Jack you're worth his time.",
+      "description": "Convince Whispering Jack you're worth his time.",
       "objectives": [
-        {
-          "type": "explore",
-          "target": "shadow-alley-den",
-          "description": "Locate the hidden basement entrance."
-        },
         {
           "type": "talk",
           "target": "whispering-jack",
@@ -49,20 +44,21 @@
     },
     {
       "id": "casing-the-joint",
-      "description": "Jack needs you to scout the 'Viper's' merchant contact in Goldenhaven to ensure he's not a spy.",
+      "description": "Jack wants the 'Viper's' merchant contact in the east district tailed, to make sure he isn't a spy.",
       "objectives": [
-        {
-          "type": "explore",
-          "target": "goldenhaven-east",
-          "description": "Travel to the merchant district."
-        },
         {
           "type": "check",
           "skill": "perception",
           "value": 15,
-          "description": "Tail the merchant to his meeting spot."
+          "description": "Tail the merchant without losing him."
+        },
+        {
+          "type": "explore",
+          "target": "the-meeting-spot",
+          "description": "Find where he meets his contact."
         }
-      ]
+      ],
+      "site": "merchant-tail"
     },
     {
       "id": "the-dead-drop",
@@ -80,11 +76,12 @@
           "value": 14,
           "description": "Pick the lock on the dead drop container."
         }
-      ]
+      ],
+      "site": "merchant-tail"
     },
     {
       "id": "prove-your-worth",
-      "description": "Jack is satisfied, but the Master needs a real demonstration. Infiltrate the Den's gauntlet and steal the Golden Viper.",
+      "description": "Jack is satisfied. The Master wants a real demonstration: get through the Den's vault lock, and bring Jack the letter.",
       "objectives": [
         {
           "type": "explore",
@@ -108,19 +105,19 @@
     },
     {
       "id": "steal-the-mark",
-      "description": "Retrieve the 'Golden Viper' statuette from the vault. Watch out for the pressure plates.",
+      "description": "Take the 'Golden Viper' from the vault. Mind the gas.",
       "objectives": [
-        {
-          "type": "fetch",
-          "target": "golden-viper-statue",
-          "count": 1,
-          "description": "Steal the mark."
-        },
         {
           "type": "check",
           "skill": "resolve",
           "value": 12,
-          "description": "Avoid the poison gas trap."
+          "description": "Hold your nerve through the vault's gas trap."
+        },
+        {
+          "type": "fetch",
+          "target": "golden-viper-statue",
+          "count": 1,
+          "description": "Steal the Golden Viper."
         }
       ]
     },
@@ -160,5 +157,248 @@
         ]
       }
     }
-  ]
+  ],
+  "sites": {
+    "merchant-tail": {
+      "name": "The Viper's Merchant",
+      "description": "A fat spice merchant Jack wants watched, working the east docks.",
+      "location": "goldenhaven",
+      "district": "east",
+      "label": "Tail the spice merchant",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "The spice merchant Jack described is easy to spot: green coat, too many rings, moving down the wharf faster than a fat man should.",
+          "choices": [
+            {
+              "label": "Follow him at a distance.",
+              "next": "tail",
+              "requirements": [
+                {
+                  "type": "quest_stage",
+                  "id": "rogues-shadow-trial",
+                  "min": 1,
+                  "max": 1
+                }
+              ]
+            },
+            {
+              "label": "Go to the loose brick he used.",
+              "next": "dead-drop",
+              "requirements": [
+                {
+                  "type": "quest_stage",
+                  "id": "rogues-shadow-trial",
+                  "min": 2,
+                  "max": 2
+                }
+              ]
+            },
+            {
+              "label": "Leave him to it.",
+              "next": "leave"
+            }
+          ]
+        },
+        "tail": {
+          "type": "check",
+          "skill": "perception",
+          "dc": 15,
+          "text": "He doubles back twice and stops to look at nothing in a shop window, watching the reflection. Whoever he's meeting, he's been told to be careful.",
+          "success_text": "You keep him in sight without him once seeing you. He ducks into a gap between two warehouses.",
+          "success_next": "meeting",
+          "failure_text": "A cart cuts across the wharf and when it's passed, he's gone. You'll have to find him again.",
+          "failure_next": "leave"
+        },
+        "meeting": {
+          "type": "narrative",
+          "waypoint": "the-meeting-spot",
+          "text": "Between the warehouses, the merchant glances around, prises a loose brick from the wall, slips a folded paper behind it and walks off whistling. He meets nobody. The brick is the meeting.",
+          "next": "dead-drop"
+        },
+        "dead-drop": {
+          "type": "check",
+          "skill": "thieving",
+          "dc": 14,
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 2,
+              "max": 2
+            }
+          ],
+          "failure_next": "leave",
+          "text": "The brick hides a small iron box, locked, set into the wall. It's a fiddly little lock.",
+          "success_text": "A twist, a click. Inside: a folded letter sealed with plain wax.",
+          "success_next": "letter",
+          "failure_text": "Your pick slips and footsteps come down the alley. Better try again later."
+        },
+        "letter": {
+          "type": "loot",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 2,
+              "max": 2
+            }
+          ],
+          "failure_next": "leave",
+          "text": "You pocket the letter and set the brick back exactly as it was.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "guild-dead-drop-letter",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "leave"
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You melt back into the dockside crowd.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "I want to join the inner circle.",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Everyone does. Few get past the door, and you did, so that's something. The Master wants a trial. First, the Viper has a merchant contact in the east district I don't trust. Tail him. If he's meeting the watch, I want to know.",
+          "options": [
+            "who-is-viper",
+            "accept",
+            "decline"
+          ]
+        },
+        "who-is-viper": {
+          "label": "Who is the Viper?",
+          "text": "The Master, as far as you're concerned. The one at the back with the coin. Don't stare at her, she doesn't like it.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll tail him.",
+          "text": "Good. Green coat, too many rings, east docks. Don't be seen. Come back to me with whatever he's carrying.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not now.",
+          "text": "Then stop taking up space at my table."
+        }
+      }
+    },
+    "active": {
+      "option": "About the trial...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Well?",
+          "options": [
+            "tailing",
+            "dead-drop",
+            "vault",
+            "viper",
+            "back-to-it"
+          ]
+        },
+        "tailing": {
+          "label": "I'm still tailing the merchant.",
+          "text": "East docks. Green coat. He's careful, so be more careful.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "dead-drop": {
+          "label": "He uses a dead drop, not a meeting.",
+          "text": "Clever. Then get me what's in it, and don't let anyone see you open it.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "vault": {
+          "label": "I have the letter.",
+          "text": "So he's clean, or cleaner than I thought. Fine. Now the real test: the Master's vault, down the back stair. Get past the lock and bring me the letter on your way. Then take the Golden Viper and hand it to her yourself.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 3,
+              "max": 4
+            }
+          ]
+        },
+        "viper": {
+          "label": "I have the Golden Viper.",
+          "text": "Then what are you telling me for? Take it to her.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'm on it.",
+          "text": "Quietly."
+        }
+      }
+    },
+    "with": {
+      "viper": {
+        "option": "About my trial...",
+        "start": "watching",
+        "nodes": {
+          "watching": {
+            "text": "Jack's new project. I know what he's asked of you. Do it, and stop staring at my coin.",
+            "options": [
+              "handover"
+            ]
+          },
+          "handover": {
+            "label": "I have your Golden Viper.",
+            "text": "So you do. Out of my own vault, past my own lock, and you didn't set off the bells. Jack said you might be worth something. Wear this. People who matter will know what it means.",
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "rogues-shadow-trial",
+                "min": 5,
+                "max": 5
+              }
+            ]
+          }
+        }
+      }
+    },
+    "completed": {
+      "option": "About the guild...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "You're family now. Don't make me regret it."
+        }
+      }
+    }
+  }
 }

@@ -16,6 +16,18 @@
       "type": "choice",
       "choices": [
         {
+          "label": "Take the back stair to the Master's vault.",
+          "next": "vault-stair",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "rogues-shadow-trial",
+              "min": 3,
+              "max": 4
+            }
+          ]
+        },
+        {
           "label": "Descend the stairs cautiously.",
           "next": "gauntlet-pressure-plate"
         },
@@ -115,6 +127,62 @@
         "viper"
       ],
       "is_terminal": true
+    },
+    "vault-stair": {
+      "type": "narrative",
+      "text": "Behind a curtain at the foot of the stair, a second, narrower stair goes down to an iron door with three keyholes and no handle.",
+      "next": "vault-lock"
+    },
+    "vault-lock": {
+      "type": "check",
+      "skill": "thieving",
+      "dc": 18,
+      "text": "Three locks, each a different maker, each one trapped if you take it out of order.",
+      "success_text": "Left, right, centre. The last tumbler drops, and the door swings inward on oiled hinges.",
+      "success_next": "vault-gas",
+      "failure_text": "Something clicks the wrong way. You pull your picks out before it can finish deciding what to do about it.",
+      "failure_next": "entrance"
+    },
+    "vault-gas": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 12,
+      "text": "As you step in, a hiss from the walls. Green gas curls across the floor. The Golden Viper sits on a plinth on the far side of the room.",
+      "success_text": "You hold your breath, keep your head, and walk, not run, to the plinth.",
+      "success_next": "golden-viper",
+      "failure_text": "You panic and breathe in. Your lungs burn.",
+      "failure_next": "vault-gassed"
+    },
+    "vault-gassed": {
+      "type": "damage",
+      "text": "You stagger back out, coughing.",
+      "damage": {
+        "type": "poison",
+        "amount": 4
+      },
+      "next": "entrance"
+    },
+    "golden-viper": {
+      "type": "loot",
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "rogues-shadow-trial",
+          "min": 4,
+          "max": 4
+        }
+      ],
+      "failure_next": "den-main-hall",
+      "text": "The Golden Viper: a gilded statuette of a coiled snake with garnet eyes. It's heavier than it looks.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "golden-viper-statue",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "den-main-hall"
     }
   },
   "npc_ids": [
@@ -122,6 +190,3 @@
     "viper"
   ]
 }
-
-
-
