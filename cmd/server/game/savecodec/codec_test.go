@@ -181,3 +181,22 @@ func bothEmpty(a, b any) bool {
 	ra, rb := reflect.ValueOf(a), reflect.ValueOf(b)
 	return ra.Kind() == reflect.Slice && rb.Kind() == reflect.Slice && ra.Len() == 0 && rb.Len() == 0
 }
+
+// Dialogue gifts (one-time NPC rewards) survive the compact form.
+func TestDialogueGiftsRoundTrip(t *testing.T) {
+	for name, orig := range loadFixtures(t) {
+		orig.DialogueGifts = []string{"exiled-orc:orc_brotherhood"}
+		data, err := Encode(orig)
+		if err != nil {
+			t.Fatalf("%s encode: %v", name, err)
+		}
+		got, err := Decode(data)
+		if err != nil {
+			t.Fatalf("%s decode: %v", name, err)
+		}
+		if !reflect.DeepEqual(got.DialogueGifts, orig.DialogueGifts) {
+			t.Fatalf("%s: dialogue gifts %v, want %v", name, got.DialogueGifts, orig.DialogueGifts)
+		}
+		return // one fixture is enough
+	}
+}

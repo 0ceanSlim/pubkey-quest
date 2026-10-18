@@ -6,7 +6,7 @@
   "description": "An elf with cold, calculating eyes and fingers that never stop moving, playing with a silver coin.",
   "primary_home": "shadow-alley-den",
   "dialogue": {
-    "main": {
+    "main_menu": {
       "text": "What do you want? I don't trade with just anyone.",
       "options": [
         {
@@ -19,7 +19,7 @@
               ]
             }
           ],
-          "action": "open_shop"
+          "next": "trade"
         },
         {
           "label": "[Evil] My reputation should speak for itself.",
@@ -27,13 +27,13 @@
             {
               "type": "alignment",
               "values": [
-                "neutral_evil",
-                "lawful_evil",
-                "chaotic_evil"
+                "Lawful Evil",
+                "Neutral Evil",
+                "Chaotic Evil"
               ]
             }
           ],
-          "action": "open_shop"
+          "next": "trade"
         },
         {
           "label": "Why won't you trade with me?",
@@ -44,6 +44,10 @@
           "next": "goodbye"
         }
       ]
+    },
+    "trade": {
+      "text": "Fine. Look, don't touch until you've paid.",
+      "action": "open_shop"
     },
     "rejection": {
       "text": "You've got the look of someone who pays taxes and respects the watch. My goods are for those who live in the shadows. Now get out.",

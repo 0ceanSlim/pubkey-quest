@@ -80,6 +80,11 @@ type SaveFile struct {
 	// from their Nostr picture). A player choice, so it can't be derived. Shown
 	// through the server's scaled proxy (/api/portrait), never loaded directly.
 	Portrait string `json:"portrait,omitempty"`
+
+	// DialogueGifts are the one-time rewards NPCs have already given this
+	// character ("npc-id:node", e.g. Thok's battleaxe), so asking again doesn't
+	// pay out again. Not derivable from anything else.
+	DialogueGifts []string `json:"dialogue_gifts,omitempty"`
 	SchemaVersion   int             `json:"schema_version,omitempty"`   // Save schema version (see CurrentSchemaVersion)
 
 	InternalID          string                   `json:"-"`                        // Not serialized, used internally for file naming

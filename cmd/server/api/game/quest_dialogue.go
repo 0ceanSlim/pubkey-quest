@@ -189,6 +189,9 @@ func injectQuestOptions(resp *types.GameActionResponse, npcID string, state *typ
 
 // closesDialogue reports whether an NPC dialogue node ends the conversation.
 func closesDialogue(npcData *serverdb.NPCData, key string) bool {
+	if opt, ok := labelledOption(npcData, key); ok {
+		key = opt.Next // a labelled "Farewell" closes when its next node does
+	}
 	node, _ := npcData.Dialogue[key].(map[string]interface{})
 	action, _ := node["action"].(string)
 	return action == "end_dialogue"

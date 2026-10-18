@@ -97,6 +97,7 @@ type wire struct {
 	VT [][]any         `json:"vt,omitempty"`
 	VK []string        `json:"vk,omitempty"`
 	PT string          `json:"pt,omitempty"`
+	DG []string        `json:"dg,omitempty"` // dialogue gifts already given
 }
 
 // ─── Encode ──────────────────────────────────────────────────────────────────
@@ -113,6 +114,7 @@ func Encode(s *types.SaveFile) ([]byte, error) {
 		T:   [2]int{s.CurrentDay, s.TimeOfDay},
 		Sp:  s.KnownSpells, LD: s.LocationsDiscovered, Mu: s.MusicTracksUnlocked,
 		QC: s.QuestsCompleted, FT: s.FeatsChosen, RQ: s.RepeatableQuests, VK: s.VaultKeepers, PT: s.Portrait,
+		DG: s.DialogueGifts,
 	}
 	w.St, w.Stx = encodeAbilities(s.Stats)
 	if len(s.AbilityIncreases) > 0 {
@@ -368,6 +370,7 @@ func decodeCurrent(data []byte) (*types.SaveFile, error) {
 		CurrentDay: w.T[0], TimeOfDay: w.T[1],
 		KnownSpells: w.Sp, LocationsDiscovered: w.LD, MusicTracksUnlocked: w.Mu,
 		QuestsCompleted: w.QC, FeatsChosen: w.FT, RepeatableQuests: w.RQ, VaultKeepers: w.VK, Portrait: w.PT,
+		DialogueGifts: w.DG,
 		SchemaVersion: types.CurrentSchemaVersion,
 	}
 	// These three are written as lists (never omitted) on disk and to the

@@ -38,12 +38,52 @@
           "text": "What can I get for you today?",
           "options": [
             "browse_shop",
+            {
+              "label": "[Wizard/Sorcerer] Any reagents for a fellow seeker of knowledge?",
+              "next": "arcane_talk",
+              "requirements": [
+                {
+                  "type": "class",
+                  "values": [
+                    "Wizard",
+                    "Sorcerer"
+                  ]
+                }
+              ]
+            },
+            {
+              "label": "[Paladin/Cleric] Any holy icons or blessed supplies?",
+              "next": "holy_talk",
+              "requirements": [
+                {
+                  "type": "class",
+                  "values": [
+                    "Paladin",
+                    "Cleric"
+                  ]
+                }
+              ]
+            },
             "sell_items",
             "goodbye"
           ]
         },
         "browse_shop": {
           "text": "Rations, torches, and a few odds and ends for the spell-minded. Take a look!",
+          "action": "open_shop",
+          "options": [
+            "main_menu"
+          ]
+        },
+        "arcane_talk": {
+          "text": "A spellcaster! I keep a little arcane powder tucked away for folk like you. Have a look.",
+          "action": "open_shop",
+          "options": [
+            "main_menu"
+          ]
+        },
+        "holy_talk": {
+          "text": "Always room for the divine! There's blessed incense in the pack, if you know what to do with it.",
           "action": "open_shop",
           "options": [
             "main_menu"

@@ -23,6 +23,7 @@ import (
 	"pubkey-quest/cmd/server/game/movement"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/quest"
+	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/game/status"
@@ -1544,6 +1545,7 @@ func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameAc
 			// objectives advance, then add the quests this NPC talks about
 			// to their menu (see quest_dialogue.go).
 			events.Record(state, events.NPCTalked, npcID, 1)
+			addLabelledOptions(resp, npcID, state)
 			injectQuestOptions(resp, npcID, state)
 		}
 	}
@@ -1574,7 +1576,36 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 		}
 		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Delta: resp.Delta, Data: resp.Data}, err
 	}
+	npcID, _ := params["npc_id"].(string)
+	choice, _ := params["choice"].(string)
+	// A labelled option (opt:<node>:<i>): check its requirements, take its
+	// cost, then carry on to the node it leads to.
+	if strings.HasPrefix(choice, optKeyPrefix) {
+		npcData, err := serverdb.GetNPCByID(npcID)
+		if err != nil || npcData == nil {
+			return nil, fmt.Errorf("NPC not found: %s", npcID)
+		}
+		opt, ok := labelledOption(npcData, choice)
+		if !ok {
+			return nil, fmt.Errorf("invalid dialogue choice: %s", choice)
+		}
+		if !requirement.Evaluate(opt.Requirements, buildQuestContext(&session.SaveData)).OK {
+			return &GameActionResponse{Success: false, Message: "That isn't open to you.", Color: "red"}, nil
+		}
+		if missing := payOptionCost(&session.SaveData, opt.Cost); missing != "" {
+			return &GameActionResponse{Success: false, Message: missing, Color: "yellow"}, nil
+		}
+		choice = opt.Next
+		paramsIface["choice"] = choice
+	}
 	resp, err := npc.HandleNPCDialogueChoiceActionWithSession(&session.SaveData, paramsIface, session)
+	if resp != nil && resp.Success {
+		// A node's one-time gift (Thok's battleaxe), then its labelled options.
+		if got := grantDialogueGift(&session.SaveData, npcID, choice); len(got) > 0 {
+			resp.Message = strings.TrimSpace(resp.Message + "\n\n🎁 You receive " + strings.Join(got, ", ") + ".")
+		}
+		addLabelledOptions(resp, npcID, &session.SaveData)
+	}
 	if resp != nil {
 		return &GameActionResponse{
 			Success: resp.Success,

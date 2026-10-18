@@ -8,7 +8,7 @@
     "returning": "You return. The wind is still cold on this ridge."
   },
   "dialogue": {
-    "main": {
+    "main_menu": {
       "text": "The wind is cold on this ridge. Why have you stopped?",
       "options": [
         {

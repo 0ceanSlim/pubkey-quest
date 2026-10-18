@@ -135,6 +135,9 @@ func Describe(s *types.SaveFile, level func(xp int) int) string {
 	if len(s.LocationsDiscovered) > 0 {
 		line("  Discovered: %s", strings.Join(s.LocationsDiscovered, ", "))
 	}
+	if len(s.DialogueGifts) > 0 {
+		line("  Gifts received: %s", strings.Join(s.DialogueGifts, ", "))
+	}
 	if len(s.Vault) > 0 {
 		var v []string
 		for _, e := range s.Vault {
