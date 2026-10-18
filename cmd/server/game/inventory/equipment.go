@@ -130,9 +130,15 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 			case "armor", "body":
 				equipSlot = "armor"
 			case "neck", "necklace":
-				equipSlot = "necklace"
+				equipSlot = "neck"
 			case "finger", "ring":
-				equipSlot = "ring"
+				// Two ring slots: the first free one (the left if both are full).
+				equipSlot = "ring1"
+				if r1, ok := gearSlots["ring1"].(map[string]interface{}); ok && r1["item"] != nil && r1["item"] != "" {
+					if r2, ok := gearSlots["ring2"].(map[string]interface{}); !ok || r2["item"] == nil || r2["item"] == "" {
+						equipSlot = "ring2"
+					}
+				}
 			case "ammunition", "ammo":
 				equipSlot = "ammo"
 			case "clothes", "clothing":

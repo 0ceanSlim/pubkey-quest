@@ -156,7 +156,7 @@ func CreateSnapshot(save *types.SaveFile, npcs []string, buildings map[string]bo
 			}
 
 			// Copy equipment slots
-			equipmentSlotNames := []string{"mainhand", "offhand", "armor", "helmet", "boots", "gloves", "ring1", "ring2", "necklace", "cloak"}
+			equipmentSlotNames := []string{"neck", "head", "ammo", "mainhand", "chest", "offhand", "ring1", "legs", "ring2", "gloves", "boots", "bag"}
 			for _, slotName := range equipmentSlotNames {
 				if slot, ok := gearSlots[slotName].(map[string]interface{}); ok {
 					if itemID, ok := slot["item"].(string); ok && itemID != "" {

@@ -15,7 +15,7 @@ import (
 // acSlots are the gear slots checked for AC contributions.
 // Weapon, ammo, and bag slots are excluded.
 var acSlots = []string{
-	"chest", "head", "offhand", "legs", "boots", "gloves", "necklace", "ring1", "ring2", "cloak",
+	"chest", "head", "offhand", "legs", "boots", "gloves", "neck", "ring1", "ring2",
 }
 
 // CalculatePlayerAC computes the player's total AC from equipped gear.

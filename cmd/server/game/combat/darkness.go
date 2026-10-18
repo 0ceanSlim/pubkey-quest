@@ -34,10 +34,10 @@ func inDarkness(cs *types.CombatSession, save *types.SaveFile) bool {
 	return !holdsLight(save)
 }
 
-// holdsLight reports whether a light source (torch, lantern, lamp…) is
-// equipped in either hand.
+// holdsLight reports whether a light source is equipped: a torch, lantern or
+// lamp in either hand, or a light worn at the neck (the Amulet of Light).
 func holdsLight(save *types.SaveFile) bool {
-	for _, slot := range []string{"mainhand", "offhand"} {
+	for _, slot := range []string{"mainhand", "offhand", "neck"} {
 		id := gaminventory.GetEquippedItemID(save.Inventory, slot)
 		if id == "" {
 			continue

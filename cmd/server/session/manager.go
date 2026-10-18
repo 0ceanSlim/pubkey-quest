@@ -144,6 +144,8 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 		return nil, fmt.Errorf("failed to load save file: %w", err)
 	}
 
+	normalizeGearSlots(saveData)
+
 	// Initialize effects
 	if initEffects != nil {
 		if err := initEffects(saveData); err != nil {
@@ -204,6 +206,8 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 	if err != nil {
 		return nil, fmt.Errorf("failed to load save file: %w", err)
 	}
+
+	normalizeGearSlots(saveData)
 
 	// Initialize effects
 	if initEffects != nil {
