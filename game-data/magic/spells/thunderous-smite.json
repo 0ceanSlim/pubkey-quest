@@ -11,7 +11,7 @@
   "damage": "2d6",
   "damage_type": "thunder",
   "heal": null,
-  "effect": "Empowers next melee weapon hit with 2d6 extra thunder damage; on hit target must save STR or be pushed 10 ft and knocked prone.",
+  "effect": "Your next melee weapon hit rings out: +2d6 thunder, and on a failed Strength save the target is knocked prone (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,12 +29,21 @@
   "mana_cost": 3,
   "prep_time": 45,
   "notes": [
-    "On-hit rider: 2d6 thunder + secondary STR save for push+prone requires on-hit-rider + forced-movement engine support — see proposals.",
-    "Shape: buff (no save on cast, no spell attack). Mana 3: highest L1 smite damage (2d6) plus on-hit hard control (push+prone).",
-    "No thunder rune in the component catalog — correctly free."
+    "In combat (bonus action): your next melee hit deals +2d6 thunder and can knock the target prone (Strength save)."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "hit_once": true,
+    "melee_only": true,
+    "hit_dice": "2d6",
+    "hit_type": "thunder",
+    "hit_condition": {
+      "condition": "prone",
+      "save": "strength",
+      "rounds": 1
+    }
   }
 }

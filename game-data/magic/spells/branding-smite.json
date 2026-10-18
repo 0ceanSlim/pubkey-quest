@@ -1,0 +1,44 @@
+{
+  "name": "Branding Smite",
+  "description": "The next time you hit a creature with a weapon attack before this spell ends, the weapon gleams with astral radiance as you strike. The attack deals an extra 2d6 radiant damage to the target.",
+  "level": 2,
+  "school": "evocation",
+  "casting_time": "bonus action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Your next weapon hit deals +2d6 radiant (concentration).",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "combat",
+    "damage",
+    "radiant",
+    "smite",
+    "concentration"
+  ],
+  "classes": [
+    "paladin"
+  ],
+  "rarity": "common",
+  "action_cost": "bonus_action",
+  "mana_cost": 3,
+  "prep_time": 100,
+  "notes": [
+    "In combat (bonus action): your next weapon hit, melee or ranged, deals +2d6 radiant. Concentration."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "combat_buff": {
+    "hit_once": true,
+    "hit_dice": "2d6",
+    "hit_type": "radiant"
+  }
+}

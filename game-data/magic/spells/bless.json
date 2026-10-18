@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "+1d4 to attack rolls and saving throws for up to 3 allies (concentration, 1 minute)",
+  "effect": "You and up to two allies add 1d4 to attack rolls and saving throws for 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,9 +30,8 @@
   "mana_cost": 3,
   "prep_time": 90,
   "notes": [
-    "Strong multi-target buff — affects up to 3 creatures; requires concentration",
-    "+1d4 bonus applies to every attack roll and saving throw while active",
-    "Amulet-equipped caster provides blessed-incense for free each cast"
+    "In combat: +1d4 to attack rolls (weapon and spell) and saving throws, including concentration saves, for you and the two nearest allies. Concentration, 10 rounds.",
+    "Amulet-equipped casters get blessed-incense free each cast."
   ],
   "material_component": {
     "required": [
@@ -42,5 +41,11 @@
       }
     ],
     "focus_provided": "Amulet provides unlimited blessed-incense"
+  },
+  "combat_buff": {
+    "target": "party",
+    "rounds": 10,
+    "attack_dice": "1d4",
+    "save_dice": "1d4"
   }
 }

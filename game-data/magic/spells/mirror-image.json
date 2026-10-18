@@ -1,0 +1,44 @@
+{
+  "name": "Mirror Image",
+  "description": "Three illusory duplicates of yourself appear in your space. Each time a creature targets you with an attack, a duplicate may be struck instead, and the duplicate is destroyed.",
+  "level": 2,
+  "school": "illusion",
+  "casting_time": "action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "1 minute",
+  "concentration": false,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Three illusory doubles each take one attack that would have hit you (10 rounds).",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "combat",
+    "buff",
+    "defense"
+  ],
+  "classes": [
+    "sorcerer",
+    "warlock",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 4,
+  "prep_time": 105,
+  "notes": [
+    "In combat: three illusory doubles. Each time an attack would hit you, a double takes it instead and vanishes. No concentration, 10 rounds.",
+    "No effect outside a fight."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "decoys": 3
+  }
+}

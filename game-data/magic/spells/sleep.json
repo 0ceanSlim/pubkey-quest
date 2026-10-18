@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": null,
+  "effect": "On a failed Wisdom save the target is overcome with exhaustion: its attacks have disadvantage for the rest of the fight.",
   "spell_attack": null,
   "save_type": "wisdom",
   "type": "Spell",
@@ -30,9 +30,7 @@
   "mana_cost": 3,
   "prep_time": 80,
   "notes": [
-    "On a failed Wisdom save the target suffers one level of exhaustion and -10 ft movement for 1 hour (no concentration).",
-    "Exhaustion condition: engine support pending — see spell-mechanics-proposals.md.",
-    "The non-concentration 1-hour hard debuff makes this a very powerful L1 spell; mana 3 and a rune cost are warranted."
+    "In combat: a failed Wisdom save leaves the target exhausted: disadvantage on its attacks for the rest of the fight, no re-save. No concentration."
   ],
   "material_component": {
     "required": [
@@ -42,5 +40,8 @@
       }
     ],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "exhausted"
   }
 }

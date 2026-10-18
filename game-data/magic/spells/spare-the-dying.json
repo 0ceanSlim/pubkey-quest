@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Stabilizes a creature at 0 hit points, preventing further death saving throw rolls.",
+  "effect": "Touch a fallen ally and they get back up at 1 HP. Cast on someone still standing, the next blow that would drop them leaves them at 1 HP instead.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -24,14 +24,19 @@
     "cleric"
   ],
   "rarity": "common",
-  "action_cost": "action",
+  "action_cost": "bonus_action",
   "mana_cost": 1,
   "notes": [
-    "Stabilizes — does not restore hit points; touch range",
-    "No effect on undead or constructs"
+    "In combat (bonus action): a downed ally gets back up at 1 HP; anyone still standing is warded: the next blow that would drop them leaves them at 1 HP.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "ally",
+    "revive": true,
+    "death_ward": true
   }
 }

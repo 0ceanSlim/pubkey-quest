@@ -10,8 +10,8 @@
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "heal": "1d4+1",
-  "effect": "Creates 5 goodberries. Each berry heals 1d4+1 HP when consumed as a bonus action (by self or adjacent ally). Unused berries lose potency after 1 hour.",
+  "heal": null,
+  "effect": "Five goodberries appear in your pack. Each one heals 1d4+1 HP and eases hunger when eaten.",
   "spell_attack": null,
   "save_type": null,
   "type": "Spell",
@@ -29,9 +29,8 @@
   "mana_cost": 2,
   "prep_time": 65,
   "notes": [
-    "Creates 5 consumable berry items with 1-hour expiry. Each berry consumed as a bonus action heals 1d4+1 HP.",
-    "Inventoried berry mechanic (temporary consumables created by a spell) requires engine support — see spell-mechanics-proposals.md.",
-    "Each berry satisfies 1 day's sustenance need (D&D 5e)."
+    "Creates 5 goodberries in your inventory (in or out of combat). Eat one to heal 1d4+1 HP and ease hunger.",
+    "Goodberries are worth nothing to a merchant."
   ],
   "material_component": {
     "required": [
@@ -41,5 +40,9 @@
       }
     ],
     "focus_provided": "Sprig of Mistletoe provides unlimited pollen"
+  },
+  "creates_item": {
+    "item": "goodberry",
+    "quantity": 5
   }
 }

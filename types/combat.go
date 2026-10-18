@@ -153,6 +153,116 @@ type CombatCondition struct {
 	DurationRounds int    `json:"duration_rounds"` // -1 = permanent until removed
 	SaveDC         int    `json:"save_dc,omitempty"`
 	SaveStat       string `json:"save_stat,omitempty"`
+	// Set when a spell imposed it: the spell and the member who cast it. A
+	// concentration spell's conditions end with the concentration; a compelled
+	// duel's target is held to its caster.
+	Source   string `json:"source,omitempty"`
+	CasterID string `json:"caster_id,omitempty"`
+	// Damage dealt to the afflicted creature at the start of each of its turns
+	// (searing smite's flames, acid arrow's burn). "" for none.
+	DamageDice string `json:"damage_dice,omitempty"`
+	DamageType string `json:"damage_type,omitempty"`
+}
+
+// SpellArea is a save spell's area of effect, authored on the spell JSON as
+// `aoe`. Every enemy caught in it makes its own save. Radius is in grid cells
+// (5 ft each): a sphere's or self_radius's radius, a cone's or line's length.
+type SpellArea struct {
+	// Shape: "sphere" (centred on the target's cell), "self_radius" (around
+	// the caster, who is spared), "cone" or "line" (from the caster toward
+	// the target).
+	Shape  string `json:"shape"`
+	Radius int    `json:"radius"`
+}
+
+// SpellCondition is a spell's condition rider, authored on the spell JSON as
+// `applies_condition` (lands on the target of a save or attack spell) or as a
+// combat buff's `hit_condition` (lands on whoever the next weapon hit strikes).
+type SpellCondition struct {
+	Condition string `json:"condition"`
+	// Rounds the condition lasts; 0 = the rest of the fight.
+	Rounds int `json:"rounds,omitempty"`
+	// SaveEachTurn names the stat the creature saves with at the end of each
+	// of its turns to shake it off (entangle: strength). "" = no re-save.
+	SaveEachTurn string `json:"save_each_turn,omitempty"`
+	// Save is the stat a hit_condition is resisted with when the hit lands
+	// (a smite's rider). Ignored on applies_condition: there the spell's own
+	// save_type already decided it.
+	Save string `json:"save,omitempty"`
+	// CreatureTypes limits the rider to these monster types ("beast",
+	// "humanoid"); others shrug it off. Empty = any creature.
+	CreatureTypes []string `json:"creature_types,omitempty"`
+	DamageDice    string   `json:"damage_dice,omitempty"`
+	DamageType    string   `json:"damage_type,omitempty"`
+}
+
+// SpellBuff is a spell's effect on one combatant for the rest of a fight
+// (bless, shield, a smite waiting on its hit, hex on a foe). It is authored on
+// the spell JSON as `combat_buff` with these same keys and copied onto the
+// target's combat state when the spell is cast. Memory-only, like all combat.
+type SpellBuff struct {
+	SpellID  string `json:"spell_id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	CasterID string `json:"caster_id,omitempty"`
+	// Target (authored): "self" (default), "ally" (self or the chosen ally),
+	// "party" (the caster and up to two allies) or "enemy" (the buff stays on
+	// the caster and marks the chosen foe — hex, hunter's mark).
+	Target string `json:"target,omitempty"`
+	// Rounds counts down at the start of the holder's turn; 0 = the rest of the fight.
+	Rounds int `json:"rounds,omitempty"`
+
+	ACBonus     int    `json:"ac_bonus,omitempty"`
+	ACFloor     int    `json:"ac_floor,omitempty"`     // AC can't be lower than this (barkskin)
+	AttackBonus int    `json:"attack_bonus,omitempty"` // flat, to weapon attack rolls (magic weapon)
+	AttackDice  string `json:"attack_dice,omitempty"`  // rolled and added to attack rolls (bless)
+	SaveDice    string `json:"save_dice,omitempty"`    // rolled and added to saving throws (bless, resistance)
+
+	// Extra damage when the holder hits. HitOnce spends the buff on the first
+	// hit (smites); MeleeOnly limits it to melee weapon hits; HitSpells lets it
+	// ride spell-attack hits too (hex). MarkedID limits it to one foe.
+	HitDice      string          `json:"hit_dice,omitempty"`
+	HitType      string          `json:"hit_type,omitempty"`
+	HitBonus     int             `json:"hit_bonus,omitempty"`
+	HitOnce      bool            `json:"hit_once,omitempty"`
+	MeleeOnly    bool            `json:"melee_only,omitempty"`
+	HitSpells    bool            `json:"hit_spells,omitempty"`
+	HitCondition *SpellCondition `json:"hit_condition,omitempty"`
+	MarkedID     string          `json:"marked_id,omitempty"`
+
+	// Defence.
+	Resist                []string `json:"resist,omitempty"`                 // halve damage of these types
+	AttackersDisadvantage bool     `json:"attackers_disadvantage,omitempty"` // blur, invisibility
+	RangedDefense         bool     `json:"ranged_defense,omitempty"`         // ranged attacks at the holder have disadvantage (fog)
+	WardTypes             []string `json:"ward_types,omitempty"`             // creatures of these types attack the holder at disadvantage
+	Immune                []string `json:"immune,omitempty"`                 // conditions that can't take hold (heroism: frightened)
+	Decoys                int      `json:"decoys,omitempty"`                 // illusory doubles: each takes one attack that would have hit
+	Sanctuary             bool     `json:"sanctuary,omitempty"`              // an attacker must pass a WIS save or lose the attack
+	EndsOnAttack          bool     `json:"ends_on_attack,omitempty"`         // drops when the holder attacks or casts at a foe
+	DeathWard             bool     `json:"death_ward,omitempty"`             // the first drop to 0 HP leaves the holder at 1
+	EasyEscape            bool     `json:"easy_escape,omitempty"`            // fleeing needs no distance and always works
+
+	// Temporary hit points: TempHP is rolled when the spell lands;
+	// TempHPEachTurn grants the caster's spellcasting modifier (min 1) at the
+	// start of each of the holder's turns (heroism).
+	TempHP         string `json:"temp_hp,omitempty"`
+	TempHPEachTurn int    `json:"temp_hp_each_turn,omitempty"`
+
+	// Retaliate deals damage back to a melee attacker that hits the holder;
+	// RetaliateWhileTempHP limits it to while temporary hit points remain
+	// (armor of agathys).
+	Retaliate            string `json:"retaliate,omitempty"`
+	RetaliateType        string `json:"retaliate_type,omitempty"`
+	RetaliateWhileTempHP bool   `json:"retaliate_while_temp_hp,omitempty"`
+
+	// Offence and movement.
+	NextAttackAdvantage bool     `json:"next_attack_advantage,omitempty"` // spent on the next attack roll
+	MeleeStat           string   `json:"melee_stat,omitempty"`            // "spellcasting": melee weapon attacks use the casting ability
+	WeaponDice          string   `json:"weapon_dice,omitempty"`           // replaces the weapon's damage die
+	Weapons             []string `json:"weapons,omitempty"`               // item ids MeleeStat/WeaponDice apply to (empty = any melee)
+	ExtraMove           int      `json:"extra_move,omitempty"`            // extra grid cells of movement per turn
+	Revive              bool     `json:"revive,omitempty"`                // cast on a downed ally: they get up at 1 HP
+
+	SaveDC int `json:"save_dc,omitempty"` // the caster's spell save DC, filled in at cast (sanctuary)
 }
 
 // Position is an X,Y coordinate on the combat grid.
@@ -205,6 +315,10 @@ type PlayerCombatState struct {
 	AbilitiesUsed      []string      `json:"abilities_used,omitempty"`        // once-per-combat abilities already spent this fight
 	// Helped: an ally used Help on you — your next attack has advantage.
 	Helped bool `json:"helped,omitempty"`
+	// Spell effects on this combatant: buffs from their own spells or an
+	// ally's, and temporary hit points, which soak damage before HP does.
+	SpellBuffs []SpellBuff `json:"spell_buffs,omitempty"`
+	TempHP     int         `json:"temp_hp,omitempty"`
 }
 
 // MonsterInstance is a live monster in the current combat encounter

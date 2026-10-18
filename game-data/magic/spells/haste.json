@@ -1,0 +1,51 @@
+{
+  "name": "Haste",
+  "description": "Choose a willing creature that you can see within range. Until the spell ends, the target's speed is doubled, it gains a +2 bonus to AC, and it has advantage on Dexterity saving throws.",
+  "level": 3,
+  "school": "transmutation",
+  "casting_time": "action",
+  "range": "2",
+  "range_long": "2",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "+2 AC and +6 squares of movement a turn for 10 rounds (concentration).",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "combat",
+    "buff",
+    "concentration"
+  ],
+  "classes": [
+    "sorcerer",
+    "wizard",
+    "artificer"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 5,
+  "prep_time": 195,
+  "notes": [
+    "In combat: you or an ally gain +2 AC and 6 more squares of movement a turn for 10 rounds. Concentration.",
+    "Ether-essence ×1 (an orb provides it)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "ether-essence",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Orb provides unlimited ether-essence"
+  },
+  "combat_buff": {
+    "target": "ally",
+    "rounds": 10,
+    "ac_bonus": 2,
+    "extra_move": 6
+  }
+}

@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Touched weapon deals an extra 1d4 force damage on each hit for 1 minute (concentration).",
+  "effect": "Your weapon crackles with arcane force: +1d4 force damage on every weapon hit for 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -32,11 +32,16 @@
   "action_cost": "action",
   "mana_cost": 2,
   "notes": [
-    "Concentration required — competing with other concentration spells",
-    "Mana 2: sustained damage buff lasting up to 10 combat rounds is stronger than a single-hit cantrip"
+    "In combat: +1d4 force damage on every weapon hit for 10 rounds. Concentration.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "hit_dice": "1d4",
+    "hit_type": "force"
   }
 }

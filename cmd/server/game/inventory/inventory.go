@@ -234,14 +234,14 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 	// "cures": ["poisoned"] lifts the matching status effects (poisoned → the
 	// "poison" effect). In a fight the combat conditions are cured separately.
 	if cures, ok := properties["cures"].([]interface{}); ok {
+		var names []string
 		for _, c := range cures {
-			name, _ := c.(string)
-			for _, id := range cureEffectIDs[strings.ToLower(name)] {
-				if effects.HasActiveEffect(state, id) {
-					effects.RemoveEffect(state, id)
-					effectMessages = append(effectMessages, fmt.Sprintf("No longer %s", name))
-				}
+			if name, _ := c.(string); name != "" {
+				names = append(names, name)
 			}
+		}
+		for _, name := range CureEffects(state, names) {
+			effectMessages = append(effectMessages, fmt.Sprintf("No longer %s", name))
 		}
 	}
 
@@ -1056,4 +1056,24 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 // represent it outside combat.
 var cureEffectIDs = map[string][]string{
 	"poisoned": {"poison"},
+}
+
+// CureEffects lifts the status effects behind each named condition (an
+// antidote's or a spell's `cures` list) and returns the conditions that were
+// actually there.
+func CureEffects(state *types.SaveFile, conditions []string) []string {
+	var cured []string
+	for _, name := range conditions {
+		lifted := false
+		for _, id := range cureEffectIDs[strings.ToLower(name)] {
+			if effects.HasActiveEffect(state, id) {
+				effects.RemoveEffect(state, id)
+				lifted = true
+			}
+		}
+		if lifted {
+			cured = append(cured, name)
+		}
+	}
+	return cured
 }

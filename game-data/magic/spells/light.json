@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "1 hour",
+  "duration": "4 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Emits bright light in a 20-foot radius, dim light for 20 feet beyond. Hidden or invisible creatures in the area have disadvantage on Stealth checks.",
+  "effect": "Bright, searching light for 4 hours: +2 Perception (hidden places along the road, things lying in wait).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,11 +30,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Illuminates a 20-foot radius for 1 hour; useful in dark dungeons",
-    "Penalizes Stealth for hidden creatures — effectively a detection tool"
+    "Out of combat: +2 Perception for 4 hours. Perception finds hidden POIs as you travel and spots ambushers before they spot you."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "revealing-light"
 }

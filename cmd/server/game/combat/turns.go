@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/types"
 )
 
@@ -54,7 +55,13 @@ func startPlayerTurn(cs *types.CombatSession, save *types.SaveFile) {
 	state.ActionUsed = false
 	state.BonusActionUsed = false
 	state.MovementSpent = 0
-	state.MovementBudget = playerMovementBudget(save.Race)
+	// Spells add movement (longstrider, expeditious retreat); being held fast
+	// (restrained, grappled) takes it all away.
+	tickBuffs(state)
+	state.MovementBudget = playerMovementBudget(save.Race) + effects.ModifierTotal(save, "combat_move") + buffMovement(state)
+	if IsSpeedZero(state.Conditions) {
+		state.MovementBudget = 0
+	}
 	state.Dodging = false
 	state.HeldPosition = false
 	state.ReactionUsed = false
@@ -77,7 +84,7 @@ func endPlayerTurn(cs *types.CombatSession, save *types.SaveFile) []string {
 	state := &actor(cs).CombatState
 	state.Ambushing = false
 	log := TickCreatureConditions(whoName(cs, actor(cs)), &state.Conditions,
-		func(stat string) int { return playerSaveTotal(save, stat) })
+		func(stat string) int { return playerSaveTotal(state, save, stat) })
 	log = append(log, tickPlayerAbilities(state)...)
 	// Ending a turn in a hazard burns again.
 	return append(log, playerHazard(cs, save, actor(cs).Pos, "are caught in")...)
@@ -206,17 +213,21 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 	}
 
 	var log []string
+	// Burning (searing smite, acid arrow) hurts at the start of its turn.
+	if log = conditionDamage(cs, save, m); !m.IsAlive {
+		return log
+	}
 	// Caught by a sneak attack: it spends its first turn getting its bearings.
 	if m.Surprised {
 		m.Surprised = false
-		return []string{fmt.Sprintf("  %s is caught off guard and can't act this turn.", m.Name)}
+		return append(log, fmt.Sprintf("  %s is caught off guard and can't act this turn.", m.Name))
 	}
 	if IsIncapacitated(m.Conditions) {
 		log = append(log, fmt.Sprintf("  %s is %s and can't act.", m.Name, incapacitatingConditionName(m.Conditions)))
 		return append(log, tickMonsterConditions(m)...)
 	}
 
-	playerAC := computePlayerAC(db, save)
+	playerAC := computePlayerAC(db, cs, save)
 
 	if opening {
 		dexMod := StatMod(GetStatFromMap(effectiveStats(save), "dexterity"))
@@ -273,6 +284,12 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 	dmg, actionLog := ApplyMonsterAction(cs, m, decision, playerAC, false, 0, save)
 	log = append(log, actionLog...)
 	log = append(log, damagePlayer(cs, save, dmg)...)
+	if dmg > 0 && cs.Phase == "active" {
+		log = append(log, tryDamagedReaction(cs, actor(cs), save, m)...)
+		if !m.IsAlive {
+			return log
+		}
+	}
 	// Ending its turn in a hazard burns it.
 	log = append(log, monsterHazard(db, cs, save, m, m.Pos)...)
 

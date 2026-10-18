@@ -747,14 +747,12 @@ func loadKnownSpells(database *sql.DB, class string) ([]string, error) {
 		return []string{}, nil // Not a caster
 	}
 
-	knownSpells := []string{}
-
-	if cantrips, ok := classSpells["cantrips"]; ok {
-		knownSpells = append(knownSpells, cantrips...)
-	}
-
-	if level1, ok := classSpells["level1"]; ok {
-		knownSpells = append(knownSpells, level1...)
+	// Cantrips first, then each spell level in order ("level1", "level2", …).
+	// Higher-level spells are known from the start and prepared once the
+	// character has slots of that level.
+	knownSpells := append([]string{}, classSpells["cantrips"]...)
+	for lvl := 1; lvl <= 9; lvl++ {
+		knownSpells = append(knownSpells, classSpells[fmt.Sprintf("level%d", lvl)]...)
 	}
 
 	return knownSpells, nil

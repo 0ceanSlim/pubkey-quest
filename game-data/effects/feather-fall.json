@@ -1,0 +1,20 @@
+{
+  "id": "feather-fall",
+  "name": "Feather Fall",
+  "description": "No fall can hurt you: you climb and leap without fear (+3 Athletics).",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
+    {
+      "stat": "skill_athletics",
+      "type": "constant",
+      "value": 3
+    }
+  ],
+  "message": "You feel light as a feather.",
+  "visible": true
+}

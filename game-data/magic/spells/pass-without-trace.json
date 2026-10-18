@@ -1,0 +1,44 @@
+{
+  "name": "Pass without Trace",
+  "description": "A veil of shadows and silence radiates from you, masking you from detection. For the duration, you can't be tracked except by magical means, and you move without a sound.",
+  "level": 2,
+  "school": "abjuration",
+  "casting_time": "action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "2 hours",
+  "concentration": false,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Shadows and silence cling to you: +10 Thieving for 2 hours.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "utility",
+    "stealth"
+  ],
+  "classes": [
+    "druid",
+    "ranger"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 85,
+  "notes": [
+    "Out of combat: +10 Thieving for 2 hours: road encounters rarely notice you first, and you can sneak away or sneak attack.",
+    "Ash ×1 (burned mistletoe; always consumed)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "ash",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": ""
+  },
+  "applies_effect": "pass-without-trace"
+}

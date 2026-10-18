@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Gain resistance to bludgeoning, piercing, and slashing damage from weapon attacks until the end of your next turn.",
+  "effect": "Until the start of your next turn, you resist bludgeoning, piercing and slashing damage (take half).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,10 +31,19 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Grants weapon-damage resistance for 1 round at the cost of your action — situationally useful near death or when tanking"
+    "In combat: halves bludgeoning, piercing and slashing damage until your next turn.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 1,
+    "resist": [
+      "bludgeoning",
+      "piercing",
+      "slashing"
+    ]
   }
 }

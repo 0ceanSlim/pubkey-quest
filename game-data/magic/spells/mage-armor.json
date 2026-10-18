@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Touch target gains AC 13 + Dex modifier for 8 hours (no concentration, no armor allowed)",
+  "effect": "A protective field of force: while you wear no body armour, your AC is 13 + your Dexterity modifier, for 8 hours.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,9 +30,8 @@
   "mana_cost": 3,
   "prep_time": 120,
   "notes": [
-    "All-day no-concentration buff — highest prep cost of L1 spells",
-    "Only valid while the target wears no armor; spell ends if armor is donned",
-    "Staff-equipped casters get mana-crystals free each cast"
+    "AC becomes 13 + DEX for 8 hours while you wear no body armour (a shield still adds). Shows on the Equipment tab.",
+    "Cast it in the morning; it lasts the day's road."
   ],
   "material_component": {
     "required": [
@@ -42,5 +41,6 @@
       }
     ],
     "focus_provided": "Staff provides unlimited mana-crystals"
-  }
+  },
+  "applies_effect": "mage-armor"
 }

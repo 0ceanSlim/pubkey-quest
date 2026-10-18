@@ -1,0 +1,20 @@
+{
+  "id": "unseen-servant",
+  "name": "Unseen Servant",
+  "description": "An invisible servant carries for you: +30 carrying capacity.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
+    {
+      "stat": "weight_capacity",
+      "type": "constant",
+      "value": 30
+    }
+  ],
+  "message": "An invisible servant takes up your load.",
+  "visible": true
+}

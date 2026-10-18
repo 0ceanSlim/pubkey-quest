@@ -15,6 +15,10 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
+  "aoe": {
+    "shape": "sphere",
+    "radius": 4
+  },
   "tags": [
     "combat",
     "damage",
@@ -31,10 +35,8 @@
   "prep_time": 165,
   "notes": [
     "Dexterity save: fail = 8d6 fire damage, success = half damage",
-    "Hits all creatures in a 20-foot-radius sphere — can harm allies",
-    "Fire spreads around corners; ignites unattended flammable objects",
-    "Engine gap: AoE-all-targets-in-radius (DEX save, half-on-success) not yet implemented [~]",
-    "Modeled by primary DEX save shape; full AoE radius resolution requires engine support"
+    "Area: every enemy within 4 cells (20 ft) of the target saves on its own; allies are spared",
+    "Fire spreads around corners; ignites unattended flammable objects"
   ],
   "material_component": {
     "required": [

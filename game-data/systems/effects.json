@@ -112,6 +112,132 @@
       "description": "Modifies maximum carry weight",
       "category": "capacity",
       "allows_periodic": false
+    },
+    "armor_class": {
+      "id": "armor_class",
+      "property": "armor_class_modifier",
+      "description": "Adds to armour class (read by combat and the Equipment tab)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "unarmored_ac": {
+      "id": "unarmored_ac",
+      "property": "unarmored_ac_base",
+      "description": "Base AC (plus DEX) while no body armour is worn — mage armor; the higher of this and the gear's AC counts",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "armored_ac": {
+      "id": "armored_ac",
+      "property": "armored_ac_modifier",
+      "description": "Adds to armour class only while armour or a shield is worn (mending)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "ac_floor": {
+      "id": "ac_floor",
+      "property": "ac_floor",
+      "description": "Armour class can't be lower than this (barkskin)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "travel_speed": {
+      "id": "travel_speed",
+      "property": "travel_speed_percent",
+      "description": "Travel speed, in percent (25 = 25% faster), multiplied with the Survival bonus",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "ambush_ward": {
+      "id": "ambush_ward",
+      "property": "ambush_ward",
+      "description": "When positive, a travel encounter can't open with you ambushed (alarm)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "temp_hp": {
+      "id": "temp_hp",
+      "property": "combat_temp_hp",
+      "description": "Temporary hit points you start each fight with while the effect lasts (false life, aid)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "combat_move": {
+      "id": "combat_move",
+      "property": "combat_move_cells",
+      "description": "Extra grid squares of movement per combat turn (longstrider)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "combat_help": {
+      "id": "combat_help",
+      "property": "combat_help",
+      "description": "When positive, your first attack of each fight has advantage (a familiar's Help)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "skill_all": {
+      "id": "skill_all",
+      "property": "skill_bonus.all",
+      "description": "Adds to every skill (guidance)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_athletics": {
+      "id": "skill_athletics",
+      "property": "skill_bonus.athletics",
+      "description": "Adds to the Athletics skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_crafting": {
+      "id": "skill_crafting",
+      "property": "skill_bonus.crafting",
+      "description": "Adds to the Crafting skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_influence": {
+      "id": "skill_influence",
+      "property": "skill_bonus.influence",
+      "description": "Adds to the Influence skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_medicine": {
+      "id": "skill_medicine",
+      "property": "skill_bonus.medicine",
+      "description": "Adds to the Medicine skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_perception": {
+      "id": "skill_perception",
+      "property": "skill_bonus.perception",
+      "description": "Adds to the Perception skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_resolve": {
+      "id": "skill_resolve",
+      "property": "skill_bonus.resolve",
+      "description": "Adds to the Resolve skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_survival": {
+      "id": "skill_survival",
+      "property": "skill_bonus.survival",
+      "description": "Adds to the Survival skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
+    },
+    "skill_thieving": {
+      "id": "skill_thieving",
+      "property": "skill_bonus.thieving",
+      "description": "Adds to the Thieving skill (checks, gates, locks, stealth, travel)",
+      "category": "stat",
+      "allows_periodic": false
     }
   }
 }

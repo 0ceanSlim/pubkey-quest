@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "1 hour",
+  "duration": "8 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
-  "heal": "1d4+4",
-  "effect": "Gain 1d4+4 temporary hit points for 1 hour (no concentration required)",
+  "heal": null,
+  "effect": "A cold shell of borrowed life: 1d4+4 temporary HP now in a fight, or 7 temporary HP at the start of every fight for the next 8 hours.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,11 +31,15 @@
   "mana_cost": 2,
   "prep_time": 40,
   "notes": [
-    "Temporary HP tracked separately — they vanish after 1 hour or when depleted",
-    "No concentration — stacks with other concentration spells"
+    "In combat: 1d4+4 temporary HP, which soak damage before your HP.",
+    "Out of combat: for 8 hours you start every fight with 7 temporary HP."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "combat_buff": {
+    "temp_hp": "1d4+4"
+  },
+  "applies_effect": "false-life"
 }

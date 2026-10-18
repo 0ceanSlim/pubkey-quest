@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "2",
   "range_long": "2",
-  "duration": "1 minute",
+  "duration": "2 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Creates a minor supernatural effect: booming voice, flickering flames, tremors, illusory sounds, door/window manipulation, or altered eye appearance.",
+  "effect": "Your voice booms, flames gutter and doors fly open at your word: +2 Influence for 2 hours.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -26,11 +26,11 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Pure flavor/utility — no combat application; 3 effects can be active at once",
-    "Range 2 = 30 feet (D&D 5e: 30 feet)"
+    "Out of combat: +2 Influence for 2 hours (talking your way through, intimidating, persuading)."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "thaumaturgy"
 }

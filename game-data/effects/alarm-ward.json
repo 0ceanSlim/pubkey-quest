@@ -1,0 +1,20 @@
+{
+  "id": "alarm-ward",
+  "name": "Alarm",
+  "description": "A ward rings in your mind when anything closes on you: nothing can ambush you.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "ambush_ward",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "You set a ward. Nothing will take you unawares.",
+  "visible": true
+}

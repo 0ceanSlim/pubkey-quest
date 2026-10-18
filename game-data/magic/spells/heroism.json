@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Touch target is immune to frightened; gains temp HP equal to spellcasting modifier at start of each turn (concentration, 1 minute)",
+  "effect": "You or an ally can't be frightened, and gain temporary HP equal to your spellcasting modifier at the start of each turn, for 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,12 +30,18 @@
   "mana_cost": 2,
   "prep_time": 60,
   "notes": [
-    "Concentration — the temp HP replenish each turn while you maintain focus",
-    "Frightened immunity is significant vs. fear-inducing enemies",
-    "Touch range — must be adjacent to the target"
+    "In combat: the target can't be frightened (it ends at once) and tops up to temporary HP equal to your spellcasting modifier each turn. Concentration, 10 rounds."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "ally",
+    "rounds": 10,
+    "immune": [
+      "frightened"
+    ],
+    "temp_hp_each_turn": 1
   }
 }

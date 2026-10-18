@@ -1,0 +1,20 @@
+{
+  "id": "invisible",
+  "name": "Invisible",
+  "description": "No one can see you: +6 Thieving.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 60
+  },
+  "modifiers": [
+    {
+      "stat": "skill_thieving",
+      "type": "constant",
+      "value": 6
+    }
+  ],
+  "message": "You fade from sight.",
+  "visible": true
+}

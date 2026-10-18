@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "1 minute",
-  "concentration": true,
+  "duration": "2 hours",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Target gains a +1d4 bonus to one ability check of their choice before the spell ends.",
+  "effect": "A divine nudge: +2 to every skill for 2 hours.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -28,11 +28,12 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Touch range; concentration lasts up to 1 minute",
-    "Bonus applies to ability checks (skills, tool checks) — not attack rolls or saves"
+    "Out of combat: +2 to every skill for 2 hours: locks, stealth, perception, POI checks, travel.",
+    "Cast it before a hard check."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "guided"
 }

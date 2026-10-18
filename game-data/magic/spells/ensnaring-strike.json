@@ -11,7 +11,7 @@
   "damage": "1d6",
   "damage_type": "piercing",
   "heal": null,
-  "effect": "Empowers next weapon hit: on hit target saves STR or is restrained by vines (1d6 piercing/turn while restrained).",
+  "effect": "Your next weapon hit lashes the target with thorny vines: on a failed Strength save it's restrained and takes 1d6 piercing at the start of each of its turns until it breaks free (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,9 +29,7 @@
   "mana_cost": 3,
   "prep_time": 70,
   "notes": [
-    "On-hit rider: secondary STR save vs. restrained (DoT while restrained) requires on-hit-rider + restrained condition engine support — see proposals.",
-    "Shape: buff (no save on cast, no spell attack). Mana 3: hard control (restrained) + DoT — strongest ranger L1 crowd control.",
-    "Spider-silk×1 (binding domain, 25gp, no focus provides it — always consumed). Tree-sap stripped: yew-wand provides it free, so it was not a real cost for rangers."
+    "In combat (bonus action): your next weapon hit, melee or ranged, can restrain the target (Strength save). Restrained, it can't move, attacks at disadvantage, is easier to hit, and takes 1d6 piercing each turn. It saves again each turn. Concentration."
   ],
   "material_component": {
     "required": [
@@ -41,5 +39,16 @@
       }
     ],
     "focus_provided": "No focus provides spider-silk — always consumed."
+  },
+  "combat_buff": {
+    "hit_once": true,
+    "hit_condition": {
+      "condition": "restrained",
+      "save": "strength",
+      "save_each_turn": "strength",
+      "rounds": 10,
+      "damage_dice": "1d6",
+      "damage_type": "piercing"
+    }
   }
 }

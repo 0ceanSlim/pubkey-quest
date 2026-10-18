@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "10 minutes",
-  "concentration": true,
+  "duration": "2 hours",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Sense magical auras within 30 feet; identify school of magic on visible targets; advantage on saves vs. magical effects",
+  "effect": "Magical auras glow at the edge of sight for 2 hours: +3 Perception and +2 Thieving (wards, glyphs, trapped locks).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -34,12 +34,11 @@
   "mana_cost": 2,
   "prep_time": 35,
   "notes": [
-    "Can also be cast as a ritual (10 minutes, no mana cost) — modeled as standard cast here",
-    "Concentration — requires focus to maintain the magical sense",
-    "Range is self; awareness extends 30 ft (6 grid cells) as an aura"
+    "Out of combat: +3 Perception and +2 Thieving for 2 hours."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "sense-magic"
 }

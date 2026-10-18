@@ -6,12 +6,12 @@
   "casting_time": "1 minute",
   "range": "0",
   "range_long": "0",
-  "duration": "instantaneous",
+  "duration": "8 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Removes one level of degradation from touched armor or shield.",
+  "effect": "Dents knocked out, straps and rivets made whole: +1 AC for 8 hours while you wear armour or carry a shield.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,11 +31,12 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Casting time is 1 minute — out-of-combat only; action_cost reflects combat cost if somehow cast in combat",
-    "Touch range; targets a piece of armor or shield"
+    "+1 AC for 8 hours, only while you wear armour or a shield.",
+    "1-minute casting time in the fiction; cast it in camp before the day's road."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "mended-armor"
 }

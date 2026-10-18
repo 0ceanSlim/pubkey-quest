@@ -28,10 +28,8 @@
   "mana_cost": 3,
   "prep_time": 55,
   "notes": [
-    "Range: D&D 5e 120 ft; 4 grid (60 ft) for L1 range balance.",
-    "On-hit advantage-next-attack secondary effect requires a linked-attack-bonus engine mechanic — see proposals.",
-    "4d6 radiant is the highest L1 damage (avg 14). Mana 3 warranted.",
-    "Stub had blessed-incense×2+holy-water (three components, over-taxing). Reduced to blessed-incense×1; amulet provides it free for clerics."
+    "4d6 radiant on a hit, and the target glows: attacks against it have advantage until the end of its next turn.",
+    "Blessed-incense ×1; an amulet provides it free for clerics."
   ],
   "material_component": {
     "required": [
@@ -41,5 +39,9 @@
       }
     ],
     "focus_provided": "Amulet provides unlimited blessed-incense (free for clerics with amulet)."
+  },
+  "applies_condition": {
+    "condition": "outlined",
+    "rounds": 2
   }
 }

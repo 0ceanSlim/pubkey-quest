@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "1 hour",
+  "duration": "8 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Touch target gains +10 ft movement speed for 1 hour (no concentration required).",
+  "effect": "A long, tireless stride for 8 hours: you travel 25% faster, and move 2 more squares a turn in any fight.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -32,11 +32,11 @@
   "mana_cost": 2,
   "prep_time": 35,
   "notes": [
-    "Speed increase requires a speed-modifier effect in the effects system (1 hour = 60 minutes timer).",
-    "Minor movement utility, no concentration, 1-hour duration — straightforward transmutation buff. Correctly free."
+    "Out of combat: travel 25% faster for 8 hours, enough for most roads; +2 squares of movement in any fight in that time."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "longstrider"
 }

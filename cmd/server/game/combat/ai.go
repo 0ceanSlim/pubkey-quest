@@ -82,7 +82,8 @@ func DecideMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance
 		aggression = "aggressive"
 	}
 	r := monsterRange(cs, monster)
-	wantsToFlee := hpFraction <= monster.Data.Behavior.FleeThreshold && aggression != "berserker"
+	wantsToFlee := hpFraction <= monster.Data.Behavior.FleeThreshold && aggression != "berserker" &&
+		!HasCondition(monster.Conditions, "dueled") // a compelled duel holds it to the fight
 	if wantsToFlee && r >= fleeMinPlayerRange {
 		// Already at an edge → escape this turn.
 		if atGridEdge(monster.Pos, cs.GridWidth, cs.GridHeight) {
@@ -220,6 +221,9 @@ func MonsterMeleeReach(monster *types.MonsterInstance) int {
 func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerMeleeReach int, oaTrigger func() []string) []string {
 	if decision.Move == 0 {
 		return nil
+	}
+	if IsSpeedZero(monster.Conditions) {
+		return []string{fmt.Sprintf("  %s is held fast and can't move.", monster.Name)}
 	}
 	target := aiTarget(cs, monster)
 	if target == nil {
@@ -445,7 +449,8 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 		monsterAdvantage := 0
 		attackBonus := action.AttackBonus
 		var playerConds []types.CombatCondition
-		if t := aiTarget(cs, monster); t != nil {
+		target := aiTarget(cs, monster) // picked once: "random" targeting must not re-roll mid-attack
+		if t := target; t != nil {
 			if t.CombatState.Dodging {
 				monsterAdvantage = -1
 			}
@@ -466,6 +471,17 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 		// Conditions: the monster's own (poisoned/frightened/…) impose disadvantage;
 		// the player's (prone/restrained/…) grant the monster advantage.
 		monsterAdvantage += ConditionAttackAdvantage(monster.Conditions, playerConds)
+		// Spells: the target's wards (blur, protection from evil, sanctuary) and
+		// what's been cast on the monster (bane, a compelled duel).
+		if target != nil {
+			adv, penalty, lost, defLog := attackDefense(cs, target, monster, IsRangedAction(action.Type))
+			logEntries = append(logEntries, defLog...)
+			if lost {
+				return 0, logEntries
+			}
+			monsterAdvantage += adv
+			attackBonus -= penalty
+		}
 		result := ResolveAttackRoll(attackBonus, playerAC, monsterAdvantage)
 
 		logEntries = append(logEntries,
@@ -476,6 +492,15 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 			),
 			outcomeLine(result),
 		)
+
+		// A hit can still be turned aside: an illusory double takes it, or a
+		// prepared shield spell lifts AC past the roll.
+		if result.IsHit && target != nil {
+			if deflected, defLog := deflectHit(cs, target, save, monster, result, playerAC); deflected {
+				logEntries = append(logEntries, defLog...)
+				break
+			}
+		}
 
 		if result.IsHit {
 			// Reflex save: player hasn't chosen their stance, so they may dodge on instinct.
@@ -492,7 +517,6 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 			}
 
 			dmg := ResolveDamageToPlayer(action.Hit.Dice, action.Hit.Mod, result.IsCrit)
-			damageDealt = dmg
 			critStr := ""
 			if result.IsCrit {
 				critStr = " CRITICAL HIT!"
@@ -501,8 +525,18 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 				"  %s deals %d %s damage.%s",
 				monster.Name, dmg, action.Hit.Type, critStr,
 			))
+			if target != nil {
+				var resistLog []string
+				dmg, resistLog = resistDamage(&target.CombatState, action.Hit.Type, dmg)
+				logEntries = append(logEntries, resistLog...)
+			}
+			damageDealt = dmg
 			// On-hit condition rider: the player saves or gains the condition.
 			logEntries = append(logEntries, applyMonsterConditionRider(cs, save, action)...)
+			// Armor of agathys: a melee attacker that hits you pays for it.
+			if target != nil && !IsRangedAction(action.Type) {
+				logEntries = append(logEntries, retaliate(cs, target, save, monster)...)
+			}
 		}
 	}
 	return damageDealt, logEntries

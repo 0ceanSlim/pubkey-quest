@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Gain advantage on your first attack roll against the target on your next turn.",
+  "effect": "You glimpse your foe's defences: your next attack roll (weapon or spell) has advantage.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,11 +31,15 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Generally weak: costs your action to gain advantage on the next action — break-even at best",
-    "Advantage-on-next-attack condition pending engine support"
+    "In combat: your next attack roll has advantage, weapon or spell, if you make it by the end of your next turn.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 2,
+    "next_attack_advantage": true
   }
 }

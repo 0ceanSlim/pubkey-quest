@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "10 minutes",
+  "duration": "4 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "You gain advantage on Perception checks, beasts within range treat you as non-threatening, and once per round you may use an action to command a willing beast to attack. Lasts 10 minutes.",
+  "effect": "The beasts of the wild tell you what they've seen for 4 hours: +3 Survival and +2 Perception.",
   "spell_attack": null,
   "save_type": null,
   "type": "Spell",
@@ -30,12 +30,11 @@
   "mana_cost": 2,
   "prep_time": 55,
   "notes": [
-    "Can be cast as a ritual (add 10 minutes to casting time) — saves the mana cost.",
-    "The homebrew version adds tactical beast-command. Engine support for commanding allied NPCs/beasts is a mechanic gap — see spell-mechanics-proposals.md.",
-    "Beasts commanded to attack require an available beast NPC within range."
+    "Out of combat: +3 Survival and +2 Perception for 4 hours: faster travel, foraging, ambushes spotted."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "speak-with-animals"
 }

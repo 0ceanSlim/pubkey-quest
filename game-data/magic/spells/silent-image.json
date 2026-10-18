@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "4",
   "range_long": "4",
-  "duration": "10 minutes",
+  "duration": "2 hours",
   "concentration": true,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "A silent visual illusion of your choice appears within range. You can use your action to move it up to 20 feet. Creatures that succeed on an Investigation check (INT) realize the image is an illusion; physical interaction reveals it immediately.",
+  "effect": "An illusion to hide behind. In a fight: an illusory double takes the next attack that would hit you (concentration). On the road: +3 Thieving for 2 hours.",
   "spell_attack": null,
   "save_type": null,
   "type": "Spell",
@@ -30,11 +30,16 @@
   "mana_cost": 2,
   "prep_time": 55,
   "notes": [
-    "The illusion produces no sound, smell, or physical substance — touching it reveals nothing is there.",
-    "Creatures that succeed an INT Investigation check see through it; engine mechanic for investigation-check interaction pending — see spell-mechanics-proposals.md."
+    "In combat: the next attack that would hit you strikes an illusory double instead. Concentration, 10 rounds.",
+    "Out of combat: +3 Thieving for 2 hours."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "decoys": 1
+  },
+  "applies_effect": "silent-image"
 }

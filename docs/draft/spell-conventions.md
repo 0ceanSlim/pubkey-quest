@@ -392,3 +392,67 @@ anyway — the engine ignores unknown classes gracefully and having it prepares 
 class additions.
 
 ---
+
+## Mechanics schema (2026-10-17)
+
+Every spell must **do something in play**. Damage/heal shapes resolve from `damage`,
+`heal`, `spell_attack`, `save_type` as before; everything else is data the engine reads
+(`game/spells/cast.go`, `game/combat/spellbuffs.go`, areas in `game/combat/area.go`).
+`codex --validate` checks these blocks (unknown keys, conditions, shapes, effect/item ids).
+
+- **`applies_condition`** — lands on the target of a save spell (on a failed save) or an
+  attack spell (on a hit), or always for a no-roll spell (color spray).
+  `{ "condition", "rounds" (0 = rest of fight), "save_each_turn" (stat), "creature_types",
+  "damage_dice", "damage_type" }`. Conditions: blinded, poisoned, frightened, prone,
+  restrained, grappled, stunned, paralyzed, unconscious, outlined, charmed, distracted,
+  exhausted, laughing, baned, dueled, burning, moonlit, beset. Monster
+  `condition_immunities` are respected. A concentration spell's conditions end with it.
+- **`aoe`** — a save spell's area: `{ "shape", "radius" }`, radius in 5-ft grid cells
+  (Chebyshev, like every combat range). Every enemy caught makes its own save against the
+  spell's `save_type` (required): full `damage` on a failure, half on a success, and the
+  `applies_condition` rider on a failure only. Each result goes through the normal damage,
+  XP and kill path; damage is rolled per creature.
+  - `sphere` — cells within `radius` of the target's cell (fireball 4, shatter 2,
+    moonbeam 1). Squares and cubes centred on a point use half their side, rounded down:
+    faerie fire's 20-ft cube and entangle's 20-ft square are 2, grease's 10-ft square is 1.
+  - `self_radius` — cells within `radius` of the caster, caster excluded (arms of hadar 2,
+    word of radiance 1, blinding flash 2, thunderwave 1 — its 15-ft cube is about the 8
+    cells around you). The chosen target doesn't matter; it needs someone in reach.
+  - `cone` — from the caster toward the target, `radius` long, as wide either side of the
+    axis as half the distance out (burning hands 3: 1, 3, 3 cells; fear 6).
+  - `line` — one cell wide from the caster through the target, `radius` long (lightning
+    bolt 20).
+  A cone or line must reach the monster it's aimed at, or the cast is refused before it
+  costs anything. A wall that blocks sight from the area's origin (the target's cell for a
+  sphere, the caster otherwise) shelters whoever is behind it. **Allies are never caught**
+  — nor is the caster: spells are aimed by picking a monster with no template on the board,
+  so friendly fire would land blind. (A future `friendly_fire` flag could opt a spell in.)
+- **`combat_buff`** — a `types.SpellBuff` on `target`: `self` (default), `ally`, `party`
+  (caster + 2 nearest), or `enemy` (stays on the caster, marks the foe). Keys:
+  `rounds` (ticks at the start of the holder's turn; 0 = rest of fight), `ac_bonus`,
+  `ac_floor`, `attack_bonus`, `attack_dice`, `save_dice`, `hit_dice`/`hit_type`/`hit_bonus`
+  with `hit_once`, `melee_only`, `hit_spells`, `hit_condition` (a `SpellCondition` with
+  `save`), `resist`, `attackers_disadvantage`, `ranged_defense`, `ward_types`, `immune`,
+  `decoys`, `sanctuary`, `ends_on_attack`, `death_ward`, `easy_escape`, `temp_hp`,
+  `temp_hp_each_turn` (author `1`; becomes the caster's casting mod), `retaliate`,
+  `retaliate_type`, `retaliate_while_temp_hp`, `next_attack_advantage`, `melee_stat`,
+  `weapon_dice`, `weapons`, `extra_move`, `revive`.
+- **`applies_effect`** — an effect id (`game-data/effects/`) applied to the caster.
+  Spell-granted stats: `skill_<id>`, `skill_all`, `armor_class`, `unarmored_ac` (mage
+  armor), `armored_ac`, `ac_floor`, `travel_speed` (%), `ambush_ward`, `temp_hp` (seeded
+  into every fight), `combat_move`, `combat_help`, plus the usual abilities/resources and
+  `weight_capacity`. Casting again refreshes rather than stacks. Out-of-combat durations
+  must be long enough to matter at 144× (a road is 8–24 game hours): 2–8 hours typical.
+- **Both `combat_buff` and `applies_effect`**: cast in a fight → the buff; cast outside →
+  the effect (expeditious retreat, false life, fog cloud, aid, invisibility).
+- **`cures`** — condition names ended on the target, and their status effects
+  (`poisoned` → the `poison` effect) out of combat.
+- **`creates_item`** — `{ "item", "quantity" }` added to the caster's inventory.
+- **Reactions** — `action_cost: "reaction"` + `reaction_trigger`: `hit` (shield: fires
+  only when its `ac_bonus` would turn the hit into a miss) or `damaged` (hellish rebuke,
+  at the attacker if in `range`). Prepared reaction spells cast themselves, once a round,
+  paying mana and components (at hand) as normal.
+- A spell with **no out-of-combat use** (no heal/effect/cure/item) is refused out of
+  combat before it costs anything, and the Spells tab offers no Cast for it.
+
+---

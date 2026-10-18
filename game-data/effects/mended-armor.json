@@ -1,0 +1,20 @@
+{
+  "id": "mended-armor",
+  "name": "Mended Armor",
+  "description": "Dents knocked out, straps and rivets made whole: +1 AC while you wear armour or carry a shield.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "armored_ac",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "Your armour knits itself whole.",
+  "visible": true
+}

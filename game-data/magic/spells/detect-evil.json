@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "10 minutes",
-  "concentration": true,
+  "duration": "2 hours",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Sense aberrations, celestials, elementals, fey, fiends, and undead within 30 feet; know their location while concentration holds",
+  "effect": "For 2 hours you feel the undead, fiends and fey before they reach you: nothing can ambush you, and +2 Resolve.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,12 +29,11 @@
   "mana_cost": 2,
   "prep_time": 40,
   "notes": [
-    "Concentration — requires maintaining focus for up to 10 minutes",
-    "Primarily an exploration/dungeoneering spell — not typically cast in combat",
-    "Range is self; awareness extends 30 ft (6 grid cells) as an aura"
+    "Out of combat: for 2 hours a travel encounter can't open with you ambushed, and +2 Resolve."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "sense-evil"
 }

@@ -1,0 +1,48 @@
+{
+  "name": "Lesser Restoration",
+  "description": "You touch a creature and can end either one disease or one condition afflicting it. The condition can be blinded, deafened, paralyzed, or poisoned.",
+  "level": 2,
+  "school": "abjuration",
+  "casting_time": "action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "instantaneous",
+  "concentration": false,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Ends being blinded, paralyzed or poisoned.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "utility",
+    "healing",
+    "support"
+  ],
+  "classes": [
+    "bard",
+    "cleric",
+    "druid",
+    "paladin",
+    "ranger",
+    "artificer"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 2,
+  "prep_time": 80,
+  "notes": [
+    "Ends blinded, paralyzed and poisoned on you or an ally, in or out of combat.",
+    "In combat it takes your action."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "cures": [
+    "blinded",
+    "paralyzed",
+    "poisoned"
+  ]
+}

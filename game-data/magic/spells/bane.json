@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "-1d4 to attack rolls and saving throws for up to 3 enemies (Charisma save resists)",
+  "effect": "On a failed Charisma save the target is baned: −1d4 to its attack rolls and saving throws for 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "charisma",
@@ -30,9 +30,8 @@
   "mana_cost": 3,
   "prep_time": 105,
   "notes": [
-    "Hard multi-target concentration debuff — affects up to 3 creatures",
-    "Charisma save to resist; concentration up to 1 minute",
-    "-1d4 penalty applies to every attack roll and saving throw while active"
+    "In combat: a failed Charisma save leaves the target −1d4 on attacks and saves, which also makes your other spells harder for it to resist. Concentration.",
+    "Spirit-dust ×1."
   ],
   "material_component": {
     "required": [
@@ -42,5 +41,9 @@
       }
     ],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "baned",
+    "rounds": 10
   }
 }

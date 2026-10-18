@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "1 minute",
+  "duration": "2 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "The touched creature's jump distance is tripled for 1 minute. Allows traversal of gaps, obstacles, and terrain features that would normally block movement.",
+  "effect": "Your leaps carry three times as far for 2 hours: +4 Athletics, and 2 more squares of movement in any fight.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,12 +31,11 @@
   "mana_cost": 2,
   "prep_time": 20,
   "notes": [
-    "Simplest touch buff — trivial transmutation with narrow use case",
-    "Engine gap: jump-distance modifier has no current movement system mechanic [~]",
-    "Modeled as utility effect prose; engine support needed for traversal bonus"
+    "+4 Athletics and +2 squares of combat movement for 2 hours."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "jump"
 }

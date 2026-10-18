@@ -189,10 +189,10 @@ function openSlotMenu(e, slotLevel, slotIndex, spellId) {
     };
     add('Info', () => window.openSpellModal && window.openSpellModal(spellId));
     if (wikiEnabled()) add(WIKI_LABEL, () => openWiki('Spells', spellId));
-    // Cast is offered only for spells that resolve outside combat (heal / buff /
-    // utility). Attack and save shapes need an enemy, so they're combat-only.
+    // Cast is offered only for spells that do something outside a fight: heal,
+    // grant a lasting effect, cure, or create something. The rest are combat-only.
     const spell = getSpellById(spellId);
-    if (spell && !spell.spell_attack && !spell.save_type) {
+    if (spell && (spell.heal || spell.applies_effect || spell.cures?.length || spell.creates_item)) {
         add('Cast', () => castOutOfCombat(spellId));
     }
     add('Replace', () => window.openSpellPicker && window.openSpellPicker(slotLevel, slotIndex));

@@ -1,0 +1,50 @@
+{
+  "name": "Fear",
+  "description": "You project a phantasmal image of a creature's worst fears. Each creature in a 30-foot cone must succeed on a Wisdom saving throw or drop whatever it is holding and become frightened for the duration. A frightened creature can repeat the save at the end of each of its turns.",
+  "level": 3,
+  "school": "illusion",
+  "casting_time": "action",
+  "range": "2",
+  "range_long": "2",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "A creature that fails a Wisdom save is frightened (disadvantage on its attacks) until it shakes it off.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "wisdom",
+  "aoe": {
+    "shape": "cone",
+    "radius": 6
+  },
+  "tags": [
+    "combat",
+    "control",
+    "concentration",
+    "aoe"
+  ],
+  "classes": [
+    "bard",
+    "sorcerer",
+    "warlock",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 4,
+  "prep_time": 165,
+  "notes": [
+    "In combat: every enemy in a 30-foot cone toward the target makes its own Wisdom save; each that fails is frightened: its attacks have disadvantage. It saves again at the end of each of its turns. Concentration, 10 rounds."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "frightened",
+    "rounds": 10,
+    "save_each_turn": "wisdom"
+  }
+}

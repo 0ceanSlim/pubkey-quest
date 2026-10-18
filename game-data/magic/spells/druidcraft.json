@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "2",
   "range_long": "2",
-  "duration": "instantaneous",
+  "duration": "4 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Minor nature cantrip — creates tiny flame, predicts weather, causes plant growth, or produces a nature sound/sensory effect.",
+  "effect": "You read the weather and the lie of the land: +2 Survival for 4 hours (faster travel, foraging, reading the signs).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -27,11 +27,12 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Pure utility cantrip — no combat application; analogous to Prestidigitation but nature-flavored",
-    "Range 2 = 30 feet (D&D 5e: 30 feet)"
+    "Out of combat: +2 Survival for 4 hours. Survival speeds travel, helps you spot an ambush before it's sprung, and drives foraging checks.",
+    "Cast it before you set out on the road."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "attuned-to-nature"
 }

@@ -82,6 +82,10 @@ func ParseVersatileDice(damage string) (oneHand, twoHand string) {
 // On a critical hit, the dice count is doubled.
 // A flat modifier ("2d8+2") is added once, never doubled.
 func RollDice(diceExpr string, isCrit bool) int {
+	// A plain number ("5": armor of agathys' cold) is that much, crit or not.
+	if n, err := strconv.Atoi(strings.TrimSpace(diceExpr)); err == nil {
+		return max(n, 1)
+	}
 	count, sides, mod, err := ParseDiceExpr(diceExpr)
 	if err != nil {
 		return 1 // Fallback for malformed dice

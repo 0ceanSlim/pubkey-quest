@@ -1,0 +1,20 @@
+{
+  "id": "knock",
+  "name": "Knock",
+  "description": "Locks give way at a touch: +10 Thieving for the next half hour.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 30
+  },
+  "modifiers": [
+    {
+      "stat": "skill_thieving",
+      "type": "constant",
+      "value": 10
+    }
+  ],
+  "message": "Locks around you seem to loosen.",
+  "visible": true
+}

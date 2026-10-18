@@ -1,0 +1,25 @@
+{
+  "id": "familiar",
+  "name": "Familiar",
+  "description": "A spirit familiar scouts ahead and fights at your side: +3 Perception, and it helps your first attack of every fight (advantage).",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 1440
+  },
+  "modifiers": [
+    {
+      "stat": "skill_perception",
+      "type": "constant",
+      "value": 3
+    },
+    {
+      "stat": "combat_help",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "Your familiar appears and settles on your shoulder.",
+  "visible": true
+}

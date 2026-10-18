@@ -11,7 +11,7 @@
   "damage": "5",
   "damage_type": "cold",
   "heal": null,
-  "effect": "Gain 5 temporary HP; melee attackers who hit you while you have temp HP take 5 cold damage in return",
+  "effect": "Frost armours you: 5 temporary HP, and while they last any creature that hits you in melee takes 5 cold damage.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,11 +30,17 @@
   "mana_cost": 3,
   "prep_time": 90,
   "notes": [
-    "No concentration — exceptional for a 1-hour self-buff at L1",
-    "Retaliatory cold damage (5 flat) modeled via effect prose; retaliatory-damage-on-hit mechanic tracked in spell-mechanics-proposals.md"
+    "In combat: 5 temporary HP; a melee attacker that hits you while they last takes 5 cold damage.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "temp_hp": "5",
+    "retaliate": "5",
+    "retaliate_type": "cold",
+    "retaliate_while_temp_hp": true
   }
 }

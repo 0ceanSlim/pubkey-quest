@@ -1,0 +1,44 @@
+{
+  "name": "Ray of Sickness",
+  "description": "A ray of sickening greenish energy lashes out toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 poison damage and is poisoned until the end of your next turn.",
+  "level": 1,
+  "school": "necromancy",
+  "casting_time": "action",
+  "range": "4",
+  "range_long": "4",
+  "duration": "instantaneous",
+  "concentration": false,
+  "damage": "2d8",
+  "damage_type": "poison",
+  "heal": null,
+  "effect": null,
+  "type": "Spell",
+  "spell_attack": "ranged",
+  "save_type": null,
+  "tags": [
+    "combat",
+    "damage",
+    "poison",
+    "ranged"
+  ],
+  "classes": [
+    "sorcerer",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 2,
+  "prep_time": 45,
+  "notes": [
+    "Ranged spell attack: 2d8 poison, and the target is poisoned (disadvantage on its attacks) until the end of its next turn.",
+    "Plenty of monsters shrug off poison."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "poisoned",
+    "rounds": 2
+  }
+}

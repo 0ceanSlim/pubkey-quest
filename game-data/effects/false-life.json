@@ -1,0 +1,20 @@
+{
+  "id": "false-life",
+  "name": "False Life",
+  "description": "A necromantic shell of borrowed vitality: you start your next fights with 7 temporary HP.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "temp_hp",
+      "type": "constant",
+      "value": 7
+    }
+  ],
+  "message": "A cold vigour settles into your limbs.",
+  "visible": true
+}

@@ -39,6 +39,18 @@ var conditionRegistry = map[string]ConditionSpec{
 	"paralyzed":   {AttacksAgainstAdvantage: true, Incapacitated: true}, // auto-crit-in-melee nuance deferred
 	"unconscious": {AttacksAgainstAdvantage: true, Incapacitated: true, Speed0: true}, // sleep etc.; wakes on the save-to-end
 	"outlined":    {AttacksAgainstAdvantage: true}, // faerie-fire: attackers see you clearly
+	"distracted":  {OwnAttacksDisadvantage: true},  // combat illusion, vicious mockery: its next swing goes wide
+	"exhausted":   {OwnAttacksDisadvantage: true},  // exhausting hex: worn down for the rest of the fight
+	"laughing":    {AttacksAgainstAdvantage: true, Incapacitated: true}, // hideous laughter: helpless with mirth
+	// Spell conditions whose effect lives elsewhere: baned (−1d4 to its attacks
+	// and saves), dueled (held to its caster), and the ones that hurt at the
+	// start of each turn (burning, moonlit, beset — their damage is on the
+	// condition itself).
+	"baned":   {},
+	"dueled":  {},
+	"burning": {},
+	"moonlit": {},
+	"beset":   {},
 	"charmed":     {}, // no roll modifier; the "won't attack the charmer" rule is enforced in ApplyMonsterAction
 }
 
@@ -177,6 +189,9 @@ func TickCreatureConditions(who string, conds *[]types.CombatCondition, saveRoll
 // saving_throws bonus, else the raw ability modifier.
 func monsterSaveTotal(m *types.MonsterInstance, stat string) int {
 	roll := RollD20()
+	if HasCondition(m.Conditions, "baned") {
+		roll -= RollDice("1d4", false)
+	}
 	if v, ok := m.Data.SavingThrows[strings.ToLower(stat)]; ok {
 		return roll + v
 	}
@@ -184,9 +199,9 @@ func monsterSaveTotal(m *types.MonsterInstance, stat string) int {
 }
 
 // playerSaveTotal rolls a player's saving throw: d20 + the ability modifier for
-// the given stat.
-func playerSaveTotal(save *types.SaveFile, stat string) int {
-	return RollD20() + character.AbilityMod(character.AbilityScore(effectiveStats(save), stat))
+// the given stat, plus what their spell buffs add (bless, resistance).
+func playerSaveTotal(st *types.PlayerCombatState, save *types.SaveFile, stat string) int {
+	return RollD20() + character.AbilityMod(character.AbilityScore(effectiveStats(save), stat)) + buffSaveBonus(st)
 }
 
 // monsterEffectCondition maps a monster hit-special `effect` string to a combat
@@ -234,7 +249,13 @@ func applyMonsterConditionRider(cs *types.CombatSession, save *types.SaveFile, a
 		dc = 11
 	}
 
-	total := playerSaveTotal(save, stat)
+	// Heroism and its like: some conditions can't take hold.
+	for _, b := range actor(cs).CombatState.SpellBuffs {
+		if containsFold(b.Immune, cond) {
+			return []string{fmt.Sprintf("  %s keeps you from being %s.", b.Name, cond)}
+		}
+	}
+	total := playerSaveTotal(&actor(cs).CombatState, save, stat)
 	if total >= dc {
 		return []string{fmt.Sprintf("  You resist %s (%s save %d vs DC %d).", cond, stat, total, dc)}
 	}

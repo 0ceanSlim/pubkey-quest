@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Compels one creature (WIS save) to focus combat on you: disadvantage on attacks vs. others, and movement away from you is limited.",
+  "effect": "On a failed Wisdom save the target must fight you: it won't flee, it turns on you, and its attacks on anyone else have disadvantage. 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "wisdom",
@@ -28,12 +28,15 @@
   "mana_cost": 2,
   "prep_time": 50,
   "notes": [
-    "Range: D&D 5e 30 ft; 1 grid (10 ft approximation is conservative — 30 ft = 2 grid; set 1 grid for melee paladin theme).",
-    "Movement-restriction and attack-roll debuff require condition/linked-targeting engine mechanic — see proposals.",
-    "Not substance-themed; paladin force-of-will enchantment — correctly free."
+    "In combat: a foe that fails its Wisdom save won't run (no escaping off the edge with its loot), goes for you, and attacks anyone else at disadvantage. Concentration.",
+    "In a party it pulls the enemy off your friends."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "dueled",
+    "rounds": 10
   }
 }

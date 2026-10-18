@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "4",
   "range_long": "4",
-  "duration": "1 hour",
+  "duration": "2 hours",
   "concentration": true,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Creates a heavily obscured fog zone in a 20-foot radius. Creatures inside are blinded to what is beyond it and vice versa. Heavily obscured terrain imposes disadvantage on attacks from and into the zone.",
+  "effect": "Fog rolls in. In a fight: ranged attacks against you have disadvantage and you can slip away at will (Flee always works) for 10 rounds (concentration). On the road: +3 Thieving for 2 hours.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -32,12 +32,17 @@
   "mana_cost": 3,
   "prep_time": 70,
   "notes": [
-    "Concentration — dropping concentration ends the fog immediately",
-    "Engine gap: persistent AoE terrain zones (heavily obscured, attack disadvantage within) not yet implemented [~]",
-    "Modeled currently as effect prose; full AoE zone mechanic requires engine support"
+    "In combat: ranged attacks against you have disadvantage, and Flee always succeeds, at any range. Concentration, 10 rounds.",
+    "Out of combat: +3 Thieving for 2 hours (sneaking past, sneaking away)."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "ranged_defense": true,
+    "easy_escape": true
+  },
+  "applies_effect": "fog-cloud"
 }

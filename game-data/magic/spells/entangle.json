@@ -15,10 +15,15 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "strength",
+  "aoe": {
+    "shape": "sphere",
+    "radius": 2
+  },
   "tags": [
     "combat",
     "control",
-    "terrain"
+    "terrain",
+    "aoe"
   ],
   "classes": [
     "druid"
@@ -28,10 +33,7 @@
   "mana_cost": 3,
   "prep_time": 80,
   "notes": [
-    "Range: D&D 5e 90 ft; 2 grid for L1 range balance.",
-    "AoE difficult terrain + mass STR save: mana 3 warranted (hardest single-level druid control).",
-    "Persistent terrain zone requires AoE-zone engine mechanic — see proposals.",
-    "Tree-sap×1 (nature/vine domain); yew-wand provides it free for druids. Without yew-wand, costs 50gp per cast. Stub had ×2 — reduced to ×1 (one rune per AoE is enough)."
+    "In combat: every enemy within 10 ft of the target (a 20-foot square's worth) makes its own Strength save; each that fails is restrained: it can't move, its attacks have disadvantage and attacks against it have advantage. It saves again at the end of each of its turns. Concentration. The vines don't linger as terrain yet."
   ],
   "material_component": {
     "required": [
@@ -41,5 +43,10 @@
       }
     ],
     "focus_provided": "Yew Wand provides unlimited tree-sap (free for druids with yew-wand)."
+  },
+  "applies_condition": {
+    "condition": "restrained",
+    "rounds": 10,
+    "save_each_turn": "strength"
   }
 }

@@ -1,0 +1,48 @@
+{
+  "name": "Aid",
+  "description": "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target gains temporary hit points for the duration.",
+  "level": 2,
+  "school": "abjuration",
+  "casting_time": "action",
+  "range": "2",
+  "range_long": "2",
+  "duration": "8 hours",
+  "concentration": false,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "5 temporary HP for you and up to two allies in a fight, or 5 temporary HP at the start of every fight for 8 hours.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "utility",
+    "buff",
+    "healing",
+    "support"
+  ],
+  "classes": [
+    "cleric",
+    "paladin",
+    "ranger",
+    "bard",
+    "artificer"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 110,
+  "notes": [
+    "In combat: you and the two nearest allies gain 5 temporary HP.",
+    "Out of combat: for 8 hours you start every fight with 5 temporary HP."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "party",
+    "temp_hp": "5"
+  },
+  "applies_effect": "aid"
+}

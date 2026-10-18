@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Your next attack against the studied target has advantage and deals +1d6 extra damage. Magic item properties are revealed instantly.",
+  "effect": "You study a foe's defences: your next attack has advantage and deals +1d6 force damage if it hits.",
   "spell_attack": null,
   "save_type": null,
   "type": "Spell",
@@ -30,12 +30,17 @@
   "mana_cost": 2,
   "prep_time": 40,
   "notes": [
-    "1-minute casting time — out-of-combat only. Use before entering a room or after a short rest.",
-    "The +1d6 damage advantage buff lasts 1 round after casting completes.",
-    "Identifying a magic item requires touch (range 0) and reveals attunement requirements and properties."
+    "In combat: your next attack roll has advantage, and your next weapon hit deals +1d6 force. Use it by the end of your next turn."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 2,
+    "next_attack_advantage": true,
+    "hit_once": true,
+    "hit_dice": "1d6",
+    "hit_type": "force"
   }
 }

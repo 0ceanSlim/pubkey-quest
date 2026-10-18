@@ -1,0 +1,25 @@
+{
+  "id": "disguised",
+  "name": "Disguised",
+  "description": "You look like someone else entirely: +3 Influence and +2 Thieving.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
+    {
+      "stat": "skill_influence",
+      "type": "constant",
+      "value": 3
+    },
+    {
+      "stat": "skill_thieving",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "Your face, clothes and voice become someone else's.",
+  "visible": true
+}

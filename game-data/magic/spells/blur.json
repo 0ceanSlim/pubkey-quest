@@ -1,0 +1,45 @@
+{
+  "name": "Blur",
+  "description": "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you.",
+  "level": 2,
+  "school": "illusion",
+  "casting_time": "action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Attacks against you have disadvantage for 10 rounds (concentration).",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "combat",
+    "buff",
+    "defense",
+    "concentration"
+  ],
+  "classes": [
+    "sorcerer",
+    "wizard",
+    "artificer"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 90,
+  "notes": [
+    "In combat: every attack against you has disadvantage. Concentration, 10 rounds.",
+    "No effect outside a fight."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "attackers_disadvantage": true
+  }
+}

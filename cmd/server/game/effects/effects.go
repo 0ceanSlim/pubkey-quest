@@ -463,6 +463,37 @@ func GetActiveStatModifiers(state *types.SaveFile) map[string]int {
 	return modifiers
 }
 
+// ModifierTotal sums what active effects put on a stat other than the six
+// abilities — the ones spells grant: "armor_class", "unarmored_ac" (mage
+// armor's base), "armored_ac" (only while wearing armour or a shield),
+// "travel_speed" (percent), "ambush_ward", "temp_hp", "combat_move" (grid
+// cells), "combat_help" (advantage on your first attack of a fight), and the
+// skill bonuses ("skill_<id>", "skill_all"). Effects still in their delay
+// don't count.
+func ModifierTotal(state *types.SaveFile, stat string) int {
+	if state == nil {
+		return 0
+	}
+	total := 0
+	for _, ae := range state.ActiveEffects {
+		if ae.DelayRemaining > 0 {
+			continue
+		}
+		s, value, _, _, err := GetEffectTemplate(ae.EffectID, ae.EffectIndex)
+		if err == nil && s == stat {
+			total += value
+		}
+	}
+	return total
+}
+
+// SkillBonus is what active effects add to a skill: its own "skill_<id>"
+// modifiers plus any "skill_all" (guidance). Skill checks, gates, lockpicking,
+// stealth and travel speed all read skills through this.
+func SkillBonus(state *types.SaveFile, skillID string) int {
+	return ModifierTotal(state, "skill_"+skillID) + ModifierTotal(state, "skill_all")
+}
+
 // EffectiveStats returns the player's stats with active effect modifiers folded
 // in — base ability scores plus whatever buffs/debuffs are applied right now.
 // This is the stat block skill checks and skill gates should read from, so a

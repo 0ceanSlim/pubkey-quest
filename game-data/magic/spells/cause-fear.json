@@ -1,0 +1,45 @@
+{
+  "name": "Cause Fear",
+  "description": "You awaken the sense of mortality in one creature you can see within range. It must succeed on a Wisdom saving throw or become frightened of you until the spell ends. The frightened target can repeat the save at the end of each of its turns, ending the effect on a success.",
+  "level": 1,
+  "school": "necromancy",
+  "casting_time": "action",
+  "range": "4",
+  "range_long": "4",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "On a failed Wisdom save the target is frightened (disadvantage on its attacks) until it shakes it off.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "wisdom",
+  "tags": [
+    "combat",
+    "control",
+    "debuff",
+    "concentration"
+  ],
+  "classes": [
+    "warlock",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 2,
+  "prep_time": 50,
+  "notes": [
+    "In combat: a failed Wisdom save leaves the target frightened: its attacks have disadvantage. It saves again at the end of each of its turns. Concentration, 10 rounds.",
+    "Constructs and the undead are often immune to fear."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "frightened",
+    "rounds": 10,
+    "save_each_turn": "wisdom"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "longstrider",
+  "name": "Longstrider",
+  "description": "A long, tireless stride: you travel 25% faster, and move 2 more squares a turn in a fight.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "travel_speed",
+      "type": "constant",
+      "value": 25
+    },
+    {
+      "stat": "combat_move",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "Your stride lengthens.",
+  "visible": true
+}

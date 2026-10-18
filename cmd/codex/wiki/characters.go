@@ -280,7 +280,7 @@ func (g *gen) classPage(class string) string {
 			for _, id := range sp[tier] {
 				links = append(links, g.spellLink(id))
 			}
-			b.WriteString("**" + titleCase(strings.Replace(tier, "level1", "level 1", 1)) + ":** " + strings.Join(links, ", ") + "\n\n")
+			b.WriteString("**" + titleCase(strings.Replace(tier, "level", "level ", 1)) + ":** " + strings.Join(links, ", ") + "\n\n")
 		}
 	}
 	g.slotTable(&b, key)

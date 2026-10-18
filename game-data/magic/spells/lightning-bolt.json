@@ -1,0 +1,49 @@
+{
+  "name": "Lightning Bolt",
+  "description": "A stroke of lightning forming a line 100 feet long and 5 feet wide blasts out from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes 8d6 lightning damage on a failed save, or half as much damage on a successful one.",
+  "level": 3,
+  "school": "evocation",
+  "casting_time": "action",
+  "range": "6",
+  "range_long": "6",
+  "duration": "instantaneous",
+  "concentration": false,
+  "damage": "8d6",
+  "damage_type": "lightning",
+  "heal": null,
+  "effect": null,
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "dexterity",
+  "aoe": {
+    "shape": "line",
+    "radius": 20
+  },
+  "tags": [
+    "combat",
+    "damage",
+    "lightning",
+    "aoe"
+  ],
+  "classes": [
+    "sorcerer",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 5,
+  "prep_time": 180,
+  "notes": [
+    "Dexterity save: 8d6 lightning, half on a success. Fireball's twin for the storm-minded.",
+    "Iron-filings ×1 (always consumed)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "iron-filings",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": ""
+  }
+}

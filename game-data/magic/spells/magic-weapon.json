@@ -1,0 +1,49 @@
+{
+  "name": "Magic Weapon",
+  "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls.",
+  "level": 2,
+  "school": "transmutation",
+  "casting_time": "bonus action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "1 hour",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "+1 to weapon attack and damage rolls for the rest of the fight (concentration).",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "combat",
+    "buff",
+    "concentration"
+  ],
+  "classes": [
+    "artificer",
+    "paladin",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "bonus_action",
+  "mana_cost": 3,
+  "prep_time": 95,
+  "notes": [
+    "In combat (bonus action): +1 to weapon attack rolls and +1 damage on every weapon hit for the rest of the fight. Concentration.",
+    "Arcane-powder ×1 (a wand provides it)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "arcane-powder",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Wand provides unlimited arcane-powder"
+  },
+  "combat_buff": {
+    "attack_bonus": 1,
+    "hit_bonus": 1
+  }
+}

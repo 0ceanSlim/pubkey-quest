@@ -1,0 +1,43 @@
+{
+  "name": "Dissonant Whispers",
+  "description": "You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes 3d6 psychic damage and is frightened until the end of its next turn. On a successful save, it takes half as much damage.",
+  "level": 1,
+  "school": "enchantment",
+  "casting_time": "action",
+  "range": "4",
+  "range_long": "4",
+  "duration": "instantaneous",
+  "concentration": false,
+  "damage": "3d6",
+  "damage_type": "psychic",
+  "heal": null,
+  "effect": null,
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "wisdom",
+  "tags": [
+    "combat",
+    "damage",
+    "psychic",
+    "debuff"
+  ],
+  "classes": [
+    "bard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 60,
+  "notes": [
+    "Wisdom save: 3d6 psychic, half on a success. On a failure the target is also frightened until the end of its next turn (disadvantage on its attack).",
+    "The bard's answer to burning hands: mana 3."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "frightened",
+    "rounds": 1
+  }
+}

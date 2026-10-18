@@ -1,0 +1,20 @@
+{
+  "id": "silent-image",
+  "name": "Silent Image",
+  "description": "An illusion to hide behind or to draw eyes away: +3 Thieving.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
+    {
+      "stat": "skill_thieving",
+      "type": "constant",
+      "value": 3
+    }
+  ],
+  "message": "An illusion shimmers into being at your command.",
+  "visible": true
+}

@@ -30,12 +30,15 @@
   "mana_cost": 3,
   "prep_time": 60,
   "notes": [
-    "Affects creatures within a 15-foot cone (self-origin, range 0). No attack roll or save — uses HP threshold mechanic.",
-    "HP-threshold blind AoE requires engine support — see spell-mechanics-proposals.md.",
-    "Does not affect undead, constructs, or creatures that cannot be blinded."
+    "In combat: no save: the target is blinded until the end of its next turn.",
+    "Mana 3."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "blinded",
+    "rounds": 1
   }
 }

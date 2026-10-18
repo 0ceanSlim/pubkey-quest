@@ -184,6 +184,8 @@ export function renderCombatState(cs) {
     _renderDifficultyBadge(cs.difficulty);
     // Player conditions (things afflicting you) render over the scene, in red.
     _renderConditionsInto('combat-conditions', cs.player?.conditions || [], '#fca5a5');
+    // …and the spells helping you, in green.
+    _renderBuffsInto('combat-conditions', cs.player);
     _fitGridArea();
 
     // ── Round + range + movement budget ──────────────────────────────────────
@@ -516,7 +518,8 @@ export async function doCastSpell(spellId) {
         // Offensive spells go at the enemy you're aiming at; heals and buffs at
         // the ally you picked (or yourself).
         const sp = window.getSpellById?.(spellId);
-        const offensive = !!(sp?.spell_attack || sp?.save_type || sp?.damage);
+        const offensive = !!(sp?.spell_attack || sp?.save_type || sp?.damage ||
+            sp?.applies_condition || sp?.combat_buff?.target === 'enemy');
         const target = offensive ? (_targetID ?? '') : (_allyTargetID ?? '');
         const resp = await combatPost('/api/combat/cast', { npub, save_id: saveID, spell_id: spellId, target_id: target });
         const cs = await resp.json();
@@ -565,6 +568,46 @@ function _spellShapeIcon(spell) {
     if (spell.heal)         return '❤';
     if (spell.effect)       return '✨';
     return '•';
+}
+
+/** Cells a spell reaches the one it's aimed at. Mirrors the Go spellReach. */
+function _spellReach(spell) {
+    const r = parseInt(spell.range, 10) || 0;
+    if (r > 0) return r;
+    return parseInt(spell.range_long, 10) || 1; // thrown (produce flame), else touch
+}
+
+/**
+ * Why a spell can't reach the one it would be aimed at ('' when it can).
+ * Mirrors the server's check (combat/spellrange.go): an enemy spell goes at the
+ * targeted monster, a heal / cure / ally buff at the picked ally, and an area
+ * spreading from the caster reaches as far as its own size.
+ */
+function _spellReachProblem(spell, cs) {
+    if (!cs) return '';
+    const shape = spell.aoe?.shape;
+    if (shape && shape !== 'sphere') return '';
+    const reach = _spellReach(spell);
+    const atk = String(spell.spell_attack ?? '').toLowerCase();
+    const hostile = ['ranged', 'melee', 'automatic'].includes(atk) || !!spell.save_type ||
+        !!spell.applies_condition || spell.combat_buff?.target === 'enemy';
+    let name, dist;
+    if (hostile) {
+        const m = _targetMonster(cs);
+        if (!_isActive(m)) return '';
+        name = m.name;
+        dist = m.range ?? 0;
+    } else {
+        const aimsAtAlly = !!spell.heal || (spell.cures?.length ?? 0) > 0 || spell.combat_buff?.target === 'ally';
+        const me = (cs.allies ?? []).find(a => a.you);
+        const ally = aimsAtAlly ? (cs.allies ?? []).find(a => a.id === _allyTargetID && !a.you) : null;
+        if (!me || !ally) return '';
+        name = ally.name;
+        dist = Math.max(Math.abs(ally.pos.x - me.pos.x), Math.abs(ally.pos.y - me.pos.y));
+    }
+    if (dist <= reach) return '';
+    if (!(parseInt(spell.range, 10) > 0) && reach === 1) return `a touch spell, so move next to ${name} first`;
+    return `${name} is ${dist * 5} ft away, and it reaches only ${reach * 5} ft`;
 }
 
 /** Read a possibly-nested item field (getItemById does NOT flatten .properties). */
@@ -647,15 +690,19 @@ export function openCombatSpellMenu() {
                 }
             }
 
-            const usable = manaOK && compsOK;
+            const reaction = spell.action_cost === 'reaction';
+            const farOff = reaction ? '' : _spellReachProblem(spell, _lastState);
+            const usable = manaOK && compsOK && !reaction && !farOff;
             let meta = `${_spellShapeIcon(spell)} ${cost}◆`;
+            if (reaction) meta = `⚡ auto ${cost}◆`;
             if (compParts.length) meta += ` 🜂${compParts.join(' ')}`;
 
             const tip = [
                 spell.description ?? '',
                 `Mana: ${mana}/${cost}${manaOK ? '' : ' — short'}`,
                 ...compTips,
-                !usable ? '⚠ Can’t cast: ' + (!manaOK ? 'not enough mana' : 'missing components') : '',
+                reaction ? '⚡ A reaction: it casts itself when its moment comes, if you have the mana.' :
+                    !usable ? '⚠ Can’t cast: ' + (!manaOK ? 'not enough mana' : !compsOK ? 'missing components' : farOff) : '',
             ].filter(Boolean).join('\n');
 
             entries.push({
@@ -2312,6 +2359,8 @@ function _meleeReach(itemID) {
 const _CONDITION_ICON = {
     restrained: '🕸', blinded: '🌫', poisoned: '☠', frightened: '😱', prone: '⬇',
     stunned: '💫', paralyzed: '❄', grappled: '✊', outlined: '✨', charmed: '💗',
+    distracted: '🌀', exhausted: '😩', laughing: '😂', baned: '🜏', dueled: '⚔',
+    burning: '🔥', moonlit: '🌙', beset: '👻',
 };
 
 // _renderConditionsInto paints active-condition badges into an element.
@@ -2331,6 +2380,29 @@ function _renderConditionsInto(elId, conditions, color) {
             'border:1px solid #4a4a4a;background:rgba(0,0,0,0.85);padding:0 3px;';
         el.appendChild(badge);
     });
+}
+
+// _renderBuffsInto appends badges for the player's spell effects after their
+// conditions: temporary HP, each buff (hover for what it does and how long it
+// lasts), and the spell they're concentrating on.
+function _renderBuffsInto(elId, player) {
+    const el = $id(elId);
+    if (!el || !player) return;
+    const badge = (text, tip, color) => {
+        const b = document.createElement('span');
+        b.textContent = text;
+        b.title = tip;
+        b.style.cssText =
+            `font-size:7px;font-weight:bold;color:${color};` +
+            'border:1px solid #4a4a4a;background:rgba(0,0,0,0.85);padding:0 3px;';
+        el.appendChild(b);
+    };
+    if (player.temp_hp > 0) badge(`🛡 ${player.temp_hp} temp HP`, 'Temporary hit points: damage comes off these first.', '#67e8f9');
+    for (const b of (player.buffs ?? [])) {
+        const left = b.rounds > 0 ? ` (${b.rounds})` : '';
+        badge(`✨ ${b.name}${left}`, b.summary || b.name, '#86efac');
+    }
+    if (player.concentration) badge(`◎ ${player.concentration}`, `Concentrating on ${player.concentration}: taking damage forces a Constitution save to keep it.`, '#fde68a');
 }
 
 // _renderDifficultyBadge shows a "tough"/"deadly" tag by the monster name when a

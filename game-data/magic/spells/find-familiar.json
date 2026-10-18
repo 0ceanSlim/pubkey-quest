@@ -6,12 +6,12 @@
   "casting_time": "1 hour",
   "range": "2",
   "range_long": "2",
-  "duration": "instantaneous",
+  "duration": "24 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Summons a spirit familiar in a chosen animal form. The familiar obeys your commands, provides telepathic communication within 100 feet, and can grant you advantage on attacks via the Help action while adjacent.",
+  "effect": "A spirit familiar joins you for a day: +3 Perception, and it helps your first attack of every fight (advantage).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -28,10 +28,8 @@
   "mana_cost": 2,
   "prep_time": 120,
   "notes": [
-    "Out-of-combat only — 1 hour casting time",
-    "Can be cast as a ritual (no mana cost, adds 10 min to casting time)",
-    "Familiar is a spiritual entity — dismissed and re-summoned rather than killed",
-    "Engine gap: summon system for persistent familiar companion not yet implemented [~]"
+    "Out of combat: for 24 hours, +3 Perception and advantage on your first attack of every fight.",
+    "Long to prepare; worth casting at the start of the day."
   ],
   "material_component": {
     "required": [
@@ -41,5 +39,6 @@
       }
     ],
     "focus_provided": "Wand provides unlimited arcane-powder"
-  }
+  },
+  "applies_effect": "familiar"
 }

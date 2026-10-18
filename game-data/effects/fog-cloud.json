@@ -1,0 +1,20 @@
+{
+  "id": "fog-cloud",
+  "name": "Fog Cloud",
+  "description": "Fog follows you, hiding your movements: +3 Thieving.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
+    {
+      "stat": "skill_thieving",
+      "type": "constant",
+      "value": 3
+    }
+  ],
+  "message": "A thick fog rolls in around you.",
+  "visible": true
+}

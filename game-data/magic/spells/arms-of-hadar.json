@@ -15,6 +15,10 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "strength",
+  "aoe": {
+    "shape": "self_radius",
+    "radius": 2
+  },
   "tags": [
     "combat",
     "damage",
@@ -29,8 +33,8 @@
   "mana_cost": 3,
   "prep_time": 75,
   "notes": [
-    "AoE necrotic — all creatures within 10 ft (1 grid cell) of caster",
-    "Failed save also suppresses reactions — engine reaction suppression tracked in spell-mechanics-proposals.md"
+    "Strength save or 2d6 necrotic (half on a success).",
+    "Spirit-dust ×1: dark-energy invocation; no focus provides it."
   ],
   "material_component": {
     "required": [

@@ -6,12 +6,12 @@
   "casting_time": "bonus action",
   "range": "0",
   "range_long": "0",
-  "duration": "10 minutes",
+  "duration": "2 hours",
   "concentration": true,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Grants the ability to Dash as a bonus action each turn, effectively doubling movement speed per turn for 10 minutes.",
+  "effect": "Magic in your stride. In a fight: 6 more squares of movement each turn for 10 rounds (concentration). On the road: you travel 30% faster for 2 hours.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,11 +31,16 @@
   "mana_cost": 2,
   "prep_time": 30,
   "notes": [
-    "Movement speed increase requires a speed-modifier condition in the effects system — see proposals.",
-    "Minor utility movement buff; no substance theme — correctly free. 10-min conc self-buff, but simple enough for quick prep."
+    "In combat (bonus action): +6 squares of movement a turn for 10 rounds. Concentration.",
+    "Out of combat: travel 30% faster for 2 hours, and the extra movement carries into any fight in that time."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "extra_move": 6
+  },
+  "applies_effect": "expeditious-retreat"
 }

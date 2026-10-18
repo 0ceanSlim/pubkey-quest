@@ -1,0 +1,20 @@
+{
+  "id": "barkskin",
+  "name": "Barkskin",
+  "description": "Your skin is as tough as bark: your AC can't be lower than 16.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
+    {
+      "stat": "ac_floor",
+      "type": "constant",
+      "value": 16
+    }
+  ],
+  "message": "Your skin hardens like old oak.",
+  "visible": true
+}

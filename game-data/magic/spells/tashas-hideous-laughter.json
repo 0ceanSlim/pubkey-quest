@@ -1,0 +1,44 @@
+{
+  "name": "Hideous Laughter",
+  "description": "A creature of your choice that you can see within range perceives everything as hilariously funny and falls into fits of laughter. The target must succeed on a Wisdom saving throw or fall prone with laughter, becoming incapacitated. At the end of each of its turns it can make another Wisdom save, ending the effect on a success.",
+  "level": 1,
+  "school": "enchantment",
+  "casting_time": "action",
+  "range": "2",
+  "range_long": "2",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "On a failed Wisdom save the target is helpless with laughter (can't act; attacks against it have advantage) until it shakes it off.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "wisdom",
+  "tags": [
+    "combat",
+    "control",
+    "concentration"
+  ],
+  "classes": [
+    "bard",
+    "wizard"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 75,
+  "notes": [
+    "In combat: a failed Wisdom save leaves the target helpless with laughter: it can't act, and attacks against it have advantage. It saves again at the end of each of its turns. Concentration, 10 rounds.",
+    "Hard control at level 1: mana 3."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "laughing",
+    "rounds": 10,
+    "save_each_turn": "wisdom"
+  }
+}

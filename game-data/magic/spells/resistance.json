@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Target gains a +1d4 bonus to one saving throw of their choice before the spell ends.",
+  "effect": "+1d4 to every saving throw for 10 rounds (concentration). Cast on yourself or an ally.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -28,11 +28,16 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Touch range; concentration up to 1 minute",
-    "Bonus applies to saving throws — not attack rolls or ability checks (compare Guidance)"
+    "In combat: +1d4 to saving throws (yours or an ally's) for 10 rounds, including concentration saves. Concentration.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "ally",
+    "rounds": 10,
+    "save_dice": "1d4"
   }
 }

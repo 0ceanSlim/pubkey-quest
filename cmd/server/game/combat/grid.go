@@ -242,6 +242,14 @@ func assignInstanceIDs(monsters []types.MonsterInstance) {
 // authored target_priority ("lowest_hp", "random"; default/"highest_threat" →
 // nearest). Unconscious members are skipped while anyone is still standing.
 func aiTarget(cs *types.CombatSession, m *types.MonsterInstance) *types.PartyCombatant {
+	// A compelled duel holds it to the one who cast it.
+	for _, c := range m.Conditions {
+		if HasCondition([]types.CombatCondition{c}, "dueled") {
+			if p := FindMember(cs, c.CasterID); p != nil && p.Standing() {
+				return p
+			}
+		}
+	}
 	standing := standingMembers(cs)
 	if len(standing) == 0 {
 		if len(cs.Party) == 0 {

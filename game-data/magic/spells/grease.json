@@ -15,10 +15,15 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
+  "aoe": {
+    "shape": "sphere",
+    "radius": 1
+  },
   "tags": [
     "combat",
     "control",
-    "terrain"
+    "terrain",
+    "aoe"
   ],
   "classes": [
     "wizard",
@@ -29,13 +34,14 @@
   "mana_cost": 3,
   "prep_time": 55,
   "notes": [
-    "Save applies on cast (for creatures already in zone) and on each entry or end-of-turn",
-    "Prone condition: disadvantage on attack rolls; melee attacks against prone target have advantage",
-    "Engine gap: persistent terrain zone with per-entry DEX save and prone condition not yet implemented [~]",
-    "Modeled by primary DEX save shape; full zone mechanic requires engine support"
+    "In combat: every enemy within 5 ft of the target (a 10-foot square's worth) makes its own Dexterity save; each that fails slips and falls prone: its attacks on its next turn have disadvantage. The slick ground doesn't linger yet."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "prone",
+    "rounds": 1
   }
 }

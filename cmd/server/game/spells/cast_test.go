@@ -223,14 +223,33 @@ func TestCast_Heal(t *testing.T) {
 	}
 }
 
-func TestCast_Buff_UnmappedIsNarrative(t *testing.T) {
+func TestCast_CombatOnlyRefusedOutOfCombat(t *testing.T) {
+	save := saveWith("buffx", 5)
+	spell := map[string]interface{}{
+		"name": "Bravado", "effect": "You feel bold.", "mana_cost": float64(1), "concentration": true,
+		"combat_buff": map[string]interface{}{"attack_dice": "1d4"},
+	}
+	if _, err := resolveCast(testDeps(0, 0), save, spell, "buffx", 1, nil, noFocus, false); err == nil {
+		t.Fatal("a combat-only spell cast out of combat should be refused")
+	}
+	if save.Mana != 5 {
+		t.Errorf("a refused cast must not spend mana, got %d", save.Mana)
+	}
+}
+
+func TestCast_Buff_InCombatIsNarrative(t *testing.T) {
 	save := saveWith("buffx", 5)
 	spell := map[string]interface{}{
 		"name": "Bravado", "effect": "You feel bold.", "mana_cost": float64(1), "concentration": true,
 	}
-	res, err := resolveCast(testDeps(0, 0), save, spell, "buffx", 1, nil, noFocus, false)
+	deps := testDeps(0, 0)
+	deps.InCombat = true
+	res, err := resolveCast(deps, save, spell, "buffx", 1, nil, noFocus, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+	if !res.Concentration {
+		t.Error("a concentration spell cast in combat should set Concentration")
 	}
 	if res.Shape != "buff" {
 		t.Errorf("expected buff shape, got %s", res.Shape)
@@ -478,5 +497,101 @@ func TestCast_ComponentsInPackNeedDigging(t *testing.T) {
 	deps.ComponentsAtHand = true
 	if _, err := resolveCast(deps, save, spell, "burn", 1, testMonster(15, 10), noFocus, false); err != nil {
 		t.Errorf("components at hand: %v", err)
+	}
+}
+
+// ─── Data-driven lasting effects ─────────────────────────────────────────────
+
+func TestCast_CreatesItems(t *testing.T) {
+	save := saveWith("goodberry", 5)
+	spell := map[string]interface{}{
+		"name": "Goodberry", "mana_cost": float64(2),
+		"creates_item": map[string]interface{}{"item": "goodberry", "quantity": float64(5)},
+	}
+	deps := testDeps(0, 0)
+	var gotID string
+	var gotQty int
+	deps.AddItem = func(_ *types.SaveFile, id string, qty int) int { gotID, gotQty = id, qty; return qty }
+	if _, err := resolveCast(deps, save, spell, "goodberry", 1, nil, noFocus, false); err != nil {
+		t.Fatalf("out-of-combat goodberry should cast: %v", err)
+	}
+	if gotID != "goodberry" || gotQty != 5 {
+		t.Errorf("created %d × %q, want 5 × goodberry", gotQty, gotID)
+	}
+}
+
+func TestCast_CuresPoisonOutOfCombat(t *testing.T) {
+	save := saveWith("purify-food", 5)
+	save.ActiveEffects = []types.ActiveEffect{{EffectID: "poison"}}
+	spell := map[string]interface{}{"name": "Purify", "mana_cost": float64(2), "cures": []interface{}{"poisoned"}}
+	res, err := resolveCast(testDeps(0, 0), save, spell, "purify-food", 1, nil, noFocus, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(save.ActiveEffects) != 0 {
+		t.Errorf("poison should be lifted: %+v", save.ActiveEffects)
+	}
+	if len(res.Cures) != 1 || res.Cures[0] != "poisoned" {
+		t.Errorf("Cures = %v", res.Cures)
+	}
+}
+
+func TestCast_AttackAdvantageTakesTheBetterRoll(t *testing.T) {
+	save := saveWith("zap", 5)
+	spell := map[string]interface{}{"name": "Zap", "spell_attack": "ranged", "damage": "1d10", "damage_type": "fire", "mana_cost": float64(1)}
+	rolls := []int{3, 18}
+	deps := testDeps(0, 0)
+	deps.RollD20 = func() int { r := rolls[0]; rolls = rolls[1:]; return r }
+	deps.AttackAdvantage = 1
+	target := &types.MonsterInstance{Name: "Target", ArmorClass: 15}
+	res, err := resolveCast(deps, save, spell, "zap", 1, target, noFocus, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !res.Hit {
+		t.Error("with advantage the 18 should be used and hit AC 15")
+	}
+}
+
+// An area spell: every creature caught makes its own save, and the result for
+// each comes back in Targets (the first mirrored on Damage/SaveMade).
+func TestCast_AreaEachCreatureSaves(t *testing.T) {
+	save := saveWith("blast", 5)
+	spell := map[string]interface{}{
+		"name": "Blast", "save_type": "dexterity", "damage": "8d6", "damage_type": "fire", "mana_cost": float64(3),
+	}
+	a, b, c := testMonster(10, 10), testMonster(10, 10), testMonster(10, 10)
+	a.Name, b.Name, c.Name = "A", "B", "C"
+	rolls := []int{1, 20, 2} // DC 13: A fails, B saves, C fails
+	deps := testDeps(0, 0)
+	deps.RollD20 = func() int { r := rolls[0]; rolls = rolls[1:]; return r }
+	deps.Area = []*types.MonsterInstance{a, b, c}
+
+	res, err := resolveCast(deps, save, spell, "blast", 1, a, noFocus, false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if save.Mana != 2 {
+		t.Errorf("mana spent once: have %d, want 2", save.Mana)
+	}
+	if len(res.Targets) != 3 {
+		t.Fatalf("want 3 targets, got %d", len(res.Targets))
+	}
+	want := []struct {
+		m    *types.MonsterInstance
+		dmg  int
+		made bool
+	}{{a, 6, false}, {b, 3, true}, {c, 6, false}}
+	for i, w := range want {
+		got := res.Targets[i]
+		if got.Monster != w.m || got.Damage != w.dmg || got.SaveMade != w.made {
+			t.Errorf("target %d: got %s %d dmg saved=%v, want %s %d saved=%v", i, got.Monster.Name, got.Damage, got.SaveMade, w.m.Name, w.dmg, w.made)
+		}
+	}
+	if res.Damage != 6 || res.SaveMade || res.DamageType != "fire" {
+		t.Errorf("primary: %d %s saved=%v", res.Damage, res.DamageType, res.SaveMade)
+	}
+	if len(res.Log) != 4 { // the cast + one line per creature
+		t.Errorf("log %q", res.Log)
 	}
 }

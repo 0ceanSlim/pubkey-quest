@@ -1,0 +1,49 @@
+{
+  "name": "Invisibility",
+  "description": "A creature you touch becomes invisible until the spell ends. Anything the target is wearing or carrying is invisible as long as it is on the target's person. The spell ends for a target that attacks or casts a spell.",
+  "level": 2,
+  "school": "illusion",
+  "casting_time": "action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "1 hour",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Unseen. In a fight: attacks against you have disadvantage and your next attack has advantage, until you attack. On the road: +6 Thieving for 1 hour.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "utility",
+    "buff",
+    "stealth",
+    "concentration"
+  ],
+  "classes": [
+    "bard",
+    "sorcerer",
+    "warlock",
+    "wizard",
+    "artificer"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 115,
+  "notes": [
+    "In combat: attacks against you have disadvantage and your next attack has advantage; attacking or casting at a foe ends it. Concentration.",
+    "Out of combat: +6 Thieving for 1 hour (sneak past, sneak up, slip away)."
+  ],
+  "material_component": {
+    "required": [],
+    "focus_provided": ""
+  },
+  "combat_buff": {
+    "attackers_disadvantage": true,
+    "next_attack_advantage": true,
+    "ends_on_attack": true
+  },
+  "applies_effect": "invisible"
+}

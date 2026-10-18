@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "1 hour",
+  "duration": "4 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "You comprehend all spoken and written languages for 1 hour. You can also read any cipher or code, though magical secrecy may still conceal the meaning.",
+  "effect": "Every tongue and every scrawl makes sense for 4 hours: +3 Influence.",
   "spell_attack": null,
   "save_type": null,
   "type": "Spell",
@@ -30,11 +30,11 @@
   "mana_cost": 2,
   "prep_time": 30,
   "notes": [
-    "Can be cast as a ritual (add 10 minutes to casting time) — saves the mana cost.",
-    "You understand language but cannot speak it."
+    "Out of combat: +3 Influence for 4 hours."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "comprehension"
 }

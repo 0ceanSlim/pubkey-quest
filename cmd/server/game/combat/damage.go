@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"pubkey-quest/cmd/server/game/effects"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
 )
@@ -35,6 +36,37 @@ func CalculatePlayerAC(db *sql.DB, inventory map[string]interface{}, stats map[s
 // a Barbarian in no body armour gets 10 + DEX + CON (a shield still adds); a
 // Monk in no armour and no shield gets 10 + DEX + WIS.
 func CalculatePlayerACFor(db *sql.DB, inventory map[string]interface{}, stats map[string]interface{}, class string) int {
+	ac, _, _ := gearAC(db, inventory, stats, class)
+	return ac
+}
+
+// PlayerAC is the player's AC with what lasting spells add to the gear:
+// mage armor's base ("unarmored_ac": 13 + DEX while no body armour is worn),
+// "armor_class" bonuses, "armored_ac" while armour or a shield is on
+// (mending), and barkskin's "ac_floor". Combat adds its own round-to-round spell buffs on top (shield).
+func PlayerAC(db *sql.DB, save *types.SaveFile) int {
+	stats := effectiveStats(save)
+	ac, bodyArmor, anyArmor := gearAC(db, save.Inventory, stats, save.Class)
+	if base := effects.ModifierTotal(save, "unarmored_ac"); base > 0 && !bodyArmor {
+		if mage := base + StatMod(GetStatFromMap(stats, "dexterity")); mage > ac {
+			ac = mage
+		}
+	}
+	ac += effects.ModifierTotal(save, "armor_class")
+	if anyArmor {
+		ac += effects.ModifierTotal(save, "armored_ac")
+	}
+	// Barkskin: AC can't be lower than its floor.
+	if floor := effects.ModifierTotal(save, "ac_floor"); floor > ac {
+		ac = floor
+	}
+	return ac
+}
+
+// gearAC computes AC from equipped gear and the class's unarmored defense, and
+// reports whether body armour (bodyArmor) or any armour piece or shield
+// (anyArmor) is worn.
+func gearAC(db *sql.DB, inventory map[string]interface{}, stats map[string]interface{}, class string) (ac int, bodyArmor, anyArmor bool) {
 	dexMod := StatMod(GetStatFromMap(stats, "dexterity"))
 
 	baseAC := 10 + dexMod // Unarmored default
@@ -76,7 +108,7 @@ func CalculatePlayerACFor(db *sql.DB, inventory map[string]interface{}, stats ma
 			}
 		}
 	}
-	return baseAC + additiveAC
+	return baseAC + additiveAC, baseSet, baseSet || additiveAC > 0
 }
 
 // parseItemAC reads the "ac" field from a fully-deserialised item properties map

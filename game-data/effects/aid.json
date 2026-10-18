@@ -1,0 +1,20 @@
+{
+  "id": "aid",
+  "name": "Aid",
+  "description": "Bolstered by divine resolve: you start your next fights with 5 temporary HP.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "temp_hp",
+      "type": "constant",
+      "value": 5
+    }
+  ],
+  "message": "You feel your resolve harden.",
+  "visible": true
+}

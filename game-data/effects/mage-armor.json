@@ -1,0 +1,20 @@
+{
+  "id": "mage-armor",
+  "name": "Mage Armor",
+  "description": "A shimmering ward of force: with no body armour on, your AC is 13 + your Dexterity modifier.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "unarmored_ac",
+      "type": "constant",
+      "value": 13
+    }
+  ],
+  "message": "A protective field of force settles over you.",
+  "visible": true
+}

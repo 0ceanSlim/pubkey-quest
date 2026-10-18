@@ -1,0 +1,20 @@
+{
+  "id": "comprehension",
+  "name": "Comprehend Languages",
+  "description": "Every tongue and every scrawl makes sense: +3 Influence.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
+    {
+      "stat": "skill_influence",
+      "type": "constant",
+      "value": 3
+    }
+  ],
+  "message": "Strange words rearrange themselves into sense.",
+  "visible": true
+}

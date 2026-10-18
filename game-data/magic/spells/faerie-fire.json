@@ -15,10 +15,15 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
+  "aoe": {
+    "shape": "sphere",
+    "radius": 2
+  },
   "tags": [
     "combat",
     "utility",
-    "debuff"
+    "debuff",
+    "aoe"
   ],
   "classes": [
     "druid",
@@ -29,13 +34,14 @@
   "mana_cost": 3,
   "prep_time": 65,
   "notes": [
-    "Range: D&D 5e 60 ft; 2 grid for L1 range balance.",
-    "AoE advantage-on-attacks for full minute: very strong combat debuff. Mana 3 warranted.",
-    "Outlined creature advantage-to-attackers requires a lit-condition or attack-roll-modifier engine mechanic — see proposals.",
-    "Pollen×2 stripped: sprig-of-mistletoe provides pollen free (stub note 'No focus provides this' was wrong). More importantly, faerie fire is light/illumination — not nature/charm themed. Correctly free."
+    "In combat: every enemy within 10 ft of the target (a 20-foot cube's worth) makes its own Dexterity save; each that fails is outlined: every attack against it has advantage, weapon or spell. Concentration, 10 rounds."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "outlined",
+    "rounds": 10
   }
 }

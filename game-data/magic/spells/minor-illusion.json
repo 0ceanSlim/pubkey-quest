@@ -31,11 +31,14 @@
   "action_cost": "action",
   "mana_cost": 1,
   "notes": [
-    "Wisdom save or disadvantage on next attack roll",
-    "Disadvantage-on-attack condition pending full engine support"
+    "In combat: on a failed Wisdom save the target is distracted: its next attack has disadvantage."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "distracted",
+    "rounds": 1
   }
 }

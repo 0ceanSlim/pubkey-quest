@@ -1,0 +1,45 @@
+{
+  "name": "Barkskin",
+  "description": "You touch a willing creature. Until the spell ends, the target's skin has a rough, bark-like appearance, and the target's AC can't be less than 16, regardless of what kind of armor it is wearing.",
+  "level": 2,
+  "school": "transmutation",
+  "casting_time": "action",
+  "range": "0",
+  "range_long": "0",
+  "duration": "2 hours",
+  "concentration": false,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "Your AC can't be lower than 16 for 2 hours.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": null,
+  "tags": [
+    "utility",
+    "buff",
+    "defense"
+  ],
+  "classes": [
+    "druid",
+    "ranger"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 3,
+  "prep_time": 90,
+  "notes": [
+    "Your AC can't be lower than 16 for 2 hours, in and out of combat. Shows on the Equipment tab.",
+    "Bark-shavings ×1 (a wooden staff provides it)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "bark-shavings",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Wooden staff provides unlimited bark-shavings"
+  },
+  "applies_effect": "barkskin"
+}

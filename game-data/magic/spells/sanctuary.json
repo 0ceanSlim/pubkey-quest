@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "The warded creature is protected: any creature that would attack it or target it with a harmful spell must succeed on a Wisdom save or be forced to choose a different target. Ward ends if the protected creature attacks or harms another creature.",
+  "effect": "You or an ally are warded: a creature that attacks must pass a Wisdom save against your spell DC or lose the attack. The ward ends if the warded creature attacks or casts at a foe. 10 rounds.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,13 +29,16 @@
   "mana_cost": 2,
   "prep_time": 45,
   "notes": [
-    "The Wisdom save is made by the ATTACKER, not the warded creature — shape is buff/ward, not save on target",
-    "Ward breaks immediately if the warded creature attacks, damages, or harms another creature",
-    "Does not protect against area-effect spells that catch the warded creature in their radius",
-    "Engine gap: attacker-wisdom-save intercept (before attack resolution) not yet implemented [~]"
+    "In combat (bonus action): any monster attacking the warded creature must pass a Wisdom save vs your spell DC or lose that attack. Attacking or casting at a foe ends it."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "ally",
+    "rounds": 10,
+    "sanctuary": true,
+    "ends_on_attack": true
   }
 }

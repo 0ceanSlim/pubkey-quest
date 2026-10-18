@@ -11,6 +11,7 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/combat"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/cmd/server/session"
@@ -81,7 +82,13 @@ func rollOpening(save *types.SaveFile, monsterIDs []string) (combat.AwarenessRol
 	stealthMod, passive := awarenessFrom(ctx)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	aw := combat.RollAwareness(rng, stealthMod, passive, monsters)
-	return combat.ReadTheSigns(rng, aw, skillcheck.Modifier(ctx.SkillValue("survival")), monsters), nil
+	aw = combat.ReadTheSigns(rng, aw, skillcheck.Modifier(ctx.SkillValue("survival")), monsters)
+	// A ward (alarm, detect evil) warns you before they're on you: no ambush.
+	if aw.Opening == combat.OpeningAmbush && effects.ModifierTotal(save, "ambush_ward") > 0 {
+		aw.Opening = combat.OpeningNormal
+		aw.Log = append(aw.Log, "  🔔 Your ward rings out as they close in. They don't catch you off guard.")
+	}
+	return aw, nil
 }
 
 // holdUnawareEncounter parks the encounter as pending and describes it.

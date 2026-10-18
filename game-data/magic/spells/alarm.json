@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Wards a chosen area. You are alerted (mentally or audibly) when any Tiny or larger creature enters the warded zone. Lasts 8 hours without concentration.",
+  "effect": "You ward your camp and your path: for 8 hours nothing can ambush you. A road encounter that would catch you off guard becomes a fair fight.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,13 +30,12 @@
   "mana_cost": 2,
   "prep_time": 110,
   "notes": [
-    "Out-of-combat only — 1 minute casting time",
-    "Can be cast as a ritual (10 minutes, no slot/mana expended)",
-    "Mental alarm wakes you from sleep; audible alarm is a hand bell sound",
-    "You designate which creatures bypass the alarm"
+    "Out of combat: for 8 hours a travel encounter can't open with you ambushed.",
+    "Can be cast as a ritual in the fiction; in play it's 2 mana."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "alarm-ward"
 }

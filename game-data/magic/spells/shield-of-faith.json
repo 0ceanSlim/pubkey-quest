@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "+2 AC to one creature within range for 10 minutes (concentration)",
+  "effect": "A shimmering field surrounds you or an ally: +2 AC for the rest of the fight (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,12 +30,14 @@
   "mana_cost": 2,
   "prep_time": 50,
   "notes": [
-    "Cast as bonus action — allows attacking same turn",
-    "Range fixed from stub (12 grid cells was wrong; D&D 5e = 60 ft = 4 grid cells)",
-    "Concentration for 10 minutes — good sustained defensive buff for a frontliner"
+    "In combat (bonus action): +2 AC for you or an ally for the rest of the fight. Concentration."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "ally",
+    "ac_bonus": 2
   }
 }

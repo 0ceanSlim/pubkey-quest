@@ -29,8 +29,8 @@
   "mana_cost": 2,
   "prep_time": 50,
   "notes": [
-    "Fails automatically if the target has Intelligence 4 or higher — only works on true beasts.",
-    "The charm effect ends immediately if the caster or any ally harms the beast."
+    "In combat: a beast that fails its Wisdom save is charmed and won't attack you for the rest of the fight.",
+    "Only beasts: anything else shrugs it off."
   ],
   "material_component": {
     "required": [
@@ -40,5 +40,11 @@
       }
     ],
     "focus_provided": "Sprig of Mistletoe provides unlimited pollen"
+  },
+  "applies_condition": {
+    "condition": "charmed",
+    "creature_types": [
+      "beast"
+    ]
   }
 }

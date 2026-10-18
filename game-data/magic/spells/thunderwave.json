@@ -15,6 +15,10 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "constitution",
+  "aoe": {
+    "shape": "self_radius",
+    "radius": 1
+  },
   "tags": [
     "combat",
     "damage",
@@ -33,7 +37,7 @@
   "mana_cost": 3,
   "prep_time": 75,
   "notes": [
-    "Area effect — all creatures within 15 ft (1 grid cell) of caster",
+    "Area: every enemy in the cells around you (a 15-foot cube's worth) saves on its own",
     "Constitution save for half damage; full failure also pushes 10 ft away",
     "Push mechanic noted — engine push support tracked in spell-mechanics-proposals.md"
   ],

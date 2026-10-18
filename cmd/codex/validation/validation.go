@@ -2659,5 +2659,8 @@ func validateSpellFile(filePath string) []Issue {
 		})
 	}
 
+	// --- data-driven mechanics (combat_buff, applies_condition, …) ---
+	issues = append(issues, validateSpellMechanics(spell, filename)...)
+
 	return issues
 }

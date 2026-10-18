@@ -29,11 +29,14 @@
   "mana_cost": 2,
   "prep_time": 30,
   "notes": [
-    "1-round duration only — expires at end of target's next turn",
-    "Specific command action modeled via effect prose; command variety tracked in spell-mechanics-proposals.md"
+    "In combat: on a failed Wisdom save the target grovels: it's knocked prone, and its attacks on its next turn have disadvantage."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "prone",
+    "rounds": 1
   }
 }

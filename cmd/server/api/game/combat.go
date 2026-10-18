@@ -82,10 +82,23 @@ type CombatPlayerView struct {
 	IsStable           bool `json:"is_stable"            example:"false"`
 	Dodging            bool `json:"dodging"              example:"false"`
 	Conditions         []string `json:"conditions"`
+	// Spell effects on you: temporary HP, active buffs, and the spell you're
+	// concentrating on ("" for none).
+	TempHP        int              `json:"temp_hp,omitempty"`
+	Buffs         []CombatBuffView `json:"buffs,omitempty"`
+	Concentration string           `json:"concentration,omitempty"`
 	// Resource is the martial class ability pool (Rage/Stamina/Ki/Cunning); nil for casters.
 	Resource      *CombatResourceView `json:"resource,omitempty"`
 	RageTurnsLeft int                 `json:"rage_turns_left,omitempty"`
 	AbilitiesUsed []string            `json:"abilities_used,omitempty"` // once-per-combat abilities already spent
+}
+
+// CombatBuffView is one spell buff on the player, for the combat HUD.
+// swagger:model CombatBuffView
+type CombatBuffView struct {
+	Name    string `json:"name"    example:"Bless"`
+	Rounds  int    `json:"rounds"  example:"9"` // rounds left; 0 = the rest of the fight
+	Summary string `json:"summary" example:"+1d4 to attacks and saves"`
 }
 
 // CombatResourceView is the visible martial ability resource pool.
@@ -274,6 +287,14 @@ func buildStateResponse(cs *types.CombatSession, save *types.SaveFile, newLog []
 			Conditions:         conditionNames(state.Conditions),
 			RageTurnsLeft:      state.RageTurnsLeft,
 			AbilitiesUsed:      state.AbilitiesUsed,
+			TempHP:             state.TempHP,
+		}
+		for i := range state.SpellBuffs {
+			b := &state.SpellBuffs[i]
+			player.Buffs = append(player.Buffs, CombatBuffView{Name: b.Name, Rounds: b.Rounds, Summary: combat.DescribeBuff(cs, b)})
+		}
+		if c := combat.Actor(cs).Concentration; c != nil {
+			player.Concentration = c.SpellName
 		}
 		if state.Resource != nil {
 			player.Resource = &CombatResourceView{

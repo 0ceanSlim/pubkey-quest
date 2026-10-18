@@ -9,6 +9,7 @@ import (
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/effects"
+	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
 )
 
@@ -24,7 +25,8 @@ import (
 // Resolution is shape-driven, read straight from the spell JSON:
 //   spell_attack set  → attack roll vs target AC          (fire-bolt)
 //   spell_attack=auto → auto-hit damage                   (magic-missile)
-//   save_type set     → target save vs DC, full/half dmg  (poison-spray)
+//   save_type set     → target save vs DC, full/half dmg  (poison-spray);
+//                       with an `aoe`, every creature in Deps.Area saves (fireball)
 //   heal set          → healing to the caster/self        (cure-wounds)
 //   effect set        → buff/utility, mapped to an ActiveEffect where one exists
 //
@@ -49,6 +51,23 @@ type Deps struct {
 	// components left in the backpack give ErrComponentsInPack, and digging them
 	// out costs the caster's bonus action (the combat layer retries without it).
 	ComponentsAtHand bool
+	// InCombat: the cast is a combat turn. Out of combat, a spell whose only
+	// effect is in a fight (a combat buff, a condition) is refused before it
+	// costs anything; in combat, a spell with both a combat buff and an
+	// out-of-combat effect uses the buff.
+	InCombat bool
+	// AddItem puts a spell-created item in the caster's inventory (goodberry),
+	// returning how many fit. Nil leaves created items out.
+	AddItem func(save *types.SaveFile, itemID string, qty int) int
+	// AttackBonus and AttackAdvantage feed a spell attack roll what the fight
+	// adds: buff dice (bless) and the sum of advantage sources (>0 advantage,
+	// <0 disadvantage), e.g. a faerie-fired or restrained target.
+	AttackBonus     int
+	AttackAdvantage int
+	// Area lists the creatures a save spell's area (its `aoe`) caught, the
+	// target first. Each makes its own save; the results are CastResult.Targets.
+	// Empty means the target alone.
+	Area []*types.MonsterInstance
 }
 
 // ErrComponentsInPack: a combat cast's components are only in the backpack.
@@ -72,6 +91,24 @@ type CastResult struct {
 	Heal          int    // healing to apply (caller decides the pool)
 	EffectID      string // ActiveEffect applied to the caster ("" if none)
 	Concentration bool   // caster is now concentrating on this spell
+	// Spell is the spell's data, so the combat layer can read its combat_buff
+	// and applies_condition blocks without loading it again.
+	Spell map[string]interface{}
+	// Cures lists the conditions the spell ends (its `cures` field); out of
+	// combat the matching status effects are already lifted, in combat the
+	// caller ends the conditions on the target.
+	Cures []string
+	// Targets is each creature an area spell caught (Deps.Area) and how it
+	// fared, the target first; Damage and SaveMade above mirror that first
+	// one. Nil for a single-target cast.
+	Targets []TargetOutcome
+}
+
+// TargetOutcome is one creature's result against an area save spell.
+type TargetOutcome struct {
+	Monster  *types.MonsterInstance
+	Damage   int  // final damage for the caller to apply (0 if none)
+	SaveMade bool // the creature saved: half damage, and no rider
 }
 
 // Cast validates and resolves a spell. `level` is the caster level (drives the
@@ -89,7 +126,39 @@ func Cast(db *sql.DB, deps Deps, save *types.SaveFile, spellID string, level int
 		return nil, err
 	}
 	focus := func(component string) bool { return equippedFocusProvides(db, save, component) }
-	return resolveCast(deps, save, spell, spellID, level, target, focus, false)
+	return resolveCast(withDefaults(deps), save, spell, spellID, level, target, focus, false)
+}
+
+// withDefaults wires the DB-backed pieces a caller didn't inject.
+func withDefaults(deps Deps) Deps {
+	if deps.AddItem == nil {
+		deps.AddItem = func(save *types.SaveFile, itemID string, qty int) int {
+			n, _ := gaminventory.AddItemToInventory(save, itemID, qty)
+			return n
+		}
+	}
+	return deps
+}
+
+// HasOutOfCombatUse reports whether a spell does anything outside a fight:
+// healing, a lasting effect, curing a condition, or creating something. Spells
+// without one (a smite, a condition) can only be cast in combat.
+func HasOutOfCombatUse(spell map[string]interface{}) bool {
+	if stringField(spell, "heal") != "" || stringField(spell, "applies_effect") != "" {
+		return true
+	}
+	if c, _ := spell["cures"].([]interface{}); len(c) > 0 {
+		return true
+	}
+	_, creates := spell["creates_item"].(map[string]interface{})
+	return creates
+}
+
+// IsReaction reports whether a spell is cast as a reaction (shield, hellish
+// rebuke). Reactions aren't a turn's action: kept prepared, they fire on their
+// own when their trigger happens (see the combat layer).
+func IsReaction(spell map[string]interface{}) bool {
+	return stringField(spell, "action_cost") == "reaction"
 }
 
 // TargetsEnemy reports whether a spell is aimed at an enemy (attack, auto-hit
@@ -111,7 +180,7 @@ func CastFromScroll(db *sql.DB, deps Deps, save *types.SaveFile, spellID string,
 	if err != nil {
 		return nil, err
 	}
-	return resolveCast(deps, save, spell, spellID, level, target, func(string) bool { return false }, true)
+	return resolveCast(withDefaults(deps), save, spell, spellID, level, target, func(string) bool { return false }, true)
 }
 
 // resolveCast is the pure casting resolver: no database access. Components that
@@ -139,6 +208,9 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 	if needsTarget && target == nil {
 		return nil, fmt.Errorf("%s can only be cast on an enemy in combat", name)
 	}
+	if !deps.InCombat && target == nil && !HasOutOfCombatUse(spell) {
+		return nil, fmt.Errorf("%s only has an effect in a fight", name)
+	}
 
 	manaCost := intField(spell, "mana_cost")
 	if save.Mana < manaCost {
@@ -163,10 +235,12 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 	}
 
 	res := &CastResult{
-		SpellID:   spellID,
-		SpellName: name,
-		Shape:     shape,
-		ManaSpent: manaCost,
+		SpellID:       spellID,
+		SpellName:     name,
+		Shape:         shape,
+		ManaSpent:     manaCost,
+		Spell:         spell,
+		Concentration: boolField(spell, "concentration"),
 	}
 
 	statScore, ability, isCaster := castingProfile(save)
@@ -175,8 +249,14 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 	// ── Resolve by shape ──
 	switch shape {
 	case "attack":
-		atkBonus := spellAttackBonus(level, statScore)
+		atkBonus := spellAttackBonus(level, statScore) + deps.AttackBonus
 		roll := deps.RollD20()
+		if deps.AttackAdvantage != 0 {
+			second := deps.RollD20()
+			if (deps.AttackAdvantage > 0) == (second > roll) {
+				roll = second
+			}
+		}
 		crit := roll == 20
 		critMiss := roll == 1
 		total := roll + atkBonus
@@ -208,28 +288,35 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 		saveType := strings.ToLower(stringField(spell, "save_type"))
 		dc := spellSaveDC(level, statScore)
 		res.SaveDC = dc
-		roll := deps.RollD20()
-		saveBonus := monsterSaveBonus(target, saveType)
-		made := roll+saveBonus >= dc
-		res.SaveMade = made
+		dtype := stringField(spell, "damage_type")
+		hasDamage := stringField(spell, "damage") != ""
+		if hasDamage {
+			res.DamageType = dtype
+		}
+		// An area spell: everyone caught saves on their own.
+		if len(deps.Area) > 0 {
+			res.Log = append(res.Log, fmt.Sprintf("  You cast %s (DC %d %s save) — it catches %s.", name, dc, saveType, enemyCount(len(deps.Area))))
+			for _, m := range deps.Area {
+				out, roll, bonus := saveAgainst(deps, spell, saveType, dc, m)
+				res.Targets = append(res.Targets, out)
+				res.Log = append(res.Log, areaSaveLine(out, roll, bonus, dtype, hasDamage))
+			}
+			res.Damage, res.SaveMade = res.Targets[0].Damage, res.Targets[0].SaveMade
+			break
+		}
+		out, roll, saveBonus := saveAgainst(deps, spell, saveType, dc, target)
+		res.Damage, res.SaveMade = out.Damage, out.SaveMade
 		res.Log = append(res.Log, fmt.Sprintf("  You cast %s (DC %d). %s rolls %d%s %s save.",
 			name, dc, target.Name, roll, mod(saveBonus), saveType))
-		dice := stringField(spell, "damage")
-		if dice != "" {
-			dtype := stringField(spell, "damage_type")
-			full := deps.ResolveMonsterDamage(dice, 0, dtype, false, target)
-			if made {
-				res.Damage = full / 2
-				res.Log = append(res.Log, fmt.Sprintf("  ✔ %s resists — %d %s damage (half).", target.Name, res.Damage, dtype))
-			} else {
-				res.Damage = full
-				res.Log = append(res.Log, fmt.Sprintf("  ✘ %s fails — %d %s damage.", target.Name, res.Damage, dtype))
-			}
-			res.DamageType = dtype
-		} else {
-			// Pure control/condition save (entangle, faerie-fire): the save
-			// resolves, but the condition itself lands in the M5 conditions pass.
-			res.Log = append(res.Log, "  (The spell's condition takes hold — full effect arrives with the conditions system.)")
+		switch {
+		case hasDamage && out.SaveMade:
+			res.Log = append(res.Log, fmt.Sprintf("  ✔ %s resists — %d %s damage (half).", target.Name, res.Damage, dtype))
+		case hasDamage:
+			res.Log = append(res.Log, fmt.Sprintf("  ✘ %s fails — %d %s damage.", target.Name, res.Damage, dtype))
+		case out.SaveMade:
+			// A pure control save (entangle, command): the combat layer lands
+			// the spell's applies_condition on a failure.
+			res.Log = append(res.Log, fmt.Sprintf("  ✔ %s resists the spell.", target.Name))
 		}
 
 	case "heal":
@@ -244,20 +331,115 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 		res.Heal = heal
 		res.Log = append(res.Log, fmt.Sprintf("  You cast %s, mending %d HP.", name, heal))
 
-	case "buff":
-		if effectID, ok := spellEffect(spellID); ok {
-			if err := effects.ApplyEffect(save, effectID); err == nil {
-				res.EffectID = effectID
-				res.Concentration = boolField(spell, "concentration")
-			}
-		}
-		res.Log = append(res.Log, castNarrative(name, spell))
-
-	default: // "utility"
+	default: // "buff" | "utility"
 		res.Log = append(res.Log, castNarrative(name, spell))
 	}
 
+	resolveLasting(deps, save, spell, res)
 	return res, nil
+}
+
+// resolveLasting applies a spell's out-of-combat parts, whatever its shape:
+// the ActiveEffect it grants (applies_effect), the conditions it cures, and
+// the items it creates. In combat a spell that also has a combat_buff uses
+// the buff instead of its effect (the combat layer applies it).
+func resolveLasting(deps Deps, save *types.SaveFile, spell map[string]interface{}, res *CastResult) {
+	_, hasBuff := spell["combat_buff"].(map[string]interface{})
+	if effectID := stringField(spell, "applies_effect"); effectID != "" && !(deps.InCombat && hasBuff) {
+		effects.RemoveEffect(save, effectID) // casting again refreshes it rather than stacking
+		if msg, err := effects.ApplyEffectWithMessage(save, effectID); err == nil {
+			res.EffectID = effectID
+			if msg != nil && msg.Message != "" {
+				res.Log = append(res.Log, "  "+msg.Message)
+			}
+		}
+	}
+
+	if list, _ := spell["cures"].([]interface{}); len(list) > 0 {
+		for _, c := range list {
+			if s, ok := c.(string); ok && s != "" {
+				res.Cures = append(res.Cures, s)
+			}
+		}
+		if !deps.InCombat {
+			cured := gaminventory.CureEffects(save, res.Cures)
+			for _, c := range cured {
+				res.Log = append(res.Log, fmt.Sprintf("  You are no longer %s.", c))
+			}
+			if len(cured) == 0 {
+				res.Log = append(res.Log, "  Nothing here needed it.")
+			}
+		}
+	}
+
+	if mk, ok := spell["creates_item"].(map[string]interface{}); ok && deps.AddItem != nil {
+		itemID := stringField(mk, "item")
+		qty := intField(mk, "quantity")
+		if qty < 1 {
+			qty = 1
+		}
+		if itemID != "" {
+			got := deps.AddItem(save, itemID, qty)
+			switch {
+			case got <= 0:
+				res.Log = append(res.Log, "  You have no room to hold what the spell made, and it fades.")
+			case got < qty:
+				res.Log = append(res.Log, fmt.Sprintf("  Only %d of %d fit in your pack; the rest fade.", got, qty))
+			}
+		}
+	}
+}
+
+// saveAgainst rolls one creature's save against a save spell, and the spell's
+// damage to it: full on a failure, half on a success. Bane takes a d4 off the
+// save. Returns the outcome, the d20 and the creature's save bonus.
+func saveAgainst(deps Deps, spell map[string]interface{}, saveType string, dc int, m *types.MonsterInstance) (TargetOutcome, int, int) {
+	roll := deps.RollD20()
+	bonus := monsterSaveBonus(m, saveType)
+	if hasCondition(m.Conditions, "baned") {
+		bonus -= deps.RollDice("1d4", false)
+	}
+	out := TargetOutcome{Monster: m, SaveMade: roll+bonus >= dc}
+	if dice := stringField(spell, "damage"); dice != "" {
+		full := deps.ResolveMonsterDamage(dice, 0, stringField(spell, "damage_type"), false, m)
+		out.Damage = full
+		if out.SaveMade {
+			out.Damage = full / 2
+		}
+	}
+	return out, roll, bonus
+}
+
+// areaSaveLine is one creature's line in an area spell's log.
+func areaSaveLine(out TargetOutcome, roll, bonus int, dtype string, hasDamage bool) string {
+	name, rolled := out.Monster.Name, fmt.Sprintf("%d%s", roll, mod(bonus))
+	switch {
+	case hasDamage && out.SaveMade:
+		return fmt.Sprintf("  ✔ %s saves (%s) — %d %s damage (half).", name, rolled, out.Damage, dtype)
+	case hasDamage:
+		return fmt.Sprintf("  ✘ %s fails (%s) — %d %s damage.", name, rolled, out.Damage, dtype)
+	case out.SaveMade:
+		return fmt.Sprintf("  ✔ %s saves (%s).", name, rolled)
+	}
+	return fmt.Sprintf("  ✘ %s fails (%s).", name, rolled)
+}
+
+// enemyCount words how many enemies an area caught.
+func enemyCount(n int) string {
+	if n == 1 {
+		return "1 enemy"
+	}
+	return fmt.Sprintf("%d enemies", n)
+}
+
+// hasCondition reports whether a monster's condition list holds a condition.
+func hasCondition(conds []types.CombatCondition, name string) bool {
+	for _, c := range conds {
+		if strings.EqualFold(c.Name, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // castNarrative returns a flavour line for buff/utility spells, preferring the
@@ -268,6 +450,10 @@ func castNarrative(name string, spell map[string]interface{}) string {
 	}
 	return fmt.Sprintf("  You cast %s.", name)
 }
+
+// ShapeOf is a spell's resolution shape: "attack" | "auto" | "save" | "heal" |
+// "buff" | "utility".
+func ShapeOf(spell map[string]interface{}) string { return spellShape(spell) }
 
 // spellShape classifies a spell by its primary resolution shape (see file header).
 func spellShape(spell map[string]interface{}) string {
@@ -284,25 +470,10 @@ func spellShape(spell map[string]interface{}) string {
 	if stringField(spell, "heal") != "" {
 		return "heal"
 	}
-	if stringField(spell, "effect") != "" {
+	if stringField(spell, "effect") != "" || spell["combat_buff"] != nil || stringField(spell, "applies_effect") != "" {
 		return "buff"
 	}
 	return "utility"
-}
-
-// spellEffect maps a spell id to an ActiveEffect def id, for buffs that have a
-// matching effect in game-data/effects. Unmapped buffs resolve as narrative
-// (no mechanical effect yet) — new effect defs (bless, mage-armor, …) extend
-// this map without touching the engine.
-var spellEffectByID = map[string]string{
-	"bless":       "blessed",
-	"haste":       "haste",
-	"regenerate":  "regeneration",
-}
-
-func spellEffect(spellID string) (string, bool) {
-	e, ok := spellEffectByID[spellID]
-	return e, ok
 }
 
 // ─── Casting math ────────────────────────────────────────────────────────────

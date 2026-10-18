@@ -11,7 +11,7 @@
   "damage": "2d10",
   "damage_type": "fire",
   "heal": null,
-  "effect": null,
+  "effect": "When a creature within range damages you, flames engulf it: Dexterity save or 2d10 fire (half on a success).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": "dexterity",
@@ -28,10 +28,8 @@
   "mana_cost": 2,
   "prep_time": 45,
   "notes": [
-    "Range: D&D 5e 60 ft; 2 grid for L1 range balance.",
-    "Reaction trigger (when damaged) requires a reaction-trigger engine mechanic — see proposals.",
-    "Mana 2: reaction fire — the reaction-cost and limited trigger window already constrain power significantly.",
-    "Ash×1 (fire domain, 15gp, no focus provides ash — always consumed). Sulfur (500gp) stripped from stub as Fireball-tier on a L1 reaction. Arcane-powder also stripped (arcane domain, wrong theme)."
+    "A reaction: keep it prepared and it fires on its own the moment a creature in range hurts you, once a round, if you have the mana and the ash at hand.",
+    "Ash ×1 (always consumed)."
   ],
   "material_component": {
     "required": [
@@ -41,5 +39,6 @@
       }
     ],
     "focus_provided": "No focus provides ash — always consumed."
-  }
+  },
+  "reaction_trigger": "damaged"
 }

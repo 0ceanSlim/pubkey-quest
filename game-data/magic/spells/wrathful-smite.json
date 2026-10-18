@@ -11,7 +11,7 @@
   "damage": "1d6",
   "damage_type": "psychic",
   "heal": null,
-  "effect": "Empowers next melee weapon hit with 1d6 extra psychic damage; on hit target must save WIS or be frightened for the duration.",
+  "effect": "Your next melee weapon hit deals +1d6 psychic, and on a failed Wisdom save the target is frightened: its attacks have disadvantage until it shakes it off (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,12 +30,22 @@
   "mana_cost": 2,
   "prep_time": 35,
   "notes": [
-    "On-hit rider: 1d6 psychic + secondary WIS save vs. frightened requires on-hit-rider + frightened condition engine support — see proposals.",
-    "Shape: buff (no save on cast, no spell attack). Mana 2: lower-damage smite (1d6); frightened condition is the value.",
-    "Spirit-dust stripped from stub: totem→bone-dust (not spirit-dust); psychic/fear is not substance-themed at L1 minor smite tier."
+    "In combat (bonus action): your next melee hit deals +1d6 psychic and can frighten the target (Wisdom save; it saves again each turn). Concentration."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "hit_once": true,
+    "melee_only": true,
+    "hit_dice": "1d6",
+    "hit_type": "psychic",
+    "hit_condition": {
+      "condition": "frightened",
+      "save": "wisdom",
+      "save_each_turn": "wisdom",
+      "rounds": 10
+    }
   }
 }

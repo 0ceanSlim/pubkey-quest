@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "2",
   "range_long": "2",
-  "duration": "1 hour",
+  "duration": "4 hours",
   "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Summons an invisible, intangible force that follows simple commands for 1 hour: fetch, carry, open, pour, hold, clean. Cannot attack or perform complex tasks. Dismissed if it takes any damage.",
+  "effect": "An invisible servant carries for you for 4 hours: +30 carrying capacity.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,13 +30,11 @@
   "mana_cost": 2,
   "prep_time": 60,
   "notes": [
-    "Can be cast as a ritual (no mana cost, 10-minute casting time)",
-    "Servant is fragile — 1 HP, AC 10; any damage dismisses it",
-    "Cannot attack or interact with combat; purely for out-of-combat utility",
-    "Engine gap: persistent summoned entity that obeys simple task commands not yet implemented [~]"
+    "Out of combat: +30 carrying capacity for 4 hours: haul the loot home."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "unseen-servant"
 }

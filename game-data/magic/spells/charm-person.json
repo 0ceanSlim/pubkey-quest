@@ -33,12 +33,18 @@
   "mana_cost": 3,
   "prep_time": 75,
   "notes": [
-    "Not concentration — long duration (1 hour) makes this primarily a social/exploration spell",
-    "Target gets advantage on the save if in combat at time of casting",
-    "Charm condition — engine charm support tracked in spell-mechanics-proposals.md"
+    "In combat: a humanoid that fails its Wisdom save is charmed and won't attack you for 10 rounds.",
+    "Only humanoids."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "charmed",
+    "rounds": 10,
+    "creature_types": [
+      "humanoid"
+    ]
   }
 }

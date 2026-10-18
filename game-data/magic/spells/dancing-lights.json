@@ -15,6 +15,10 @@
   "type": "Spell",
   "spell_attack": null,
   "save_type": "constitution",
+  "aoe": {
+    "shape": "self_radius",
+    "radius": 2
+  },
   "tags": [
     "cantrip",
     "control",
@@ -30,11 +34,14 @@
   "action_cost": "action",
   "mana_cost": 2,
   "notes": [
-    "AoE: affects all creatures within 10 feet (range 1)",
-    "Blinded condition: disadvantage on attack rolls, advantage for attackers"
+    "In combat: on a failed Constitution save the target is blinded until the end of its next turn: its attacks have disadvantage and attacks against it have advantage."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "blinded",
+    "rounds": 1
   }
 }

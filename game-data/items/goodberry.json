@@ -1,0 +1,27 @@
+{
+  "id": "goodberry",
+  "name": "Goodberry",
+  "description": "A plump berry humming with druidic magic, conjured by the Goodberry spell. One is a mouthful of summer and a day's worth of nourishment.",
+  "value": 0,
+  "type": "Food",
+  "weight": 0,
+  "stack": 10,
+  "rarity": "uncommon",
+  "tags": [
+    "consumable",
+    "healing"
+  ],
+  "heal": "1d4 + 1",
+  "effects": [
+    {
+      "type": "hunger",
+      "value": 1
+    }
+  ],
+  "notes": [
+    "Eat to heal 1d4+1 HP and restore 1 hunger level, in or out of combat.",
+    "In combat it uses your action.",
+    "Made by the Goodberry spell; merchants won't pay for it."
+  ],
+  "image": "/res/img/items/goodberry.png"
+}

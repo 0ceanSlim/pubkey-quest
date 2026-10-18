@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Touch target is protected from aberrations, celestials, elementals, fey, fiends, and undead: immune to their charm/fear/possession; they attack at disadvantage; target saves at advantage against them",
+  "effect": "You or an ally are warded against aberrations, celestials, elementals, fey, fiends and undead: they attack at disadvantage, and you can't be charmed or frightened (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -32,9 +32,7 @@
   "mana_cost": 2,
   "prep_time": 65,
   "notes": [
-    "Concentration up to 10 minutes",
-    "Touch range — must be adjacent; protects one creature",
-    "Salt circle drawn as part of casting — ward against extraplanar creatures"
+    "In combat: aberrations, celestials, elementals, fey, fiends and undead attack the warded creature at disadvantage, and it can't be charmed or frightened. Concentration."
   ],
   "material_component": {
     "required": [
@@ -44,5 +42,20 @@
       }
     ],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "ally",
+    "ward_types": [
+      "aberration",
+      "celestial",
+      "elemental",
+      "fey",
+      "fiend",
+      "undead"
+    ],
+    "immune": [
+      "charmed",
+      "frightened"
+    ]
   }
 }

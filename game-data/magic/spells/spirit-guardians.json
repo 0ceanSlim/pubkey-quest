@@ -1,0 +1,51 @@
+{
+  "name": "Spirit Guardians",
+  "description": "You call forth spirits to protect you. They flit around you to a distance of 15 feet for the duration. When a creature enters the area for the first time on a turn or starts its turn there, it must make a Wisdom saving throw. On a failed save, the creature takes 3d8 radiant damage. On a successful save, it takes half as much damage.",
+  "level": 3,
+  "school": "conjuration",
+  "casting_time": "action",
+  "range": "1",
+  "range_long": "1",
+  "duration": "10 minutes",
+  "concentration": true,
+  "damage": "3d8",
+  "damage_type": "radiant",
+  "heal": null,
+  "effect": null,
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "wisdom",
+  "tags": [
+    "combat",
+    "damage",
+    "radiant",
+    "concentration"
+  ],
+  "classes": [
+    "cleric"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 5,
+  "prep_time": 190,
+  "notes": [
+    "Wisdom save: 3d8 radiant (half on a success). On a failure the spirits stay on it: 2d8 radiant at the start of each of its turns until it passes a Wisdom save. Concentration, 10 rounds.",
+    "Holy-water ×1 (a reliquary provides it)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "holy-water",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Reliquary provides unlimited holy-water"
+  },
+  "applies_condition": {
+    "condition": "beset",
+    "rounds": 10,
+    "save_each_turn": "wisdom",
+    "damage_dice": "2d8",
+    "damage_type": "radiant"
+  }
+}

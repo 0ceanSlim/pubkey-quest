@@ -8,7 +8,6 @@ import (
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/character"
-	"pubkey-quest/cmd/server/game/effects"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/types"
@@ -34,6 +33,17 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	if len(cs.Party) == 0 {
 		return nil, fmt.Errorf("no player in combat")
 	}
+	spell, err := gamedata.LoadSpellByID(db, spellID)
+	if err != nil {
+		return nil, err
+	}
+	name, _ := spell["name"].(string)
+	if name == "" {
+		name = spellID
+	}
+	buff := combatBuffOf(spell)
+	hostile := hostileSpell(db, spellID, spell)
+
 	// A spell can be aimed at an ally (heals, buffs) or an enemy.
 	ally := FindMember(cs, targetID)
 	var monster *types.MonsterInstance
@@ -41,7 +51,7 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		if ally.Fled {
 			return nil, fmt.Errorf("%s has left the fight", ally.Name)
 		}
-		if spells.TargetsEnemy(db, spellID) {
+		if hostile {
 			return nil, fmt.Errorf("aim that spell at an enemy")
 		}
 	} else {
@@ -51,15 +61,35 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		}
 		monster = m
 	}
-	state := &actor(cs).CombatState
+	me := actor(cs)
+	state := &me.CombatState
 	if IsIncapacitated(state.Conditions) {
 		return nil, fmt.Errorf("you are incapacitated and can't cast")
+	}
+	// The one it's aimed at must be within the spell's reach (see spellrange.go).
+	if ally != nil && ally != me && aimsAtAlly(spell, buff) {
+		if err := checkSpellReach(spell, name, me.Pos, ally.Pos, ally.Name); err != nil {
+			return nil, err
+		}
+	} else if monster != nil && hostile {
+		if err := checkSpellReach(spell, name, me.Pos, monster.Pos, monster.Name); err != nil {
+			return nil, err
+		}
+	}
+	// An area spell catches every enemy in its area (spared: allies).
+	monster, caught, err := aimArea(cs, me, spell, name, monster)
+	if err != nil {
+		return nil, err
 	}
 
 	// Action economy — validated up front, before the engine spends any cost.
 	// A spell's combat cost is its action_cost ("action" | "bonus_action");
-	// anything longer than an action can't be cast as a combat turn.
-	actionCost := spellActionCost(db, spellID)
+	// reactions fire on their own, and anything longer than an action can't be
+	// cast as a combat turn.
+	actionCost, _ := spell["action_cost"].(string)
+	if actionCost == "" {
+		actionCost = "action"
+	}
 	switch actionCost {
 	case "bonus_action":
 		if state.BonusActionUsed {
@@ -69,8 +99,10 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		if state.ActionUsed {
 			return nil, fmt.Errorf("action already used this turn")
 		}
+	case "reaction":
+		return nil, fmt.Errorf("%s is a reaction: keep it prepared and it casts itself when its moment comes", name)
 	default:
-		return nil, fmt.Errorf("%s takes too long to cast in combat", spellID)
+		return nil, fmt.Errorf("%s takes too long to cast in combat", name)
 	}
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
@@ -79,6 +111,8 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		RollD20:              RollD20,
 		RollDice:             RollDice,
 		ResolveMonsterDamage: ResolveDamageToMonster,
+		InCombat:             true,
+		Area:                 caught,
 	}
 	// Elemental Adept: for the chosen damage type, the player's spells ignore the
 	// target's resistance and treat any damage die that rolls 1 as a 2.
@@ -90,16 +124,27 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 			return ResolveDamageToMonster(dice, mod, dtype, crit, m)
 		}
 	}
-	// Offensive spells need a line to the target; cover raises its AC against
-	// spell attacks for the duration of the cast.
-	var coverLog []string
-	if monster != nil && spells.TargetsEnemy(db, spellID) {
+	// Offensive spells need a line to the target (one centred on the caster
+	// doesn't); cover raises its AC against spell attacks for the duration of
+	// the cast.
+	var preLog []string
+	if monster != nil && spells.TargetsEnemy(db, spellID) && !selfCentred(spell) {
 		restore, lines, err := applySpellCover(cs, monster)
 		if err != nil {
 			return nil, err
 		}
 		defer restore()
-		coverLog = lines
+		preLog = lines
+	}
+	// A spell attack takes what the fight gives a roll: buff dice (bless),
+	// advantage (true strike, a restrained or faerie-fired target). One-shot
+	// buffs are restored if the cast then fails.
+	buffsBefore := append([]types.SpellBuff(nil), state.SpellBuffs...)
+	if monster != nil && spells.ShapeOf(spell) == "attack" {
+		b, a, lines := buffAttackRoll(state, false)
+		deps.AttackBonus = b
+		deps.AttackAdvantage = a + ConditionAttackAdvantage(state.Conditions, monster.Conditions)
+		preLog = append(preLog, lines...)
 	}
 	// Components must be at hand (general slots, or a pouch in one). Ones left
 	// in the backpack can be dug out — it costs the bonus action.
@@ -108,6 +153,7 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	dugOut := false
 	if errors.Is(err, spells.ErrComponentsInPack) {
 		if actionCost == "bonus_action" || state.BonusActionUsed {
+			state.SpellBuffs = buffsBefore
 			return nil, fmt.Errorf("the components for that are in your pack, and digging them out takes your bonus action (keep them in your general slots or a pouch)")
 		}
 		deps.ComponentsAtHand = false
@@ -115,50 +161,17 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		dugOut = err == nil
 	}
 	if err != nil {
+		state.SpellBuffs = buffsBefore
 		return nil, err
 	}
 
-	log := append(coverLog, res.Log...)
+	log := append(preLog, res.Log...)
 	if dugOut {
 		state.BonusActionUsed = true
 		log = append([]string{"  You dig the components out of your pack (bonus action)."}, log...)
 	}
-
-	// Damage → monster HP + XP + kill.
-	if res.Damage > 0 && monster != nil {
-		applyDamageToMonster(monster, res.Damage)
-		if xp := awardDamageXP(cs, monster, res.Damage, save.TimeOfDay, level, advancement); xp > 0 {
-			log = append(log, fmt.Sprintf("  +%d XP", xp))
-		}
-	}
-
-	// Healing → combat HP pool (not save.HP; combat owns HP until it ends):
-	// yours, or the ally you aimed it at. Healing the hurt earns XP.
-	if res.Heal > 0 {
-		target := actor(cs)
-		if ally != nil {
-			target = ally
-		}
-		healed, healLog := HealMember(cs, actor(cs), target, res.Heal, save.TimeOfDay, level, advancement)
-		if ally != nil && ally != actor(cs) {
-			log = append(log, fmt.Sprintf("  💚 %s recovers %d HP.", ally.Name, healed))
-		}
-		log = append(log, healLog...)
-	}
-
-	// Control spells impose their condition on the target on a failed save
-	// (M5 §15): entangle → restrained, faerie-fire → outlined, …
-	if monster != nil && monster.IsAlive {
-		log = append(log, applySpellCondition(spellID, res, monster)...)
-	}
-
-	// Concentration — a maintained buff/control the player must now hold.
-	if res.Concentration {
-		actor(cs).Concentration = &types.ConcentrationState{
-			SpellID:   res.SpellID,
-			SpellName: res.SpellName,
-			EffectID:  res.EffectID,
-		}
+	if hostile {
+		log = append(log, breakOnAttack(state)...)
 	}
 
 	// Spend the action economy.
@@ -168,59 +181,143 @@ func ProcessPlayerCast(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		state.ActionUsed = true
 	}
 
-	if monster != nil && !monster.IsAlive {
-		log = append(log, handleMonsterKill(cs, monster, save, advancement)...)
+	return append(log, castConsequences(cs, me, save, res, ally, monster, level, advancement)...), nil
+}
+
+// hostileSpell reports whether a spell is aimed at an enemy: an attack, auto-hit
+// or save spell, a control spell, or a mark (hex) on a foe.
+func hostileSpell(db *sql.DB, spellID string, spell map[string]interface{}) bool {
+	b := combatBuffOf(spell)
+	return spells.TargetsEnemy(db, spellID) || spellConditionOf(spell) != nil || (b != nil && b.Target == "enemy")
+}
+
+// castConsequences owns what a resolved cast does to the fight, shared by a
+// normal cast and a scroll: damage (with on-hit buffs like hex) and its XP and
+// kill, healing, cures, the spell's combat buff and condition rider, and
+// concentration (a new concentration spell ends the old one first).
+func castConsequences(cs *types.CombatSession, me *types.PartyCombatant, save *types.SaveFile, res *spells.CastResult, ally *types.PartyCombatant, monster *types.MonsterInstance, level int, advancement []types.AdvancementEntry) []string {
+	var log []string
+	if res.Concentration && me.Concentration != nil {
+		old := me.Concentration.SpellName
+		dropConcentration(cs, me, save, res.EffectID)
+		log = append(log, fmt.Sprintf("  You stop concentrating on %s.", old))
 	}
 
-	return log, nil
+	// Damage → monster HP + XP, on the target or everyone an area spell
+	// caught. A spell attack that hits carries buffs that ride spell hits (hex).
+	hits := castHits(res, monster)
+	xp := 0
+	for i := range hits {
+		h := &hits[i]
+		if res.Shape == "attack" && res.Hit {
+			extra, lines := buffHitDamage(cs, me, h.Monster, false, true, res.Crit, res.DamageType)
+			h.Damage += extra
+			log = append(log, lines...)
+		}
+		if h.Damage > 0 {
+			applyDamageToMonster(h.Monster, h.Damage)
+			xp += awardDamageXP(cs, h.Monster, h.Damage, save.TimeOfDay, level, advancement)
+		}
+	}
+	if xp > 0 {
+		log = append(log, fmt.Sprintf("  +%d XP", xp))
+	}
+
+	// Healing → combat HP pool (not save.HP; combat owns HP until it ends):
+	// yours, or the ally you aimed it at. Healing the hurt earns XP.
+	target := me
+	if ally != nil {
+		target = ally
+	}
+	if res.Heal > 0 {
+		healed, healLog := HealMember(cs, me, target, res.Heal, save.TimeOfDay, level, advancement)
+		if target != me {
+			log = append(log, fmt.Sprintf("  💚 %s recovers %d HP.", target.Name, healed))
+		}
+		log = append(log, healLog...)
+	}
+
+	// Cures end the conditions on whoever it was cast on, and their status
+	// effects (poison) with them.
+	if len(res.Cures) > 0 {
+		cures := make([]interface{}, len(res.Cures))
+		for i, c := range res.Cures {
+			cures[i] = c
+		}
+		cured := cureConditions(&target.CombatState.Conditions, cures)
+		gaminventory.CureEffects(saveOf(target, save), res.Cures)
+		for _, c := range cured {
+			log = append(log, fmt.Sprintf("  %s is no longer %s.", target.Name, c))
+		}
+		if len(cured) == 0 && res.Heal == 0 && combatBuffOf(res.Spell) == nil {
+			log = append(log, fmt.Sprintf("  Nothing ails %s.", target.Name))
+		}
+	}
+
+	log = append(log, applySpellBuff(cs, me, res, ally, monster, spellDC(save, level), castingMod(save))...)
+
+	// Control spells impose their condition on each target: on a failed save,
+	// or on a hit for an attack spell (guiding bolt's glow).
+	for _, h := range hits {
+		if h.Monster.IsAlive {
+			log = append(log, applySpellCondition(res, h.Monster, h.SaveMade, me.ID, spellDC(save, level))...)
+		}
+	}
+
+	// Concentration — a maintained buff/control the caster must now hold.
+	if res.Concentration {
+		me.Concentration = &types.ConcentrationState{
+			SpellID:   res.SpellID,
+			SpellName: res.SpellName,
+			EffectID:  res.EffectID,
+		}
+	}
+
+	// Every kill pays out, then one check for victory.
+	killed := false
+	for _, h := range hits {
+		if !h.Monster.IsAlive {
+			log = append(log, killRewards(cs, h.Monster, save, advancement)...)
+			killed = true
+		}
+	}
+	if killed {
+		log = append(log, checkVictory(cs)...)
+	}
+	return log
 }
 
-// spellConditionRider maps a control spell to the condition it imposes. saveStat
-// != "" means the condition re-saves each turn on that stat (entangle's STR check
-// to break free); "" means it lasts its full duration with no re-save (faerie-fire
-// is decided by the DEX save at cast time). More riders plug in here as the M5
-// conditions land more spells (docs/draft/spell-mechanics-proposals.md).
-type spellConditionRider struct {
-	condition string
-	saveStat  string
-	rounds    int
-}
-
-var spellConditionRiders = map[string]spellConditionRider{
-	"entangle":     {condition: "restrained", saveStat: "strength", rounds: 10}, // STR save each turn to break free
-	"faerie-fire":  {condition: "outlined", saveStat: "", rounds: 10},           // DEX save at cast; no re-save
-	"command":      {condition: "prone", saveStat: "", rounds: 1},               // WIS save at cast; "Grovel" → prone for 1 round
-	"color-spray":  {condition: "blinded", saveStat: "", rounds: 1},             // no save (HP-pool auto-blind), 1 round
-	"sleep":        {condition: "unconscious", saveStat: "wisdom", rounds: 5},   // WIS save each turn to wake
-	"charm-person": {condition: "charmed", saveStat: "", rounds: 10},            // WIS save at cast; no re-save, won't attack you
-}
-
-// applySpellCondition applies a control spell's condition to the target. Save-
-// shaped spells land it only on a FAILED save (SaveMade == false); the recurring
-// save-to-end DC is the spell's own save DC. Returns a log line, or nil.
-func applySpellCondition(spellID string, res *spells.CastResult, monster *types.MonsterInstance) []string {
-	rider, ok := spellConditionRiders[spellID]
-	if !ok {
+// castHits lists who a cast landed on: everyone an area spell caught, or the
+// one target (none for a spell on yourself or an ally).
+func castHits(res *spells.CastResult, monster *types.MonsterInstance) []spells.TargetOutcome {
+	if len(res.Targets) > 0 {
+		return append([]spells.TargetOutcome(nil), res.Targets...)
+	}
+	if monster == nil {
 		return nil
 	}
-	if res.Shape == "save" && res.SaveMade {
-		return nil // target resisted the spell
+	return []spells.TargetOutcome{{Monster: monster, Damage: res.Damage, SaveMade: res.SaveMade}}
+}
+
+// applySpellCondition lands a spell's applies_condition on a target. A save
+// spell lands it only when that target failed its save (saveMade), an attack
+// spell only on a hit. The recurring save-to-end DC is the caster's spell save DC.
+func applySpellCondition(res *spells.CastResult, monster *types.MonsterInstance, saveMade bool, casterID string, dc int) []string {
+	c := spellConditionOf(res.Spell)
+	if c == nil {
+		return nil
 	}
-	dc := res.SaveDC
-	if dc <= 0 {
-		dc = 10
+	if (res.Shape == "save" && saveMade) || (res.Shape == "attack" && !res.Hit) {
+		return nil
 	}
-	saveDC := 0
-	if rider.saveStat != "" {
-		saveDC = dc
+	if res.SaveDC > 0 {
+		dc = res.SaveDC
 	}
-	ApplyCondition(&monster.Conditions, types.CombatCondition{
-		Name:           rider.condition,
-		DurationRounds: rider.rounds,
-		SaveDC:         saveDC,
-		SaveStat:       rider.saveStat,
-	})
-	return []string{fmt.Sprintf("  %s is %s!", monster.Name, rider.condition)}
+	line, _ := landCondition(monster, c, res.SpellID, casterID, dc)
+	if line == "" {
+		return nil
+	}
+	return []string{line}
 }
 
 // applySpellCover checks the player can see the spell's target and, if it has
@@ -238,30 +335,6 @@ func applySpellCover(cs *types.CombatSession, monster *types.MonsterInstance) (f
 		[]string{fmt.Sprintf("  🛡 %s has %s (+%d AC).", monster.Name, coverLabel(cover), cover)}, nil
 }
 
-// spellActionCost reads a spell's combat action cost, defaulting to "action".
-func spellActionCost(db *sql.DB, spellID string) string {
-	spell, err := gamedata.LoadSpellByID(db, spellID)
-	if err != nil {
-		return "action"
-	}
-	if ac, _ := spell["action_cost"].(string); ac != "" {
-		return ac
-	}
-	return "action"
-}
-
-// applyHealToPlayer adds healing to the combat HP pool, capped at MaxHP.
-func applyHealToPlayer(cs *types.CombatSession, heal int) {
-	if len(cs.Party) == 0 {
-		return
-	}
-	st := &actor(cs).CombatState
-	st.CurrentHP += heal
-	if st.CurrentHP > st.MaxHP {
-		st.CurrentHP = st.MaxHP
-	}
-}
-
 // checkConcentrationOnDamage runs a Constitution save (DC = max(10, ½ damage))
 // to keep a maintained spell after the player takes damage. On a failure the
 // linked ActiveEffect is dropped and concentration clears. Returns log lines.
@@ -269,6 +342,13 @@ func applyHealToPlayer(cs *types.CombatSession, heal int) {
 func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, dmg int) []string {
 	if cs == nil || actor(cs).Concentration == nil || dmg <= 0 {
 		return nil
+	}
+	me := actor(cs)
+	name := me.Concentration.SpellName
+	// Dropping unconscious ends it outright.
+	if me.CombatState.IsUnconscious {
+		dropConcentration(cs, me, save, "")
+		return []string{fmt.Sprintf("  ✘ Your concentration on %s breaks as you fall.", name)}
 	}
 	dc := 10
 	if half := dmg / 2; half > dc {
@@ -282,15 +362,16 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 		roll = r
 		advNote = fmt.Sprintf(" [War Caster adv %d/%d]", r1, r2)
 	}
+	// It's a saving throw, so bless and resistance help.
+	if b := buffSaveBonus(&me.CombatState); b > 0 {
+		conMod += b
+		advNote += fmt.Sprintf(" [+%d spell]", b)
+	}
 	if roll+conMod >= dc {
 		return []string{fmt.Sprintf("  You hold concentration on %s (CON save %d%s vs DC %d%s).",
-			actor(cs).Concentration.SpellName, roll, formatModifier(conMod), dc, advNote)}
+			name, roll, formatModifier(conMod), dc, advNote)}
 	}
-	name := actor(cs).Concentration.SpellName
-	if actor(cs).Concentration.EffectID != "" {
-		effects.RemoveEffect(save, actor(cs).Concentration.EffectID)
-	}
-	actor(cs).Concentration = nil
+	dropConcentration(cs, me, save, "")
 	return []string{fmt.Sprintf("  ✘ You lose concentration on %s! (CON save %d%s vs DC %d)",
 		name, roll, formatModifier(conMod), dc)}
 }
@@ -484,11 +565,24 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 	if err != nil {
 		return nil, err
 	}
+	spell, err := gamedata.LoadSpellByID(db, spellID)
+	if err != nil {
+		return nil, err
+	}
+	if hostileSpell(db, spellID, spell) {
+		if err := checkSpellReach(spell, itemName, actor(cs).Pos, monster.Pos, monster.Name); err != nil {
+			return nil, err
+		}
+	}
+	monster, caught, err := aimArea(cs, actor(cs), spell, itemName, monster)
+	if err != nil {
+		return nil, err
+	}
 	adv, _ := character.LoadAdvancement(db)
 	level := character.GetLevelFromXP(save.Experience, adv)
 
 	var coverLog []string
-	if spells.TargetsEnemy(db, spellID) {
+	if spells.TargetsEnemy(db, spellID) && !selfCentred(spell) {
 		restore, lines, err := applySpellCover(cs, monster)
 		if err != nil {
 			return nil, err
@@ -496,7 +590,7 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 		defer restore()
 		coverLog = lines
 	}
-	deps := spells.Deps{RollD20: RollD20, RollDice: RollDice, ResolveMonsterDamage: ResolveDamageToMonster}
+	deps := spells.Deps{RollD20: RollD20, RollDice: RollDice, ResolveMonsterDamage: ResolveDamageToMonster, InCombat: true, Area: caught}
 	res, err := spells.CastFromScroll(db, deps, save, spellID, level, monster)
 	if err != nil {
 		return nil, err
@@ -504,33 +598,13 @@ func processScrollUse(db *sql.DB, cs *types.CombatSession, save *types.SaveFile,
 
 	log := append([]string{fmt.Sprintf("  You read the %s.", itemName)}, coverLog...)
 	log = append(log, res.Log...)
-	if res.Damage > 0 {
-		applyDamageToMonster(monster, res.Damage)
-		if xp := awardDamageXP(cs, monster, res.Damage, save.TimeOfDay, level, adv); xp > 0 {
-			log = append(log, fmt.Sprintf("  +%d XP", xp))
-		}
-	}
-	if res.Heal > 0 {
-		applyHealToPlayer(cs, res.Heal)
-	}
-	if monster.IsAlive {
-		log = append(log, applySpellCondition(res.SpellID, res, monster)...)
-	}
-	if res.Concentration {
-		actor(cs).Concentration = &types.ConcentrationState{SpellID: res.SpellID, SpellName: res.SpellName, EffectID: res.EffectID}
-	}
-
 	decrementSlotStack(slot)
 	state.ActionUsed = true
 	if fromPack {
 		state.BonusActionUsed = true
 		log = append([]string{fmt.Sprintf("  You dig the %s out of your pack (bonus action).", itemName)}, log...)
 	}
-
-	if !monster.IsAlive {
-		log = append(log, handleMonsterKill(cs, monster, save, adv)...)
-	}
-	return log, nil
+	return append(log, castConsequences(cs, actor(cs), save, res, nil, monster, level, adv)...), nil
 }
 
 // findReachableConsumable returns the slot map (a live reference) holding itemID,

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/types"
@@ -174,11 +175,15 @@ func getTravelSpeedMultiplier(state *types.SaveFile) float64 {
 		return 1.0
 	}
 
-	skillValue := calculateSkillValue(state.Stats, ratio) + gameutil.CarriedSkillBonus(state, true)[scaling.Skill]
+	skillValue := calculateSkillValue(state.Stats, ratio) + gameutil.CarriedSkillBonus(state, true)[scaling.Skill] +
+		effects.SkillBonus(state, scaling.Skill)
+
+	// A spell's travel_speed (longstrider: +25%) multiplies whatever the road gives.
+	spell := 1.0 + float64(effects.ModifierTotal(state, "travel_speed"))/100
 
 	// No bonus at or below base level
 	if skillValue <= scaling.BaseLevel {
-		return 1.0
+		return spell
 	}
 
 	// Calculate bonus levels (capped)
@@ -188,7 +193,7 @@ func getTravelSpeedMultiplier(state *types.SaveFile) float64 {
 	}
 
 	// Higher skill = faster travel (multiplier > 1.0)
-	return 1.0 + float64(bonusLevels)*scaling.BonusPerLevel
+	return (1.0 + float64(bonusLevels)*scaling.BonusPerLevel) * spell
 }
 
 // GetEnvironmentData looks up location in DB and returns environment data if it's an environment

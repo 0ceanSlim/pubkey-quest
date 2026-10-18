@@ -6,12 +6,12 @@
   "casting_time": "action",
   "range": "0",
   "range_long": "0",
-  "duration": "10 minutes",
-  "concentration": true,
+  "duration": "2 hours",
+  "concentration": false,
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Sense presence, location, and type of poisons, poisonous creatures, and diseases within 30 feet",
+  "effect": "For 2 hours you sense poison and disease: +3 Medicine and +2 Survival (safe forage, bad water).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,12 +31,11 @@
   "mana_cost": 2,
   "prep_time": 35,
   "notes": [
-    "Can also be cast as a ritual (10 minutes, no mana cost) — modeled as standard cast here",
-    "Concentration — fixed from stub (5e does require concentration)",
-    "Range is self; awareness extends 30 ft (6 grid cells) as an aura"
+    "Out of combat: +3 Medicine and +2 Survival for 2 hours."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "sense-poison"
 }

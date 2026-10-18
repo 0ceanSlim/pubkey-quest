@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "All nonmagical food and drink within a 5-foot sphere at a point within range is cleansed of all poisons and diseases. The effect is permanent and instantaneous.",
+  "effect": "Poison and rot burn out of what you eat and drink, and out of you: ends being poisoned.",
   "spell_attack": null,
   "save_type": null,
   "type": "Spell",
@@ -29,12 +29,13 @@
   "mana_cost": 2,
   "prep_time": 25,
   "notes": [
-    "Can be cast as a ritual (add 10 minutes to casting time) — saves the mana cost.",
-    "Affects all food and drink in a 5-ft sphere at a chosen point within 10 ft (range 2 grid cells).",
-    "No effect on magical poisons or cursed food."
+    "Ends being poisoned, in or out of combat. Far cheaper than an antidote."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "cures": [
+    "poisoned"
+  ]
 }

@@ -1,0 +1,56 @@
+{
+  "name": "Moonbeam",
+  "description": "A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high cylinder centered on a point within range. A creature caught in the beam is engulfed in ghostly flames that cause searing pain, taking 2d10 radiant damage at the start of each of its turns until it escapes the light.",
+  "level": 2,
+  "school": "evocation",
+  "casting_time": "action",
+  "range": "4",
+  "range_long": "4",
+  "duration": "1 minute",
+  "concentration": true,
+  "damage": null,
+  "damage_type": null,
+  "heal": null,
+  "effect": "A creature that fails a Constitution save is caught in the moonbeam: 2d10 radiant at the start of each of its turns until it escapes.",
+  "type": "Spell",
+  "spell_attack": null,
+  "save_type": "constitution",
+  "aoe": {
+    "shape": "sphere",
+    "radius": 1
+  },
+  "tags": [
+    "combat",
+    "damage",
+    "radiant",
+    "concentration",
+    "aoe"
+  ],
+  "classes": [
+    "druid"
+  ],
+  "rarity": "common",
+  "action_cost": "action",
+  "mana_cost": 4,
+  "prep_time": 125,
+  "notes": [
+    "In combat: every enemy within 5 ft of the target (the beam's 5-foot radius) makes its own Constitution save; each that fails is caught in the beam: 2d10 radiant at the start of each of its turns until it passes a Constitution save to step out. Concentration, 10 rounds. The beam can't be moved yet.",
+    "Quartz-dust ×1 (a crystal focus provides it)."
+  ],
+  "material_component": {
+    "required": [
+      {
+        "component": "quartz-dust",
+        "quantity": 1
+      }
+    ],
+    "focus_provided": "Crystal provides unlimited quartz-dust"
+  },
+  "applies_condition": {
+    "condition": "moonlit",
+    "rounds": 10,
+    "save_each_turn": "constitution",
+    "damage_dice": "2d10",
+    "damage_type": "radiant"
+  }
+}

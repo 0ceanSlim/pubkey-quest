@@ -1,0 +1,25 @@
+{
+  "id": "expeditious-retreat",
+  "name": "Expeditious Retreat",
+  "description": "Magic in your stride: you travel 30% faster, and move 6 more squares a turn in a fight.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
+    {
+      "stat": "travel_speed",
+      "type": "constant",
+      "value": 30
+    },
+    {
+      "stat": "combat_move",
+      "type": "constant",
+      "value": 6
+    }
+  ],
+  "message": "Your feet feel feather-light.",
+  "visible": true
+}

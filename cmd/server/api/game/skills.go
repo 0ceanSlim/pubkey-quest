@@ -7,6 +7,7 @@ import (
 
 	"pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/effects"
+	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/session"
 )
 
@@ -43,6 +44,8 @@ func SkillsHandler(w http.ResponseWriter, r *http.Request) {
 	// Effective stats (base + active effect modifiers) so the displayed skill
 	// matches the value a check or gate uses.
 	stats := effects.EffectiveStats(&gameSession.SaveData)
+	// …plus what carried kits and active spells add, as a check would.
+	tools := gameutil.CarriedSkillBonus(&gameSession.SaveData, false)
 
 	// Calculate values for each skill
 	result := make(map[string]data.SkillResponse)
@@ -51,7 +54,7 @@ func SkillsHandler(w http.ResponseWriter, r *http.Request) {
 			Name:        skill.Name,
 			Description: skill.Description,
 			Ratio:       skill.Ratio,
-			Value:       data.CalculateSkillValue(stats, skill.Ratio),
+			Value:       data.CalculateSkillValue(stats, skill.Ratio) + tools[id] + effects.SkillBonus(&gameSession.SaveData, id),
 		}
 	}
 

@@ -4,6 +4,56 @@ Spells whose full effect cannot be expressed in the current schema are flagged `
 the progress log. This file records what engine mechanic each spell needs and a minimal
 proposal for implementing it.
 
+## Status (2026-10-17 spell pass)
+
+Most of these landed as **data on the spell** rather than per-spell code (schema in
+`spell-conventions.md` → "Mechanics schema"; engine in `game/combat/spellbuffs.go`):
+
+| Proposal | Landed as |
+|---|---|
+| blinded / disadvantage-next-attack / outlined / frightened / restrained riders | `applies_condition` (+ new conditions `distracted`, `exhausted`, `laughing`, `baned`, `dueled`, `burning`, `moonlit`, `beset`) |
+| shillelagh stat swap | `combat_buff.melee_stat` + `weapon_dice` + `weapons` |
+| true strike / analyze weakness | `combat_buff.next_attack_advantage` (+ `hit_once` dice) |
+| smites (searing / thunderous / wrathful / ensnaring) | `combat_buff.hit_once` + `hit_dice` + `hit_condition`; burning damage is `damage_dice` on the condition |
+| hex / hunter's mark | `combat_buff.target: "enemy"` → `marked_id`; hex also `hit_spells` |
+| armor of agathys | `combat_buff.temp_hp` + `retaliate` (`retaliate_while_temp_hp`) |
+| charm person / animal friendship | `applies_condition: charmed` with `creature_types` |
+| bane | `baned` condition: −1d4 to the monster's attacks and saves |
+| compelled duel | `dueled` condition: holds the AI target to the caster, no fleeing, disadvantage vs others |
+| goodberry | `creates_item` (+ the `goodberry` item) |
+| exhaustion (Exhausting Hex) | `exhausted` condition: disadvantage on its attacks for the fight |
+| expeditious retreat / longstrider speed | `applies_effect` with `travel_speed` + `combat_move`, and `combat_buff.extra_move` |
+| fog cloud | `combat_buff.ranged_defense` + `easy_escape` (Flee always works) |
+| hellish rebuke / shield reactions | `action_cost: "reaction"` + `reaction_trigger` (`damaged` / `hit`): prepared reactions fire on their own |
+| silent image | `combat_buff.decoys` (one attack that would hit strikes the double) |
+| restrained should stop movement | `IsSpeedZero` now gates player and monster movement |
+| AoE multi-target saves (fireball, lightning bolt, burning hands, thunderwave, shatter, arms of hadar, word of radiance, blinding flash; then faerie fire, fear, grease, entangle, moonbeam) | `aoe: { shape, radius }` — every enemy in the sphere / self_radius / cone / line saves on its own; allies spared (`game/combat/area.go`). The second batch's riders (outlined, frightened, prone, restrained, moonlit) land on each creature that fails; a concentration spell's riders all end with it |
+
+**Area spells left single-target (2026-10-17).** Each was checked against the `aoe` shapes:
+
+- **acid-splash** — "one creature, or two within 5 ft of each other" is a target *count*,
+  not an area. `sphere 1` would catch every enemy around the target, not at most two.
+  Needs a cap: `aoe: { "shape": "sphere", "radius": 1, "max_targets": 2 }`, where
+  `areaTargets` keeps the aimed monster plus the nearest one other (it already sorts them
+  that way, so the cap is a slice).
+- **color-spray** — HP pool (6d10, nearest first), no save; the `aoe` engine needs a
+  `save_type`, so it stays single-target until the `hp_threshold_aoe` mode below exists
+  (its 15-ft cone would be `cone 3` then).
+- **sleep** ("Exhausting Hex") — reworked into a single-target Wisdom-save curse; its
+  description no longer covers an area, so nothing to do.
+- **grease / entangle / moonbeam** got the cast-time area only. What still has no engine
+  support: the lingering zone (grease's slick ground and entangle's vines as difficult
+  terrain, saves on entering or ending a turn there) and moving moonbeam's beam — both
+  wait on the persistent-zone proposal (fog cloud / grease below).
+
+**Still open** (no engine support yet; the spells have other uses meanwhile): forced
+movement (mage hand push, thorn whip pull, thunderwave push), spiritual weapon's
+repeating bonus-action attack, witch bolt's sustain, chill touch no-heal, ray of frost
+slow, shocking grasp no-reactions, produce flame's light half, color spray's HP pool,
+command's word variants, hex's ability-check penalty, hunter's mark transfer on a kill,
+silent image's investigation check, speak with animals' beast command, persistent zones
+(fog, grease, entangle as terrain).
+
 ---
 
 ## Cantrips (level 0)

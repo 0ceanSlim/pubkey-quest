@@ -350,7 +350,11 @@ func newPlayerCombatant(npub string, save *types.SaveFile) types.PartyCombatant 
 		CombatState: types.PlayerCombatState{
 			CurrentHP:      save.HP,
 			MaxHP:          save.MaxHP,
-			MovementBudget: playerMovementBudget(save.Race),
+			MovementBudget: playerMovementBudget(save.Race) + effects.ModifierTotal(save, "combat_move"),
+			// Spells cast before the fight carry in: false life's temporary
+			// HP, a familiar's help on your first attack.
+			TempHP: effects.ModifierTotal(save, "temp_hp"),
+			Helped: effects.ModifierTotal(save, "combat_help") > 0,
 		},
 	}
 }
@@ -439,6 +443,9 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	}
 
 	state := &me.CombatState
+	if IsSpeedZero(state.Conditions) {
+		return nil, fmt.Errorf("you're held fast and can't move")
+	}
 	if me.Pos == target {
 		return nil, fmt.Errorf("already at that position")
 	}
@@ -515,7 +522,7 @@ func executeMonsterOA(cs *types.CombatSession, monster *types.MonsterInstance, s
 	}
 	monster.ReactionUsed = true
 	action := monster.Data.Actions[actionIdx]
-	playerAC := computePlayerAC(db, save)
+	playerAC := computePlayerAC(db, cs, save)
 
 	result := ResolveAttackRoll(action.AttackBonus, playerAC, 0)
 	log := []string{
@@ -604,6 +611,11 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 	foes := activeMonsters(cs)
 	if len(foes) == 0 {
 		return nil, fmt.Errorf("no living enemy to flee from")
+	}
+	for _, b := range actor(cs).CombatState.SpellBuffs {
+		if b.EasyEscape {
+			return escapeFight(cs, fmt.Sprintf("  Under cover of %s, you slip away unseen!", b.Name)), nil
+		}
 	}
 	r := nearestRange(cs)
 	if r < 3 {
@@ -766,8 +778,22 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 
 	level := character.GetLevelFromXP(save.Experience, advancement)
 
-	attackBonus := resolveAttackBonus(item, effectiveStats(save), save.Class, level, isUnarmed, thrown)
+	// Shillelagh and the like: a melee weapon swung with the caster's
+	// spellcasting ability, its damage die replaced.
+	stats := effectiveStats(save)
+	if !isRangedAttack && !isUnarmed {
+		var overLog []string
+		item, stats, overLog = meleeOverride(state, save, item, stats, gaminventory.GetEquippedItemID(save.Inventory, weaponSlot))
+		log = append(log, overLog...)
+	}
+
+	attackBonus := resolveAttackBonus(item, stats, save.Class, level, isUnarmed, thrown)
 	advantage := resolveAttackAdvantage(r, item, isUnarmed, save.Race, thrown)
+	// Spell buffs: bless's d4, magic weapon's +1, true strike's advantage.
+	buffBonus, buffAdv, buffLog := buffAttackRoll(state, true)
+	attackBonus += buffBonus
+	advantage += buffAdv
+	log = append(log, buffLog...)
 	// Conditions: the player's own conditions (poisoned/prone/…) impose disadvantage;
 	// the target monster's (restrained/blinded/outlined/…) grant advantage.
 	advantage += ConditionAttackAdvantage(state.Conditions, monster.Conditions)
@@ -796,6 +822,8 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	result := ResolveAttackRoll(attackBonus, monster.ArmorClass+cover, advantage)
 
 	log = append(log, formatAttackRoll(save.D, item, isUnarmed, result), outcomeLine(result))
+	// Attacking ends sanctuary and invisibility, hit or miss.
+	log = append(log, breakOnAttack(state)...)
 
 	if !result.IsHit {
 		if isOffHand {
@@ -817,9 +845,18 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		// Two-weapon fighting bonus attack: no ability score modifier to damage
 		dmg = resolvePlayerDamageNoMod(item, monster, offhandEmpty, result.IsCrit)
 	} else {
-		dmg = resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, thrown)
+		dmg = resolvePlayerDamage(item, stats, monster, isUnarmed, offhandEmpty, result.IsCrit, thrown)
 	}
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
+
+	// Spell buffs that ride a weapon hit: divine favor, hunter's mark, a smite.
+	weaponType := "bludgeoning"
+	if !isUnarmed && item != nil {
+		weaponType = WeaponDamageType(item)
+	}
+	extra, hitLog := buffHitDamage(cs, actor(cs), monster, !isRangedAttack, false, result.IsCrit, weaponType)
+	dmg += extra
+	log = append(log, hitLog...)
 
 	// Ability riders: rage % bonus + a readied Sneak Attack (consumed on first hit).
 	dmg, riderLog := applyPlayerDamageRiders(state, dmg, result.IsCrit)
@@ -1265,6 +1302,13 @@ func awardDamageXP(cs *types.CombatSession, monster *types.MonsterInstance, dmg,
 // pile, awards the kill bonus, checks for a level-up, and ends the fight if it
 // was the last enemy standing.
 func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, save *types.SaveFile, advancement []types.AdvancementEntry) []string {
+	return append(killRewards(cs, monster, save, advancement), checkVictory(cs)...)
+}
+
+// killRewards is a kill without the victory check: the "defeated" line, quest
+// credit, loot and kill-bonus XP. An area spell that drops several monsters
+// pays each kill, then checks for victory once.
+func killRewards(cs *types.CombatSession, monster *types.MonsterInstance, save *types.SaveFile, advancement []types.AdvancementEntry) []string {
 	log := []string{fmt.Sprintf("  %s is defeated!", monster.Name)}
 	members := inFightMembers(cs)
 	if len(members) == 0 {
@@ -1311,8 +1355,7 @@ func handleMonsterKill(cs *types.CombatSession, monster *types.MonsterInstance, 
 			}
 		}
 	}
-
-	return append(log, checkVictory(cs)...)
+	return log
 }
 
 // distributePartyLoot shares one kill's loot across the party (party-combat-plan
@@ -1546,9 +1589,15 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	return log, false
 }
 
-// computePlayerAC queries the player's current AC from equipped items.
-func computePlayerAC(db *sql.DB, save *types.SaveFile) int {
-	return CalculatePlayerACFor(db, save.Inventory, effectiveStats(save), save.Class)
+// computePlayerAC is the AC a monster rolls against: gear and lasting spells
+// (PlayerAC), plus the current actor's in-fight spell buffs (shield, shield of
+// faith, barkskin).
+func computePlayerAC(db *sql.DB, cs *types.CombatSession, save *types.SaveFile) int {
+	ac := PlayerAC(db, save)
+	if cs != nil && len(cs.Party) > 0 {
+		ac = buffedAC(&actor(cs).CombatState, ac)
+	}
+	return ac
 }
 
 // applyDamageToPlayer deducts HP and transitions to death_saves if HP reaches zero.
@@ -1571,6 +1620,9 @@ func applyDamageToPlayer(cs *types.CombatSession, dmg int) []string {
 	if dmg > 0 && state.Resource != nil {
 		regenResource(state.Resource, state.Resource.PerHitTaken)
 	}
+	// Temporary hit points (false life, armor of agathys) go first.
+	dmg, soakLog := soakDamage(state, dmg)
+	log = append(log, soakLog...)
 
 	if dmg > state.CurrentHP {
 		actor(cs).DamageTaken += state.CurrentHP
@@ -1579,6 +1631,9 @@ func applyDamageToPlayer(cs *types.CombatSession, dmg int) []string {
 	}
 	state.CurrentHP -= dmg
 	if state.CurrentHP <= 0 {
+		if ward := deathWard(state, whoName(cs, actor(cs))); ward != nil {
+			return append(log, ward...)
+		}
 		state.CurrentHP = 0
 		state.IsUnconscious = true
 		if PartyFight(cs) {

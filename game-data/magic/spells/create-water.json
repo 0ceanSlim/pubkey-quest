@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "Creates or destroys up to 10 gallons of water in an open container within range. Useful for filling waterskins, dousing fires, or removing standing water.",
+  "effect": "Clean, cold water from nothing: drink deep and wash the road away, easing 2 fatigue.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -27,12 +27,11 @@
   "mana_cost": 2,
   "prep_time": 25,
   "notes": [
-    "Purely utilitarian — no combat application",
-    "Water created is clean and potable",
-    "Cannot create water inside a sealed container"
+    "Out of combat: eases 2 fatigue."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
-  }
+  },
+  "applies_effect": "fresh-water"
 }

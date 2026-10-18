@@ -29,12 +29,15 @@
   "action_cost": "action",
   "mana_cost": 2,
   "notes": [
-    "Bard signature cantrip; wisdom save or take 1d4 psychic + disadvantage on next attack",
-    "Target must be able to hear you; mana 2: double effect (damage + attack debuff) makes it strongest debuff cantrip",
-    "Disadvantage-on-attack condition pending engine support"
+    "Bard signature cantrip: on a failed Wisdom save the target takes 1d4 psychic and its next attack has disadvantage.",
+    "Mana 2: damage plus a debuff in one cantrip."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "applies_condition": {
+    "condition": "distracted",
+    "rounds": 1
   }
 }

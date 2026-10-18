@@ -11,7 +11,7 @@
   "damage": "1d6",
   "damage_type": null,
   "heal": null,
-  "effect": "Marks a target as quarry: +1d6 damage on each weapon hit; advantage on tracking/perceiving the marked creature.",
+  "effect": "You mark a foe as your quarry: +1d6 damage every time you hit it with a weapon, for the rest of the fight (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -29,12 +29,15 @@
   "mana_cost": 2,
   "prep_time": 50,
   "notes": [
-    "Range: D&D 5e is 90 ft (6 grid); set 2 grid (30 ft) for L1 range balance.",
-    "Bonus-action target-switch on kill requires a conditional trigger engine mechanic — see proposals.",
-    "Stub had bone-dust×2+pollen — both focus-provided (totem/sprig-of-mistletoe), not a real cost for rangers. Divination tracking mark is not substance-themed. Correctly free."
+    "In combat (bonus action): +1d6 (your weapon's damage type) on every weapon hit against the marked foe. Concentration.",
+    "Cast it again to move it to a new foe."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "target": "enemy",
+    "hit_dice": "1d6"
   }
 }

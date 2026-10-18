@@ -38,7 +38,7 @@ func BuildEquippedStats(db *sql.DB, save *types.SaveFile, level int) EquippedSta
 	inv := save.Inventory
 	stats := save.Stats
 	es := EquippedStats{
-		ArmorClass: CalculatePlayerACFor(db, inv, stats, save.Class),
+		ArmorClass: PlayerAC(db, save),
 		Ammo:       equippedAmmoCount(inv),
 	}
 

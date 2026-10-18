@@ -11,7 +11,7 @@
   "damage": null,
   "damage_type": null,
   "heal": null,
-  "effect": "+5 AC including against triggering attack; blocks magic missile damage; until start of next turn",
+  "effect": "When an attack would hit you, an invisible barrier springs up: +5 AC until the start of your next turn, including against that attack.",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -31,9 +31,9 @@
   "mana_cost": 2,
   "prep_time": 45,
   "notes": [
-    "Cast as reaction when hit by an attack or targeted by magic missile",
-    "+5 AC retroactively applies to the triggering hit — can turn a hit into a miss",
-    "Staff-equipped casters get mana-crystals free each cast"
+    "A reaction: keep it prepared and it casts itself when an attack would hit you and +5 AC would make it miss, so it never spends mana on a hit it can't stop. Once a round.",
+    "+5 AC lasts until the start of your next turn.",
+    "A staff provides the mana-crystals free each cast."
   ],
   "material_component": {
     "required": [
@@ -43,5 +43,10 @@
       }
     ],
     "focus_provided": "Staff provides unlimited mana-crystals"
+  },
+  "reaction_trigger": "hit",
+  "combat_buff": {
+    "rounds": 1,
+    "ac_bonus": 5
   }
 }

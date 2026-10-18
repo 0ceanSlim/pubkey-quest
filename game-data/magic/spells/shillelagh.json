@@ -11,7 +11,7 @@
   "damage": "1d8",
   "damage_type": "bludgeoning",
   "heal": null,
-  "effect": "Your held club or quarterstaff uses your spellcasting modifier for attack/damage rolls and deals 1d8 bludgeoning damage for 1 minute.",
+  "effect": "Your club or quarterstaff hits with your Wisdom instead of your Strength, and its damage die becomes a d8, for 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -28,14 +28,26 @@
   "action_cost": "bonus_action",
   "mana_cost": 1,
   "notes": [
-    "Bonus action cast + concentration — enables Wisdom-based melee for druids",
-    "Spellcasting-ability-to-weapon-attack substitution pending engine support",
-    "D&D 5e material: mistletoe and shamrock leaf; closest ids: pollen (druidic herb)"
+    "In combat (bonus action): your club, quarterstaff or wooden staff attacks and deals damage with your spellcasting ability, and its damage die is a d8. Concentration, 10 rounds.",
+    "No effect outside a fight."
   ],
   "material_component": {
     "required": [
-      { "component": "pollen", "quantity": 1 }
+      {
+        "component": "pollen",
+        "quantity": 1
+      }
     ],
     "focus_provided": "A sprig-of-mistletoe focus provides the pollen component."
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "melee_stat": "spellcasting",
+    "weapon_dice": "1d8",
+    "weapons": [
+      "club",
+      "quarterstaff",
+      "wooden-staff"
+    ]
   }
 }

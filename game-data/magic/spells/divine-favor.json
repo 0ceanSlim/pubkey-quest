@@ -11,7 +11,7 @@
   "damage": "1d4",
   "damage_type": "radiant",
   "heal": null,
-  "effect": "+1d4 radiant damage on all weapon attacks for 1 minute (concentration)",
+  "effect": "Your weapon gleams with divine power: +1d4 radiant damage on every weapon hit for 10 rounds (concentration).",
   "type": "Spell",
   "spell_attack": null,
   "save_type": null,
@@ -30,12 +30,15 @@
   "mana_cost": 2,
   "prep_time": 45,
   "notes": [
-    "Cast as bonus action — allows attacking same turn",
-    "Concentration — pairs with weapon attacks, not spell damage",
-    "Radiant bonus damage applies to every weapon hit while concentration holds"
+    "In combat (bonus action): +1d4 radiant on every weapon hit for 10 rounds. Concentration."
   ],
   "material_component": {
     "required": [],
     "focus_provided": ""
+  },
+  "combat_buff": {
+    "rounds": 10,
+    "hit_dice": "1d4",
+    "hit_type": "radiant"
   }
 }

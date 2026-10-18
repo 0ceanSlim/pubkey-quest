@@ -1,0 +1,25 @@
+{
+  "id": "sense-evil",
+  "name": "Sense Evil",
+  "description": "You feel the undead, fiends and fey before they reach you: nothing can ambush you, and +2 Resolve.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
+    {
+      "stat": "ambush_ward",
+      "type": "constant",
+      "value": 1
+    },
+    {
+      "stat": "skill_resolve",
+      "type": "constant",
+      "value": 2
+    }
+  ],
+  "message": "You feel for the wrongness in the world.",
+  "visible": true
+}
