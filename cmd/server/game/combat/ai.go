@@ -527,8 +527,8 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 				critStr = " CRITICAL HIT!"
 			}
 			logEntries = append(logEntries, fmt.Sprintf(
-				"  %s deals %d %s damage.%s",
-				monster.Name, dmg, action.Hit.Type, critStr,
+				"  %s deals %d %s damage (%s).%s",
+				monster.Name, dmg, action.Hit.Type, DiceLabel(action.Hit.Dice, action.Hit.Mod, result.IsCrit), critStr,
 			))
 			if target != nil {
 				var resistLog []string

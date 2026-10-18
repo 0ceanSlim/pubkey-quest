@@ -1262,15 +1262,50 @@ let _logQueueTailAt  = 0;
 // the monster is still gliding across the board.
 let _animationEndsAt = 0;
 
-// _diceRollNumber extracts the d20 face from a roll line. Returns null when
-// the line isn't an actionable single-die roll. Initiative is now emitted as
-// two separate per-side rolls so each one fires its own animation.
+// _diceRollNumber extracts the face from a "rolled N" line: a d20 for attacks,
+// initiative, saves and checks, a d100 for an escape chance ("Escape chance:
+// 45% (rolled 37)"). Returns null when the line isn't a single-die roll.
+// Initiative is emitted as two separate per-side rolls so each one fires its
+// own animation.
 function _diceRollNumber(line) {
     const m = line.match(/rolled\s+(\d+)/i);
     if (!m) return null;
     const n = parseInt(m[1], 10);
-    if (!Number.isFinite(n) || n < 1 || n > 20) return null;
+    const max = _rollSides(line);
+    if (!Number.isFinite(n) || n < 1 || n > max) return null;
     return n;
+}
+
+// _rollSides is the die a "rolled N" line threw.
+function _rollSides(line) {
+    return /chance:\s*\d+%/i.test(line) ? 100 : 20;
+}
+
+// _damageDice reads the dice a damage line names: "You deal 9 slashing damage
+// (1d8)." → { sides: 8, label: '1d8' }. Lines without them fall back to a d6.
+function _damageDice(line) {
+    const m = line.match(/damage\s*\((\d+)d(\d+)([+-]\d+)?\)/i);
+    if (!m) return { sides: 6, label: 'dmg' };
+    return { sides: parseInt(m[2], 10), label: `${m[1]}d${m[2]}${m[3] ?? ''}` };
+}
+
+// _diceRoller works out who threw a roll line and which side they're on:
+// 'you', 'ally' (a party member) or 'foe'. The log names the actor at the
+// start of the line; lines about your own checks start with "You", or with
+// the check ("Death saving throw", "👁 Stealth", "🧭 Survival").
+function _diceRoller(line, cs = _lastState) {
+    const L = line.trim().replace(/^[⚡📯👁🧭]\s*/u, '');
+    if (/^(You\b|Opportunity attack! You|Death saving throw|Stealth:|Survival:)/i.test(L) || /reflex save/i.test(L)) {
+        return { name: 'You', side: 'you' };
+    }
+    const m = L.match(/^(.+?)\s+(?:attacks\b|rolled\b|deals\b|takes an opportunity attack|calls a retreat)/i);
+    if (!m) return null;
+    const name = m[1].trim();
+    const me = (cs?.allies ?? []).find((a) => a.you);
+    if (me && me.name === name) return { name: 'You', side: 'you' };
+    if ((cs?.allies ?? []).some((a) => a.name === name)) return { name, side: 'ally' };
+    if ((cs?.monsters ?? []).some((mo) => mo.name === name)) return { name, side: 'foe' };
+    return { name, side: 'foe' };
 }
 
 // _playDiceAnimation spawns a die sprite that tumbles, settles on `result`,
@@ -1284,28 +1319,48 @@ const DICE_TUMBLE_MS  = 600;
 const DICE_SETTLE_MS  = 500;
 const DICE_FADE_MS    = 300;
 
-function _playDiceAnimation(result, atMs, kind = 'd20') {
+// The die shapes drawn (anything else is drawn as the nearest).
+const DIE_SHAPES = [4, 6, 8, 10, 12, 20, 100];
+
+function _playDiceAnimation(result, atMs, kind = 'd20', info = {}) {
     const now = performance.now();
     const startIn = Math.max(0, atMs - now);
+    const sides = info.sides ?? (kind === 'damage' ? 6 : 20);
+    const shape = DIE_SHAPES.reduce((best, s) => (Math.abs(s - sides) < Math.abs(best - sides) ? s : best), 20);
 
     setTimeout(() => {
         const zone = $id('combat-dice-zone');
         if (!zone) return;
 
+        // Who rolled (a name tag in their side's colour), the die, and its type.
+        const wrap = document.createElement('div');
+        wrap.className = 'combat-die-wrap';
+        if (info.roller) {
+            const who = document.createElement('div');
+            who.className = `combat-die-who who-${info.roller.side}`;
+            who.textContent = info.roller.name;
+            wrap.appendChild(who);
+        }
         const die = document.createElement('div');
-        die.className = 'combat-die tumbling';
+        die.className = `combat-die d${shape} tumbling`;
         if (kind === 'damage') {
             die.classList.add('damage');
-        } else {
+        } else if (sides === 20) {
             if (result === 20) die.classList.add('crit');
             if (result === 1)  die.classList.add('fail');
         }
-        // Initial tumble face — random within a believable range.
+        wrap.appendChild(die);
+        const label = document.createElement('div');
+        label.className = 'combat-die-label';
+        label.textContent = info.label ?? `d${sides}`;
+        wrap.appendChild(label);
+
+        // Tumble faces stay within what that die (or those dice) can show.
         const tumbleMax = kind === 'damage'
-            ? Math.max(20, result * 2)  // ensure tumble values look plausible up to result
-            : 20;
+            ? Math.max(sides, result)
+            : sides;
         die.textContent = String(1 + Math.floor(Math.random() * tumbleMax));
-        zone.appendChild(die);
+        zone.appendChild(wrap);
 
         const cycler = setInterval(() => {
             die.textContent = String(1 + Math.floor(Math.random() * tumbleMax));
@@ -1320,11 +1375,11 @@ function _playDiceAnimation(result, atMs, kind = 'd20') {
 
         setTimeout(() => {
             die.classList.remove('settling');
-            die.classList.add('fading');
+            wrap.classList.add('fading');
         }, DICE_TUMBLE_MS + DICE_SETTLE_MS);
 
         setTimeout(() => {
-            die.remove();
+            wrap.remove();
         }, DICE_TUMBLE_MS + DICE_SETTLE_MS + DICE_FADE_MS);
     }, startIn);
 }
@@ -1379,9 +1434,10 @@ function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval
 
         if (!isError && fixedInterval === null) {
             if (rollN !== null) {
-                _playDiceAnimation(rollN, atAbsolute, 'd20');
+                _playDiceAnimation(rollN, atAbsolute, 'd20', { sides: _rollSides(line), roller: _diceRoller(line, gridCtx?.cs ?? _lastState) });
             } else if (dmgN !== null) {
-                _playDiceAnimation(dmgN, atAbsolute, 'damage');
+                const dice = _damageDice(line);
+                _playDiceAnimation(dmgN, atAbsolute, 'damage', { ...dice, roller: _diceRoller(line, gridCtx?.cs ?? _lastState) });
 
                 // Drain the matching HP bar mid-die-animation (during the
                 // settle phase) so the visual lands as the user reads the

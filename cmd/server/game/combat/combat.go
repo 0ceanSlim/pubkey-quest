@@ -541,7 +541,7 @@ func executeMonsterOA(cs *types.CombatSession, monster *types.MonsterInstance, s
 	if result.IsCrit {
 		crit = " CRITICAL HIT!"
 	}
-	log = append(log, fmt.Sprintf("  %s deals %d %s damage.%s", monster.Name, dmg, action.Hit.Type, crit))
+	log = append(log, fmt.Sprintf("  %s deals %d %s damage (%s).%s", monster.Name, dmg, action.Hit.Type, DiceLabel(action.Hit.Dice, action.Hit.Mod, result.IsCrit), crit))
 	log = append(log, applyDamageToPlayer(cs, dmg)...)
 	return log
 }
@@ -852,7 +852,7 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	} else {
 		dmg = resolvePlayerDamage(item, stats, monster, isUnarmed, offhandEmpty, result.IsCrit, thrown)
 	}
-	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
+	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit, offhandEmpty))
 
 	// Spell buffs that ride a weapon hit: divine favor, hunter's mark, a smite.
 	weaponType := "bludgeoning"
@@ -1262,17 +1262,38 @@ func resolvePlayerDamageNoMod(item map[string]interface{}, monster *types.Monste
 	)
 }
 
-// formatDamage returns a narrative log line describing damage dealt.
-func formatDamage(item map[string]interface{}, isUnarmed bool, dmg int, isCrit bool) string {
+// formatDamage returns a narrative log line describing damage dealt, naming
+// the dice rolled ("You deal 9 slashing damage (1d8).") so the log and the
+// dice animation can show them.
+func formatDamage(item map[string]interface{}, isUnarmed bool, dmg int, isCrit, offhandEmpty bool) string {
 	dmgType := "bludgeoning"
+	dice := "1d4"
 	if !isUnarmed && item != nil {
 		dmgType = WeaponDamageType(item)
+		dice = WeaponDamageDice(item, offhandEmpty)
 	}
 	crit := ""
 	if isCrit {
 		crit = " Critical hit!"
 	}
-	return fmt.Sprintf("  You deal %d %s damage.%s", dmg, dmgType, crit)
+	return fmt.Sprintf("  You deal %d %s damage (%s).%s", dmg, dmgType, DiceLabel(dice, 0, isCrit), crit)
+}
+
+// DiceLabel names a damage roll for the log: "1d8", "2d6+3", and doubled
+// dice on a critical hit ("2d8"), as 5e rolls them.
+func DiceLabel(dice string, mod int, isCrit bool) string {
+	label := dice
+	var n, sides int
+	if _, err := fmt.Sscanf(dice, "%dd%d", &n, &sides); err == nil && n > 0 && sides > 0 {
+		if isCrit {
+			n *= 2
+		}
+		label = fmt.Sprintf("%dd%d", n, sides)
+	}
+	if mod != 0 {
+		label += formatModifier(mod)
+	}
+	return label
 }
 
 // isOffhandEmpty returns true when nothing is equipped in the offhand slot.
@@ -1522,7 +1543,7 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 	}
 	offhandEmpty := isOffhandEmpty(save.Inventory)
 	dmg := resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, false)
-	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
+	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit, offhandEmpty))
 	applyDamageToMonster(monster, dmg)
 
 	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
@@ -1579,7 +1600,7 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 
 	offhandEmpty := isOffhandEmpty(save.Inventory)
 	dmg := resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, false)
-	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit))
+	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit, offhandEmpty))
 	applyDamageToMonster(monster, dmg)
 
 	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)

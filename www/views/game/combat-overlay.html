@@ -132,9 +132,31 @@
     background: linear-gradient(145deg, #2a0a0a, #5a0e0e);
     box-shadow: 0 0 10px rgba(239,68,68,0.7), inset 0 0 4px rgba(255,255,255,0.1);
     color: #fecaca;
-    /* Cube/d6-ish silhouette to read as a damage die, not a d20. */
-    clip-path: polygon(15% 0, 85% 0, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0 85%, 0 15%);
 }
+/* One silhouette per die, so a d4 never looks like a d20. */
+.combat-die.d4   { clip-path: polygon(50% 0, 100% 100%, 0 100%); padding-top: 12px; }
+.combat-die.d6   { clip-path: polygon(8% 8%, 92% 8%, 92% 92%, 8% 92%); }
+.combat-die.d8   { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.combat-die.d10,
+.combat-die.d100 { clip-path: polygon(50% 0, 100% 42%, 50% 100%, 0 42%); }
+.combat-die.d12  { clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%); }
+.combat-die.d20  { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+.combat-die.d100 { font-size: 14px; }
+/* The die with who threw it above and what it is below. */
+.combat-die-wrap {
+    position: absolute; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    pointer-events: none; user-select: none;
+}
+.combat-die-wrap .combat-die { position: relative; }
+.combat-die-wrap.fading { animation: diceFade 300ms ease-in forwards; }
+.combat-die-who {
+    font-size: 9px; font-weight: bold; padding: 1px 5px; white-space: nowrap;
+    background: rgba(0,0,0,0.65); border: 1px solid; text-shadow: 1px 1px 0 #000;
+}
+.combat-die-who.who-you  { color: #93c5fd; border-color: #3b82f6; }
+.combat-die-who.who-ally { color: #86efac; border-color: #22c55e; }
+.combat-die-who.who-foe  { color: #fca5a5; border-color: #ef4444; }
+.combat-die-label { font-size: 9px; font-weight: bold; color: #e5e7eb; text-shadow: 1px 1px 0 #000; }
 </style>
 
 <!-- Combat Overlay — transparent/semi-transparent over the scene; hidden when not in combat. -->
