@@ -6,6 +6,11 @@ covers everything after that.
 
 Engine: `cmd/server/game/spellbook/` (known spells + slot counts at a level).
 
+Companion draft: [spell-scroll-system.md](spell-scroll-system.md). Scribing a
+scroll is gated on `spellbook.Knows`, so whatever this system teaches a caster
+is exactly what they can scribe. For wizards, copying a scroll is also a way
+to learn.
+
 ## Status
 
 | Caster type | Classes | Rule | Status |
@@ -45,10 +50,14 @@ spell with the class in `classes`.
 ## Wizard (to build)
 
 - **Level-up:** 2 picks per level from the wizard list (slot level limit as above).
-- **Scrolls:** copy a wizard spell from a scroll into the spellbook. It costs
-  time and gold (5e: 2 hours and 50 gp per spell level, rescaled to our gold)
-  and uses the scroll up. Ties into scroll crafting (M5.5).
-- **Storage:** appended to `KnownSpells`.
+- **Copying scrolls:** a wizard spell on a scroll in the inventory can be
+  copied in if its level is one the wizard has slots for and it isn't known.
+  It costs 5,000 gold and 2 hours per spell level (PHB: 50 gp + 2 h), has no
+  roll, and consumes the scroll. Scrolls come from loot, shops, or other
+  casters' scribing. Rules and endpoint: [spell-scroll-system.md](spell-scroll-system.md#wizard-copying).
+- **Storage:** appended to `KnownSpells`. The copied spells don't depend on
+  carrying the `spellbook` item: that item is a scroll container, and losing it
+  on defeat never costs spells.
 
 ## Not in scope
 
@@ -56,3 +65,10 @@ spell with the class in `classes`.
   smaller follow-up.
 - **Cantrips known** growing with level (druid 2 → 3 at level 4): needs the
   known-casters pick flow first.
+
+## Build order (both drafts)
+
+1. Known-caster picks + wizard level-up picks (this doc). This makes
+   `spellbook.Known` complete for every class.
+2. Scroll scribing (spell-scroll-system.md), gated on `Knows`.
+3. Wizard copying, which reuses the scroll items from step 2.
