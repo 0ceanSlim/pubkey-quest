@@ -50,6 +50,33 @@ jobs:
           chmod +x "${{ steps.rel.outputs.asset }}"
           ./"${{ steps.rel.outputs.asset }}" -version
 
+      - name: Warn players and wait for them to save
+        env:
+          SERVICE: pubkey-quest
+          GRACE: ${{ vars.PROD_RESTART_GRACE || 300 }}
+          NEW_VERSION: ${{ steps.rel.outputs.version }}
+        run: |
+          # The running server picks up data/restart-notice.json within ~2s, shows
+          # everyone online a countdown with a Save button, and answers in
+          # data/restart-ack.json with how many players are online
+          # (cmd/server/maintenance). Nobody online: restart straight away.
+          if ! systemctl is-active --quiet "$SERVICE"; then echo "$SERVICE isn't running — nothing to warn"; exit 0; fi
+          DATA="$(systemctl show "$SERVICE" -p WorkingDirectory --value)/data"
+          mkdir -p "$DATA"
+          rm -f "$DATA/restart-ack.json" || true
+          printf '{"in_seconds": %d, "version": "%s"}\n' "$GRACE" "$NEW_VERSION" > "$DATA/restart-notice.json"
+          online() { grep -o '"online":[0-9]*' "$DATA/restart-ack.json" 2>/dev/null | cut -d: -f2; }
+          for i in $(seq 1 10); do [ -n "$(online)" ] && break; sleep 1; done
+          N="$(online)"
+          if [ -z "$N" ]; then echo "::warning::the server didn't acknowledge the notice; waiting the full ${GRACE}s"; fi
+          if [ "$N" = "0" ]; then echo "Nobody online — restarting now"; exit 0; fi
+          echo "${N:-?} player(s) online — giving them ${GRACE}s to save"
+          END=$(( $(date +%s) + GRACE ))
+          while [ "$(date +%s)" -lt "$END" ]; do
+            sleep 5
+            if [ "$(online)" = "0" ]; then echo "Everyone has left — restarting early"; break; fi
+          done
+
       - name: Install
         run: |
           SERVICE_DIR=$(systemctl show pubkey-quest -p WorkingDirectory --value)
@@ -58,6 +85,7 @@ jobs:
           # Keep the previous binary for a quick rollback.
           [ -f "$SERVICE_DIR/pubkey-quest" ] && cp "$SERVICE_DIR/pubkey-quest" "$SERVICE_DIR/pubkey-quest.previous"
           cp "promote/${{ steps.rel.outputs.asset }}" "$SERVICE_DIR/pubkey-quest"
+          rm -f "$SERVICE_DIR/data/restart-notice.json" || true
           sudo systemctl start pubkey-quest
 
       - name: Verify

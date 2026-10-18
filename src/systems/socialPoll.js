@@ -51,6 +51,8 @@ async function poll() {
         if (out.party && !out.party.you_lead) eventBus.emit('clock:running', Boolean(out.clock_running));
         if (out.party_sync) eventBus.emit('social:party-sync');
         if (out.in_combat) eventBus.emit('social:in-combat');
+        // A deploy is about to restart the server (or has called it off).
+        eventBus.emit('server:restart', out.restart ?? null);
     } catch (err) {
         logger.debug('social poll failed:', err?.message || err);
     } finally {

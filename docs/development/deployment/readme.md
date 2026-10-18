@@ -120,6 +120,27 @@ Stub workflow — will be fleshed out at alpha release. Requires version input.
 
 ---
 
+### Restart warnings
+
+Before a deploy stops the server, it warns everyone online and gives them time to save
+(`cmd/server/maintenance`):
+
+1. The deploy writes `data/restart-notice.json` (`{"in_seconds": N, "version": "…"}`) in the
+   service's working directory.
+2. Within about 2 seconds, every player sees a banner with a countdown and a **Save now**
+   button.
+3. The server answers in `data/restart-ack.json` with how many players are online. With nobody
+   online the deploy restarts at once; it also stops waiting early if everyone leaves.
+
+| Deploy | Wait | Repo variable |
+|---|---|---|
+| test.pubkey.quest (every push to main) | 60 s | `TEST_RESTART_GRACE` |
+| pubkey.quest ("Deploy: pubkey.quest") | 300 s | `PROD_RESTART_GRACE` |
+
+Release builds (the official server) check GitHub's latest release every hour. When a newer
+one is out, the server logs it, and the settings tab's version line shows that an update is
+ready to promote.
+
 ## Versioning
 
 Version is derived entirely from **git state** — no version files to maintain.

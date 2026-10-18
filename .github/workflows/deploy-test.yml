@@ -71,6 +71,33 @@ jobs:
 
       # ── Deploy ──
 
+      - name: Warn players and wait for them to save
+        env:
+          SERVICE: pubkey-quest-test
+          GRACE: ${{ vars.TEST_RESTART_GRACE || 60 }}
+          NEW_VERSION: ${{ github.sha }}
+        run: |
+          # The running server picks up data/restart-notice.json within ~2s, shows
+          # everyone online a countdown with a Save button, and answers in
+          # data/restart-ack.json with how many players are online
+          # (cmd/server/maintenance). Nobody online: restart straight away.
+          if ! systemctl is-active --quiet "$SERVICE"; then echo "$SERVICE isn't running — nothing to warn"; exit 0; fi
+          DATA="$(systemctl show "$SERVICE" -p WorkingDirectory --value)/data"
+          mkdir -p "$DATA"
+          rm -f "$DATA/restart-ack.json" || true
+          printf '{"in_seconds": %d, "version": "%s"}\n' "$GRACE" "$NEW_VERSION" > "$DATA/restart-notice.json"
+          online() { grep -o '"online":[0-9]*' "$DATA/restart-ack.json" 2>/dev/null | cut -d: -f2; }
+          for i in $(seq 1 10); do [ -n "$(online)" ] && break; sleep 1; done
+          N="$(online)"
+          if [ -z "$N" ]; then echo "::warning::the server didn't acknowledge the notice; waiting the full ${GRACE}s"; fi
+          if [ "$N" = "0" ]; then echo "Nobody online — restarting now"; exit 0; fi
+          echo "${N:-?} player(s) online — giving them ${GRACE}s to save"
+          END=$(( $(date +%s) + GRACE ))
+          while [ "$(date +%s)" -lt "$END" ]; do
+            sleep 5
+            if [ "$(online)" = "0" ]; then echo "Everyone has left — restarting early"; break; fi
+          done
+
       - name: Stop services
         run: |
           sudo systemctl stop pubkey-quest-test || true
@@ -109,6 +136,8 @@ jobs:
 
       - name: Start services
         run: |
+          # The new server clears a stale notice itself; this is belt and braces.
+          rm -f "$(systemctl show pubkey-quest-test -p WorkingDirectory --value)/data/restart-notice.json" || true
           sudo systemctl start pubkey-quest-test
           sudo systemctl start codex
 

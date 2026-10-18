@@ -6,10 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	pubkeyquest "pubkey-quest"
 	"pubkey-quest/cmd/server/api"
 	"pubkey-quest/cmd/server/app"
+	"pubkey-quest/cmd/server/maintenance"
+	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/release"
 	"pubkey-quest/cmd/server/routes"
 	"pubkey-quest/cmd/server/utils"
@@ -50,6 +53,13 @@ func main() {
 	app.Init()
 	defer app.Shutdown()
 	api.InitRelaySaves()
+
+	// Deploys warn online players before a restart (data/restart-notice.json);
+	// release builds also watch for a newer release to promote.
+	maintenance.Start(func() int { return presence.OnlineCount(time.Now()) })
+	if pubkeyquest.Embedded {
+		maintenance.StartReleaseCheck(Version)
+	}
 
 	mux := http.NewServeMux()
 

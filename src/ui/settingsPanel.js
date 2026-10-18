@@ -41,6 +41,15 @@ export function refreshSettingsPanel() {
 
     setText('settings-save-id', gameAPI.saveID ?? '—');
     setText('settings-version', panel.dataset.version || '—');
+    // A release build notices when a newer release is out (to be promoted).
+    fetch('/api/server/status')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((s) => {
+            if (s?.update_available) {
+                setText('settings-version', `${panel.dataset.version || '—'} (${s.update_available} is out; the server updates soon)`);
+            }
+        })
+        .catch(() => {});
 
     const relay = panel.dataset.relaySaves === 'true';
     setText('settings-save-where', relay

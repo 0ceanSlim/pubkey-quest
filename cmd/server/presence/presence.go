@@ -184,6 +184,19 @@ func StartPruner() {
 	}()
 }
 
+// OnlineCount is how many players are online right now.
+func OnlineCount(now time.Time) int {
+	registry.RLock()
+	defer registry.RUnlock()
+	n := 0
+	for _, e := range registry.byNpub {
+		if e.Online(now) {
+			n++
+		}
+	}
+	return n
+}
+
 // OnlineSet reports which of npubs are online right now — for the friends list.
 func OnlineSet(npubs []string, now time.Time) map[string]Entry {
 	registry.RLock()

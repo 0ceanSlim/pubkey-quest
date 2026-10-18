@@ -13,6 +13,7 @@ import (
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/travel"
+	"pubkey-quest/cmd/server/maintenance"
 	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/social"
@@ -55,6 +56,8 @@ type SocialPollResponse struct {
 	PartySync    bool         `json:"party_sync,omitempty"` // the leader moved you: refresh the world
 	InCombat     bool         `json:"in_combat"`            // you're in a fight (a party member may have started it)
 	ClockRunning bool         `json:"clock_running"`        // play/pause (a follower's mirrors the leader's)
+	// Restart is a server restart players are being warned about (a deploy).
+	Restart *maintenance.Notice `json:"restart,omitempty"`
 }
 
 // advancementOnce caches the advancement table for presence levels.
@@ -261,6 +264,7 @@ func SocialPollHandler(w http.ResponseWriter, r *http.Request) {
 	resp.Party = partyViewFor(sess.Npub)
 	resp.InCombat = sess.ActiveCombat != nil
 	resp.ClockRunning = clockRunningFor(sess)
+	resp.Restart = maintenance.Current()
 	writeCombatJSON(w, http.StatusOK, resp)
 }
 

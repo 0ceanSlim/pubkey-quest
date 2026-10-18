@@ -470,6 +470,12 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// @Tags     Social
 	// @Router   /api/social/poll [get]
 	mux.HandleFunc("/api/social/poll", game.SocialPollHandler)
+
+	// @Summary  This server's version, a newer release if one is out, and any restart warning
+	// @Tags     Server
+	// @Produce  json
+	// @Router   /api/server/status [get]
+	mux.HandleFunc("/api/server/status", ServerStatusHandler)
 	// @Summary  Everyone online in your city or on your road
 	// @Tags     Social
 	// @Router   /api/social/area [get]
