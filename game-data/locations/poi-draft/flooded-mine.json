@@ -26,6 +26,22 @@
       "type": "choice",
       "choices": [
         {
+          "label": "Pry open the iron grate in the lower shaft.",
+          "next": "the-grate",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "sword-of-the-ancestors",
+              "min": 2,
+              "max": 5
+            },
+            {
+              "type": "item",
+              "id": "crowbar"
+            }
+          ]
+        },
+        {
           "label": "Follow the tunnel with the rusted rail tracks.",
           "next": "track-tunnel"
         },
@@ -117,9 +133,190 @@
         ]
       },
       "next": "mine-shaft-bottom"
+    },
+    "the-grate": {
+      "type": "narrative",
+      "waypoint": "flooded-mine-depths",
+      "text": "You jam the crowbar into the rusted grate and heave. With a shriek of iron it gives. Below, a rickety kobold scaffold drops into the dark, and you can smell smoke and wet fur.",
+      "next": "scaffolding"
+    },
+    "scaffolding": {
+      "type": "check",
+      "skill": "athletics",
+      "dc": 16,
+      "text": "The scaffold is lashed together from mine timbers and rope. It sways when you look at it.",
+      "success_text": "You climb down hand over hand, testing each rung, and drop the last few feet into a tunnel lit by kobold fires.",
+      "success_next": "warren-guards",
+      "failure_text": "A rung snaps and you fall the last ten feet.",
+      "failure_next": "scaffold-fall"
+    },
+    "scaffold-fall": {
+      "type": "damage",
+      "text": "You land hard in the mud at the top of the shaft.",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 4
+      },
+      "next": "mine-shaft-bottom"
+    },
+    "warren-guards": {
+      "type": "monster",
+      "monster_id": "kobold-warrior",
+      "count": 3,
+      "text": "Yapping alarm calls echo down the tunnel and three kobolds with spears and painted shields charge out of the smoke.",
+      "arena": [
+        "#...........#",
+        "..,,.....,,..",
+        ".....#.#.....",
+        "..=.......=..",
+        ".....#.#.....",
+        "..,,.....,,..",
+        "#...........#"
+      ],
+      "next": "warren-hall"
+    },
+    "warren-hall": {
+      "type": "monster",
+      "monster_id": "kobold-warrior",
+      "count": 3,
+      "text": "The tunnel opens into a cavern full of hide tents. Three more kobolds come for you, shrieking.",
+      "arena": [
+        "#...........#",
+        "..,,.....,,..",
+        ".....#.#.....",
+        "..=.......=..",
+        ".....#.#.....",
+        "..,,.....,,..",
+        "#...........#"
+      ],
+      "next": "the-shaman"
+    },
+    "the-shaman": {
+      "type": "monster",
+      "monster_id": "kobold-shaman",
+      "count": 1,
+      "text": "At the back of the cavern, a kobold with bones knotted in its crest raises a burning hand. Behind it, half-sunk in a glittering geode, is a sword.",
+      "arena": [
+        "#...........#",
+        "..,,.....,,..",
+        ".....#.#.....",
+        "..=.......=..",
+        ".....#.#.....",
+        "..,,.....,,..",
+        "#...........#"
+      ],
+      "next": "the-geode"
+    },
+    "the-geode": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 15,
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "sword-of-the-ancestors",
+          "min": 4,
+          "max": 4
+        }
+      ],
+      "failure_next": "geode-retry",
+      "text": "The blade is half-sunk in a geode the size of a barrel, the crystal grown right over the guard. Strike it wrong and you will shatter both.",
+      "success_text": "You find the hairline seam where the crystal grew around the steel, and tap it. The geode splits clean down the middle.",
+      "success_next": "the-blade",
+      "failure_text": "You can't see where to strike. Better look again before you ruin it."
+    },
+    "the-blade": {
+      "type": "loot",
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "sword-of-the-ancestors",
+          "min": 4,
+          "max": 4
+        }
+      ],
+      "failure_next": "cache-or-leave",
+      "text": "The Ancestral Blade: rusted, pitted, and still beautiful, clan runes running the length of the fuller.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "ancestral-blade",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "cache-or-leave"
+    },
+    "cache-or-leave": {
+      "type": "choice",
+      "text": "Past the geode the old dwarven workings go on: a passage cut square and true, with clan marks over the arch.",
+      "choices": [
+        {
+          "label": "Follow the dwarven passage.",
+          "next": "geode-cache",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "sword-of-the-ancestors",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        {
+          "label": "Climb back up to the shaft.",
+          "next": "mine-shaft-bottom"
+        }
+      ]
+    },
+    "geode-cache": {
+      "type": "narrative",
+      "waypoint": "dwarven-geode-cache",
+      "text": "The passage ends in a round chamber walled with geodes, every one cut open and glittering. In the middle, an anvil of black stone, and a forge that lights itself as you walk in.",
+      "next": "clan-ritual"
+    },
+    "clan-ritual": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 15,
+      "text": "You lay the blade on the anvil and speak the names of your ancestors, as many as you know, as steadily as you can.",
+      "success_text": "The forge roars white. When it fades, the rust is gone and the runes burn gold, then cool to bright steel. The blade is whole.",
+      "success_next": "blade-restored",
+      "failure_text": "Your voice catches and the forge dims. Breathe. Begin again.",
+      "failure_next": "ritual-retry"
+    },
+    "blade-restored": {
+      "type": "narrative",
+      "text": "You lift the Blade of the Ancestors. It's lighter than it has any right to be, and it fits your hand as though it was made for it. In a way, it was.",
+      "is_terminal": true
+    },
+    "geode-retry": {
+      "type": "choice",
+      "text": "The geode glitters at you, unhelpfully.",
+      "choices": [
+        {
+          "label": "Study it again.",
+          "next": "the-geode"
+        },
+        {
+          "label": "Climb back up to the shaft.",
+          "next": "mine-shaft-bottom"
+        }
+      ]
+    },
+    "ritual-retry": {
+      "type": "choice",
+      "text": "The forge waits, banked low.",
+      "choices": [
+        {
+          "label": "Begin the names again.",
+          "next": "clan-ritual"
+        },
+        {
+          "label": "Leave the cache for now.",
+          "next": "mine-shaft-bottom"
+        }
+      ]
     }
   }
 }
-
-
-

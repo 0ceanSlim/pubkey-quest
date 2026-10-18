@@ -1,0 +1,102 @@
+{
+  "id": "kobold-warrior",
+  "name": "Kobold Warrior",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Humanoid",
+  "size": "Small",
+  "armor_class": 14,
+  "hit_points": 7,
+  "hp_dice": "2d6",
+  "alignment": "lawful evil",
+  "tags": [
+    "Kobold"
+  ],
+  "img": "/res/img/monsters/kobold-warrior.png",
+  "environment": [],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 9,
+    "dexterity": 15,
+    "constitution": 10,
+    "intelligence": 8,
+    "wisdom": 7,
+    "charisma": 8
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 8
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Spear",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "type": "passive",
+      "description": "The kobold has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated."
+    },
+    {
+      "name": "Sunlight Sensitivity",
+      "type": "passive",
+      "description": "In sunlight the kobold has disadvantage on attack rolls."
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          {
+            "item": "gold-piece",
+            "weight": 400,
+            "quantity": [
+              2,
+              8
+            ]
+          },
+          {
+            "item": "nothing",
+            "weight": 600
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.2,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": false
+  }
+}

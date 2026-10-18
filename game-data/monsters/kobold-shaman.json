@@ -1,0 +1,119 @@
+{
+  "id": "kobold-shaman",
+  "name": "Kobold Shaman",
+  "challenge_rating": 0.5,
+  "xp": 100,
+  "type": "Humanoid",
+  "size": "Small",
+  "armor_class": 12,
+  "hit_points": 18,
+  "hp_dice": "4d6+4",
+  "alignment": "lawful evil",
+  "tags": [
+    "Kobold"
+  ],
+  "img": "/res/img/monsters/kobold-shaman.png",
+  "environment": [],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 7,
+    "dexterity": 14,
+    "constitution": 12,
+    "intelligence": 10,
+    "wisdom": 14,
+    "charisma": 12
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 8
+  },
+  "preferred_range": 3,
+  "actions": [
+    {
+      "name": "Fire Bolt",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 4,
+      "range_long": 5,
+      "hit": {
+        "dice": "1d10",
+        "mod": 0,
+        "type": "fire"
+      }
+    },
+    {
+      "name": "Bone Knife",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "1d4",
+        "mod": 2,
+        "type": "piercing"
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Pack Tactics",
+      "type": "passive",
+      "description": "The kobold has advantage on attack rolls when at least one ally is adjacent to the target and that ally is not incapacitated."
+    },
+    {
+      "name": "Sunlight Sensitivity",
+      "type": "passive",
+      "description": "In sunlight the kobold has disadvantage on attack rolls."
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          {
+            "item": "bone-dust",
+            "weight": 500,
+            "quantity": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "gold-piece",
+            "weight": 500,
+            "quantity": [
+              10,
+              30
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.3,
+    "preferred_range": 3,
+    "target_priority": "lowest_hp",
+    "relentless": false
+  }
+}

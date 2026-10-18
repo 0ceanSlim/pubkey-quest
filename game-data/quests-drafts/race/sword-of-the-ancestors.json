@@ -24,16 +24,16 @@
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
-      "Strength 16",
-      "Resolve 14",
-      "Athletics 14"
+      "Level 3+",
+      "Athletics 14",
+      "Resolve 14"
     ],
     "combat_danger": "Moderate"
   },
   "stages": [
     {
       "id": "clue-gathering",
-      "description": "Thistle saw a band of kobolds carrying a rusted but ornate hilt into the Cragspire Mountains.",
+      "description": "Thistle saw kobolds carrying a rusted but ornate dwarven hilt up into the Cragspire Mountains.",
       "objectives": [
         {
           "type": "talk",
@@ -49,7 +49,7 @@
     },
     {
       "id": "tool-preparation",
-      "description": "Kobold tracks lead into the Flooded Mine, but the lowest level is blocked by a massive iron grate. You'll need a heavy-duty crowbar.",
+      "description": "Kobold tracks lead into the Flooded Mine, but the lowest level is barred by a rusted iron grate. You'll need a crowbar (most general stores sell them).",
       "objectives": [
         {
           "type": "fetch",
@@ -83,14 +83,14 @@
         {
           "type": "slay",
           "target": "kobold-warrior",
-          "count": 10,
+          "count": 6,
           "description": "Defeat the warren guards."
         },
         {
           "type": "slay",
           "target": "kobold-shaman",
           "count": 1,
-          "description": "Banish the Shaman guarding the hilt."
+          "description": "Defeat the shaman guarding the hilt."
         }
       ]
     },
@@ -150,5 +150,102 @@
         ]
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "[Dwarf] You said something about kobolds?",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Did I? Oh, I did. Last week on the Cragspire pass, a whole column of the little horrors, and two of them carrying a sword between them like a dead hog. Big, old, dwarf-made, all runes and rust. You've got that look, friend. Like I just told you where your grandmother's buried.",
+          "options": [
+            "where",
+            "accept",
+            "decline"
+          ]
+        },
+        "where": {
+          "label": "Where did they take it?",
+          "text": "Up the pass, toward the old mine with the pulley over the shaft. Nobody's worked it since it flooded. Kobolds love a hole in the ground.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "That blade belongs to my clan. I'll get it back.",
+          "text": "Thought you might say that. If they've gone deep, you'll want a crowbar: those old mines have grates on the lower levels. I'd sell you one, but I'm out. Try any general store.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not now.",
+          "text": "It's been rusting a hundred years. It'll keep a little longer."
+        }
+      }
+    },
+    "active": {
+      "option": "About the dwarven sword...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any luck?",
+          "options": [
+            "crowbar",
+            "grate",
+            "kobolds",
+            "back-to-it"
+          ]
+        },
+        "crowbar": {
+          "label": "I need a crowbar.",
+          "text": "Any general store. Ironpeak's mining supplier, if you want a good one.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "sword-of-the-ancestors",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "grate": {
+          "label": "I'm through the grate.",
+          "text": "Then mind the scaffolding. Kobolds build it, and kobolds are not engineers.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "sword-of-the-ancestors",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "kobolds": {
+          "label": "The kobolds have a whole warren down there.",
+          "text": "Kill the one with the bones in its hair first. Trust me.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "sword-of-the-ancestors",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll get it.",
+          "text": "Bring it past the wagon after. I want to see."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the sword...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Look at that. Not a speck of rust. I could get you a fortune for it in Goldenhaven. No? No. Of course not. Wear it well."
+        }
+      }
+    }
+  }
 }
