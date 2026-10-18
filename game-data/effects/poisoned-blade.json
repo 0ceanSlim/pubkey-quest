@@ -1,0 +1,20 @@
+{
+  "id": "poisoned-blade",
+  "name": "Poisoned Blade",
+  "description": "Your weapon is coated in poison: your first 3 weapon hits next fight deal +1d4 poison.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [],
+  "message": "You work the poison into the edge.",
+  "visible": true,
+  "combat_buff": {
+    "name": "Poisoned Blade",
+    "hit_dice": "1d4",
+    "hit_type": "poison",
+    "hits": 3
+  }
+}

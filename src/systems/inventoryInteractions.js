@@ -122,10 +122,10 @@ export function getItemActions(itemData, isEquipped) {
             }
         }
 
-        // Check for consumables
+        // Check for consumables (and weapon coatings: poison, a whetstone)
         const consumableTypes = ['Potion', 'Consumable', 'Food'];
         const itemType = itemData.type || itemData.item_type;
-        if (consumableTypes.includes(itemType)) {
+        if (consumableTypes.includes(itemType) || (itemData.tags && itemData.tags.includes('coating'))) {
             actions.push({ action: 'use', label: 'Use' });
         }
 

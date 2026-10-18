@@ -4,14 +4,23 @@
   "image": "/res/img/items/whetstone.png",
   "name": "Whetstone",
   "notes": [
-    "No use in play yet."
+    "Use it to hone your weapon: +1 damage on every weapon hit in your next fight.",
+    "It isn't used up: hone again before each fight."
   ],
   "value": 1,
   "rarity": "common",
   "stack": 10,
   "tags": [
-    "tool"
+    "tool",
+    "consumable",
+    "coating"
   ],
   "type": "Adventuring Gear",
-  "weight": 1
+  "weight": 1,
+  "effects": [
+    {
+      "apply_effect": "honed-edge"
+    }
+  ],
+  "reusable": true
 }

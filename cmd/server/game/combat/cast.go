@@ -450,9 +450,15 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	msgs := gaminventory.ApplyItemEffects(targetSave, itemID)
 	tstate.CurrentHP = targetSave.HP
 	targetSave.HP = prevHP // combat owns HP until the fight ends
+	// A coating applied mid-fight takes effect at once.
+	for _, b := range takeCoatings(targetSave) {
+		addBuff(tstate, b)
+	}
 
-	// Consume one from the located stack.
-	decrementSlotStack(slot)
+	// Consume one from the located stack (a reusable tool, like a whetstone, stays).
+	if reusable, _ := item["reusable"].(bool); !reusable {
+		decrementSlotStack(slot)
+	}
 	state.ActionUsed = true
 	if fromPack {
 		state.BonusActionUsed = true

@@ -86,10 +86,12 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 
 	// A smoke bomb ("escape") only does anything mid-fight; don't waste it.
 	var props map[string]interface{}
+	reusable := false
 	if json.Unmarshal([]byte(propertiesJSON), &props) == nil {
 		if escape, _ := props["escape"].(bool); escape {
 			return &types.GameActionResponse{Success: false, Message: "That's for getting out of a fight.", Color: "yellow"}, nil
 		}
+		reusable, _ = props["reusable"].(bool)
 	}
 
 	// Check for "consumable" tag
@@ -132,13 +134,15 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 				// Apply item effects based on item ID
 				effects = ApplyItemEffects(state, itemID)
 
-				// Remove/reduce item quantity
-				qty := slotQuantity(slotMap)
-				if qty > 1 {
-					slotMap["quantity"] = qty - 1
-				} else {
-					slotMap["item"] = nil
-					slotMap["quantity"] = 0
+				// Remove/reduce item quantity (a reusable tool, like a whetstone, stays)
+				if !reusable {
+					qty := slotQuantity(slotMap)
+					if qty > 1 {
+						slotMap["quantity"] = qty - 1
+					} else {
+						slotMap["item"] = nil
+						slotMap["quantity"] = 0
+					}
 				}
 				break
 			}
@@ -163,13 +167,15 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 					// Apply item effects
 					effects = ApplyItemEffects(state, itemID)
 
-					// Remove/reduce item quantity
-					qty := slotQuantity(slotMap)
-					if qty > 1 {
-						slotMap["quantity"] = qty - 1
-					} else {
-						slotMap["item"] = nil
-						slotMap["quantity"] = 0
+					// Remove/reduce item quantity (a reusable tool stays)
+					if !reusable {
+						qty := slotQuantity(slotMap)
+						if qty > 1 {
+							slotMap["quantity"] = qty - 1
+						} else {
+							slotMap["item"] = nil
+							slotMap["quantity"] = 0
+						}
 					}
 					break
 				}

@@ -355,6 +355,8 @@ func newPlayerCombatant(npub string, save *types.SaveFile) types.PartyCombatant 
 			// HP, a familiar's help on your first attack.
 			TempHP: effects.ModifierTotal(save, "temp_hp"),
 			Helped: effects.ModifierTotal(save, "combat_help") > 0,
+			// Weapon coatings applied before the fight (basic poison, a honed edge).
+			SpellBuffs: takeCoatings(save),
 		},
 	}
 }

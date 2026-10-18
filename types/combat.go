@@ -224,6 +224,9 @@ type SpellBuff struct {
 	HitType      string          `json:"hit_type,omitempty"`
 	HitBonus     int             `json:"hit_bonus,omitempty"`
 	HitOnce      bool            `json:"hit_once,omitempty"`
+	// Hits spends the hit damage after this many hits (a weapon coating's
+	// "next 3 hits"); 0 = every hit while the buff lasts.
+	Hits int `json:"hits,omitempty"`
 	MeleeOnly    bool            `json:"melee_only,omitempty"`
 	HitSpells    bool            `json:"hit_spells,omitempty"`
 	HitCondition *SpellCondition `json:"hit_condition,omitempty"`

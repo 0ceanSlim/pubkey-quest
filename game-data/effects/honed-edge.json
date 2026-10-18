@@ -1,0 +1,18 @@
+{
+  "id": "honed-edge",
+  "name": "Honed Edge",
+  "description": "A fresh edge on your weapon: +1 damage on every weapon hit next fight.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [],
+  "message": "You run the stone along the edge until it bites.",
+  "visible": true,
+  "combat_buff": {
+    "name": "Honed Edge",
+    "hit_bonus": 1
+  }
+}

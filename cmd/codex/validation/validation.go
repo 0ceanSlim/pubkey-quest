@@ -1913,6 +1913,10 @@ func validateEffectFile(filePath string, effectTypes map[string]effectTypeInfo) 
 	if modifiers, ok := effect["modifiers"].([]interface{}); ok && len(modifiers) > 0 {
 		hasModifiers = true
 	}
+	// A weapon coating does its work through combat_buff instead.
+	if _, ok := effect["combat_buff"].(map[string]interface{}); ok {
+		hasModifiers = true
+	}
 
 	hasOldStructure := false
 	if effects, ok := effect["effects"].([]interface{}); ok && len(effects) > 0 {

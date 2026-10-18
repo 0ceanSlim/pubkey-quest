@@ -422,6 +422,14 @@ func buffHitDamage(cs *types.CombatSession, holder *types.PartyCombatant, m *typ
 				total += d
 				log = append(log, fmt.Sprintf("  ✨ %s: +%d %s damage.", b.Name, d, dtype))
 			}
+			// A coating wears off after so many hits.
+			if b.Hits > 0 {
+				b.Hits--
+				if b.Hits == 0 {
+					b.HitDice, b.HitBonus = "", 0
+					log = append(log, fmt.Sprintf("  %s wears off.", b.Name))
+				}
+			}
 		}
 		if c := b.HitCondition; c != nil {
 			landed := true

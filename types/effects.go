@@ -13,6 +13,10 @@ type EffectData struct {
 	Modifiers    []Modifier      `json:"modifiers"`
 	Message     string           `json:"message,omitempty"`
 	Visible     bool             `json:"visible"`
+	// CombatBuff makes the effect a weapon coating: when your next fight
+	// starts (or at once, if you apply it mid-fight) it becomes this buff and
+	// the effect is used up. Basic poison, a honed edge.
+	CombatBuff *SpellBuff `json:"combat_buff,omitempty"`
 }
 
 // RemovalCondition describes how an effect is removed
