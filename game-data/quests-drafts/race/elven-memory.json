@@ -7,10 +7,10 @@
   "total_qp": 5,
   "description": "The ancient waystones of the forest are fading. As an Elf, you have a duty to restore their light, but a corruption from the Shadowmere Wetlands seeks to extinguish them forever.",
   "start_condition": {
-    "type": "explore",
-    "target": "ancient-elven-waystone",
+    "type": "talk",
+    "target": "waystone-spirit",
     "location": "darkwood-forest",
-    "start_hint": "Find an ancient elven waystone in the Darkwood Forest."
+    "start_hint": "Find an ancient elven waystone in the Darkwood Forest, and listen."
   },
   "requirements": [
     {
@@ -24,33 +24,27 @@
   "prerequisites": [],
   "recommended": {
     "recommended_stats": [
-      "Perception 18",
-      "Intelligence 16",
-      "Resolve 16"
+      "Level 4+",
+      "Perception 14",
+      "Resolve 14"
     ],
     "combat_danger": "Moderate"
   },
   "stages": [
     {
       "id": "attune-to-stone",
-      "description": "Attune your spirit to the waystone's melody.",
+      "description": "Hear the waystone out.",
       "objectives": [
         {
-          "type": "check",
-          "skill": "perception",
-          "value": 18,
-          "description": "Listen to the discordant notes in the stone's song."
-        },
-        {
           "type": "talk",
-          "target": "ancient-elven-waystone",
+          "target": "waystone-spirit",
           "description": "Consult the spirit of the stone."
         }
       ]
     },
     {
       "id": "search-the-elders",
-      "description": "Seek out the Shadowmere Hermit for guidance on the 'Stolen Moonlight'.",
+      "description": "Seek out Mother Muriel, the Shadowmere hermit, for the ritual that can bring back the 'Stolen Moonlight'.",
       "objectives": [
         {
           "type": "explore",
@@ -66,7 +60,7 @@
     },
     {
       "id": "gather-herbs",
-      "description": "Gather rare swamp herbs to protect your mind during the ritual.",
+      "description": "Muriel wants marsh willow bark and silver moss to protect your mind in the ritual. They grow at the marsh's edge by her hut; Verdant's herbalist sells them too.",
       "objectives": [
         {
           "type": "fetch",
@@ -86,7 +80,7 @@
     },
     {
       "id": "the-trials-of-water",
-      "description": "Pass the trials of the Sunken Temple to reach the Mirror Pool.",
+      "description": "Pass through the Sunken Temple toward the Mirror Pool, where the moon's light still falls.",
       "objectives": [
         {
           "type": "explore",
@@ -109,7 +103,7 @@
     },
     {
       "id": "mirror-pool-ritual",
-      "description": "Capture the moonlight essence at the Mirror Pool during a clear night.",
+      "description": "Catch the moonlight at the Mirror Pool when its reflection is perfect.",
       "objectives": [
         {
           "type": "explore",
@@ -150,7 +144,7 @@
     },
     {
       "id": "cleansing-the-altar",
-      "description": "Travel to the Raven Shrine to purify the moon essence before it can be used.",
+      "description": "Take the moon essence to the Raven Shrine. The Raven Queen's blessing will purify it.",
       "objectives": [
         {
           "type": "explore",
@@ -160,7 +154,7 @@
         {
           "type": "check",
           "skill": "resolve",
-          "value": 18,
+          "value": 16,
           "description": "Pray for the Raven Queen's blessing."
         }
       ]
@@ -172,17 +166,17 @@
         {
           "type": "explore",
           "target": "ancient-elven-waystone",
-          "description": "Return to the Darkwood stone."
+          "description": "Return to the Darkwood waystone."
         },
         {
           "type": "check",
-          "skill": "intelligence",
+          "skill": "influence",
           "value": 15,
           "description": "Chant the verses of the first dawn."
         },
         {
           "type": "talk",
-          "target": "ancient-elven-waystone",
+          "target": "waystone-spirit",
           "description": "Offer the purified moon essence."
         },
         {
@@ -208,5 +202,114 @@
         }
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "giver": "waystone-spirit",
+    "offer": {
+      "option": "What is happening to you?",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "...something under the swamp drinks the moonlight that feeds us. Our songs thin. Our light goes out. There is a way to bring the moon back to a stone, an old way, but no one walks it now. Will you, child of the old blood?",
+          "options": [
+            "the-way",
+            "accept",
+            "decline"
+          ]
+        },
+        "the-way": {
+          "label": "What is the old way?",
+          "text": "...the moon still falls on the Mirror Pool, under the drowned temple. Catch it. Cleanse it at the stones of the ravens. Bring it here, and sing. The swamp-mother, Muriel, remembers the verses.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I will bring back the moonlight.",
+          "text": "...thank you. Go to Muriel. She will know you.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "...we will wait. We are good at waiting."
+        }
+      }
+    },
+    "active": {
+      "option": "About the moonlight...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "...you are still on the path. Good.",
+          "options": [
+            "muriel",
+            "pool",
+            "shrine",
+            "back-to-it"
+          ]
+        },
+        "muriel": {
+          "label": "Where do I find Muriel?",
+          "text": "...on the edge of Shadowmere, in a house on stilts, with her pot always boiling.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "elven-heritage",
+              "min": 1,
+              "max": 2
+            }
+          ]
+        },
+        "pool": {
+          "label": "How do I reach the Mirror Pool?",
+          "text": "...through the drowned temple, following the current that runs toward the moon. Lights there will try to lead you astray.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "elven-heritage",
+              "min": 3,
+              "max": 5
+            }
+          ]
+        },
+        "shrine": {
+          "label": "I have the moon essence.",
+          "text": "...not yet clean. The ravens' stones first. Then come home.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "elven-heritage",
+              "min": 6,
+              "max": 6
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I will keep going.",
+          "text": "...gently."
+        }
+      }
+    },
+    "with": {
+      "shadowmere-hermit": {
+        "option": "The waystone sent me.",
+        "start": "muriel",
+        "nodes": {
+          "muriel": {
+            "text": "'The stones still talk, do they? Then you'll want the verses. Sit.' She recites them twice, slowly, then makes you say them back. 'Good. Now, you'll need your head clear for the pool. Willow bark and silver moss: five strips, three tufts. They grow where the water meets my garden. Go on.'"
+          }
+        }
+      }
+    },
+    "completed": {
+      "option": "How is the song?",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "...listen. Do you hear it? We remember you now. Wherever you walk, the road will be shorter."
+        }
+      }
+    }
+  }
 }

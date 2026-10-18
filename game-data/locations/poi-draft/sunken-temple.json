@@ -36,6 +36,18 @@
       "type": "choice",
       "choices": [
         {
+          "label": "Follow the moonlit current toward the Mirror Pool.",
+          "next": "crushing-depths",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "elven-heritage",
+              "min": 3,
+              "max": 5
+            }
+          ]
+        },
+        {
           "label": "Walk down the main hallway.",
           "next": "temple-guardian"
         },
@@ -201,6 +213,145 @@
       "type": "exit",
       "text": "You climb back up into the grey swamp light, gasping for air that does not smell of the dead.",
       "is_terminal": true
+    },
+    "crushing-depths": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 14,
+      "text": "The current runs down a flooded corridor. The air presses on you like deep water, and the dark seems to lean closer the further you go.",
+      "success_text": "You keep your breathing slow and your eyes on the faint silver light ahead, and the weight lifts.",
+      "success_next": "false-lights",
+      "failure_text": "Panic closes your throat. You stumble back toward the entrance.",
+      "failure_next": "temple-entry"
+    },
+    "false-lights": {
+      "type": "monster",
+      "monster_id": "will-o-wisp",
+      "count": 3,
+      "text": "Three lights drift out of the dark ahead, warm and beckoning. As you step toward them, they flare and dive at you.",
+      "next": "mirror-pool"
+    },
+    "mirror-pool": {
+      "type": "narrative",
+      "waypoint": "shadowmere-mirror-pool",
+      "text": "The corridor opens on a round chamber with a hole in its roof. Moonlight falls straight down into a pool so still it looks like a second sky.",
+      "next": "the-reflection"
+    },
+    "the-reflection": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 16,
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "elven-heritage",
+          "min": 4,
+          "max": 4
+        }
+      ],
+      "failure_next": "reflection-retry",
+      "text": "You kneel at the edge and wait for the water to settle, watching for the moment the moon in the pool is perfect.",
+      "success_text": "There. You cup your hands and lift the moon out of the water. It hardens in your palms into a pale, glowing shard.",
+      "success_next": "moon-shard",
+      "failure_text": "A ripple, and the moment's gone. You'll have to wait again."
+    },
+    "reflection-retry": {
+      "type": "choice",
+      "text": "The pool slowly stills.",
+      "choices": [
+        {
+          "label": "Wait for the reflection again.",
+          "next": "the-reflection"
+        },
+        {
+          "label": "Leave the pool.",
+          "next": "temple-leave"
+        }
+      ]
+    },
+    "moon-shard": {
+      "type": "loot",
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "elven-heritage",
+          "min": 4,
+          "max": 4
+        }
+      ],
+      "failure_next": "pool-guardians",
+      "text": "The Moon Essence Shard: moonlight set solid, glowing even here in the dark.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "moon-essence-shard",
+            "quantity": 1
+          }
+        ]
+      },
+      "next": "pool-guardians"
+    },
+    "pool-guardians": {
+      "type": "monster",
+      "monster_id": "shadow-tentacle",
+      "count": 3,
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "elven-heritage",
+          "min": 5,
+          "max": 5
+        }
+      ],
+      "failure_next": "temple-leave",
+      "text": "The pool's surface splits. Black tentacles rise out of it, groping for the light in your hands.",
+      "arena": [
+        ".~~~~~~~~~~~.",
+        ".~.........~.",
+        ".~..#...#..~.",
+        ".~....^....~.",
+        ".~..#...#..~.",
+        ".~.........~.",
+        ".~~~~~~~~~~~."
+      ],
+      "next": "more-tentacles"
+    },
+    "more-tentacles": {
+      "type": "monster",
+      "monster_id": "shadow-tentacle",
+      "count": 2,
+      "text": "Two more burst up behind you.",
+      "arena": [
+        ".~~~~~~~~~~~.",
+        ".~.........~.",
+        ".~..#...#..~.",
+        ".~....^....~.",
+        ".~..#...#..~.",
+        ".~.........~.",
+        ".~~~~~~~~~~~."
+      ],
+      "next": "the-dryad"
+    },
+    "the-dryad": {
+      "type": "monster",
+      "monster_id": "corrupted-dryad",
+      "count": 1,
+      "text": "A woman of grey bark and black sap steps out of the wall where a dead root has grown through. She was a dryad once. 'Give it back,' she whispers. 'It isn't yours. Nothing is yours.'",
+      "arena": [
+        ".~~~~~~~~~~~.",
+        ".~.........~.",
+        ".~..#...#..~.",
+        ".~....^....~.",
+        ".~..#...#..~.",
+        ".~.........~.",
+        ".~~~~~~~~~~~."
+      ],
+      "next": "pool-quiet"
+    },
+    "pool-quiet": {
+      "type": "narrative",
+      "text": "The pool goes still again. The shard in your pack glows a little brighter, as if relieved.",
+      "next": "temple-leave"
     }
   }
 }

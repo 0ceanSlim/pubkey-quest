@@ -40,6 +40,14 @@
               "consumed": true
             }
           ]
+        },
+        {
+          "label": "Gather herbs where the marsh meets her garden.",
+          "next": "gather-herbs"
+        },
+        {
+          "label": "Leave.",
+          "next": "leave"
         }
       ]
     },
@@ -121,6 +129,29 @@
       "type": "exit",
       "text": "You leave the hermit to his marsh and his muttering.",
       "is_terminal": true
+    },
+    "gather-herbs": {
+      "type": "loot",
+      "text": "Grey willows lean over the water here, and pale moss grows on the old stones. You gather what you can.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "marsh-willow-bark",
+            "quantity": [
+              2,
+              3
+            ]
+          },
+          {
+            "item": "silver-moss",
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "next": "hut-exterior"
     }
   },
   "npc_ids": [

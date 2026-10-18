@@ -1,0 +1,133 @@
+{
+  "id": "corrupted-dryad",
+  "name": "Corrupted Dryad",
+  "challenge_rating": 1,
+  "xp": 200,
+  "type": "Fey",
+  "size": "Medium",
+  "armor_class": 13,
+  "hit_points": 27,
+  "hp_dice": "5d8+5",
+  "alignment": "neutral evil",
+  "tags": [
+    "Fey"
+  ],
+  "img": "/res/img/monsters/corrupted-dryad.png",
+  "environment": [],
+  "speed": {
+    "walk": 30,
+    "fly": 0,
+    "swim": 0,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 10,
+    "dexterity": 14,
+    "constitution": 12,
+    "intelligence": 12,
+    "wisdom": 15,
+    "charisma": 16
+  },
+  "saving_throws": {},
+  "skills": {
+    "perception": 4,
+    "stealth": 5
+  },
+  "damage_resistances": [
+    "necrotic"
+  ],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [
+    "radiant"
+  ],
+  "condition_immunities": [],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 14
+  },
+  "preferred_range": 2,
+  "actions": [
+    {
+      "name": "Grasping Roots",
+      "type": "ranged_attack",
+      "attack_bonus": 4,
+      "reach": null,
+      "range": 3,
+      "range_long": 4,
+      "hit": {
+        "dice": "1d8",
+        "mod": 2,
+        "type": "bludgeoning",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 12,
+          "effect": "restrained"
+        }
+      }
+    },
+    {
+      "name": "Withering Touch",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 0,
+      "range": null,
+      "hit": {
+        "dice": "2d6",
+        "mod": 0,
+        "type": "necrotic",
+        "special": {
+          "type": "save",
+          "ability": "wisdom",
+          "dc": 12,
+          "effect": "frightened"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Tree Stride",
+      "type": "passive",
+      "description": "Once on its turn, the dryad can step into one living tree and out of another within 60 feet."
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 1,
+    "tiers": [
+      {
+        "name": "common",
+        "weight": 1000,
+        "entries": [
+          {
+            "item": "tree-sap",
+            "weight": 500,
+            "quantity": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "pollen",
+            "weight": 500,
+            "quantity": [
+              1,
+              3
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "behavior": {
+    "aggression": "cautious",
+    "flee_threshold": 0.0,
+    "preferred_range": 2,
+    "target_priority": "lowest_hp",
+    "relentless": true
+  }
+}

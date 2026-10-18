@@ -1,0 +1,91 @@
+{
+  "id": "shadow-tentacle",
+  "name": "Shadow Tentacle",
+  "challenge_rating": 0.125,
+  "xp": 25,
+  "type": "Aberration",
+  "size": "Medium",
+  "armor_class": 11,
+  "hit_points": 9,
+  "hp_dice": "2d8",
+  "alignment": "unaligned",
+  "tags": [
+    "Shadow"
+  ],
+  "img": "/res/img/monsters/shadow-tentacle.png",
+  "environment": [],
+  "speed": {
+    "walk": 10,
+    "fly": 0,
+    "swim": 20,
+    "climb": 0
+  },
+  "stats": {
+    "strength": 14,
+    "dexterity": 10,
+    "constitution": 11,
+    "intelligence": 1,
+    "wisdom": 8,
+    "charisma": 1
+  },
+  "saving_throws": {},
+  "skills": {},
+  "damage_resistances": [
+    "necrotic"
+  ],
+  "damage_immunities": [],
+  "damage_vulnerabilities": [
+    "radiant"
+  ],
+  "condition_immunities": [
+    "charmed",
+    "frightened"
+  ],
+  "senses": {
+    "darkvision": 60,
+    "passive_perception": 9
+  },
+  "preferred_range": 0,
+  "actions": [
+    {
+      "name": "Grasp",
+      "type": "melee_attack",
+      "attack_bonus": 4,
+      "reach": 2,
+      "range": null,
+      "hit": {
+        "dice": "1d6",
+        "mod": 2,
+        "type": "bludgeoning",
+        "special": {
+          "type": "save",
+          "ability": "strength",
+          "dc": 11,
+          "effect": "restrained"
+        }
+      }
+    }
+  ],
+  "special_abilities": [
+    {
+      "name": "Rooted",
+      "type": "passive",
+      "description": "The tentacle rises from black water and can barely move from where it surfaced."
+    }
+  ],
+  "bonus_actions": [],
+  "reactions": [],
+  "legendary_actions": [],
+  "loot_table": {
+    "guaranteed": [],
+    "rolls": 0,
+    "tiers": []
+  },
+  "behavior": {
+    "aggression": "aggressive",
+    "flee_threshold": 0.0,
+    "preferred_range": 0,
+    "target_priority": "nearest",
+    "relentless": true
+  }
+}

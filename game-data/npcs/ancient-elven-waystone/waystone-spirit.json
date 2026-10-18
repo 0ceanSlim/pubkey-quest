@@ -1,0 +1,31 @@
+{
+  "id": "waystone-spirit",
+  "name": "Spirit of the Waystone",
+  "title": "Voice of the Stone",
+  "race": "Spirit",
+  "description": "Not quite a voice and not quite a person: the memory of the elves who sang the waystone into being, speaking through its fading light.",
+  "primary_home": "ancient-elven-waystone",
+  "greeting": {
+    "first_time": "...you hear me. So few do, now.",
+    "returning": "Child of the old blood. You came back."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "The song is thin. Listen... and you will hear how thin.",
+      "options": [
+        "the-song",
+        "goodbye"
+      ]
+    },
+    "the-song": {
+      "text": "Every stone in the Darkwood sang once, and the songs met, and the forest was one forest. Now something under the swamp drinks it, and the stones go quiet one by one.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "goodbye": {
+      "text": "...go gently...",
+      "action": "end_dialogue"
+    }
+  }
+}

@@ -78,6 +78,18 @@
           ]
         },
         {
+          "label": "Hold up the moon essence for the Raven Queen's blessing.",
+          "next": "raven-blessing",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "elven-heritage",
+              "min": 6,
+              "max": 6
+            }
+          ]
+        },
+        {
           "label": "Leave the shrine.",
           "next": "leave"
         }
@@ -174,6 +186,35 @@
     "eye-cleansed": {
       "type": "narrative",
       "text": "The ravens take off together, a black cloud wheeling over the marsh, and then settle again, quiet. Far off to the north, for just a moment, you hear something like singing.",
+      "is_terminal": true
+    },
+    "raven-blessing": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 16,
+      "text": "You raise the shard over the altar. Every raven in the circle turns its head to look at you, and the cold deepens until your hands ache.",
+      "success_text": "You don't flinch. A raven drops from the stones, touches the shard with its beak, and the last smudge of shadow in its light is gone.",
+      "success_next": "blessed",
+      "failure_text": "You look away first. The ravens turn back to the swamp.",
+      "failure_next": "blessing-retry"
+    },
+    "blessing-retry": {
+      "type": "choice",
+      "text": "The ravens wait.",
+      "choices": [
+        {
+          "label": "Ask again.",
+          "next": "raven-blessing"
+        },
+        {
+          "label": "Leave the shrine.",
+          "next": "leave"
+        }
+      ]
+    },
+    "blessed": {
+      "type": "narrative",
+      "text": "The shard is clean and bright. Somewhere north, in the Darkwood, a stone is waiting.",
       "is_terminal": true
     }
   }

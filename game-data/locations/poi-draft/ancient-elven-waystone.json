@@ -1,0 +1,108 @@
+{
+  "id": "ancient-elven-waystone",
+  "name": "Ancient Elven Waystone",
+  "category": "landmark",
+  "parent_environment": "darkwood-forest",
+  "position": 0.55,
+  "description": "A tall grey stone in a ring of old oaks, carved from root to crown with elven script. It hums, very faintly, if you stand close.",
+  "discovery": {
+    "chance": 0.45,
+    "message": "Through the trees, a tall carved stone stands alone in a ring of ancient oaks."
+  },
+  "start_node": "the-stone",
+  "nodes": {
+    "the-stone": {
+      "type": "choice",
+      "text": "The waystone's carvings are worn almost smooth. A small basin at its foot holds clear rainwater. When the wind drops, you can almost hear something.",
+      "choices": [
+        {
+          "label": "[Elf] Lay your hand on the stone and listen.",
+          "next": "listen",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Elf"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Chant the verses of the first dawn and offer the moon essence.",
+          "next": "the-chant",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "elven-heritage",
+              "min": 7,
+              "max": 7
+            }
+          ]
+        },
+        {
+          "label": "Drink from the basin.",
+          "next": "drink"
+        },
+        {
+          "label": "Walk on.",
+          "next": "leave"
+        }
+      ]
+    },
+    "listen": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 14,
+      "text": "You press your palm to the cold stone and wait, breathing slowly, until the forest sounds fall away.",
+      "success_text": "Under everything, a song: thin, broken, missing half its notes. And a voice inside it, speaking to you.",
+      "success_next": "spirit",
+      "failure_text": "Just wind in the oaks. Maybe another time, when the forest is quieter.",
+      "failure_next": "the-stone"
+    },
+    "spirit": {
+      "type": "npc_interaction",
+      "npc_ids": [
+        "waystone-spirit"
+      ],
+      "is_terminal": true
+    },
+    "the-chant": {
+      "type": "check",
+      "skill": "influence",
+      "dc": 15,
+      "text": "You hold up the shard. Its pale light meets the stone's, and you begin the verses Mother Muriel taught you, the ones the elves sang at the first dawn.",
+      "success_text": "The words come right. The shard melts into the carvings like water into sand, and the stone begins, quietly, to sing.",
+      "success_next": "spirit",
+      "failure_text": "You lose the verse, and the stone's light flickers. Steady yourself.",
+      "failure_next": "chant-retry"
+    },
+    "chant-retry": {
+      "type": "choice",
+      "text": "The shard is still warm in your hand.",
+      "choices": [
+        {
+          "label": "Begin the verses again.",
+          "next": "the-chant"
+        },
+        {
+          "label": "Step away for now.",
+          "next": "leave"
+        }
+      ]
+    },
+    "drink": {
+      "type": "effect",
+      "text": "The water is sweet and very cold. Your tiredness fades.",
+      "effect": {
+        "id": "performance-high",
+        "duration_minutes": 180
+      },
+      "is_terminal": true
+    },
+    "leave": {
+      "type": "exit",
+      "text": "The waystone's hum follows you a little way into the trees.",
+      "is_terminal": true
+    }
+  }
+}
