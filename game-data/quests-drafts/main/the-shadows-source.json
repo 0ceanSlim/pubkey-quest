@@ -10,7 +10,7 @@
     "type": "talk",
     "target": "oracle-seraphina",
     "location": "goldenhaven",
-    "start_hint": "Speak with Oracle Seraphina after completing 'The Rising Shadow' and earning at least 5 Quest Points."
+    "start_hint": "Speak with Oracle Seraphina once The Black Flame is done and you've earned 5 Quest Points."
   },
   "requirements": [
     {
@@ -24,8 +24,9 @@
   ],
   "recommended": {
     "recommended_stats": [
+      "Level 4+",
       "Resolve 14",
-      "Intelligence 14"
+      "Athletics 12"
     ],
     "combat_danger": "High"
   },
@@ -43,7 +44,7 @@
     },
     {
       "id": "retrieve-the-eye",
-      "description": "Find the 'Eye of the Abyss' within the temple's inner sanctum.",
+      "description": "The Eye of the Abyss lies in the temple's inner sanctum, past the spider's lair. Something still keeps it.",
       "objectives": [
         {
           "type": "fetch",
@@ -55,7 +56,7 @@
     },
     {
       "id": "purify-the-eye",
-      "description": "Bring the Eye to the Raven Shrine to be purified by ancient light.",
+      "description": "The Raven Shrine's stones were raised against the dark. Lay the Eye on its altar, and hold firm while the light burns it clean.",
       "objectives": [
         {
           "type": "explore",
@@ -87,5 +88,102 @@
         ]
       }
     }
-  ]
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "Where does the fragment point?",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Shadowmere. The Sunken Temple, under the water and the mud. The manifesto calls it the Eye: the thing the black flames were feeding, and the thing that is drinking the waystones' song. If it can be taken out of the dark, the Raven Shrine's light can burn it clean.",
+          "options": [
+            "raven-shrine",
+            "accept",
+            "decline"
+          ]
+        },
+        "raven-shrine": {
+          "label": "Why the Raven Shrine?",
+          "text": "Its stones are older than the temple, older than Goldenhaven. The ravens there have watched the swamp since the first dead were buried in it. Whatever the Eye is, the shrine was raised against things like it.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll bring the Eye into the light.",
+          "text": "Don't look into it longer than you must. And don't listen to it. It will talk to you. Mother Muriel, the hermit on the marsh, knows the temple's ways better than anyone alive. Ask her before you go in.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Then gather your strength. The swamp won't be kind."
+        }
+      }
+    },
+    "active": {
+      "option": "About the Eye...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Have you found it?",
+          "options": [
+            "temple",
+            "sanctum",
+            "shrine",
+            "back-to-it"
+          ]
+        },
+        "temple": {
+          "label": "I haven't found the temple yet.",
+          "text": "Deep in Shadowmere, where the mist is thickest. Ask Mother Muriel on the marsh; she will know.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-shadows-source",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "sanctum": {
+          "label": "I'm in the temple, but not the sanctum.",
+          "text": "Past the great hall, behind the altar. Whatever guards it will not let you near easily.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-shadows-source",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "shrine": {
+          "label": "I have the Eye.",
+          "text": "Then don't keep it a moment longer than you must. The Raven Shrine, and hold firm when it starts to whisper.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-shadows-source",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll see it done.",
+          "text": "The Dawnflame go with you, into the dark and out again."
+        }
+      }
+    },
+    "completed": {
+      "option": "The Eye is clean.",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "I felt the song come back, faint as anything, the morning you did it. Whatever was drinking it is starving now. Keep the gem: it is only a stone now, and a very valuable one. The rest of this is not over, but you have bought us time."
+        }
+      }
+    }
+  }
 }

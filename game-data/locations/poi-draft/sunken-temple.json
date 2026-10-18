@@ -119,10 +119,88 @@
           }
         ]
       },
+      "next": "altar-depths"
+    },
+    "altar-depths": {
+      "type": "choice",
+      "text": "Behind the altar, a stair descends into black water that does not ripple. Cold air breathes up out of it.",
+      "choices": [
+        {
+          "label": "Go down into the inner sanctum.",
+          "next": "sanctum-shadows",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-shadows-source",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        {
+          "label": "Leave the temple.",
+          "next": "temple-leave"
+        }
+      ]
+    },
+    "sanctum-shadows": {
+      "type": "monster",
+      "monster_id": "shadow",
+      "count": 2,
+      "text": "The stair ends in a drowned chapel lit by nothing. Two shadows peel away from the walls, reaching for your strength.",
+      "arena": [
+        ".~~.......~~.",
+        ".~~...#...~~.",
+        ".............",
+        "..=...^...=..",
+        ".............",
+        ".~~...#...~~.",
+        ".~~.......~~."
+      ],
+      "next": "sanctum-keeper"
+    },
+    "sanctum-keeper": {
+      "type": "monster",
+      "monster_id": "cult-fanatic",
+      "count": 1,
+      "text": "A gaunt figure in rotted black robes rises from prayer at the far end. 'You will not take it,' she says. 'It sees. It has always seen.'",
+      "arena": [
+        ".~~.......~~.",
+        ".~~...#...~~.",
+        ".............",
+        "..=...^...=..",
+        ".............",
+        ".~~...#...~~.",
+        ".~~.......~~."
+      ],
+      "next": "the-eye"
+    },
+    "the-eye": {
+      "type": "loot",
+      "text": "On a plinth at the heart of the chapel, a black gem the size of your fist pulses slowly, like a heart. When you lift it, you hear whispering.",
+      "loot_table": {
+        "guaranteed": [
+          {
+            "item": "eye-of-the-abyss",
+            "quantity": 1
+          }
+        ]
+      },
+      "requirements": [
+        {
+          "type": "quest_stage",
+          "id": "the-shadows-source",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "failure_next": "temple-leave",
+      "next": "temple-leave"
+    },
+    "temple-leave": {
+      "type": "exit",
+      "text": "You climb back up into the grey swamp light, gasping for air that does not smell of the dead.",
       "is_terminal": true
     }
   }
 }
-
-
-

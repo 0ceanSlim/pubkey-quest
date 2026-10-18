@@ -66,6 +66,18 @@
           ]
         },
         {
+          "label": "Lay the Eye of the Abyss on the altar.",
+          "next": "purify-eye",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-shadows-source",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        {
           "label": "Leave the shrine.",
           "next": "leave"
         }
@@ -138,6 +150,30 @@
     "leave": {
       "type": "exit",
       "text": "You leave the shrine to its ravens. One of them watches you all the way back to the road.",
+      "is_terminal": true
+    },
+    "purify-eye": {
+      "type": "check",
+      "text": "You set the Eye on the cold altar. The ravens fall silent all at once. A grey light rises from the stones and the Eye begins to whisper, louder and louder, telling you to pick it back up.",
+      "skill": "resolve",
+      "dc": 16,
+      "success_text": "You hold. The light pours into the Eye until the whispering becomes a scream, then nothing. What's left on the altar is a flawless deep-blue gem, cold and very still.",
+      "success_next": "eye-cleansed",
+      "failure_text": "The whispering gets inside you. Your hand is on the Eye before you know it, and the light falters and dies.",
+      "failure_next": "eye-whispers"
+    },
+    "eye-whispers": {
+      "type": "damage",
+      "text": "Your head rings. You'll have to try again.",
+      "damage": {
+        "type": "psychic",
+        "amount": 4
+      },
+      "next": "approach"
+    },
+    "eye-cleansed": {
+      "type": "narrative",
+      "text": "The ravens take off together, a black cloud wheeling over the marsh, and then settle again, quiet. Far off to the north, for just a moment, you hear something like singing.",
       "is_terminal": true
     }
   }
