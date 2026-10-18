@@ -104,7 +104,7 @@ function render() {
     const unlocks = [];
     if (row.ability_point) {
         unlocks.push(unlockRow('✦', row.feat_eligible
-            ? '+1 Ability point <span style="color:#9ca3af;">— or take a feat (planned)</span>'
+            ? '+1 Ability point <span style="color:#9ca3af;">— or take a feat instead</span>'
             : '+1 Ability point', '#fcd34d'));
     }
     const xpPct = row.xp_multiplier ? Math.round((row.xp_multiplier - 1) * 100) : 0;
