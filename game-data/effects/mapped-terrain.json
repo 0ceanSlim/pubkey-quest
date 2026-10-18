@@ -1,0 +1,25 @@
+{
+  "id": "mapped-terrain",
+  "name": "Mapped Terrain",
+  "description": "You know the lay of the land: you travel 20% faster, and nothing can ambush you.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "travel_speed",
+      "type": "constant",
+      "value": 20
+    },
+    {
+      "stat": "ambush_ward",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "The land around you makes sense now.",
+  "visible": true
+}

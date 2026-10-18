@@ -1,0 +1,25 @@
+{
+  "id": "divine-grace",
+  "name": "Divine Grace",
+  "description": "A blessing settles over you: +2 Resolve, and 5 temporary HP at the start of your next fights.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 720
+  },
+  "modifiers": [
+    {
+      "stat": "skill_resolve",
+      "type": "constant",
+      "value": 2
+    },
+    {
+      "stat": "temp_hp",
+      "type": "constant",
+      "value": 5
+    }
+  ],
+  "message": "A warm calm settles over you.",
+  "visible": true
+}

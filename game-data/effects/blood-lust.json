@@ -1,0 +1,25 @@
+{
+  "id": "blood-lust",
+  "name": "Blood Lust",
+  "description": "Dark power in your bones: +2 Strength, but -2 Wisdom while it lasts.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 720
+  },
+  "modifiers": [
+    {
+      "stat": "strength",
+      "type": "constant",
+      "value": 2
+    },
+    {
+      "stat": "wisdom",
+      "type": "constant",
+      "value": -2
+    }
+  ],
+  "message": "Something hungry wakes in your blood.",
+  "visible": true
+}

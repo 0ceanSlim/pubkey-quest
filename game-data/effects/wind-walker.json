@@ -1,0 +1,25 @@
+{
+  "id": "wind-walker",
+  "name": "Wind-Walker",
+  "description": "The wind is at your back: you travel 25% faster, and move 1 more square a turn in a fight.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 720
+  },
+  "modifiers": [
+    {
+      "stat": "travel_speed",
+      "type": "constant",
+      "value": 25
+    },
+    {
+      "stat": "combat_move",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "The wind gathers behind you.",
+  "visible": true
+}
