@@ -261,7 +261,11 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 		oaTrigger = nil
 	}
 
-	log = append(log, ApplyMonsterMove(cs, m, decision, playerReach, oaTrigger)...)
+	trapKill := func() []string {
+		advancement, _ := character.LoadAdvancement(db)
+		return handleMonsterKill(cs, m, save, advancement)
+	}
+	log = append(log, applyMonsterMove(cs, m, decision, playerReach, oaTrigger, trapKill)...)
 	if !m.IsAlive {
 		return log // the opportunity attack finished it
 	}

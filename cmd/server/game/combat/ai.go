@@ -219,6 +219,13 @@ func MonsterMeleeReach(monster *types.MonsterInstance) int {
 // must itself enforce reaction/disengage rules; its returned log entries are
 // appended to the move log.
 func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerMeleeReach int, oaTrigger func() []string) []string {
+	return applyMonsterMove(cs, monster, decision, playerMeleeReach, oaTrigger, nil)
+}
+
+// applyMonsterMove is ApplyMonsterMove with a kill handler for a trap that
+// finishes the monster on the way (loot, XP). Without one, a trap leaves it on
+// 1 HP.
+func applyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, decision MonsterDecision, playerMeleeReach int, oaTrigger func() []string, onTrapKill func() []string) []string {
 	if decision.Move == 0 {
 		return nil
 	}
@@ -266,12 +273,31 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 		return nil
 	}
 
-	var oaLog []string
+	var oaLog, trapLog []string
 	oaFired := false
 	player := playerPos(cs)
 	for _, p := range path[:stop+1] {
 		prevPR := chebyshev(player, monster.Pos)
 		monster.Pos = p
+
+		// A trap: a failed save can hurt it, knock it down, or stop it here
+		// (only where it may stand — it can't stop inside another monster).
+		if l, d, halt := monsterTrap(cs, monster, p); l != nil {
+			trapLog = append(trapLog, l...)
+			if d > 0 {
+				if onTrapKill == nil && d >= monster.CurrentHP {
+					d = monster.CurrentHP - 1
+				}
+				applyDamageToMonster(monster, d)
+				if !monster.IsAlive {
+					trapLog = append(trapLog, onTrapKill()...)
+					break
+				}
+			}
+			if halt && endable(cs, p, monster.InstanceID) {
+				break
+			}
+		}
 
 		// Opportunity attack check: monster left the player's melee reach.
 		newPR := chebyshev(player, monster.Pos)
@@ -297,6 +323,7 @@ func ApplyMonsterMove(cs *types.CombatSession, monster *types.MonsterInstance, d
 		out[0] = fmt.Sprintf("  %s moves %s, onto the %s. (range: %d)", monster.Name, dir,
 			strings.ToLower(terrainName(cs, t)), chebyshev(player, monster.Pos))
 	}
+	out = append(out, trapLog...)
 	return append(out, oaLog...)
 }
 
@@ -312,6 +339,9 @@ func monsterPlanCost(cs *types.CombatSession, m *types.MonsterInstance) func(typ
 		}
 		if t.Swim && !swims {
 			extra += 3
+		}
+		if t.Trap != nil && m.Data.Speed.Fly <= 0 {
+			extra += trapPlanCost
 		}
 		return extra
 	}

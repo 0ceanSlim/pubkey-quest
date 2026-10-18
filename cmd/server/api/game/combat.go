@@ -149,6 +149,7 @@ type TerrainLegendView struct {
 	RangedBonus    int    `json:"ranged_bonus"    example:"0"`
 	Swim           bool   `json:"swim"            example:"false"`
 	Hazard         string `json:"hazard,omitempty" example:"1d4 fire"`
+	Trap           string `json:"trap,omitempty"   example:"step on it: DC 10 Dexterity save or fall prone"`
 }
 
 // CombatGridView describes the 2D combat grid dimensions.
@@ -459,6 +460,7 @@ func buildGridView(cs *types.CombatSession) CombatGridView {
 		if t.Damage != "" {
 			lv.Hazard = t.Damage + " " + t.DamageType
 		}
+		lv.Trap = combat.TrapNote(t.Trap)
 		if l, ok := look[id]; ok {
 			if l.Name != "" {
 				lv.Name = l.Name

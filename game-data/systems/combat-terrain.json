@@ -10,7 +10,9 @@
     "low_cover":   { "name": "Low cover",     "glyph": "▭",  "blocks_movement": true, "cover_ac": 2 },
     "high_cover":  { "name": "High cover",    "glyph": "🪨", "blocks_movement": true, "blocks_sight": true, "cover_ac": 5 },
     "high_ground": { "name": "High ground",   "glyph": "▲",  "move_cost": 1, "climb_cost": 1, "ranged_bonus": 1 },
-    "hazard":      { "name": "Hazard",        "glyph": "🔥", "move_cost": 1, "damage": "1d4", "damage_type": "fire" }
+    "hazard":      { "name": "Hazard",        "glyph": "🔥", "move_cost": 1, "damage": "1d4", "damage_type": "fire" },
+    "caltrops":      { "name": "Caltrops",      "glyph": "✴", "move_cost": 1, "trap": { "save": "dexterity", "dc": 15, "damage": "1", "damage_type": "piercing", "stop": true } },
+    "ball_bearings": { "name": "Ball bearings", "glyph": "∴", "move_cost": 1, "trap": { "save": "dexterity", "dc": 10, "condition": "prone", "stop": true } }
   },
   "arena_key": {
     ".": "open",

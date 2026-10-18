@@ -430,6 +430,10 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	if throw, ok := item["throw"].(map[string]interface{}); ok {
 		return throwItem(cs, save, item, throw, itemID, name, slot, fromPack, targetID)
 	}
+	// Scattered on the ground (caltrops, ball bearings): traps toward a foe.
+	if scatter, ok := item["scatter"].(map[string]interface{}); ok {
+		return scatterItem(cs, item, scatter, name, slot, fromPack, targetID)
+	}
 
 	// Who it's for: you, or an ally standing next to you (a potion to the lips
 	// of a fallen friend gets them back up).

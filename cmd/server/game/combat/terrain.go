@@ -32,6 +32,9 @@ type TerrainType struct {
 	Swim           bool   `json:"swim"`            // non-swimmers fight badly here
 	Damage         string `json:"damage"`          // hazard dice on entering / ending a turn here
 	DamageType     string `json:"damage_type"`
+	// Trap triggers on stepping in (a save, then damage / a condition / a
+	// stop), never on standing there: caltrops, ball bearings. See traps.go.
+	Trap *TerrainTrap `json:"trap,omitempty"`
 }
 
 // TerrainLook renames a type for one battlefield ("Tree" for a forest's high cover).
@@ -188,8 +191,8 @@ func stepCost(cs *types.CombatSession, from, to types.Position) (int, bool) {
 type moveRules struct {
 	moverID  string
 	isPlayer bool
-	// planCost adds an AI preference on top of the real cost (avoid hazards,
-	// deep water for non-swimmers). nil for the player.
+	// planCost adds a preference on top of the real cost (monsters avoid
+	// hazards and deep water they can't swim; everyone goes round traps).
 	planCost func(pos types.Position) int
 }
 
@@ -304,7 +307,7 @@ func PlayerReachable(cs *types.CombatSession) []ReachCell {
 	if remaining <= 0 {
 		return nil
 	}
-	pm := shortestPaths(cs, me.Pos, moveRules{moverID: me.ID, isPlayer: true})
+	pm := shortestPaths(cs, me.Pos, moveRules{moverID: me.ID, isPlayer: true, planCost: playerPlanCost(cs)})
 	var out []ReachCell
 	for p, c := range pm.cost {
 		if c == 0 || c > remaining || !endable(cs, p, me.ID) {

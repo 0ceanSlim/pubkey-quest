@@ -4,14 +4,20 @@
   "image": "/res/img/items/ball-bearings.png",
   "name": "Ball Bearings",
   "notes": [
-    "No use in play yet."
+    "In combat: spill them over 4 squares between you and a foe (your action).",
+    "Anything that steps on them (you too) makes a DC 10 Dexterity save or falls prone and stops moving. Flyers pass over."
   ],
   "value": 100,
   "rarity": "common",
   "stack": 1,
   "tags": [
-    "restraint"
+    "consumable",
+    "trap"
   ],
   "type": "Adventuring Gear",
-  "weight": 2
+  "weight": 2,
+  "scatter": {
+    "terrain": "ball_bearings",
+    "cells": 4
+  }
 }

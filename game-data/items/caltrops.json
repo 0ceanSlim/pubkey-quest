@@ -4,16 +4,20 @@
   "image": "/res/img/items/caltrops.png",
   "name": "Caltrops",
   "notes": [
-    "No use in play yet."
+    "In combat: scatter them over 3 squares between you and a foe (your action).",
+    "Anything that steps on them (you too) makes a DC 15 Dexterity save or takes 1 piercing and stops moving. Flyers pass over."
   ],
   "value": 100,
   "rarity": "common",
-  "restrain": "1d3",
   "stack": 20,
   "tags": [
-    "restraint",
-    "thrown"
+    "consumable",
+    "trap"
   ],
   "type": "Adventuring Gear",
-  "weight": 0.1
+  "weight": 0.1,
+  "scatter": {
+    "terrain": "caltrops",
+    "cells": 3
+  }
 }

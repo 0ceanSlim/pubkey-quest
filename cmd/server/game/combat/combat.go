@@ -453,7 +453,7 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	}
 	// Terrain makes some cells cost more than one movement: find the cheapest
 	// route there (around cover and through no one).
-	pm := shortestPaths(cs, me.Pos, moveRules{moverID: me.ID, isPlayer: true})
+	pm := shortestPaths(cs, me.Pos, moveRules{moverID: me.ID, isPlayer: true, planCost: playerPlanCost(cs)})
 	path := pm.pathTo(target)
 	if path == nil {
 		return nil, fmt.Errorf("there's no way through to that space")
@@ -464,6 +464,21 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 		return nil, fmt.Errorf("not enough movement — that costs %d, you have %d left", dist, remaining)
 	}
 
+	// Traps along the way (caltrops, ball bearings): a failed save can end the
+	// move on the trap, with the rest of this turn's movement lost.
+	var trapLog []string
+	trapDmg, trapped := 0, false
+	for i, p := range path {
+		l, d, stop := playerTrap(cs, save, p)
+		trapLog = append(trapLog, l...)
+		trapDmg += d
+		if stop {
+			path, target, trapped = path[:i+1], p, true
+			dist = pm.cost[p]
+			break
+		}
+	}
+
 	// Ranges to every active monster before the move, for the OA check below.
 	before := map[string]int{}
 	for _, m := range activeMonsters(cs) {
@@ -472,6 +487,9 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	prevRange := nearestRange(cs)
 	me.Pos = target
 	state.MovementSpent += dist
+	if trapped {
+		state.MovementSpent = state.MovementBudget
+	}
 	newRange := nearestRange(cs)
 
 	var dir string
@@ -485,6 +503,14 @@ func ProcessPlayerMove(db *sql.DB, cs *types.CombatSession, save *types.SaveFile
 	}
 	log := []string{fmt.Sprintf("  You move %s. (range: %d, movement: %d/%d)",
 		dir, newRange, state.MovementSpent, state.MovementBudget)}
+
+	log = append(log, trapLog...)
+	if trapDmg > 0 {
+		log = append(log, damagePlayer(cs, save, trapDmg)...)
+		if cs.Phase != "active" {
+			return log, nil
+		}
+	}
 
 	// Hazards burn on the way through.
 	for _, p := range path {
