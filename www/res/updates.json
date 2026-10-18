@@ -2,6 +2,22 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-18-items",
+      "when": "October 18, 2026",
+      "icon": "🎒",
+      "size": "major",
+      "title": "Gear That Does Something",
+      "summary": "Throw acid and nets, scatter caltrops, poison your blade, and a dozen idle items find a use.",
+      "highlights": [
+        "Throw acid (2d6), alchemist's fire (it keeps burning) or a net (it pins a foe in place) at your target",
+        "Scatter caltrops or ball bearings between you and a foe: whatever steps on them is stopped, hurt or knocked down. Mind your own feet",
+        "Coat your blade with basic poison (+1d4 for 3 hits), or hone it with a whetstone before a fight (+1 damage, and the stone isn't used up)",
+        "Thrown and ranged weapons no longer roll at disadvantage at every range, and reach weapons strike two squares away",
+        "A candle lights your off hand, the climber's kit adds +2 Athletics, and Bob at the Salty Anchor pays for the Rat King's tails",
+        "Gone from the shops: the 10-foot pole, the chain and the hourglass"
+      ]
+    },
+    {
       "id": "2026-10-18-fixes",
       "when": "October 18, 2026",
       "icon": "🔧",
