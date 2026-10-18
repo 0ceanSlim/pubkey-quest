@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,19 +15,13 @@ import (
 // scribing table's max level, so every spell a caster knows can be scribed,
 // looted and read. A hand-written game-data/items/scroll-of-<spell>.json wins;
 // the rest are generated here, valued at their tier's scribing gold, with one
-// sprite per tradition.
+// sprite per school of magic (scroll-evocation.png, …).
 
 const scrollScribingPath = "game-data/magic/scroll-scribing.json"
 
 type scribingTable struct {
 	Tiers         map[string]struct{ Gold int `json:"gold"` } `json:"tiers"`
 	MaxSpellLevel int                                         `json:"max_spell_level"`
-	Traditions    map[string]struct {
-		Name    string   `json:"name"`
-		Station string   `json:"station"`
-		Classes []string `json:"classes"`
-		Image   string   `json:"image"`
-	} `json:"traditions"`
 }
 
 // ScrollItemID is the item id of a spell's scroll.
@@ -44,14 +37,6 @@ func generateScrollItems() error {
 	if err := json.Unmarshal(raw, &tbl); err != nil {
 		return fmt.Errorf("scroll-scribing.json: %v", err)
 	}
-	// Tradition order for the sprite: arcane, divine, nature (a spell on several
-	// lists takes the first that has one of its classes).
-	order := make([]string, 0, len(tbl.Traditions))
-	for k := range tbl.Traditions {
-		order = append(order, k)
-	}
-	sort.Strings(order)
-
 	made := 0
 	err = filepath.WalkDir("game-data/magic/spells", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".json") {
@@ -82,18 +67,8 @@ func generateScrollItems() error {
 		if name == "" {
 			name = id
 		}
-		image := ""
-		classes, _ := sp["classes"].([]interface{})
-		for _, t := range order {
-			for _, c := range classes {
-				cs, _ := c.(string)
-				for _, tc := range tbl.Traditions[t].Classes {
-					if strings.EqualFold(cs, tc) && image == "" {
-						image = tbl.Traditions[t].Image
-					}
-				}
-			}
-		}
+		school, _ := sp["school"].(string)
+		image := "/res/img/items/scroll-" + strings.ToLower(strings.TrimSpace(school)) + ".png"
 		mana := 0
 		if v, ok := sp["mana_cost"].(float64); ok {
 			mana = int(v)

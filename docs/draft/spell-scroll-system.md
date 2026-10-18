@@ -19,7 +19,7 @@ one source of truth.
 | **Use** a scroll (`spells.CastFromScroll`: any caster, costs mana, consumed, skips known/prepared/component gates) | ✅ built (`a5314e5`). 3 scroll items exist |
 | **Scribe** a scroll at a station | ✅ built: `game/spells/scribe.go`, `GET /api/scrolls/scribable`, `POST /api/scrolls/scribe`, the 📜 Scribe panel (`src/ui/scrollScribe.js`), `scroll-scribing.json`, `crafting_stations` on 5 buildings |
 | **Copy** a scroll into a wizard's spellbook | ⬜ to build (see spell-learning.md → Wizard) |
-| Scroll items for every spell + sprites | ✅ generated at migrate (`cmd/codex/migration/scrolls.go`, 104 items); 3 tradition sprites |
+| Scroll items for every spell + sprites | ✅ generated at migrate (`cmd/codex/migration/scrolls.go`, 104 items); 8 school sprites |
 | Scrolls in loot tables | ⬜ to do (M7 content) |
 
 ## The four rules
@@ -94,8 +94,10 @@ One item per spell: `scroll-of-<spell-id>`, type `Spell Scroll`, tags
   existing scrolls stay as they are).
 - **Value** = the scribing gold for its level, so shops and loot price them
   consistently.
-- **Sprites**: one per tradition (divine, nature, arcane), plus the 3 existing
-  ones. Not one per spell.
+- **Sprites**: one per school of magic (`scroll-<school>.png`: abjuration,
+  conjuration, divination, enchantment, evocation, illusion, necromancy,
+  transmutation), the same rolled scroll with the school's ribbon, seal and
+  sigil. The 3 hand-written scrolls keep their own art. Not one per spell.
 - **Loot**: scrolls join the tiered loot tables as rare drops from caster
   monsters and chests. That gives non-scribing classes scrolls, and gives
   wizards something to copy.
@@ -135,7 +137,7 @@ on scribe more of it.
    - `scroll-scribing.json`: the cost table above.
    - `crafting_stations` on the 5 buildings above.
    - The migration step that generates the scroll items.
-   - 3 tradition sprites.
+   - 8 school sprites.
 4. **UI:** a "Scribe scrolls" panel at a station building (like the shop
    panels), showing chance, cost, time and missing items.
 5. **Wizard copy:** `POST /api/progression/copy-scroll {item_id}`, plus a
