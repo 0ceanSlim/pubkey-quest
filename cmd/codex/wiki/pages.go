@@ -63,7 +63,7 @@ func (g *gen) itemPage(it *item) string {
 		if l := num(it.RangeLong); l != "" {
 			rng += "/" + l
 		}
-		rng += " ft"
+		rng += " squares"
 	}
 	stack := ""
 	if it.Stack > 1 && it.Stack < 1_000_000 {
@@ -143,9 +143,18 @@ func (g *gen) itemPage(it *item) string {
 	for _, m := range g.droppedBy[it.ID] {
 		drops = append(drops, link(g.monsters[m].Name, "Monsters/"+m))
 	}
+	if it.SpellID != "" && g.spells[it.SpellID] != nil {
+		drops = append(drops, g.randomScrollSources(g.spells[it.SpellID])...)
+	}
 	bullets(&b, "Dropped by", drops)
 	bullets(&b, "Found in packs", g.itemLinks(g.inPacks[it.ID]))
 	bullets(&b, "Found in", g.foundIn[it.ID])
+	bullets(&b, "Reward from", g.rewardOf[it.ID])
+	bullets(&b, "Given by", g.giftOf[it.ID])
+	bullets(&b, "Needed for", g.neededFor[it.ID])
+	if it.SpellID != "" && g.spells[it.SpellID] != nil {
+		bullets(&b, "Scribe it at", g.scribedAt(g.spells[it.SpellID]))
+	}
 
 	if len(it.Tags) > 0 {
 		b.WriteString("**Tags:** " + strings.Join(it.Tags, ", ") + "\n")
@@ -531,6 +540,9 @@ func (g *gen) spellPage(s *spell) string {
 		"Scrolls", strings.Join(scrolls, ", "),
 	)
 	bullets(&b, "Notes", publicNotes(s.Notes))
+	bullets(&b, "Learned by", g.learnedBy(s))
+	bullets(&b, "Scribed at", g.scribedAt(s))
+	bullets(&b, "Scrolls drop from", g.randomScrollSources(s))
 	return b.String()
 }
 
@@ -624,6 +636,9 @@ func (g *gen) cityPage(c *city) string {
 	for _, k := range keys {
 		d := c.Districts[k]
 		b.WriteString("## " + d.Name + "\n\n" + d.Description + "\n\n")
+		if c.Waystone != nil && c.Waystone.District == k {
+			b.WriteString("🌀 **The Waystone.** " + c.Waystone.Description + " (" + link("Homeward Stones & Waystones", "Rules/Teleportation") + ")\n\n")
+		}
 		var exits []string
 		for _, dir := range sortedKeys(d.Connections) {
 			exits = append(exits, titleCase(dir)+": "+g.homeLink(d.Connections[dir]))
@@ -636,7 +651,11 @@ func (g *gen) cityPage(c *city) string {
 			if bl.private() {
 				continue
 			}
-			rows = append(rows, []string{"**" + bl.Name + "**", bl.hours(), strings.Join(workers[bl.ID], ", "), cell(bl.Description)})
+			about := cell(bl.Description)
+			for _, st := range bl.Stations {
+				about += " **" + g.stationName(st) + "**"
+			}
+			rows = append(rows, []string{"**" + bl.Name + "**", bl.hours(), strings.Join(workers[bl.ID], ", "), about})
 		}
 		table(&b, []string{"Building", "Hours", "People", "About"}, rows)
 	}
@@ -769,6 +788,12 @@ func (g *gen) npcPage(n *npc) string {
 		"Race", n.Race,
 		"Home", g.homeLink(n.PrimaryHome),
 	)
+	bullets(&b, "Services", g.npcServices(n))
+	var given []string
+	for _, q := range g.questsBy[n.ID] {
+		given = append(given, g.questLink(q))
+	}
+	bullets(&b, "Quests", given)
 
 	var rows [][]string
 	for _, s := range n.Schedule {
@@ -881,5 +906,8 @@ func (g *gen) writeRules() error {
 		return err
 	}
 
-	return g.page("Rules", "Rules", "- [[Conditions & Effects|/Rules/Effects]]\n- [[Feats|/Rules/Feats]]\n- [[Class Abilities|/Rules/Class-Abilities]]\n")
+	return g.page("Rules", "Rules", "## How the game works\n\n"+
+		"- [[Combat|/Rules/Combat]]\n- [[Hunger, Fatigue & Carrying|/Rules/Survival]]\n- [[Day & Night|/Rules/Day-and-Night]]\n"+
+		"- [[Learning Spells|/Rules/Learning-Spells]]\n- [[Scribing Scrolls|/Rules/Scribing]]\n- [[Homeward Stones & Waystones|/Rules/Teleportation]]\n\n"+
+		"## Reference\n\n- [[Conditions & Effects|/Rules/Effects]]\n- [[Feats|/Rules/Feats]]\n- [[Class Abilities|/Rules/Class-Abilities]]\n")
 }

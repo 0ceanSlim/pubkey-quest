@@ -95,9 +95,43 @@
     });
   }
 
+  // The world map is an <img> (Gollum strips inline SVG); swap in the SVG
+  // itself so its towns and roads are links.
+  function inlineMap() {
+    var img = document.querySelector('.markdown-body img[src*="/media/world-map.svg"]');
+    if (!img || !window.fetch) return;
+    fetch(img.getAttribute('src')).then(function (r) { return r.ok ? r.text() : ''; }).then(function (svg) {
+      if (!svg) return;
+      var box = document.createElement('div');
+      box.className = 'pq-map';
+      box.innerHTML = svg;
+      var el = box.querySelector('svg');
+      if (!el) return;
+      el.removeAttribute('width');
+      el.removeAttribute('height');
+      el.setAttribute('role', 'img');
+      el.setAttribute('aria-label', img.getAttribute('alt') || 'World map');
+      img.parentNode.replaceChild(box, img);
+    }).catch(function () {});
+  }
+
+  // Wide tables scroll sideways instead of breaking the layout on phones.
+  function wrapTables() {
+    var tables = document.querySelectorAll('.markdown-body table');
+    Array.prototype.forEach.call(tables, function (t) {
+      if (t.parentNode.classList && t.parentNode.classList.contains('pq-scroll')) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'pq-scroll';
+      t.parentNode.insertBefore(wrap, t);
+      wrap.appendChild(t);
+    });
+  }
+
   function ready() {
     header();
     sortable();
+    wrapTables();
+    inlineMap();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ready);

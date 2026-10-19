@@ -129,6 +129,16 @@ type lootEntry struct {
 	Item     string   `json:"item"`
 	Weight   int      `json:"weight"`
 	Quantity qtyRange `json:"quantity"`
+	// Scroll narrows a "random-scroll" entry (a scroll picked at roll time).
+	Scroll *scrollFilter `json:"scroll"`
+}
+
+// scrollFilter mirrors types.ScrollFilter.
+type scrollFilter struct {
+	MinLevel int      `json:"min_level"`
+	MaxLevel int      `json:"max_level"`
+	Classes  []string `json:"classes"`
+	Schools  []string `json:"schools"`
 }
 
 // qtyRange is a quantity written either as 3 or as [min, max].
@@ -209,6 +219,10 @@ type city struct {
 	Races       []string            `json:"starting_races"`
 	EntryFees   map[string]int      `json:"racial_entry_fees"`
 	Districts   map[string]district `json:"districts"`
+	Waystone    *struct {
+		District    string `json:"district"`
+		Description string `json:"description"`
+	} `json:"waystone"`
 }
 
 type district struct {
@@ -220,12 +234,13 @@ type district struct {
 }
 
 type building struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Description string `json:"description"`
-	Open        any    `json:"open"`
-	Close       any    `json:"close"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Type        string   `json:"type"`
+	Description string   `json:"description"`
+	Open        any      `json:"open"`
+	Close       any      `json:"close"`
+	Stations    []string `json:"crafting_stations"`
 }
 
 func (b building) private() bool {
@@ -283,6 +298,8 @@ type npc struct {
 			MaxStock int    `json:"max_stock"`
 		} `json:"inventory"`
 	} `json:"shop_config"`
+	Storage  json.RawMessage            `json:"storage_config"`
+	Dialogue map[string]json.RawMessage `json:"dialogue"`
 }
 
 type effect struct {

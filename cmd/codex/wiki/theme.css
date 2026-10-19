@@ -286,3 +286,16 @@ a { color: var(--color-textHighlighted); }
 /* ── Flash/notice boxes, search hits ── */
 .flash { border-radius: 0; }
 .color-bg-success { background: var(--color-textHighlighted) !important; color: var(--color-textInverted); }
+
+/* World map (inlined SVG), and tables that scroll sideways on small screens. */
+.pq-map { max-width: 100%; margin: 0 0 16px; }
+.pq-map svg { width: 100%; height: auto; display: block; }
+.pq-map a:hover line { opacity: 1; stroke-width: 12; }
+.pq-map a:hover circle { stroke: #fff; }
+.pq-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+.pq-scroll > table { margin-bottom: 0; }
+.markdown-body img { max-width: 100%; height: auto; }
+@media (max-width: 640px) {
+  .markdown-body table th, .markdown-body table td { padding: 4px 6px; font-size: 13px; }
+  .markdown-body h1 { font-size: 1.5em; }
+}

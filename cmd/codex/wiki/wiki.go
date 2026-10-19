@@ -60,7 +60,7 @@ func Generate(opt Options) (*Result, error) {
 	steps := []func() error{
 		g.writeItems, g.writeMonsters, g.writeSpells, g.writeLocations,
 		g.writeNPCs, g.writeQuests, g.writeEncounters, g.writeCharacters,
-		g.writeRules, g.writeHome, g.writeTheme,
+		g.writeRules, g.writeGuides, g.writeMap, g.writeHome, g.writeTheme,
 	}
 	for _, step := range steps {
 		if err := step(); err != nil {
@@ -106,6 +106,12 @@ type gen struct {
 	metIn     map[string][]string // monster id → place/quest links it's met in
 	poisIn    map[string][]string // environment id → poi ids
 	questsAt  map[string][]string // poi id → quest ids
+
+	x         *extras             // scribing, teleport, spell slot/learning config
+	rewardOf  map[string][]string // item id → quests it's a reward of
+	neededFor map[string][]string // item id → what it's handed in for / used by
+	giftOf    map[string][]string // item id → npcs who give it in dialogue
+	questsBy  map[string][]string // npc id → quests they give
 }
 
 // ── loading ──────────────────────────────────────────────────────────────────
@@ -232,6 +238,7 @@ func (g *gen) load() error {
 	for _, n := range npcs {
 		g.npcs[n.ID] = n
 	}
+	g.loadExtras()
 	return nil
 }
 
@@ -321,6 +328,7 @@ func (g *gen) index() {
 			}
 		}
 	}
+	g.indexExtras()
 }
 
 // ── writing ──────────────────────────────────────────────────────────────────
@@ -331,6 +339,9 @@ func (g *gen) page(rel, title string, body string) error {
 	b.WriteString(Marker + "\n")
 	if title != "" {
 		b.WriteString("# " + title + "\n\n")
+	}
+	if crumbs := breadcrumbs(rel); crumbs != "" {
+		b.WriteString(crumbs + "\n\n")
 	}
 	b.WriteString(strings.TrimRight(body, "\n") + "\n" + dataNote)
 	return g.writeFile(rel+".md", b.String())
@@ -442,25 +453,48 @@ const dataNote = "\n---\n_Generated from the game's data. To change it, edit the
 
 // writeHome writes the front page and the sidebar.
 func (g *gen) writeHome() error {
-	sections := []struct{ name, about string }{
-		{"Items", fmt.Sprintf("%d weapons, armor, gear, potions and components", len(g.items))},
-		{"Monsters", fmt.Sprintf("%d creatures: stats, habitats, loot", len(g.monsters))},
-		{"Spells", fmt.Sprintf("%d spells by level and class", len(g.spells))},
-		{"Characters", "races, classes, skills, leveling"},
-		{"Locations", fmt.Sprintf("%d towns, %d regions, %d places of interest", len(g.cities), len(g.envs), len(g.pois))},
-		{"NPCs", fmt.Sprintf("%d people: schedules and shops", len(g.npcs))},
-		{"Quests", fmt.Sprintf("%d quests", len(g.quests))},
-		{"Encounters", "events on the road and in town"},
-		{"Rules", "conditions & effects, feats, class abilities"},
+	type section struct{ name, path, about string }
+	groups := []struct {
+		title    string
+		sections []section
+	}{
+		{"How the game works", []section{
+			{"Combat", "Rules/Combat", "turns, dice, advantage, terrain, traps"},
+			{"Hunger, Fatigue & Carrying", "Rules/Survival", "food, rest, encumbrance"},
+			{"Day & Night", "Rules/Day-and-Night", "the clock, darkness, night monsters"},
+			{"Learning Spells", "Rules/Learning-Spells", "what each class learns, and when"},
+			{"Scribing Scrolls", "Rules/Scribing", "stations, costs, Commit to memory"},
+			{"Homeward Stones & Waystones", "Rules/Teleportation", "getting around fast"},
+			{"Rules", "Rules", "conditions & effects, feats, class abilities"},
+		}},
+		{"The world", []section{
+			{"World Map", "Map", "every town and road"},
+			{"Locations", "Locations", fmt.Sprintf("%d towns, %d regions, %d places of interest", len(g.cities), len(g.envs), len(g.pois))},
+			{"NPCs", "NPCs", fmt.Sprintf("%d people: schedules, shops and services", len(g.npcs))},
+			{"Quests", "Quests", fmt.Sprintf("%d quests", len(g.quests))},
+			{"Encounters", "Encounters", "events on the road and in town"},
+		}},
+		{"Reference", []section{
+			{"Items", "Items", fmt.Sprintf("%d weapons, armor, gear, potions, scrolls and components", len(g.items))},
+			{"Monsters", "Monsters", fmt.Sprintf("%d creatures: stats, habitats, loot", len(g.monsters))},
+			{"Spells", "Spells", fmt.Sprintf("%d spells by level and class", len(g.spells))},
+			{"Characters", "Characters", "races, classes, skills, leveling"},
+		}},
 	}
 	var b, side strings.Builder
 	b.WriteString("Reference for [Pubkey Quest](/), built from the game's own data so it matches the game.\n\n")
 	side.WriteString("**[[Home|/Home]]**\n\n")
-	for _, s := range sections {
-		b.WriteString("- " + link(s.name, s.name) + " — " + s.about + "\n")
-		side.WriteString("- " + link(s.name, s.name) + "\n")
+	for _, grp := range groups {
+		b.WriteString("## " + grp.title + "\n\n")
+		side.WriteString("**" + grp.title + "**\n\n")
+		for _, s := range grp.sections {
+			b.WriteString("- " + link(s.name, s.path) + " — " + s.about + "\n")
+			side.WriteString("- " + link(s.name, s.path) + "\n")
+		}
+		b.WriteString("\n")
+		side.WriteString("\n")
 	}
-	b.WriteString("\n## About this wiki\n\n" +
+	b.WriteString("## About this wiki\n\n" +
 		"These pages are rebuilt from the game's data with every update. To change something here, " +
 		"edit the game data in [Codex](" + codexURL + ").\n\n" +
 		"Community pages (guides, strategy, lore) will be editable here in a future update.\n")
@@ -623,4 +657,17 @@ func publicNotes(notes []string) []string {
 		out = append(out, n)
 	}
 	return out
+}
+
+// breadcrumbs links a page back up its path: "Home › Items" under an item's title.
+func breadcrumbs(rel string) string {
+	parts := strings.Split(rel, "/")
+	if len(parts) < 2 {
+		return ""
+	}
+	crumbs := []string{link("Home", "Home")}
+	for i := 0; i < len(parts)-1; i++ {
+		crumbs = append(crumbs, link(strings.ReplaceAll(parts[i], "-", " "), strings.Join(parts[:i+1], "/")))
+	}
+	return "<sub>" + strings.Join(crumbs, " › ") + "</sub>"
 }
