@@ -719,6 +719,7 @@ async function updateStatsTab(character) {
 
     // Fetch and display skills
     fetchAndDisplaySkills();
+    fetchAndDisplayFeats();
 
     // Render detailed effects list
     renderStatsEffectsList(character.active_effects || []);
@@ -748,6 +749,32 @@ async function fetchAndDisplaySkills() {
         }
     } catch (error) {
         logger.debug('Failed to fetch skills:', error);
+    }
+}
+
+/**
+ * List the feats this character has taken (with a half-feat's chosen stat or
+ * Elemental Adept's damage type) and what each does.
+ */
+async function fetchAndDisplayFeats() {
+    const list = document.getElementById('stats-feats-list');
+    if (!list || !gameAPI.initialized) return;
+    try {
+        const data = await gameAPI.getFeats();
+        const taken = (data.feats || []).filter((f) => f.taken);
+        if (!taken.length) {
+            list.innerHTML = '<div class="text-gray-500 italic">No feats yet</div>';
+            return;
+        }
+        const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+        const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+        list.innerHTML = taken.map((f) =>
+            '<div style="padding:2px 0; border-bottom:1px solid #262626;">' +
+            `<div style="color:#c4b5fd; font-weight:bold;">${esc(f.name)}${f.choice ? ` <span style="color:#9ca3af;">(${esc(cap(f.choice))})</span>` : ''}</div>` +
+            `<div style="color:#9ca3af; font-size:6px; line-height:1.3;">${esc((f.effects || []).join(' · '))}</div>` +
+            '</div>').join('');
+    } catch (error) {
+        logger.debug('Failed to fetch feats:', error);
     }
 }
 

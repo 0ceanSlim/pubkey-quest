@@ -1,7 +1,7 @@
 {{define "game/ability-allocate-modal.html"}}
 <!-- Ability-Point Allocation Modal (positioned over scene) -->
 <div id="ability-allocate-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none;">
-    <div class="relative bg-win95-bgDark" style="border: 2px solid #808080; width: 244px; margin: 48px auto 0; pointer-events: auto; box-shadow: 0 0 16px rgba(252,211,77,0.5);">
+    <div class="relative bg-win95-bgDark" style="border: 2px solid #808080; width: 244px; margin: 8px auto 0; max-height: calc(100% - 16px); display: flex; flex-direction: column; pointer-events: auto; box-shadow: 0 0 16px rgba(252,211,77,0.5);">
         <!-- Title Bar -->
         <div class="px-2 py-1 flex items-center justify-between" style="background: linear-gradient(90deg, #b45309, #fcd34d);">
             <div class="flex items-center gap-2">
@@ -14,24 +14,27 @@
         <!-- Points-remaining header -->
         <div id="ability-allocate-points" class="px-2 py-1 text-center font-bold" style="font-size: 9px; color: #fcd34d; background: #332b15; border-bottom: 1px solid #444;"></div>
 
+        <!-- Everything below the header scrolls, so the window never runs past the scene. -->
+        <div style="flex: 1; min-height: 0; overflow-y: auto;">
         <!-- Ability rows (populated by abilityAllocateModal.js) -->
         <div id="ability-allocate-list" style="padding: 4px 8px;"></div>
 
         <!-- Feats section (populated by abilityAllocateModal.js; hidden when no feat slot / no feats) -->
         <div id="feat-allocate-section" class="hidden" style="border-top: 1px solid #444;">
             <div id="feat-allocate-slots" class="px-2 py-1 text-center font-bold" style="font-size: 9px; color: #c4b5fd; background: #241f33; border-bottom: 1px solid #444;"></div>
-            <div id="feat-allocate-list" style="padding: 4px 8px; max-height: 160px; overflow-y: auto;"></div>
+            <div id="feat-allocate-list" style="padding: 4px 8px;"></div>
         </div>
 
         <!-- Spells section (populated by abilityAllocateModal.js; hidden when there's nothing to learn) -->
         <div id="spell-learn-section" class="hidden" style="border-top: 1px solid #444;">
             <div id="spell-learn-picks" class="px-2 py-1 text-center font-bold" style="font-size: 9px; color: #93c5fd; background: #15233a; border-bottom: 1px solid #444;"></div>
-            <div id="spell-learn-list" style="padding: 4px 8px; max-height: 160px; overflow-y: auto;"></div>
+            <div id="spell-learn-list" style="padding: 4px 8px;"></div>
         </div>
 
         <!-- Footer -->
         <div class="px-2 py-1" style="font-size: 6px; color: #9ca3af; border-top: 1px solid #444; line-height: 1.5;">
             Max 20 per ability. Allocations are permanent and saved with your game.
+        </div>
         </div>
     </div>
 </div>

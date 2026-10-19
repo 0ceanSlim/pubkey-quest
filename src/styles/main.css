@@ -198,6 +198,14 @@
    Win95-Style UI Components
    ======================================== */
 @layer components {
+  /* The dark panel behind the game's modals (level-up, guide, allocate,
+     shop, save, quests…). It was a Tailwind v3 theme colour that never made
+     it into v4, so those panels had no background at all and whatever sat
+     behind them showed through. */
+  .bg-win95-bgDark {
+    background-color: rgb(28, 28, 34);
+  }
+
   /* Inset border (sunken appearance) - uses theme colors */
   .win95-inset {
     background: var(--color-bgSecondary);
