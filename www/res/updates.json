@@ -2,6 +2,19 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-18-scroll-loot",
+      "when": "October 18, 2026",
+      "icon": "📖",
+      "size": "minor",
+      "title": "Scrolls in the Wild, and Wizards Who Remember",
+      "summary": "Scrolls drop from spellcasting foes and old treasure, two shops sell the basics, and wizards can commit a scroll to memory.",
+      "highlights": [
+        "Scrolls turn up as loot from spellcasting foes and in old treasure: everyday spells often, stronger ones rarely",
+        "The court arcanist at the Mage Tower and the almoner at the Dawnflame temple sell a few basic scrolls",
+        "Wizards: keep a scroll in your spellbook and choose Commit to memory to learn its spell for good (gold and time per spell level; the scroll is used up)"
+      ]
+    },
+    {
       "id": "2026-10-18-scribing",
       "when": "October 18, 2026",
       "icon": "📜",
@@ -12,10 +25,7 @@
         "Clerics and paladins scribe at the Temple of the Dawnflame and the shrines in Dusthaven and Saltwind; druids and rangers at the Green Mortar in Verdant; wizards, sorcerers, warlocks and bards at the Kingdom's Mage Tower",
         "A scroll takes parchment, the spell's own component, gold and a few hours, and you need ink and a pen on you",
         "Your casting ability sets the chance. A failed attempt still spends the materials",
-        "Any caster can read any scroll: it casts the spell for its mana and is used up",
-        "Scrolls turn up as loot from spellcasting foes and in old treasure: everyday spells often, stronger ones rarely",
-        "The court arcanist at the Mage Tower and the almoner at the Dawnflame temple sell a few basic scrolls",
-        "Wizards: keep a scroll in your spellbook and choose Commit to memory to learn its spell for good"
+        "Any caster can read any scroll: it casts the spell for its mana and is used up"
       ]
     },
     {
