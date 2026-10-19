@@ -664,15 +664,10 @@
         const reloadResult = await reloadResponse.json();
         console.log('✅ Session reloaded from save file:', reloadResult);
 
-        // Refresh game state from Go memory
-        if (window.refreshGameState) {
-          await window.refreshGameState();
-        }
-
-        // Refresh debug display
-        await refreshDebugState();
-
-        showMessage('✅ Reloaded from save file!', 'success');
+        // Redraw everything from the reloaded save, like the defeat screen's
+        // reload. Refreshing the cached state alone left the clock (and other
+        // client-side state) running on from before the reload.
+        window.location.reload();
 
       } catch (error) {
         console.error('Failed to reload from save:', error);
