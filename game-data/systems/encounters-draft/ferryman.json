@@ -1,0 +1,137 @@
+{
+  "id": "ferryman",
+  "name": "The Ferryman",
+  "trigger": "travel",
+  "chance": 0.12,
+  "repeatable": true,
+  "cooldown_minutes": 1440,
+  "valid_locations": [
+    "shadowmere-wetlands",
+    "suncrest-coastlands"
+  ],
+  "description": "A flat-bottomed ferry is tied up at a rickety landing. A hooded ferryman leans on his pole and calls out that he can take you a good way along, for a price.",
+  "start_node": "initial",
+  "nodes": {
+    "initial": {
+      "type": "choice",
+      "text": "'Water's the quick road, friend. I'll pole you a good stretch along your way and save your feet half a day. One hundred and fifty gold.'",
+      "choices": [
+        {
+          "label": "Ride the ferry (150 gold).",
+          "next": "pay-full",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "gold-piece"
+            }
+          ]
+        },
+        {
+          "label": "[Influence 12] Haggle the fare down.",
+          "next": "haggle"
+        },
+        {
+          "label": "Decline and keep walking.",
+          "next": "exit"
+        }
+      ]
+    },
+    "haggle": {
+      "type": "check",
+      "skill": "influence",
+      "dc": 12,
+      "success_text": "He laughs and spits over the rail. 'A hundred, then, and you help with the ropes.'",
+      "success_next": "haggled-offer",
+      "failure_text": "He shrugs. 'One fifty. Water doesn't haggle and neither do I.'",
+      "failure_next": "full-offer"
+    },
+    "haggled-offer": {
+      "type": "choice",
+      "text": "'A hundred gold. Climb in.'",
+      "choices": [
+        {
+          "label": "Pay 100 gold and climb aboard.",
+          "next": "pay-haggled",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "gold-piece"
+            }
+          ]
+        },
+        {
+          "label": "Decline and keep walking.",
+          "next": "exit"
+        }
+      ]
+    },
+    "full-offer": {
+      "type": "choice",
+      "text": "'One fifty, or the long way round. Your feet, your choice.'",
+      "choices": [
+        {
+          "label": "Pay 150 gold and climb aboard.",
+          "next": "pay-full",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "gold-piece"
+            }
+          ]
+        },
+        {
+          "label": "Decline and keep walking.",
+          "next": "exit"
+        }
+      ]
+    },
+    "pay-full": {
+      "type": "transaction",
+      "text": "You hand over the gold and step down into the ferry. It rocks, settles, and pushes off.",
+      "cost": {
+        "gold": 150
+      },
+      "travel_ahead": 0.4,
+      "failure_text": "You come up short. The ferryman shakes his head and goes back to leaning on his pole.",
+      "next": "midstream"
+    },
+    "pay-haggled": {
+      "type": "transaction",
+      "text": "You pay, take a rope, and the ferry pushes off.",
+      "cost": {
+        "gold": 100
+      },
+      "travel_ahead": 0.4,
+      "failure_text": "You come up short. The ferryman shakes his head and goes back to leaning on his pole.",
+      "next": "midstream"
+    },
+    "midstream": {
+      "type": "passive_check",
+      "skill": "perception",
+      "dc": 11,
+      "success_text": "You spot the drowned log ahead in time and call it out. The ferryman poles around it with a grunt of thanks.",
+      "success_next": "landing",
+      "failure_text": "The ferry slams into a drowned log and lurches. You're thrown hard against the rail.",
+      "failure_next": "snag"
+    },
+    "snag": {
+      "type": "damage",
+      "text": "You pick yourself up, bruised and soaked to the knee.",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 2
+      },
+      "next": "landing"
+    },
+    "landing": {
+      "type": "narrative",
+      "text": "The ferry noses into a muddy landing well along your way. 'End of the line,' the ferryman says, already turning back.",
+      "is_terminal": true
+    },
+    "exit": {
+      "type": "narrative",
+      "text": "You leave the ferryman to his pole and keep to the path.",
+      "is_terminal": true
+    }
+  }
+}

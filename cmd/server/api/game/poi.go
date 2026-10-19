@@ -136,6 +136,11 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	if res.CheckSkill != "" && res.CheckSuccess {
 		events.Record(state, events.SkillCheckPassed, res.CheckSkill, 1)
 	}
+	// A paid shortcut (the ferryman) carries a traveller further along the
+	// road; arrival itself happens on the next travel tick.
+	if res.TravelAhead > 0 && travel.IsInEnvironment(state) {
+		state.TravelProgress = min(0.95, state.TravelProgress+res.TravelAhead)
+	}
 	if res.Waypoint != "" {
 		// The first time a named spot is reached it's a discovery (XP); after
 		// that it still counts for quest "explore" objectives, but pays nothing.

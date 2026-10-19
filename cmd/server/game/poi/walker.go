@@ -55,6 +55,10 @@ type StepResult struct {
 	// Waypoint is the named spot this node reached (quest explore objectives).
 	Waypoint string `json:"-"`
 
+	// TravelAhead is how far along the road a paid transaction carries the
+	// traveller (node.TravelAhead); the caller moves them.
+	TravelAhead float64 `json:"-"`
+
 	// NPCs are the people an npc_interaction node hands the player to; the
 	// walk ends and the UI offers to talk to them where they stand.
 	NPCs []string `json:"npcs,omitempty"`
@@ -197,6 +201,7 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 			deps.GrantReward(save, node.Reward)
 			res.Outcome = append(res.Outcome, rewardSummary(node.Reward))
 		}
+		res.TravelAhead = node.TravelAhead
 		res.Next = node.Next
 
 	case types.POIStepMonster:

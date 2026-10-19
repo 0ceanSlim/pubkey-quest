@@ -145,6 +145,10 @@ type POIStep struct {
 	Requirements []POIRequirement `json:"requirements,omitempty"`
 	NPCIDs       []string         `json:"npc_ids,omitempty"`
 	Waypoint     string           `json:"waypoint,omitempty"`
+	// TravelAhead moves a traveller this far along the road they're on (a
+	// fraction of the route, 0–1) when a transaction node succeeds: the
+	// ferryman's shortcut. Ignored off the road.
+	TravelAhead float64 `json:"travel_ahead,omitempty"`
 	// Arena is a monster node's authored battlefield — rows of combat-terrain
 	// arena_key characters, as in QuestStageEncounter.Arena.
 	Arena []string `json:"arena,omitempty"`
