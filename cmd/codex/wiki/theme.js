@@ -131,7 +131,19 @@
     });
   }
 
+  // The tab icon: a white pixel-art "W".
+  function favicon() {
+    var old = document.querySelectorAll('link[rel~="icon"]');
+    Array.prototype.forEach.call(old, function (l) { l.parentNode.removeChild(l); });
+    var link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/png';
+    link.href = '__WIKI_FAVICON__';
+    document.head.appendChild(link);
+  }
+
   function ready() {
+    favicon();
     header();
     sortable();
     wrapTables();

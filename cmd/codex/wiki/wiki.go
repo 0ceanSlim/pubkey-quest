@@ -11,6 +11,7 @@ package wiki
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	_ "embed"
 	"encoding/hex"
 	"encoding/json"
@@ -511,10 +512,15 @@ var (
 	themeCSS string
 	//go:embed theme.js
 	themeJS string
+	// The tab icon: a white pixel "W" (Gollum has no favicon setting, so the
+	// theme script sets it).
+	//go:embed favicon.png
+	faviconPNG []byte
 )
 
 func (g *gen) writeTheme() error {
 	js := strings.ReplaceAll(themeJS, "__WIKI_BASE__", strings.TrimRight(g.opt.BasePath, "/")+"/")
+	js = strings.ReplaceAll(js, "__WIKI_FAVICON__", "data:image/png;base64,"+base64.StdEncoding.EncodeToString(faviconPNG))
 	for name, content := range map[string]string{"custom.css": themeCSS, "custom.js": js} {
 		path := filepath.Join(g.opt.OutDir, name)
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
