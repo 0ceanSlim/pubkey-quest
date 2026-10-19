@@ -45,6 +45,11 @@ type ScribingTable struct {
 		Quantity int    `json:"quantity"`
 	} `json:"consumes"`
 	Carried    []string `json:"carried"`
+	Memorize   struct {
+		Classes         []string `json:"classes"`
+		GoldPerLevel    int      `json:"gold_per_level"`
+		MinutesPerLevel int      `json:"minutes_per_level"`
+	} `json:"memorize"`
 	Traditions map[string]struct {
 		Name    string   `json:"name"`
 		Station string   `json:"station"`

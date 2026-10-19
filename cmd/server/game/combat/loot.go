@@ -1,6 +1,7 @@
 package combat
 
 import (
+	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/types"
 )
 
@@ -58,7 +59,14 @@ func rollOneTier(tiers []types.LootTier) *types.LootDrop {
 		return nil
 	}
 
-	return &types.LootDrop{Item: entry.Item, Quantity: qty}
+	item := entry.Item
+	if item == types.RandomScrollItem {
+		// A random scroll, common spells far likelier than high ones.
+		if item = spellbook.RandomScroll(entry.Scroll, func(n int) int { return RollRange(0, n-1) }); item == "" {
+			return nil
+		}
+	}
+	return &types.LootDrop{Item: item, Quantity: qty}
 }
 
 // selectWeightedTier picks a LootTier using weighted random selection.

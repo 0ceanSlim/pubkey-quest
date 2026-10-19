@@ -92,7 +92,32 @@
             "item": "blessed-incense",
             "quantity": 1
           }
-        ]
+        ],
+        "tiers": [
+          {
+            "name": "scroll",
+            "weight": 15,
+            "entries": [
+              {
+                "item": "random-scroll",
+                "weight": 1,
+                "quantity": 1,
+                "scroll": {
+                  "schools": [
+                    "necromancy"
+                  ],
+                  "max_level": 2
+                }
+              }
+            ]
+          },
+          {
+            "name": "nothing",
+            "weight": 85,
+            "entries": []
+          }
+        ],
+        "rolls": 1
       },
       "next": "bone-hall"
     },
@@ -154,6 +179,23 @@
                 "quantity": 1
               }
             ]
+          },
+          {
+            "name": "scroll",
+            "weight": 18,
+            "entries": [
+              {
+                "item": "random-scroll",
+                "weight": 1,
+                "quantity": 1,
+                "scroll": {
+                  "classes": [
+                    "cleric"
+                  ],
+                  "max_level": 2
+                }
+              }
+            ]
           }
         ]
       },
@@ -198,6 +240,3 @@
     }
   }
 }
-
-
-

@@ -82,6 +82,8 @@ type LootEntry struct {
 	Item     string  `json:"item"`
 	Weight   int     `json:"weight"`
 	Quantity *[2]int `json:"quantity,omitempty"`
+	// Scroll narrows a "random-scroll" entry (Item = RandomScrollItem).
+	Scroll *ScrollFilter `json:"scroll,omitempty"`
 }
 
 // LootTier is a named tier with weighted entries

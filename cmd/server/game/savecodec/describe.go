@@ -135,6 +135,9 @@ func Describe(s *types.SaveFile, level func(xp int) int) string {
 	if len(s.LocationsDiscovered) > 0 {
 		line("  Discovered: %s", strings.Join(s.LocationsDiscovered, ", "))
 	}
+	if len(s.SpellsMemorized) > 0 {
+		line("  Spells memorized from scrolls: %s", strings.Join(s.SpellsMemorized, ", "))
+	}
 	if len(s.DialogueGifts) > 0 {
 		line("  Gifts received: %s", strings.Join(s.DialogueGifts, ", "))
 	}

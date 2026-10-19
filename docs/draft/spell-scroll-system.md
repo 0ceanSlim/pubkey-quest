@@ -1,8 +1,8 @@
 # Spell scrolls
 
 Casters scribe single-use scrolls of spells they know; any caster can read one.
-For wizards, scrolls are also how they learn: copying a scroll into the
-spellbook adds the spell for good.
+For wizards, scrolls are also how they learn: a scroll kept in their
+spellbook can be committed to memory, adding the spell for good.
 
 Companion draft: [spell-learning.md](spell-learning.md), which covers what a
 caster knows at each level. Scribing is gated on that, so the two systems use
@@ -18,9 +18,10 @@ one source of truth.
 |---|---|
 | **Use** a scroll (`spells.CastFromScroll`: any caster, costs mana, consumed, skips known/prepared/component gates) | ✅ built (`a5314e5`). 3 scroll items exist |
 | **Scribe** a scroll at a station | ✅ built: `game/spells/scribe.go`, `GET /api/scrolls/scribable`, `POST /api/scrolls/scribe`, the 📜 Scribe panel (`src/ui/scrollScribe.js`), `scroll-scribing.json`, `crafting_stations` on 5 buildings |
-| **Copy** a scroll into a wizard's spellbook | ⬜ to build (see spell-learning.md → Wizard) |
+| **Commit to memory** (wizards: a scroll inside their spellbook) | ✅ built: `game/spells/memorize.go`, `POST /api/progression/memorize-scroll` (with `dry_run` for the confirm prompt), the container menu's "Commit to memory", the save's `spells_memorized` |
 | Scroll items for every spell + sprites | ✅ generated at migrate (`cmd/codex/migration/scrolls.go`, 104 items); 8 school sprites |
-| Scrolls in loot tables | ⬜ to do (M7 content) |
+| Scrolls in loot tables | ✅ `random-scroll` entries, weighted by spell level: 9 caster monsters, 7 treasure nodes |
+| Scrolls in shops | ✅ 4 basics each at the court arcanist (Mage Tower) and the temple almoner (Dawnflame) |
 
 ## The four rules
 
@@ -42,10 +43,12 @@ one source of truth.
    casting ability, `character.SpellcastingAbility`). The Crafting skill and the
    Crafting Kit stay with physical crafting (gear, repairs, later), so the game
    has two separate crafting models instead of two overlapping ones.
-4. **"Spellbook" is the item; "known spells" is the list.** The `spellbook`
-   item stays a 20-slot scroll container (`allowed_types: ["spell-scroll"]`). A
-   wizard's copied spells go into `KnownSpells` and do **not** depend on carrying
-   the book. Losing the book on defeat must never cost a wizard their spells.
+4. **The `spellbook` item holds scrolls; memory holds spells.** The item is a
+   20-slot scroll container (`allowed_types: ["spell-scroll"]`) for anyone. A
+   wizard commits a scroll in it to memory with the container's "Commit to
+   memory" action, and the spell goes into the save's `spells_memorized`. It
+   does **not** depend on carrying the book: losing the book on defeat never
+   costs a wizard their spells.
 
 ## Cost, time and success
 
@@ -98,9 +101,26 @@ One item per spell: `scroll-of-<spell-id>`, type `Spell Scroll`, tags
   conjuration, divination, enchantment, evocation, illusion, necromancy,
   transmutation), the same rolled scroll with the school's ribbon, seal and
   sigil. The 3 hand-written scrolls keep their own art. Not one per spell.
-- **Loot**: scrolls join the tiered loot tables as rare drops from caster
-  monsters and chests. That gives non-scribing classes scrolls, and gives
-  wizards something to copy.
+- **Loot**: a loot entry `{"item": "random-scroll", "scroll": {"max_level": 1,
+  "classes": ["cleric"], "schools": ["necromancy"]}}` rolls a random scroll
+  matching the filter (every field optional). Within it, a spell's chance follows
+  its level: `loot_level_weights` in scroll-scribing.json (cantrip 8, level 1 6,
+  level 2 2, level 3 1), so common spells drop often and higher ones rarely.
+  Both loot engines resolve it (monster loot in `combat/loot.go`, POI loot in
+  `poi/walker.go`), and the validators accept it.
+  - **Monsters** (a "scroll" tier, chance per loot roll): apprentice wizard 15%
+    (wizard, ≤1) · acolyte 6% (cleric, ≤1) · cultist 5% (necromancy/enchantment,
+    ≤1) · cult fanatic 8% (cleric, ≤2) · druid 8% (druid, ≤2) · kobold shaman 6%
+    (sorcerer/wizard, ≤1) · satyr 4% (enchantment/illusion, ≤1) · wight and
+    wraith 4% (necromancy, ≤2).
+  - **Treasure nodes**: Crypt of the Ancients sarcophagus 15% (necromancy/
+    abjuration, ≤2) · Mournful Catacombs ossuary 15% (necromancy, ≤2) and inner
+    sanctum 15% (cleric, ≤2) · Sunken Temple altar 20% (cleric, ≤2) · Abandoned
+    Watchtower leader's desk 15% (≤1) · Whispering Caverns hidden nook 12% (≤1) ·
+    Forgotten Battlefield commander 12% (abjuration/evocation, ≤1).
+- **Shops**: the court arcanist at the Mage Tower stocks fire bolt, magic
+  missile, shield and mage armor; the temple almoner at the Dawnflame stocks
+  sacred flame, cure wounds, bless and healing word (2 each, weekly restock).
 
 ## Using a scroll (built; rules unchanged)
 
@@ -109,19 +129,23 @@ consumed, skipping the known, prepared and component gates. 5e limits scrolls
 to your class list; this game stays looser on purpose. Non-casters (no mana)
 can't use scrolls until mana potions exist.
 
-## Wizard copying
+## Wizard copying: Commit to memory (built)
 
 Part of [spell-learning.md](spell-learning.md) (Wizard). The scroll side:
 
-- Copying needs the scroll in the inventory, a wizard spell of a level the
-  wizard has slots for, that isn't already known.
-- It costs 5,000 gold and 2 hours per spell level (PHB: 50 gp + 2 h per level)
-  and consumes the scroll. No roll (PHB has none).
-- The spell is appended to `KnownSpells`, and the save records it: a copied
-  spell is a choice, so it can't be derived.
+- **Where:** a scroll inside a `spellbook` container. Its menu offers "Commit to
+  memory" to wizards (`memorize.classes` in scroll-scribing.json).
+- **What:** a wizard spell of a level the wizard has slots for, not already
+  known. Cantrips can't be memorized.
+- **Cost:** 5,000 gold and 2 hours per spell level (PHB: 50 gp + 2 h per
+  level), and the scroll is used up. No roll (PHB has none). The menu asks the
+  server first (`dry_run`) and shows the real cost before you confirm.
+- **Storage:** the spell goes into the save's `spells_memorized` (codec key
+  `sm`). A memorized spell is a choice, so it's stored, and it's kept apart from
+  `KnownSpells` so it doesn't use up a level-up pick.
 
-So the wizard's loop is: find a scroll (loot or a shop), copy it, and from then
-on scribe more of it.
+So the wizard's loop is: find a scroll (loot or a shop), put it in the
+spellbook, commit it to memory, and from then on scribe more of it.
 
 ## Build
 
@@ -140,14 +164,17 @@ on scribe more of it.
    - 8 school sprites.
 4. **UI:** a "Scribe scrolls" panel at a station building (like the shop
    panels), showing chance, cost, time and missing items.
-5. **Wizard copy:** `POST /api/progression/copy-scroll {item_id}`, plus a
-   "Copy into spellbook" action on a scroll in the inventory (wizards only).
+5. **Wizard copy:** `POST /api/progression/memorize-scroll {container_slot,
+   container_slot_type, from_container_slot, dry_run}`, plus "Commit to memory"
+   in the spellbook container's menu (wizards only).
 
 **Tests:**
 - A level-3 druid can scribe barkskin but not moonbeam without its component.
 - A wizard can't scribe what they haven't copied.
 - Failure spends the materials.
-- Copying a scroll adds it to `KnownSpells` and consumes the scroll.
+- Committing a scroll to memory teaches the spell, spends the gold and the
+  scroll, and leaves level-up picks alone.
+- Random scrolls honour the filter and favour low levels.
 
 ## Not in scope
 

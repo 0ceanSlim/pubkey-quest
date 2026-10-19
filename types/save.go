@@ -85,6 +85,10 @@ type SaveFile struct {
 	// character ("npc-id:node", e.g. Thok's battleaxe), so asking again doesn't
 	// pay out again. Not derivable from anything else.
 	DialogueGifts []string `json:"dialogue_gifts,omitempty"`
+	// SpellsMemorized are the spells a wizard committed to memory from a scroll
+	// in their spellbook. A choice, so it's stored; kept apart from KnownSpells
+	// so it doesn't use up a level-up pick (spellbook.Picks).
+	SpellsMemorized []string `json:"spells_memorized,omitempty"`
 	SchemaVersion   int             `json:"schema_version,omitempty"`   // Save schema version (see CurrentSchemaVersion)
 
 	InternalID          string                   `json:"-"`                        // Not serialized, used internally for file naming

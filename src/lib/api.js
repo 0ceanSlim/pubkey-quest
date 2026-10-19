@@ -374,6 +374,25 @@ class GameAPI {
         return await response.json();
     }
 
+    /**
+     * Commit a scroll inside a spellbook container to memory (wizards).
+     * dryRun returns the cost without spending anything.
+     */
+    async memorizeScroll(containerSlot, containerSlotType, fromContainerSlot, dryRun = false) {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/progression/memorize-scroll`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                npub: this.npub, save_id: this.saveID,
+                container_slot: containerSlot, container_slot_type: containerSlotType,
+                from_container_slot: fromContainerSlot, dry_run: dryRun,
+            })
+        });
+        if (!response.ok) throw new Error(`memorize failed: ${response.status}`);
+        return await response.json();
+    }
+
     /** Spells this caster can scribe here ({success, data: {here, tradition, where, ability, options}}). */
     async getScribable() {
         this.ensureInitialized();

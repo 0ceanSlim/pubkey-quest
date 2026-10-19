@@ -412,6 +412,22 @@ function showContainerContextMenu(e, itemId, slotIndex) {
     };
     menu.appendChild(removeBtn);
 
+    // A wizard's spellbook: commit a scroll to memory (learn the spell for good).
+    const itemData = getItemById(itemId);
+    const isWizard = (getGameStateSync()?.character?.class || '').toLowerCase() === 'wizard';
+    if (isWizard && currentOpenContainer?.itemId === 'spellbook' && (itemData?.spell_id || itemData?.properties?.spell_id)) {
+        const memBtn = document.createElement('button');
+        memBtn.className = 'w-full px-3 py-1 text-left hover:bg-gray-700 text-xs border-t border-gray-700';
+        memBtn.textContent = 'Commit to memory';
+        memBtn.style.fontSize = '9px';
+        memBtn.onclick = (clickEvent) => {
+            clickEvent.preventDefault();
+            clickEvent.stopPropagation();
+            confirmMemorize(menu, slotIndex);
+        };
+        menu.appendChild(memBtn);
+    }
+
     // Examine option
     const examineBtn = document.createElement('button');
     examineBtn.className = 'w-full px-3 py-1 text-left hover:bg-gray-700 text-xs border-t border-gray-700';
@@ -446,6 +462,53 @@ function showContainerContextMenu(e, itemId, slotIndex) {
             }
         });
     }, 10);
+}
+
+/**
+ * Ask the server what committing the scroll costs, then confirm in the menu.
+ */
+async function confirmMemorize(menu, slotIndex) {
+    const c = currentOpenContainer;
+    if (!c) return;
+    try {
+        const preview = await gameAPI.memorizeScroll(c.fromSlot, c.fromSlotType, slotIndex, true);
+        if (!preview.success) {
+            showActionText(preview.error || "You can't commit that to memory.", 'red', 3500);
+            menu.remove();
+            return;
+        }
+        menu.innerHTML = '';
+        const msg = document.createElement('div');
+        msg.className = 'px-3 py-1 text-xs';
+        msg.style.cssText = 'font-size:8px; max-width:180px; line-height:1.4;';
+        msg.textContent = preview.message;
+        menu.appendChild(msg);
+        const yes = document.createElement('button');
+        yes.className = 'w-full px-3 py-1 text-left hover:bg-gray-700 text-xs border-t border-gray-700';
+        yes.style.fontSize = '9px';
+        yes.textContent = 'Commit to memory';
+        yes.onclick = async (ev) => {
+            ev.stopPropagation();
+            menu.remove();
+            const res = await gameAPI.memorizeScroll(c.fromSlot, c.fromSlotType, slotIndex, false);
+            showActionText(res.success ? res.message : (res.error || 'Failed.'), res.success ? 'green' : 'red', 4000);
+            if (res.success) {
+                await refreshGameState();
+                await updateAllDisplays();
+                await openContainer(c.itemId, c.fromSlot, c.fromSlotType);
+            }
+        };
+        const no = document.createElement('button');
+        no.className = 'w-full px-3 py-1 text-left hover:bg-gray-700 text-xs border-t border-gray-700';
+        no.style.fontSize = '9px';
+        no.textContent = 'Cancel';
+        no.onclick = (ev) => { ev.stopPropagation(); menu.remove(); };
+        menu.appendChild(yes);
+        menu.appendChild(no);
+    } catch (error) {
+        logger.error('Memorize preview failed:', error);
+        menu.remove();
+    }
 }
 
 /**

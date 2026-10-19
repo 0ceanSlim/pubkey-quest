@@ -72,7 +72,29 @@
             "item": "rations",
             "quantity": 2
           }
-        ]
+        ],
+        "tiers": [
+          {
+            "name": "scroll",
+            "weight": 12,
+            "entries": [
+              {
+                "item": "random-scroll",
+                "weight": 1,
+                "quantity": 1,
+                "scroll": {
+                  "max_level": 1
+                }
+              }
+            ]
+          },
+          {
+            "name": "nothing",
+            "weight": 88,
+            "entries": []
+          }
+        ],
+        "rolls": 1
       },
       "next": "cavern-mouth-no-find"
     },

@@ -95,7 +95,33 @@
             "item": "longsword",
             "quantity": 1
           }
-        ]
+        ],
+        "tiers": [
+          {
+            "name": "scroll",
+            "weight": 12,
+            "entries": [
+              {
+                "item": "random-scroll",
+                "weight": 1,
+                "quantity": 1,
+                "scroll": {
+                  "schools": [
+                    "abjuration",
+                    "evocation"
+                  ],
+                  "max_level": 1
+                }
+              }
+            ]
+          },
+          {
+            "name": "nothing",
+            "weight": 88,
+            "entries": []
+          }
+        ],
+        "rolls": 1
       },
       "is_terminal": true
     },

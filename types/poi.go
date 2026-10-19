@@ -168,6 +168,8 @@ type POILootEntry struct {
 	Item     string      `json:"item"`
 	Quantity any    `json:"quantity"`
 	Weight   int         `json:"weight,omitempty"` // only meaningful inside a tier
+	// Scroll narrows a "random-scroll" entry (Item = RandomScrollItem).
+	Scroll *ScrollFilter `json:"scroll,omitempty"`
 }
 
 // POILootTier is a weighted bucket of entries; one entry is rolled per Rolls.

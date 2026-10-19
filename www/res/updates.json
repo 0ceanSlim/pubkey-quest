@@ -12,7 +12,10 @@
         "Clerics and paladins scribe at the Temple of the Dawnflame and the shrines in Dusthaven and Saltwind; druids and rangers at the Green Mortar in Verdant; wizards, sorcerers, warlocks and bards at the Kingdom's Mage Tower",
         "A scroll takes parchment, the spell's own component, gold and a few hours, and you need ink and a pen on you",
         "Your casting ability sets the chance. A failed attempt still spends the materials",
-        "Any caster can read any scroll: it casts the spell for its mana and is used up"
+        "Any caster can read any scroll: it casts the spell for its mana and is used up",
+        "Scrolls turn up as loot from spellcasting foes and in old treasure: everyday spells often, stronger ones rarely",
+        "The court arcanist at the Mage Tower and the almoner at the Dawnflame temple sell a few basic scrolls",
+        "Wizards: keep a scroll in your spellbook and choose Commit to memory to learn its spell for good"
       ]
     },
     {

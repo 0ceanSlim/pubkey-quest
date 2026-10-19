@@ -95,6 +95,10 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "scroll-of-fire-bolt", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "7"},
+      {"item_id": "scroll-of-magic-missile", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "7"},
+      {"item_id": "scroll-of-shield", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "7"},
+      {"item_id": "scroll-of-mage-armor", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "7"},
       {"item_id": "staff", "stock": 3, "max_stock": 3},
       {"item_id": "component-pouch", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "30"},
       {"item_id": "spellbook", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "30"},

@@ -9,6 +9,9 @@ import (
 // ── items ────────────────────────────────────────────────────────────────────
 
 func (g *gen) itemLink(id string) string {
+	if id == "random-scroll" { // a scroll picked at roll time, common spells likeliest
+		return "a random spell scroll"
+	}
 	if it, ok := g.items[id]; ok {
 		return link(it.Name, "Items/"+id)
 	}

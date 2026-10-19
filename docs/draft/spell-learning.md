@@ -17,7 +17,7 @@ to learn.
 |---|---|---|---|
 | Whole-list | cleric, druid (`spells_known` = 99 in `spell-progression.json`) | Know every class spell of each spell level they have slots for | ✅ **built** (derived, nothing stored) |
 | Known | bard, sorcerer, warlock, paladin, ranger | Pick new spells at level-up, up to `spells_known[level]` | ✅ **built** (picks; swap still to do) |
-| Spellbook | wizard | 2 free spells per level, plus copying scrolls | 🔶 level-up picks ✅ built; copying scrolls ⬜ (needs scroll scribing) |
+| Spellbook | wizard | 2 free spells per level, plus copying scrolls | ✅ level-up picks + Commit to memory (a scroll in the spellbook) |
 
 **Picks as built** (`spellbook.Picks` / `PickOptions` / `Learn`):
 - Open picks = `spells_known[level] − spells_known[1]` (the rise since level
@@ -59,14 +59,15 @@ spell with the class in `classes`.
 ## Wizard (to build)
 
 - **Level-up:** 2 picks per level from the wizard list (slot level limit as above).
-- **Copying scrolls:** a wizard spell on a scroll in the inventory can be
-  copied in if its level is one the wizard has slots for and it isn't known.
-  It costs 5,000 gold and 2 hours per spell level (PHB: 50 gp + 2 h), has no
-  roll, and consumes the scroll. Scrolls come from loot, shops, or other
-  casters' scribing. Rules and endpoint: [spell-scroll-system.md](spell-scroll-system.md#wizard-copying).
-- **Storage:** appended to `KnownSpells`. The copied spells don't depend on
-  carrying the `spellbook` item: that item is a scroll container, and losing it
-  on defeat never costs spells.
+- **Commit to memory:** a wizard spell on a scroll kept in the `spellbook`
+  container can be committed to memory (the container menu) if its level is one
+  the wizard has slots for and it isn't known. It costs 5,000 gold and 2 hours
+  per spell level (PHB: 50 gp + 2 h), has no roll, and uses up the scroll.
+  Scrolls come from loot, shops, or other casters' scribing. Rules and
+  endpoint: [spell-scroll-system.md](spell-scroll-system.md#wizard-copying-commit-to-memory-built).
+- **Storage:** the save's `spells_memorized`, kept apart from `KnownSpells` so a
+  memorized spell doesn't use up a level-up pick. Memorized spells don't depend
+  on carrying the `spellbook` item, so losing it on defeat never costs spells.
 
 ## Not in scope
 

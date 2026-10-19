@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -33,12 +34,15 @@ import (
 const wholeListMarker = 99
 
 type tables struct {
-	slots    map[string]map[int]map[string]int // class → level → slot type → count
-	known    map[string][]int                  // class → spells_known per level (index 0 = level 1)
-	byClass  map[string]map[int][]string       // class → spell level → spell ids
-	levelOf  map[string]int                    // spell id → spell level
-	starting map[string]map[string]bool        // class → its creation spell list
-	advanced []types.AdvancementEntry
+	slots     map[string]map[int]map[string]int // class → level → slot type → count
+	known     map[string][]int                  // class → spells_known per level (index 0 = level 1)
+	byClass   map[string]map[int][]string       // class → spell level → spell ids
+	levelOf   map[string]int                    // spell id → spell level
+	schoolOf  map[string]string                 // spell id → school (lower case)
+	lootW     map[int]int                       // spell level → loot weight
+	maxScroll int                               // highest spell level with scroll items
+	starting  map[string]map[string]bool        // class → its creation spell list
+	advanced  []types.AdvancementEntry
 }
 
 var (
@@ -56,7 +60,7 @@ func load() *tables {
 		return tbl
 	}
 	t := &tables{slots: map[string]map[int]map[string]int{}, known: map[string][]int{}, byClass: map[string]map[int][]string{},
-		levelOf: map[string]int{}, starting: map[string]map[string]bool{}}
+		levelOf: map[string]int{}, starting: map[string]map[string]bool{}, schoolOf: map[string]string{}, lootW: map[int]int{}}
 	database := db.GetDB()
 	if database == nil {
 		return t
@@ -67,6 +71,7 @@ func load() *tables {
 	if spells, err := gamedata.LoadAllSpells(database); err == nil {
 		for _, s := range spells {
 			t.levelOf[s.ID] = s.Level
+			t.schoolOf[s.ID] = strings.ToLower(s.School)
 			for _, c := range s.Classes {
 				c = strings.ToLower(strings.TrimSpace(c))
 				if t.byClass[c] == nil {
@@ -77,6 +82,7 @@ func load() *tables {
 		}
 	}
 	t.advanced, _ = character.LoadAdvancement(database)
+	loadScrollLoot(database, t)
 	tbl = t
 	return tbl
 }
@@ -141,6 +147,26 @@ func loadStarting(database *sql.DB, t *tables) {
 	}
 }
 
+func loadScrollLoot(database *sql.DB, t *tables) {
+	var blob string
+	if database.QueryRow("SELECT data FROM scroll_scribing WHERE id = 'scroll-scribing'").Scan(&blob) != nil {
+		return
+	}
+	var cfg struct {
+		MaxSpellLevel int            `json:"max_spell_level"`
+		Weights       map[string]int `json:"loot_level_weights"`
+	}
+	if json.Unmarshal([]byte(blob), &cfg) != nil {
+		return
+	}
+	t.maxScroll = cfg.MaxSpellLevel
+	for k, w := range cfg.Weights {
+		if l, err := strconv.Atoi(k); err == nil {
+			t.lootW[l] = w
+		}
+	}
+}
+
 // Level is the save's character level.
 func Level(save *types.SaveFile) int {
 	return character.GetLevelFromXP(save.Experience, load().advanced)
@@ -180,6 +206,7 @@ func Known(save *types.SaveFile) []string {
 		return nil
 	}
 	out := append([]string{}, save.KnownSpells...)
+	out = append(out, save.SpellsMemorized...)
 	level := Level(save)
 	if !WholeListCaster(save.Class, level) {
 		return out
@@ -328,7 +355,95 @@ func Learn(save *types.SaveFile, spellID string) error {
 	return fmt.Errorf("you can't learn that spell yet")
 }
 
+// ─── Random scrolls (loot) ───────────────────────────────────────────────────
+
+// RandomScroll picks a scroll item for a "random-scroll" loot entry: a spell
+// matching the filter, weighted by its level (loot_level_weights: cantrips and
+// level 1 common, higher levels rare). rnd(n) returns 0..n-1. "" when nothing
+// matches.
+func RandomScroll(f *types.ScrollFilter, rnd func(int) int) string {
+	t := load()
+	if f == nil {
+		f = &types.ScrollFilter{}
+	}
+	maxL := f.MaxLevel
+	if maxL <= 0 || (t.maxScroll > 0 && maxL > t.maxScroll) {
+		maxL = t.maxScroll
+	}
+	classOK := func(id string) bool {
+		if len(f.Classes) == 0 {
+			return true
+		}
+		for _, c := range f.Classes {
+			for _, sid := range t.byClass[strings.ToLower(c)][t.levelOf[id]] {
+				if sid == id {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	schoolOK := func(id string) bool {
+		if len(f.Schools) == 0 {
+			return true
+		}
+		for _, s := range f.Schools {
+			if strings.EqualFold(s, t.schoolOf[id]) {
+				return true
+			}
+		}
+		return false
+	}
+	ids := make([]string, 0, len(t.levelOf))
+	for id := range t.levelOf {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids) // stable order, so a seeded roll repeats
+	var pool []string
+	var weights []int
+	total := 0
+	for _, id := range ids {
+		l := t.levelOf[id]
+		w := t.lootW[l]
+		if l < f.MinLevel || l > maxL || w <= 0 || !classOK(id) || !schoolOK(id) {
+			continue
+		}
+		pool, weights = append(pool, id), append(weights, w)
+		total += w
+	}
+	if total == 0 {
+		return ""
+	}
+	r := rnd(total)
+	for i, w := range weights {
+		if r < w {
+			return "scroll-of-" + pool[i]
+		}
+		r -= w
+	}
+	return ""
+}
+
 func init() {
 	// A level-up mid-session grows the slots at once.
 	character.OnLevelUp = func(save *types.SaveFile) { SyncSlots(save) }
+}
+
+// SpellLevel is a spell's level (-1 when unknown).
+func SpellLevel(spellID string) int {
+	if l, ok := load().levelOf[spellID]; ok {
+		return l
+	}
+	return -1
+}
+
+// OnClassList reports whether a spell is on a class's spell list.
+func OnClassList(class, spellID string) bool {
+	t := load()
+	for _, id := range t.byClass[strings.ToLower(class)][t.levelOf[spellID]] {
+		if id == spellID {
+			return true
+		}
+	}
+	return false
 }

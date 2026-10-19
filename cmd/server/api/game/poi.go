@@ -17,6 +17,7 @@ import (
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
+	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
@@ -59,6 +60,9 @@ func buildPOIDeps(state *types.SaveFile) (poi.Deps, error) {
 			}
 		},
 		PayCost: payPOICost,
+		RandomScroll: func(f *types.ScrollFilter, rng *rand.Rand) string {
+			return spellbook.RandomScroll(f, rng.Intn)
+		},
 		ChangeFatigue: func(s *types.SaveFile, n int) {
 			s.Fatigue = min(max(s.Fatigue+n, 0), 10)
 			status.HandleFatigueChange(s)

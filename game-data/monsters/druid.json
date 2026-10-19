@@ -95,6 +95,7 @@
     ],
     "rolls": 1,
     "tiers": [
+      {"name": "scroll", "weight": 87, "entries": [{"item": "random-scroll", "weight": 1, "quantity": [1, 1], "scroll": {"classes": ["druid"], "max_level": 2}}]},
       {
         "name": "common",
         "weight": 930,

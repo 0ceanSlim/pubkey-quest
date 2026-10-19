@@ -171,6 +171,24 @@
                 "quantity": 1
               }
             ]
+          },
+          {
+            "name": "scroll",
+            "weight": 18,
+            "entries": [
+              {
+                "item": "random-scroll",
+                "weight": 1,
+                "quantity": 1,
+                "scroll": {
+                  "schools": [
+                    "necromancy",
+                    "abjuration"
+                  ],
+                  "max_level": 2
+                }
+              }
+            ]
           }
         ]
       },
@@ -183,6 +201,3 @@
     }
   }
 }
-
-
-

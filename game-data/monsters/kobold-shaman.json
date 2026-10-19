@@ -85,6 +85,7 @@
     "guaranteed": [],
     "rolls": 1,
     "tiers": [
+      {"name": "scroll", "weight": 64, "entries": [{"item": "random-scroll", "weight": 1, "quantity": [1, 1], "scroll": {"classes": ["sorcerer", "wizard"], "max_level": 1}}]},
       {
         "name": "common",
         "weight": 1000,

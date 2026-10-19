@@ -726,6 +726,7 @@ func ValidateMonsters() ([]Issue, error) {
 		}
 		return nil
 	})
+	withGeneratedScrolls(validItemIDs)
 
 	err := filepath.WalkDir(monstersPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -991,6 +992,10 @@ func validateMonsterFile(filePath string, validItemIDs map[string]bool) []Issue 
 						itemID, _ := entry["item"].(string)
 						if itemID == "" {
 							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: "loot entry missing required field: item"})
+						} else if itemID == "random-scroll" {
+							if msg := scrollFilterProblem(entry["scroll"]); msg != "" {
+								issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].scroll", i, j), Message: msg})
+							}
 						} else if itemID != "nothing" && len(validItemIDs) > 0 && !validItemIDs[itemID] {
 							issues = append(issues, Issue{Type: "error", Category: "monsters", File: filename, Field: fmt.Sprintf("loot_table.tiers[%d].entries[%d].item", i, j), Message: fmt.Sprintf("loot item '%s' not found in game-data/items/", itemID)})
 						}
@@ -1267,6 +1272,7 @@ func knownItemIDs() map[string]bool {
 				itemIDs[strings.TrimSuffix(e.Name(), ".json")] = true
 			}
 		}
+		withGeneratedScrolls(itemIDs)
 	})
 	return itemIDs
 }

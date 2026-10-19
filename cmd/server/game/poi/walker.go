@@ -75,6 +75,9 @@ type Deps struct {
 	// ChangeFatigue raises (or lowers) the fatigue stat — an effect node whose
 	// id is FatigueEffect.
 	ChangeFatigue func(save *types.SaveFile, amount int)
+	// RandomScroll resolves a "random-scroll" loot entry to a scroll item id
+	// ("" = none; nil: such entries grant nothing).
+	RandomScroll func(f *types.ScrollFilter, rng *rand.Rand) string
 }
 
 // FatigueEffect is the effect id that means the fatigue survival stat rather
@@ -259,8 +262,17 @@ func appendGrant(out []string, entry types.POILootEntry, save *types.SaveFile, d
 	if entry.Item == "" || qty <= 0 {
 		return out
 	}
-	deps.AddItem(save, entry.Item, qty)
-	return append(out, fmt.Sprintf("You find %s ×%d.", entry.Item, qty))
+	item := entry.Item
+	if item == types.RandomScrollItem {
+		if deps.RandomScroll == nil {
+			return out
+		}
+		if item = deps.RandomScroll(entry.Scroll, deps.Rng); item == "" {
+			return out
+		}
+	}
+	deps.AddItem(save, item, qty)
+	return append(out, fmt.Sprintf("You find %s ×%d.", item, qty))
 }
 
 // pickTier chooses one tier weighted by Tier.Weight. A tier with no entries is

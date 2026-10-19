@@ -7,6 +7,8 @@
     "3": { "gold": 25000, "minutes": 480, "base_chance": 65 }
   },
   "max_spell_level": 3,
+  "loot_level_weights": { "0": 8, "1": 6, "2": 2, "3": 1 },
+  "memorize": { "classes": ["wizard"], "gold_per_level": 5000, "minutes_per_level": 120 },
   "per_mod": 5,
   "min_chance": 25,
   "max_chance": 95,

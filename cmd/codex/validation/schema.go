@@ -123,7 +123,7 @@ type schemaRefIndex struct {
 
 func buildSchemaRefIndex(dirs SchemaDirs) *schemaRefIndex {
 	idx := &schemaRefIndex{
-		items:     schemaLoadIDs(dirs.Items),
+		items:     withGeneratedScrolls(schemaLoadIDs(dirs.Items)),
 		monsters:  schemaLoadIDs(dirs.Monsters),
 		effects:   schemaLoadIDs(dirs.Effects),
 		npcs:      map[string]bool{},
@@ -285,6 +285,9 @@ func (c *schemaChecker) checkLootTable(lt *types.POILootTable) {
 	}
 	for _, t := range lt.Tiers {
 		for _, e := range t.Entries {
+			if e.Item == types.RandomScrollItem {
+				continue // a random scroll, picked at roll time
+			}
 			c.checkRef("item", e.Item, c.idx.items)
 		}
 	}
