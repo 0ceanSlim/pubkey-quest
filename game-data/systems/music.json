@@ -32,7 +32,7 @@
     {
       "title": "God of Dreams",
       "file": "/res/aud/God of Dreams.mp3",
-      "unlocks_at": "goldhaven"
+      "unlocks_at": "goldenhaven"
     },
     {
       "title": "Breath Of The Mountains",
@@ -52,7 +52,7 @@
     {
       "title": "Mysteries",
       "file": "/res/aud/Mysteries.mp3",
-      "unlocks_at": "mistmarsh-swamplands"
+      "unlocks_at": "saltwind"
     },
     {
       "title": "Citadel in the Mountains",

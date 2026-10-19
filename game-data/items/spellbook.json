@@ -10,7 +10,7 @@
   "name": "Spellbook",
   "notes": [
     "Holds up to 20 spell scrolls.",
-    "No other effect yet."
+    "Wizards: right-click a scroll inside it and choose Commit to memory to learn the spell for good."
   ],
   "value": 5000,
   "rarity": "common",

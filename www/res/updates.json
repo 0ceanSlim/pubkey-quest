@@ -2,6 +2,19 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-19-shop-fixes",
+      "when": "October 19, 2026",
+      "icon": "🛒",
+      "size": "minor",
+      "title": "Armor You Can Wear, and Gear You Can Buy",
+      "summary": "Armor shops sell the pieces you actually wear, and acid, caltrops, ball bearings and whetstones are on the shelves.",
+      "highlights": [
+        "Armor shops sold whole sets that couldn't be worn. They now sell each piece (a hauberk and chausses, a cuirass and greaves) to wear together",
+        "Caltrops and ball bearings at the general stores, acid in the Kingdom and at Verdant's Green Mortar, whetstones at the forges and Ironpeak's mining supplier",
+        "Goldenhaven's town music now unlocks when you arrive, and Dusthaven, Frosthold and Saltwind have music of their own"
+      ]
+    },
+    {
       "id": "2026-10-19-waystones",
       "when": "October 19, 2026",
       "icon": "🌀",

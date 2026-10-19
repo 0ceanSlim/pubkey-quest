@@ -1,6 +1,7 @@
 {
   "id": "dusthaven",
   "name": "Dusthaven Village",
+  "music": "Eternal Sunset",
   "type": "village",
   "description": "A small oasis village that serves as the last outpost before the great desert. Adobe buildings cluster around a precious well, and date palms provide shade from the harsh sun.",
   "starting_races": [],

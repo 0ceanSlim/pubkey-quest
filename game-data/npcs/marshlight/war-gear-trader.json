@@ -95,6 +95,7 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "whetstone", "stock": 3, "max_stock": 3},
       {"item_id": "greataxe", "stock": 2, "max_stock": 2},
       {"item_id": "handaxe", "stock": 4, "max_stock": 4},
       {"item_id": "javelin", "stock": 10, "max_stock": 10},
@@ -104,7 +105,8 @@
       {"item_id": "blowgun", "stock": 2, "max_stock": 2},
       {"item_id": "blowgun-needle", "stock": 20, "max_stock": 20},
       {"item_id": "net", "stock": 3, "max_stock": 3},
-      {"item_id": "hide-set", "stock": 2, "max_stock": 2},
+      {"item_id": "hide-cuirass", "stock": 2, "max_stock": 2},
+      {"item_id": "hide-chaps", "stock": 2, "max_stock": 2},
       {"item_id": "shield", "stock": 3, "max_stock": 3}
     ]
   }

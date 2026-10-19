@@ -95,6 +95,7 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "whetstone", "stock": 3, "max_stock": 3},
       {"item_id": "handaxe", "stock": 4, "max_stock": 4},
       {"item_id": "light-hammer", "stock": 4, "max_stock": 4},
       {"item_id": "war-pick", "stock": 3, "max_stock": 3},
@@ -104,8 +105,10 @@
       {"item_id": "crossbow-heavy", "stock": 2, "max_stock": 2},
       {"item_id": "crossbow-bolts", "stock": 20, "max_stock": 20},
       {"item_id": "shield", "stock": 3, "max_stock": 3},
-      {"item_id": "ringmail-set", "stock": 2, "max_stock": 2},
-      {"item_id": "splint-set", "stock": 1, "max_stock": 1}
+      {"item_id": "ringmail-hauberk", "stock": 2, "max_stock": 2},
+      {"item_id": "ringmail-chausses", "stock": 2, "max_stock": 2},
+      {"item_id": "splint-cuirass", "stock": 1, "max_stock": 1},
+      {"item_id": "splint-greaves", "stock": 1, "max_stock": 1}
     ]
   }
 }

@@ -103,9 +103,12 @@
       {"item_id": "sling-bullet", "stock": 20, "max_stock": 20},
       {"item_id": "dart", "stock": 10, "max_stock": 10},
       {"item_id": "quarterstaff", "stock": 3, "max_stock": 3},
-      {"item_id": "padded-set", "stock": 2, "max_stock": 2},
-      {"item_id": "leather-set", "stock": 3, "max_stock": 3},
-      {"item_id": "studded-leather-set", "stock": 2, "max_stock": 2}
+      {"item_id": "padded-gambeson", "stock": 2, "max_stock": 2},
+      {"item_id": "padded-leggings", "stock": 2, "max_stock": 2},
+      {"item_id": "leather-vest", "stock": 3, "max_stock": 3},
+      {"item_id": "leather-leggings", "stock": 3, "max_stock": 3},
+      {"item_id": "studded-leather-vest", "stock": 2, "max_stock": 2},
+      {"item_id": "studded-leather-leggings", "stock": 2, "max_stock": 2}
     ]
   }
 }

@@ -95,6 +95,7 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "whetstone", "stock": 3, "max_stock": 3},
       {"item_id": "dagger", "stock": 6, "max_stock": 6},
       {"item_id": "shortsword", "stock": 4, "max_stock": 4},
       {"item_id": "longsword", "stock": 3, "max_stock": 3},
@@ -106,8 +107,10 @@
       {"item_id": "pike", "stock": 2, "max_stock": 2},
       {"item_id": "shield", "stock": 4, "max_stock": 4},
       {"item_id": "chain-shirt", "stock": 2, "max_stock": 2},
-      {"item_id": "chainmail-set", "stock": 2, "max_stock": 2},
-      {"item_id": "scalemail-set", "stock": 2, "max_stock": 2},
+      {"item_id": "chainmail-hauberk", "stock": 2, "max_stock": 2},
+      {"item_id": "chainmail-chausses", "stock": 2, "max_stock": 2},
+      {"item_id": "scalemail-cuirass", "stock": 2, "max_stock": 2},
+      {"item_id": "scalemail-greaves", "stock": 2, "max_stock": 2},
       {"item_id": "breastplate", "stock": 1, "max_stock": 1}
     ]
   }

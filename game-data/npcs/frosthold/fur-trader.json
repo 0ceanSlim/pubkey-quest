@@ -107,7 +107,8 @@
       {"item_id": "healing", "stock": 1, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"},
       {"item_id": "handaxe", "stock": 3, "max_stock": 3},
       {"item_id": "spear", "stock": 3, "max_stock": 3},
-      {"item_id": "hide-set", "stock": 2, "max_stock": 2}
+      {"item_id": "hide-cuirass", "stock": 2, "max_stock": 2},
+      {"item_id": "hide-chaps", "stock": 2, "max_stock": 2}
     ]
   }
 }
