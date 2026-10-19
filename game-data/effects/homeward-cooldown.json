@@ -1,0 +1,20 @@
+{
+  "category": "debuff",
+  "description": "Your Homeward Stones are spent. Their pull returns in a week.",
+  "id": "homeward-cooldown",
+  "message": "The stone goes cold in your hand. It will be a week before it pulls again.",
+  "modifiers": [
+    {
+      "stat": "teleport_cooldown",
+      "type": "constant",
+      "value": 0
+    }
+  ],
+  "name": "Homeward Stone Recharging",
+  "removal": {
+    "timer": 10080,
+    "type": "timed"
+  },
+  "source_type": "applied",
+  "visible": true
+}

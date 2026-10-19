@@ -1,0 +1,23 @@
+{
+  "id": "homeward-stone-marshlight",
+  "name": "Homeward Stone (Marshlight)",
+  "description": "A murky teal war-trophy stone from the clan hoard, its lantern rune glowing like marsh-light. It pulls toward the waystone in Marshlight.",
+  "type": "Adventuring Gear",
+  "teleport": {
+    "city": "marshlight"
+  },
+  "value": 1000,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 0.5,
+  "tags": [
+    "homeward-stone"
+  ],
+  "image": "/res/img/items/homeward-stone-marshlight.png",
+  "notes": [
+    "Use it to teleport to the waystone in Marshlight's town square. It isn't used up.",
+    "All Homeward Stones share one charge: after any of them carries you, none works for a week.",
+    "Not in a fight, a dungeon or a party. Using one on the road abandons the trip. No time passes.",
+    "Sold by the vault keeper in Marshlight."
+  ]
+}

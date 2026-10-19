@@ -1375,6 +1375,11 @@ func migrateSystemData() error {
 		log.Printf("Warning: failed to migrate scroll-scribing.json: %v", err)
 	}
 
+	// Migrate teleportation.json (Homeward Stones + waystones)
+	if err := migrateGenericJSON(filepath.Join(systemDataPath, "teleportation.json"), "teleportation"); err != nil {
+		log.Printf("Warning: failed to migrate teleportation.json: %v", err)
+	}
+
 	// Migrate spell-progression.json (spells known per level; 99 = whole class list)
 	if err := migrateGenericJSON("game-data/magic/spell-progression.json", "spell_progression"); err != nil {
 		log.Printf("Warning: failed to migrate spell-progression.json: %v", err)

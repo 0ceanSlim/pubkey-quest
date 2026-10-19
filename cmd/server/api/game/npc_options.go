@@ -165,6 +165,11 @@ func addLabelledOptions(resp *types.GameActionResponse, npcID string, state *typ
 		if !ok || !requirement.Evaluate(opt.Requirements, ctx).OK {
 			continue
 		}
+		// An option that leads to a one-time gift this character already got
+		// (a keeper's free Homeward Stone) has nothing left to give: hide it.
+		if giftClaimed(npcData, npcID, opt.Next, state) {
+			continue
+		}
 		k := optKey(node, i)
 		out = append(out, k)
 		labels[k] = opt.Label
@@ -195,6 +200,16 @@ func payOptionCost(state *types.SaveFile, cost types.POICost) string {
 		gameutil.ConsumeItem(state, it.ID, max(it.Quantity, 1))
 	}
 	return ""
+}
+
+// giftClaimed reports whether a dialogue node carries a one-time reward this
+// character has already been given.
+func giftClaimed(npcData *serverdb.NPCData, npcID, node string, state *types.SaveFile) bool {
+	n, _ := npcData.Dialogue[node].(map[string]interface{})
+	if _, ok := n["reward"].(map[string]interface{}); !ok {
+		return false
+	}
+	return slices.Contains(state.DialogueGifts, npcID+":"+node)
 }
 
 // grantDialogueGift pays a node's one-time reward the first time this

@@ -1,0 +1,64 @@
+{
+  "description": "Teleportation (docs/draft/teleportation-design.md). Homeward Stones take you to their city's waystone (shared cooldown); waystones hop between unlocked waystones (their own cooldown). Unlocks derive from QuestsCompleted: a city's stone_quest lets you buy its stone from its keeper (your home city's stone is always for sale to you), its waystone_quest unlocks it as a hop destination. Neither teleport advances the clock.",
+  "stone_cooldown_effect": "homeward-cooldown",
+  "waystone_cooldown_effect": "waystone-cooldown",
+  "stone_price": 1000,
+  "chain": [
+    "kingdom",
+    "millhaven",
+    "verdant",
+    "goldenhaven",
+    "marshlight",
+    "ironpeak"
+  ],
+  "cities": {
+    "kingdom": {
+      "name": "the Kingdom",
+      "district": "center",
+      "stone": "homeward-stone-kingdom",
+      "keeper": "royal-custodian",
+      "stone_quest": "stone-kingdom",
+      "waystone_quest": "waystone-kingdom"
+    },
+    "millhaven": {
+      "name": "Millhaven",
+      "district": "center",
+      "stone": "homeward-stone-millhaven",
+      "keeper": "keywarden",
+      "stone_quest": "stone-millhaven",
+      "waystone_quest": "waystone-millhaven"
+    },
+    "verdant": {
+      "name": "Verdant",
+      "district": "center",
+      "stone": "homeward-stone-verdant",
+      "keeper": "warden-of-roots",
+      "stone_quest": "stone-verdant",
+      "waystone_quest": "waystone-verdant"
+    },
+    "goldenhaven": {
+      "name": "Goldenhaven",
+      "district": "center",
+      "stone": "homeward-stone-goldenhaven",
+      "keeper": "scalekeeper",
+      "stone_quest": "stone-goldenhaven",
+      "waystone_quest": "waystone-goldenhaven"
+    },
+    "marshlight": {
+      "name": "Marshlight",
+      "district": "center",
+      "stone": "homeward-stone-marshlight",
+      "keeper": "hoardkeeper",
+      "stone_quest": "stone-marshlight",
+      "waystone_quest": "waystone-marshlight"
+    },
+    "ironpeak": {
+      "name": "Ironpeak",
+      "district": "center",
+      "stone": "homeward-stone-ironpeak",
+      "keeper": "vaultwright",
+      "stone_quest": "stone-ironpeak",
+      "waystone_quest": "waystone-ironpeak"
+    }
+  }
+}

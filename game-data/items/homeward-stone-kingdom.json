@@ -1,0 +1,23 @@
+{
+  "id": "homeward-stone-kingdom",
+  "name": "Homeward Stone (Kingdom)",
+  "description": "A smooth grey stone set with a crown rune in royal blue, registered in the Crown's ledger. Hold it, think of the Kingdom's square, and the waystone there pulls you home.",
+  "type": "Adventuring Gear",
+  "teleport": {
+    "city": "kingdom"
+  },
+  "value": 1000,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 0.5,
+  "tags": [
+    "homeward-stone"
+  ],
+  "image": "/res/img/items/homeward-stone-kingdom.png",
+  "notes": [
+    "Use it to teleport to the waystone in the Kingdom's town square. It isn't used up.",
+    "All Homeward Stones share one charge: after any of them carries you, none works for a week.",
+    "Not in a fight, a dungeon or a party. Using one on the road abandons the trip. No time passes.",
+    "Sold by the vault keeper in the Kingdom."
+  ]
+}

@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/server/game/shop"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/game/teleport"
 	"pubkey-quest/types"
 	"pubkey-quest/cmd/server/world"
 )
@@ -218,7 +219,18 @@ func handleGetShop(w http.ResponseWriter, r *http.Request, merchantID string) {
 
 	// Get item prices and current stock from merchant state
 	itemsWithPrices := make([]map[string]any, 0)
+	shopper, _ := session.GetSessionManager().GetSession(npub, saveID)
 	for _, invItem := range shopConfig.Inventory {
+		// A Homeward Stone is only for those its keeper will attune one to,
+		// and not while they already hold one.
+		if city := teleport.StoneCity(invItem.ItemID); city != "" {
+			if shopper == nil {
+				continue
+			}
+			if ok, _ := teleport.StoneForSale(&shopper.SaveData, city); !ok {
+				continue
+			}
+		}
 		item, err := db.GetItemByID(invItem.ItemID)
 		if err != nil {
 			log.Printf("⚠️ Item not found: %s", invItem.ItemID)
@@ -350,6 +362,14 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 			"error":   "Item not in shop inventory",
 		})
 		return
+	}
+	if city := teleport.StoneCity(shopItem.ItemID); city != "" {
+		if ok, why := teleport.StoneForSale(save, city); !ok {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]any{"success": false, "error": why})
+			return
+		}
 	}
 
 	// Get merchant state to check current stock

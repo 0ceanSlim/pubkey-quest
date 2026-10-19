@@ -122,6 +122,11 @@ export function getItemActions(itemData, isEquipped) {
             }
         }
 
+        // A Homeward Stone teleports (it isn't used up).
+        if (itemData.teleport || itemData.properties?.teleport) {
+            actions.push({ action: 'homeward', label: 'Use' });
+        }
+
         // Consumables by type or tag (a healer's kit is Adventuring Gear tagged
         // consumable), and weapon coatings (poison, a whetstone).
         const consumableTypes = ['Potion', 'Consumable', 'Food'];
@@ -226,6 +231,11 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
     }
     if (action === 'wiki') {
         openWiki('Items', itemId);
+        return;
+    }
+    // A Homeward Stone: teleport (ui/waystone.js redraws the scene after).
+    if (action === 'homeward') {
+        await window.useHomewardStone?.(itemId);
         return;
     }
 

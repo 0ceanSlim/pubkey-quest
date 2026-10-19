@@ -11,6 +11,8 @@ import (
 
 	"pubkey-quest/cmd/server/db"
 	gamecharacter "pubkey-quest/cmd/server/game/character"
+	gameinventory "pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/game/teleport"
 	"pubkey-quest/types"
 )
 
@@ -269,6 +271,14 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		},
 		InternalNpub: req.Npub,
 		InternalID:   fmt.Sprintf("save_%d", time.Now().Unix()),
+	}
+
+	// 15. The home city's Homeward Stone — the only free one. The home keeper's
+	// gift is marked given, so it can't be claimed a second time.
+	if c, ok := teleport.Load().Cities[startingCity]; ok {
+		if n, _ := gameinventory.AddItemToInventory(&saveFile, c.Stone, 1); n > 0 {
+			saveFile.DialogueGifts = append(saveFile.DialogueGifts, c.Keeper+":homeward_gift")
+		}
 	}
 
 	// 16. Save to disk

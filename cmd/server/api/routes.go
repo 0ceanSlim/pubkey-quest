@@ -715,6 +715,8 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 	// @Router       /api/progression/memorize-scroll [post]
 	mux.HandleFunc("/api/progression/memorize-scroll", game.MemorizeScrollHandler)
 
+	// @Router       /api/teleport/status [get]
+	mux.HandleFunc("/api/teleport/status", game.TeleportStatusHandler)
 	// @Router       /api/scrolls/scribable [get]
 	mux.HandleFunc("/api/scrolls/scribable", game.GetScribableHandler)
 	// @Router       /api/scrolls/scribe [post]

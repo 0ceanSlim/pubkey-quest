@@ -16,7 +16,8 @@
       ],
       "available_actions": [
         "open_storage",
-        "register_storage"
+        "register_storage",
+        "open_shop"
       ]
     }
   ],
@@ -32,6 +33,10 @@
         "claim_birthright",
         "ask_about_rite",
         "use_storage",
+        {
+          "label": "Ask about Homeward Stones",
+          "next": "homeward_stone"
+        },
         "goodbye"
       ]
     },
@@ -94,9 +99,75 @@
         "use_storage",
         "goodbye"
       ]
+    },
+    "homeward_stone": {
+      "text": "A Homeward Stone is an ember-scale from the hoard, bonded to the waystone in Goldenhaven's square. Every dragonborn of the city holds one; it carries you home once each week. Others may hold one when they've earned the hoard's trust. Trust, here, is earned in trade.",
+      "options": [
+        {
+          "label": "[Dragonborn] My ember-scale was never given to me.",
+          "next": "homeward_gift",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Dragonborn"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Buy a Homeward Stone",
+          "next": "homeward_shop"
+        },
+        {
+          "label": "Ask about the vault",
+          "next": "about_service"
+        },
+        "goodbye"
+      ]
+    },
+    "homeward_gift": {
+      "text": "Then the hoard has kept it warm for you. Take it, kin. One is given freely. A second is a purchase like any other.",
+      "reward": {
+        "items": [
+          {
+            "id": "homeward-stone-goldenhaven",
+            "quantity": 1
+          }
+        ]
+      },
+      "options": [
+        {
+          "label": "Ask about Homeward Stones",
+          "next": "homeward_stone"
+        },
+        "goodbye"
+      ]
+    },
+    "homeward_shop": {
+      "text": "Ember-scales, each bonded to Goldenhaven's waystone. One to a hand, and the hoard sets the price.",
+      "action": "open_shop"
     }
   },
   "storage_config": {
     "registration_fee": 100
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": false,
+    "starting_gold": 0,
+    "gold_regen_rate": 0,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "homeward-stone-goldenhaven",
+        "stock": 3,
+        "max_stock": 3,
+        "restock_rate": 1,
+        "restock_interval": "7"
+      }
+    ]
   }
 }

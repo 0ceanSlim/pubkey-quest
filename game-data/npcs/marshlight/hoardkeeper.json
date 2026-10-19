@@ -16,7 +16,8 @@
       ],
       "available_actions": [
         "open_storage",
-        "register_storage"
+        "register_storage",
+        "open_shop"
       ]
     }
   ],
@@ -32,6 +33,10 @@
         "claim_birthright",
         "ask_about_tribute",
         "use_storage",
+        {
+          "label": "Ask about Homeward Stones",
+          "next": "homeward_stone"
+        },
         "goodbye"
       ]
     },
@@ -104,6 +109,54 @@
         "use_storage",
         "goodbye"
       ]
+    },
+    "homeward_stone": {
+      "text": "Homeward Stone. A trophy from the clan hoard, bonded to the waystone in this mud-town. Every orc of Marshlight carries one, and it drags you home once a week. Outsiders get one when they've proven themselves to the clan. Prove it.",
+      "options": [
+        {
+          "label": "[Orc] The hoard never gave me my stone.",
+          "next": "homeward_gift",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Orc"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Buy a Homeward Stone",
+          "next": "homeward_shop"
+        },
+        {
+          "label": "Ask about the vault",
+          "next": "about_service"
+        },
+        "goodbye"
+      ]
+    },
+    "homeward_gift": {
+      "text": "Then take it. From the hoard, to the clan's own. Lose it and you pay for the next, like anyone.",
+      "reward": {
+        "items": [
+          {
+            "id": "homeward-stone-marshlight",
+            "quantity": 1
+          }
+        ]
+      },
+      "options": [
+        {
+          "label": "Ask about Homeward Stones",
+          "next": "homeward_stone"
+        },
+        "goodbye"
+      ]
+    },
+    "homeward_shop": {
+      "text": "Marshlight stones, bonded to our waystone. You want one, you pay. One each.",
+      "action": "open_shop"
     }
   },
   "storage_config": {
@@ -112,6 +165,24 @@
       {
         "id": "battleaxe",
         "quantity": 1
+      }
+    ]
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": false,
+    "starting_gold": 0,
+    "gold_regen_rate": 0,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "homeward-stone-marshlight",
+        "stock": 3,
+        "max_stock": 3,
+        "restock_rate": 1,
+        "restock_interval": "7"
       }
     ]
   }

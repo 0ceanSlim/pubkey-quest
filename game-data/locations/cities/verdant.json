@@ -1,5 +1,6 @@
 {
   "id": "verdant",
+  "waystone": {"district": "center", "description": "An ancient elven waystone stands in the square, its runes faintly lit. Homeward Stones bring you here, and once it is woken it can carry you to the other waystones."},
   "name": "Verdant City",
   "type": "city",
   "image": "/res/img/locations/verdant.png",

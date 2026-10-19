@@ -254,6 +254,7 @@ var combatBlockedActions = map[string]bool{
 	"move_to_room": true, "move": true, "talk_to_npc": true,
 	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
+	"use_homeward_stone": true, "waystone_hop": true,
 }
 
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
@@ -820,6 +821,10 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleSleepAction(session, action.Params)
 	case "wait":
 		return handleWaitAction(session, action.Params)
+	case "use_homeward_stone":
+		return handleUseHomewardStone(session, action.Params)
+	case "waystone_hop":
+		return handleWaystoneHop(session, action.Params)
 	case "book_show":
 		return handleBookShowAction(session, action.Params)
 	case "play_show":

@@ -16,7 +16,8 @@
       ],
       "available_actions": [
         "open_storage",
-        "register_storage"
+        "register_storage",
+        "open_shop"
       ]
     }
   ],
@@ -32,6 +33,10 @@
         "claim_birthright",
         "ask_about_fee",
         "use_storage",
+        {
+          "label": "Ask about Homeward Stones",
+          "next": "homeward_stone"
+        },
         "goodbye"
       ]
     },
@@ -94,6 +99,57 @@
         "use_storage",
         "goodbye"
       ]
+    },
+    "homeward_stone": {
+      "text": "A Homeward Stone? Every citizen is issued one, registered in the royal ledger beside their name. Hold it, think of the square, and the old waystone there pulls you home, though it takes a week to gather itself again. Outsiders may carry a Kingdom stone too, once the crown knows them. Do the crown a service and I will attune one for you.",
+      "options": [
+        {
+          "label": "[Citizen] I was never given my stone.",
+          "next": "homeward_gift",
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Human",
+                "Half-Elf",
+                "Half-Orc",
+                "Tiefling"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Buy a Homeward Stone",
+          "next": "homeward_shop"
+        },
+        {
+          "label": "Ask about the vault",
+          "next": "about_service"
+        },
+        "goodbye"
+      ]
+    },
+    "homeward_gift": {
+      "text": "Your name is in the ledger and the stone beside it is still in the drawer. Here: one stone, crown-sealed. Lose it and the next one costs you, the crown is generous only once.",
+      "reward": {
+        "items": [
+          {
+            "id": "homeward-stone-kingdom",
+            "quantity": 1
+          }
+        ]
+      },
+      "options": [
+        {
+          "label": "Ask about Homeward Stones",
+          "next": "homeward_stone"
+        },
+        "goodbye"
+      ]
+    },
+    "homeward_shop": {
+      "text": "These are attuned to the Kingdom's waystone. The crown asks a fee for each, and no citizen carries two.",
+      "action": "open_shop"
     }
   },
   "storage_config": {
@@ -105,5 +161,23 @@
     ],
     "registration_fee": 50,
     "slot_type": "standard"
+  },
+  "shop_config": {
+    "shop_type": "general",
+    "buys_items": false,
+    "starting_gold": 0,
+    "gold_regen_rate": 0,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "homeward-stone-kingdom",
+        "stock": 3,
+        "max_stock": 3,
+        "restock_rate": 1,
+        "restock_interval": "7"
+      }
+    ]
   }
 }

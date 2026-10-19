@@ -1,0 +1,20 @@
+{
+  "category": "debuff",
+  "description": "The waystones won't carry you again for a week.",
+  "id": "waystone-cooldown",
+  "message": "The waystone dims behind you. It will be a week before the network carries you again.",
+  "modifiers": [
+    {
+      "stat": "teleport_cooldown",
+      "type": "constant",
+      "value": 0
+    }
+  ],
+  "name": "Waystone Recharging",
+  "removal": {
+    "timer": 10080,
+    "type": "timed"
+  },
+  "source_type": "applied",
+  "visible": true
+}

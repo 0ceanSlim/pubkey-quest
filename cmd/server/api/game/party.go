@@ -408,6 +408,7 @@ var followerBlockedActions = map[string]bool{
 	// The clock is the leader's, and picking a lock spends time.
 	"set_clock": true, "reset_idle_timer": true,
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
+	"use_homeward_stone": true, "waystone_hop": true,
 }
 
 // partyPlace is what the leader's moves change.

@@ -85,6 +85,13 @@
       "category": "capacity",
       "allows_periodic": false
     },
+    "teleport_cooldown": {
+      "id": "teleport_cooldown",
+      "property": "teleport_cooldown",
+      "description": "Marks a teleport cooldown (homeward-cooldown, waystone-cooldown); changes no stat",
+      "category": "capacity",
+      "allows_periodic": false
+    },
     "xp_rate": {
       "id": "xp_rate",
       "property": "xp_rate_modifier",

@@ -24,6 +24,7 @@ import { smoothClock } from '../systems/smoothClock.js';
 import { createQuantityBar, formatCount } from './vaultControls.js';
 import { setTownPace } from '../systems/dayCycle.js';
 import { openScrollScribe } from './scrollScribe.js';
+import { openWaystone } from './waystone.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
 async function depositInventoryToVault() {
@@ -487,6 +488,14 @@ export async function displayCurrentLocation() {
 
         // Room actions (in-building only): Sleep in your rented room, Play Show when ready.
         let actionCount = 0;
+
+        // The waystone in a starting city's town square.
+        if (!inBuilding && cityData?.waystone?.district === districtKey) {
+            const wsBtn = createLocationButton('🌀 Waystone', () => openWaystone(), 'action');
+            if (cityData.waystone.description) wsBtn.dataset.tip = cityData.waystone.description;
+            npcFragment.appendChild(wsBtn);
+            actionCount++;
+        }
 
         // A way into a quest's own place (the breach in the cellar wall), while
         // the quest is on a stage that uses it.
