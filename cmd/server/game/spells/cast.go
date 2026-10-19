@@ -252,11 +252,17 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 	case "attack":
 		atkBonus := spellAttackBonus(level, statScore) + deps.AttackBonus
 		roll := deps.RollD20()
+		advNote := ""
 		if deps.AttackAdvantage != 0 {
-			second := deps.RollD20()
+			first, second := roll, deps.RollD20()
 			if (deps.AttackAdvantage > 0) == (second > roll) {
 				roll = second
 			}
+			kind := "advantage"
+			if deps.AttackAdvantage < 0 {
+				kind = "disadvantage"
+			}
+			advNote = fmt.Sprintf(" (%s: %d, %d)", kind, first, second)
 		}
 		crit := roll == 20
 		critMiss := roll == 1
@@ -264,7 +270,7 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 		hit := crit || (!critMiss && total >= target.ArmorClass)
 		res.Hit = hit
 		res.Crit = crit
-		res.Log = append(res.Log, fmt.Sprintf("  You cast %s: rolled %d%s vs AC %d", name, roll, mod(atkBonus), target.ArmorClass))
+		res.Log = append(res.Log, fmt.Sprintf("  You cast %s: rolled %d%s vs AC %d%s", name, roll, mod(atkBonus), target.ArmorClass, advNote))
 		if !hit {
 			res.Log = append(res.Log, "  ✘ The spell misses.")
 			break

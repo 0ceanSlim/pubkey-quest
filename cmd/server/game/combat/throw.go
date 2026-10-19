@@ -48,7 +48,7 @@ func throwItem(cs *types.CombatSession, save *types.SaveFile, item, throw map[st
 	}
 	bonus := StatMod(GetStatFromMap(effectiveStats(save), "dexterity"))
 	result := ResolveAttackRoll(bonus, monster.ArmorClass, adv)
-	log = append(log, fmt.Sprintf("  You throw the %s at %s: rolled %d%s", name, monster.Name, result.Roll, formatModifier(result.Modifier)), outcomeLine(result))
+	log = append(log, fmt.Sprintf("  You throw the %s at %s: rolled %d%s%s", name, monster.Name, result.Roll, formatModifier(result.Modifier), AdvNote(result)), outcomeLine(result))
 
 	decrementSlotStack(slot)
 	state.ActionUsed = true

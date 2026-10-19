@@ -149,6 +149,9 @@
     pointer-events: none; user-select: none;
 }
 .combat-die-wrap .combat-die { position: relative; }
+.combat-die-row { display: flex; gap: 4px; justify-content: center; }
+/* The d20 not kept on an advantage / disadvantage roll. */
+.combat-die.dropped { opacity: 0.35; text-decoration: line-through; filter: grayscale(0.8); }
 .combat-die-wrap.fading { animation: diceFade 300ms ease-in forwards; }
 .combat-die-who {
     font-size: 9px; font-weight: bold; padding: 1px 5px; white-space: nowrap;

@@ -400,8 +400,8 @@ func runMonsterDeathSaveTurn(cs *types.CombatSession, save *types.SaveFile, m *t
 	result := ResolveAttackRoll(action.AttackBonus, playerAC, 1) // advantage: the target is helpless
 
 	log := []string{
-		fmt.Sprintf("  %s attacks: rolled %d%s",
-			m.Name, result.Roll, formatModifier(action.AttackBonus)),
+		fmt.Sprintf("  %s attacks: rolled %d%s%s",
+			m.Name, result.Roll, formatModifier(action.AttackBonus), AdvNote(result)),
 		outcomeLine(result),
 	}
 	if result.IsHit {

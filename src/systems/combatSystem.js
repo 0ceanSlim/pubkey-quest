@@ -1276,6 +1276,14 @@ function _diceRollNumber(line) {
     return n;
 }
 
+// _advRolls reads both d20s of an advantage/disadvantage roll ("rolled 15+3
+// (advantage: 15, 7)") → { kind: 'advantage', rolls: [15, 7] }, or null.
+function _advRolls(line) {
+    const m = line.match(/\((advantage|disadvantage):\s*(\d+),\s*(\d+)\)/i);
+    if (!m) return null;
+    return { kind: m[1].toLowerCase(), rolls: [parseInt(m[2], 10), parseInt(m[3], 10)] };
+}
+
 // _rollSides is the die a "rolled N" line threw.
 function _rollSides(line) {
     return /chance:\s*\d+%/i.test(line) ? 100 : 20;
@@ -1286,7 +1294,34 @@ function _rollSides(line) {
 function _damageDice(line) {
     const m = line.match(/damage\s*\((\d+)d(\d+)([+-]\d+)?\)/i);
     if (!m) return { sides: 6, label: 'dmg' };
-    return { sides: parseInt(m[2], 10), label: `${m[1]}d${m[2]}${m[3] ?? ''}` };
+    return {
+        sides: parseInt(m[2], 10), label: `${m[1]}d${m[2]}${m[3] ?? ''}`,
+        count: parseInt(m[1], 10), mod: m[3] ? parseInt(m[3], 10) : 0,
+    };
+}
+
+// The most dice drawn for one roll; a bigger handful (8d6) shows one die with
+// the total instead.
+const MAX_DICE_SHOWN = 6;
+
+// _splitRoll shares a damage total out over `count` dice: faces that add up to
+// total − mod when that's possible. The log only carries the total, so when a
+// resistance or vulnerability makes the sum impossible the faces are just
+// plausible, and the label still says the true total.
+function _splitRoll(total, count, sides, mod) {
+    const target = total - mod;
+    if (target < count || target > count * sides) {
+        return Array.from({ length: count }, () => 1 + Math.floor(Math.random() * sides));
+    }
+    const faces = new Array(count).fill(1);
+    let left = target - count;
+    while (left > 0) {
+        const open = faces.map((f, i) => (f < sides ? i : -1)).filter((i) => i >= 0);
+        const i = open[Math.floor(Math.random() * open.length)];
+        faces[i]++;
+        left--;
+    }
+    return faces;
 }
 
 // _diceRoller works out who threw a roll line and which side they're on:
@@ -1341,40 +1376,56 @@ function _playDiceAnimation(result, atMs, kind = 'd20', info = {}) {
             who.textContent = info.roller.name;
             wrap.appendChild(who);
         }
-        const die = document.createElement('div');
-        die.className = `combat-die d${shape} tumbling`;
-        if (kind === 'damage') {
-            die.classList.add('damage');
-        } else if (sides === 20) {
-            if (result === 20) die.classList.add('crit');
-            if (result === 1)  die.classList.add('fail');
-        }
-        wrap.appendChild(die);
+        // Several dice (2d6) are drawn side by side, each settling on its own
+        // face; one die (or too many to draw) shows the result itself.
+        const count = info.count ?? 1;
+        const several = kind === 'damage' && count > 1 && count <= MAX_DICE_SHOWN;
+        // Advantage / disadvantage: both d20s, the one not kept faded out.
+        const adv = kind !== 'damage' ? info.adv : null;
+        const faces = adv ? adv.rolls : several ? _splitRoll(result, count, sides, info.mod ?? 0) : [result];
+        const dropped = adv ? (adv.rolls[0] === result ? 1 : 0) : -1;
+        const row = document.createElement('div');
+        row.className = 'combat-die-row';
+        const dice = faces.map((face, i) => {
+            const die = document.createElement('div');
+            die.className = `combat-die d${shape} tumbling`;
+            if (kind === 'damage') {
+                die.classList.add('damage');
+            } else if (sides === 20 && i !== dropped) {
+                if (face === 20) die.classList.add('crit');
+                if (face === 1)  die.classList.add('fail');
+            }
+            row.appendChild(die);
+            return die;
+        });
+        wrap.appendChild(row);
         const label = document.createElement('div');
         label.className = 'combat-die-label';
-        label.textContent = info.label ?? `d${sides}`;
+        label.textContent = (info.label ?? `d${sides}`) + (several || info.mod ? ` = ${result}` : '') + (adv ? ` · ${adv.kind}` : '');
         wrap.appendChild(label);
 
         // Tumble faces stay within what that die (or those dice) can show.
-        const tumbleMax = kind === 'damage'
+        const tumbleMax = kind === 'damage' && !several
             ? Math.max(sides, result)
             : sides;
-        die.textContent = String(1 + Math.floor(Math.random() * tumbleMax));
+        const tumble = () => dice.forEach((d) => { d.textContent = String(1 + Math.floor(Math.random() * tumbleMax)); });
+        tumble();
         zone.appendChild(wrap);
 
-        const cycler = setInterval(() => {
-            die.textContent = String(1 + Math.floor(Math.random() * tumbleMax));
-        }, 70);
+        const cycler = setInterval(tumble, 70);
 
         setTimeout(() => {
             clearInterval(cycler);
-            die.textContent = String(result);
-            die.classList.remove('tumbling');
-            die.classList.add('settling');
+            dice.forEach((d, i) => {
+                d.textContent = String(faces[i]);
+                d.classList.remove('tumbling');
+                d.classList.add('settling');
+                if (i === dropped) d.classList.add('dropped');
+            });
         }, DICE_TUMBLE_MS);
 
         setTimeout(() => {
-            die.classList.remove('settling');
+            dice.forEach((d) => d.classList.remove('settling'));
             wrap.classList.add('fading');
         }, DICE_TUMBLE_MS + DICE_SETTLE_MS);
 
@@ -1451,7 +1502,7 @@ function _appendLogEntriesStaggered(logEl, lines, isError = false, fixedInterval
 
         if (!isError && fixedInterval === null) {
             if (rollN !== null) {
-                _playDiceAnimation(rollN, atAbsolute, 'd20', { sides: _rollSides(line), roller: _diceRoller(line, gridCtx?.cs ?? _lastState) });
+                _playDiceAnimation(rollN, atAbsolute, 'd20', { sides: _rollSides(line), roller: _diceRoller(line, gridCtx?.cs ?? _lastState), adv: _advRolls(line) });
             } else if (dmgN !== null) {
                 const dice = _damageDice(line);
                 _playDiceAnimation(dmgN, atAbsolute, 'damage', { ...dice, roller: _diceRoller(line, gridCtx?.cs ?? _lastState) });

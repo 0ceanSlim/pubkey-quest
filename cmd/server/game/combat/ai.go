@@ -521,9 +521,9 @@ func ApplyMonsterAction(cs *types.CombatSession, monster *types.MonsterInstance,
 
 		logEntries = append(logEntries,
 			fmt.Sprintf(
-				"  %s attacks with %s: rolled %d%s",
+				"  %s attacks with %s: rolled %d%s%s",
 				monster.Name, action.Name,
-				result.Roll, formatModifier(attackBonus),
+				result.Roll, formatModifier(attackBonus), AdvNote(result),
 			),
 			outcomeLine(result),
 		)

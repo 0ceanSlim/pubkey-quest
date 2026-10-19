@@ -1240,8 +1240,8 @@ func formatAttackRoll(playerName string, item map[string]interface{}, isUnarmed 
 			weapon = n
 		}
 	}
-	return fmt.Sprintf("  %s attacks with %s: rolled %d%s",
-		playerName, weapon, result.Roll, formatModifier(result.Modifier))
+	return fmt.Sprintf("  %s attacks with %s: rolled %d%s%s",
+		playerName, weapon, result.Roll, formatModifier(result.Modifier), AdvNote(result))
 }
 
 // outcomeLine renders the hit/miss/crit verdict as its own log entry.
@@ -1561,8 +1561,8 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 	}
 	log := []string{
 		fmt.Sprintf(
-			"  ⚡ Opportunity attack! You strike with %s: rolled %d%s",
-			weaponName, result.Roll, formatModifier(result.Modifier),
+			"  ⚡ Opportunity attack! You strike with %s: rolled %d%s%s",
+			weaponName, result.Roll, formatModifier(result.Modifier), AdvNote(result),
 		),
 		outcomeLine(result),
 	}

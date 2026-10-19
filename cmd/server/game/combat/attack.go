@@ -1,6 +1,7 @@
 package combat
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -120,17 +121,39 @@ type AttackResult struct {
 	IsCrit    bool // Natural 20 — always hits, double dice
 	IsCritMiss bool // Natural 1 — always misses
 	IsHit     bool // Total >= target AC (or crit)
+	// Adv is +1 (advantage), -1 (disadvantage) or 0; Rolls are both d20s
+	// when two were rolled, in the order thrown (Roll is the one kept).
+	Adv   int
+	Rolls [2]int
+}
+
+// AdvNote names both d20s of an advantage or disadvantage roll for the log
+// (" (advantage: 15, 7)"), so the dice animation can show both. "" otherwise.
+func AdvNote(r AttackResult) string {
+	return advNote(r.Adv, r.Rolls)
+}
+
+func advNote(adv int, rolls [2]int) string {
+	switch {
+	case adv > 0:
+		return fmt.Sprintf(" (advantage: %d, %d)", rolls[0], rolls[1])
+	case adv < 0:
+		return fmt.Sprintf(" (disadvantage: %d, %d)", rolls[0], rolls[1])
+	}
+	return ""
 }
 
 // ResolveAttackRoll performs a d20 attack roll.
 // advantage: >0 = advantage, <0 = disadvantage, 0 = normal.
 func ResolveAttackRoll(attackBonus, targetAC, advantage int) AttackResult {
-	var roll int
+	var roll, r1, r2, adv int
 	switch {
 	case advantage > 0:
-		roll, _, _ = RollAdvantage()
+		roll, r1, r2 = RollAdvantage()
+		adv = 1
 	case advantage < 0:
-		roll, _, _ = RollDisadvantage()
+		roll, r1, r2 = RollDisadvantage()
+		adv = -1
 	default:
 		roll = RollD20()
 	}
@@ -141,6 +164,8 @@ func ResolveAttackRoll(attackBonus, targetAC, advantage int) AttackResult {
 	isHit := isCrit || (!isCritMiss && total >= targetAC)
 
 	return AttackResult{
+		Adv:        adv,
+		Rolls:      [2]int{r1, r2},
 		Roll:       roll,
 		Total:      total,
 		Modifier:   attackBonus,
