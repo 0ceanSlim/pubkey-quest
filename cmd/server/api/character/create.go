@@ -238,7 +238,7 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		Mana:                mana,
 		MaxMana:             mana,
 		Fatigue:             0,
-		Hunger:              2, // Start satisfied (2 = Satisfied)
+		Hunger:              2, // Start well fed
 		Stats:               statsInterface,
 		Location:            locationID,  // Use ID, not display name
 		District:            districtKey, // Use key, not display name
@@ -261,7 +261,7 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 				AppliedAt:         720, // Noon (720 minutes = 12:00 PM)
 			},
 			{
-				EffectID:          "hunger-accumulation-satisfied", // Start satisfied (Hunger=2)
+				EffectID:          "hunger-accumulation-wellfed", // Start well fed (Hunger=2)
 				EffectIndex:       0,
 				DurationRemaining: 0, // Permanent effect
 				DelayRemaining:    0,

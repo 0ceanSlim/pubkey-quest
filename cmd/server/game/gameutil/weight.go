@@ -162,18 +162,22 @@ func CalculateWeightCapacity(state *types.SaveFile) float64 {
 }
 
 // getBaseWeightMultiplier loads the base weight multiplier from encumbrance config
+// defaultWeightMultiplier is used only when encumbrance.json can't be read;
+// it matches the shipped value.
+const defaultWeightMultiplier = 6.0
+
 func getBaseWeightMultiplier() float64 {
 	database := db.GetDB()
 	if database == nil {
-		return 5.0
+		return defaultWeightMultiplier
 	}
 	var configJSON string
 	if err := database.QueryRow("SELECT properties FROM systems WHERE id = 'encumbrance'").Scan(&configJSON); err != nil {
-		return 5.0
+		return defaultWeightMultiplier
 	}
 	var config map[string]interface{}
 	if err := json.Unmarshal([]byte(configJSON), &config); err != nil {
-		return 5.0
+		return defaultWeightMultiplier
 	}
 	if enc, ok := config["encumbrance_system"].(map[string]interface{}); ok {
 		if wc, ok := enc["weight_calculation"].(map[string]interface{}); ok {
@@ -182,7 +186,7 @@ func getBaseWeightMultiplier() float64 {
 			}
 		}
 	}
-	return 5.0
+	return defaultWeightMultiplier
 }
 
 // IsTwoHanded reports whether an item carries the "two-handed" tag. A

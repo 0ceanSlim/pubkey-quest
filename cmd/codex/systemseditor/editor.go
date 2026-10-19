@@ -24,7 +24,6 @@ type Editor struct {
 
 	// Other systems
 	Advancement  interface{} // advancement.json
-	Combat       interface{} // combat.json
 	Encumbrance  interface{} // encumbrance.json
 	Skills       interface{} // skills.json
 	TravelConfig interface{} // travel-config.json
@@ -87,9 +86,6 @@ func (e *Editor) LoadAll() error {
 	// 4. Load other system files
 	if err := e.loadJSONFile("game-data/systems/advancement.json", &e.Advancement); err != nil {
 		fmt.Printf("⚠️  Warning: failed to load advancement.json: %v\n", err)
-	}
-	if err := e.loadJSONFile("game-data/systems/combat.json", &e.Combat); err != nil {
-		fmt.Printf("⚠️  Warning: failed to load combat.json: %v\n", err)
 	}
 	if err := e.loadJSONFile("game-data/systems/encumbrance.json", &e.Encumbrance); err != nil {
 		fmt.Printf("⚠️  Warning: failed to load encumbrance.json: %v\n", err)

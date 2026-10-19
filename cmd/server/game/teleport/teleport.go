@@ -41,7 +41,6 @@ type City struct {
 type Config struct {
 	StoneCooldownEffect    string          `json:"stone_cooldown_effect"`
 	WaystoneCooldownEffect string          `json:"waystone_cooldown_effect"`
-	StonePrice             int             `json:"stone_price"`
 	Chain                  []string        `json:"chain"` // the waystone quest order
 	Cities                 map[string]City `json:"cities"`
 }

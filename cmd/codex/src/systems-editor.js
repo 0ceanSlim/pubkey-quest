@@ -1138,7 +1138,7 @@ function renderWeightSystem() {
                 <strong style="color: #8ecae6;">Weight Capacity Formula:</strong>
                 <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <input type="number" id="weightMultiplierInput"
-                        value="${encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 5}"
+                        value="${encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 6}"
                         min="0.5" max="50" step="0.5"
                         style="width: 70px; padding: 4px 6px; background: var(--color-bgPrimary); border: 1px solid #8ecae6; color: var(--color-textPrimary); font-family: inherit;"
                         oninput="updateWeightFormulaPreview()" />
@@ -1146,7 +1146,7 @@ function renderWeightSystem() {
                     <button type="button" class="codex-btn codex-btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="saveWeightMultiplier()">Save</button>
                 </div>
                 <div id="weightFormulaPreview" style="margin-top: 0.5rem; color: var(--color-textSecondary); font-size: 12px;">
-                    Example: STR 14 × ${encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 5} = ${14 * (encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 5)} lbs base capacity
+                    Example: STR 14 × ${encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 6} = ${14 * (encumbranceConfig?.encumbrance_system?.weight_calculation?.base_weight_multiplier ?? 6)} lbs base capacity
                 </div>
             </div>
 

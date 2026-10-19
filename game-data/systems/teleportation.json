@@ -1,8 +1,7 @@
 {
-  "description": "Teleportation (docs/draft/teleportation-design.md). Homeward Stones take you to their city's waystone (shared cooldown); waystones hop between unlocked waystones (their own cooldown). Unlocks derive from QuestsCompleted: a city's stone_quest lets you buy its stone from its keeper (your home city's stone is always for sale to you), its waystone_quest unlocks it as a hop destination. Neither teleport advances the clock.",
+  "description": "Teleportation (docs/draft/teleportation-design.md). Homeward Stones take you to their city's waystone (shared cooldown); waystones hop between unlocked waystones (their own cooldown). A stone costs its item value at a keeper. Unlocks derive from QuestsCompleted: a city's stone_quest lets you buy its stone from its keeper (your home city's stone is always for sale to you), its waystone_quest unlocks it as a hop destination. Neither teleport advances the clock.",
   "stone_cooldown_effect": "homeward-cooldown",
   "waystone_cooldown_effect": "waystone-cooldown",
-  "stone_price": 1000,
   "chain": [
     "kingdom",
     "millhaven",

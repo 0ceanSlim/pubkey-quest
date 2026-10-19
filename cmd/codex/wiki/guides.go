@@ -392,7 +392,6 @@ func guideJoinAnd(parts []string) string {
 type guideTeleportConfig struct {
 	StoneCooldown    string   `json:"stone_cooldown_effect"`
 	WaystoneCooldown string   `json:"waystone_cooldown_effect"`
-	StonePrice       int      `json:"stone_price"`
 	Chain            []string `json:"chain"`
 	Cities           map[string]struct {
 		Name          string `json:"name"`
@@ -426,7 +425,7 @@ func (c *guideCtx) guideTeleportPage() (string, error) {
 	cityLink := func(id string) string { return c.homeLink(id) }
 
 	// Price: what the keepers' shops charge is the stone item's value.
-	price := cfg.StonePrice
+	price := 0
 	for _, id := range cfg.Chain {
 		if it, ok := c.gen.items[cfg.Cities[id].Stone]; ok && it.Value > 0 {
 			price = it.Value

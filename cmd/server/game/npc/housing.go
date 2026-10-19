@@ -223,7 +223,7 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 	// Hunger — only paid lodging includes breakfast. Out in the wild the night's
 	// calorie burn leaves you a step hungrier.
 	if restoreHunger {
-		state.Hunger = 2 // Satisfied
+		state.Hunger = 2 // Well Fed
 		status.ResetHungerAccumulator(state)
 		status.UpdateHungerPenaltyEffects(state)
 		status.EnsureHungerAccumulation(state)

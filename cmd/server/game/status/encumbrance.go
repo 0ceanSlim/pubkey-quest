@@ -27,31 +27,6 @@ func GetItemWeightRecursive(slot map[string]interface{}) float64 {
 	return gameutil.GetItemWeightRecursive(slot)
 }
 
-// GetEncumbranceLevel returns the encumbrance category based on weight percentage
-func GetEncumbranceLevel(state *types.SaveFile) string {
-	totalWeight := CalculateTotalWeight(state)
-	capacity := CalculateWeightCapacity(state)
-
-	if capacity <= 0 {
-		return "normal"
-	}
-
-	percentage := (totalWeight / capacity) * 100
-
-	switch {
-	case percentage <= 50:
-		return "light"
-	case percentage <= 100:
-		return "normal"
-	case percentage <= 150:
-		return "overweight"
-	case percentage <= 200:
-		return "encumbered"
-	default:
-		return "overloaded"
-	}
-}
-
 // UpdateEncumbrancePenaltyEffects applies appropriate penalty effects based on encumbrance level
 func UpdateEncumbrancePenaltyEffects(state *types.SaveFile) (*types.EffectMessage, error) {
 	return UpdateSystemStatusEffects(state, "encumbrance")

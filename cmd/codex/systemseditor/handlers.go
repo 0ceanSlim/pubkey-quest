@@ -28,7 +28,6 @@ func (e *Editor) HandleGetSystemsData(w http.ResponseWriter, r *http.Request) {
 		"introductions":       e.Introductions,
 		"starting_locations":  e.StartingLocations,
 		"advancement":         e.Advancement,
-		"combat":              e.Combat,
 		"encumbrance":         e.Encumbrance,
 		"skills":              e.Skills,
 		"travel_config":       e.TravelConfig,

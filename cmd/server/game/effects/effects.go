@@ -669,12 +669,18 @@ func RemoveEffect(state *types.SaveFile, effectID string) {
 // until you rest" or "cured by an antidote" actually goes away. Returns the display
 // names of what was removed, for a log line.
 func RemoveEffectsByAction(state *types.SaveFile, action string) []string {
+	return RemoveEffectsByActionWith(state, action, LoadEffectData)
+}
+
+// RemoveEffectsByActionWith is RemoveEffectsByAction with the effect lookup
+// passed in (tests supply their own effect definitions).
+func RemoveEffectsByActionWith(state *types.SaveFile, action string, load func(string) (*types.EffectData, error)) []string {
 	if state == nil || action == "" || len(state.ActiveEffects) == 0 {
 		return nil
 	}
 	var toRemove, names []string
 	for _, ae := range state.ActiveEffects {
-		data, err := LoadEffectData(ae.EffectID)
+		data, err := load(ae.EffectID)
 		if err != nil || data == nil {
 			continue
 		}

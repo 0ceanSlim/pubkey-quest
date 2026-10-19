@@ -395,7 +395,7 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 	// Waiting doesn't change fatigue anymore (it's frozen), so only surface hunger.
 	if state.Hunger != oldHunger {
 		hungerChange := state.Hunger - oldHunger
-		hungerNames := map[int]string{0: "Famished", 1: "Hungry", 2: "Satisfied", 3: "Full"}
+		hungerNames := map[int]string{0: "Starving", 1: "Hungry", 2: "Well Fed", 3: "Stuffed"}
 		if hungerChange < 0 {
 			message += fmt.Sprintf("\n\n🍽️ You're feeling hungrier (now %s)", hungerNames[state.Hunger])
 		}
