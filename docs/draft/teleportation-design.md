@@ -1,7 +1,66 @@
 # Teleportation — design + handoff
 
-Status: design agreed with the maintainer; not built. Code references come from a read-only survey
-(2026-09-29) and should be re-checked before editing.
+Status: **built 2026-10-19** (everything in §1 and §3). §4's survey notes are from 2026-09-29;
+several went stale and the build follows the current code. The as-built summary and the decisions
+taken on §5's open questions come first.
+
+## 0. As built
+
+**Engine:** `cmd/server/game/teleport/` (rules) and `cmd/server/api/game/teleport.go` (session guard,
+actions, `GET /api/teleport/status`). **Config:** `game-data/systems/teleportation.json` (migrated to the
+`teleportation` table): per city its stone item, keeper, stone quest, waystone quest and waystone
+district, plus the chain order and the two cooldown effects.
+
+- **Stones:** `homeward-stone-<city>` ×6, `"teleport": {"city": …}`, value 1000, not consumed.
+  - Use (inventory → Use): action `use_homeward_stone {item_id}`. Moves you to the city's waystone
+    (center district, out of any building), abandons a trip in progress, records arrival
+    (`travel.RecordArrival`), and no time passes.
+  - The shared cooldown is the effect `homeward-cooldown` (10080 min).
+- **Waystones:** a city field `"waystone": {"district": "center", …}`, not a building (no new buttons in
+  crowded squares).
+  - "🌀 Waystone" shows in the town square and opens the hop panel (`src/ui/waystone.js`).
+  - Action `waystone_hop {destination}` needs you standing at a waystone, the destination's
+    waystone quest done, and the `waystone-cooldown` effect gone.
+- **Guardrails** (both actions): refused in combat, a POI or quest site walk, a pending encounter, a
+  lock attempt, and **any party**. A leader's moves carry followers along, so a party teleport would
+  drag people with no stone or charge. Followers are blocked like other movement.
+- **Effects timer fix:** `TickEffects` kept a timed effect landing on exactly 0 forever. A week-long
+  cooldown can land there. Fixed: an effect that was timed and has run out is removed.
+- **Starting kit:** character creation adds the home city's stone and marks the home keeper's gift node
+  (`<keeper>:homeward_gift`) as given.
+- **Keepers** (all six vault keepers):
+  - "Ask about Homeward Stones" gives lore.
+  - A race-gated "ask for your own stone" grants the one-time free stone via a dialogue gift. This
+    is how characters made before this update get theirs. An option leading to a gift you already
+    got is now hidden, a general dialogue rule.
+  - "Buy a Homeward Stone" opens a shop selling their city's stone.
+- **Shop gate:** a stone is listed and sold only if `teleport.StoneForSale`: your home city
+  (`LocationsDiscovered[0]`) or that city's stone quest done, and you don't already hold it (packs,
+  equipped, or vault).
+- **Quests** (12, `quests-drafts/side/stone-<city>.json` and `main/waystone-<city>.json`): per §6. Stone
+  quests are race-gated to non-natives with levels 3–8. The chain is given by the court arcanist
+  (Corvin Ashgrove, Mage Tower), at levels 5–15, each the next one's prerequisite. Six new quest items.
+- **Ferryman:** `encounters-draft/ferryman.json`, a travel encounter on `shadowmere-wetlands` and
+  `suncrest-coastlands`.
+  - Pay 150 gold (100 if you haggle, influence DC 12) to be carried 40% further along the road.
+  - A perception DC 11 to spot a snag, or take 2 damage. No item loss.
+  - Engine: a new POI node field `travel_ahead` on transaction nodes (`poi.StepResult.TravelAhead`,
+    applied in `stepPOI`).
+
+**Decisions on §5:**
+1. Ferryman loss: none. The downsides are the fare and a 2-damage snag.
+2. Ferryman places: the Shadowmere Wetlands and the Suncrest Coastlands.
+3. Mid-route use: yes, and it abandons the trip.
+4. Death: unchanged. A stone can be lost to the top-3 strip; the keeper sells another.
+6. Own city's chain quest: everyone does the whole chain. Your home city's stone quest is hidden
+   (race gate), since you hold that stone already.
+7. Chain giver: the court arcanist (the Mage Tower's existing NPC).
+8. Stone lore: the vault keepers.
+9. Waystone: part of the town square (a city feature), not a building.
+10. Race-shared starts: fine. The keeper's free-stone option lists every race that starts there.
+
+Open: the stone price (1000 gold) was agreed before item prices settled on PHB × 100. A level-1 scroll
+now costs 2500, so 1000 is cheap for a reusable teleport. Revisit in the balance pass.
 
 ## 1. Design (agreed)
 

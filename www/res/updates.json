@@ -2,6 +2,24 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-19-waystones",
+      "when": "October 19, 2026",
+      "icon": "🌀",
+      "size": "major",
+      "title": "Homeward Stones and the Waystones",
+      "summary": "Teleport home with a Homeward Stone, wake the ancient waystones to travel between cities, and take the ferry on the water roads.",
+      "highlights": [
+        "Every character has a Homeward Stone for their home city: use it from your inventory to return to the waystone in its town square, once a week, with no time passing. Started before today? Ask your home city's vault keeper about Homeward Stones to claim yours",
+        "Lost your stone? Your home keeper sells another. Earn a keeper's trust in their own quest and they'll sell you their city's stone too",
+        "The six starting cities each have a waystone in the town square. Magister Corvin Ashgrove at the Kingdom's Mage Tower knows how to wake them: a quest chain from level 5 to 15. Woken waystones carry you between each other once a week",
+        "Six new stone quests, one for each starting city (except your own), from level 3",
+        "A ferryman on the Shadowmere Wetlands and Suncrest Coastlands roads will carry you a good way along, for a fee",
+        "Combat dice: a crit or a 2d6 shows every die, and advantage or disadvantage shows both d20s, the dropped one faded",
+        "The healer's kit (and anything else you can use up) now has a Use option. Acid, nets and caltrops wait for a fight instead of being wasted",
+        "Reloading your last save from Settings now rolls the clock back too"
+      ]
+    },
+    {
       "id": "2026-10-18-scroll-loot",
       "when": "October 18, 2026",
       "icon": "📖",
