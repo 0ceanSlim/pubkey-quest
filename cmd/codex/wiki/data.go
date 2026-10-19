@@ -422,10 +422,24 @@ type quest struct {
 			Type        string `json:"type"`
 			Target      string `json:"target"`
 			Count       int    `json:"count"`
+			Consume     bool   `json:"consume"`
 			Description string `json:"description"`
 		} `json:"objectives"`
 		Rewards *reward `json:"rewards"`
 	} `json:"stages"`
+}
+
+// HandedBack reports whether an item stage i gives is taken back by a later
+// stage (a consuming fetch): a hand-in, not a reward (types.QuestData.HandedBack).
+func (q *quest) HandedBack(i int, itemID string) bool {
+	for _, st := range q.Stages[i+1:] {
+		for _, o := range st.Objectives {
+			if o.Consume && o.Target == itemID {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // ── character systems ────────────────────────────────────────────────────────

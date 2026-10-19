@@ -155,14 +155,21 @@ type questLogView struct {
 func questRewardView(qd *types.QuestData) *rewardView {
 	rv := &rewardView{QuestPoints: qd.TotalQP}
 	for i := len(qd.Stages) - 1; i >= 0; i-- {
-		if r := qd.Stages[i].Rewards; r != nil {
-			rv.XP = r.XP
-			rv.Gold = r.Gold
-			for _, it := range r.Items {
-				rv.Items = append(rv.Items, rewardItemView{ID: it.ID, Quantity: it.Quantity})
-			}
-			break
+		r := qd.Stages[i].Rewards
+		if r == nil {
+			continue
 		}
+		var items []rewardItemView
+		for _, it := range r.Items {
+			if !qd.HandedBack(i, it.ID) { // a later step takes it back: a hand-in, not a reward
+				items = append(items, rewardItemView{ID: it.ID, Quantity: it.Quantity})
+			}
+		}
+		if r.XP == 0 && r.Gold == 0 && len(items) == 0 {
+			continue
+		}
+		rv.XP, rv.Gold, rv.Items = r.XP, r.Gold, items
+		break
 	}
 	if rv.QuestPoints == 0 && rv.XP == 0 && rv.Gold == 0 && len(rv.Items) == 0 {
 		return nil

@@ -315,13 +315,16 @@ func (g *gen) questPage(q *quest) string {
 
 	var rewards []string
 	xp, gp := 0, 0
-	for _, st := range q.Stages {
+	for i, st := range q.Stages {
 		if st.Rewards == nil {
 			continue
 		}
 		xp += st.Rewards.XP
 		gp += st.Rewards.Gold
 		for _, it := range st.Rewards.Items {
+			if q.HandedBack(i, it.ID) {
+				continue // a hand-in for a later step (the ritual's incense), not a reward
+			}
 			n := it.Quantity
 			if n < 1 {
 				n = 1
