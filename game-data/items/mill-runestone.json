@@ -1,0 +1,18 @@
+{
+  "id": "mill-runestone",
+  "name": "Mill Runestone",
+  "description": "A wheel of grey stone, worn smooth on one face where a millshaft turned on it for a century. The other face is carved with elven runes that still glow faintly.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 6,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Windmill Stone."
+  ],
+  "image": "/res/img/items/mill-runestone.png"
+}

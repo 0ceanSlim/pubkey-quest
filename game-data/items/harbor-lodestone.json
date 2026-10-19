@@ -1,0 +1,18 @@
+{
+  "id": "harbor-lodestone",
+  "name": "Harbor Lodestone",
+  "description": "A rough, rust-coloured lodestone the size of a fist. Iron filings creep toward it across a tabletop, and it always turns to face the town square.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 2,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Harbor Beacon."
+  ],
+  "image": "/res/img/items/harbor-lodestone.png"
+}

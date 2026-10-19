@@ -1,0 +1,443 @@
+{
+  "id": "waystone-ironpeak",
+  "name": "Beneath the Flooded Mine",
+  "category": "main",
+  "difficulty": "Master",
+  "step_count": 3,
+  "total_qp": 2,
+  "description": "Ironpeak's waystone is only the tip of a deeper stone: the Deepstone, sung into the mountain's root, under the flooded mine. The Fade has been climbing toward it for ten years. Wake it, and the whole network wakes with it.",
+  "start_condition": {
+    "type": "talk",
+    "target": "court-arcanist",
+    "location": "kingdom",
+    "start_hint": "Speak with Corvin Ashgrove, the Court Arcanist, in the Mage Tower in the Kingdom's Northern District."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 15,
+      "description": "Requires level 15."
+    }
+  ],
+  "prerequisites": [
+    "waystone-marshlight"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Level 15+",
+      "Athletics 17",
+      "Resolve 18"
+    ],
+    "combat_danger": "High"
+  },
+  "stages": [
+    {
+      "id": "ask-thorin",
+      "description": "Corvin sends you to Thorin Ironledger, the Vaultwright, who keeps the clan ledger that records the Deepstone. Thorin sends you off with a draught of water breathing.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "vaultwright",
+          "description": "Ask Thorin about the Deepstone."
+        }
+      ],
+      "rewards": {
+        "items": [
+          {
+            "id": "potion-of-water-breathing",
+            "quantity": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "the-flooded-mine",
+      "description": "Thorin wants you to see the flooded mine in the Cragspire Mountains for yourself, and the black water rising in it. You'll need rope to get down the shaft.",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "flooded-mine",
+          "description": "Go down into the flooded mine."
+        }
+      ]
+    },
+    {
+      "id": "the-deepstone",
+      "description": "Go down the old drainage adit behind Ironpeak's Mine Cart Station, under the flooded mine, to the Deepstone, and wake it. Once it wakes, you can travel to Ironpeak's waystone from any waystone.",
+      "site": "drowned-adit",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "athletics",
+          "value": 17,
+          "description": "Swim the flooded adit."
+        },
+        {
+          "type": "slay",
+          "target": "troll",
+          "count": 2,
+          "description": "Get past the drowned trolls."
+        },
+        {
+          "type": "slay",
+          "target": "wraith",
+          "count": 3,
+          "description": "Destroy what guards the Deepstone."
+        },
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 18,
+          "description": "Wake the Deepstone and hold its song."
+        }
+      ],
+      "rewards": {
+        "xp": 30000,
+        "gold": 2500,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "supreme-healing",
+            "quantity": 1
+          },
+          {
+            "id": "superior-healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "drowned-adit": {
+      "name": "The Drowned Adit",
+      "description": "An old dwarven drainage adit behind the Mine Cart Station, running down under the flooded mine to the mountain's root.",
+      "location": "ironpeak",
+      "district": "south",
+      "label": "Go down the old drainage adit",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Behind the Mine Cart Station, Thorin has unbarred an iron door in the hillside that hasn't opened in ten years. Beyond it a square-cut adit slopes down into the mountain, and a hundred yards in it fills with black water to the roof.",
+          "next": "edge"
+        },
+        "edge": {
+          "type": "choice",
+          "text": "The water at your feet is still, and very cold.",
+          "choices": [
+            {
+              "label": "Swim the flooded adit",
+              "next": "swim"
+            },
+            {
+              "label": "Turn back",
+              "next": "leave"
+            }
+          ]
+        },
+        "swim": {
+          "type": "check",
+          "text": "You fill your lungs and go under.",
+          "skill": "athletics",
+          "dc": 17,
+          "success_text": "Black water, cold enough to stop your heart, and the dwarves' guide-rail under your hand the whole way. Your lungs are burning when you come up into air on the far side, in a cavern lit by nothing at all.",
+          "success_next": "trolls",
+          "failure_text": "Halfway along, the rail ends in a rockfall and you have to turn back, lungs bursting.",
+          "failure_next": "half-drowned"
+        },
+        "half-drowned": {
+          "type": "damage",
+          "text": "You drag yourself out onto the adit floor, coughing up the mountain's water.",
+          "damage": {
+            "type": "bludgeoning",
+            "amount": 6
+          },
+          "next": "edge"
+        },
+        "trolls": {
+          "type": "monster",
+          "text": "Something in the cavern smells you. Two trolls, grey and swollen with water, unfold from the dark, and the cold in their eyes is the Fade's.",
+          "monster_id": "troll",
+          "count": 2,
+          "arena": [
+            "#..........##",
+            "#...,....,..#",
+            "...~~~.......",
+            "..~WWW~..#...",
+            "...~~~....,..",
+            ".,......=....",
+            "....#....~~..",
+            "#.......~WW~.",
+            "##........~~#"
+          ],
+          "next": "deeper"
+        },
+        "deeper": {
+          "type": "narrative",
+          "text": "Below the cavern an old dwarven stair goes down past the mine's lowest workings, past the kobold warrens, past anything on any map, until the walls stop being cut stone and become something older: smooth, grey and carved with runes.",
+          "next": "deepstone"
+        },
+        "deepstone": {
+          "type": "narrative",
+          "text": "The Deepstone stands in a drowned hall at the mountain's root: a waystone three times the height of the one in the square, black water up to its waist. Its song is so faint you can barely hear it, and the water around it is full of shapes.",
+          "next": "wraiths",
+          "waypoint": "ironpeak-deepstone"
+        },
+        "wraiths": {
+          "type": "monster",
+          "text": "The shapes rise out of the water, three of them, wearing the Fade like cloaks, and come for the one warm thing in the hall.",
+          "monster_id": "wraith",
+          "count": 3,
+          "arena": [
+            "##.........##",
+            "#..~~...~~..#",
+            "..~WW~.~WW~..",
+            "..~WWWWWWW~..",
+            "...~WW#WW~...",
+            "..~WWWWWWW~..",
+            "..~WW~.~WW~..",
+            "#..~~...~~..#",
+            "##.........##"
+          ],
+          "next": "wake"
+        },
+        "wake": {
+          "type": "choice",
+          "text": "The Deepstone stands silent in the black water.",
+          "choices": [
+            {
+              "label": "Lay your hands on the Deepstone and wake it",
+              "next": "hold"
+            },
+            {
+              "label": "Retreat up the stair",
+              "next": "leave"
+            }
+          ]
+        },
+        "hold": {
+          "type": "check",
+          "text": "You wade to the Deepstone, put both hands on it, and sing the waking song into the mountain's root. The Fade pulls back with everything it has.",
+          "skill": "resolve",
+          "dc": 18,
+          "success_text": "The song goes down into the stone and comes back up out of the mountain, out of every waystone at once. You hear them all: the Kingdom, Millhaven, Verdant, Goldenhaven, Marshlight, and over all of them Ironpeak, ringing like a forge. The black water runs clear. The Fade lets go.",
+          "success_next": "woken",
+          "failure_text": "The pull tears the song out of you. You come to on the drowned steps, shaking, the Deepstone still dark.",
+          "failure_next": "drained"
+        },
+        "drained": {
+          "type": "damage",
+          "text": "The cold has had a mouthful of you.",
+          "damage": {
+            "type": "psychic",
+            "amount": 6
+          },
+          "next": "wake"
+        },
+        "woken": {
+          "type": "exit",
+          "text": "The Deepstone is awake, and with it Ironpeak's waystone and the whole network. Far above, the hammers in the town square have stopped: the stone is ringing by itself.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You climb back toward the light.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About Ironpeak's waystone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "The last stone. Ironpeak's waystone stands in the town square, and it's awake, after a fashion: the dwarves keep it ringing with hammers. But it isn't the real stone. The elves sang Ironpeak's waystone deep, into the mountain's root, and the stone in the square is only its tip. The root lies under the old flooded mine. The water came up ten years ago, the same year Marshlight's stone went quiet. I don't think that's a coincidence.",
+          "options": [
+            "deepstone",
+            "flood",
+            "sword",
+            "accept",
+            "decline"
+          ]
+        },
+        "deepstone": {
+          "label": "A stone under the mountain?",
+          "text": "The Deepstone. The dwarves found it when they first dug Ironpeak, and built their town above it, and they've kept it the way dwarves keep everything: in a ledger nobody else may read. Thorin Ironledger, the Vaultwright, can read it.",
+          "options": [
+            "flood",
+            "accept",
+            "decline"
+          ]
+        },
+        "flood": {
+          "label": "And the flooding?",
+          "text": "The Fade has been climbing up from the Shadowmere through every crack it can find, and the flooded mine is the deepest crack there is. If it reaches the Deepstone, Ironpeak's waystone dies, and the network with it. If you wake the Deepstone, I think the whole network wakes at once. All six stones, singing. I'd like to hear that.",
+          "options": [
+            "deepstone",
+            "accept",
+            "decline"
+          ]
+        },
+        "sword": {
+          "label": "I've been down the flooded mine before.",
+          "text": "So Thorin tells me, and he says it in a tone I have never heard a dwarf use about anyone. Respect, I think. Then you know the grate and the warrens. The Deepstone is further down than either.",
+          "options": [
+            "deepstone",
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "quest_completed",
+              "id": "sword-of-the-ancestors"
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll go down.",
+          "text": "Thorin first. Then see the flooded mine for yourself, and come back and go down under it. This will be the worst of them. Bring everything you have. And come back. I've grown used to you.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Take your time. The Deepstone has waited ten years. I'd rather it waited longer than lost you."
+        }
+      }
+    },
+    "active": {
+      "option": "About the Deepstone...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "The last one. How goes it?",
+          "options": [
+            "s-thorin",
+            "s-mine",
+            "s-deep",
+            "s-bye"
+          ]
+        },
+        "s-thorin": {
+          "label": "I haven't seen Thorin yet.",
+          "text": "Thorin Ironledger, at the Stonevault, in Ironpeak's Miners' Plaza.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-ironpeak",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-mine": {
+          "label": "Thorin wants me to see the flooded mine.",
+          "text": "The flooded mine in the Cragspire Mountains. Take rope. It's a long way down even to the water.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-ironpeak",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-deep": {
+          "label": "I've seen the mine.",
+          "text": "The old drainage adit behind the Mine Cart Station. Then down, and down, and wake it.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-ironpeak",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll see it done.",
+          "text": "Come back. I'll be listening."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the waystones...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "You did it. All six. I had every instrument in the tower out on the balcony last night, and every one of them was singing. You can travel to Ironpeak from any waystone, and from Ironpeak to any of the others. The Fade isn't gone; nothing that old goes. But for the first time in living memory it's on the back foot, and that is your doing. Go and rest. You've earned a very long one."
+        }
+      }
+    },
+    "with": {
+      "vaultwright": {
+        "option": "Corvin sent me about the Deepstone",
+        "start": "hub",
+        "nodes": {
+          "hub": {
+            "text": "The Deepstone business. Ask, then.",
+            "options": [
+              "deepstone",
+              "seen",
+              "dwarf",
+              "bye"
+            ]
+          },
+          "deepstone": {
+            "label": "Tell me about the Deepstone.",
+            "text": "The Deepstone. Aye, it's in the clan ledger, first page, before the first vault was ever cut. The elves sang it, we dug down and found it singing, and built Ironpeak on top so we'd never lose the tune. Then the water came up, and we lost it anyway. Go and look at the flooded mine in the Cragspire first. See what's coming up out of it. Then come back, and I'll unbar the old drainage adit at the cart station. It runs under the mine, all the way down. And keep that draught I gave ye. Ye'll be swimming.",
+            "options": [
+              "dwarf",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "waystone-ironpeak",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "seen": {
+            "label": "I've seen the flooded mine.",
+            "text": "Then ye've seen the water. Black, and cold, and it whispers. The adit's unbarred. It's flooded halfway; drink that draught before ye swim it. What's waiting at the bottom I don't know. Something's been down there ten years, eating the song.",
+            "options": [
+              "dwarf",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "waystone-ironpeak",
+                "min": 2,
+                "max": 2
+              }
+            ]
+          },
+          "dwarf": {
+            "label": "It's our clan's own stone.",
+            "text": "Aye. Every dwarf of Ironpeak is named to it at birth, in the ledger. Yours is there too. If anyone's to wake it, I'd rather it were one of ours.",
+            "options": [
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "race",
+                "values": [
+                  "Dwarf"
+                ]
+              }
+            ]
+          },
+          "bye": {
+            "label": "I'll go.",
+            "text": "Mind the cold. It's not the water's."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "crown-ledger-page",
+  "name": "Ledger Page of Bonded Stones",
+  "description": "A page torn from the Royal Ledger of Bonds, ruled in red and headed with the Crown's seal. Half the names on it are smudged with ale.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 0.1,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Crown's Ledger."
+  ],
+  "image": "/res/img/items/crown-ledger-page.png"
+}

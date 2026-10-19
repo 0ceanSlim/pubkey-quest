@@ -1,0 +1,395 @@
+{
+  "id": "stone-goldenhaven",
+  "name": "The Golden Toll",
+  "category": "side",
+  "difficulty": "Moderate",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "Zarithax the Golden trusts almost no one, and an ember-scale goes only to someone the Ember Vault trusts. A crate under the Scalekeeper's seal waits at the customs house. Bring it in with the seal unbroken.",
+  "start_condition": {
+    "type": "talk",
+    "target": "scalekeeper",
+    "location": "goldenhaven",
+    "start_hint": "Ask Zarithax the Golden, the Scalekeeper, about a Goldenhaven Homeward Stone at the Ember Vault in Goldenhaven's Golden Square."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 6,
+      "description": "Requires level 6."
+    },
+    {
+      "type": "race",
+      "values": [
+        "Human",
+        "Half-Elf",
+        "Half-Orc",
+        "Tiefling",
+        "Elf",
+        "Dwarf",
+        "Halfling",
+        "Gnome",
+        "Orc"
+      ],
+      "description": "Goldenhaven's dragonborn already hold its ember-scale."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 6+",
+      "Influence 14",
+      "Resolve 12"
+    ],
+    "combat_danger": "Low"
+  },
+  "stages": [
+    {
+      "id": "see-the-scalekeeper",
+      "description": "Zarithax the Golden, Scalekeeper of the Ember Vault, decides who may carry an ember-scale.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "scalekeeper",
+          "description": "Hear Zarithax out."
+        }
+      ]
+    },
+    {
+      "id": "the-customs-house",
+      "description": "A crate under the Ember Vault's seal is waiting at the customs house by Goldenhaven's Western Gate. Collect it without letting anyone break the seal.",
+      "site": "customs-house",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "sealed-ember-crate",
+          "count": 1,
+          "description": "Collect the sealed crate."
+        }
+      ]
+    },
+    {
+      "id": "the-scale",
+      "description": "Bring the crate to Zarithax at the Ember Vault, seal unbroken, and win the Scalekeeper's trust. Then Zarithax will sell you Goldenhaven's Homeward Stone.",
+      "site": "ember-scale",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "scalekeeper",
+          "description": "Return to Zarithax."
+        },
+        {
+          "type": "fetch",
+          "target": "sealed-ember-crate",
+          "count": 1,
+          "description": "Give Zarithax the crate.",
+          "consume": true
+        },
+        {
+          "type": "check",
+          "skill": "influence",
+          "value": 14,
+          "description": "Win the Scalekeeper's trust."
+        }
+      ],
+      "rewards": {
+        "xp": 1200,
+        "gold": 350,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "customs-house": {
+      "name": "The Customs House",
+      "description": "A long hall of ledgers, scales and shouting by the Western Gate, with a bonded yard behind it.",
+      "location": "goldenhaven",
+      "district": "west",
+      "label": "Collect the crate at the customs house",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "The customs house is a long hall of ledgers, scales and shouting. In the bonded yard behind it, two porters in no particular livery are lifting a brass-bound crate sealed in red wax onto their own handcart.",
+          "next": "thieves"
+        },
+        "thieves": {
+          "type": "choice",
+          "text": "The porters haven't seen you yet.",
+          "choices": [
+            {
+              "label": "\"That crate isn't yours.\"",
+              "next": "fight"
+            },
+            {
+              "label": "Leave the yard",
+              "next": "leave"
+            }
+          ]
+        },
+        "fight": {
+          "type": "monster",
+          "text": "They drop the crate and come at you with cudgels and knives.",
+          "monster_id": "bandit",
+          "count": 2,
+          "arena": [
+            ".............",
+            "..==.....==..",
+            ".............",
+            "....#...#....",
+            ".............",
+            "....#...#....",
+            ".............",
+            "..==.....==..",
+            "............."
+          ],
+          "next": "assessor"
+        },
+        "assessor": {
+          "type": "narrative",
+          "text": "The assessor arrives as the second porter goes down: a thin dragonborn with a ledger, a seal-knife and no interest whatsoever in the fight. \"Ember Vault crate,\" he says. \"Contents undeclared. I'll need to open it to assess the toll.\"",
+          "next": "argue"
+        },
+        "argue": {
+          "type": "choice",
+          "text": "The assessor's seal-knife hovers over the red wax.",
+          "choices": [
+            {
+              "label": "Talk him out of breaking the seal",
+              "next": "persuade"
+            },
+            {
+              "label": "Stand on the Ember Vault's right to its own seal",
+              "next": "stand"
+            },
+            {
+              "label": "Let him open it",
+              "next": "no-open"
+            },
+            {
+              "label": "Leave the crate for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "persuade": {
+          "type": "check",
+          "text": "You explain, patiently, why a crate under the Scalekeeper's seal is the Scalekeeper's business.",
+          "skill": "influence",
+          "dc": 13,
+          "success_text": "The assessor sighs, writes something in his ledger and stamps it. \"Toll waived on account of the Scalekeeper's seal. Again.\"",
+          "success_next": "release",
+          "failure_text": "\"Everyone says that,\" he says, and reaches for the wax.",
+          "failure_next": "argue"
+        },
+        "stand": {
+          "type": "check",
+          "text": "You put your hand flat on the seal and don't move it.",
+          "skill": "resolve",
+          "dc": 13,
+          "success_text": "The assessor looks at your hand, then at your face, then at the crowd starting to gather. He stamps his ledger. \"Fine. Take it. Tell my cousin I said hello.\"",
+          "success_next": "release",
+          "failure_text": "He simply waits you out. You find yourself stepping back before you mean to.",
+          "failure_next": "argue"
+        },
+        "no-open": {
+          "type": "narrative",
+          "text": "You open your mouth to let him, and remember what Zarithax said: seal unbroken. You'll have to find another way.",
+          "next": "argue"
+        },
+        "release": {
+          "type": "loot",
+          "text": "The crate is heavier than it looks, and it doesn't rattle.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "sealed-ember-crate",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "You heft the crate and set off for the Golden Square.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the customs house to its shouting.",
+          "is_terminal": true
+        }
+      }
+    },
+    "ember-scale": {
+      "name": "The Ember Vault's Scale",
+      "description": "The great golden scale in the Ember Vault, where Zarithax weighs what comes in.",
+      "location": "goldenhaven",
+      "district": "center",
+      "label": "Bring the crate to the Ember Vault's scale",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Zarithax sets the crate on a golden scale taller than a man, studies the seal for a long moment, then turns those ember eyes on you. \"Unbroken,\" the Scalekeeper says. \"Good. Now the harder part. Tell me why the hoard should trust you with one of its stones.\"",
+          "next": "weigh"
+        },
+        "weigh": {
+          "type": "choice",
+          "text": "The scale's pans hang level.",
+          "choices": [
+            {
+              "label": "Answer the Scalekeeper",
+              "next": "answer"
+            },
+            {
+              "label": "Not yet",
+              "next": "not-yet"
+            }
+          ]
+        },
+        "answer": {
+          "type": "check",
+          "text": "You meet the Scalekeeper's eyes and answer.",
+          "skill": "influence",
+          "dc": 14,
+          "success_text": "Zarithax listens, head tilted, then breaks the seal with one claw. Inside the crate is sand, and on the sand a single golden scale. \"The toll was never the crate,\" Zarithax says. \"It was whether you would let it be opened.\"",
+          "success_next": "trusted",
+          "failure_text": "Zarithax's eyes narrow. \"That was a merchant's answer. I asked for yours.\"",
+          "failure_next": "weigh"
+        },
+        "trusted": {
+          "type": "exit",
+          "text": "The Scalekeeper lets you hold the golden scale a moment, then takes it back. \"Remember the weight of it.\"",
+          "is_terminal": true
+        },
+        "not-yet": {
+          "type": "exit",
+          "text": "\"The scale will wait,\" Zarithax says. \"It is the only thing in this city that does.\"",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About an ember-scale...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "You want an ember-scale. Every outsider who wants one tells me how trustworthy they are. Words are cheap, and I deal in things that are not. A crate under my seal is waiting at the customs house by the Western Gate. Bring it to me, seal unbroken, and we will talk about trust.",
+          "options": [
+            "whats-in-it",
+            "the-toll",
+            "distrust",
+            "accept",
+            "decline"
+          ]
+        },
+        "whats-in-it": {
+          "label": "What's in the crate?",
+          "text": "That is the Ember Vault's business, and the question the customs assessor will also ask you. He will want to break the seal to count the toll. Don't let him.",
+          "options": [
+            "the-toll",
+            "accept",
+            "decline"
+          ]
+        },
+        "the-toll": {
+          "label": "And if customs insists?",
+          "text": "Customs always insists. That is what it is for. The Merchant Princes tax everything that moves through this city, and they would tax the air if they could find the door it came in by. Be persuasive. Be stubborn. Do not be violent with the assessor; he is my cousin.",
+          "options": [
+            "whats-in-it",
+            "accept",
+            "decline"
+          ]
+        },
+        "distrust": {
+          "label": "Will the Ember Vault deal with someone like me?",
+          "text": "The hoard deals with anyone who pays, and it trusts almost no one. You will find that is true of every face in this city, not only yours. Bring me the crate and let the scale decide.",
+          "options": [
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Orc",
+                "Tiefling",
+                "Half-Orc"
+              ]
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll bring your crate.",
+          "text": "Seal unbroken. I will know.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not now.",
+          "text": "The crate will wait. Customs will charge it for the waiting, but it will wait."
+        }
+      }
+    },
+    "active": {
+      "option": "About the crate...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "My crate?",
+          "options": [
+            "s-customs",
+            "s-scale",
+            "s-bye"
+          ]
+        },
+        "s-customs": {
+          "label": "Not yet.",
+          "text": "The customs house, by the Western Gate. Anything under the Ember seal is mine. And remember what I said about the seal.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-goldenhaven",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-scale": {
+          "label": "I have it.",
+          "text": "Then bring it to the scale and we will see what it weighs. All of it, including you.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-goldenhaven",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'm working on it.",
+          "text": "Work faster. Customs charges by the day."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the golden toll...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Every outsider I send for that crate is asked to break the seal, and most of them let it happen. You did not. The hoard trusts you now, which is more than I can say for most of my relatives. Whenever you want one of Goldenhaven's ember-scales, I will sell you one at the hoard's price."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,432 @@
+{
+  "id": "waystone-goldenhaven",
+  "name": "The Harbor Beacon",
+  "category": "main",
+  "difficulty": "Experienced",
+  "step_count": 3,
+  "total_qp": 2,
+  "description": "Goldenhaven's waystone has gone dead quiet: someone has pried the beacon, an old lodestone, out of its foot. Zarithax the Golden thinks it went out through the harbor.",
+  "start_condition": {
+    "type": "talk",
+    "target": "court-arcanist",
+    "location": "kingdom",
+    "start_hint": "Speak with Corvin Ashgrove, the Court Arcanist, in the Mage Tower in the Kingdom's Northern District."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 11,
+      "description": "Requires level 11."
+    }
+  ],
+  "prerequisites": [
+    "waystone-verdant"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Level 11+",
+      "Influence 15 or Thieving 15",
+      "Intelligence 14"
+    ],
+    "combat_danger": "High"
+  },
+  "stages": [
+    {
+      "id": "ask-zarithax",
+      "description": "Goldenhaven's waystone has lost its beacon, the lodestone set in its foot. Zarithax the Golden, at the Ember Vault in the Golden Square, thinks it went out through the harbor.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "scalekeeper",
+          "description": "Ask Zarithax about the beacon."
+        }
+      ]
+    },
+    {
+      "id": "the-barge",
+      "description": "A barge at Goldenhaven's east docks holds a crate of 'ballast stone' under a false customs mark, and its crew pray instead of drinking. Get past the paid-off harbor watch, deal with the crew and recover the lodestone.",
+      "site": "smugglers-barge",
+      "objectives": [
+        {
+          "type": "explore",
+          "target": "goldenhaven-smugglers-barge",
+          "description": "Get aboard the barge."
+        },
+        {
+          "type": "slay",
+          "target": "cult-fanatic",
+          "count": 3,
+          "description": "Deal with the barge's crew."
+        },
+        {
+          "type": "fetch",
+          "target": "harbor-lodestone",
+          "count": 1,
+          "description": "Recover the lodestone."
+        }
+      ]
+    },
+    {
+      "id": "light-the-beacon",
+      "description": "Set the lodestone back in the foot of the waystone in Goldenhaven's town square and tune it. Once it wakes, you can travel to Goldenhaven's waystone from any waystone.",
+      "site": "goldenhaven-waystone",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "harbor-lodestone",
+          "count": 1,
+          "description": "Set the lodestone in the waystone.",
+          "consume": true
+        },
+        {
+          "type": "check",
+          "skill": "intelligence",
+          "value": 16,
+          "description": "Tune the lodestone to the waystone."
+        }
+      ],
+      "rewards": {
+        "xp": 9000,
+        "gold": 1200,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "superior-healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "smugglers-barge": {
+      "name": "The Black Barge",
+      "description": "A squat, nameless river barge at the far end of the east docks, riding low at its moorings.",
+      "location": "goldenhaven",
+      "district": "east",
+      "label": "Go to the barge at the end of the docks",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "At the far end of the east docks a squat river barge rides low at its moorings, black-hulled, no name on its stern. A harbor watchman leans by the gangplank, paid to look the other way and looking at you instead.",
+          "next": "gangplank"
+        },
+        "gangplank": {
+          "type": "choice",
+          "text": "The watchman shifts his club to his other hand.",
+          "choices": [
+            {
+              "label": "Talk your way past the watchman",
+              "next": "talk"
+            },
+            {
+              "label": "Slip aboard over the stern while he isn't looking",
+              "next": "sneak"
+            },
+            {
+              "label": "Leave the docks",
+              "next": "leave"
+            }
+          ]
+        },
+        "talk": {
+          "type": "check",
+          "text": "You stroll up and start talking.",
+          "skill": "influence",
+          "dc": 15,
+          "success_text": "By the time you're done the watchman is convinced you're a customs inspector, a cousin of the Scalekeeper's and very possibly his landlord. He waves you up the plank.",
+          "success_next": "aboard",
+          "failure_text": "\"Move along,\" he says, and puts a hand on his club.",
+          "failure_next": "gangplank"
+        },
+        "sneak": {
+          "type": "check",
+          "text": "You go along the wharf to the stern and wait for the watchman to look at his boots.",
+          "skill": "thieving",
+          "dc": 15,
+          "success_text": "Over the rail, down onto the deck, into the shadow of the wheelhouse. Nobody shouts.",
+          "success_next": "aboard",
+          "failure_text": "A loose board squeals under your boot. The watchman looks round and you have to walk away whistling.",
+          "failure_next": "gangplank"
+        },
+        "aboard": {
+          "type": "narrative",
+          "text": "Below deck, in the light of a single candle, three figures in hooded robes kneel around a crate stencilled BALLAST. The candle's flame is black. They stop praying, and stand up.",
+          "next": "fight",
+          "waypoint": "goldenhaven-smugglers-barge"
+        },
+        "fight": {
+          "type": "monster",
+          "text": "\"The lights go out,\" the nearest says, quite calmly, and draws a knife.",
+          "monster_id": "cult-fanatic",
+          "count": 3,
+          "arena": [
+            ".............",
+            "..=..#...#..=",
+            ".............",
+            "..#...=...#..",
+            ".....===.....",
+            "..#...=...#..",
+            ".............",
+            "=..#.....#..=",
+            "............."
+          ],
+          "next": "bilge"
+        },
+        "bilge": {
+          "type": "narrative",
+          "text": "The black candle gutters out by itself as the last of them falls. Then the deck boards bulge upward: something big is moving in the bilge water underneath.",
+          "next": "guards"
+        },
+        "guards": {
+          "type": "monster",
+          "text": "Two merrow burst up through the rotten boards of the hold, the crew's last guards.",
+          "monster_id": "merrow",
+          "count": 2,
+          "arena": [
+            "~~~~~~~~~~~~~",
+            "~..=.....=..~",
+            "~...........~",
+            "~..~~WWW~~..~",
+            "~..~WWWWW~..~",
+            "~..~~WWW~~..~",
+            "~...........~",
+            "~..=.....=..~",
+            "~~~~~~~~~~~~~"
+          ],
+          "next": "crate"
+        },
+        "crate": {
+          "type": "loot",
+          "text": "You pry the crate open. Under a layer of ordinary gravel, wrapped in black cloth, lies a fist-sized lodestone. Every nail in the lid has crept toward it.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "harbor-lodestone",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "You climb back up into the daylight with the beacon in your pack.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the barge to its moorings.",
+          "is_terminal": true
+        }
+      }
+    },
+    "goldenhaven-waystone": {
+      "name": "Goldenhaven's Waystone",
+      "description": "Goldenhaven's waystone in the Golden Square, polished every morning, with an empty socket gouged in its foot.",
+      "location": "goldenhaven",
+      "district": "center",
+      "label": "Set the beacon in the waystone",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Goldenhaven's waystone stands in the Golden Square, polished until it shines, gold leaf in every rune. At its foot is an empty socket, the stone around it gouged by a crowbar. The lodestone in your pack tugs toward it like a dog that knows its way home.",
+          "next": "set"
+        },
+        "set": {
+          "type": "choice",
+          "text": "The socket waits.",
+          "choices": [
+            {
+              "label": "Set the lodestone and tune it",
+              "next": "tune"
+            },
+            {
+              "label": "Not yet",
+              "next": "leave"
+            }
+          ]
+        },
+        "tune": {
+          "type": "check",
+          "text": "You set the lodestone in its socket and turn it a hair at a time, feeling for the place where the stone's pull and the lodestone's pull agree.",
+          "skill": "intelligence",
+          "dc": 16,
+          "success_text": "There. It locks, and the whole waystone rings like a struck bell. Down at the harbor every ship's compass swings round to point at it, and the pigeons burst off the guild-hall roof.",
+          "success_next": "woken",
+          "failure_text": "The lodestone shivers and slips; the pull fights you. You'll have to start again.",
+          "failure_next": "set"
+        },
+        "woken": {
+          "type": "exit",
+          "text": "Goldenhaven's waystone is awake, and its beacon is home.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step back from the waystone.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About Goldenhaven's waystone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Goldenhaven. Their waystone ought to be the easiest of all: it stands in the town square, it has been polished every morning for three hundred years, and the Merchant Princes would never let anything happen to something so valuable. And yet it has gone dead quiet. Zarithax the Golden, the Scalekeeper, wrote to me last month: someone has pried out the beacon.",
+          "options": [
+            "beacon",
+            "who",
+            "black-flame",
+            "accept",
+            "decline"
+          ]
+        },
+        "beacon": {
+          "label": "The beacon?",
+          "text": "A lodestone set in the stone's foot: the piece that lets ships find the harbor in fog, and lets the waystone find the others. It had been in that stone since the Compact. Last month it wasn't. Zarithax thinks it went out through the harbor.",
+          "options": [
+            "who",
+            "accept",
+            "decline"
+          ]
+        },
+        "who": {
+          "label": "Who would steal a lodestone?",
+          "text": "Someone who wanted Goldenhaven's waystone to stop singing. I have theories. I would rather have evidence. Zarithax has the customs ledgers and an alarming number of cousins. Start there.",
+          "options": [
+            "beacon",
+            "accept",
+            "decline"
+          ]
+        },
+        "black-flame": {
+          "label": "The cult of the Black Flame?",
+          "text": "That was my first theory. People who kneel to a flame that feeds the dark would want the lights put out. Be careful at the docks.",
+          "options": [
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "quest_completed",
+              "id": "the-black-flame"
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll bring the beacon home.",
+          "text": "Zarithax first, then wherever that takes you. Bring the lodestone back to the stone and set it in its socket. It will know where it belongs.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Then rest. Goldenhaven's stone has been quiet a month. It can be quiet a little longer."
+        }
+      }
+    },
+    "active": {
+      "option": "About Goldenhaven's waystone...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any word of the beacon?",
+          "options": [
+            "s-zarithax",
+            "s-barge",
+            "s-set",
+            "s-bye"
+          ]
+        },
+        "s-zarithax": {
+          "label": "I haven't seen Zarithax yet.",
+          "text": "Zarithax the Golden, at the Ember Vault, in Goldenhaven's Golden Square.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-goldenhaven",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-barge": {
+          "label": "It's on a barge at the docks.",
+          "text": "Smugglers are careful. Zealots are not. Either way, get aboard that barge.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-goldenhaven",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-set": {
+          "label": "I have the lodestone.",
+          "text": "Set it in the stone's foot and tune it. Lodestones are stubborn, like their owners.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-goldenhaven",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll get back to it.",
+          "text": "Mind the harbor watch. They're very reasonably priced."
+        }
+      }
+    },
+    "completed": {
+      "option": "About Goldenhaven's waystone...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Goldenhaven's waystone is awake, and every compass in the harbor swung round to point at it. Zarithax sends thanks, and an invoice for the barge. You can travel to Goldenhaven from any waystone now. That leaves Marshlight, and Marshlight is where the Fade comes from. Rest first. I mean it."
+        }
+      }
+    },
+    "with": {
+      "scalekeeper": {
+        "option": "Corvin sent me about the beacon",
+        "start": "hub",
+        "nodes": {
+          "hub": {
+            "text": "The arcanist's errand. Ask, and be quick; the princes bill me by the hour for this square.",
+            "options": [
+              "beacon",
+              "bye"
+            ]
+          },
+          "beacon": {
+            "label": "What happened to the beacon?",
+            "text": "Our lodestone. Pried out of the waystone's foot one night last month, and the princes' watch saw nothing, which means someone paid them to see nothing. My cousin at customs logged a crate of 'ballast stone' bound upriver on a barge from the east docks, under a false mark. The barge is still at the wharf, waiting on a tide that never seems to come. Its crew do not drink in the taverns. They do not drink at all. They pray.",
+            "options": [
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "waystone-goldenhaven",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "bye": {
+            "label": "I'll be going.",
+            "text": "Go armed. And whatever they are praying to, do not join in."
+          }
+        }
+      }
+    }
+  }
+}

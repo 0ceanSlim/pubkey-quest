@@ -1,0 +1,283 @@
+{
+  "id": "waystone-kingdom",
+  "name": "The Dormant Spire",
+  "category": "main",
+  "difficulty": "Intermediate",
+  "step_count": 2,
+  "total_qp": 2,
+  "description": "The waystone in the Kingdom's town square is one of six the elves sang into being when the Compact was sealed. It has gone quiet, and something is clinging to it in the dark. Corvin Ashgrove wants it woken.",
+  "start_condition": {
+    "type": "talk",
+    "target": "court-arcanist",
+    "location": "kingdom",
+    "start_hint": "Speak with Corvin Ashgrove, the Court Arcanist, in the Mage Tower in the Kingdom's Northern District."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 5,
+      "description": "Requires level 5."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 5+",
+      "Intelligence 13"
+    ],
+    "combat_danger": "Low"
+  },
+  "stages": [
+    {
+      "id": "the-compact-verse",
+      "description": "Corvin needs the verse the elves taught the Crown when the Compact was sealed. Marcus Goldvault keeps it in the founding ledger at the Vault of Crowns, in the town square.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "royal-custodian",
+          "description": "Ask Marcus for the Compact verse."
+        }
+      ]
+    },
+    {
+      "id": "wake-the-spire",
+      "description": "Drive off the shadows clinging to the waystone in the Kingdom's town square, then read its runes and speak the Compact verse to wake it. Once it wakes, you can travel to the Kingdom's waystone from any waystone.",
+      "site": "kingdom-waystone",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "shadow",
+          "count": 3,
+          "description": "Drive off the shadows clinging to the stone."
+        },
+        {
+          "type": "check",
+          "skill": "intelligence",
+          "value": 13,
+          "description": "Read the runes and speak the Compact verse."
+        }
+      ],
+      "rewards": {
+        "xp": 1500,
+        "gold": 400,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "kingdom-waystone": {
+      "name": "The Kingdom's Waystone",
+      "description": "The old elven waystone in the Kingdom's town square, grey, plain and very quiet.",
+      "location": "kingdom",
+      "district": "center",
+      "label": "Go to the waystone in the town square",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "The waystone stands at the heart of the town square, taller than two men, grey and plain, its runes worn so faint you would take them for weathering. People walk round it without looking. Up close, in its shadow, the air is colder than it should be, and the shadow is thicker than it should be.",
+          "next": "clinging"
+        },
+        "clinging": {
+          "type": "choice",
+          "text": "The shadow at the stone's foot doesn't move with the sun.",
+          "choices": [
+            {
+              "label": "Look closer at the shadow",
+              "next": "shadows"
+            },
+            {
+              "label": "Leave it for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "shadows": {
+          "type": "monster",
+          "text": "The shadow comes apart into three, long-limbed and hungry, and peels away from the stone toward you.",
+          "monster_id": "shadow",
+          "count": 3,
+          "arena": [
+            ".............",
+            "..=.......=..",
+            ".............",
+            ".....###.....",
+            ".....###.....",
+            ".....###.....",
+            ".............",
+            "..=.......=..",
+            "............."
+          ],
+          "next": "runes"
+        },
+        "runes": {
+          "type": "narrative",
+          "text": "With the shadows gone the stone seems to breathe out. You find the runes Corvin wanted: a ring of them at shoulder height that glint when you look at them sidelong.",
+          "next": "speak"
+        },
+        "speak": {
+          "type": "check",
+          "text": "You read the runes against the Crown's copy of the verse, then speak it to the stone, slowly.",
+          "skill": "intelligence",
+          "dc": 13,
+          "success_text": "On the last word the runes catch light one after another, all the way round, and the stone hums. You feel it in your teeth, exactly as Corvin said you would.",
+          "success_next": "woken",
+          "failure_text": "You stumble on a vowel and the runes go dark again, sulkily.",
+          "failure_next": "speak-again"
+        },
+        "speak-again": {
+          "type": "choice",
+          "text": "The stone waits.",
+          "choices": [
+            {
+              "label": "Speak the verse again",
+              "next": "speak"
+            },
+            {
+              "label": "Step away for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "woken": {
+          "type": "exit",
+          "text": "The Kingdom's waystone is awake. People in the square stop and stare at it, many of them for the first time in their lives.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the stone to its sleep.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About the waystone in the square...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Ah. You. Good, you'll do. Tell me, have you looked at the stone in the town square? Properly looked? Everyone walks past it. It is a waystone, one of six the elves sang into being when the Compact was sealed, to bind the six seats together. They used to carry people between the cities in a breath. Now they barely manage a Homeward Stone once a week, and they are getting quieter. I want to wake ours, and I need someone with steadier hands than mine.",
+          "options": [
+            "quieter",
+            "seraphina",
+            "what-need",
+            "accept",
+            "decline"
+          ]
+        },
+        "quieter": {
+          "label": "Quieter?",
+          "text": "They sing. Not so you'd hear it in the street, but put your palm to one at night and you feel it in your teeth. The song is going out of them one note at a time, and it is going out from the direction of the Shadowmere. I call it the Fade, because I am a scholar and we like naming things we don't understand.",
+          "options": [
+            "what-need",
+            "accept",
+            "decline"
+          ]
+        },
+        "seraphina": {
+          "label": "The Oracle in Goldenhaven heard a song going quiet.",
+          "text": "Did she. Seraphina has better instruments than I do: a bowl of water and no sense of proportion. If she heard it in the water, it is worse than my measurements say.",
+          "options": [
+            "what-need",
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "quest_completed",
+              "id": "the-rising-shadow"
+            }
+          ]
+        },
+        "what-need": {
+          "label": "What do you need from me?",
+          "text": "The Crown wrote down the verse the elves taught it when the Compact was sealed. Marcus Goldvault keeps it in the founding ledger at the Vault of Crowns and will not let it out of his sight, which is fair, as I once spilled tea on a treaty. Read it, then read it to the stone. And something has been clinging to the stone after dark. You'll see.",
+          "options": [
+            "quieter",
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll wake the stone.",
+          "text": "Splendid. Marcus first, then the waystone in the town square. Wake it, and you'll be able to come back to the capital from any waystone in the realm.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "It has been asleep for a few hundred years. It will manage a few more days."
+        }
+      }
+    },
+    "active": {
+      "option": "About the Kingdom's waystone...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Well? Is it awake?",
+          "options": [
+            "s-marcus",
+            "s-stone",
+            "s-bye"
+          ]
+        },
+        "s-marcus": {
+          "label": "I haven't seen Marcus yet.",
+          "text": "The Vault of Crowns, in the town square. Ask for the Compact verse. Do not let him show you his filing system; you will never leave.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-kingdom",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-stone": {
+          "label": "I have the verse.",
+          "text": "Then go to the stone. Read the runes first, then speak the verse to them, slowly. And the shadows on it: those you may simply hit.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-kingdom",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll see to it.",
+          "text": "Do. And try not to set anything on fire."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the Kingdom's waystone...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "I felt it from up here. The ink in my wells shivered. The Kingdom's waystone is awake, and from any waystone in the realm you can come home to the capital now. One of six. Millhaven's is next, and when you're ready, so am I."
+        }
+      }
+    },
+    "with": {
+      "royal-custodian": {
+        "option": "Corvin sent me for the Compact verse",
+        "start": "verse",
+        "nodes": {
+          "verse": {
+            "text": "The Compact verse? He wants it read to the stone, I suppose. He asked me last spring and I said no, because he had tea with him. You don't, I see. Here: the founding ledger, page one. The Crown's scribes wrote the verse down as the elves sang it, every sound, without the faintest idea what it meant. Read it slowly, and don't touch the page."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,355 @@
+{
+  "id": "stone-ironpeak",
+  "name": "A Stone Worth Carving",
+  "category": "side",
+  "difficulty": "Intermediate",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "Ironpeak's clan stones are carved from heartstone, and Thorin Ironledger will mark one for an outsider only if they fetch the heartstone themselves, from a seam the kobolds have overrun.",
+  "start_condition": {
+    "type": "talk",
+    "target": "vaultwright",
+    "location": "ironpeak",
+    "start_hint": "Ask Thorin Ironledger, the Vaultwright, about an Ironpeak Homeward Stone at the Stonevault in Ironpeak's Miners' Plaza."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 8,
+      "description": "Requires level 8."
+    },
+    {
+      "type": "race",
+      "values": [
+        "Human",
+        "Half-Elf",
+        "Half-Orc",
+        "Tiefling",
+        "Elf",
+        "Halfling",
+        "Gnome",
+        "Orc",
+        "Dragonborn"
+      ],
+      "description": "Ironpeak's dwarves carry their clan stones already."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 8+",
+      "Athletics 14",
+      "Strength 13"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "see-the-vaultwright",
+      "description": "Thorin Ironledger, Vaultwright of the Stonevault, carves Ironpeak's clan stones.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "vaultwright",
+          "description": "Hear Thorin out."
+        }
+      ]
+    },
+    {
+      "id": "the-deepcut",
+      "description": "Ride the ore cart down from the Mine Cart Station in Ironpeak's Valley Approach to the heartstone seam in the Deepcut. Kobolds driven down from the flooded mine have overrun it: clear them, then cut a piece of heartstone free.",
+      "site": "the-deepcut",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "kobold-warrior",
+          "count": 5,
+          "description": "Clear the kobolds from the seam."
+        },
+        {
+          "type": "slay",
+          "target": "cave-bear",
+          "count": 1,
+          "description": "Kill the kobolds' war-bear."
+        },
+        {
+          "type": "slay",
+          "target": "kobold-shaman",
+          "count": 1,
+          "description": "Kill the kobold shaman."
+        },
+        {
+          "type": "fetch",
+          "target": "heartstone-ore",
+          "count": 1,
+          "description": "Cut a piece of heartstone ore."
+        }
+      ]
+    },
+    {
+      "id": "deliver",
+      "description": "Bring the heartstone to Thorin at the Stonevault. If it's cut clean, he will sell you Ironpeak's Homeward Stone.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "vaultwright",
+          "description": "Return to Thorin."
+        },
+        {
+          "type": "fetch",
+          "target": "heartstone-ore",
+          "count": 1,
+          "description": "Give Thorin the heartstone.",
+          "consume": true
+        }
+      ],
+      "rewards": {
+        "xp": 2200,
+        "gold": 500,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "greater-healing",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "the-deepcut": {
+      "name": "The Deepcut",
+      "description": "The old workings under the valley, at the bottom of Ironpeak's cart line, where the heartstone seam runs.",
+      "location": "ironpeak",
+      "district": "south",
+      "label": "Ride the ore cart down to the Deepcut",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "At the Mine Cart Station an ore cart stands at the top of the line, its rails dropping steeply into the dark. Thorin was right: it has no brakes to speak of.",
+          "choices": [
+            {
+              "label": "Ride the cart down",
+              "next": "ride"
+            },
+            {
+              "label": "Not yet",
+              "next": "leave"
+            }
+          ]
+        },
+        "ride": {
+          "type": "narrative",
+          "text": "The cart drops, rattles, drops again, and shoots you out into a long gallery lit by a dull red glow: the heartstone seam, running through the rock like a vein. Around it, hide tents and cookfires, and a great many kobolds turning to look at you.",
+          "next": "warriors"
+        },
+        "warriors": {
+          "type": "monster",
+          "text": "Yapping alarm calls, and the kobolds come at you with spears and painted shields.",
+          "monster_id": "kobold-warrior",
+          "count": 5,
+          "arena": [
+            "#...........#",
+            "..=..,,..=...",
+            "....,##,.....",
+            ".,.......,...",
+            "...#.....#...",
+            ".....,.,.....",
+            "..=.......=..",
+            "#....,,,....#",
+            "##.........##"
+          ],
+          "next": "chain"
+        },
+        "chain": {
+          "type": "narrative",
+          "text": "Behind the cookfires something big rattles its chain and stands up: a cave bear, scarred and muzzled with wire, and a kobold with a long stick prodding it toward you.",
+          "next": "bear"
+        },
+        "bear": {
+          "type": "monster",
+          "text": "The kobold slips the chain. The bear doesn't need telling twice.",
+          "monster_id": "cave-bear",
+          "count": 1,
+          "arena": [
+            "#...........#",
+            "..=..,,..=...",
+            "....,##,.....",
+            ".,.......,...",
+            "...#.....#...",
+            ".....,.,.....",
+            "..=.......=..",
+            "#....,,,....#",
+            "##.........##"
+          ],
+          "next": "shaman"
+        },
+        "shaman": {
+          "type": "monster",
+          "text": "At the back of the gallery a kobold with bones knotted in its crest raises a hand wreathed in fire and screeches at you.",
+          "monster_id": "kobold-shaman",
+          "count": 1,
+          "arena": [
+            "#...........#",
+            "..=..,,..=...",
+            "....,##,.....",
+            ".,.......,...",
+            "...#.....#...",
+            ".....,.,.....",
+            "..=.......=..",
+            "#....,,,....#",
+            "##.........##"
+          ],
+          "next": "seam"
+        },
+        "seam": {
+          "type": "choice",
+          "text": "The gallery is quiet. The heartstone seam glows dull red in the rock.",
+          "choices": [
+            {
+              "label": "Cut a piece of heartstone",
+              "next": "cut"
+            },
+            {
+              "label": "Ride the cart back up",
+              "next": "leave"
+            }
+          ]
+        },
+        "cut": {
+          "type": "check",
+          "text": "You set your pick against the rock beside the seam and work slowly, the way Thorin said.",
+          "skill": "athletics",
+          "dc": 14,
+          "success_text": "Chip by chip the rock comes away, and a fist of heartstone drops whole into your hand, warm, uncracked.",
+          "success_next": "ore",
+          "failure_text": "You hit it too hard. A crack runs through the piece and it crumbles to red gravel. Only good for paving.",
+          "failure_next": "seam"
+        },
+        "ore": {
+          "type": "loot",
+          "text": "A fist of heartstone, veined with a dull forge-red that brightens when you breathe on it.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "heartstone-ore",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "You ride the cart back up with the heartstone in your pack.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the cart at the top of the line.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About an Ironpeak stone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Ye want an Ironpeak stone. They're clan stones, cut from heartstone, and heartstone comes from one seam only: down the Deepcut, at the bottom of the cart line. Fetch me a fist of it, cut clean, and I'll know ye've the arms and the patience. That's the test. A stone worth carving, fetched by the one who'll carry it.",
+          "options": [
+            "deepcut",
+            "kobolds",
+            "elf",
+            "accept",
+            "decline"
+          ]
+        },
+        "deepcut": {
+          "label": "The Deepcut?",
+          "text": "The old workings under the valley. Ride the ore cart down from the Mine Cart Station, south of the plaza. Cut slow. Heartstone cracks if ye rush it, and cracked heartstone's only good for paving.",
+          "options": [
+            "kobolds",
+            "accept",
+            "decline"
+          ]
+        },
+        "kobolds": {
+          "label": "Anything down there I should know about?",
+          "text": "Kobolds, lately. The flooding up in the old mine's pushed them down into ours, and they've made a camp of the seam. Little biters. Clear them first; ye can't cut slow with teeth at your back.",
+          "options": [
+            "deepcut",
+            "accept",
+            "decline"
+          ]
+        },
+        "elf": {
+          "label": "Dwarves and elves don't often trade favours.",
+          "text": "Aye, and look at us both: stone the elves sang awake, cut by dwarves. Fetch the heartstone and we'll call it even.",
+          "options": [
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Elf"
+              ]
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll fetch the heartstone.",
+          "text": "Good. Mind the cart. It's got no brakes to speak of.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not now.",
+          "text": "The mountain'll keep."
+        }
+      }
+    },
+    "active": {
+      "option": "About the heartstone...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Got my heartstone?",
+          "options": [
+            "s-seam",
+            "s-bye"
+          ]
+        },
+        "s-seam": {
+          "label": "Not yet.",
+          "text": "The Mine Cart Station, south of the plaza. Ride it all the way down, clear out the biters, and cut slow.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-ironpeak",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll get it done.",
+          "text": "Aye. Cut slow."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the heartstone...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Thorin turns the heartstone over in his hands, holds it to the forge-light, and grunts. \"Clean cut. Not a crack in it. Ye've the arms and the patience both.\" He sets it on his bench. \"I'll carve stones from this for a year, and one of them's yours whenever ye want it. Ye'll pay for it like anyone, mind. Stone doesn't grow on trees.\""
+        }
+      }
+    }
+  }
+}

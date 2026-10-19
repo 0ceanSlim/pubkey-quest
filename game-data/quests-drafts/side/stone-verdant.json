@@ -1,0 +1,339 @@
+{
+  "id": "stone-verdant",
+  "name": "Root and Song",
+  "category": "side",
+  "difficulty": "Novice",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "Verdant's seed-stones are cut from the heartwood, and the heartwood knows no one by name, only by touch and voice. Silvanthir Moonbough will sell a stone only to someone its sapling has heard.",
+  "start_condition": {
+    "type": "talk",
+    "target": "warden-of-roots",
+    "location": "verdant",
+    "start_hint": "Ask Silvanthir Moonbough, the Warden of Roots, about a Verdant Homeward Stone at the Glade of Safekeeping in Verdant's town square."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 5,
+      "description": "Requires level 5."
+    },
+    {
+      "type": "race",
+      "values": [
+        "Human",
+        "Half-Elf",
+        "Half-Orc",
+        "Tiefling",
+        "Dwarf",
+        "Halfling",
+        "Gnome",
+        "Orc",
+        "Dragonborn"
+      ],
+      "description": "Verdant's elves are given their seed-stones at birth."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 5+",
+      "Medicine 12",
+      "Influence 13"
+    ],
+    "combat_danger": "None"
+  },
+  "stages": [
+    {
+      "id": "silver-moss",
+      "description": "Silvanthir wants Silver Moss to bed the heartwood sapling, gathered by your own hand at the forest's edge beyond Verdant's Forest Quarter.",
+      "site": "forest-edge",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "silver-moss",
+          "count": 3,
+          "description": "Gather three Silver Moss."
+        }
+      ]
+    },
+    {
+      "id": "the-sapling",
+      "description": "Bed the moss around the heartwood sapling beside the Glade of Safekeeping, and sing to it until it knows your voice.",
+      "site": "heartwood-sapling",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "silver-moss",
+          "count": 3,
+          "description": "Bed the sapling in Silver Moss.",
+          "consume": true
+        },
+        {
+          "type": "check",
+          "skill": "influence",
+          "value": 13,
+          "description": "Sing the sapling the root-song."
+        }
+      ]
+    },
+    {
+      "id": "the-warden",
+      "description": "Tell Silvanthir the sapling has heard you. Now that the roots know you, he will sell you Verdant's Homeward Stone.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "warden-of-roots",
+          "description": "Return to Silvanthir."
+        }
+      ],
+      "rewards": {
+        "xp": 900,
+        "gold": 300,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "forest-edge": {
+      "name": "The Forest's Edge",
+      "description": "Where the Darkwood begins beyond the Forest Quarter, the old trees furred with moss.",
+      "location": "verdant",
+      "district": "north",
+      "label": "Gather moss at the forest's edge",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "Past the last houses of the Forest Quarter the Darkwood begins, old trees leaning over the path, their trunks furred with moss: pale green on one side, grey-white on the other.",
+          "choices": [
+            {
+              "label": "Gather the moss",
+              "next": "which"
+            },
+            {
+              "label": "Leave the trees",
+              "next": "leave"
+            }
+          ]
+        },
+        "which": {
+          "type": "check",
+          "text": "You kneel at the nearest trunk and look closely at the two mosses.",
+          "skill": "medicine",
+          "dc": 12,
+          "success_text": "The grey-white moss on the north side is soft and cool and smells faintly of rain: Silver Moss. The green on the south side is coarser and smells sour. You work the Silver Moss free in whole pads.",
+          "success_next": "gather",
+          "failure_text": "You take a handful of the green and your fingers start to itch at once. Wrong moss.",
+          "failure_next": "itch"
+        },
+        "itch": {
+          "type": "damage",
+          "text": "The itch turns to a burn before it fades.",
+          "damage": {
+            "type": "poison",
+            "amount": 1
+          },
+          "next": "start"
+        },
+        "gather": {
+          "type": "loot",
+          "text": "Three good pads of Silver Moss, cool and damp in your hand.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "silver-moss",
+                "quantity": 3
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "Enough to bed a sapling.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the old trees to their moss.",
+          "is_terminal": true
+        }
+      }
+    },
+    "heartwood-sapling": {
+      "name": "The Heartwood Sapling",
+      "description": "A sapling of the old root, growing in a ring of stones beside the Glade of Safekeeping.",
+      "location": "verdant",
+      "district": "center",
+      "label": "Tend the heartwood sapling",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Beside the Glade of Safekeeping, in a ring of old stones, a sapling no taller than your knee grows out of bare black soil. Its bark is the colour of the seed-stones. Silvanthir watches from the glade's edge and says nothing.",
+          "next": "tend"
+        },
+        "tend": {
+          "type": "choice",
+          "text": "The sapling's leaves hang still.",
+          "choices": [
+            {
+              "label": "Bed the moss and sing",
+              "next": "sing"
+            },
+            {
+              "label": "Not yet",
+              "next": "not-yet"
+            }
+          ]
+        },
+        "sing": {
+          "type": "check",
+          "text": "You press the Silver Moss in around its roots, lay your palm on the bark, and sing.",
+          "skill": "influence",
+          "dc": 13,
+          "success_text": "Your voice wavers, then steadies. Somewhere in the second verse the leaves stir with no wind to stir them, and turn, every one, toward you.",
+          "success_next": "heard",
+          "failure_text": "Your voice cracks on the high note. The sapling stays perfectly still, which is somehow worse than if it had flinched.",
+          "failure_next": "tend"
+        },
+        "heard": {
+          "type": "exit",
+          "text": "The sapling knows your voice. At the glade's edge, Silvanthir inclines his head.",
+          "is_terminal": true
+        },
+        "not-yet": {
+          "type": "exit",
+          "text": "You step back out of the ring of stones.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About a seed-stone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "You wish to carry a seed-stone of the heartwood. Then the heartwood must know you, and it knows nothing by name. It knows touch, and voice. A sapling of the old root grows beside the glade. Bed it in Silver Moss you gathered with your own hands, and sing to it, and it will remember you.",
+          "options": [
+            "why-sing",
+            "half-elf",
+            "outsider",
+            "accept",
+            "decline"
+          ]
+        },
+        "why-sing": {
+          "label": "Sing to it?",
+          "text": "The waystones were sung into being, and the seed-stones are cut from the same root. A root does not read a ledger, stranger. It listens.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "half-elf": {
+          "label": "I have some of the old blood.",
+          "text": "I can hear it in your voice. Half is enough to listen with. The sapling will turn to you sooner than to most.",
+          "options": [
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Half-Elf"
+              ]
+            }
+          ]
+        },
+        "outsider": {
+          "label": "The glade doesn't often welcome my kind.",
+          "text": "The glade has been slow to open to your people, and the fault is not all yours. The roots are older than our grudges. Sing true, and they will not ask where you were born.",
+          "options": [
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Orc",
+                "Tiefling"
+              ]
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll gather the moss.",
+          "text": "Look for it at the forest's edge, beyond the Forest Quarter, where the old trees lean over the path. Take only what grows on the north side of the trunk. You will see why.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "The sapling has waited a long time. It can wait for you."
+        }
+      }
+    },
+    "active": {
+      "option": "About the sapling...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Has the root heard you?",
+          "options": [
+            "s-moss",
+            "s-sing",
+            "s-bye"
+          ]
+        },
+        "s-moss": {
+          "label": "I'm still gathering the moss.",
+          "text": "The forest's edge, beyond the Forest Quarter. North side of the trunk. The moss that grows to the south is a different plant pretending.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-verdant",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-sing": {
+          "label": "How do I sing to a tree?",
+          "text": "Badly, at first. Everyone does. Bed the moss around its roots, put your hand on the bark, and sing whatever your mother sang to you. The sapling does not care for the tune. It cares that you mean it.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-verdant",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll see it done.",
+          "text": "Go gently."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the sapling...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "The sapling turned its leaves toward you this morning. It has never done that for anyone not born under the canopy. The roots know you now, and so will the seed-stones: when you want one of Verdant's Homeward Stones, come to me and I will sell you one. The grove asks its offering, as always."
+        }
+      }
+    }
+  }
+}

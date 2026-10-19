@@ -1,0 +1,455 @@
+{
+  "id": "waystone-verdant",
+  "name": "The Elders' Song",
+  "category": "main",
+  "difficulty": "Experienced",
+  "step_count": 3,
+  "total_qp": 2,
+  "description": "Verdant's waystone was sung first, and the others were tuned to it. Now something is strangling it at the roots. Verdant's elders still remember the song that woke it.",
+  "start_condition": {
+    "type": "talk",
+    "target": "court-arcanist",
+    "location": "kingdom",
+    "start_hint": "Speak with Corvin Ashgrove, the Court Arcanist, in the Mage Tower in the Kingdom's Northern District."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 9,
+      "description": "Requires level 9."
+    }
+  ],
+  "prerequisites": [
+    "waystone-millhaven"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Level 9+",
+      "Resolve 14",
+      "Influence 15"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "the-warden",
+      "description": "Corvin sends you to Silvanthir Moonbough, Warden of Roots, at the Glade of Safekeeping in Verdant's town square. He is one of the elders who remember the waking song.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "warden-of-roots",
+          "description": "Ask Silvanthir about the waking song."
+        }
+      ]
+    },
+    {
+      "id": "the-verse",
+      "description": "The elders will sing the waking song once, at the Glade of Safekeeping. Hold all of it in your memory.",
+      "site": "glade-song",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 14,
+          "description": "Hold the whole song in your memory."
+        }
+      ]
+    },
+    {
+      "id": "wake-the-heart",
+      "description": "Free the waystone in Verdant's town square from the corrupted dryads strangling its roots, then sing it awake. Once it wakes, you can travel to Verdant's waystone from any waystone.",
+      "site": "verdant-waystone",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "corrupted-dryad",
+          "count": 3,
+          "description": "Free the stone from the corrupted dryads."
+        },
+        {
+          "type": "check",
+          "skill": "influence",
+          "value": 15,
+          "description": "Sing the waystone awake."
+        }
+      ],
+      "rewards": {
+        "xp": 5000,
+        "gold": 800,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "superior-healing",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "glade-song": {
+      "name": "The Elders' Song",
+      "description": "At dusk Verdant's elders gather in the Glade of Safekeeping to sing the waking song.",
+      "location": "verdant",
+      "district": "center",
+      "label": "Hear the elders sing at the glade",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "At dusk the elders gather in the Glade of Safekeeping: five of them, older than anything in Verdant but the trees. Silvanthir nods to you. They begin to sing, and the song goes on, and turns back on itself, and goes on.",
+          "next": "listen"
+        },
+        "listen": {
+          "type": "choice",
+          "text": "The song winds around the glade.",
+          "choices": [
+            {
+              "label": "Listen, and hold every line",
+              "next": "hold"
+            },
+            {
+              "label": "Sing with them in the old tongue",
+              "next": "sing-along",
+              "requirements": [
+                {
+                  "type": "race",
+                  "values": [
+                    "Elf"
+                  ]
+                }
+              ]
+            },
+            {
+              "label": "Step out of the glade",
+              "next": "leave"
+            }
+          ]
+        },
+        "hold": {
+          "type": "check",
+          "text": "You close your eyes and hold every line as it comes.",
+          "skill": "resolve",
+          "dc": 14,
+          "success_text": "When the last note fades you can feel the whole song in you, the way you feel a stone in your shoe. Silvanthir looks at you and smiles, very slightly.",
+          "success_next": "learned",
+          "failure_text": "Somewhere in the fourth turning you lose the thread, and the rest washes past you. The elders, patient, begin again.",
+          "failure_next": "listen"
+        },
+        "sing-along": {
+          "type": "check",
+          "text": "You know the old tongue. You sing.",
+          "skill": "resolve",
+          "dc": 12,
+          "success_text": "Your voice finds its place among theirs as if it had been kept for you, and the song settles into you whole.",
+          "success_next": "learned",
+          "failure_text": "You know the words but not this tune, and you stumble. The elders begin again.",
+          "failure_next": "listen"
+        },
+        "learned": {
+          "type": "exit",
+          "text": "You have the waking song. Now for the stone.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step out of the glade. The singing follows you a little way.",
+          "is_terminal": true
+        }
+      }
+    },
+    "verdant-waystone": {
+      "name": "Verdant's Waystone",
+      "description": "Verdant's waystone, white as bone, wound about with black roots in the town square.",
+      "location": "verdant",
+      "district": "center",
+      "label": "Go to the waystone in the town square",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Verdant's waystone stands among the flowerbeds of the town square, white as bone, wound about with roots as thick as your arm. The roots are moving, slowly, tightening. In their bark you can make out faces.",
+          "next": "approach"
+        },
+        "approach": {
+          "type": "choice",
+          "text": "The roots creak tighter.",
+          "choices": [
+            {
+              "label": "Cut the roots away",
+              "next": "dryads"
+            },
+            {
+              "label": "Leave it for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "dryads": {
+          "type": "monster",
+          "text": "The faces open their eyes. Three dryads pull themselves out of the roots, bark black and weeping, and come at you with branches for hands.",
+          "monster_id": "corrupted-dryad",
+          "count": 3,
+          "arena": [
+            "..,.....,....",
+            ".=..,,,,,..=.",
+            "...,,###,,...",
+            "..,,,###,,,..",
+            "...,,###,,...",
+            ".=..,,,,,..=.",
+            "....,...,....",
+            ".............",
+            "............."
+          ],
+          "next": "freed"
+        },
+        "freed": {
+          "type": "narrative",
+          "text": "As the last dryad falls the black runs out of the roots and they loosen, and the stone stands clear. Up close it's humming, very faintly, like someone trying not to cry.",
+          "next": "sing"
+        },
+        "sing": {
+          "type": "check",
+          "text": "You put your hand on the stone and sing the waking song, all of it.",
+          "skill": "influence",
+          "dc": 15,
+          "success_text": "The stone takes the song from you and gives it back a hundred times louder. Light runs up it like sap. Across the square every flower turns to face it, and far off, east and north and south, other stones answer.",
+          "success_next": "woken",
+          "failure_text": "Your voice is too small for it. The stone's hum swells, falters and sinks back.",
+          "failure_next": "sing-again"
+        },
+        "sing-again": {
+          "type": "choice",
+          "text": "The stone's hum is still there, waiting.",
+          "choices": [
+            {
+              "label": "Sing again",
+              "next": "sing"
+            },
+            {
+              "label": "Step away for now",
+              "next": "leave"
+            }
+          ]
+        },
+        "woken": {
+          "type": "exit",
+          "text": "Verdant's waystone, the heart of the network, is awake.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step back from the stone.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About Verdant's waystone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Verdant. This is the one that matters. The elves sang all six stones, but Verdant's was sung first, and the others were tuned to it. If the Fade takes Verdant's stone, the rest go dark one after another. My readings from Verdant get worse every week: something is strangling the stone at its roots. The elders still remember the song that woke it. Silvanthir Moonbough, the Warden of Roots, is one of them, and he'll teach it to you, if you can hold it.",
+          "options": [
+            "network",
+            "elf",
+            "accept",
+            "decline"
+          ]
+        },
+        "network": {
+          "label": "The heart of the network?",
+          "text": "Think of it as a tuning fork. Strike Verdant's stone and the others ring. Let it go quiet and they all lose the note.",
+          "options": [
+            "elf",
+            "accept",
+            "decline"
+          ]
+        },
+        "elf": {
+          "label": "I've heard the stones sing. My people never stopped listening.",
+          "text": "Then you know better than I do how quiet they've become. Silvanthir will be glad of you. The elders teach the song to outsiders a line at a time. To an elf, I suspect, they'll simply sing it.",
+          "options": [
+            "network",
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Elf"
+              ]
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll go to Verdant.",
+          "text": "Silvanthir first, at the Glade of Safekeeping. Then the stone. Whatever is strangling it will not let go politely.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Don't wait too long. I'd like there to be a song left to learn."
+        }
+      }
+    },
+    "active": {
+      "option": "About Verdant's waystone...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "How goes it in Verdant?",
+          "options": [
+            "s-elder",
+            "s-verse",
+            "s-stone",
+            "s-bye"
+          ]
+        },
+        "s-elder": {
+          "label": "I haven't seen Silvanthir yet.",
+          "text": "Silvanthir Moonbough, at the Glade of Safekeeping in Verdant's town square.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-verdant",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-verse": {
+          "label": "The elders are teaching me the song.",
+          "text": "Then learn it. All of it. A waystone will not wake for half a song.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-verdant",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-stone": {
+          "label": "I have the song.",
+          "text": "Free the roots, then sing. Loudly. The Fade hates being sung at; that much I have learned.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-verdant",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll get back to it.",
+          "text": "Go well."
+        }
+      }
+    },
+    "completed": {
+      "option": "About Verdant's waystone...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Verdant's stone is awake, and my instruments have gone mad in the nicest possible way: every other stone in the network rang with it, even the sleeping ones. You can travel to Verdant from any waystone. Goldenhaven next. Something about the harbor. Come back when you're rested."
+        }
+      }
+    },
+    "with": {
+      "warden-of-roots": {
+        "option": "Corvin sent me to learn the waking song",
+        "start": "hub",
+        "nodes": {
+          "hub": {
+            "text": "The arcanist's errand. The roots have been waiting for it longer than he knows.",
+            "options": [
+              "song",
+              "elf",
+              "half-elf",
+              "roots",
+              "bye"
+            ]
+          },
+          "song": {
+            "label": "Will you teach me the waking song?",
+            "text": "The waking song is long, and it does not forgive a lost line. The elders will sing it for you at the glade, once, at dusk. Hold it.",
+            "options": [
+              "elf",
+              "half-elf",
+              "roots",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "waystone-verdant",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "elf": {
+            "label": "I know the old tongue.",
+            "text": "Then you will not need it sung slowly. Sing with us, child of the glade. The stone will know an elven voice.",
+            "options": [
+              "roots",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "race",
+                "values": [
+                  "Elf"
+                ]
+              },
+              {
+                "type": "quest_stage",
+                "id": "waystone-verdant",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "half-elf": {
+            "label": "Will the stone hear a half-elf?",
+            "text": "It heard your mother's people sing it awake. It will hear you.",
+            "options": [
+              "roots",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "race",
+                "values": [
+                  "Half-Elf"
+                ]
+              },
+              {
+                "type": "quest_stage",
+                "id": "waystone-verdant",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "roots": {
+            "label": "What's strangling the stone?",
+            "text": "Dryads. Ours, once. The Fade crept up the roots and into them, and now they cling to the stone the way drowning things cling. Free it, and free them.",
+            "options": [
+              "bye"
+            ]
+          },
+          "bye": {
+            "label": "I'll go.",
+            "text": "Go gently. Then sing loudly."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "id": "stone-kingdom",
+  "name": "The Crown's Ledger",
+  "category": "side",
+  "difficulty": "Novice",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "A stranger may carry a Crown-sealed Homeward Stone only once their name is in the Royal Ledger of Bonds. Marcus Goldvault would write yours today, if the page it goes on hadn't gone missing.",
+  "start_condition": {
+    "type": "talk",
+    "target": "royal-custodian",
+    "location": "kingdom",
+    "start_hint": "Ask Marcus Goldvault, the Royal Custodian, about a Kingdom Homeward Stone at the Vault of Crowns in the Kingdom's town square."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 3,
+      "description": "Requires level 3."
+    },
+    {
+      "type": "race",
+      "values": [
+        "Elf",
+        "Dwarf",
+        "Halfling",
+        "Gnome",
+        "Orc",
+        "Dragonborn"
+      ],
+      "description": "Citizens of the Kingdom already carry its stone."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 3+",
+      "Perception 10",
+      "Influence 12"
+    ],
+    "combat_danger": "None"
+  },
+  "stages": [
+    {
+      "id": "see-the-custodian",
+      "description": "Marcus Goldvault keeps the Royal Ledger of Bonds at the Vault of Crowns.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "royal-custodian",
+          "description": "Ask Marcus about a Kingdom stone."
+        }
+      ]
+    },
+    {
+      "id": "the-missing-page",
+      "description": "The ledger's page of bonded stones went out for recopying with Pell, Marcus's under-clerk, and never came back. Pell drinks at the Golden Griffin, in the Western District.",
+      "site": "golden-griffin",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "crown-ledger-page",
+          "count": 1,
+          "description": "Find the missing ledger page."
+        }
+      ]
+    },
+    {
+      "id": "swear-the-bond",
+      "description": "Bring the page back to the Vault of Crowns and swear the bond before Marcus. Once your name is in the ledger, he will sell you the Kingdom's Homeward Stone.",
+      "site": "royal-ledger",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "royal-custodian",
+          "description": "Return to Marcus at the Vault of Crowns."
+        },
+        {
+          "type": "fetch",
+          "target": "crown-ledger-page",
+          "count": 1,
+          "description": "Give Marcus the page.",
+          "consume": true
+        },
+        {
+          "type": "check",
+          "skill": "influence",
+          "value": 12,
+          "description": "Convince the Custodian the Crown should vouch for you."
+        }
+      ],
+      "rewards": {
+        "xp": 450,
+        "gold": 200,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "healing",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "golden-griffin": {
+      "name": "The Golden Griffin",
+      "description": "Marcus's under-clerk, Pell, drinks here. The missing ledger page was last seen with him.",
+      "location": "kingdom",
+      "district": "west",
+      "label": "Look for Pell at the Golden Griffin",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "The Golden Griffin is loud with off-duty guards and dice. In a corner booth a thin young man in ink-stained Crown livery is asleep on his folded arms. Pell, presumably.",
+          "next": "booth"
+        },
+        "booth": {
+          "type": "choice",
+          "text": "Pell snores gently. The booth's table rocks every time he breathes.",
+          "choices": [
+            {
+              "label": "Wake Pell and ask about the page",
+              "next": "pell"
+            },
+            {
+              "label": "Ask the barkeep about him",
+              "next": "barkeep"
+            },
+            {
+              "label": "Search the booth",
+              "next": "search"
+            },
+            {
+              "label": "Leave the tavern",
+              "next": "leave"
+            }
+          ]
+        },
+        "pell": {
+          "type": "narrative",
+          "text": "Pell jerks awake and pats every pocket he owns, twice. \"The page. Yes. I put it somewhere safe. Somewhere very safe. I was being careful.\" He looks around the booth as if it might tell him. It doesn't.",
+          "next": "booth"
+        },
+        "barkeep": {
+          "type": "narrative",
+          "text": "The barkeep doesn't look up from his tankards. \"Your clerk? Spent half the night fussing with that table. Said it wobbled. Said he couldn't write on a table that wobbled.\"",
+          "next": "booth"
+        },
+        "search": {
+          "type": "check",
+          "text": "You get down and go over the booth: the bench, the floor, the table.",
+          "skill": "perception",
+          "dc": 12,
+          "success_text": "The table leg nearest Pell stands on a little square of folded paper, the Crown's seal just showing at one corner. He fixed the wobble with the Royal Ledger.",
+          "success_next": "found",
+          "failure_text": "Crumbs, a lost die and something sticky. No page.",
+          "failure_next": "booth"
+        },
+        "found": {
+          "type": "loot",
+          "text": "You lift the table, slide the page free and smooth it out. Pell, watching, goes very pale.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "crown-ledger-page",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "Pell begs you not to tell Marcus where it was. You make no promises.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave Pell to his nap.",
+          "is_terminal": true
+        }
+      }
+    },
+    "royal-ledger": {
+      "name": "The Royal Ledger of Bonds",
+      "description": "The great ledger on its lectern in the Vault of Crowns, where the Crown's bonds are sworn.",
+      "location": "kingdom",
+      "district": "center",
+      "label": "Swear the bond at the Royal Ledger",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Marcus opens the Royal Ledger of Bonds on its lectern, tips the lost page back into its place and inks his pen. \"The Crown vouches for those it bonds,\" he says. \"So tell me, plainly, why it should vouch for you.\"",
+          "next": "oath"
+        },
+        "oath": {
+          "type": "choice",
+          "text": "Marcus waits, pen raised.",
+          "choices": [
+            {
+              "label": "Make your case",
+              "next": "case"
+            },
+            {
+              "label": "Not yet",
+              "next": "not-yet"
+            }
+          ]
+        },
+        "case": {
+          "type": "check",
+          "text": "You tell him who you are, what you've done, and where the road takes you.",
+          "skill": "influence",
+          "dc": 12,
+          "success_text": "Marcus listens without interrupting, which you suspect is rare. Then he writes your name into the ledger in a hand so fine it could be engraved. \"Bonded,\" he says, and blots it.",
+          "success_next": "bonded",
+          "failure_text": "Marcus's pen hovers over the page and does not come down. \"Again,\" he says, not unkindly. \"With fewer adjectives.\"",
+          "failure_next": "oath"
+        },
+        "bonded": {
+          "type": "exit",
+          "text": "Your name is in the Royal Ledger. The Crown's stones will know it now.",
+          "is_terminal": true
+        },
+        "not-yet": {
+          "type": "exit",
+          "text": "Marcus caps his ink. \"The ledger will keep.\"",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About a Kingdom stone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "You would like a Kingdom stone. They are not handed to just anyone, you understand: each one is registered in the Royal Ledger of Bonds, and a stranger's name goes in only when the Crown has reason to vouch for it. I would write yours today. Unfortunately, the page it goes on is missing.",
+          "options": [
+            "missing",
+            "why-bond",
+            "orc",
+            "accept",
+            "decline"
+          ]
+        },
+        "missing": {
+          "label": "Missing how?",
+          "text": "Sent out for recopying. My under-clerk, Pell, took it a week ago and has not come back with it. Pell is a fine copyist and a poor drinker. Try the Golden Griffin, in the Western District.",
+          "options": [
+            "why-bond",
+            "accept",
+            "decline"
+          ]
+        },
+        "why-bond": {
+          "label": "Why does the Crown care who carries a stone?",
+          "text": "Because the stone carries you into the middle of the capital, past every gate and guard, once a week. The Crown likes to know whose names it is guaranteeing. Call it a formality. The Crown is made of formalities.",
+          "options": [
+            "missing",
+            "accept",
+            "decline"
+          ]
+        },
+        "orc": {
+          "label": "Will the Crown vouch for an orc?",
+          "text": "The Crown signed the Compact with the clans, and the clans signed it back. The ledger has no column for what you are. Only for who.",
+          "options": [
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Orc"
+              ]
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll find your page.",
+          "text": "Splendid. Bring it to me here and we will do the bond properly, oath and all.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not now.",
+          "text": "The ledger will wait. Ledgers are very good at waiting."
+        }
+      }
+    },
+    "active": {
+      "option": "About the ledger page...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any luck with the page?",
+          "options": [
+            "s-page",
+            "s-oath",
+            "s-bye"
+          ]
+        },
+        "s-page": {
+          "label": "I haven't found it yet.",
+          "text": "Pell drinks at the Golden Griffin, in the Western District. If he cannot remember where he put it, look wherever a very tired man would put something to keep it safe.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-kingdom",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-oath": {
+          "label": "I have the page.",
+          "text": "Then let us do this properly. Step up to the ledger and I will hear your oath.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-kingdom",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll get back to it.",
+          "text": "Mind the ink."
+        }
+      }
+    },
+    "completed": {
+      "option": "About my bond...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Your name is in the ledger, in my best hand. You are bonded to the Crown, which means I will sell you one of our Homeward Stones whenever you like, at the Crown's price. Keep it somewhere safe. Not under a table leg."
+        }
+      }
+    }
+  }
+}

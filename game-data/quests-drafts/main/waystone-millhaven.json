@@ -1,0 +1,428 @@
+{
+  "id": "waystone-millhaven",
+  "name": "The Windmill Stone",
+  "category": "main",
+  "difficulty": "Intermediate",
+  "step_count": 3,
+  "total_qp": 2,
+  "description": "Millhaven's waystone has stood broken for two hundred years, its carved crown-stone missing. Corvin thinks it ended up under the old mill on the eastern farms, turning a millshaft.",
+  "start_condition": {
+    "type": "talk",
+    "target": "court-arcanist",
+    "location": "kingdom",
+    "start_hint": "Speak with Corvin Ashgrove, the Court Arcanist, in the Mage Tower in the Kingdom's Northern District."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 7,
+      "description": "Requires level 7."
+    }
+  ],
+  "prerequisites": [
+    "waystone-kingdom"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Level 7+",
+      "Perception 14",
+      "Crafting 14"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "ask-rosie",
+      "description": "Corvin thinks Millhaven's missing crown-stone lies under the old mill on the eastern farms. Rosie Lockwood, Keywarden of the Burrowlock, holds every key in Millhaven, the mill's included.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "keywarden",
+          "description": "Ask Rosie about the old mill."
+        }
+      ]
+    },
+    {
+      "id": "the-old-mill",
+      "description": "Search the undercroft of the old mill on Millhaven's eastern farms for the waystone's crown-stone. Rosie says the scarecrows there have been moving at night.",
+      "site": "old-mill",
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "scarecrow",
+          "count": 3,
+          "description": "Put down the walking scarecrows."
+        },
+        {
+          "type": "check",
+          "skill": "perception",
+          "value": 14,
+          "description": "Find where the millers set the stone."
+        },
+        {
+          "type": "fetch",
+          "target": "mill-runestone",
+          "count": 1,
+          "description": "Dig out the crown-stone."
+        }
+      ]
+    },
+    {
+      "id": "set-the-crown",
+      "description": "Carry the crown-stone back to the waystone in Millhaven's town square and seat it. Once it wakes, you can travel to Millhaven's waystone from any waystone.",
+      "site": "millhaven-waystone",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "mill-runestone",
+          "count": 1,
+          "description": "Seat the crown-stone on the waystone.",
+          "consume": true
+        },
+        {
+          "type": "check",
+          "skill": "crafting",
+          "value": 14,
+          "description": "Work the crown-stone into place."
+        }
+      ],
+      "rewards": {
+        "xp": 3000,
+        "gold": 600,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "greater-healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "old-mill": {
+      "name": "The Old Mill",
+      "description": "Millhaven's old mill, alone at the end of the east fields, its sails long gone.",
+      "location": "millhaven",
+      "district": "east",
+      "label": "Go to the old mill",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "The old mill stands alone at the end of the east fields, sails gone, door chained. Rosie's key turns stiffly in the lock. In the field around it the scarecrows stand in their rows, and you are fairly sure there were fewer of them in that row a moment ago.",
+          "next": "field"
+        },
+        "field": {
+          "type": "choice",
+          "text": "Straw creaks somewhere behind you.",
+          "choices": [
+            {
+              "label": "Go into the mill",
+              "next": "scarecrows"
+            },
+            {
+              "label": "Leave the fields",
+              "next": "leave"
+            }
+          ]
+        },
+        "scarecrows": {
+          "type": "monster",
+          "text": "Three scarecrows lurch off their poles and come at you across the furrows, black water dripping from their sackcloth faces.",
+          "monster_id": "scarecrow",
+          "count": 3,
+          "arena": [
+            ",,,,,,,,,,,,,",
+            ",,,=,,,,,=,,,",
+            ".............",
+            ",,,,,,,,,,,,,",
+            ",,,,,,#,,,,,,",
+            ",,,,,,,,,,,,,",
+            ".............",
+            ",,,=,,,,,=,,,",
+            ",,,,,,,,,,,,,"
+          ],
+          "next": "inside"
+        },
+        "inside": {
+          "type": "narrative",
+          "text": "Inside, the mill is dust and pigeons and a great oak shaft running down through the floor to the undercroft. Down there it's cold: the same wrong cold you felt in the shadow of the Kingdom's stone.",
+          "next": "search"
+        },
+        "search": {
+          "type": "choice",
+          "text": "The undercroft is dark, and the cold seems to come from everywhere.",
+          "choices": [
+            {
+              "label": "Search the undercroft",
+              "next": "look"
+            },
+            {
+              "label": "Work out where the builders carried the shaft's weight",
+              "next": "gnome-look",
+              "requirements": [
+                {
+                  "type": "race",
+                  "values": [
+                    "Gnome"
+                  ]
+                }
+              ]
+            },
+            {
+              "label": "Climb back out",
+              "next": "leave"
+            }
+          ]
+        },
+        "look": {
+          "type": "check",
+          "text": "You go over the undercroft by lamplight.",
+          "skill": "perception",
+          "dc": 14,
+          "success_text": "The shaft doesn't end in the floor. It ends in a pit packed with earth, and round the rim of the pit, scratched into the beam, are the same runes you saw on the Kingdom's waystone.",
+          "success_next": "dig",
+          "failure_text": "Floorboards, sacks, droppings. Nothing that explains the cold.",
+          "failure_next": "search"
+        },
+        "gnome-look": {
+          "type": "check",
+          "text": "You trace the load from the sail-stocks down through the gearing to the foot of the shaft, the way the gnomes who built it would have.",
+          "skill": "perception",
+          "dc": 12,
+          "success_text": "Everything heavy comes down to one point: a pit under the shaft, packed with earth, with runes scratched into the beam around its rim.",
+          "success_next": "dig",
+          "failure_text": "The gearing has been mended so often there's hardly any of the original left. You lose the thread.",
+          "failure_next": "search"
+        },
+        "dig": {
+          "type": "loot",
+          "text": "You dig. Two feet down your spade rings on stone: a grey wheel, worn smooth on one face by a century of turning, carved on the other with faintly glowing runes. The crown-stone.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "mill-runestone",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "The cold in the undercroft lifts as you carry the stone up into the light.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the old mill to its pigeons.",
+          "is_terminal": true
+        }
+      }
+    },
+    "millhaven-waystone": {
+      "name": "Millhaven's Waystone",
+      "description": "A grey stump of a waystone in Millhaven's town square, its top broken flat.",
+      "location": "millhaven",
+      "district": "center",
+      "label": "Seat the crown-stone on the waystone",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Millhaven's waystone stands in the middle of the town square, a grey stump with a flat, broken top. Generations of children have used it as a seat. Up close, the break matches the underside of the crown-stone almost exactly.",
+          "next": "seat"
+        },
+        "seat": {
+          "type": "choice",
+          "text": "The crown-stone weighs heavy in your pack.",
+          "choices": [
+            {
+              "label": "Seat the crown-stone",
+              "next": "fit"
+            },
+            {
+              "label": "Not yet",
+              "next": "leave"
+            }
+          ]
+        },
+        "fit": {
+          "type": "check",
+          "text": "You heave the crown-stone up onto the waystone and work it round, feeling for where the runes line up.",
+          "skill": "crafting",
+          "dc": 14,
+          "success_text": "It drops the last half-inch into place with a sound like a key turning. The runes run down from the crown into the old stone below, and the whole waystone hums.",
+          "success_next": "woken",
+          "failure_text": "It grinds and sticks a hair out of true. You'll have to lift it off and try again.",
+          "failure_next": "seat"
+        },
+        "woken": {
+          "type": "exit",
+          "text": "Millhaven's waystone is whole and awake. At the Burrowlock door, Rosie claps.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step back from the waystone.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About Millhaven's waystone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Millhaven next. Their waystone stands in the town square, and it has been broken longer than anyone in Millhaven has been alive: the top of it is missing. My notes say the crown-stone, the carved piece that sat on top, was taken down two hundred years ago, and nobody wrote down where it went. Halflings write down recipes, not history. But one of my sources mentions an old mill, and a stone that 'turned true for a hundred years.'",
+          "options": [
+            "mill",
+            "accept",
+            "decline"
+          ]
+        },
+        "mill": {
+          "label": "A millstone?",
+          "text": "A bearing-stone, I think: the piece a millshaft turns on. Someone needed a good flat stone and found one lying in the square. If I'm right, it's still under the old mill on the east farms. Ask Rosie Lockwood at the Burrowlock. She keeps every key in Millhaven, and somebody locked that mill.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll find the crown-stone.",
+          "text": "Good. Rosie first, then the mill, then put the stone back where it belongs. Take a light. Whatever was clinging to our stone is not only in the capital.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "It has been missing two hundred years. Another week won't hurt it."
+        }
+      }
+    },
+    "active": {
+      "option": "About Millhaven's waystone...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any sign of the crown-stone?",
+          "options": [
+            "s-rosie",
+            "s-mill",
+            "s-set",
+            "s-bye"
+          ]
+        },
+        "s-rosie": {
+          "label": "I haven't been to Millhaven yet.",
+          "text": "Rosie Lockwood, at the Burrowlock in Millhaven's village center. Bring her something sweet. It helps.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-millhaven",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-mill": {
+          "label": "I have the mill key.",
+          "text": "The old mill on the east farms. Look under it, not in it.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-millhaven",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-set": {
+          "label": "I found the crown-stone.",
+          "text": "Seat it on the stone. Carefully. It's been turning a millshaft for a century; it may need persuading.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-millhaven",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll get back to it.",
+          "text": "Good. Mind the scarecrows. That was a joke. Probably."
+        }
+      }
+    },
+    "completed": {
+      "option": "About Millhaven's waystone...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Millhaven's stone is whole again, and awake. You can travel there from any waystone now. Rosie wrote to me, by the way. Four pages, mostly about you, and a recipe for seed cake. Verdant is next, the heart of the whole network. Come and see me when you're ready."
+        }
+      }
+    },
+    "with": {
+      "keywarden": {
+        "option": "Corvin sent me about the old mill",
+        "start": "hub",
+        "nodes": {
+          "hub": {
+            "text": "Oh, the wizard's errand! Ask away, dear.",
+            "options": [
+              "mill-key",
+              "gnome",
+              "bye"
+            ]
+          },
+          "mill-key": {
+            "label": "Can you open the old mill?",
+            "text": "The old mill? Nobody's been down there in years, dear, not since the sails came off. I've the key, of course. I've every key. There you are. And mind the scarecrows in the mill field. The Tumbletoes swear they've been moving about at night, and the Tumbletoes don't make things up. They haven't the imagination.",
+            "options": [
+              "gnome",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "waystone-millhaven",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "gnome": {
+            "label": "Who built the mill's workings?",
+            "text": "Gnomes built all that gearing, dear, your folk not mine. Look under the main shaft. That's where a gnome would put anything heavy and important.",
+            "options": [
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "race",
+                "values": [
+                  "Gnome"
+                ]
+              },
+              {
+                "type": "quest_stage",
+                "id": "waystone-millhaven",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "bye": {
+            "label": "Thank you, Rosie.",
+            "text": "Off you go, then. Mind the geese."
+          }
+        }
+      }
+    }
+  }
+}

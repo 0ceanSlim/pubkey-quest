@@ -1,0 +1,367 @@
+{
+  "id": "stone-millhaven",
+  "name": "Keys Go Missing",
+  "category": "side",
+  "difficulty": "Novice",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "Rosie Lockwood's key ring came open this morning and three of her old keys went who knows where. She can't fit a Millhaven stone to a stranger's ring with the deep locks unturned.",
+  "start_condition": {
+    "type": "talk",
+    "target": "keywarden",
+    "location": "millhaven",
+    "start_hint": "Ask Rosie Lockwood, the Keywarden, about a Millhaven Homeward Stone at the Burrowlock in Millhaven's village center."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 4,
+      "description": "Requires level 4."
+    },
+    {
+      "type": "race",
+      "values": [
+        "Human",
+        "Half-Elf",
+        "Half-Orc",
+        "Tiefling",
+        "Elf",
+        "Dwarf",
+        "Orc",
+        "Dragonborn"
+      ],
+      "description": "Millhaven's own already carry its stone on their key rings."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 4+",
+      "Perception 12",
+      "Athletics 10"
+    ],
+    "combat_danger": "None"
+  },
+  "stages": [
+    {
+      "id": "rosies-garden",
+      "description": "Rosie lost three keys this morning. Start with her garden plot behind the Burrowlock, in the village center.",
+      "site": "rosies-garden",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "rosies-key",
+          "count": 1,
+          "description": "Find the first key."
+        }
+      ]
+    },
+    {
+      "id": "the-eastern-farms",
+      "description": "The other two keys are somewhere out on the eastern farms, where Rosie took the Tumbletoes' goat his breakfast and walked home by the duck pond.",
+      "site": "eastern-farms",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "rosies-key",
+          "count": 3,
+          "description": "Find the other two keys."
+        }
+      ]
+    },
+    {
+      "id": "back-to-rosie",
+      "description": "Bring all three keys back to Rosie at the Burrowlock. Once they're back on her ring, she will sell you Millhaven's Homeward Stone.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "keywarden",
+          "description": "Return to Rosie."
+        },
+        {
+          "type": "fetch",
+          "target": "rosies-key",
+          "count": 3,
+          "description": "Give Rosie her keys.",
+          "consume": true
+        }
+      ],
+      "rewards": {
+        "xp": 650,
+        "gold": 250,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "keyring",
+            "quantity": 1
+          },
+          {
+            "id": "healing",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "rosies-garden": {
+      "name": "Rosie's Garden",
+      "description": "Rosie's garden plot behind the Burrowlock: beans, cabbages and a very interested magpie.",
+      "location": "millhaven",
+      "district": "center",
+      "label": "Search Rosie's garden",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "Rosie's garden plot runs behind the Burrowlock: beans on poles, cabbages in rows, and a magpie on the fence watching you with great interest.",
+          "choices": [
+            {
+              "label": "Search the cabbage rows",
+              "next": "cabbages"
+            },
+            {
+              "label": "Look up at the magpie",
+              "next": "magpie"
+            },
+            {
+              "label": "Leave the garden",
+              "next": "leave"
+            }
+          ]
+        },
+        "cabbages": {
+          "type": "narrative",
+          "text": "You find two slugs, a lost trowel and a cabbage the size of a halfling's head. No key.",
+          "next": "start"
+        },
+        "magpie": {
+          "type": "check",
+          "text": "You follow the magpie's gaze up the bean poles.",
+          "skill": "perception",
+          "dc": 11,
+          "success_text": "At the top of the tallest pole, wedged into a scruffy nest, something glints. The magpie screams at you the whole way up.",
+          "success_next": "nest",
+          "failure_text": "It's a bird, on a fence. It looks back at you with deep suspicion.",
+          "failure_next": "start"
+        },
+        "nest": {
+          "type": "loot",
+          "text": "Among the buttons, bottle tops and one very old spoon: a small key with a burrow door stamped on its bow.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "rosies-key",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "One down. The other two are somewhere out east.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the magpie to its collection.",
+          "is_terminal": true
+        }
+      }
+    },
+    "eastern-farms": {
+      "name": "The Eastern Farms",
+      "description": "Hedged fields running out toward the windswept hills, a goat pen and a duck pond.",
+      "location": "millhaven",
+      "district": "east",
+      "label": "Search the eastern farms",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "The farms run east toward the windswept hills: hedged fields, a goat pen, a duck pond going green at the edges.",
+          "choices": [
+            {
+              "label": "Go to the goat pen",
+              "next": "goat"
+            },
+            {
+              "label": "Go to the duck pond",
+              "next": "pond"
+            },
+            {
+              "label": "Head back to the village",
+              "next": "leave"
+            }
+          ]
+        },
+        "goat": {
+          "type": "narrative",
+          "text": "Barnaby is a large and unpleasant goat. Hanging from his collar, tangled in a twist of hedge, is a small brass key.",
+          "next": "catch"
+        },
+        "catch": {
+          "type": "check",
+          "text": "You go over the fence after him.",
+          "skill": "athletics",
+          "dc": 12,
+          "success_text": "You get an arm round his neck and a hand on the collar before he can turn. He bleats his disgust. The key comes free.",
+          "success_next": "goat-key",
+          "failure_text": "Barnaby sidesteps and you meet the mud instead. He watches you get up, chewing.",
+          "failure_next": "goat-again"
+        },
+        "goat-again": {
+          "type": "choice",
+          "text": "Barnaby lowers his head at you.",
+          "choices": [
+            {
+              "label": "Try again",
+              "next": "catch"
+            },
+            {
+              "label": "Leave him for now",
+              "next": "start"
+            }
+          ]
+        },
+        "goat-key": {
+          "type": "loot",
+          "text": "One of Rosie's keys, only a little chewed.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "rosies-key",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "start"
+        },
+        "pond": {
+          "type": "check",
+          "text": "You walk the edge of the duck pond, looking for a glint.",
+          "skill": "perception",
+          "dc": 12,
+          "success_text": "In the shallows by the reeds, half-buried in silt, a key glints under the green water. The ducks object as you wade in.",
+          "success_next": "pond-key",
+          "failure_text": "Weed, a boot, an indignant duck. Nothing that looks like a key.",
+          "failure_next": "start"
+        },
+        "pond-key": {
+          "type": "loot",
+          "text": "Another of Rosie's keys, muddy but whole.",
+          "loot_table": {
+            "guaranteed": [
+              {
+                "item": "rosies-key",
+                "quantity": 1
+              }
+            ]
+          },
+          "next": "start"
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You head back toward the village.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "You look flustered.",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Oh, dearie, you've caught me in a state. My ring came open this morning, right off my belt, and three of my keys went who knows where. I've spares for most, of course, but those three are the old ones, the ones that turn the deep locks. I can't fit a stone to a stranger's ring with keys missing, can I? Wouldn't feel right.",
+          "options": [
+            "where",
+            "why-keys",
+            "accept",
+            "decline"
+          ]
+        },
+        "where": {
+          "label": "Where were you this morning?",
+          "text": "Garden first, to see to the beans. Then out east past the farms to take Barnaby his breakfast. That's the Tumbletoes' goat. And round by the duck pond on the way home. So: everywhere, dear. Everywhere a key could hide.",
+          "options": [
+            "why-keys",
+            "accept",
+            "decline"
+          ]
+        },
+        "why-keys": {
+          "label": "What have keys to do with a Homeward Stone?",
+          "text": "Every stone I give out goes on a key ring, and every key ring is cut to a lock down here. If I can't turn the deep locks, I can't fit a new one. And it's nice to know a body's the helping sort before they go wandering off with a piece of Millhaven in their pocket.",
+          "options": [
+            "where",
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll find your keys.",
+          "text": "Oh, bless you! Start in my garden behind the Burrowlock. I'd swear I heard something jingle when that magpie went up.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not right now.",
+          "text": "No, no. I'll just stand here feeling for keys that aren't there."
+        }
+      }
+    },
+    "active": {
+      "option": "About your keys...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Any luck, dear?",
+          "options": [
+            "s-garden",
+            "s-farms",
+            "s-bye"
+          ]
+        },
+        "s-garden": {
+          "label": "Not yet.",
+          "text": "Start in the garden. That magpie's been up to something, you mark my words.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-millhaven",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-farms": {
+          "label": "I found one. Where next?",
+          "text": "One! Oh, lovely. The other two are out east, I'm sure of it. Check Barnaby's collar. He eats everything, and what he doesn't eat he wears. And the duck pond, dear, the duck pond.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-millhaven",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll keep looking.",
+          "text": "Thank you, dear. Mind the geese."
+        }
+      }
+    },
+    "completed": {
+      "option": "How are the keys?",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "All three, safe on the ring where they belong! You've been a proper help, and Millhaven doesn't forget a helper. Whenever you want one of our Homeward Stones for your own ring, you come to me and I'll sell you one. Fitted and everything."
+        }
+      }
+    }
+  }
+}

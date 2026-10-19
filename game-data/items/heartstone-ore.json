@@ -1,0 +1,18 @@
+{
+  "id": "heartstone-ore",
+  "name": "Heartstone Ore",
+  "description": "A fist of dark ore shot through with veins that glow a dull forge-red when you breathe on them. The vaultwrights carve their stones from nothing else.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 3,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for A Stone Worth Carving."
+  ],
+  "image": "/res/img/items/heartstone-ore.png"
+}

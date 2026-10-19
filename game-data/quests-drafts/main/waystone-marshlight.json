@@ -1,0 +1,407 @@
+{
+  "id": "waystone-marshlight",
+  "name": "The Source of the Fade",
+  "category": "main",
+  "difficulty": "Master",
+  "step_count": 3,
+  "total_qp": 2,
+  "description": "Marshlight's waystone isn't asleep: it's being drunk from. The Fade rises out of the black water east of the village, and before the stone can wake, someone has to go out to where it rises and hurt it.",
+  "start_condition": {
+    "type": "talk",
+    "target": "court-arcanist",
+    "location": "kingdom",
+    "start_hint": "Speak with Corvin Ashgrove, the Court Arcanist, in the Mage Tower in the Kingdom's Northern District."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 13,
+      "description": "Requires level 13."
+    }
+  ],
+  "prerequisites": [
+    "waystone-goldenhaven"
+  ],
+  "recommended": {
+    "recommended_stats": [
+      "Level 13+",
+      "Survival 16",
+      "Resolve 16"
+    ],
+    "combat_danger": "High"
+  },
+  "stages": [
+    {
+      "id": "ask-grommash",
+      "description": "Corvin sends you to Grommash Ironhide, Hoardkeeper of the Warhoard in Marshlight. His people have watched the Fade rise out of the Shadowmere for years.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "hoardkeeper",
+          "description": "Ask Grommash about the black water."
+        }
+      ]
+    },
+    {
+      "id": "the-black-water",
+      "description": "Take a skiff from Marshlight's Eastern Dock, follow the white reeds to where the Fade rises out of the black water, and drive back what comes up out of it.",
+      "site": "black-water",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "survival",
+          "value": 16,
+          "description": "Follow the white reeds through the black water."
+        },
+        {
+          "type": "explore",
+          "target": "marshlight-fade-wellspring",
+          "description": "Find where the Fade rises."
+        },
+        {
+          "type": "slay",
+          "target": "wraith",
+          "count": 2,
+          "description": "Drive back what rises out of it."
+        }
+      ]
+    },
+    {
+      "id": "hold-the-song",
+      "description": "Wake the waystone in Marshlight's town square while the Fade is still reeling, and hold its song against the Fade's pull. Once it wakes, you can travel to Marshlight's waystone from any waystone.",
+      "site": "marshlight-waystone",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "resolve",
+          "value": 16,
+          "description": "Hold the song against the Fade."
+        }
+      ],
+      "rewards": {
+        "xp": 16000,
+        "gold": 1600,
+        "quest_points": 2,
+        "items": [
+          {
+            "id": "superior-healing",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "black-water": {
+      "name": "The Black Water",
+      "description": "Out past the merrow channels, east of Marshlight, where the reeds grow white and the water is cold in summer.",
+      "location": "marshlight",
+      "district": "east",
+      "label": "Take a skiff out into the black water",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "A skiff waits at the end of the Eastern Dock, a torch already burning in its bow. Eastward the reeds go on for miles: green, then grey, then, far out, white.",
+          "choices": [
+            {
+              "label": "Pole out toward the white reeds",
+              "next": "reeds"
+            },
+            {
+              "label": "Not yet",
+              "next": "leave"
+            }
+          ]
+        },
+        "reeds": {
+          "type": "check",
+          "text": "You pole out past the merrow channels into water nobody fishes.",
+          "skill": "survival",
+          "dc": 16,
+          "success_text": "You keep to the white reeds and the coldest water, and turn back whenever the torch flame bends toward you instead of away. After an hour the reeds open onto a still black pool, and the water is whispering.",
+          "success_next": "wellspring",
+          "failure_text": "The channels fold back on themselves. When the fog lifts you are back among green reeds, chilled to the bone.",
+          "failure_next": "chill"
+        },
+        "chill": {
+          "type": "damage",
+          "text": "The cold has got into you.",
+          "damage": {
+            "type": "cold",
+            "amount": 3
+          },
+          "next": "reeds-again"
+        },
+        "reeds-again": {
+          "type": "choice",
+          "text": "The fog thickens around the skiff.",
+          "choices": [
+            {
+              "label": "Try another channel",
+              "next": "reeds"
+            },
+            {
+              "label": "Pole back to the dock",
+              "next": "leave"
+            }
+          ]
+        },
+        "wellspring": {
+          "type": "narrative",
+          "text": "The pool is perfectly round and perfectly black, and fog pours off it uphill. Under the whispering there is another sound, faint and very far down: a song, a few notes of it, being swallowed.",
+          "next": "wraiths",
+          "waypoint": "marshlight-fade-wellspring"
+        },
+        "wraiths": {
+          "type": "monster",
+          "text": "The fog over the pool thickens and stands up. Two shapes step out of it across the water toward you, cold enough to burn, with hollows where faces should be.",
+          "monster_id": "wraith",
+          "count": 2,
+          "arena": [
+            "~~..,,,,,..~~",
+            "~..,,...,,..~",
+            "..,..~~~..,..",
+            ".,..~WWW~..,.",
+            ".,.~WWWWW~.,.",
+            ".,..~WWW~..,.",
+            "..,..~~~..,..",
+            "~..,,...,,..~",
+            "~~..,,,,,..~~"
+          ],
+          "next": "after"
+        },
+        "after": {
+          "type": "narrative",
+          "text": "The second wraith comes apart into fog, the fog sinks back into the pool, and the pool, for the first time, is quiet. Not gone. Hurt. Behind you, toward Marshlight, you hear the village waystone begin to hum.",
+          "next": "out"
+        },
+        "out": {
+          "type": "exit",
+          "text": "You pole back fast while the Fade is reeling.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the skiff at the dock.",
+          "is_terminal": true
+        }
+      }
+    },
+    "marshlight-waystone": {
+      "name": "Marshlight's Waystone",
+      "description": "Marshlight's waystone, black with damp among the stilt houses, ringed by torches the villagers never let go out.",
+      "location": "marshlight",
+      "district": "center",
+      "label": "Go to the waystone in the town square",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "narrative",
+          "text": "Marshlight's waystone leans on its platform among the stilt houses, black with damp and ringed by torches the villagers keep burning day and night. It is humming, faintly, for the first time in ten years, and the fog around its foot is pulling at the sound.",
+          "next": "hold"
+        },
+        "hold": {
+          "type": "choice",
+          "text": "The hum wavers.",
+          "choices": [
+            {
+              "label": "Lay your hands on the stone and hold the song",
+              "next": "resolve"
+            },
+            {
+              "label": "Not yet",
+              "next": "leave"
+            }
+          ]
+        },
+        "resolve": {
+          "type": "check",
+          "text": "You put both palms flat on the cold stone and sing the waking song into it. Something under the swamp pulls the other way.",
+          "skill": "resolve",
+          "dc": 16,
+          "success_text": "It pulls hard, and you hold. For a long moment the song goes nowhere, stretched between you and the dark like a rope. Then the dark lets go. Light floods up the stone, and every torch on the stilts flares green, then gold.",
+          "success_next": "woken",
+          "failure_text": "The pull drags the song out of your mouth and the light dies on the stone. You are on your knees, shaking.",
+          "failure_next": "drained"
+        },
+        "drained": {
+          "type": "damage",
+          "text": "Something took a mouthful of you.",
+          "damage": {
+            "type": "psychic",
+            "amount": 4
+          },
+          "next": "hold"
+        },
+        "woken": {
+          "type": "exit",
+          "text": "Marshlight's waystone is awake. Along the stilts the orcs are cheering, which sounds a lot like a fight.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You step back from the stone.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About Marshlight's waystone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Marshlight. I've been putting this one off, and so, I suspect, have you. Every reading I take points the same way: the Fade comes up out of the black water in the Shadowmere, and it comes up thickest east of Marshlight. Their waystone has been quiet for ten years, and it isn't asleep like the others were. It's being drunk from. Before we can wake it, someone has to go out to where the Fade rises and hurt it.",
+          "options": [
+            "what-fade",
+            "the-eye",
+            "accept",
+            "decline"
+          ]
+        },
+        "what-fade": {
+          "label": "What is the Fade?",
+          "text": "I don't know. That's the honest answer, and I hate it. Something under the swamp that feeds on the waystone song. Where it feeds, the dark gets thick enough to stand up and walk. Grommash Ironhide, the Hoardkeeper, has watched it rise for years. His people know that water better than anyone alive.",
+          "options": [
+            "the-eye",
+            "accept",
+            "decline"
+          ]
+        },
+        "the-eye": {
+          "label": "I purified the Eye of the Abyss.",
+          "text": "And my readings dipped the week you did it. The Eye was one mouth the Fade drank through, and you took that mouth away. It is still hungry.",
+          "options": [
+            "what-fade",
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "quest_completed",
+              "id": "the-shadows-source"
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll go to Marshlight.",
+          "text": "Grommash first, then out onto the water. When you find where it rises, don't try to understand it. Hit it. Then go back to the village stone and hold the song while it wakes. The Fade will try to take the song from you. Don't let it.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Good. I mean, not good. But I understand. Come back when you're ready."
+        }
+      }
+    },
+    "active": {
+      "option": "About the Fade...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "You're still alive. Good. Well?",
+          "options": [
+            "s-grommash",
+            "s-water",
+            "s-stone",
+            "s-bye"
+          ]
+        },
+        "s-grommash": {
+          "label": "I haven't seen Grommash yet.",
+          "text": "Grommash Ironhide, at the Warhoard, in Marshlight's village center.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-marshlight",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-water": {
+          "label": "I'm going out onto the black water.",
+          "text": "Out past the Eastern Dock, where the water's blackest. Read it the way Grommash's people do.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-marshlight",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-stone": {
+          "label": "I hurt it.",
+          "text": "Now the village stone. Whatever it whispers at you, hold the song.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "waystone-marshlight",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll see it through.",
+          "text": "Come back. That's the important part."
+        }
+      }
+    },
+    "completed": {
+      "option": "About Marshlight's waystone...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Marshlight's waystone is awake. I didn't think I would see it. The Fade has pulled back a full mile from the village, Grommash says, and his people are fishing the eastern channels again. You can travel to Marshlight from any waystone. One stone left: Ironpeak. And I am afraid the last is the deepest."
+        }
+      }
+    },
+    "with": {
+      "hoardkeeper": {
+        "option": "Corvin sent me about the black water",
+        "start": "hub",
+        "nodes": {
+          "hub": {
+            "text": "The wizard's errand. Ask.",
+            "options": [
+              "water",
+              "fought",
+              "bye"
+            ]
+          },
+          "water": {
+            "label": "Where does the black water rise?",
+            "text": "The wizard. Hm. He is right, and I hate it when wizards are right. The black water rises east of here, past the merrow channels, in a place my people do not fish. The reeds there grow white. The water there is cold in summer. Take a skiff from the Eastern Dock and follow the white reeds. When the water starts to whisper, you are close.",
+            "options": [
+              "fought",
+              "bye"
+            ],
+            "requirements": [
+              {
+                "type": "quest_stage",
+                "id": "waystone-marshlight",
+                "min": 1,
+                "max": 1
+              }
+            ]
+          },
+          "fought": {
+            "label": "Have your people fought it before?",
+            "text": "Every winter. It takes the old ones first, and the ones who sleep too near the water. We burn torches all night along the stilts. It does not like fire, and it does not like song. We have plenty of fire. Song, we are worse at.",
+            "options": [
+              "bye"
+            ]
+          },
+          "bye": {
+            "label": "I'll be going.",
+            "text": "Find it. Hurt it. Come back."
+          }
+        }
+      }
+    }
+  }
+}

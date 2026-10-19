@@ -1,0 +1,18 @@
+{
+  "id": "rosies-key",
+  "name": "Rosie's Lost Key",
+  "description": "A small key from the Keywarden's ring, its bow stamped with a tiny burrow door. Rosie knows every one of them by feel.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 0.1,
+  "stack": 3,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for Keys Go Missing."
+  ],
+  "image": "/res/img/items/rosies-key.png"
+}

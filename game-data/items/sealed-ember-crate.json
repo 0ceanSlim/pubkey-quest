@@ -1,0 +1,18 @@
+{
+  "id": "sealed-ember-crate",
+  "name": "Sealed Ember Crate",
+  "description": "A small, heavy crate bound in brass, every seam closed with red ember-wax pressed with the Scalekeeper's mark. It does not rattle.",
+  "value": 0,
+  "type": "Adventuring Gear",
+  "weight": 5,
+  "stack": 1,
+  "rarity": "uncommon",
+  "tags": [
+    "quest_item"
+  ],
+  "notes": [
+    "Quest item: can't be dropped, sold or stored.",
+    "Needed for The Golden Toll."
+  ],
+  "image": "/res/img/items/sealed-ember-crate.png"
+}

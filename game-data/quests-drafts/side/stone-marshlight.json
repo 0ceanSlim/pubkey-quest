@@ -1,0 +1,296 @@
+{
+  "id": "stone-marshlight",
+  "name": "Prove Your Mettle",
+  "category": "side",
+  "difficulty": "Moderate",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "A Marshlight stone is a trophy from the clan hoard, and Grommash Ironhide gives trophies only to those who have bled for them. Two merrow are taking Marshlight's fishers. Kill them, burn their nest, and be judged.",
+  "start_condition": {
+    "type": "talk",
+    "target": "hoardkeeper",
+    "location": "marshlight",
+    "start_hint": "Ask Grommash Ironhide, the Hoardkeeper, about a Marshlight Homeward Stone at the Warhoard in Marshlight's village center."
+  },
+  "requirements": [
+    {
+      "type": "level",
+      "min": 7,
+      "description": "Requires level 7."
+    },
+    {
+      "type": "race",
+      "values": [
+        "Human",
+        "Half-Elf",
+        "Half-Orc",
+        "Tiefling",
+        "Elf",
+        "Dwarf",
+        "Halfling",
+        "Gnome",
+        "Dragonborn"
+      ],
+      "description": "Marshlight's orcs carry their stone from the clan hoard already."
+    }
+  ],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Level 7+",
+      "Survival 14",
+      "Constitution 12"
+    ],
+    "combat_danger": "Moderate"
+  },
+  "stages": [
+    {
+      "id": "the-merrow",
+      "description": "Two merrow are dragging Marshlight's fishers off the eastern channels. Hunt them in the Shadowmere Wetlands, east of the village. They'll find you if you travel the wetlands.",
+      "encounter": {
+        "location": "shadowmere-wetlands",
+        "monster_id": "merrow",
+        "count": 2,
+        "text": "The black water bulges beside the path, and two merrow come up out of it, all teeth and webbed claws.",
+        "arena": [
+          "..~~.....~~..",
+          ".~WW~..,.~W~.",
+          "..~~..=...~..",
+          ".,...~~~..,..",
+          "....~WWW~....",
+          "..,..~~~...,.",
+          "..~.....=.~~.",
+          ".~W~..,..~WW~",
+          "..~~.....~~.."
+        ]
+      },
+      "objectives": [
+        {
+          "type": "slay",
+          "target": "merrow",
+          "count": 2,
+          "description": "Kill the two merrow."
+        }
+      ]
+    },
+    {
+      "id": "the-nest",
+      "description": "Dead beasts breed. Find the merrows' nest in the reeds beyond Marshlight's Eastern Dock and burn it.",
+      "site": "merrow-nest",
+      "objectives": [
+        {
+          "type": "check",
+          "skill": "survival",
+          "value": 14,
+          "description": "Read the water to find the nest."
+        },
+        {
+          "type": "explore",
+          "target": "marshlight-merrow-nest",
+          "description": "Find and burn the nest."
+        }
+      ]
+    },
+    {
+      "id": "judgement",
+      "description": "Return to Grommash at the Warhoard and be judged. If he finds you worthy, he will sell you Marshlight's Homeward Stone.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "hoardkeeper",
+          "description": "Stand before Grommash."
+        }
+      ],
+      "rewards": {
+        "xp": 1600,
+        "gold": 400,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "greater-healing",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "sites": {
+    "merrow-nest": {
+      "name": "The Merrows' Nest",
+      "description": "Somewhere out in the reeds beyond the Eastern Dock, where the merrow breed.",
+      "location": "marshlight",
+      "district": "east",
+      "label": "Pole a skiff out to the merrows' nest",
+      "start_node": "start",
+      "nodes": {
+        "start": {
+          "type": "choice",
+          "text": "At the end of the Eastern Dock a flat-bottomed skiff is tied up for you, a pole and a torch laid in it. Beyond the dock the reeds close in, taller than a man.",
+          "choices": [
+            {
+              "label": "Pole out into the reeds",
+              "next": "reeds"
+            },
+            {
+              "label": "Not yet",
+              "next": "leave"
+            }
+          ]
+        },
+        "reeds": {
+          "type": "check",
+          "text": "You push out into the channels. They split, and split again.",
+          "skill": "survival",
+          "dc": 14,
+          "success_text": "You read the water: reeds bent all one way, the scum broken in a wide track where something heavy dragged itself through. You follow it to a mound of mud and rotten net.",
+          "success_next": "nest",
+          "failure_text": "Every channel looks like the last. When you finally turn back, the leeches have found your ankles.",
+          "failure_next": "leeches"
+        },
+        "leeches": {
+          "type": "damage",
+          "text": "You pick off a dozen leeches. They leave little round bites that burn.",
+          "damage": {
+            "type": "poison",
+            "amount": 2
+          },
+          "next": "reeds-again"
+        },
+        "reeds-again": {
+          "type": "choice",
+          "text": "The reeds hiss around the skiff.",
+          "choices": [
+            {
+              "label": "Try another channel",
+              "next": "reeds"
+            },
+            {
+              "label": "Pole back to the dock",
+              "next": "leave"
+            }
+          ]
+        },
+        "nest": {
+          "type": "narrative",
+          "text": "The nest is a heap of mud and torn fishing net on a hump of ground, littered with bones, and in the middle a clutch of grey eggs the size of your head. You put the torch to the net. It burns slow and stinking, and then all at once.",
+          "next": "out",
+          "waypoint": "marshlight-merrow-nest"
+        },
+        "out": {
+          "type": "exit",
+          "text": "You pole back to the dock with the smoke behind you. Grommash will want to hear.",
+          "is_terminal": true
+        },
+        "leave": {
+          "type": "exit",
+          "text": "You leave the skiff tied up.",
+          "is_terminal": true
+        }
+      }
+    }
+  },
+  "dialogue": {
+    "offer": {
+      "option": "About a Marshlight stone...",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "You want a Marshlight stone. A trophy of the clan hoard, in a stranger's pocket. Then you earn it the way the clan earned it: with blood. Two merrow have been taking our fishers off the eastern channels. Kill them. Find where they nest and burn it. Then come back, and I will judge whether you are clan enough to carry our stone.",
+          "options": [
+            "merrow",
+            "kin",
+            "accept",
+            "decline"
+          ]
+        },
+        "merrow": {
+          "label": "Merrow?",
+          "text": "Fish with arms and a grudge. Big. They come up under the boats and drag. Go out into the Shadowmere and they will find you. That is the easy part.",
+          "options": [
+            "kin",
+            "accept",
+            "decline"
+          ]
+        },
+        "kin": {
+          "label": "Marshlight already calls my people kin.",
+          "text": "It does, and it means it. Kin eat at our fires. Kin do not carry the hoard's stones until they have bled for the hoard. Prove it, and you will be more than kin.",
+          "options": [
+            "merrow",
+            "accept",
+            "decline"
+          ],
+          "requirements": [
+            {
+              "type": "race",
+              "values": [
+                "Half-Orc",
+                "Tiefling"
+              ]
+            }
+          ]
+        },
+        "accept": {
+          "label": "I'll hunt them.",
+          "text": "Good. East, into the black water. Do not drink it.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not yet.",
+          "text": "Then you are not ready. Come back when you are."
+        }
+      }
+    },
+    "active": {
+      "option": "About the merrow...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Well?",
+          "options": [
+            "s-hunt",
+            "s-nest",
+            "s-bye"
+          ]
+        },
+        "s-hunt": {
+          "label": "They're still out there.",
+          "text": "Then go east into the wetlands and keep walking. Merrow hunt by sound. Let them hear you.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-marshlight",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "s-nest": {
+          "label": "The merrow are dead.",
+          "text": "Dead beasts breed. Their nest is out in the reeds past the Eastern Dock. Take the skiff, read the water, find it and burn it. Then come back.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "stone-marshlight",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "s-bye": {
+          "label": "I'll be back.",
+          "text": "With blood on you, or not at all."
+        }
+      }
+    },
+    "completed": {
+      "option": "About my judgement...",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Grommash looks you over the way he would look over a blade. \"Two merrow, a nest burned, and you came back on your own feet. That is mettle.\" He thumps his chest once. \"The hoard knows you now. You want a Marshlight stone, you come to me and you buy one, like the clan does. One each.\""
+        }
+      }
+    }
+  }
+}
