@@ -204,7 +204,14 @@ func (g *gen) writeMap() error {
 	b.WriteString("The world as the roads join it: towns where travel begins and ends, roads coloured by terrain " +
 		"with their crossing times. 🌀 marks a town square with a waystone (see " + link("Homeward Stones & Waystones", "Rules/Teleportation") + "). " +
 		"Gold-ringed towns are starting cities.\n\n")
-	fmt.Fprintf(&b, `<img src="%s/media/world-map.svg?v=%s" alt="World map" width="%d" class="world-map">`+"\n\n", base, fileFingerprint(dst), min(w, 900))
+	painted, err := g.writePaintedMap()
+	if err != nil {
+		return err
+	}
+	if painted != "" {
+		b.WriteString(painted + "\n\n## Route diagram\n\nThe same roads as a plain diagram, laid out by the compass directions you travel them.\n\n")
+	}
+	fmt.Fprintf(&b, `<img src="%s/media/world-map.svg?v=%s" alt="Route diagram" width="%d" class="world-map">`+"\n\n", base, fileFingerprint(dst), min(w, 900))
 
 	var rows [][]string
 	for _, r := range roads {

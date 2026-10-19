@@ -1,6 +1,7 @@
 {
   "id": "saltwind",
   "name": "Saltwind Village",
+  "map_position": [722, 905],
   "music": "Mysteries",
   "type": "village",
   "description": "A picturesque fishing village perched on coastal cliffs overlooking the sea. Boats bob in the protected harbor while nets dry in the salty breeze. The villagers make their living from the bounty of the ocean.",

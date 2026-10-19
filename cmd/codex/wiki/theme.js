@@ -95,11 +95,15 @@
     });
   }
 
-  // The world map is an <img> (Gollum strips inline SVG); swap in the SVG
-  // itself so its towns and roads are links.
+  // The world maps are <img>s (Gollum strips inline SVG); swap in the SVGs
+  // themselves so their towns and roads are links.
   function inlineMap() {
-    var img = document.querySelector('.markdown-body img[src*="/media/world-map.svg"]');
-    if (!img || !window.fetch) return;
+    if (!window.fetch) return;
+    var imgs = document.querySelectorAll('.markdown-body img[src*="/media/world-map"]');
+    Array.prototype.forEach.call(imgs, inlineOne);
+  }
+
+  function inlineOne(img) {
     fetch(img.getAttribute('src')).then(function (r) { return r.ok ? r.text() : ''; }).then(function (svg) {
       if (!svg) return;
       var box = document.createElement('div');

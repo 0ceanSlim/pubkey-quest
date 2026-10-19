@@ -2,6 +2,7 @@
   "id": "goldenhaven",
   "waystone": {"district": "center", "description": "An ancient elven waystone stands in the square, its runes faintly lit. Homeward Stones bring you here, and once it is woken it can carry you to the other waystones."},
   "name": "Goldenhaven City",
+  "map_position": [1062, 398],
   "type": "city",
   "image": "/res/img/locations/kingdom.png",
   "music": "God of Dreams",

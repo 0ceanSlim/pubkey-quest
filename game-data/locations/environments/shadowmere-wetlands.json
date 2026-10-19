@@ -1,6 +1,7 @@
 {
   "id": "shadowmere-wetlands",
   "name": "Shadowmere Wetlands",
+  "map_position": [568, 705],
   "type": "environment",
   "environment_type": "swamp",
   "music": "Calm Waters",

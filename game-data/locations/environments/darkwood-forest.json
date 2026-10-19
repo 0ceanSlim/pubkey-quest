@@ -1,6 +1,7 @@
 {
   "id": "darkwood-forest",
   "name": "Darkwood Forest",
+  "map_position": [690, 545],
   "type": "environment",
   "environment_type": "forest",
   "music": "Home In The Forest",

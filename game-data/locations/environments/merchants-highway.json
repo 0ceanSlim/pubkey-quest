@@ -1,6 +1,7 @@
 {
   "id": "merchants-highway",
   "name": "Merchant's Highway",
+  "map_position": [838, 407],
   "type": "environment",
   "environment_type": "urban",
   "music": "Celtic Rhythm",

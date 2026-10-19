@@ -1,6 +1,7 @@
 {
   "id": "suncrest-coastlands",
   "name": "Suncrest Coastlands",
+  "map_position": [805, 822],
   "type": "environment",
   "environment_type": "coast",
   "music": "Medieval Jubilee",

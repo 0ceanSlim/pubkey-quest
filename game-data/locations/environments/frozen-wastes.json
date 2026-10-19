@@ -1,6 +1,7 @@
 {
   "id": "frozen-wastes",
   "name": "Frozen Wastes",
+  "map_position": [930, 128],
   "type": "environment",
   "environment_type": "arctic",
   "music": "Pondering",

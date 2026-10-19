@@ -1,6 +1,7 @@
 {
   "id": "greywind-plains",
   "name": "Greywind Plains",
+  "map_position": [626, 262],
   "type": "environment",
   "environment_type": "grassland",
   "music": "Medieval Jubilee",

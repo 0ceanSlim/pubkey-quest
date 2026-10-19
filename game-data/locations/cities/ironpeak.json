@@ -2,6 +2,7 @@
   "id": "ironpeak",
   "waystone": {"district": "center", "description": "An ancient elven waystone stands in the square, its runes faintly lit. Homeward Stones bring you here, and once it is woken it can carry you to the other waystones."},
   "name": "Ironpeak Town",
+  "map_position": [1268, 128],
   "type": "town",
   "image": "/res/img/locations/ironpeak.png",
   "music": "Breath Of The Mountains",

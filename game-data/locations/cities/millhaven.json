@@ -2,6 +2,7 @@
   "id": "millhaven",
   "waystone": {"district": "center", "description": "An ancient elven waystone stands in the square, its runes faintly lit. Homeward Stones bring you here, and once it is woken it can carry you to the other waystones."},
   "name": "Millhaven Village",
+  "map_position": [215, 372],
   "type": "village",
   "image": "/res/img/locations/millhaven.png",
   "music": "Healing",

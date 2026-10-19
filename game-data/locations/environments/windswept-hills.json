@@ -1,6 +1,7 @@
 {
   "id": "windswept-hills",
   "name": "Windswept Hills",
+  "map_position": [400, 405],
   "type": "environment",
   "environment_type": "hill",
   "music": "Endless Pastures",

@@ -1,6 +1,7 @@
 {
   "id": "sunscorch-desert",
   "name": "Sunscorch Desert",
+  "map_position": [1280, 432],
   "type": "environment",
   "environment_type": "desert",
   "music": "Eternal Sunset",

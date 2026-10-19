@@ -1,6 +1,7 @@
 {
   "id": "cragspire-mountains",
   "name": "Cragspire Mountains",
+  "map_position": [1160, 262],
   "type": "environment",
   "environment_type": "mountain",
   "music": "Citadel in the Mountains",

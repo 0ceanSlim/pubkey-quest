@@ -223,6 +223,7 @@ type city struct {
 		District    string `json:"district"`
 		Description string `json:"description"`
 	} `json:"waystone"`
+	MapPos []float64 `json:"map_position"` // where the town sits on the painted world map (px)
 }
 
 type district struct {
@@ -268,13 +269,14 @@ func (b building) hours() string {
 }
 
 type environment struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	EnvType     string   `json:"environment_type"`
-	Description string   `json:"description"`
-	Connects    []string `json:"connects"`
-	TravelTime  int      `json:"travel_time"`
-	Difficulty  string   `json:"travel_difficulty"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	EnvType     string    `json:"environment_type"`
+	Description string    `json:"description"`
+	Connects    []string  `json:"connects"`
+	TravelTime  int       `json:"travel_time"`
+	Difficulty  string    `json:"travel_difficulty"`
+	MapPos      []float64 `json:"map_position"` // where its road label sits on the painted world map (px)
 }
 
 type npc struct {

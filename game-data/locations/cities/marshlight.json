@@ -2,6 +2,7 @@
   "id": "marshlight",
   "waystone": {"district": "center", "description": "An ancient elven waystone stands in the square, its runes faintly lit. Homeward Stones bring you here, and once it is woken it can carry you to the other waystones."},
   "name": "Marshlight Village",
+  "map_position": [318, 680],
   "type": "village",
   "image": "/res/img/locations/marshlight.png",
   "music": "Mellow Times",
