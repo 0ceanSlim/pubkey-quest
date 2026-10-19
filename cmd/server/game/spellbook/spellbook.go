@@ -447,3 +447,40 @@ func OnClassList(class, spellID string) bool {
 	}
 	return false
 }
+
+// legacyStartingSpells are the level-1 spells paladins and rangers were given
+// at creation before they followed 5e (no spells until level 2). Paladins now
+// know their whole list from level 2, and a ranger picks theirs, so these old
+// grants would count as a ranger's picks. Saves made before the change drop
+// them on load.
+var legacyStartingSpells = map[string][]string{
+	"paladin": {"bless", "cure-wounds", "divine-favor", "searing-smite", "shield-of-faith", "thunderous-smite"},
+	"ranger":  {"cure-wounds", "ensnaring-strike", "goodberry", "hunters-mark", "speak-with-animals"},
+}
+
+// DropLegacyStartingSpells removes those old grants from a paladin's or a
+// ranger's known spells. Returns true when anything was removed.
+func DropLegacyStartingSpells(save *types.SaveFile) bool {
+	if save == nil {
+		return false
+	}
+	legacy := legacyStartingSpells[strings.ToLower(save.Class)]
+	if len(legacy) == 0 {
+		return false
+	}
+	drop := map[string]bool{}
+	for _, id := range legacy {
+		drop[id] = true
+	}
+	kept := save.KnownSpells[:0]
+	changed := false
+	for _, id := range save.KnownSpells {
+		if drop[id] {
+			changed = true
+			continue
+		}
+		kept = append(kept, id)
+	}
+	save.KnownSpells = kept
+	return changed
+}

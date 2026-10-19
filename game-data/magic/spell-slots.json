@@ -951,7 +951,7 @@
     }
   },
   "ranger": {
-    "1": { "cantrips": 0, "level_1": 1 },
+    "1": { "cantrips": 0, "level_1": 0 },
     "2": { "cantrips": 0, "level_1": 2 },
     "3": { "cantrips": 0, "level_1": 3 },
     "4": { "cantrips": 0, "level_1": 3 },

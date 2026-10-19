@@ -2,6 +2,20 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-19-wiki-and-5e",
+      "when": "October 19, 2026",
+      "icon": "🗺️",
+      "size": "minor",
+      "title": "A Map in the Wiki, and Paladins and Rangers by the Book",
+      "summary": "The wiki has a world map and how-the-game-works guides, and paladins and rangers cast as they do in 5e.",
+      "highlights": [
+        "The wiki has a painted world map with every town and road pinned on it, and new guides to combat, survival, day and night, learning spells, scribing and Homeward Stones",
+        "Every scroll has a wiki page, and spell pages say who learns them, where to scribe them and what drops them",
+        "Paladins and rangers follow 5e: their spells begin at level 2. Paladins know the whole paladin list from then on; rangers learn 2 spells at level 2 and more as they level",
+        "Hunger reads the same everywhere: Starving, Hungry, Well Fed, Stuffed"
+      ]
+    },
+    {
       "id": "2026-10-19-shop-fixes",
       "when": "October 19, 2026",
       "icon": "🛒",

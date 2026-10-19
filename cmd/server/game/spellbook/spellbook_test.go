@@ -167,3 +167,30 @@ func TestPickCounts(t *testing.T) {
 		t.Errorf("fighters learn no spells: %d picks", got)
 	}
 }
+
+// Paladins and rangers follow 5e: nothing at level 1; at level 2 a paladin
+// knows the whole paladin list and a ranger picks two.
+func TestPaladinAndRangerAre5e(t *testing.T) {
+	setup(t)
+	pal := &types.SaveFile{Class: "Paladin"}
+	if len(Known(pal)) != 0 || MaxSpellLevel("Paladin", 1) != 0 {
+		t.Errorf("a level-1 paladin has no spells or slots: %v", Known(pal))
+	}
+	pal.Experience = xpFor(t, 2)
+	if !Knows(pal, "bless") || Picks(pal) != 0 {
+		t.Errorf("a level-2 paladin knows the paladin list (bless) and has no picks: knows=%v picks=%d", Knows(pal, "bless"), Picks(pal))
+	}
+	ranger := &types.SaveFile{Class: "Ranger", Experience: xpFor(t, 2)}
+	if MaxSpellLevel("Ranger", 1) != 0 {
+		t.Error("a level-1 ranger has no spell slots")
+	}
+	if got := Picks(ranger); got != 2 {
+		t.Errorf("a level-2 ranger picks 2 spells, got %d", got)
+	}
+	// An old ranger save still carrying the pre-5e starting grants loses them
+	// on load, so they don't eat its picks.
+	old := &types.SaveFile{Class: "Ranger", Experience: xpFor(t, 2), KnownSpells: []string{"cure-wounds", "goodberry", "hunters-mark"}}
+	if !DropLegacyStartingSpells(old) || len(old.KnownSpells) != 0 || Picks(old) != 2 {
+		t.Errorf("legacy grants should drop and leave 2 picks: %v, picks %d", old.KnownSpells, Picks(old))
+	}
+}

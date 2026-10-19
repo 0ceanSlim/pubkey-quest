@@ -106,23 +106,10 @@
   },
   "paladin": {
     "cantrips": [],
-    "level1": [
-      "bless",
-      "cure-wounds",
-      "divine-favor",
-      "searing-smite",
-      "shield-of-faith",
-      "thunderous-smite"
-    ]
+    "level1": []
   },
   "ranger": {
     "cantrips": [],
-    "level1": [
-      "cure-wounds",
-      "ensnaring-strike",
-      "goodberry",
-      "hunters-mark",
-      "speak-with-animals"
-    ]
+    "level1": []
   }
 }

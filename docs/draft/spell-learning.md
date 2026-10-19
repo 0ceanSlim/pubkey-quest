@@ -15,8 +15,8 @@ to learn.
 
 | Caster type | Classes | Rule | Status |
 |---|---|---|---|
-| Whole-list | cleric, druid (`spells_known` = 99 in `spell-progression.json`) | Know every class spell of each spell level they have slots for | ✅ **built** (derived, nothing stored) |
-| Known | bard, sorcerer, warlock, paladin, ranger | Pick new spells at level-up, up to `spells_known[level]` | ✅ **built** (picks; swap still to do) |
+| Whole-list | cleric, druid, paladin (`spells_known` = 99 in `spell-progression.json`) | Know every class spell of each spell level they have slots for | ✅ **built** (derived, nothing stored) |
+| Known | bard, sorcerer, warlock, ranger | Pick new spells at level-up, up to `spells_known[level]` | ✅ **built** (picks; swap still to do) |
 | Spellbook | wizard | 2 free spells per level, plus copying scrolls | ✅ level-up picks + Commit to memory (a scroll in the spellbook) |
 
 **Picks as built** (`spellbook.Picks` / `PickOptions` / `Learn`):
@@ -52,9 +52,11 @@ spell with the class in `classes`.
 - **Endpoint:** `POST /api/progression/learn-spell {spell_id}`. It checks the
   pick count, class, slot level and that the spell isn't already known.
 - **Swap (5e):** on level-up, may replace one known spell. Optional, later.
-- **Open:** paladin and ranger are prepared casters in 5e, but
-  `spell-progression.json` gives them counts. The data wins until we decide
-  otherwise.
+- **Paladin and ranger follow 5e (2026-10-19):** neither has spells or slots at
+  level 1. A paladin prepares from the whole paladin list once it has slots
+  (whole-list, 99), and a ranger knows 2 spells at level 2, rising to 11.
+  Older saves drop the level-1 spells they used to be given at creation
+  (`spellbook.DropLegacyStartingSpells`).
 
 ## Wizard (to build)
 

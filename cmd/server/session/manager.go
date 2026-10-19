@@ -103,6 +103,8 @@ func loadAndHydrateSave(npub, saveID string) (*types.SaveFile, error) {
 		inventory.NormalizeHands(save)
 		// Spell slots grow with level (older saves stayed at level-1 counts).
 		spellbook.SyncSlots(save)
+		// Paladins and rangers follow 5e now (no spells until level 2).
+		spellbook.DropLegacyStartingSpells(save)
 	}
 	return save, nil
 }
