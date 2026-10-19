@@ -369,13 +369,15 @@ func TickEffects(state *types.SaveFile, minutesElapsed int, accrueFatigue bool) 
 		}
 
 		// Tick down duration (but don't tick permanent effects with duration == 0)
-		if activeEffect.DurationRemaining > 0 {
+		timed := activeEffect.DurationRemaining > 0
+		if timed {
 			activeEffect.DurationRemaining -= float64(minutesElapsed)
 		}
 
-		// Keep effect if duration remains or is permanent (0)
-		// BUT skip accumulation effects if we've hit the cap
-		shouldKeep := activeEffect.DurationRemaining > 0 || activeEffect.DurationRemaining == 0
+		// Keep a permanent effect (0), or a timed one with time left. A timed
+		// effect that lands on exactly 0 has expired — it used to be kept as if
+		// permanent. Skip accumulation effects if we've hit the cap.
+		shouldKeep := !timed || activeEffect.DurationRemaining > 0
 
 		// Don't keep fatigue-accumulation if fatigue is maxed
 		if activeEffect.EffectID == "fatigue-accumulation" && state.Fatigue >= 10 {
