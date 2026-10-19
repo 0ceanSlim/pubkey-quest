@@ -66,7 +66,7 @@
       "skill": "perception",
       "dc": 18,
       "success_text": "A section of the wall slides away, revealing a secret ossuary.",
-      "success_next": "secret-ossuary",
+      "success_next": "ossuary-specter",
       "failure_text": "A needle pricks your finger as you search.",
       "failure_next": "bone-trap-damage"
     },
@@ -237,6 +237,13 @@
         ]
       },
       "is_terminal": true
+    },
+    "ossuary-specter": {
+      "type": "monster",
+      "text": "The wall grinds open, and cold rolls out of the hidden room. A specter rises between you and the saints' bones, its hollow face twisting with old grief.",
+      "monster_id": "specter",
+      "count": 1,
+      "next": "secret-ossuary"
     }
   }
 }

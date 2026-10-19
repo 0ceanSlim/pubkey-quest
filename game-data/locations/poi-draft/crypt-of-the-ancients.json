@@ -69,7 +69,7 @@
         "type": "slashing",
         "amount": 8
       },
-      "next": "grand-chamber"
+      "next": "niche-claws"
     },
     "holy-threshold": {
       "text": "The Holy Water sizzles on the stone. A protective barrier forms, and the restless spirits in the hall remain dormant as you pass.",
@@ -198,6 +198,13 @@
       "text": "Past the Hall of Whispers, you find a series of well-maintained tunnels that eventually emerge far to the north.",
       "type": "exit",
       "is_terminal": true
+    },
+    "niche-claws": {
+      "type": "monster",
+      "text": "The trap's clatter wakes something in the burial niches. Severed hands drag themselves out of the dust and skitter toward you.",
+      "monster_id": "crawling-claw",
+      "count": 3,
+      "next": "grand-chamber"
     }
   }
 }
