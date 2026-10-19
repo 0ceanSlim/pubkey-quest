@@ -91,6 +91,12 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 		if escape, _ := props["escape"].(bool); escape {
 			return &types.GameActionResponse{Success: false, Message: "That's for getting out of a fight.", Color: "yellow"}, nil
 		}
+		// Throwables (acid, a net) and traps (caltrops) only work in a fight.
+		_, throw := props["throw"]
+		_, scatter := props["scatter"]
+		if throw || scatter {
+			return &types.GameActionResponse{Success: false, Message: "Save that for a fight: use it in combat.", Color: "yellow"}, nil
+		}
 		reusable, _ = props["reusable"].(bool)
 	}
 

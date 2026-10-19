@@ -122,10 +122,12 @@ export function getItemActions(itemData, isEquipped) {
             }
         }
 
-        // Check for consumables (and weapon coatings: poison, a whetstone)
+        // Consumables by type or tag (a healer's kit is Adventuring Gear tagged
+        // consumable), and weapon coatings (poison, a whetstone).
         const consumableTypes = ['Potion', 'Consumable', 'Food'];
         const itemType = itemData.type || itemData.item_type;
-        if (consumableTypes.includes(itemType) || (itemData.tags && itemData.tags.includes('coating'))) {
+        const tags = itemData.tags || [];
+        if (consumableTypes.includes(itemType) || tags.includes('consumable') || tags.includes('coating')) {
             actions.push({ action: 'use', label: 'Use' });
         }
 
