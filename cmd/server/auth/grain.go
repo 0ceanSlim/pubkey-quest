@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -217,54 +216,27 @@ func (auth *AuthHandler) HandleSession(w http.ResponseWriter, r *http.Request) {
 	auth.sendJSONResponse(w, response, http.StatusOK)
 }
 
-// HandleAmberCallback receives Amber's NIP-55 redirect and hands the resulting
-// public key back to the MILL modal running in the user's original tab. It
-// speaks MILL's amber-callback protocol (localStorage key "mill:amber:result"
-// plus a postMessage to window.opener); MILL's awaitAmberResult listener there
-// completes the connection, and the resulting pubkey then flows through the
-// normal HandleLogin path — which is where the session + whitelist check happen.
-func (auth *AuthHandler) HandleAmberCallback(w http.ResponseWriter, r *http.Request) {
-	log.Printf("🎮 Amber callback received: url=%s", r.URL.String())
-
-	eventParam := r.URL.Query().Get("event")
-
-	var pubkeyHex, errMsg string
-	if eventParam == "" {
-		log.Printf("❌ Amber callback missing event parameter")
-		errMsg = "Missing event data from Amber"
-	} else {
-		// Amber may URL-encode the event parameter.
-		decodedEvent, decErr := url.QueryUnescape(eventParam)
-		if decErr != nil {
-			decodedEvent = eventParam
-		}
-
-		pk, err := auth.extractPublicKeyFromAmber(decodedEvent)
-		if err != nil {
-			log.Printf("❌ Failed to extract public key from amber response: %v", err)
-			errMsg = "Invalid response from Amber"
-		} else {
-			pubkeyHex = pk
-			log.Printf("✅ Amber callback resolved pubkey: %s...", pubkeyHex[:16])
-		}
-	}
-
-	auth.renderAmberRelay(w, pubkeyHex, errMsg)
-}
-
-// renderAmberRelay returns a minimal page that writes the Amber result into
-// MILL's amber-callback channel and closes itself. It intentionally does not
-// create a session — that happens uniformly in HandleLogin once the MILL modal
+// HandleAmberCallback is the page Amber's NIP-55 redirect lands on. MILL asks
+// Amber to append its result as a `#event=` fragment, which browsers never send
+// to the server — so this page reads the result client-side and forwards it
+// verbatim over MILL's amber-callback channel (localStorage key
+// "mill:amber:result" plus a postMessage to window.opener), where MILL's
+// awaitAmberResult listener in the original tab picks it up. The result is a
+// bare pubkey for get_public_key and a full signed event for sign_event, so it
+// must not be parsed or reduced here. A legacy `?event=` query is still read.
+// No session is created — that happens uniformly in HandleLogin once MILL
 // reports the connection.
-func (auth *AuthHandler) renderAmberRelay(w http.ResponseWriter, pubkeyHex, errMsg string) {
+func (auth *AuthHandler) HandleAmberCallback(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🎮 Amber callback page served")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(amberRelayHTML))
+}
 
-	// Marshal to JS string literals for safe embedding.
-	eventJSON, _ := json.Marshal(pubkeyHex)
-	errorJSON, _ := json.Marshal(errMsg)
-
-	html := `<!DOCTYPE html>
+// amberRelayHTML mirrors MILL's readCallbackResult/deliverAmberCallback
+// (nostr-mill src/nip55.js) so the callback works without loading the MILL
+// bundle on this page.
+const amberRelayHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -279,10 +251,22 @@ func (auth *AuthHandler) renderAmberRelay(w http.ResponseWriter, pubkeyHex, errM
 	<p id="msg">Returning to Pubkey Quest…</p>
 	<script>
 		(function () {
-			var event = ` + string(eventJSON) + `;
-			var error = ` + string(errorJSON) + `;
+			var event = null, error = null;
+			try {
+				var url = new URL(window.location.href);
+				var hash = url.hash.replace(/^#/, '');
+				if (/^event=/.test(hash)) {
+					event = decodeURIComponent(hash.slice(6));
+				} else {
+					event = url.searchParams.get('event');
+					error = url.searchParams.get('error');
+				}
+			} catch (e) {}
+			if (!event && !error) error = 'No result received from Amber';
 			try { localStorage.setItem('mill:amber:result', JSON.stringify({ event: event, error: error, ts: Date.now() })); } catch (e) {}
 			try { if (window.opener) window.opener.postMessage({ amberEvent: event, amberError: error }, '*'); } catch (e) {}
+			// Drop the result from the URL so a reload can't replay it.
+			try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
 			if (error) {
 				var m = document.getElementById('msg');
 				m.className = 'err';
@@ -298,9 +282,6 @@ func (auth *AuthHandler) renderAmberRelay(w http.ResponseWriter, pubkeyHex, errM
 	</script>
 </body>
 </html>`
-
-	w.Write([]byte(html))
-}
 
 // GetCurrentUser is a utility function to get the current authenticated user
 func GetCurrentUser(r *http.Request) *session.UserSession {
@@ -322,47 +303,6 @@ func (auth *AuthHandler) validateLoginRequest(req *LoginRequest) error {
 	}
 
 	return nil
-}
-
-func (auth *AuthHandler) extractPublicKeyFromAmber(eventParam string) (string, error) {
-	// Handle compressed response (starts with "Signer1")
-	if strings.HasPrefix(eventParam, "Signer1") {
-		return "", fmt.Errorf("compressed Amber responses not supported")
-	}
-
-	// Try to parse as JSON event (returnType=signature or returnType=event)
-	var event map[string]interface{}
-	if err := json.Unmarshal([]byte(eventParam), &event); err == nil {
-		// It's a JSON event, extract pubkey field
-		if pubkey, ok := event["pubkey"].(string); ok && len(pubkey) == 64 {
-			log.Printf("✅ Extracted pubkey from JSON event: %s", pubkey)
-			return pubkey, nil
-		}
-
-		// Check if it's wrapped in an "event" field
-		if eventObj, ok := event["event"].(map[string]interface{}); ok {
-			if pubkey, ok := eventObj["pubkey"].(string); ok && len(pubkey) == 64 {
-				log.Printf("✅ Extracted pubkey from nested event: %s", pubkey)
-				return pubkey, nil
-			}
-		}
-
-		log.Printf("⚠️ JSON event doesn't have valid pubkey field: %v", event)
-		return "", fmt.Errorf("event JSON missing valid pubkey field")
-	}
-
-	// Fallback: treat as direct public key string
-	publicKey := strings.TrimSpace(eventParam)
-
-	// Validate public key format (64 hex characters)
-	pubKeyRegex := regexp.MustCompile(`^[a-fA-F0-9]{64}$`)
-	if !pubKeyRegex.MatchString(publicKey) {
-		log.Printf("⚠️ Not a valid hex pubkey: %s", publicKey)
-		return "", fmt.Errorf("invalid public key format from Amber")
-	}
-
-	log.Printf("✅ Extracted pubkey as direct string: %s", publicKey)
-	return publicKey, nil
 }
 
 // isLocalConnection checks if the request is from localhost or local network

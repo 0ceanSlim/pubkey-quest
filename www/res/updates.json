@@ -2,6 +2,14 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-21-amber-login",
+      "when": "October 21, 2026",
+      "icon": "📱",
+      "size": "minor",
+      "title": "Amber Sign-In Works Again",
+      "summary": "Signing in with Amber on Android works again. It used to come back with \"Missing event data from Amber\"."
+    },
+    {
       "id": "2026-10-19-wiki-and-5e",
       "when": "October 19, 2026",
       "icon": "🗺️",
