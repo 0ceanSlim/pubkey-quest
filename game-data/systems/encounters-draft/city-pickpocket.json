@@ -156,7 +156,8 @@
       "type": "transaction",
       "text": "The figure is gone before you even realize your coin purse feels lighter.",
       "cost": {
-        "gold": 10
+        "gold": 10,
+        "theft": true
       },
       "is_terminal": true
     }

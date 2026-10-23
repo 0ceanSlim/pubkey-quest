@@ -22,6 +22,7 @@ import { smoothClock } from './smoothClock.js';
 import { eventBus } from '../lib/events.js';
 import { getGameStateSync } from '../state/gameState.js';
 import { effectsDisplay } from '../ui/effectsDisplay.js';
+import { buildingButton } from '../ui/locationDisplay.js';
 
 class DeltaApplier {
     constructor() {
@@ -262,31 +263,10 @@ class DeltaApplier {
 
         for (const [buildingId, isOpen] of Object.entries(buildingDelta.state_changed)) {
             const button = document.querySelector(`[data-building-id="${buildingId}"]`);
-            if (button) {
-                if (isOpen) {
-                    button.style.background = '#6b8e6b';
-                    button.style.color = '#ffffff';
-                    button.disabled = false;
-                    button.classList.remove('opacity-50', 'cursor-not-allowed');
-                    // Update click handler to enter building
-                    button.onclick = () => {
-                        if (window.enterBuilding) {
-                            window.enterBuilding(buildingId);
-                        }
-                    };
-                } else {
-                    button.style.background = '#808080';
-                    button.style.color = '#000000';
-                    button.disabled = true;
-                    button.classList.add('opacity-50', 'cursor-not-allowed');
-                    // Update click handler to show closed message
-                    button.onclick = () => {
-                        if (window.showBuildingClosedMessage) {
-                            // Get building data from button's text content for message
-                            window.showBuildingClosedMessage({ id: buildingId, name: button.textContent });
-                        }
-                    };
-                }
+            if (button?._building) {
+                // A fresh button: the right label, and only its one handler
+                // (patching the old one left its "closed" click in place).
+                button.replaceWith(buildingButton(button._building, isOpen));
                 logger.debug(`Building ${buildingId}: ${isOpen ? 'OPEN' : 'CLOSED'}`);
             }
         }

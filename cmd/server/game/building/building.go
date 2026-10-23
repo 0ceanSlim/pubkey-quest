@@ -110,27 +110,25 @@ func IsBuildingOpen(db *sql.DB, locationID, buildingID string, timeOfDay int) (b
 	return false, 0, 0, fmt.Errorf("building not found: %s", buildingID)
 }
 
-// GetAllBuildingStatesForDistrict returns the open/closed state of all buildings in a district
-// Returns map[buildingID]isOpen
-func GetAllBuildingStatesForDistrict(db *sql.DB, locationID, districtID string, timeOfDay int) (map[string]bool, error) {
-	result := make(map[string]bool)
-
+// districtBuildings returns the raw building entries of one district of a
+// location (nil when the location has no such district or no buildings).
+func districtBuildings(db *sql.DB, locationID, districtID string) ([]interface{}, error) {
 	// Get location data from database
 	var propertiesJSON string
 	err := db.QueryRow("SELECT properties FROM locations WHERE id = ?", locationID).Scan(&propertiesJSON)
 	if err != nil {
-		return result, fmt.Errorf("location not found: %s", locationID)
+		return nil, fmt.Errorf("location not found: %s", locationID)
 	}
 
 	var locationData map[string]interface{}
 	if err := json.Unmarshal([]byte(propertiesJSON), &locationData); err != nil {
-		return result, fmt.Errorf("failed to parse location data: %v", err)
+		return nil, fmt.Errorf("failed to parse location data: %v", err)
 	}
 
 	// Navigate to the specific district
 	districts, ok := locationData["districts"].(map[string]interface{})
 	if !ok {
-		return result, nil // No districts, return empty map
+		return nil, nil // No districts
 	}
 
 	// Extract district key from districtID (e.g., "kingdom-center" -> "center")
@@ -141,12 +139,38 @@ func GetAllBuildingStatesForDistrict(db *sql.DB, locationID, districtID string, 
 
 	districtData, ok := districts[districtKey].(map[string]interface{})
 	if !ok {
-		return result, nil // District not found
+		return nil, nil // District not found
 	}
 
-	buildings, ok := districtData["buildings"].([]interface{})
-	if !ok {
-		return result, nil // No buildings
+	buildings, _ := districtData["buildings"].([]interface{})
+	return buildings, nil
+}
+
+// DistrictBuildingNames returns map[buildingID]name for one district.
+func DistrictBuildingNames(db *sql.DB, locationID, districtID string) (map[string]string, error) {
+	buildings, err := districtBuildings(db, locationID, districtID)
+	names := make(map[string]string, len(buildings))
+	for _, b := range buildings {
+		if m, ok := b.(map[string]interface{}); ok {
+			id, _ := m["id"].(string)
+			name, _ := m["name"].(string)
+			if name == "" {
+				name = id
+			}
+			names[id] = name
+		}
+	}
+	return names, err
+}
+
+// GetAllBuildingStatesForDistrict returns the open/closed state of all buildings in a district
+// Returns map[buildingID]isOpen
+func GetAllBuildingStatesForDistrict(db *sql.DB, locationID, districtID string, timeOfDay int) (map[string]bool, error) {
+	result := make(map[string]bool)
+
+	buildings, err := districtBuildings(db, locationID, districtID)
+	if err != nil {
+		return result, err
 	}
 
 	// Check each building

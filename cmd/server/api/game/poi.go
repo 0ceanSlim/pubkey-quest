@@ -60,6 +60,13 @@ func buildPOIDeps(state *types.SaveFile) (poi.Deps, error) {
 			}
 		},
 		PayCost: payPOICost,
+		TakeGold: func(s *types.SaveFile, n int) int {
+			n = min(n, gameutil.GetGoldQuantity(s))
+			if n <= 0 || !gameutil.DeductGold(s, n) {
+				return 0
+			}
+			return n
+		},
 		RandomScroll: func(f *types.ScrollFilter, rng *rand.Rand) string {
 			return spellbook.RandomScroll(f, rng.Intn)
 		},
@@ -182,8 +189,9 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	return res, nil
 }
 
-// bridgePOICombat starts combat with the monster node's group (its authored count,
-// and an ambush if it's flagged surprise), mirroring the biome travel-encounter
+// bridgePOICombat starts combat with the monster node's group (its authored count;
+// a node flagged surprise is the player's ambush: the monsters are surprised and
+// the player strikes first, per the schema), mirroring the biome travel-encounter
 // entry (maybeRollTravelEncounter in actions.go).
 func bridgePOICombat(sess *session.GameSession, res *poi.StepResult) error {
 	if sess.ActiveCombat != nil {
@@ -195,10 +203,10 @@ func bridgePOICombat(sess *session.GameSession, res *poi.StepResult) error {
 	}
 	state := &sess.SaveData
 	spec := combat.EncounterSpec{
-		MonsterIDs:    combat.MonsterIDsForCount(res.Combat, res.CombatCount),
-		EnvironmentID: state.Location,
-		Surprise:      res.CombatSurprise,
-		Arena:         res.CombatArena,
+		MonsterIDs:        combat.MonsterIDsForCount(res.Combat, res.CombatCount),
+		EnvironmentID:     state.Location,
+		MonstersSurprised: res.CombatSurprise,
+		Arena:             res.CombatArena,
 	}
 	// A party leader's walk is the party's: everyone with them fights.
 	if social.PartyOf(sess.Npub) != nil && !social.IsFollower(sess.Npub) {
@@ -354,6 +362,7 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 
 	sess.ActivePOI = &poi.Session{POIID: req.POIID, Title: poiData.Name, Nodes: poiData.Nodes, CurrentNode: poiData.StartNode}
 	data := map[string]any{}
+	questsBefore := markQuests(&sess.SaveData)
 	res, err := stepPOI(sess, poiData.StartNode, data)
 	if err != nil {
 		sess.ActivePOI = nil
@@ -362,6 +371,9 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	partyStepLog(sess, res)
 	data["step"] = res
+	for k, v := range questNewsFields(questsBefore, &sess.SaveData) {
+		data[k] = v
+	}
 	writePOIJSON(w, http.StatusOK, map[string]any{"success": true, "data": data})
 }
 
@@ -403,6 +415,7 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := map[string]any{}
+	questsBefore := markQuests(&sess.SaveData)
 	res, err := stepPOI(sess, req.Next, data)
 	if err != nil {
 		writePOIError(w, http.StatusInternalServerError, err.Error())
@@ -410,6 +423,9 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	partyStepLog(sess, res)
 	data["step"] = res
+	for k, v := range questNewsFields(questsBefore, &sess.SaveData) {
+		data[k] = v
+	}
 	writePOIJSON(w, http.StatusOK, map[string]any{"success": true, "data": data})
 }
 

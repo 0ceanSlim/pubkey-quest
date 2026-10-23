@@ -9,7 +9,20 @@ const (
 	ObjectiveExplore QuestObjectiveType = "explore" // Reach a location, POI, or sub-area
 	ObjectiveSlay    QuestObjectiveType = "slay"    // Defeat monsters of a given ID
 	ObjectiveCheck   QuestObjectiveType = "check"   // Pass a skill check at a specific DC
+	ObjectiveDo      QuestObjectiveType = "do"      // Do one of the game's own actions (DoActions)
 )
+
+// DoActions are the things a "do" objective can ask for, each recorded by the
+// game where it happens (events.Did). They're how the tutorial teaches the
+// game's systems by having the player use them.
+var DoActions = map[string]string{
+	"claim-starting-gear": "take the inheritance from your vault's keeper",
+	"shop-buy":            "buy something from a shop",
+	"prepare-spell":       "prepare a spell",
+	"sleep-inn":           "sleep in a rented room at an inn",
+	"save-game":           "save the game",
+	"read-letter":         "read the caretaker's letter",
+}
 
 // QuestObjective is one task within a quest stage.
 //
@@ -21,6 +34,7 @@ const (
 //	explore  Target=location-id or poi-id
 //	slay     Target=monster-id, Count (default 1)
 //	check    Skill=skill-id, Value=DC
+//	do       Target=one of DoActions ("save-game", "sleep-inn", …)
 type QuestObjective struct {
 	Type        QuestObjectiveType `json:"type"`
 	Target      string             `json:"target,omitempty"`
@@ -50,6 +64,15 @@ type QuestStage struct {
 	// Site opens one of the quest's places (QuestData.Sites) for this stage.
 	// Consecutive stages naming the same site keep it open across them.
 	Site string `json:"site,omitempty"`
+	// Classes limits the stage to these classes; for anyone else it's skipped
+	// (no objectives, no reward). The tutorial's spell stage is for casters.
+	Classes []string `json:"classes,omitempty"`
+	// Tip is a how-it-works note shown once when the stage begins: the
+	// tutorial's explainers (shops, containers, spell preparation, saving).
+	Tip string `json:"tip,omitempty"`
+	// TipPush shows the tip by itself when the stage is reached (once nothing
+	// else is on screen). Other tips wait behind the quest tracker's 💡.
+	TipPush bool `json:"tip_push,omitempty"`
 }
 
 // QuestSite is a place that exists only for a quest — the sewers behind the
@@ -95,7 +118,7 @@ type QuestStageEncounter struct {
 
 // QuestStartCondition tells the player how to begin the quest.
 type QuestStartCondition struct {
-	Type      string `json:"type"` // "talk", "explore", "item", "bulletin_board"
+	Type      string `json:"type"` // "talk", "explore", "item", "bulletin_board", "creation" (started for a new character, never offered)
 	Target    string `json:"target"`
 	Location  string `json:"location,omitempty"`
 	StartHint string `json:"start_hint"`
@@ -193,6 +216,6 @@ type QuestDialogueNode struct {
 	Label        string           `json:"label,omitempty"`
 	Text         string           `json:"text"`
 	Options      []string         `json:"options,omitempty"`
-	Action       string           `json:"action,omitempty"` // "accept" (offer trees) | "close"
+	Action       string           `json:"action,omitempty"` // "accept" (offer trees) | "close" | "open_vault" | "open_starting_gear" | "open_starting_gear_skip" (the tutorial's inheritance)
 	Requirements []POIRequirement `json:"requirements,omitempty"`
 }

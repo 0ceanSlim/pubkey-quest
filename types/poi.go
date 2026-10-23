@@ -94,6 +94,9 @@ type POIReward struct {
 type POICost struct {
 	Gold  int             `json:"gold,omitempty"`
 	Items []POIRewardItem `json:"items,omitempty"`
+	// Theft: the gold is taken, not paid. It takes what the player carries, up
+	// to Gold, and never fails (an empty purse loses nothing). Gold only.
+	Theft bool `json:"theft,omitempty"`
 }
 
 // POIStep is a single node in the interaction graph.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"pubkey-quest/cmd/server/game/events"
 	"strings"
 
 	"pubkey-quest/cmd/server/api/character"
@@ -14,10 +15,10 @@ import (
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/shop"
 	"pubkey-quest/cmd/server/game/status"
-	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/game/teleport"
-	"pubkey-quest/types"
+	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/world"
+	"pubkey-quest/types"
 )
 
 // parseIntervalToMinutes delegates to game/shop package
@@ -482,6 +483,8 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 	// Update encumbrance effects after buying items
 	status.UpdateEncumbrancePenaltyEffects(save)
 	noteAcquired(save, transaction.ItemID)
+	questsBefore := markQuests(save)
+	events.Record(save, events.Did, "shop-buy", 1)
 
 	// Update session in memory (not disk!)
 	if err := sessionMgr.UpdateSession(transaction.Npub, transaction.SaveID, session.SaveData); err != nil {
@@ -501,21 +504,25 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 	// Build response message
 	var message string
 	if itemsAdded < transaction.Quantity {
-		message = fmt.Sprintf("Bought %dx %s for %dg (inventory full - %d didn't fit)", itemsAdded, item.Name, actualCost, transaction.Quantity-itemsAdded)
+		message = fmt.Sprintf("Bought %dx %s for %d gold (inventory full - %d didn't fit)", itemsAdded, item.Name, actualCost, transaction.Quantity-itemsAdded)
 		log.Printf("⚠️ Partial buy: %s bought %dx %s for %dg (%d didn't fit - inventory full)", transaction.Npub, itemsAdded, transaction.ItemID, actualCost, transaction.Quantity-itemsAdded)
 	} else {
-		message = fmt.Sprintf("Bought %dx %s for %dg", itemsAdded, item.Name, actualCost)
+		message = fmt.Sprintf("Bought %dx %s for %d gold", itemsAdded, item.Name, actualCost)
 		log.Printf("✅ Buy successful: %s bought %dx %s for %dg (IN MEMORY)", transaction.Npub, itemsAdded, transaction.ItemID, actualCost)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	out := map[string]any{
 		"success":      true,
 		"message":      message,
 		"gold_spent":   actualCost,
 		"new_gold":     playerGold - actualCost,
 		"items_bought": itemsAdded,
-	})
+	}
+	for k, v := range questNewsFields(questsBefore, save) {
+		out[k] = v
+	}
+	json.NewEncoder(w).Encode(out)
 }
 
 // Sell items to shop

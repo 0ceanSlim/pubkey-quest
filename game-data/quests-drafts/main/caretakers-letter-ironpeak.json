@@ -1,0 +1,310 @@
+{
+  "id": "caretakers-letter-ironpeak",
+  "name": "The Caretaker's Letter",
+  "category": "main",
+  "difficulty": "Novice",
+  "step_count": 8,
+  "total_qp": 1,
+  "description": "Your caretaker's last letter sends you to Thorin Ironledger, the Vaultwright of the Stonevault in Ironpeak, who has held your inheritance in trust. Claim it, then get yourself ready for the road.",
+  "start_condition": {
+    "type": "creation",
+    "target": "vaultwright",
+    "location": "ironpeak",
+    "start_hint": "Every new character who starts in Ironpeak begins with this, from their caretaker's letter."
+  },
+  "dialogue": {
+    "giver": "vaultwright",
+    "active": {
+      "option": "About my caretaker's letter…",
+      "start": "hub",
+      "nodes": {
+        "hub": {
+          "text": "Thorin doesn't look up from the coins he's counting. \"Go on. I can count and listen.\"",
+          "options": [
+            "inherit",
+            "skip",
+            "vault",
+            "ask-stone",
+            "supplies",
+            "lessons",
+            "bed"
+          ]
+        },
+        "inherit": {
+          "label": "My caretaker left something here for me.",
+          "text": "He reads the letter once, sets down his coins, and reads it again. \"The old debt is settled.\" A long breath through the beard. \"So it is.\" He fetches a key from a chain round his neck. \"I carved the stone your share sits behind with my own hands. Your sigil's cut into the lock. Nobody else on this mountain could open it, me included.\" \"Your caretaker's coin's in there too, and your Homeward Stone. Paid to have it cut to our waystone the year you were born.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-caretaker",
+            "ask-stone"
+          ],
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "ask-sigil": {
+          "label": "How did you know it was me?",
+          "text": "\"Every soul's born with a true sigil. Can't forge it, can't file it off. We cut them into the vault locks, so a dwarf's hoard knows its dwarf. Yours has been waiting in that stone since you were knee-high.\"",
+          "options": [
+            "take",
+            "ask-caretaker",
+            "ask-stone"
+          ]
+        },
+        "ask-caretaker": {
+          "label": "Did you know my caretaker?",
+          "text": "\"Your caretaker did me a kindness, long ago, when I'd no right to one. That's the debt.\" He goes back to counting, which is how you know he's done talking about it. \"Goldenhaven taxes every cart of ore that goes down the river. Remember that, when they smile at you.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-stone"
+          ]
+        },
+        "ask-stone": {
+          "label": "What is a Homeward Stone?",
+          "text": "\"Homeward Stone. Squeeze it, think of home, and it drops you at the waystone in the plaza. Then it's spent for a week. Dwarven work, that one: your caretaker had it cut here.\""
+        },
+        "take": {
+          "label": "I'd like to see it.",
+          "text": "Thorin hauls the stone door open with a grunt. \"Take what suits you. I counted it twice.\"",
+          "action": "open_starting_gear",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "skip": {
+          "label": "I've done this before. Just the gear, please.",
+          "text": "\"Knows what they want. Good.\" He hauls the door open.",
+          "action": "open_starting_gear_skip",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "vault": {
+          "label": "Could you open my vault?",
+          "text": "Thorin hauls the stone door open again. \"Take your coin and your stone. Anything you leave is safe, and any keeper who's accepted you can open the same vault, wherever you are.\"",
+          "action": "open_vault",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "supplies": {
+          "label": "Where can I buy supplies for the road?",
+          "text": "\"Brogni Ironhand's place, Ironhand's Supplies, down the Valley Approach to the south. Buy something for the road. Mountains don't care how brave you are.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 4,
+              "max": 4
+            }
+          ]
+        },
+        "lessons": {
+          "label": "Is there anything else I should do first?",
+          "text": "\"Letter says you had lessons. If you've magic in you, prepare it before you need it: your Spells & Abilities, a spell in a slot. Dwarves don't trust what isn't ready.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        "bed": {
+          "label": "Where should I sleep tonight?",
+          "text": "\"Helga Stonebrew keeps the Pickaxe & Pint, right here in the plaza. Take a room, sleep, eat her breakfast and don't complain about it. Then save your game. A ledger not written down is a rumour. Come back after.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-ironpeak",
+              "min": 6,
+              "max": 6
+            }
+          ]
+        }
+      }
+    },
+    "completed": {
+      "option": "Thank you for keeping it safe.",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "\"Settled, then.\" Thorin nods, once. \"Vault keepers post the bounties, daily and weekly. Come to me for work. And the waystone in the plaza's gone dim. Was bright as a forge when I was a lad.\""
+        }
+      }
+    },
+    "with": {
+      "mining-supplier": {
+        "option": "I'm new in town. What do I need for the road?",
+        "start": "advice",
+        "nodes": {
+          "advice": {
+            "text": "\"Rations.\" Brogni doesn't look up from the ledger. \"Day's food in each. Won't rot. When you're Hungry, right-click one in your pack and Eat. Then a torch, because the tunnels are dark, and rope, because they're deep. That's the list.\"",
+            "options": [
+              "how-buy"
+            ]
+          },
+          "how-buy": {
+            "label": "How do I buy something?",
+            "text": "\"Pick it off the shelf: right-click, Buy 1 or Buy X. Click it first if you want the price. Selling: Sell tab, put it on the counter, I'll tell you what it's worth.\""
+          }
+        }
+      },
+      "ironpeak-barkeep": {
+        "option": "How does a room work?",
+        "start": "room",
+        "nodes": {
+          "room": {
+            "text": "\"Room's yours for the night!\" Helga laughs loud enough to rattle the tankards. \"Pay up, find your door, and bed down any time after nine. Breakfast's on the house, and check-out's at ten sharp. Miners need the beds.\""
+          }
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "id": "read-letter",
+      "description": "Your caretaker left you a letter. Read it: right-click it in your bag and choose Read.",
+      "tip": "Items have actions: right-click one (long-press on a phone) to see what you can do with it. Your next step always shows in the quest tracker over the scene, and the Quest Log has the rest.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "read-letter",
+          "description": "Read your caretaker's letter."
+        }
+      ]
+    },
+    {
+      "id": "the-keeper",
+      "description": "The letter sends you to Thorin Ironledger, the Vaultwright, at the Stonevault in Miners' Plaza. Go inside and talk to them.",
+      "tip": "Buildings are listed under Buildings: click one to go in. Inside, the People column shows who's there; click someone to talk. Time stands still while you talk.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "vaultwright",
+          "description": "Talk to Thorin Ironledger at the Stonevault."
+        }
+      ]
+    },
+    {
+      "id": "the-inheritance",
+      "description": "Thorin has held your inheritance in trust. Ask for it, and choose what suits you.",
+      "tip": "Ask the keeper for it, then choose one option on each screen. Tap ? on any item to see what it does: damage, armor, weight, value. Once it's yours, what you can wear you'll be wearing: check the Equipment tab, and what you carry in Inventory.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "claim-starting-gear",
+          "description": "Take up your inheritance from Thorin."
+        }
+      ]
+    },
+    {
+      "id": "your-vault",
+      "description": "Your caretaker's savings and your Homeward Stone are in your vault. Ask Thorin to open it, and take both out.",
+      "tip": "Your vault is one store shared across the realm: deposit here, withdraw in any city whose keeper has accepted you. What's in it is safe, even if you fall. In the vault window, click an item to take it (set the amount first: 1, 5, 10 or ALL), or drag it into your bag. Gold has weight, so carry what you'll spend and leave the rest here. Your Homeward Stone: right-click → Use to return to your city's waystone, then it rests for a week.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "gold-piece",
+          "description": "Take your gold from the vault."
+        },
+        {
+          "type": "fetch",
+          "target": "homeward-stone-ironpeak",
+          "description": "Take your Homeward Stone from the vault."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "supplies",
+      "description": "Buy something for the road. Brogni Ironhand keeps Ironhand's Supplies in the Valley Approach; any shop will do.",
+      "tip": "Shops: talk to the shopkeeper and browse. To buy, right-click an item → Buy 1 or Buy X (click it to see the price; your Charisma helps). To sell, open the Sell tab, click your items to put them on the counter, then confirm the sale. Rations are food that never spoils: when you're Hungry, right-click one → Eat. Your bag: the 4 general slots are your belt, the things you can reach in a fight; the darker slots are your backpack. Drag items onto a container (backpack, pouch) to put them in, or right-click it → Open. Bag full? Use your backpack, or leave things in the vault.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "shop-buy",
+          "description": "Buy supplies at Ironhand's Supplies."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "your-lessons",
+      "description": "If you learned magic, have it ready before you need it. Open Spells & Abilities and prepare a spell in a slot.",
+      "classes": [
+        "Wizard",
+        "Sorcerer",
+        "Warlock",
+        "Bard",
+        "Cleric",
+        "Druid"
+      ],
+      "tip": "Spells & Abilities: your spell slots are at the top, the spells you know below. Click an empty slot to choose a spell for it. Cantrips are ready at once; a levelled spell takes an hour per level to prepare, and the clock has to run. Spells cost mana, and some need runes or components. In a fight you cast from the combat bar. Outside one, right-click a prepared spell → Cast: that works for spells that heal, cure, create something or leave a lasting effect.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "prepare-spell",
+          "description": "Prepare a spell (Spells & Abilities)."
+        }
+      ]
+    },
+    {
+      "id": "a-bed-for-the-night",
+      "description": "Take a room at the Pickaxe & Pint in Miners' Plaza and sleep. Inns serve breakfast, so you'll wake well fed. Then save your game: there's no autosave, so a save is how you keep what you've done.",
+      "tip": "Inns: talk to the innkeeper to rent a room (one night, breakfast included, check-out at 10 AM), go into your room (Rooms), then Sleep, any time after 9 PM. Sleep is what clears fatigue; 🕐 Wait only passes the time. Saving: Settings → Save game, or Ctrl+S. There's no autosave, so closing the game takes you back to your last save.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "sleep-inn",
+          "description": "Sleep at the Pickaxe & Pint."
+        },
+        {
+          "type": "do",
+          "target": "save-game",
+          "description": "Save your game (Settings → Save game)."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "report-back",
+      "description": "Go back to Thorin at the Stonevault and tell them you're settled.",
+      "tip": "Vault keepers post the realm's bounties, a new one every day and every week: ask any keeper for work.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "vaultwright",
+          "description": "Report back to Thorin."
+        }
+      ],
+      "rewards": {
+        "xp": 150,
+        "gold": 100
+      }
+    }
+  ]
+}

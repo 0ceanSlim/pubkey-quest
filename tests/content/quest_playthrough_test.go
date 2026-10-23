@@ -129,8 +129,15 @@ func TestRatsSewersPlaythrough(t *testing.T) {
 		t.Error("didn't come out with the Rat King's knot")
 	}
 	p.rec.Record(p.save, events.NPCTalked, "tavern-owner-bob", 1)
+	if quest.IsCompleted(p.save, qd.ID) {
+		t.Error("just talking to Bob mustn't finish the quest: it's handed in")
+	}
+	if !quest.ReadyToTurnIn(p.save, qd, "tavern-owner-bob", false) {
+		t.Fatal("Bob should take the turn-in")
+	}
+	p.rec.Record(p.save, events.TurnedIn, qd.ID, 1)
 	if !quest.IsCompleted(p.save, qd.ID) {
-		t.Error("talking to Bob should finish the quest")
+		t.Error("turning in to Bob should finish the quest")
 	}
 }
 
@@ -185,8 +192,8 @@ func TestRisingShadowPlaythrough(t *testing.T) {
 		t.Error("the ritual should use up the incense and the water")
 	}
 
-	p.rec.Record(p.save, events.NPCTalked, "oracle-seraphina", 1)
+	p.rec.Record(p.save, events.TurnedIn, qd.ID, 1)
 	if !quest.IsCompleted(p.save, qd.ID) {
-		t.Error("talking to Seraphina after the vision should finish the quest")
+		t.Error("turning in to Seraphina after the vision should finish the quest")
 	}
 }

@@ -1,8 +1,11 @@
 /**
  * Equipment Selection System
  *
- * Handles the scene-based equipment choice flow, including complex weapon
- * selections and pack choices, matching the character-generator logic.
+ * The starting-gear choice flow, including complex weapon selections and pack
+ * choices, matching the character-generator logic. It runs in game, over the
+ * vault keeper's vault, when a new character takes up their inheritance
+ * (ui/startingGear.js builds the overlay: #gear-container, #gear-background,
+ * #gear-content).
  *
  * @module systems/equipmentSelection
  */
@@ -23,6 +26,7 @@ import {
 import {
   logger
 } from '../lib/logger.js'; // Assuming logger is available
+import { showItemDetails } from './inventoryInteractions.js';
 
 let currentChoiceIndex = 0;
 let selectedChoices = {};
@@ -31,6 +35,35 @@ let itemStatsCache = {}; // Cache for item stats
 let selectionHistory = []; // Track history for back button
 let currentBackButton = null; // Current back button element
 let backButtonCallback = null; // Callback to go back
+
+/** Where the screens' Back button and item pop-up go: the inheritance overlay. */
+function gearHost() {
+  return document.getElementById('gear-overlay') || document.body;
+}
+
+// Moving between screens: the vault stays up behind and only the panel
+// cross-fades (it used to drop to black between every screen).
+const FADE_MS = 180;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Bring a screen in: the scene shows (once) and the panel fades up. */
+function showPanel() {
+  const container = document.getElementById('gear-container');
+  const content = document.getElementById('gear-content');
+  container.classList.remove('hidden', 'fade-out');
+  container.classList.add('fade-in');
+  container.style.opacity = '';
+  void content.offsetHeight;
+  content.classList.remove('gear-fade');
+}
+
+/** Fade the panel out and empty it, ready for the next screen. */
+async function clearPanel() {
+  const content = document.getElementById('gear-content');
+  content.classList.add('gear-fade');
+  await sleep(FADE_MS);
+  content.innerHTML = '';
+}
 
 // ============================================================================
 // PUBLIC API
@@ -100,17 +133,15 @@ export async function startEquipmentSelection(equipment) {
  */
 export async function handlePackSelection(startingEquipment) {
   logger.debug("📦 Handling pack selection with:", startingEquipment);
-  const container = document.getElementById('scene-container');
-  const background = document.getElementById('scene-background');
-  const content = document.getElementById('scene-content');
+  const container = document.getElementById('gear-container');
+  const background = document.getElementById('gear-background');
+  const content = document.getElementById('gear-content');
 
   const packChoice = startingEquipment.pack_choice;
   const packGiven = startingEquipment.inventory?.find(item =>
     item.item && item.item.includes('-pack')
   );
 
-  background.style.backgroundImage = 'none';
-  background.style.backgroundColor = '#111827';
   content.innerHTML = '';
   content.style.zIndex = '10';
 
@@ -141,7 +172,7 @@ export async function handlePackSelection(startingEquipment) {
     scrollContainer.style.maxHeight = 'calc(100vh - 280px)';
 
     const optionsContainer = document.createElement('div');
-    optionsContainer.className = 'flex flex-col gap-6';
+    optionsContainer.className = 'gear-bundles';
 
     let selectedPackIndex = null;
 
@@ -150,25 +181,20 @@ export async function handlePackSelection(startingEquipment) {
       const packName = option.item;
       const packData = await fetchPackData(packName);
 
+      if (i > 0) optionsContainer.appendChild(orMark());
       const packContainer = document.createElement('div');
-      packContainer.className = 'bg-gray-800 rounded-lg';
-      packContainer.style.padding = '0.75rem';
-      packContainer.style.border = '3px solid #374151';
-      packContainer.style.cursor = 'pointer';
-      packContainer.style.boxSizing = 'border-box';
-      packContainer.style.width = 'fit-content';
-      packContainer.style.margin = '0 auto';
+      packContainer.className = 'gear-option gear-bundle';
       packContainer.setAttribute('data-option-index', i);
 
       const packTitle = document.createElement('div');
-      packTitle.className = 'text-center text-yellow-400 font-bold text-xl mb-3';
-      packTitle.textContent = packName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      packTitle.className = 'gear-option-label';
+      packTitle.textContent = getItemById(packName)?.name || packName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       packContainer.appendChild(packTitle);
 
       const contents = packData?.properties?.contents || packData?.contents;
       if (contents) {
         const itemsRow = document.createElement('div');
-        itemsRow.className = 'flex flex-row justify-center gap-3 flex-wrap';
+        itemsRow.className = 'gear-cards';
 
         for (const packItem of contents) {
           const itemName = packItem[0];
@@ -208,10 +234,7 @@ export async function handlePackSelection(startingEquipment) {
     confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
     content.appendChild(confirmBtn);
 
-    container.classList.remove('hidden', 'fade-out');
-    container.classList.remove('fade-in');
-    void container.offsetHeight;
-    container.classList.add('fade-in');
+    showPanel();
 
     await new Promise(resolve => {
       confirmBtn.onclick = () => {
@@ -243,21 +266,16 @@ export async function handlePackSelection(startingEquipment) {
     }
 
     const packContainer = document.createElement('div');
-    packContainer.className = 'bg-gray-800 rounded-lg';
-    packContainer.style.padding = '0.75rem';
-    packContainer.style.border = '3px solid #10b981';
-    packContainer.style.boxSizing = 'border-box';
-    packContainer.style.width = 'fit-content';
-    packContainer.style.margin = '0 auto';
+    packContainer.className = 'gear-option gear-bundle gear-given';
 
     const packTitle = document.createElement('div');
-    packTitle.className = 'text-center text-green-400 font-bold text-xl mb-3';
-    packTitle.textContent = packName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    packTitle.className = 'gear-option-label';
+    packTitle.textContent = getItemById(packName)?.name || packName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     packContainer.appendChild(packTitle);
 
     if (contents) {
       const itemsRow = document.createElement('div');
-      itemsRow.className = 'flex flex-row justify-center gap-3 flex-wrap';
+      itemsRow.className = 'gear-cards';
 
       for (const packItem of contents) {
         const itemName = packItem[0];
@@ -275,10 +293,7 @@ export async function handlePackSelection(startingEquipment) {
     continueBtn.className += ' mt-6';
     content.appendChild(continueBtn);
 
-    container.classList.remove('hidden', 'fade-out');
-    container.classList.remove('fade-in');
-    void container.offsetHeight;
-    container.classList.add('fade-in');
+    showPanel();
 
     await new Promise(resolve => {
       continueBtn.onclick = resolve;
@@ -287,14 +302,7 @@ export async function handlePackSelection(startingEquipment) {
     logger.debug("📦 No pack choice and no pack given. Skipping pack selection.");
   }
 
-  content.innerHTML = '';
-
-  container.classList.remove('fade-in');
-  container.classList.add('fade-out');
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  container.classList.remove('fade-in', 'fade-out');
-  container.classList.add('hidden');
+  await clearPanel();
 }
 
 /**
@@ -315,12 +323,10 @@ export function getSelectedEquipment() {
  * @returns {Promise<boolean>} True if confirmed, false if back.
  */
 async function showFinalConfirmation() {
-  const container = document.getElementById('scene-container');
-  const background = document.getElementById('scene-background');
-  const content = document.getElementById('scene-content');
+  const container = document.getElementById('gear-container');
+  const background = document.getElementById('gear-background');
+  const content = document.getElementById('gear-content');
 
-  background.style.backgroundImage = 'none';
-  background.style.backgroundColor = '#111827';
   content.innerHTML = '';
 
   const confirmDialog = document.createElement('div');
@@ -328,7 +334,7 @@ async function showFinalConfirmation() {
 
   const message = document.createElement('div');
   message.className = 'text-2xl font-bold text-yellow-400 text-center';
-  message.textContent = 'Are you sure?';
+  message.textContent = 'Is that everything?';
   confirmDialog.appendChild(message);
 
   const subMessage = document.createElement('div');
@@ -338,7 +344,7 @@ async function showFinalConfirmation() {
 
   const note = document.createElement('div');
   note.className = 'text-sm text-gray-400 text-center max-w-md italic';
-  note.textContent = 'You can always find more equipment in game.';
+  note.textContent = 'Anything you leave, the shops can sell you later.';
   confirmDialog.appendChild(note);
 
   const buttonContainer = document.createElement('div');
@@ -354,35 +360,14 @@ async function showFinalConfirmation() {
   confirmDialog.appendChild(buttonContainer);
   content.appendChild(confirmDialog);
 
-  container.classList.remove('hidden', 'fade-out');
-  container.classList.remove('fade-in');
-  void container.offsetHeight;
-  container.classList.add('fade-in');
+  showPanel();
 
   const userChoice = await new Promise(resolve => {
     confirmBtn.onclick = () => resolve(true);
     backBtn.onclick = () => resolve(false);
   });
 
-  const allElements = content.querySelectorAll('*');
-  allElements.forEach(el => {
-    el.style.transition = 'opacity 0.3s ease-out';
-    el.style.opacity = '0';
-  });
-  await new Promise(resolve => setTimeout(resolve, 300));
-
-  content.innerHTML = '';
-
-  container.classList.remove('fade-in');
-  container.classList.add('fade-out');
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  container.classList.remove('fade-in', 'fade-out');
-  container.classList.add('hidden');
-
-  container.style.opacity = '';
-  background.style.backgroundColor = '';
-
+  await clearPanel();
   return userChoice;
 }
 
@@ -394,12 +379,10 @@ async function showFinalConfirmation() {
  * @returns {Promise<boolean>} True if the user went back, false if they continued.
  */
 async function showEquipmentChoiceScene(choice, choiceIndex) {
-  const container = document.getElementById('scene-container');
-  const background = document.getElementById('scene-background');
-  const content = document.getElementById('scene-content');
+  const container = document.getElementById('gear-container');
+  const background = document.getElementById('gear-background');
+  const content = document.getElementById('gear-content');
 
-  background.style.backgroundImage = 'none';
-  background.style.backgroundColor = '#111827';
   content.innerHTML = '';
   content.style.zIndex = '10';
 
@@ -422,7 +405,7 @@ async function showEquipmentChoiceScene(choice, choiceIndex) {
  * @returns {Promise<boolean>} True if the user went back, false if they continued.
  */
 async function showRegularChoiceSelection(content, choice, choiceIndex) {
-  const container = document.getElementById('scene-container');
+  const container = document.getElementById('gear-container');
 
   const allItems = [];
   choice.options.forEach(option => {
@@ -447,7 +430,9 @@ async function showRegularChoiceSelection(content, choice, choiceIndex) {
   const bundles = choice.options.filter(opt => opt.isBundle);
   const simpleItems = choice.options.filter(opt => !opt.isBundle && !opt.isComplexChoice);
 
-  optionsContainer.className = 'flex flex-col gap-6';
+  // A choice is laid out in sections: the bundles side by side, then the
+  // single items in a full-width grid that wraps into rows.
+  optionsContainer.className = 'gear-choice';
 
   const createClickableOption = (option, optionIndex, containerElement) => {
     containerElement.dataset.optionIndex = optionIndex;
@@ -473,26 +458,23 @@ async function showRegularChoiceSelection(content, choice, choiceIndex) {
   };
 
   if (bundles.length > 0) {
+    const bundleRow = document.createElement('div');
+    bundleRow.className = 'gear-bundles';
     for (let idx = 0; idx < bundles.length; idx++) {
       const option = bundles[idx];
       const optionIndex = choice.options.indexOf(option);
+      if (idx > 0) bundleRow.appendChild(orMark());
 
       const bundleContainer = document.createElement('div');
-      bundleContainer.className = 'bg-gray-800 rounded-lg';
-      bundleContainer.style.padding = '0.75rem';
-      bundleContainer.style.border = '3px solid #374151';
-      bundleContainer.style.cursor = 'pointer';
-      bundleContainer.style.boxSizing = 'border-box';
-      bundleContainer.style.width = 'fit-content';
-      bundleContainer.style.margin = '0 auto';
+      bundleContainer.className = 'gear-option gear-bundle';
 
       const bundleLabel = document.createElement('div');
-      bundleLabel.className = 'text-center text-gray-400 font-semibold text-xs mb-3';
-      bundleLabel.textContent = '📦 BUNDLE';
+      bundleLabel.className = 'gear-option-label';
+      bundleLabel.textContent = '📦 Bundle';
       bundleContainer.appendChild(bundleLabel);
 
       const itemsRow = document.createElement('div');
-      itemsRow.className = 'flex flex-row justify-center gap-3 flex-wrap';
+      itemsRow.className = 'gear-cards';
 
       for (const bundleItem of option.bundle) {
         const itemName = bundleItem[0];
@@ -510,34 +492,27 @@ async function showRegularChoiceSelection(content, choice, choiceIndex) {
 
       bundleContainer.appendChild(itemsRow);
       createClickableOption(option, optionIndex, bundleContainer);
-      optionsContainer.appendChild(bundleContainer);
+      bundleRow.appendChild(bundleContainer);
     }
+    optionsContainer.appendChild(bundleRow);
 
     if (simpleItems.length > 0) {
       const separator = document.createElement('div');
-      separator.className = 'text-center text-yellow-400 font-bold text-xl my-2';
-      separator.textContent = '— OR —';
+      separator.className = 'gear-or';
+      separator.textContent = simpleItems.length > 1 ? 'or one of these' : 'or';
       optionsContainer.appendChild(separator);
     }
   }
 
   if (simpleItems.length > 0) {
     const gridContainer = document.createElement('div');
-    gridContainer.className = 'flex flex-wrap justify-center gap-3';
-
-    if (simpleItems.length > 4) {
-      gridContainer.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
-    }
+    gridContainer.className = 'gear-grid';
 
     for (let idx = 0; idx < simpleItems.length; idx++) {
       const option = simpleItems[idx];
       const optionIndex = choice.options.indexOf(option);
       const itemsRow = document.createElement('div');
-      itemsRow.className = 'flex flex-row justify-center gap-2 flex-wrap p-2 bg-gray-800 rounded-lg';
-      itemsRow.style.border = '3px solid #374151';
-      itemsRow.style.cursor = 'pointer';
-      itemsRow.style.boxSizing = 'border-box';
-      itemsRow.style.width = 'fit-content';
+      itemsRow.className = 'gear-option';
 
       const itemCard = await createSimpleItemCard(option.item, option.quantity, false);
 
@@ -571,14 +546,11 @@ async function showRegularChoiceSelection(content, choice, choiceIndex) {
       confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       confirmBtn.click();
     });
-    document.body.appendChild(backBtn);
+    gearHost().appendChild(backBtn);
     currentBackButton = backBtn;
   }
 
-  container.classList.remove('hidden');
-  container.style.opacity = '1';
-  await new Promise(resolve => requestAnimationFrame(resolve));
-  content.style.animation = 'slideInFromRight 0.3s ease-out';
+  showPanel();
 
   await waitForButtonClick(confirmBtn);
 
@@ -587,20 +559,8 @@ async function showRegularChoiceSelection(content, choice, choiceIndex) {
     currentBackButton = null;
   }
 
-  if (userClickedBack) {
-    content.style.animation = 'wipeLeft 0.3s ease-in';
-    await new Promise(resolve => setTimeout(resolve, 300));
-    content.innerHTML = '';
-
-    container.style.opacity = '0';
-    container.classList.add('hidden');
-    return true;
-  } else {
-    content.style.animation = 'wipeRight 0.3s ease-in';
-    await new Promise(resolve => setTimeout(resolve, 300));
-    content.innerHTML = '';
-    content.style.animation = '';
-  }
+  await clearPanel();
+  if (userClickedBack) return true;
 
   selectedChoices[choiceIndex] = selectedOption;
 
@@ -614,14 +574,14 @@ async function showRegularChoiceSelection(content, choice, choiceIndex) {
 async function showMultiSlotChoiceSelection(content, choice, choiceIndex, complexOptions) {
   logger.debug('🎮 showMultiSlotChoiceSelection called!');
 
-  const container = document.getElementById('scene-container');
+  const container = document.getElementById('gear-container');
 
   const scrollContainer = document.createElement('div');
   scrollContainer.className = 'w-full max-w-6xl mx-auto overflow-y-auto px-4 mb-4';
   scrollContainer.style.maxHeight = 'calc(100vh - 280px)';
 
   const optionsContainer = document.createElement('div');
-  optionsContainer.className = 'flex flex-col gap-6';
+  optionsContainer.className = 'gear-bundles';
 
   let selectedConfiguration = null;
   let selectedConfigIndex = null;
@@ -631,19 +591,16 @@ async function showMultiSlotChoiceSelection(content, choice, choiceIndex, comple
     const optionIndex = choice.options.indexOf(option);
 
     const configContainer = document.createElement('div');
-    configContainer.className = 'p-6 bg-gray-800 rounded-lg';
-    configContainer.style.border = '3px solid #374151';
-    configContainer.style.cursor = 'pointer';
-    configContainer.style.boxSizing = 'border-box';
+    configContainer.className = 'gear-option gear-config';
     configContainer.dataset.optionIndex = optionIndex;
 
     const configTitle = document.createElement('div');
-    configTitle.className = 'text-center text-yellow-400 font-bold text-lg mb-4';
+    configTitle.className = 'gear-option-label';
     configTitle.textContent = `Option ${idx + 1}`;
     configContainer.appendChild(configTitle);
 
     const slotsDesc = document.createElement('div');
-    slotsDesc.className = 'text-center text-gray-300 space-y-2';
+    slotsDesc.className = 'gear-config-slots';
 
     if (!option.weaponSlots || option.weaponSlots.length === 0) {
       logger.error('❌ No weaponSlots found for complex option!');
@@ -655,7 +612,7 @@ async function showMultiSlotChoiceSelection(content, choice, choiceIndex, comple
       if (slot.type === 'weapon_choice') {
         slotDiv.innerHTML = `<span class="text-green-400">⚔️ Choose a weapon</span> from ${slot.options.length} options`;
       } else if (slot.type === 'fixed_item') {
-        slotDiv.innerHTML = `<span class="text-blue-400">🛡️ ${slot.item[0]}</span> (included)`;
+        slotDiv.innerHTML = `<span class="text-blue-400">🛡️ ${getItemById(slot.item[0])?.name || slot.item[0]}</span> (included)`;
       }
       slotsDesc.appendChild(slotDiv);
     });
@@ -676,12 +633,7 @@ async function showMultiSlotChoiceSelection(content, choice, choiceIndex, comple
 
     optionsContainer.appendChild(configContainer);
 
-    if (idx < complexOptions.length - 1) {
-      const separator = document.createElement('div');
-      separator.className = 'text-center text-yellow-400 font-bold text-xl my-2';
-      separator.textContent = '— OR —';
-      optionsContainer.appendChild(separator);
-    }
+    if (idx < complexOptions.length - 1) optionsContainer.appendChild(orMark());
   });
 
   scrollContainer.appendChild(optionsContainer);
@@ -699,13 +651,11 @@ async function showMultiSlotChoiceSelection(content, choice, choiceIndex, comple
       confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       confirmBtn.click();
     });
-    document.body.appendChild(backBtn);
+    gearHost().appendChild(backBtn);
     currentBackButton = backBtn;
   }
 
-  container.classList.remove('hidden');
-  container.style.opacity = '1';
-  content.style.animation = 'slideInFromRight 0.3s ease-out';
+  showPanel();
 
   await waitForButtonClick(confirmBtn);
 
@@ -714,20 +664,8 @@ async function showMultiSlotChoiceSelection(content, choice, choiceIndex, comple
     currentBackButton = null;
   }
 
-  if (userClickedBack) {
-    content.style.animation = 'wipeLeft 0.3s ease-in';
-    await new Promise(resolve => setTimeout(resolve, 300));
-    content.innerHTML = '';
-
-    container.style.opacity = '0';
-    container.classList.add('hidden');
-    return true;
-  } else {
-    content.style.animation = 'wipeRight 0.3s ease-in';
-    await new Promise(resolve => setTimeout(resolve, 300));
-    content.innerHTML = '';
-    content.style.animation = '';
-  }
+  await clearPanel();
+  if (userClickedBack) return true;
 
   const weaponSelections = {};
   let currentSlotIdx = 0;
@@ -781,8 +719,8 @@ async function showMultiSlotChoiceSelection(content, choice, choiceIndex, comple
  * @returns {Promise<Object>} Object with selectedWeapon and shouldGoBack.
  */
 async function showWeaponSlotSelection(slot, slotIndex, totalSlots, choiceIndex) {
-  const container = document.getElementById('scene-container');
-  const content = document.getElementById('scene-content');
+  const container = document.getElementById('gear-container');
+  const content = document.getElementById('gear-content');
 
   content.innerHTML = '';
 
@@ -798,7 +736,7 @@ async function showWeaponSlotSelection(slot, slotIndex, totalSlots, choiceIndex)
   scrollContainer.style.maxHeight = 'calc(100vh - 280px)';
 
   const gridContainer = document.createElement('div');
-  gridContainer.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3';
+  gridContainer.className = 'gear-grid';
 
   let selectedWeapon = null;
   let userClickedBack = false;
@@ -809,10 +747,7 @@ async function showWeaponSlotSelection(slot, slotIndex, totalSlots, choiceIndex)
     const quantity = weaponOption[1];
 
     const itemContainer = document.createElement('div');
-    itemContainer.className = 'flex flex-row justify-center gap-2 flex-wrap p-2 bg-gray-800 rounded-lg';
-    itemContainer.style.border = '3px solid #374151';
-    itemContainer.style.cursor = 'pointer';
-    itemContainer.style.boxSizing = 'border-box';
+    itemContainer.className = 'gear-option';
     itemContainer.dataset.optionIndex = idx;
 
     const itemCard = await createSimpleItemCard(weaponName, quantity, false);
@@ -860,12 +795,10 @@ async function showWeaponSlotSelection(slot, slotIndex, totalSlots, choiceIndex)
     confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     confirmBtn.click();
   });
-  document.body.appendChild(backBtn);
+  gearHost().appendChild(backBtn);
   currentBackButton = backBtn;
 
-  container.classList.remove('hidden');
-  container.style.opacity = '1';
-  content.style.animation = 'slideInFromRight 0.3s ease-out';
+  showPanel();
 
   await waitForButtonClick(confirmBtn);
 
@@ -874,19 +807,7 @@ async function showWeaponSlotSelection(slot, slotIndex, totalSlots, choiceIndex)
     currentBackButton = null;
   }
 
-  if (userClickedBack) {
-    content.style.animation = 'wipeLeft 0.3s ease-in';
-    await new Promise(resolve => setTimeout(resolve, 300));
-    content.innerHTML = '';
-
-    container.style.opacity = '0';
-    container.classList.add('hidden');
-  } else {
-    content.style.animation = 'wipeRight 0.3s ease-in';
-    await new Promise(resolve => setTimeout(resolve, 300));
-    content.innerHTML = '';
-    content.style.animation = '';
-  }
+  await clearPanel();
 
   return {
     selectedWeapon: selectedWeapon,
@@ -902,29 +823,13 @@ async function showWeaponSlotSelection(slot, slotIndex, totalSlots, choiceIndex)
  * @returns {Promise<HTMLDivElement>} The item card element.
  */
 async function createSimpleItemCard(itemName, quantity, isInBundle = false) {
+  const itemData = getItemById(itemName);
   const card = document.createElement('div');
-  card.className = 'item-card bg-gray-800 rounded-lg relative overflow-hidden';
-  card.style.width = '110px';
-  card.style.height = '110px';
-  card.style.aspectRatio = '1/1';
-
-  if (isInBundle) {
-    card.style.border = '2px solid #4b5563';
-  }
-
-  if (!isInBundle) {
-    card.style.cursor = 'pointer';
-  }
-
-  const itemData = getItemById(itemName); // Use getItemById from staticData
+  card.className = 'item-card' + (isInBundle ? ' in-bundle' : '');
 
   const img = document.createElement('img');
   img.src = itemData?.image || `/res/img/items/${itemData?.id || itemName}.png`;
   img.alt = itemData?.name || itemName;
-  img.className = 'absolute inset-0 w-full h-full object-contain p-3';
-  img.style.imageRendering = 'pixelated';
-  img.style.imageRendering = '-moz-crisp-edges';
-  img.style.imageRendering = 'crisp-edges';
   img.onerror = function() {
     if (!this.dataset.fallbackAttempted) {
       this.dataset.fallbackAttempted = 'true';
@@ -933,75 +838,99 @@ async function createSimpleItemCard(itemName, quantity, isInBundle = false) {
   };
   card.appendChild(img);
 
-  const rarityDot = document.createElement('div');
-  rarityDot.className = 'absolute top-1.5 right-1.5 z-10';
-  rarityDot.style.width = '10px';
-  rarityDot.style.height = '10px';
-  rarityDot.style.borderRadius = '50%';
-  rarityDot.style.backgroundColor = getRarityColor(itemName);
-  rarityDot.style.border = '1px solid rgba(0,0,0,0.3)';
-  card.appendChild(rarityDot);
-
   if (quantity && quantity > 1) {
     const qtyText = document.createElement('div');
-    qtyText.className = 'absolute top-1 left-1.5 z-10 font-bold';
-    qtyText.style.color = '#a855f7';
-    qtyText.style.fontSize = '0.85rem';
-    qtyText.style.textShadow = '0 0 3px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)';
+    qtyText.className = 'item-qty';
     qtyText.textContent = `×${quantity}`;
     card.appendChild(qtyText);
   }
 
   const name = document.createElement('div');
-  name.className = 'item-name absolute bottom-0 left-0 right-0 text-center text-white font-semibold px-1 py-1 z-10';
-  name.style.fontSize = '0.65rem';
-  name.style.lineHeight = '0.75rem';
-  name.style.backgroundColor = 'rgba(0,0,0,0.6)';
-  name.style.textShadow = '0 1px 2px rgba(0,0,0,0.8)';
+  name.className = 'item-name';
   name.dataset.itemId = itemName;
-  name.textContent = itemName;
+  name.textContent = itemData?.name || itemName;
   card.appendChild(name);
 
-  // Fetch and update with actual item name using the imported getItemStats
-  // Note: getItemStats returns HTML, so we need to parse it for the name.
-  const statsHtml = await getItemStats(itemName);
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = statsHtml;
-  const nameElement = tempDiv.querySelector('.font-bold.text-yellow-400');
-  if (nameElement) {
-    name.textContent = nameElement.textContent;
+  const facts = itemFacts(itemData);
+  if (!facts.length) card.classList.add('no-facts');
+  if (facts.length) {
+    const f = document.createElement('div');
+    f.className = 'item-facts';
+    f.innerHTML = facts.map((line) => `<div>${line}</div>`).join('');
+    card.appendChild(f);
   }
 
-
   const infoBtn = document.createElement('button');
-  infoBtn.className = 'info-btn absolute bottom-1 right-1.5 text-yellow-400 font-bold hover:text-green-400 transition-colors z-20';
+  infoBtn.className = 'info-btn';
+  infoBtn.type = 'button';
   infoBtn.textContent = '?';
-  infoBtn.style.fontSize = '16px';
-  infoBtn.style.textShadow = '0 0 3px rgba(0,0,0,0.8), 1px 1px 2px rgba(0,0,0,0.9)';
+  infoBtn.title = 'Everything about it';
   infoBtn.onclick = (e) => {
     e.stopPropagation();
-    showItemModal(itemName);
+    const overlay = document.getElementById('gear-overlay');
+    if (overlay) showItemDetails(itemName, overlay);
+    else showItemModal(itemName);
   };
   card.appendChild(infoBtn);
 
   return card;
 }
 
+// The weapon properties worth knowing at a glance (5e's), in card order.
+const CARD_TAGS = ['two-handed', 'versatile', 'finesse', 'light', 'thrown', 'reach', 'loading'];
+
 /**
- * Get rarity color based on item rarity (placeholder)
- * @param {string} itemName - The ID of the item.
- * @returns {string} The CSS color string.
+ * The facts printed on a gear card: damage dice and type for a weapon (with its
+ * range when it shoots), AC for armor, and the key weapon properties.
+ * @param {Object} item - static item data
+ * @returns {string[]} short lines (HTML-safe: from our own data)
  */
-function getRarityColor(itemName) {
-  // TODO: This should come from item data
-  const rarityColors = {
-    'common': '#9ca3af', // grey
-    'uncommon': '#10b981', // green
-    'rare': '#3b82f6', // blue
-    'legendary': '#a855f7', // purple
-    'mythic': '#f97316' // orange
-  };
-  return rarityColors.common; // Default to common for now
+function itemFacts(data) {
+  if (!data) return [];
+  // Most stats sit under `properties` in the game data.
+  const item = { ...(data.properties || {}), ...data };
+  let tags = item.tags || [];
+  if (typeof tags === 'string') {
+    try { tags = JSON.parse(tags); } catch (_) { tags = []; }
+  }
+  const lines = [];
+  if (item.damage) {
+    const [one, two] = String(item.damage).split(',');
+    lines.push(`${one} ${item.damage_type || ''}`.trim());
+    const props = CARD_TAGS.filter((t) => tags.includes(t))
+      .map((t) => (t === 'versatile' && two ? `versatile ${two}` : t));
+    if (item.range && (tags.includes('martial-ranged') || tags.includes('simple-ranged'))) {
+      props.unshift(`range ${item.range}`);
+    }
+    if (props.length) lines.push(props.join(', '));
+  } else if (item.set_bonus?.ac) {
+    lines.push(`AC ${item.set_bonus.ac}`);
+    const str = item.set_bonus.requirements?.strength;
+    if (str) lines.push(`needs Str ${str}`);
+  } else if (item.ac) {
+    const ac = String(item.ac);
+    lines.push(ac.startsWith('+') ? `${ac} AC` : `AC ${ac}`);
+  }
+  // A spellcasting focus supplies one component, endlessly: ∞ and its picture.
+  if (item.provides && tags.includes('focus')) {
+    const comp = getItemById(item.provides);
+    const name = escapeHTML(comp?.name || String(item.provides).replace(/-/g, ' '));
+    const src = comp?.image || `/res/img/items/${item.provides}.png`;
+    lines.push(`<span class="item-provides" title="Supplies ${name} to any spell that needs it, at no cost"><span class="inf">∞</span><img src="${escapeHTML(src)}" alt="${name}"></span>`);
+  }
+  return lines;
+}
+
+function escapeHTML(s) {
+  return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+/** The small "or" between options side by side. */
+function orMark() {
+  const or = document.createElement('div');
+  or.className = 'gear-or-inline';
+  or.textContent = 'or';
+  return or;
 }
 
 /**
@@ -1033,7 +962,7 @@ async function showItemModal(itemName) {
   modal.innerHTML += '<div class="text-center text-white">Loading...</div>';
 
   backdrop.appendChild(modal);
-  document.body.appendChild(backdrop);
+  gearHost().appendChild(backdrop);
 
   const statsHTML = await getItemStats(itemName);
 
@@ -1061,13 +990,9 @@ function hideItemModal() {
  * @param {Array<string>} itemNames - An array of item IDs to preload.
  */
 async function preloadItemStats(itemNames) {
-  const uniqueNames = [...new Set(itemNames)];
-  logger.debug('🔄 Preloading item stats for:', uniqueNames);
-
-  for (const name of uniqueNames) {
-    await getItemStats(name); // Calling getItemStats will internally cache the result
-  }
-  logger.debug('✅ Preloaded cache for items.');
+  // The cards read names and rarity from static data and "?" opens the game's
+  // item panel, so the old stats HTML no longer needs fetching ahead.
+  return itemNames;
 }
 
 /**
@@ -1099,3 +1024,62 @@ async function fetchPackData(packName) {
   }
 }
 
+
+// ============================================================================
+// IN-GAME HELPERS (the inheritance, ui/startingGear.js)
+// ============================================================================
+
+/**
+ * Show the items given with the class, before the choices (packs are shown on
+ * the pack screen instead).
+ * @param {Array<{item: string, quantity: number}>} givenItems
+ */
+export async function showGivenItems(givenItems) {
+  const items = (givenItems || []).filter(item => !item.item.includes('-pack'));
+  if (items.length === 0) return;
+
+  const container = document.getElementById('gear-container');
+  const content = document.getElementById('gear-content');
+  content.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.className = 'mb-4 text-xl font-bold text-yellow-400';
+  title.textContent = 'Yours, along with the rest';
+  content.appendChild(title);
+
+  const row = document.createElement('div');
+  row.className = 'gear-cards gear-given';
+  for (const given of items) {
+    row.appendChild(await createSimpleItemCard(given.item, given.quantity));
+  }
+  content.appendChild(row);
+
+  const continueBtn = createContinueButton(0, 'Continue →');
+  content.appendChild(continueBtn);
+
+  showPanel();
+  await waitForButtonClick(continueBtn);
+  await clearPanel();
+}
+
+/**
+ * Turn the picks into what claim_starting_gear takes: {"choice-N": item id,
+ * or a JSON list of [item, quantity] for bundles and weapon picks}, plus the
+ * pack.
+ * @returns {{equipment_choices: Object<string,string>, pack_choice: string}}
+ */
+export function toChoicePayload(selected = selectedChoices) {
+  const choices = {};
+  for (const [key, option] of Object.entries(selected)) {
+    if (key === 'pack') continue;
+    const choiceKey = `choice-${key}`;
+    if (option.isBundle && option.bundle?.length) {
+      choices[choiceKey] = JSON.stringify(option.bundle);
+    } else if (option.isComplexChoice && option.weapons) {
+      choices[choiceKey] = JSON.stringify(option.weapons);
+    } else if (option.item) {
+      choices[choiceKey] = option.item;
+    }
+  }
+  return { equipment_choices: choices, pack_choice: selected.pack || '' };
+}

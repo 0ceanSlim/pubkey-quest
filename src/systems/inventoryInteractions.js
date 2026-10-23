@@ -18,6 +18,10 @@ import { openContainer } from './containers.js';
 import { isShopOpen, getCurrentTab, addItemToSell } from './shopSystem.js';
 import { deltaApplier } from './deltaApplier.js';
 import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
+// Imported normally, not on demand: an on-demand chunk imports the game entry
+// as "../game.js", but the page loads it as game.js?v=…, so the browser ran the
+// whole game a second time (two music players, an empty second game state).
+import { readLetter } from '../ui/letterReader.js';
 
 // State for drag-and-drop
 let draggedItem = null;
@@ -93,8 +97,9 @@ export function getItemActions(itemData, isEquipped) {
     // storing (the server refuses those too).
     if (itemData.tags && itemData.tags.includes('quest_item')) {
         const quest = [{ action: 'examine', label: 'Examine' }];
+        if (itemData.tags.includes('readable')) quest.unshift({ action: 'read', label: 'Read' });
         if (wikiEnabled()) quest.push({ action: 'wiki', label: WIKI_LABEL });
-        quest.push({ action: 'destroy', label: 'Destroy' });
+        if (!itemData.tags.includes('keepsake')) quest.push({ action: 'destroy', label: 'Destroy' });
         return quest;
     }
 
@@ -231,6 +236,11 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
     }
     if (action === 'wiki') {
         openWiki('Items', itemId);
+        return;
+    }
+    // A letter: read it (ui/letterReader.js).
+    if (action === 'read') {
+        await readLetter(itemId);
         return;
     }
     // A Homeward Stone: teleport (ui/waystone.js redraws the scene after).
@@ -773,16 +783,17 @@ const HIDDEN_ITEM_TAGS = new Set(['equipment']);
 /**
  * Show item details modal — a sectioned, rarity-aware panel sized to the scene.
  */
-export function showItemDetails(itemId) {
+export function showItemDetails(itemId, host = null) {
     const itemData = getItemById(itemId);
     if (!itemData) {
         logger.warn(`Item ${itemId} not found`);
         return;
     }
 
-    // Find the scene container
+    // Find the scene container (or the given host: the inheritance overlay,
+    // which covers the scene).
     const sceneImage = document.getElementById('scene-image');
-    const sceneContainer = sceneImage ? sceneImage.parentElement : null;
+    const sceneContainer = host || (sceneImage ? sceneImage.parentElement : null);
 
     if (!sceneContainer) {
         logger.warn('Scene container not found');
@@ -854,7 +865,8 @@ export function showItemDetails(itemId) {
     }
     if (has(getProp('range'))) {
         const long = getProp('range_long') || getProp('range-long');
-        combatRows.push(row('Range', has(long) ? `${esc(getProp('range'))}/${esc(long)} ft` : `${esc(getProp('range'))} ft`, '#93c5fd'));
+        // Ranges are in combat-grid squares (a longbow is 3/6), not feet.
+        combatRows.push(row('Range', has(long) ? `${esc(getProp('range'))}/${esc(long)} squares` : `${esc(getProp('range'))} squares`, '#93c5fd'));
     }
     if (has(getProp('ac'))) combatRows.push(row('Armor Class', esc(getProp('ac')), '#93c5fd'));
 
@@ -893,7 +905,7 @@ export function showItemDetails(itemId) {
     // Details.
     const detailRows = [];
     const value = getProp('value') ?? getProp('price');
-    if (value && value > 0) detailRows.push(row('💰 Value', `${Number(value).toLocaleString()} gp`, '#fbbf24'));
+    if (value && value > 0) detailRows.push(row('💰 Value', `${Number(value).toLocaleString()} gold`, '#fbbf24'));
     if (getProp('weight') > 0) detailRows.push(row('⚖️ Weight', `${esc(getProp('weight'))} lb`, '#9ca3af'));
     if (getProp('stack') > 1) detailRows.push(row('Stack', `up to ${esc(getProp('stack'))}`, '#9ca3af'));
 

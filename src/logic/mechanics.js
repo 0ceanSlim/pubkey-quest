@@ -124,39 +124,45 @@ export function showTravelConfirmation(environmentId, environmentData) {
     const destLocation = getLocationById(destCityId);
     const destName = destLocation ? destLocation.name : destCityId;
 
-    // Create modal backdrop
+    // The popup lives inside the game window, like the game's other popups, so
+    // it scales with the game and always fits: on a phone held sideways a
+    // page-level popup at real pixel sizes was taller than the screen, and its
+    // buttons fell off the bottom.
+    const host = document.getElementById('game-window') || document.body;
     const backdrop = document.createElement('div');
     backdrop.id = 'travel-confirm-backdrop';
-    backdrop.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]';
-    backdrop.style.fontFamily = '"Dogica", monospace';
+    backdrop.style.cssText = `position:${host === document.body ? 'fixed' : 'absolute'};inset:0;z-index:70;` +
+        'background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;' +
+        'font-family:"Dogica",monospace;';
 
     const modal = document.createElement('div');
-    modal.className = 'bg-gray-800 rounded-lg p-6 max-w-md mx-4 relative';
-    modal.style.border = '3px solid #9e8b6b';
-    modal.style.boxShadow = '0 0 20px rgba(158, 139, 107, 0.5)';
+    modal.style.cssText = 'width:290px;max-width:calc(100% - 16px);max-height:calc(100% - 16px);overflow-y:auto;' +
+        'box-sizing:border-box;background:#1f1f1f;color:#d1d5db;font-size:7px;line-height:1.6;' +
+        'border:2px solid #9e8b6b;box-shadow:0 0 10px rgba(158,139,107,0.5);';
 
     const diffColors = { easy: '#22c55e', moderate: '#eab308', hard: '#ef4444', very_hard: '#dc2626' };
     const diffColor = diffColors[difficulty] || '#9ca3af';
+    const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
     modal.innerHTML = `
-        <h2 class="text-lg font-bold text-yellow-400 mb-3 text-center">Travel to ${destName}?</h2>
-        <div class="text-gray-300 space-y-2 text-sm leading-relaxed">
-            <p class="text-center text-xs text-gray-400">${environmentData.description || ''}</p>
-            <div class="bg-gray-900 border border-gray-600 rounded p-3 text-xs space-y-1">
-                <div>Route: <span class="text-yellow-300">${envName}</span></div>
-                <div>Journey: <span class="text-white">${timeEstimate}</span></div>
-                <div>Difficulty: <span style="color: ${diffColor}">${difficulty.replace('_', ' ')}</span></div>
+        <div style="padding:3px 6px;background:linear-gradient(90deg,#78350f,#a16207);color:#fff;font-weight:bold;font-size:8px;">🧭 Travel to ${esc(destName)}?</div>
+        <div style="padding:6px 8px;">
+            <p style="margin:0 0 5px;color:#9ca3af;text-align:center;">${esc(environmentData.description || '')}</p>
+            <div style="background:#111;border:1px solid #4a4a4a;padding:4px 6px;margin-bottom:5px;">
+                <div>Route: <span style="color:#fde047;">${esc(envName)}</span></div>
+                <div>Journey: <span style="color:#fff;">${esc(timeEstimate)}</span></div>
+                <div>Difficulty: <span style="color:${diffColor};">${esc(difficulty.replace('_', ' '))}</span></div>
             </div>
-            <p class="text-center text-xs text-gray-500">Hunger and fatigue will tick during travel. You can stop and rest mid-journey.</p>
-        </div>
-        <div class="mt-4 flex justify-center gap-3">
-            <button id="travel-cancel-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded-lg transition-colors" style="font-size: 0.75rem;">Cancel</button>
-            <button id="travel-confirm-btn" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-lg transition-colors" style="font-size: 0.75rem;">Begin Journey</button>
+            <p style="margin:0;color:#6b7280;text-align:center;">Hunger and fatigue will tick during travel. You can stop and rest mid-journey.</p>
+            <div style="display:flex;justify-content:center;gap:6px;margin-top:7px;">
+                <button id="travel-cancel-btn" style="font:inherit;font-size:8px;color:#fff;cursor:pointer;padding:3px 10px;background:#3f3f46;border:2px solid;border-color:#71717a #27272a #27272a #71717a;">Cancel</button>
+                <button id="travel-confirm-btn" style="font:inherit;font-size:8px;font-weight:bold;color:#fff;cursor:pointer;padding:3px 10px;background:#a16207;border:2px solid;border-color:#facc15 #713f12 #713f12 #facc15;">Begin Journey</button>
+            </div>
         </div>
     `;
 
     backdrop.appendChild(modal);
-    document.body.appendChild(backdrop);
+    host.appendChild(backdrop);
 
     document.getElementById('travel-cancel-btn').onclick = () => backdrop.remove();
     backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };

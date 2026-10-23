@@ -8,7 +8,7 @@
 
 import { logger }     from '../lib/logger.js';
 import { eventBus }   from '../lib/events.js';
-import { gameAPI }    from '../lib/api.js';
+import { gameAPI, announceQuestNews } from '../lib/api.js';
 import { smoothClock } from './smoothClock.js';
 import { restoreActionButtonsLayout, displayCurrentLocation, closeNPCDialogue } from '../ui/locationDisplay.js';
 import { crestSVG }   from '../ui/crest.js';
@@ -143,6 +143,8 @@ export function exitCombatMode() {
     _hide('loot-panel');
     _hide('defeat-panel');
     _lastState = null;
+    const ch = window.getGameStateSync?.()?.character;
+    if (ch?.combat_resource) { delete ch.combat_resource; window.updateCharacterDisplay?.(); }
     _logQueueTailAt = 0;
     _animationEndsAt = 0;
     _targetID = null;
@@ -1042,6 +1044,7 @@ export async function endCombat() {
         exitCombatMode();
         if (window.refreshGameState) await window.refreshGameState();
         if (result.level_up?.leveled) window.showLevelUpModal?.(result.level_up);
+        announceQuestNews(result); // a last "slay" step: the rewards screen
 
         // If this fight happened inside a POI walk, reopen the exploration overlay
         // at the node past the monster (server resumed it on victory).
@@ -2315,6 +2318,10 @@ function _renderCombatButtons(cs) {
     const coverNote     = _isActive(target) && target.cover > 0
         ? ` — ${targetName} has ${target.cover >= 5 ? 'three-quarters' : 'half'} cover (+${target.cover} AC)` : '';
 
+    // Only casters (anyone with spell slots) get Cast Spell; a scroll is cast
+    // through Use Item.
+    const isCaster = Object.keys(window.getGameStateSync?.()?.character?.spell_slots ?? {}).length > 0;
+
     let mainLabel = `⚔ ${mainName}`;
     if (isRanged && ammo > 0) mainLabel += ` (${ammo})`;
 
@@ -2338,7 +2345,8 @@ function _renderCombatButtons(cs) {
         <div style="display:flex;flex-direction:column;gap:2px;overflow:hidden;">
             ${attackBtn}
             ${bonusBtn}
-            ${actionUsed
+            ${!isCaster ? ''
+                : actionUsed
                 ? _B_GRAYED('✨ Cast Spell', 'Action used this turn')
                 : `<button style="${_B('color:#c4b5fd;')}" onclick="window.openCombatSpellMenu()"
                     title="Cast a prepared spell">✨ Cast Spell</button>`}
@@ -2592,6 +2600,9 @@ function _renderPlayerHP(cs) {
         state.character.max_hp = cs.player.max_hp;
         if (cs.player.mana     !== undefined) state.character.mana     = cs.player.mana;
         if (cs.player.max_mana !== undefined) state.character.max_mana = cs.player.max_mana;
+        // A martial class's pool (Rage, Ki…) lives only in the fight: the header's
+        // resource bar shows it while it lasts (client-side, never saved).
+        state.character.combat_resource = cs.player.resource ?? null;
     }
     window.updateCharacterDisplay?.();
 }

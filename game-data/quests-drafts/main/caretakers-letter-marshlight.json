@@ -1,0 +1,310 @@
+{
+  "id": "caretakers-letter-marshlight",
+  "name": "The Caretaker's Letter",
+  "category": "main",
+  "difficulty": "Novice",
+  "step_count": 8,
+  "total_qp": 1,
+  "description": "Your caretaker's last letter sends you to Grommash Ironhide, the Hoardkeeper of the Warhoard in Marshlight, who has held your inheritance in trust. Claim it, then get yourself ready for the road.",
+  "start_condition": {
+    "type": "creation",
+    "target": "hoardkeeper",
+    "location": "marshlight",
+    "start_hint": "Every new character who starts in Marshlight begins with this, from their caretaker's letter."
+  },
+  "dialogue": {
+    "giver": "hoardkeeper",
+    "active": {
+      "option": "About my caretaker's letter…",
+      "start": "hub",
+      "nodes": {
+        "hub": {
+          "text": "Grommash leans on the Warhoard's door, tusks catching the moss-light. \"Speak.\"",
+          "options": [
+            "inherit",
+            "skip",
+            "vault",
+            "ask-stone",
+            "supplies",
+            "lessons",
+            "bed"
+          ]
+        },
+        "inherit": {
+          "label": "My caretaker left something here for me.",
+          "text": "Grommash reads slowly, lips moving. Then he grunts. \"Outsider, your caretaker. Never had a clan. Still kept faith with the hoard, every year.\" He thumps the door. \"The clans keep their word on a hoard, even to an outsider. Your sigil's on it. Nobody touched it.\" \"Your caretaker's coin is in the hoard. Your Homeward Stone too. They had it bound to our waystone the year you came.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-caretaker",
+            "ask-stone"
+          ],
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "ask-sigil": {
+          "label": "How did you know it was me?",
+          "text": "\"True sigil. Every soul has one. Can't steal it, can't fake it, can't sell it. Here, that matters. The other cities took everything else from us. They couldn't take that.\"",
+          "options": [
+            "take",
+            "ask-caretaker",
+            "ask-stone"
+          ]
+        },
+        "ask-caretaker": {
+          "label": "Did you know my caretaker?",
+          "text": "\"Came through the marsh one winter, half-drowned, looking for a place that didn't spit at them. Found it here.\" He shrugs. \"Marshlight takes in what the others throw out. You remember that, when they look at you funny in the Kingdom.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-stone"
+          ]
+        },
+        "ask-stone": {
+          "label": "What is a Homeward Stone?",
+          "text": "\"Homeward Stone. Grip it, think of the marsh, and it brings you back to the waystone here. Then it sleeps a week. Your caretaker had it bound so you'd always have somewhere that takes you in.\""
+        },
+        "take": {
+          "label": "I'd like to see it.",
+          "text": "Grommash hauls the hoard door open. \"Take. Then go and be dangerous.\"",
+          "action": "open_starting_gear",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "skip": {
+          "label": "I've done this before. Just the gear, please.",
+          "text": "\"Hah. Good.\" He hauls the door open.",
+          "action": "open_starting_gear_skip",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "vault": {
+          "label": "Could you open my vault?",
+          "text": "Grommash hauls the hoard door open. \"Take your coin. Take your stone. What you leave stays safe, and any keeper who's taken you in can open it, anywhere.\"",
+          "action": "open_vault",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "supplies": {
+          "label": "Where can I buy supplies for the road?",
+          "text": "\"Grokmar's place. Swamp Treasures, right here on the walkways. He'll cheat you, but fair. Buy something for the road. Shadowmere eats the unready.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 4,
+              "max": 4
+            }
+          ]
+        },
+        "lessons": {
+          "label": "Is there anything else I should do first?",
+          "text": "\"The letter says lessons. If you've magic, have it ready before the fight, not during. Your Spells & Abilities: a spell in a slot.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        "bed": {
+          "label": "Where should I sleep tonight?",
+          "text": "\"The Glowing Lantern, out on the Eastern Dock. Grishka keeps it. Sleep there, eat in the morning, then save your game. A warrior who doesn't mark their deeds is a story nobody tells. Then come back.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-marshlight",
+              "min": 6,
+              "max": 6
+            }
+          ]
+        }
+      }
+    },
+    "completed": {
+      "option": "Thank you for keeping it safe.",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "Grommash nods. \"You're ready enough.\" He jerks his chin at the walkways. \"Keepers post the bounties, every day, every week. Come to me for work. And the waystone? Dim. Shadowmere drinks from it, the old ones say. Watch the swamp.\""
+        }
+      }
+    },
+    "with": {
+      "swamp-trader": {
+        "option": "I'm new in town. What do I need for the road?",
+        "start": "advice",
+        "nodes": {
+          "advice": {
+            "text": "\"Rations. Wrapped in waxed cloth, so the swamp can't rot them.\" Grokmar sniffs. \"One feeds you a day. When your gut says Hungry, right-click one in your pack and Eat it. Starving out there is how the marsh gets fat.\"",
+            "options": [
+              "how-buy"
+            ]
+          },
+          "how-buy": {
+            "label": "How do I buy something?",
+            "text": "\"Look at the goods. Right-click what you want: Buy 1, or Buy X. Click one for the price. Talk sweet and I might shave a little off. Selling is the other tab: lay your things on the counter.\""
+          }
+        }
+      },
+      "marshlight-barkeep": {
+        "option": "How does a room work?",
+        "start": "room",
+        "nodes": {
+          "room": {
+            "text": "\"One night.\" Grishka folds her arms. \"Pay, find your room, sleep after nine. You eat at dawn, everyone does. Out by ten.\""
+          }
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "id": "read-letter",
+      "description": "Your caretaker left you a letter. Read it: right-click it in your bag and choose Read.",
+      "tip": "Items have actions: right-click one (long-press on a phone) to see what you can do with it. Your next step always shows in the quest tracker over the scene, and the Quest Log has the rest.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "read-letter",
+          "description": "Read your caretaker's letter."
+        }
+      ]
+    },
+    {
+      "id": "the-keeper",
+      "description": "The letter sends you to Grommash Ironhide, the Hoardkeeper, at the Warhoard in the Stilt Houses. Go inside and talk to them.",
+      "tip": "Buildings are listed under Buildings: click one to go in. Inside, the People column shows who's there; click someone to talk. Time stands still while you talk.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "hoardkeeper",
+          "description": "Talk to Grommash Ironhide at the Warhoard."
+        }
+      ]
+    },
+    {
+      "id": "the-inheritance",
+      "description": "Grommash has held your inheritance in trust. Ask for it, and choose what suits you.",
+      "tip": "Ask the keeper for it, then choose one option on each screen. Tap ? on any item to see what it does: damage, armor, weight, value. Once it's yours, what you can wear you'll be wearing: check the Equipment tab, and what you carry in Inventory.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "claim-starting-gear",
+          "description": "Take up your inheritance from Grommash."
+        }
+      ]
+    },
+    {
+      "id": "your-vault",
+      "description": "Your caretaker's savings and your Homeward Stone are in your vault. Ask Grommash to open it, and take both out.",
+      "tip": "Your vault is one store shared across the realm: deposit here, withdraw in any city whose keeper has accepted you. What's in it is safe, even if you fall. In the vault window, click an item to take it (set the amount first: 1, 5, 10 or ALL), or drag it into your bag. Gold has weight, so carry what you'll spend and leave the rest here. Your Homeward Stone: right-click → Use to return to your city's waystone, then it rests for a week.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "gold-piece",
+          "description": "Take your gold from the vault."
+        },
+        {
+          "type": "fetch",
+          "target": "homeward-stone-marshlight",
+          "description": "Take your Homeward Stone from the vault."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "supplies",
+      "description": "Buy something for the road. Grokmar the Shrewd keeps Swamp Treasures in the Stilt Houses; any shop will do.",
+      "tip": "Shops: talk to the shopkeeper and browse. To buy, right-click an item → Buy 1 or Buy X (click it to see the price; your Charisma helps). To sell, open the Sell tab, click your items to put them on the counter, then confirm the sale. Rations are food that never spoils: when you're Hungry, right-click one → Eat. Your bag: the 4 general slots are your belt, the things you can reach in a fight; the darker slots are your backpack. Drag items onto a container (backpack, pouch) to put them in, or right-click it → Open. Bag full? Use your backpack, or leave things in the vault.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "shop-buy",
+          "description": "Buy supplies at Swamp Treasures."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "your-lessons",
+      "description": "If you learned magic, have it ready before you need it. Open Spells & Abilities and prepare a spell in a slot.",
+      "classes": [
+        "Wizard",
+        "Sorcerer",
+        "Warlock",
+        "Bard",
+        "Cleric",
+        "Druid"
+      ],
+      "tip": "Spells & Abilities: your spell slots are at the top, the spells you know below. Click an empty slot to choose a spell for it. Cantrips are ready at once; a levelled spell takes an hour per level to prepare, and the clock has to run. Spells cost mana, and some need runes or components. In a fight you cast from the combat bar. Outside one, right-click a prepared spell → Cast: that works for spells that heal, cure, create something or leave a lasting effect.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "prepare-spell",
+          "description": "Prepare a spell (Spells & Abilities)."
+        }
+      ]
+    },
+    {
+      "id": "a-bed-for-the-night",
+      "description": "Take a room at the Glowing Lantern in the Eastern Dock and sleep. Inns serve breakfast, so you'll wake well fed. Then save your game: there's no autosave, so a save is how you keep what you've done.",
+      "tip": "Inns: talk to the innkeeper to rent a room (one night, breakfast included, check-out at 10 AM), go into your room (Rooms), then Sleep, any time after 9 PM. Sleep is what clears fatigue; 🕐 Wait only passes the time. Saving: Settings → Save game, or Ctrl+S. There's no autosave, so closing the game takes you back to your last save.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "sleep-inn",
+          "description": "Sleep at the Glowing Lantern."
+        },
+        {
+          "type": "do",
+          "target": "save-game",
+          "description": "Save your game (Settings → Save game)."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "report-back",
+      "description": "Go back to Grommash at the Warhoard and tell them you're settled.",
+      "tip": "Vault keepers post the realm's bounties, a new one every day and every week: ask any keeper for work.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "hoardkeeper",
+          "description": "Report back to Grommash."
+        }
+      ],
+      "rewards": {
+        "xp": 150,
+        "gold": 100
+      }
+    }
+  ]
+}

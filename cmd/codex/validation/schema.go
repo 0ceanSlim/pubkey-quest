@@ -312,6 +312,9 @@ func (c *schemaChecker) checkCost(cost *types.POICost) {
 	for _, it := range cost.Items {
 		c.checkRef("item", it.ID, c.idx.items)
 	}
+	if cost.Theft && (len(cost.Items) > 0 || cost.Gold <= 0) {
+		c.errf("a theft cost takes gold only: set gold, no items")
+	}
 }
 
 func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[string]bool) {
@@ -475,11 +478,22 @@ func (c *schemaChecker) checkQuestDialogueTree(phase string, t *types.QuestDialo
 			if phase != "offer" {
 				c.errf("dialogue %s node %q: \"accept\" only belongs in the offer tree", phase, id)
 			}
+		case "open_starting_gear", "open_starting_gear_skip", "open_vault":
+			// The tutorial's inheritance: opens the gear selection (api/game/starting_gear.go).
+			if phase != "active" {
+				c.errf("dialogue %s node %q: %q only belongs in the active tree", phase, id, n.Action)
+			}
 		default:
-			c.errf("dialogue %s node %q: unknown action %q (accept | close)", phase, id, n.Action)
+			c.errf("dialogue %s node %q: unknown action %q (accept | close | open_vault | open_starting_gear[_skip])", phase, id, n.Action)
 		}
 		c.checkRequirements(n.Requirements)
 	}
+}
+
+// knownClasses are the classes a quest stage can be limited to.
+var knownClasses = map[string]bool{
+	"barbarian": true, "bard": true, "cleric": true, "druid": true, "fighter": true, "monk": true,
+	"paladin": true, "ranger": true, "rogue": true, "sorcerer": true, "warlock": true, "wizard": true,
 }
 
 func (c *schemaChecker) checkQuest(q types.QuestData) {
@@ -548,6 +562,11 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 			c.checkArena(enc.Arena)
 		}
 		c.checkReward(st.Rewards)
+		for _, cl := range st.Classes {
+			if !knownClasses[strings.ToLower(cl)] {
+				c.errf("unknown class %q in stage classes", cl)
+			}
+		}
 		for oi, o := range st.Objectives {
 			oc := c.context
 			c.context = oc + fmt.Sprintf(".objectives[%d]", oi)
@@ -564,6 +583,10 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 				c.checkRef("monster", o.Target, c.idx.monsters)
 			case types.ObjectiveCheck:
 				c.checkSkill(o.Skill)
+			case types.ObjectiveDo:
+				if _, ok := types.DoActions[o.Target]; !ok {
+					c.errf("unknown do action %q", o.Target)
+				}
 			default:
 				c.errf("unknown objective type %q", o.Type)
 			}

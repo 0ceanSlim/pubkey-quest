@@ -70,9 +70,13 @@ Resource cost paid at a `transaction` node. At least one of `gold` / `items` mus
 ```
 {
   "gold":  int,
-  "items": [{ "id": "...", "quantity": N }]
+  "items": [{ "id": "...", "quantity": N }],
+  "theft": bool   // optional: the gold is taken, not paid (a pickpocket)
 }
 ```
+
+A `theft` cost takes what the player carries, up to `gold`, and never fails: an empty purse loses
+nothing ("Your purse was empty: they got nothing.") and the walk goes on to `next`. Gold only.
 
 ### POIDamage
 
@@ -325,6 +329,8 @@ Waypoints inside a site are valid `explore` targets for its quest.
 ### Quest dialogue
 
 `dialogue` holds the giver's `offer`, `active` and `completed` conversations, plus `with`: what *other* NPCs say while the quest is in progress (`{"<npc-id>": QuestDialogueTree}`), e.g. the merchant the giver sends you to. A `talk` objective ticks the moment the player greets the NPC, so gate a `with`/`active` node on the stage *after* the talk (see `the-rising-shadow.json`).
+
+**Turn-ins.** A `talk` objective on a quest's *last* stage (the last one the character does; class-limited stages after it don't count) is the turn-in. Greeting the NPC doesn't meet it. Once every other objective on that stage is done (fetch counts what's carried right then), the NPC's menu offers **📜 Turn in: <quest>**, and choosing it finishes the quest (`events.TurnedIn`). The conversation closes and the rewards screen (the last stage's `rewards` plus `total_qp`) comes up at once, carrying the giver's closing line: the opening text of the quest's `completed` conversation, or a plain thank-you. (The `completed` conversation is still there to talk through afterwards.) A last stage without a `talk` objective (slay, check) finishes as soon as it's done and still gets the rewards screen. Vault-keeper bounties turn in to any keeper (`vault-keeper`).
 
 An `npc_interaction` node ends the walk and offers to talk to its `npc_ids` right there, which is how NPCs who live at a POI (Thistle at the Wayward Wagon) are reached. See `quests-drafts/side/rats-of-goldenhaven.json`.
 

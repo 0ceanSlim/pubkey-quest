@@ -24,6 +24,7 @@ import '../lib/wiki.js'; // right-click "Wiki" on game data (window.openWiki)
 import '../systems/dayCycle.js'; // town pace + nightfall/dawn splashes
 import '../ui/restartNotice.js'; // "the server updates in 2:00 — save now" banner
 import '../ui/whatsNew.js'; // once per update: what changed since you last played
+import '../ui/uiTour.js'; // "Show me around": guided tour of the screen (once for new characters, and from Settings)
 import * as inventoryInteractions from '../systems/inventoryInteractions.js';
 import { initSlotInteractions } from '../systems/slotInteractions.js';
 import { openContainer, closeContainer } from '../systems/containers.js';
@@ -39,6 +40,7 @@ import '../ui/socialNostr.js'; // Social over Nostr: friends, follow, mute, whis
 import '../ui/portraitDialog.js'; // Character portrait dialog (window.openPortraitDialog)
 import '../ui/spellPicker.js'; // Known-spells picker (window.openSpellPicker)
 import '../ui/questTracker.js'; // Active-quest tracker chip — registers its own state listeners
+import '../ui/questComplete.js'; // "Quest complete!" rewards screen (window.showQuestComplete)
 import * as combatSystem from '../systems/combatSystem.js';
 
 // UI modules

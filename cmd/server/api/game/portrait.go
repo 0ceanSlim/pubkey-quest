@@ -249,7 +249,7 @@ func PortraitImageHandler(w http.ResponseWriter, r *http.Request) {
 	img, err := portraitPNG(u)
 	if err != nil {
 		log.Printf("⚠️ portrait %s: %v", u, err)
-		http.Error(w, "portrait unavailable", http.StatusBadGateway)
+		http.Error(w, "portrait unavailable: "+err.Error(), http.StatusBadGateway)
 		return
 	}
 	w.Header().Set("Content-Type", "image/png")

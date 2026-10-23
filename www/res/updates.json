@@ -2,12 +2,87 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-22-waiting-and-fixes",
+      "when": "October 22, 2026",
+      "icon": "📜",
+      "size": "major",
+      "title": "Quest Turn-ins, an Honest Wait Window, and Fixes",
+      "summary": "Finish a quest by turning it in to its giver and see everything you earned. The Wait window shows what really happens while you wait, and the road, inns and fights got a round of fixes.",
+      "highlights": [
+        "The Wait window shows your HP and mana coming back, hunger dropping at its real rate, effects wearing off or setting in, spells finishing preparation, and shops opening or closing. Fatigue holds while you wait (it used to show it climbing); only sleep clears it",
+        "Out on the road, it warns you that something may find you while you wait",
+        "Finding a place on the road stops you beside it, with Enter, Continue Journey and Turn Back ready, and the discovery XP shows at once",
+        "Dropping on enemies who haven't seen you (the watchtower window) now really is a surprise attack: you strike first, with no initiative roll",
+        "Characters without spells no longer see Cast Spell in a fight (scrolls are under Use Item), and Rage, Ki and the other pools show their live count in the header bar during a fight",
+        "You can't wait or sleep in the middle of a fight",
+        "Quests are finished on purpose now: when you're done, talk to the quest giver and choose \"Turn in\". A Quest complete! screen then shows everything you earned (bounties too, at any vault keeper)",
+        "A rented room is yours for one night: sleeping in it ends the rental at the 10 AM check-out (breakfast is still served)",
+        "A pickpocket can only take what's in your purse, and new characters aren't bothered by pickpockets or brawlers until the caretaker's letter is done",
+        "Buildings that open while you wait now let you straight in (they used to say they were still closed), and quest steps tick off as soon as you buy, prepare a spell or save",
+        "The stats tab shows your total XP and what the next level needs",
+        "Choosing your inheritance is easier to read: bundles side by side, single items in a grid, and each card shows the damage, AC and key properties (two-handed, finesse, versatile…). The vault stays in view as you move between screens",
+        "The tutorial talks less over the top of you. Shopkeepers and innkeepers explain rations, buying and rooms in their own words, and \"how it works\" notes wait behind a 💡 on the quest tracker (only the vault, the shop and saving pop up by themselves)",
+        "Music fades between tracks instead of cutting"
+      ]
+    },
+    {
+      "id": "2026-10-22-a-new-start",
+      "when": "October 22, 2026",
+      "icon": "✉️",
+      "size": "major",
+      "title": "A New Start: the Caretaker's Letter",
+      "summary": "New characters begin with the story, then claim their gear in town from their people's vault keeper, in a short tutorial quest.",
+      "highlights": [
+        "The opening is story only now, and shorter: the rainy night, the caretaker, the letter written for your upbringing, the road, and your arrival in your people's city",
+        "The letter's last line sends you to your people's vault keeper, who has held your inheritance in trust. Choose your gear there, over their vault, with the same choices as before",
+        "\"The Caretaker's Letter\" quest then shows you around town: buy supplies, prepare a spell if you cast them, take a room at the inn, sleep and save. Every starting city has its own keeper and its own lines",
+        "Already know the game? Tell the keeper \"I've done this before\" and you get your gear and skip the rest",
+        "The caretaker's letter is in your bag to read again any time (right-click → Read)",
+        "Your caretaker's savings and your first Homeward Stone wait in your vault, and the keeper tells you what the stone does",
+        "Each step of the tutorial comes with a short \"how it works\": shops, the vault, your bag and containers, preparing spells, inns and saving",
+        "Characters you already have aren't affected"
+      ]
+    },
+    {
+      "id": "2026-10-22-header-and-tour",
+      "when": "October 22, 2026",
+      "icon": "🧭",
+      "size": "minor",
+      "title": "A Tidier Header, and a Tour of the Screen",
+      "summary": "Your portrait, name and level sit cleanly at the top, and a new tour shows what every part of the screen does.",
+      "highlights": [
+        "The header shows your portrait properly, your level always (a long name no longer hides it), and the clock on its own line with the sun or moon and the day (moved off the scene). The XP, HP and resource bars line up",
+        "On phones, the \"Travel to…?\" window when you head out of town fits the screen again, so its buttons can be tapped",
+        "Settings → Show me around: a quick guided look at every part of the screen, from the clock to the tabs to saving. New characters see it once when they arrive",
+        "If your portrait won't load, the portrait window now says why instead of quietly showing your crest",
+        "Signing in with a private key: the Customize permissions screen is readable again (it squeezed the names into one letter per line)",
+        "Picking a lock no longer starts a second copy of the game in the background (it could double the music)",
+        "When time stands still (talking, fighting, a vault), the clock shows an hourglass instead of looking like it's running",
+        "Right-click a prepared spell: Cast is always listed, and spells that only work in a fight say so",
+        "Item info gives value in gold and weapon range in squares",
+        "The Settings buttons fit their column"
+      ]
+    },
+    {
       "id": "2026-10-21-amber-login",
       "when": "October 21, 2026",
       "icon": "📱",
       "size": "minor",
       "title": "Amber Sign-In Works Again",
       "summary": "Signing in with Amber on Android works again. It used to come back with \"Missing event data from Amber\"."
+    },
+    {
+      "id": "2026-10-20-new-scene-art",
+      "when": "October 20, 2026",
+      "icon": "🎨",
+      "size": "minor",
+      "title": "New Art for Every Town and Road",
+      "summary": "Towns, roads and the opening story have new 16-bit art, and every town and road has its own picture.",
+      "highlights": [
+        "All nine towns have new art. Goldenhaven, Dusthaven, Frosthold and Saltwind have their own pictures for the first time",
+        "Seven roads that used to borrow the Merchant's Highway have their own: the plains, hills, wetlands, coast, desert, mountains and the Frozen Wastes",
+        "The opening story is redrawn, and each upbringing now has its own memory of growing up with the caretaker"
+      ]
     },
     {
       "id": "2026-10-19-wiki-and-5e",

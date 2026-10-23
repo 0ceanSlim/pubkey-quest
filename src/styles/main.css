@@ -958,3 +958,369 @@
   stroke-width: 3;
   stroke-linecap: round;
 }
+
+/* ========================================
+   Player header (www/views/game/player-stats.html)
+   ======================================== */
+
+/* Portrait, then name + level over the clock */
+.pq-id {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.pq-face {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  border-right: 1px solid #6b7280;
+  border-bottom: 1px solid #6b7280;
+}
+.pq-face img,
+.pq-face svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  image-rendering: pixelated;
+}
+.pq-id-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pq-name-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+/* The name gives way (ellipsis); the level never does */
+.pq-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #fff;
+  font-weight: bold;
+  font-size: 8px;
+}
+.pq-lv {
+  flex-shrink: 0;
+  cursor: pointer;
+  color: #fcd34d;
+  font-weight: bold;
+  font-size: 7px;
+  padding: 1px 3px;
+  background: #1f1f1f;
+  border: 1px solid #a16207;
+}
+.pq-clock-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.pq-tbtn {
+  font-size: 6px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-top: 1px solid #fff;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+.pq-tbtn-down {
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+}
+/* The sun/moon, clock and day sit together after the time buttons */
+.pq-when {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+  min-width: 0;
+}
+.pq-sun {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+.pq-time {
+  color: #fff;
+  font-weight: bold;
+  font-size: 7px;
+  white-space: nowrap;
+}
+.pq-day {
+  color: #9ca3af;
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+/* XP, HP and the class resource share one bar shape, so their edges line up */
+.pq-bar {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3px;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  border-right: 1px solid #3a3a3a;
+  border-bottom: 1px solid #3a3a3a;
+}
+.pq-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition: width 0.3s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.pq-bar-label,
+.pq-bar-value {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-weight: bold;
+  font-size: 7px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ========================================
+   The inheritance: starting gear over the keeper's vault (ui/startingGear.js)
+   The selection screens (systems/equipmentSelection.js) came from the intro, so
+   this mirrors the intro page's scene styles, scoped to the overlay.
+   ======================================== */
+@keyframes gearWipeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes wipeLeft {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-100%); opacity: 0; }
+}
+@keyframes wipeRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+#gear-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: #000;
+  color: #fff;
+  font-family: 'Dogica', monospace;
+  overflow: hidden;
+}
+#gear-overlay .gear-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem 1rem;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+#gear-overlay .gear-scene.fade-in { opacity: 1; }
+#gear-overlay .gear-scene.fade-out { opacity: 0; }
+#gear-overlay .gear-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.5);
+  image-rendering: pixelated;
+}
+/* The choices sit in a framed panel over the vault; it scrolls, never runs off screen */
+#gear-overlay .gear-panel {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: min(1100px, 100%);
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.25rem;
+  background: rgba(17, 17, 24, 0.86);
+  border-top: 2px solid #6b7280;
+  border-left: 2px solid #6b7280;
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+#gear-overlay .gear-panel .overflow-y-auto { max-height: none !important; }
+#gear-overlay .gear-speaker,
+#gear-overlay .gear-leave {
+  position: absolute;
+  top: 0.75rem;
+  z-index: 3;
+  padding: 0.35rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.75);
+}
+#gear-overlay .gear-speaker { left: 0.75rem; color: #fde68a; border: 1px solid #a16207; }
+#gear-overlay .gear-leave { right: 0.75rem; color: #e5e7eb; border: 1px solid #6b7280; cursor: pointer; }
+#gear-overlay .gear-leave:hover { color: #fff; border-color: #e5e7eb; }
+#gear-overlay .scene-text { opacity: 0; animation: gearWipeIn 0.4s ease-out forwards; }
+
+#gear-overlay .pixel-continue-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 1.25rem;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  background: #ffd700;
+  color: #000;
+  border: none;
+  font-family: inherit;
+  clip-path: polygon(
+    0 4px, 4px 4px, 4px 0,
+    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
+  );
+  box-shadow: inset 2px 2px 0 #ffed4e, inset -2px -2px 0 #cc9900, 4px 4px 0 rgba(0, 0, 0, 0.3);
+}
+#gear-overlay .pixel-continue-btn:hover { background: #ffed4e; }
+#gear-overlay .pixel-continue-btn:active { transform: translate(2px, 2px); }
+#gear-overlay .pixel-continue-btn:disabled { opacity: 0.4 !important; filter: grayscale(1); cursor: not-allowed; }
+#gear-overlay .pixel-continue-btn:disabled:hover { background: #ffd700; }
+#gear-overlay .pixel-back-btn {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 3;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  color: #fff;
+  background: #3f3f46;
+  border: 2px solid;
+  border-color: #71717a #27272a #27272a #71717a;
+}
+#gear-overlay [data-option-index] { transition: all 0.2s ease; box-sizing: border-box; }
+#gear-overlay [data-option-index]:hover:not(.selected) { border-color: var(--color-textHighlighted) !important; }
+#gear-overlay [data-option-index].selected {
+  border-color: var(--color-textHighlighted) !important;
+  border-width: 3px !important;
+  box-shadow: 0 0 20px var(--color-textHighlighted) !important;
+  background-color: var(--color-bgTertiary) !important;
+}
+#gear-overlay [data-option-index].selected .info-btn { pointer-events: auto !important; }
+
+/* Screens cross-fade in the panel; the vault behind stays put */
+#gear-overlay .gear-panel { transition: opacity 0.18s ease; }
+#gear-overlay .gear-panel.gear-fade { opacity: 0; }
+#gear-overlay .gear-panel .text-xl,
+#gear-overlay .gear-panel .text-2xl { font-size: 1rem; line-height: 1.4; margin-bottom: 0.6rem; }
+#gear-overlay .gear-panel .text-lg { font-size: 0.8rem; margin-bottom: 0.6rem; }
+
+/* A choice in sections: bundles (and packs, and weapon set-ups) side by side,
+   then "or one of these" and the single items in a full-width grid. */
+#gear-overlay .gear-choice { display: flex; flex-direction: column; align-items: stretch; gap: 0.5rem; }
+#gear-overlay .gear-bundles { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+#gear-overlay .gear-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 0.4rem; width: 100%;
+}
+#gear-overlay .gear-or { font-size: 0.65rem; color: #9ca3af; text-align: center; margin: 0.15rem 0; }
+#gear-overlay .gear-or-inline { font-size: 0.6rem; color: #9ca3af; }
+#gear-overlay .gear-option {
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  padding: 0.4rem; cursor: pointer; background: #1f2937; border: 3px solid #374151; border-radius: 6px;
+}
+#gear-overlay .gear-option.gear-given { border-color: #10b981; cursor: default; }
+#gear-overlay .gear-option-label { font-size: 0.6rem; color: #fbbf24; }
+#gear-overlay .gear-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
+#gear-overlay .gear-cards.gear-given .item-card { border-color: #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+#gear-overlay .gear-config { min-width: 12rem; }
+#gear-overlay .gear-config-slots { font-size: 0.6rem; color: #d1d5db; line-height: 1.8; }
+
+/* A gear card: a row with the picture, its name and the facts that matter
+   (damage, AC, properties). "?" opens the full item panel. No rarity marks. */
+#gear-overlay .item-card {
+  position: relative; box-sizing: border-box; width: 172px; min-height: 52px;
+  display: grid; grid-template-columns: 40px 1fr; align-items: center; column-gap: 0.45rem;
+  padding: 0.3rem 1.1rem 0.3rem 0.35rem; text-align: left;
+  background: #111827; border: 2px solid #374151; border-radius: 4px;
+}
+#gear-overlay .gear-grid .item-card { width: 100%; }
+#gear-overlay .item-card img { grid-column: 1; grid-row: 1 / span 2; width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+#gear-overlay .item-card .item-qty {
+  position: absolute; left: 3px; bottom: 2px; font-size: 0.55rem; font-weight: bold; color: #c084fc; text-shadow: 1px 1px 0 #000;
+}
+#gear-overlay .item-card .item-name { grid-column: 2; font-size: 0.6rem; line-height: 0.8rem; color: #fff; align-self: end; }
+#gear-overlay .item-card.no-facts .item-name { grid-row: 1 / span 2; align-self: center; }
+#gear-overlay .item-card .item-facts { grid-column: 2; font-size: 0.5rem; line-height: 0.7rem; color: #9ca3af; align-self: start; }
+#gear-overlay .item-card .item-facts > div:first-child { color: #fde68a; }
+#gear-overlay .item-card .info-btn {
+  position: absolute; top: 2px; right: 4px; font-family: inherit; font-size: 11px; font-weight: bold;
+  color: #facc15; background: none; border: none; cursor: pointer; text-shadow: 1px 1px 0 #000; padding: 0;
+}
+#gear-overlay .item-card .info-btn:hover { color: #4ade80; }
+#gear-overlay .gear-grid { grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); }
+/* A single item is its own card: no second frame around it (it lights up when picked). */
+#gear-overlay .gear-grid .gear-option { padding: 0 !important; background: none; border: 2px solid transparent; border-radius: 6px; }
+#gear-overlay .item-card .item-facts > div:first-child { white-space: nowrap; }
+#gear-overlay .item-card .item-provides { display: inline-flex; align-items: center; gap: 3px; color: #a5f3fc; white-space: nowrap; cursor: help; }
+#gear-overlay .item-card .item-provides .inf { font-family: Arial, sans-serif; font-size: 15px; line-height: 1; font-weight: bold; }
+#gear-overlay .item-card .item-provides img { width: 18px; height: 18px; image-rendering: pixelated; }
+#gear-overlay .item-detail-modal { position: absolute; inset: 0; z-index: 10 !important; }
+#gear-overlay .item-detail-modal > div { zoom: 1.6; }
+
+/* Small screens: smaller cards and type, so a choice fits without much scrolling */
+@media (max-height: 520px), (max-width: 640px) {
+  #gear-overlay .gear-scene { padding: 2.5rem 0.5rem 0.5rem; }
+  #gear-overlay .gear-panel { padding: 0.6rem; max-height: calc(100vh - 3rem); }
+  #gear-overlay .item-card { width: 150px; grid-template-columns: 32px 1fr; }
+  #gear-overlay .item-card img { width: 32px; height: 32px; }
+  #gear-overlay .gear-grid { grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); }
+  #gear-overlay .text-xl, #gear-overlay .text-2xl { font-size: 0.95rem !important; }
+  #gear-overlay .pixel-continue-btn { font-size: 0.8rem; padding: 0.5rem 1rem; margin-top: 0.75rem; }
+}
+
+/* The quest tracker's "how it works" button: a small amber pill that glows
+   while the step's tip hasn't been opened. */
+#quest-tracker-tip {
+  flex-shrink: 0; font-family: inherit; font-size: 6px; line-height: 1; cursor: help;
+  padding: 1px 3px; color: #1f1300; background: #fbbf24; border: 1px solid #fde68a; border-radius: 2px;
+}
+#quest-tracker-tip:hover { background: #fde68a; }
+#quest-tracker-tip.fresh { animation: pqTipGlow 1.1s ease-in-out infinite; }
+@keyframes pqTipGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+  50% { box-shadow: 0 0 6px 2px rgba(251, 191, 36, 0.9); }
+}

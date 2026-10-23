@@ -254,7 +254,7 @@ var combatBlockedActions = map[string]bool{
 	"move_to_room": true, "move": true, "talk_to_npc": true,
 	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
-	"use_homeward_stone": true, "waystone_hop": true,
+	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true,
 }
 
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
@@ -556,6 +556,11 @@ func maybeDiscoverPOIs(sess *GameSession, oldProgress float64, response *GameAct
 		response.Data["poi_discovered"] = map[string]interface{}{
 			"id": poi.ID, "name": poi.Name, "message": msg,
 		}
+		// Stop on the road beside it (the clock pauses too, in pauseOnEvent):
+		// the player can go in, carry on or turn back, and doesn't walk past
+		// it while they read.
+		state.TravelStopped = true
+		response.Data["travel_stopped"] = true
 		return // one discovery per tick
 	}
 }
@@ -744,7 +749,13 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		}
 		return handleDropItemAction(session, state, action.Params)
 	case "destroy_item":
-		// Gone for good — the one way to be rid of a quest item.
+		// Gone for good — the one way to be rid of a quest item. A keepsake
+		// (the caretaker's letter) can't be destroyed.
+		if id, _ := action.Params["item_id"].(string); id != "" {
+			if item, err := serverdb.GetItemByID(id); err == nil && item != nil && strings.Contains(item.Tags, `"keepsake"`) {
+				return &GameActionResponse{Success: false, Message: "You couldn't bring yourself to.", Color: "yellow"}, nil
+			}
+		}
 		return handleRemoveFromInventoryAction(state, action.Params)
 	case "lock_begin", "lock_act":
 		var resp *types.GameActionResponse
@@ -809,6 +820,10 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleMoveToRoomAction(session, action.Params)
 	case "talk_to_npc":
 		return handleTalkToNPCAction(session, action.Params)
+	case "claim_starting_gear":
+		return handleClaimStartingGear(session, action.Params)
+	case "read_letter":
+		return handleReadLetter(session)
 	case "npc_dialogue_choice":
 		return handleNPCDialogueChoiceAction(session, action.Params)
 	case "register_vault":
@@ -1730,6 +1745,9 @@ func handleSleepAction(session *GameSession, _ map[string]any) (*GameActionRespo
 	var err error
 	if session.SaveData.Building != "" {
 		resp, err = npc.HandleSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
+		if err == nil && resp != nil && resp.Success {
+			events.Record(&session.SaveData, events.Did, "sleep-inn", 1)
+		}
 	} else {
 		resp, err = npc.HandleWildernessSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
 	}

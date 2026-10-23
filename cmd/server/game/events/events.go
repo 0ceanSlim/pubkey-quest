@@ -25,6 +25,11 @@ const (
 	SkillCheckPassed   Kind = "skill_check_passed"  // Target = skill id     → quest "check"
 	ShopTransaction    Kind = "shop_transaction"    // Target = item id
 	Slept              Kind = "slept"               // Target = building id
+	Did                Kind = "did"                 // Target = a types.DoActions name → quest "do"
+	// TurnedIn: the player chose Turn in with a quest's giver. Target = quest id.
+	// It's what meets a "talk" objective on a quest's last step (opening the
+	// conversation, NPCTalked, doesn't), so finishing is always deliberate.
+	TurnedIn Kind = "turned_in"
 )
 
 // Event is one recorded occurrence. Count is the magnitude (monsters slain,

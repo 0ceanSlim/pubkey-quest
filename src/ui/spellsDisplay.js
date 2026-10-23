@@ -179,12 +179,18 @@ function openSlotMenu(e, slotLevel, slotIndex, spellId) {
     const menu = document.createElement('div');
     menu.className = 'context-menu fixed bg-gray-800 border-2 border-gray-600 shadow-lg z-50';
     menu.style.cssText = `left:${e.clientX}px; top:${e.clientY}px; min-width:100px;`;
-    const add = (label, fn) => {
+    const add = (label, fn, hint) => {
         const it = document.createElement('div');
         it.textContent = label;
-        it.className = 'context-menu-item px-3 py-2 hover:bg-gray-700 cursor-pointer text-white';
         it.style.fontSize = '9px';
-        it.onclick = (ev) => { ev.stopPropagation(); closeSlotMenu(); fn(); };
+        if (!fn) {
+            // Shown but not clickable, with the reason as its tip.
+            it.className = 'context-menu-item px-3 py-2 text-gray-500 cursor-default';
+            if (hint) it.title = hint;
+        } else {
+            it.className = 'context-menu-item px-3 py-2 hover:bg-gray-700 cursor-pointer text-white';
+            it.onclick = (ev) => { ev.stopPropagation(); closeSlotMenu(); fn(); };
+        }
         menu.appendChild(it);
     };
     add('Info', () => window.openSpellModal && window.openSpellModal(spellId));
@@ -194,6 +200,9 @@ function openSlotMenu(e, slotLevel, slotIndex, spellId) {
     const spell = getSpellById(spellId);
     if (spell && (spell.heal || spell.applies_effect || spell.cures?.length || spell.creates_item)) {
         add('Cast', () => castOutOfCombat(spellId));
+    } else if (spell) {
+        // Say so, rather than leave casting looking missing.
+        add('Cast (in combat)', null, 'This spell is cast in a fight. Out of combat you can cast spells that heal, cure, create something or leave a lasting effect.');
     }
     add('Replace', () => window.openSpellPicker && window.openSpellPicker(slotLevel, slotIndex));
     add('Remove', () => removeSlot(slotLevel, slotIndex));

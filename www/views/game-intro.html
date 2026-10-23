@@ -64,7 +64,7 @@
         width: 25vw !important;
         min-width: 200px !important;
         max-width: 280px !important;
-        height: 70vh !important;
+        height: 46vh !important;
         font-size: 0.875rem !important;
         padding: 1rem !important;
         line-height: 1.2 !important;
@@ -344,6 +344,15 @@
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9),
       -1px -1px 4px rgba(0, 0, 0, 0.8);
   }
+  /* The new scene art is brighter: story text sits on a dark panel so it reads. */
+  .scene-text.scene-story {
+    background: rgba(8, 8, 14, 0.72);
+    padding: 1rem 1.5rem;
+    border-top: 2px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.6);
+    max-width: min(900px, 92vw);
+    margin: 0 auto;
+  }
 
   .letter-container {
     position: absolute;
@@ -356,16 +365,15 @@
     line-height: 1;
     text-align: left;
     z-index: 1;
-    /* Position to match the black letter area in the background */
-    top: 54%;
+    /* Placed and sized on the page of letter-page.png by lib/letterLayout.js. */
+    top: 23vh;
     left: 50%;
-    transform: translate(-50%, -50%);
-    /* Size to fit within the letter area - narrower for better fit, taller for more text */
-    width: 28vw;
-    max-width: 380px;
-    min-width: 280px;
-    height: 58vh;
-    max-height: 580px;
+    transform: translateX(-50%);
+    width: 21vw;
+    max-width: 360px;
+    min-width: 220px;
+    height: 46vh;
+    max-height: 540px;
     /* Transparent background to show the letter texture beneath */
     background: transparent;
     /* Ensure text is readable */

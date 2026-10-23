@@ -1,0 +1,310 @@
+{
+  "id": "caretakers-letter-kingdom",
+  "name": "The Caretaker's Letter",
+  "category": "main",
+  "difficulty": "Novice",
+  "step_count": 8,
+  "total_qp": 1,
+  "description": "Your caretaker's last letter sends you to Marcus Goldvault, the Royal Custodian of the Vault of Crowns in the Royal Kingdom, who has held your inheritance in trust. Claim it, then get yourself ready for the road.",
+  "start_condition": {
+    "type": "creation",
+    "target": "royal-custodian",
+    "location": "kingdom",
+    "start_hint": "Every new character who starts in the Royal Kingdom begins with this, from their caretaker's letter."
+  },
+  "dialogue": {
+    "giver": "royal-custodian",
+    "active": {
+      "option": "About my caretaker's letter…",
+      "start": "hub",
+      "nodes": {
+        "hub": {
+          "text": "Marcus turns his ledger toward you. \"Name, and business. In that order, if you please.\"",
+          "options": [
+            "inherit",
+            "skip",
+            "vault",
+            "ask-stone",
+            "supplies",
+            "lessons",
+            "bed"
+          ]
+        },
+        "inherit": {
+          "label": "My caretaker left something here for me.",
+          "text": "He reads the letter twice, then runs a finger down a column of his ledger and stops. \"There. Eighteen years of deposits, small and regular, never once late. Your caretaker kept better accounts than half the nobles in this city.\" He looks up. \"The Vault of Crowns holds it in your name under the Crown's law, and the Crown's law treats every deposit the same, whoever's blood made it. Your sigil matches the one on file. It's yours.\" \"Your caretaker's savings are in the vault, every coin of it, and so is your Homeward Stone. They paid to have it attuned to the waystone in our square the year you were born.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-caretaker",
+            "ask-stone"
+          ],
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "ask-sigil": {
+          "label": "How did you know it was me?",
+          "text": "\"Every soul is born with a true sigil, and no two are alike. You can't forge one, you can't lose one, and you can't give one away. Your caretaker registered yours here when you were small enough to sleep in a ledger drawer. The vault knew you the moment you walked in.\"",
+          "options": [
+            "take",
+            "ask-caretaker",
+            "ask-stone"
+          ]
+        },
+        "ask-caretaker": {
+          "label": "Did you know my caretaker?",
+          "text": "\"Every season, the same small sum, the same careful hand. Never a word with it. I asked once what it was for, and they said: so the child has a start that isn't mine to give. I didn't understand it then.\" He closes the ledger gently. \"I think I do now.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-stone"
+          ]
+        },
+        "ask-stone": {
+          "label": "What is a Homeward Stone?",
+          "text": "\"Every citizen is issued one. Hold it, will it, and it carries you back to the waystone in this square, wherever you are. It needs a week to gather itself again after, so don't spend it on a whim. Your caretaker paid for the attuning out of their own savings. They wanted you always able to come home.\""
+        },
+        "take": {
+          "label": "I'd like to see it.",
+          "text": "Marcus unlocks a long iron coffer and lifts the lid. \"Choose what suits you. I'll record the withdrawal.\"",
+          "action": "open_starting_gear",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "skip": {
+          "label": "I've done this before. Just the gear, please.",
+          "text": "\"Efficient. I approve.\" He opens the coffer.",
+          "action": "open_starting_gear_skip",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "vault": {
+          "label": "Could you open my vault?",
+          "text": "\"Certainly.\" Marcus unlocks the ledger drawer. \"Take what you need and leave what you don't. What's in the vault is safe, and any keeper who's accepted you can open it, in any city.\"",
+          "action": "open_vault",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "supplies": {
+          "label": "Where can I buy supplies for the road?",
+          "text": "\"The Grand Market, right here in the Kingdom Center. Aldric Goodsworth will sell you anything, and tell you about it whether you ask or not. Rations, a torch, a waterskin: buy something for the road. The roads out of the capital are longer than they look.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 4,
+              "max": 4
+            }
+          ]
+        },
+        "lessons": {
+          "label": "Is there anything else I should do first?",
+          "text": "\"Your caretaker's letter mentions lessons. If you've learned any magic, prepare it before you need it: open your Spells & Abilities and set a spell in a slot. The Mage Tower in the Northern District will tell you the same at three times the length.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        "bed": {
+          "label": "Where should I sleep tonight?",
+          "text": "\"Take a room at the Wayward Traveler, in the Southern District. Mara Sunfield keeps it clean and serves breakfast. Sleep, then save your game. The Crown keeps records; you should too. Then come back and tell me you're settled.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-kingdom",
+              "min": 6,
+              "max": 6
+            }
+          ]
+        }
+      }
+    },
+    "completed": {
+      "option": "Thank you for keeping it safe.",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "\"You're settled, then. Good.\" Marcus makes a final note. \"When you need work, come to me: every vault keeper posts the realm's bounties, daily and weekly. And look at the waystone in the square on your way out. It's fading. They all are, these days, and nobody can tell me why.\""
+        }
+      }
+    },
+    "with": {
+      "general-merchant": {
+        "option": "I'm new in town. What do I need for the road?",
+        "start": "advice",
+        "nodes": {
+          "advice": {
+            "text": "\"First time out? Then rations, friend, before anything else.\" Aldric taps a stack of oilcloth bundles. \"One's a day's food. It never spoils, and when your belly says Hungry, eat one: right-click it in your bag, then Eat. A torch for the dark, a rope if you're climbing. Have a browse.\"",
+            "options": [
+              "how-buy"
+            ]
+          },
+          "how-buy": {
+            "label": "How do I buy something?",
+            "text": "\"Browse my shelves, then right-click what you want: Buy 1, or Buy X for a few. Click an item to see its price first, and a little charm goes a long way with me. Selling's the other tab: put your things on my counter and I'll make you an offer.\""
+          }
+        }
+      },
+      "kingdom-inn-keeper": {
+        "option": "How does a room work?",
+        "start": "room",
+        "nodes": {
+          "room": {
+            "text": "\"A room is for one night, love.\" Mara smiles. \"Pay me, go up to your room, and sleep any time after nine. Breakfast comes with it, so you'll wake well fed, and check-out's at ten.\""
+          }
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "id": "read-letter",
+      "description": "Your caretaker left you a letter. Read it: right-click it in your bag and choose Read.",
+      "tip": "Items have actions: right-click one (long-press on a phone) to see what you can do with it. Your next step always shows in the quest tracker over the scene, and the Quest Log has the rest.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "read-letter",
+          "description": "Read your caretaker's letter."
+        }
+      ]
+    },
+    {
+      "id": "the-keeper",
+      "description": "The letter sends you to Marcus Goldvault, the Royal Custodian, at the Vault of Crowns in Kingdom Center. Go inside and talk to them.",
+      "tip": "Buildings are listed under Buildings: click one to go in. Inside, the People column shows who's there; click someone to talk. Time stands still while you talk.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "royal-custodian",
+          "description": "Talk to Marcus Goldvault at the Vault of Crowns."
+        }
+      ]
+    },
+    {
+      "id": "the-inheritance",
+      "description": "Marcus has held your inheritance in trust. Ask for it, and choose what suits you.",
+      "tip": "Ask the keeper for it, then choose one option on each screen. Tap ? on any item to see what it does: damage, armor, weight, value. Once it's yours, what you can wear you'll be wearing: check the Equipment tab, and what you carry in Inventory.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "claim-starting-gear",
+          "description": "Take up your inheritance from Marcus."
+        }
+      ]
+    },
+    {
+      "id": "your-vault",
+      "description": "Your caretaker's savings and your Homeward Stone are in your vault. Ask Marcus to open it, and take both out.",
+      "tip": "Your vault is one store shared across the realm: deposit here, withdraw in any city whose keeper has accepted you. What's in it is safe, even if you fall. In the vault window, click an item to take it (set the amount first: 1, 5, 10 or ALL), or drag it into your bag. Gold has weight, so carry what you'll spend and leave the rest here. Your Homeward Stone: right-click → Use to return to your city's waystone, then it rests for a week.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "gold-piece",
+          "description": "Take your gold from the vault."
+        },
+        {
+          "type": "fetch",
+          "target": "homeward-stone-kingdom",
+          "description": "Take your Homeward Stone from the vault."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "supplies",
+      "description": "Buy something for the road. Aldric Goodsworth keeps the Grand Market in Kingdom Center; any shop will do.",
+      "tip": "Shops: talk to the shopkeeper and browse. To buy, right-click an item → Buy 1 or Buy X (click it to see the price; your Charisma helps). To sell, open the Sell tab, click your items to put them on the counter, then confirm the sale. Rations are food that never spoils: when you're Hungry, right-click one → Eat. Your bag: the 4 general slots are your belt, the things you can reach in a fight; the darker slots are your backpack. Drag items onto a container (backpack, pouch) to put them in, or right-click it → Open. Bag full? Use your backpack, or leave things in the vault.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "shop-buy",
+          "description": "Buy supplies at the Grand Market."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "your-lessons",
+      "description": "If you learned magic, have it ready before you need it. Open Spells & Abilities and prepare a spell in a slot.",
+      "classes": [
+        "Wizard",
+        "Sorcerer",
+        "Warlock",
+        "Bard",
+        "Cleric",
+        "Druid"
+      ],
+      "tip": "Spells & Abilities: your spell slots are at the top, the spells you know below. Click an empty slot to choose a spell for it. Cantrips are ready at once; a levelled spell takes an hour per level to prepare, and the clock has to run. Spells cost mana, and some need runes or components. In a fight you cast from the combat bar. Outside one, right-click a prepared spell → Cast: that works for spells that heal, cure, create something or leave a lasting effect.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "prepare-spell",
+          "description": "Prepare a spell (Spells & Abilities)."
+        }
+      ]
+    },
+    {
+      "id": "a-bed-for-the-night",
+      "description": "Take a room at the Wayward Traveler Inn in the Southern District and sleep. Inns serve breakfast, so you'll wake well fed. Then save your game: there's no autosave, so a save is how you keep what you've done.",
+      "tip": "Inns: talk to the innkeeper to rent a room (one night, breakfast included, check-out at 10 AM), go into your room (Rooms), then Sleep, any time after 9 PM. Sleep is what clears fatigue; 🕐 Wait only passes the time. Saving: Settings → Save game, or Ctrl+S. There's no autosave, so closing the game takes you back to your last save.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "sleep-inn",
+          "description": "Sleep at the Wayward Traveler Inn."
+        },
+        {
+          "type": "do",
+          "target": "save-game",
+          "description": "Save your game (Settings → Save game)."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "report-back",
+      "description": "Go back to Marcus at the Vault of Crowns and tell them you're settled.",
+      "tip": "Vault keepers post the realm's bounties, a new one every day and every week: ask any keeper for work.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "royal-custodian",
+          "description": "Report back to Marcus."
+        }
+      ],
+      "rewards": {
+        "xp": 150,
+        "gold": 100
+      }
+    }
+  ]
+}

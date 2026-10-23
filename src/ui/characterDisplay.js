@@ -161,9 +161,11 @@ async function updateResourceBar(character) {
     const resourceBarEl = document.getElementById('mana-bar');
     const resourceLabelEl = document.getElementById('resource-label');
 
-    // Calculate values
-    const maxResource = calculateMaxResource(resourceConfig, character);
-    const currentResource = getCurrentResource(resourceConfig, character);
+    // Calculate values. In a fight, a martial pool comes from the fight itself
+    // (combat_resource, set by the combat UI): rage builds as you're hit.
+    const pool = resourceConfig.type !== 'mana' ? character.combat_resource : null;
+    const maxResource = pool ? pool.max : calculateMaxResource(resourceConfig, character);
+    const currentResource = pool ? pool.current : getCurrentResource(resourceConfig, character);
     const percentage = maxResource > 0 ? (currentResource / maxResource * 100) : 0;
 
     // Update values
@@ -318,6 +320,17 @@ export async function updateCharacterDisplay() {
 
         const expPercentage = xpNeededForLevel > 0 ? (xpIntoLevel / xpNeededForLevel * 100) : 0;
         expBarEl.style.width = Math.min(100, Math.max(0, expPercentage)) + '%';
+    }
+
+    // The stats tab shows the running total (the header bar shows only this
+    // level's share) and the total the next level needs.
+    const totalEl = document.getElementById('stats-total-xp');
+    if (totalEl) totalEl.textContent = currentXP.toLocaleString();
+    const nextAtEl = document.getElementById('stats-next-level-xp');
+    if (nextAtEl) {
+        nextAtEl.textContent = nextLevelData
+            ? `${nextLevelData.ExperiencePoints.toLocaleString()} (level ${nextLevelData.Level})`
+            : 'max level';
     }
 
     // XP-gain flair: pop "+N XP" over the scene whenever total XP rises. Don't

@@ -10,6 +10,7 @@ import (
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
+	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
@@ -31,6 +32,8 @@ const (
 	questKeyPrefix = "quest:"
 	nodeBack       = "@back" // return to the giver's main menu
 	nodeEnd        = "@end"  // say goodbye
+	phaseTurnIn    = "turnin"
+	nodeTurnIn     = "@turnin" // hand the quest in (its last step's "talk to them")
 )
 
 func questKey(questID, phase, node string) string {
@@ -164,6 +167,15 @@ func injectQuestOptions(resp *types.GameActionResponse, npcID string, state *typ
 
 	var keys []string
 	labels := map[string]string{}
+	// Quests ready to hand in to this NPC come first: finishing is a choice.
+	keeper := len(npcData.StorageConfig) > 0
+	for i := range all {
+		if quest.IsActive(state, all[i].ID) && quest.ReadyToTurnIn(state, &all[i], npcID, keeper) {
+			k := questKey(all[i].ID, phaseTurnIn, nodeTurnIn)
+			keys = append(keys, k)
+			labels[k] = "📜 Turn in: " + all[i].Name
+		}
+	}
 	for i := range all {
 		phase, tree := questPhase(&all[i], npcData, all, state, ctx, now)
 		if tree == nil {
@@ -236,6 +248,9 @@ func handleQuestDialogueChoice(sess *session.GameSession, npcID, choice string) 
 	if err != nil || npcData == nil {
 		return nil, fmt.Errorf("NPC not found: %s", npcID)
 	}
+	if phase == phaseTurnIn {
+		return turnInQuest(sess, npcData, qd)
+	}
 
 	// The conversation must still be one this NPC is having about this quest —
 	// so a stale or forged key can't, say, accept a quest that isn't on offer.
@@ -269,6 +284,27 @@ func handleQuestDialogueChoice(sess *session.GameSession, npcID, choice string) 
 	case "close":
 		resp.Message = text
 		resp.Delta = map[string]interface{}{"npc_dialogue": map[string]interface{}{"action": "close"}}
+		return resp, nil
+	case "open_vault":
+		// The keeper opens your vault (the tutorial's "take your gold" step).
+		if !vault.IsVaultRegistered(state, state.Building) {
+			return threadEnded(npcID, questID, phase, "This keeper won't open the vault for you yet."), nil
+		}
+		resp.Message = text
+		resp.Delta = map[string]interface{}{
+			"open_vault":   vault.Response(state),
+			"npc_dialogue": map[string]interface{}{"action": "close"},
+		}
+		return resp, nil
+	case "open_starting_gear", "open_starting_gear_skip":
+		// The keeper brings out the inheritance: the client opens the gear
+		// selection over their vault, and claims with claim_starting_gear.
+		resp.Message = text
+		resp.Delta = map[string]interface{}{"npc_dialogue": map[string]interface{}{"action": "close"}}
+		resp.Data = map[string]interface{}{"open_starting_gear": map[string]interface{}{
+			"keeper": npcID,
+			"skip":   node.Action == "open_starting_gear_skip",
+		}}
 		return resp, nil
 	}
 
@@ -339,4 +375,35 @@ func giverMenu(sess *session.GameSession, npcID string) (*types.GameActionRespon
 		}
 	}
 	return resp, nil
+}
+
+// turnInQuest hands a quest in: the deliberate end of its last step. It must be
+// ready (everything else on the step done, with this NPC), so a stale or forged
+// key can't finish a quest. The conversation closes and the client shows the
+// rewards screen at once (quests_completed), carrying the giver's closing line
+// (turned_in): the quest's completed conversation's opening words, or a plain
+// thank-you.
+func turnInQuest(sess *session.GameSession, npcData *serverdb.NPCData, qd *types.QuestData) (*types.GameActionResponse, error) {
+	state := &sess.SaveData
+	if !quest.IsActive(state, qd.ID) || !quest.ReadyToTurnIn(state, qd, npcData.ID, len(npcData.StorageConfig) > 0) {
+		return threadEnded(npcData.ID, qd.ID, phaseTurnIn, "You haven't finished what they asked yet."), nil
+	}
+	events.Record(state, events.TurnedIn, qd.ID, 1)
+	if !quest.IsCompleted(state, qd.ID) && quest.IsActive(state, qd.ID) {
+		return threadEnded(npcData.ID, qd.ID, phaseTurnIn, "You haven't finished what they asked yet."), nil
+	}
+
+	closing := "\"That's everything I asked for. Thank you. This is yours.\""
+	if t := qd.Dialogue; t != nil && t.Completed != nil && questGiver(qd) == npcData.ID {
+		if n, ok := t.Completed.Nodes[t.Completed.Start]; ok && n.Text != "" {
+			closing = n.Text
+		}
+	}
+	return &types.GameActionResponse{
+		Success: true, Color: "yellow",
+		Delta: map[string]interface{}{"npc_dialogue": map[string]interface{}{"action": "close"}},
+		Data: map[string]interface{}{"turned_in": map[string]interface{}{
+			"id": qd.ID, "closing": closing, "speaker": npcData.Name,
+		}},
+	}, nil
 }

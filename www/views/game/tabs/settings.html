@@ -8,11 +8,13 @@
             <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">Game</h3>
             <div class="grid grid-cols-1 gap-1">
                 <button id="manual-save-btn" onclick="window.openSaveModal && window.openSaveModal()"
-                        class="settings-btn" title="Save (Ctrl+S)">💾 Save game</button>
+                        class="settings-btn" title="Save (Ctrl+S)"><span class="sb-ic">💾</span><span class="sb-lb">Save game</span></button>
                 <button onclick="reloadFromSave()" class="settings-btn"
-                        title="Discard everything since your last save and load it again">↩️ Reload last save</button>
+                        title="Discard everything since your last save and load it again"><span class="sb-ic">↩️</span><span class="sb-lb">Reload last save</span></button>
                 <button onclick="window.openQuitModal && window.openQuitModal()" class="settings-btn"
-                        title="Leave the game (save first, or go back to your last save)">🚪 Quit to title</button>
+                        title="Leave the game (save first, or go back to your last save)"><span class="sb-ic">🚪</span><span class="sb-lb">Quit to title</span></button>
+                <button onclick="window.startUITour && window.startUITour()" class="settings-btn"
+                        title="A quick guided look at every part of the screen"><span class="sb-ic">🧭</span><span class="sb-lb">Show me around</span></button>
             </div>
             <div id="save-status" data-last-saved class="mt-1 text-gray-400" style="font-size: 7px;">Last saved: never this session</div>
             <div id="settings-save-where" class="text-gray-500" style="font-size: 7px; line-height: 1.5;"></div>
@@ -49,17 +51,21 @@
         <!-- Debug -->
         <div class="border border-gray-700 p-1.5" style="background: #1a1a1a;">
             <h3 class="font-bold text-yellow-400 mb-1" style="font-size: 9px;">Debug</h3>
-            <button onclick="console.log(getGameState())" class="settings-btn w-full">📋 Log game state</button>
+            <button onclick="console.log(getGameState())" class="settings-btn w-full"><span class="sb-ic">📋</span><span class="sb-lb">Log game state</span></button>
             <p class="mt-0.5 text-gray-500" style="font-size: 7px;">Test tools live in the 🐛 Debug Console.</p>
         </div>
         {{end}}
     </div>
     <style>
         #settings-panel .settings-btn {
-            padding: 4px 6px; font-weight: bold; color: #fff; font-size: 9px; cursor: pointer; text-align: left;
+            display: flex; align-items: center; gap: 5px; width: 100%; box-sizing: border-box;
+            padding: 3px 5px; color: #e5e7eb; font-size: 7.5px; line-height: 1.35; cursor: pointer; text-align: left;
             background: #2a2a2a; border-top: 2px solid #4a4a4a; border-left: 2px solid #4a4a4a;
-            border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; white-space: nowrap;
+            border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;
         }
+        #settings-panel .settings-btn:hover { background: #333; color: #fff; }
+        #settings-panel .settings-btn .sb-ic { flex: 0 0 12px; text-align: center; font-size: 8px; }
+        #settings-panel .settings-btn .sb-lb { flex: 1; min-width: 0; overflow-wrap: break-word; }
         #settings-panel .settings-btn:active {
             border-top-color: #1a1a1a; border-left-color: #1a1a1a; border-right-color: #4a4a4a; border-bottom-color: #4a4a4a;
         }

@@ -1,66 +1,50 @@
 {{define "game/player-stats.html"}}
 <!-- Player Stats Area - Dark Win95 Style -->
 <div class="p-1 space-y-1" style="flex-shrink: 0; font-size: 7px; width: 100%; box-sizing: border-box;">
-    <!-- Character Name, Level, and Time Controls -->
-    <div class="flex flex-col gap-0.5">
-        <div class="flex items-center justify-between font-bold text-white" style="font-size: 8px;">
-            <div class="flex items-center gap-0.5 flex-shrink-0">
-                <!-- Wait Button -->
-                <button
-                    id="time-wait-button"
-                    class="text-xs font-bold text-white"
-                    style="font-size: 6px; background: #8b9aaa; cursor: pointer; padding: 2px 4px; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #000000; border-bottom: 1px solid #000000; box-shadow: inset -1px -1px 0 #5a6978, inset 1px 1px 0 #bcc9d6;"
-                    onclick="window.openWaitModal()"
-                    title="Wait"
-                >
-                    🕐
-                </button>
-                <!-- Play Button (initially visible) -->
-                <button
-                    id="time-play-button"
-                    class="text-xs font-bold text-white"
-                    style="font-size: 6px; background: #6b8e6b; cursor: pointer; padding: 2px 4px; border-top: 1px solid #ffffff; border-left: 1px solid #ffffff; border-right: 1px solid #000000; border-bottom: 1px solid #000000; box-shadow: inset -1px -1px 0 #4a6b4a, inset 1px 1px 0 #8faf8f;"
-                    onclick="window.timeClock.play()"
-                >
-                    ▶
-                </button>
-                <!-- Pause Button (initially hidden) -->
-                <button
-                    id="time-pause-button"
-                    class="text-xs font-bold text-white"
-                    style="font-size: 6px; background: #a65b5b; cursor: pointer; padding: 2px 4px; border-top: 1px solid #000000; border-left: 1px solid #000000; border-right: 1px solid #ffffff; border-bottom: 1px solid #ffffff; box-shadow: inset 1px 1px 0 #7a4242, inset -1px -1px 0 #c48080; display: none;"
-                    onclick="window.timeClock.pause()"
-                >
-                    ⏸
-                </button>
-                <!-- Time of day -->
-                <span id="time-of-day-text-stats" class="text-xs font-bold text-white" style="font-size: 7px;">--:-- --</span>
+    <!-- Identity: portrait, name + level, and the clock -->
+    <div class="pq-id">
+        <span id="char-portrait-thumb" class="pq-face" onclick="window.openPortraitDialog && window.openPortraitDialog()" title="Portrait: click to make or change"></span>
+        <div class="pq-id-text">
+            <div class="pq-name-row">
+                <span id="char-name" class="pq-name">Character</span>
+                <span class="pq-lv" onclick="window.openLevelGuide && window.openLevelGuide()" title="Level: click for the level guide">Lv <span id="char-level">1</span></span>
             </div>
-            <div class="truncate flex-1 text-right">
-                <span id="char-portrait-thumb" onclick="window.openPortraitDialog && window.openPortraitDialog()" title="Portrait — click to make or change" style="display:inline-block;vertical-align:middle;cursor:pointer;width:9px;height:9px;"></span>
-                <span id="char-name">Character</span> Lv.<span id="char-level">1</span>
+            <div class="pq-clock-row">
+                <!-- Wait Button -->
+                <button id="time-wait-button" class="pq-tbtn" style="background:#8b9aaa;" onclick="window.openWaitModal()" title="Wait">🕐</button>
+                <!-- Play Button (initially visible) -->
+                <button id="time-play-button" class="pq-tbtn" style="background:#6b8e6b;" onclick="window.timeClock.play()" title="Let time run">▶</button>
+                <!-- Pause Button (initially hidden) -->
+                <button id="time-pause-button" class="pq-tbtn pq-tbtn-down" style="background:#a65b5b; display:none;" onclick="window.timeClock.pause()" title="Pause time">⏸</button>
+                <!-- Time of day: the sun/moon, the clock, the day -->
+                <span id="time-indicator" class="pq-when">
+                    <img id="time-of-day-image" src="/res/img/time/06-highnoon.png" alt="Time of day" class="pq-sun">
+                    <span id="time-of-day-text-stats" class="pq-time">--:-- --</span>
+                    <span id="day-counter" class="pq-day">Day 1</span>
+                </span>
             </div>
         </div>
     </div>
 
     <!-- Experience Bar (click to open the level progression guide) -->
-    <div class="relative w-full flex items-center justify-center px-1 bg-win95-bgDark border border-t-win95-black border-l-win95-black border-r-win95-bgLight border-b-win95-bgLight" style="height: 12px; cursor: pointer;" onclick="window.openLevelGuide && window.openLevelGuide()" title="View level progression guide">
-        <div id="exp-bar" class="absolute inset-0 transition-all" style="width: 0%; height: 12px; background: #22d3ee; box-shadow: 0 0 6px #22d3ee, 0 0 10px rgba(34, 211, 238, 0.6);"></div>
-        <span class="relative z-10 text-white" style="font-size: 6px; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);"><span id="current-exp">0</span>/<span id="exp-to-next">100</span></span>
+    <div class="pq-bar" style="cursor: pointer;" onclick="window.openLevelGuide && window.openLevelGuide()" title="Experience: click for the level guide">
+        <div id="exp-bar" class="pq-fill" style="width: 0%; background: linear-gradient(to bottom, #67e8f9 0%, #22d3ee 50%, #0891b2 100%);"></div>
+        <span class="pq-bar-label">XP</span>
+        <span class="pq-bar-value"><span id="current-exp">0</span>/<span id="exp-to-next">100</span></span>
     </div>
 
     <!-- HP Bar -->
-    <div class="relative w-full flex items-center justify-between px-1" style="height: 12px; background: linear-gradient(to bottom, #0a0a0a, #1a1a1a); border: 1px solid #333; border-radius: 2px; overflow: hidden; z-index: 1;">
-        <div id="hp-bar" class="absolute inset-0 transition-all" style="width: 100%; height: 100%; background: linear-gradient(to bottom, #dc2626 0%, #991b1b 50%, #7f1d1d 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);"></div>
-        <span class="relative z-10 text-white font-bold" style="font-size: 7px; text-shadow: 1px 1px 0 #000;">HP</span>
-        <span class="relative z-10 text-white font-bold" style="font-size: 7px; text-shadow: 1px 1px 0 #000;"><span id="current-hp">0</span>/<span id="max-hp">0</span></span>
+    <div class="pq-bar">
+        <div id="hp-bar" class="pq-fill" style="width: 100%; background: linear-gradient(to bottom, #dc2626 0%, #991b1b 50%, #7f1d1d 100%);"></div>
+        <span class="pq-bar-label">HP</span>
+        <span class="pq-bar-value"><span id="current-hp">0</span>/<span id="max-hp">0</span></span>
     </div>
 
     <!-- Resource Bar (Mana for casters, Stamina/Rage/Ki/Cunning for martials) -->
-    <div class="relative w-full flex items-center justify-between px-1" style="height: 12px; background: linear-gradient(to bottom, #0a0a0a, #1a1a1a); border: 1px solid #333; border-radius: 2px; overflow: hidden; z-index: 1;">
-        <div id="mana-bar" class="absolute inset-0 transition-all" style="width: 100%; height: 100%; background: linear-gradient(to bottom, #2563eb 0%, #1d4ed8 50%, #1e40af 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);"></div>
-        <span id="resource-label" class="relative z-10 text-white font-bold" style="font-size: 7px; text-shadow: 1px 1px 0 #000;">MP</span>
-        <span class="relative z-10 text-white font-bold" style="font-size: 7px; text-shadow: 1px 1px 0 #000;"><span id="current-mana">0</span>/<span id="max-mana">0</span></span>
+    <div class="pq-bar">
+        <div id="mana-bar" class="pq-fill" style="width: 100%; background: linear-gradient(to bottom, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);"></div>
+        <span id="resource-label" class="pq-bar-label">MP</span>
+        <span class="pq-bar-value"><span id="current-mana">0</span>/<span id="max-mana">0</span></span>
     </div>
 
     <!-- Quick Status Row (icons with radial progress) -->

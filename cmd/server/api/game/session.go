@@ -7,15 +7,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"pubkey-quest/cmd/server/game/events"
 
 	"pubkey-quest/cmd/server/game/effects"
+	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/cmd/server/ledger"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/types"
-	"pubkey-quest/cmd/server/game/spellbook"
 )
 
 // SessionRequest represents a session identification request
@@ -370,6 +371,10 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Items mid-sale go back in the pack before anything is saved.
 	ReturnStagedSales(sess)
+	// Saving is itself a tutorial step: record it first, so the save holds it.
+	questsBefore := markQuests(&sess.SaveData)
+	events.Record(&sess.SaveData, events.Did, "save-game", 1)
+	news := questNewsFields(questsBefore, &sess.SaveData)
 
 	// Relay saves: hand the browser the event to sign; nothing is written until
 	// a relay accepts it (POST /api/saves/publish).
@@ -381,12 +386,16 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
+		out := map[string]any{
 			"success": true,
 			"message": "Sign your save to keep it",
 			"save_id": request.SaveID,
 			"sign":    unsigned,
-		})
+		}
+		for k, v := range news {
+			out[k] = v
+		}
+		json.NewEncoder(w).Encode(out)
 		return
 	}
 
@@ -404,11 +413,15 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("✅ Session saved to disk: %s:%s", request.Npub, request.SaveID)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	out := map[string]any{
 		"success": true,
 		"message": "Game saved successfully",
 		"save_id": request.SaveID,
-	})
+	}
+	for k, v := range news {
+		out[k] = v
+	}
+	json.NewEncoder(w).Encode(out)
 }
 
 // DebugStateHandler godoc

@@ -17,61 +17,61 @@
     {
       "backgrounds": ["Acolyte"],
       "text": "Their faith sustained them, even at the end. You were raised amidst prayers and rituals, guided by the old caretaker's unwavering devotion. Though they served as a humble acolyte rather than a high priest, their spiritual connection never faltered.",
-      "image": "scene3.png",
+      "image": "bg-acolyte.png",
       "duration": 11000
     },
     {
       "backgrounds": ["Criminal", "Spy"],
       "text": "Even in their final days, they kept secrets well. The old caretaker taught you to survive in the shadows, to observe without being seen. They spoke little of their past, but their skills spoke volumes about a life lived beyond the law's reach.",
-      "image": "scene3.png",
+      "image": "bg-criminal.png",
       "duration": 12000
     },
     {
       "backgrounds": ["Charlatan", "Entertainer"],
       "text": "Their stories and songs brightened even the darkest nights. The old caretaker taught you to find beauty in performance, to create joy through melody and movement, to win hearts with words and wit. Their smile remained even when pain clouded their eyes.",
-      "image": "scene3.png",
+      "image": "bg-charlatan.png",
       "duration": 12000
     },
     {
       "backgrounds": ["Artisan", "Merchant"],
       "text": "Their hands created beauty from raw materials. The old caretaker passed down the traditions of craftsmanship, teaching you to value quality and honest trade. Their workshop was always filled with projects - some finished, many not.",
-      "image": "scene3.png",
+      "image": "bg-artisan.png",
       "duration": 10000
     },
     {
       "backgrounds": ["Knight", "Noble"],
       "text": "They never spoke much of their noble origins, but carried themselves with unmistakable dignity. The old caretaker taught you courtly manners alongside stories of honor and duty, training you in the ways of a station far above your current circumstances.",
-      "image": "scene3.png",
+      "image": "bg-noble.png",
       "duration": 11000
     },
     {
       "backgrounds": ["Hermit", "Sage", "Scribe"],
       "text": "Knowledge was their true devotion. The old caretaker filled your childhood with lessons drawn from countless books and scrolls, teaching you to value wisdom above all else. Their mind remained sharp even as their body failed.",
-      "image": "scene3.png",
+      "image": "bg-sage.png",
       "duration": 10000
     },
     {
       "backgrounds": ["Gladiator", "Guard", "Soldier"],
       "text": "They stood tall until the very end. The old caretaker instilled discipline and vigilance in you, recounting battles and strategies with the precision of someone who had lived through conflict. Their posture never slouched, even in their final days.",
-      "image": "scene3.png",
+      "image": "bg-soldier.png",
       "duration": 11000
     },
     {
       "backgrounds": ["Farmer", "Folk Hero", "Guide", "Outlander", "Wayfarer"],
       "text": "They knew the wilds better than the village streets. The old caretaker taught you to read the stars, to track game, to live in harmony with nature's harsh beauty. Their tales of distant lands filled your dreams with horizons unseen.",
-      "image": "scene3.png",
+      "image": "bg-folk.png",
       "duration": 11000
     },
     {
       "backgrounds": ["Pirate", "Sailor"],
       "text": "The scent of salt water seemed to cling to them even after years inland. The old caretaker's tales of vast oceans and distant shores painted your dreams in shades of blue and green. Their gait always held the slight sway of someone more accustomed to rolling decks than solid ground.",
-      "image": "scene3.png",
+      "image": "bg-sailor.png",
       "duration": 13000
     },
     {
       "backgrounds": ["Urchin"],
       "text": "They found you when no one else cared to look. The old caretaker had been like you once – a child of the streets, surviving by wit and will. They taught you to find opportunities where others saw nothing, to slip through life's cracks when necessary, to survive against the odds.",
-      "image": "scene3.png",
+      "image": "bg-urchin.png",
       "duration": 12000
     }
   ],
@@ -84,62 +84,62 @@
     {
       "backgrounds": ["Acolyte"],
       "text": "My child, faith has been my anchor through life's storms. I found purpose in service to higher powers, in the rituals that mark our days, in the comfort of ancient texts. But I remained too long within temple walls when the wider world called. The gods do not wish us to hide away from life, but to bring their light to dark places. Your spirit burns brighter than mine ever did - let it illuminate paths I was too cautious to walk. May the gods guide your steps as you forge your own connection to them.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 28000
     },
     {
       "backgrounds": ["Criminal", "Spy"],
       "text": "I never told you everything about my past. Some secrets are best carried to the grave. What I've taught you - the silent step, the watchful eye, the patient hand - these were born of necessity in darker times. The shadows kept me alive, but they also kept me alone. There is honor to be found even in darkness, if you know where to look. Remember that locks aren't just on doors, but on hearts and minds too - choose wisely which you pick. Trust selectively, but when you do, trust completely.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 30000
     },
     {
       "backgrounds": ["Charlatan", "Entertainer"],
       "text": "Life is the grandest performance of all, and few truly master their role. I found joy in bringing smiles to weary faces, in crafting moments of wonder amid ordinary days. My greatest regret was playing it safe, limiting my stage to this small corner of the world. I could have performed in the great cities, captivated nobles and commoners alike, but fear kept me here. Your audience awaits beyond these village borders - go and find them. Remember that sometimes the most important person to convince is yourself.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 30000
     },
     {
       "backgrounds": ["Artisan", "Merchant"],
       "text": "I built things meant to outlast me, traded goods that brought meaning to lives beyond my own. These hands shaped wood, metal, and cloth, but more importantly, they shaped you. I wish I'd seen more of the world that will inherit my work - there are techniques and materials I never encountered, markets and customers I never served. There is profound satisfaction in creation, in watching something of value emerge from your own effort. But creation requires inspiration, and inspiration thrives on experience. Craft your life as carefully as you would any masterpiece - with patience, vision, and the courage to start anew when necessary.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 35000
     },
     {
       "backgrounds": ["Knight", "Noble"],
       "text": "Blood and birthright - I left these behind long ago, yet they shaped me nonetheless. My family name brought me privilege, but also chains I was unwilling to wear. I chose freedom over obligation, simplicity over splendor. You bear no such burden - you might claim respect without the weight of expectation. Noble birth does not ensure a noble heart; true nobility lies in how one treats others, especially those who can offer nothing in return. Some will judge you by your lineage or lack thereof - let them. The opinion that matters most is the one you see reflected in still water at day's end.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 34000
     },
     {
       "backgrounds": ["Hermit", "Sage", "Scribe"],
       "text": "In knowledge, I sought truth - in truth, meaning - in meaning, purpose. My collections of facts and theories brought me joy, but I wonder now if I observed life more than I lived it. I learned so much, yet experienced so little. These tomes contain the wisdom of ages, but they cannot tell you how mountain air fills the lungs at dawn, or how distant shores smell of adventure. Knowledge without application is merely trivia. Take what I've taught you and test it against the world. Be not just a vessel of information, but a seeker of understanding. The greatest library is written in the faces of strangers and the contours of unexplored lands.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 36000
     },
     {
       "backgrounds": ["Gladiator", "Guard", "Soldier"],
       "text": "I fought so others might live in peace. The weight of armor, the responsibility of the watch, the brotherhood forged in shared danger - these defined much of my life. I protected others but forgot to live my own life. There is honor in service, but remember that duty to yourself matters too. The warrior's path is walked step by disciplined step, but do not march so steadily that you miss the landscapes you're defending. Find worthy causes, but don't lose yourself to them. And know that sometimes the greatest courage is shown in laying down arms rather than taking them up.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 33000
     },
     {
       "backgrounds": ["Farmer", "Folk Hero", "Guide", "Outlander", "Wayfarer"],
 
       "text": "The earth provides, the sky guides, and between them is where we make our way. The road called to me all my life, but I answered it too rarely. I found you, and that journey was enough to fill my heart, but there were countless paths I left unexplored. The wilderness has much to teach those brave enough to listen - patience from mountains, persistence from rivers, renewal from forests, freedom from skies. Trust your instincts as you would trust the changing seasons. Remember that being lost sometimes leads to the most important discoveries. Answer every call that stirs your heart - some will lead nowhere, others everywhere.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 35000
     },
     {
       "backgrounds": ["Pirate", "Sailor"],
       "text": "The sea was my first love and greatest teacher. Its vastness taught me my true size in this world, its storms showed me both terror and beauty, its creatures revealed wonder in unknown depths. I came ashore for reasons that seemed important then, but the tides still pull at my soul. There is freedom on the waves that land-bound folk cannot comprehend - horizons that constantly renew themselves, ports that offer both welcome and farewell. Chart your own course, but remember that no map shows all there is to know, and sometimes the stars are the only guide worth following. May your voyages be bold and your harbors welcoming.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 35000
     },
     {
       "backgrounds": ["Urchin"],
       "text": "Nothing came easily to me, nor to you. The streets taught me to survive, but you deserve to thrive. When you have nothing, you learn what truly matters - a dry place during rain, a kind word during hardship, an outstretched hand when you've fallen. I gave you shelter, but you must find your place. The world has more to offer than alleys and shadows – claim your portion of it. Remember that wealth isn't measured only in coins, but in moments of genuine connection. Those who have struggled to climb understand the view better than those born on the peak. Your hardships weren't fair, but they forged strengths others lack.",
-      "image": "scene4letter.png",
+      "image": "letter-page.png",
       "duration": 32000
     }
   ],
@@ -213,5 +213,45 @@
   "final_text": {
     "text": "Where fate will lead, only time will tell. But one thing is certain. You won't find your destiny by staying here.",
     "duration": 8000
+  },
+  "letter_closings": {
+    "kingdom": "When you reach the capital, go to the Vault of Crowns and ask for Marcus Goldvault. I've kept something there for you, under my name. His ledgers will show every coin, and he'll show you them whether you ask or not.",
+    "verdant": "When you reach Verdant, find Silvanthir Moonbough in the Glade of Safekeeping. I sang something into the roots there for you. Ask the old tree for it. It will answer to your name.",
+    "ironpeak": "When you reach Ironpeak, find Thorin Ironledger at the Stonevault. He carved the stone your share sits behind. Tell him the old debt is settled. He'll know.",
+    "millhaven": "When you reach Millhaven, find Rosie Lockwood at the Burrowlock. She'll have kept what I left you dry and counted, and probably added a jar of preserves.",
+    "marshlight": "When you reach Marshlight, find Grommash Ironhide at the Warhoard. He holds what I left you. The clans keep their word on a hoard, even to an outsider like me.",
+    "goldenhaven": "When you reach Goldenhaven, go to the Ember Vault and find Zarithax the Golden. They'll charge you a fee for keeping my coin. Pay it. It means they kept it honestly."
+  },
+  "arrivals": {
+    "kingdom": {
+      "text": "The road ends at the gates of the Royal Kingdom, heart of the realm. Spires rise over crowded streets, banners snap in the wind, and somewhere in the square the Vault of Crowns keeps what your caretaker left you.",
+      "image": "/res/img/locations/kingdom.png",
+      "duration": 5000
+    },
+    "verdant": {
+      "text": "The forest opens onto Verdant: terraced gardens, tree-houses linked by walkways, and the old, slow trees of the Glade of Safekeeping at the city's heart.",
+      "image": "/res/img/locations/verdant.png",
+      "duration": 5000
+    },
+    "ironpeak": {
+      "text": "Ironpeak rises out of the mountain, all smoke and hammer-song. Ore carts rumble over the cobbles of Miners' Plaza, past the heavy stone doors of the Stonevault.",
+      "image": "/res/img/locations/ironpeak.png",
+      "duration": 5000
+    },
+    "millhaven": {
+      "text": "Millhaven sits among the hills like a loaf on a windowsill: windmills turning, fields of grain, and the round doors of the Burrowlock by the old well in the square.",
+      "image": "/res/img/locations/millhaven.png",
+      "duration": 5000
+    },
+    "marshlight": {
+      "text": "Marshlight stands on stilts above the black water, its walkways lit by lanterns of glowing moss. The Warhoard, the clans' great vault, squats among the stilt houses.",
+      "image": "/res/img/locations/marshlight.png",
+      "duration": 5000
+    },
+    "goldenhaven": {
+      "text": "Goldenhaven glitters where the river spills from the mountains: golden roofs, crowded wharves, and in Golden Square, the Ember Vault, warm as a forge.",
+      "image": "/res/img/locations/goldenhaven.png",
+      "duration": 5000
+    }
   }
 }

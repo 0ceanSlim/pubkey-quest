@@ -1,0 +1,19 @@
+{
+  "id": "caretakers-letter",
+  "name": "The Caretaker's Letter",
+  "description": "Your caretaker's last letter, folded small and soft from handling. It's yours to keep.",
+  "rarity": "common",
+  "value": 0,
+  "weight": 0,
+  "stack": 1,
+  "type": "Adventuring Gear",
+  "tags": [
+    "quest_item",
+    "readable",
+    "keepsake"
+  ],
+  "notes": [
+    "A keepsake: can't be dropped, sold, stored or destroyed. Read it any time (right-click → Read)."
+  ],
+  "image": "/res/img/items/caretakers-letter.png"
+}

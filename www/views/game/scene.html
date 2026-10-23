@@ -101,10 +101,20 @@
       title="Open in the journal"
       onclick="window.openQuestInJournal && window.openQuestInJournal(this.dataset.quest)"
     >
-      <span
-        id="quest-tracker-text"
-        style="color: #facc15; font-size: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;"
-      ></span>
+      <span style="display: flex; align-items: center; gap: 3px;">
+        <span
+          id="quest-tracker-text"
+          style="color: #facc15; font-size: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;"
+        ></span>
+        <!-- The current step's "how it works" note, opened on demand -->
+        <button
+          id="quest-tracker-tip"
+          type="button"
+          class="hidden"
+          title="How this step works"
+          onclick="event.stopPropagation(); window.showTrackedTip && window.showTrackedTip()"
+        >💡 How?</button>
+      </span>
     </div>
     <!-- Party HUD: one row per member under the quest tracker (hidden when solo) -->
     <div
@@ -112,25 +122,6 @@
       class="hidden absolute"
       style="top: 34px; left: 4px; z-index: 35; display: flex; flex-direction: column; gap: 1px; width: 80px;"
     ></div>
-    <!-- Time indicator (top-right corner) -->
-    <div
-      id="time-indicator"
-      class="absolute top-2 right-2 flex flex-col items-center gap-0.5"
-    >
-      <img
-        id="time-of-day-image"
-        src="/res/img/time/06-highnoon.png"
-        alt="Time of day"
-        class="w-10 h-10"
-        style="image-rendering: pixelated"
-      />
-      <span
-        id="day-counter"
-        class="text-xs font-bold text-white"
-        style="font-size: 8px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8)"
-        >Day 1</span
-      >
-    </div>
     <!-- District name at bottom with ground button -->
     <div
       class="absolute bottom-0 left-0 right-0 flex items-center justify-between p-2"

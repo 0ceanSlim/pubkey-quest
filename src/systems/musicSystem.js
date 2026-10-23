@@ -119,6 +119,45 @@ export function toggleLoop() {
     }));
 }
 
+// Changing tracks cross-fades: about a second each way.
+const FADE_MS = 1000;
+const FADE_STEP_MS = 50;
+
+/** Fade a track that's being replaced down to silence, then stop it. */
+function fadeOutAndStop(audio) {
+    if (!audio) return;
+    if (audio.paused || audio.volume === 0) {
+        audio.pause();
+        return;
+    }
+    const start = audio.volume;
+    const t0 = performance.now();
+    const timer = setInterval(() => {
+        const k = Math.min(1, (performance.now() - t0) / FADE_MS);
+        audio.volume = start * (1 - k);
+        if (k >= 1) {
+            clearInterval(timer);
+            audio.pause();
+            audio.currentTime = 0;
+        }
+    }, FADE_STEP_MS);
+}
+
+/** Bring a new track up from silence to the music volume. */
+function fadeIn(audio) {
+    const t0 = performance.now();
+    const timer = setInterval(() => {
+        // Replaced (or stopped) mid-fade: that track's own fade takes over.
+        if (audio !== currentAudio) {
+            clearInterval(timer);
+            return;
+        }
+        const k = Math.min(1, (performance.now() - t0) / FADE_MS);
+        audio.volume = currentVolume * k; // follows the volume slider while fading
+        if (k >= 1) clearInterval(timer);
+    }, FADE_STEP_MS);
+}
+
 /**
  * Play a specific track
  * @param {Object} track - Track object from getAllTracks()
@@ -151,13 +190,16 @@ export function playTrack(track, forcePlay = false) {
         return;
     }
 
-    // Stop current audio
-    stopMusic();
+    // The old track fades out as the new one fades in (no hard cut).
+    const previous = currentAudio;
+    currentAudio = null;
+    currentTrack = null;
+    fadeOutAndStop(previous);
 
     // Create new audio
     currentAudio = new Audio(track.file);
     currentAudio.loop = loopEnabled;
-    currentAudio.volume = currentVolume;
+    currentAudio.volume = 0;
     currentTrack = track;
 
     // Clear manual pause flag when starting a new track
@@ -167,6 +209,7 @@ export function playTrack(track, forcePlay = false) {
     currentAudio.play().catch(err => {
         logger.debug('Music autoplay prevented:', err);
     });
+    fadeIn(currentAudio);
 
     logger.debug('Playing track:', track.title);
 

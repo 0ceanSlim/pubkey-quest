@@ -16,6 +16,15 @@ import { API_BASE_URL } from '../config/constants.js';
 import { eventBus } from '../lib/events.js';
 import { logger } from '../lib/logger.js';
 import { getTrackedQuestId } from './questDisplay.js';
+import { maybeShowTip, showTip, tipSeen } from './tutorialTip.js';
+
+// The quest the tracker shows (its 💡 opens this one's current tip).
+let _tracked = null;
+
+/** Open the tracked step's "how it works" note (the tracker's 💡). */
+function showTrackedTip() {
+    if (_tracked) showTip(_tracked);
+}
 
 /** Fetch the quest log and render the tracker chip (or hide it). */
 export async function updateQuestTracker() {
@@ -42,22 +51,42 @@ export async function updateQuestTracker() {
             return;
         }
         const prog = obj.target > 1 ? ` (${obj.count}/${obj.target})` : '';
-        txt.textContent = `◆ ${obj.description}${prog}`;
+        // A turn-in says how: talk to them and choose "Turn in".
+        txt.textContent = obj.turn_in ? `📜 ${obj.description} (Turn in)` : `◆ ${obj.description}${prog}`;
         el.title = `${q.name} — click to open in the journal`;
         el.dataset.quest = q.id;
         el.classList.remove('hidden');
+        _tracked = q;
+        const tipBtn = document.getElementById('quest-tracker-tip');
+        tipBtn?.classList.toggle('hidden', !q.stage_tip);
+        // A tip not yet opened glows until it is.
+        tipBtn?.classList.toggle('fresh', !!q.stage_tip && !tipSeen(q));
+        // A tutorial step's "how it works" note, once.
+        for (const a of active) maybeShowTip(a);
     } catch (err) {
         logger.error('quest tracker update failed:', err);
     }
 }
 
 // Refresh on state changes — throttled so action bursts don't spam the log API.
+// A change inside the window isn't dropped: one trailing refresh catches it up.
+// (Quest news on a response refreshes at once, through window.updateQuestTracker.)
 let _lastUpdate = 0;
+let _trailing = null;
 function throttledUpdate() {
-    const now = Date.now();
-    if (now - _lastUpdate < 2000) return;
-    _lastUpdate = now;
-    updateQuestTracker();
+    const wait = 2000 - (Date.now() - _lastUpdate);
+    if (wait <= 0) {
+        _lastUpdate = Date.now();
+        updateQuestTracker();
+        return;
+    }
+    if (!_trailing) {
+        _trailing = setTimeout(() => {
+            _trailing = null;
+            _lastUpdate = Date.now();
+            updateQuestTracker();
+        }, wait);
+    }
 }
 
 eventBus.on('gameStateChange', throttledUpdate);
@@ -65,4 +94,5 @@ eventBus.on('gameStateLoaded', updateQuestTracker);
 
 if (typeof window !== 'undefined') {
     window.updateQuestTracker = updateQuestTracker;
+    window.showTrackedTip = showTrackedTip;
 }

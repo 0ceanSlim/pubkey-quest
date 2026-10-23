@@ -275,7 +275,7 @@ function modalBody(q) {
         if ((q.objectives || []).length) {
             h += '<div class="qm-sec">Objectives</div>';
             h += q.objectives.map((o) =>
-                `<div class="qm-obj ${o.done ? 'qm-ok' : ''}"><span>${o.done ? '☑' : '☐'} ${esc(o.description)}</span><span>${o.count}/${o.target}</span></div>`,
+                `<div class="qm-obj ${o.done ? 'qm-ok' : ''}"><span>${o.done ? '☑' : '☐'} ${esc(o.description)}${o.turn_in ? ' <em>(talk to them and choose Turn in)</em>' : ''}</span><span>${o.count}/${o.target}</span></div>`,
             ).join('');
         }
     }

@@ -25,6 +25,11 @@ import { createQuantityBar, formatCount } from './vaultControls.js';
 import { setTownPace } from '../systems/dayCycle.js';
 import { openScrollScribe } from './scrollScribe.js';
 import { openWaystone } from './waystone.js';
+// Imported normally, not on demand: an on-demand chunk imports the game entry
+// as "../game.js", but the page loads it as game.js?v=…, so the browser ran the
+// whole game a second time (two music players, an empty second game state).
+import { openLockpicking } from './lockpicking.js';
+import { openStartingGear } from './startingGear.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
 async function depositInventoryToVault() {
@@ -409,34 +414,7 @@ export async function displayCurrentLocation() {
             buildings.forEach(building => {
                 // Check if building is currently open (pass time in minutes)
                 const isOpen = isBuildingOpen(building, timeInMinutes);
-
-                if (isOpen) {
-                    // Open building - normal styling
-                    const button = createLocationButton(
-                        building.name,
-                        () => enterBuilding(building.id),
-                        'building'
-                    );
-                    button.dataset.buildingId = building.id; // For delta applier
-                    buildingFragment.appendChild(button);
-                } else {
-                    // Closed building — show it locked, and (when it opens on a
-                    // schedule, not a private -1) note the opening time in the nav.
-                    const openMin = typeof building.open === 'number' ? building.open : -1;
-                    const opensNote = openMin >= 0
-                        ? `\nopens ${formatTime(Math.floor(openMin / 60), openMin % 60)}`
-                        : '';
-                    const button = createLocationButton(
-                        `🔒 ${building.name}${opensNote}`,
-                        () => showBuildingClosedMessage(building),
-                        'building-closed'
-                    );
-                    button.style.whiteSpace = 'pre-line';
-                    button.dataset.buildingId = building.id; // For delta applier
-                    button.disabled = true;
-                    button.classList.add('opacity-50', 'cursor-not-allowed');
-                    buildingFragment.appendChild(button);
-                }
+                buildingFragment.appendChild(buildingButton(building, isOpen));
             });
         }
 
@@ -772,19 +750,6 @@ function paintPOIEnterButtons(progress) {
 }
 
 /**
- * Reload the current environment's discovered POIs and repaint the travel
- * markers/buttons. Called when a new POI is discovered mid-travel so its marker
- * appears immediately.
- */
-export async function refreshTravelPOIMarkers() {
-    if (!document.getElementById('travel-bar-container')) return;
-    await loadEnvPOIs();
-    const progress = getGameStateSync()?.location?.travel_progress ?? 0;
-    paintPOIMarkers();
-    paintPOIEnterButtons(progress);
-}
-
-/**
  * Format travel time remaining as a human-readable string
  * @param {number} travelTime - Total travel time in minutes
  * @param {number} progress - Current progress 0.0-1.0
@@ -993,6 +958,39 @@ export function createLocationButton(text, onClick, type = 'navigation') {
 }
 
 /**
+ * A district's building button, open or closed. The delta applier swaps in a
+ * fresh one when a building opens or closes (the building rides on the
+ * button), so a button only ever has its own label and its one click handler.
+ * @param {Object} building - Building data
+ * @param {boolean} isOpen
+ * @returns {HTMLButtonElement}
+ */
+export function buildingButton(building, isOpen) {
+    let button;
+    if (isOpen) {
+        button = createLocationButton(building.name, () => enterBuilding(building.id), 'building');
+    } else {
+        // Closed building — show it locked, and (when it opens on a schedule,
+        // not a private -1) note the opening time in the nav.
+        const openMin = typeof building.open === 'number' ? building.open : -1;
+        const opensNote = openMin >= 0
+            ? `\nopens ${formatTime(Math.floor(openMin / 60), openMin % 60)}`
+            : '';
+        button = createLocationButton(
+            `🔒 ${building.name}${opensNote}`,
+            () => showBuildingClosedMessage(building),
+            'building-closed'
+        );
+        button.style.whiteSpace = 'pre-line';
+        button.disabled = true;
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+    button.dataset.buildingId = building.id; // For delta applier
+    button._building = building;
+    return button;
+}
+
+/**
  * Check if a building is currently open based on time of day
  * @param {Object} building - Building data
  * @param {number} currentTimeInMinutes - Current time in minutes (0-1439)
@@ -1161,7 +1159,6 @@ async function pickDoor(rm, quick) {
             showActionText(err.message || "You can't pick that.", 'red');
         }
     } else {
-        const { openLockpicking } = await import('./lockpicking.js');
         const r = await openLockpicking({ kind: 'room', roomId: rm.id });
         if (r.status === 'refused') showActionText(r.message || "You can't pick that.", 'red');
         opened = r.opened;
@@ -1348,6 +1345,15 @@ export async function selectDialogueOption(npcId, choice) {
             if (result.data?.quest_accepted) {
                 showMessage(`📜 Quest started: ${result.data.quest_name || result.data.quest_accepted}`, 'success');
                 window.updateQuestTracker?.();
+            }
+
+            // The vault keeper brings out your inheritance (the tutorial quest):
+            // their line goes to the story, and the gear selection opens.
+            if (result.data?.open_starting_gear) {
+                closeNPCDialogue();
+                if (result.message) showMessage(result.message, 'info');
+                openStartingGear(result.data.open_starting_gear);
+                return;
             }
 
             // Check if vault should open (check this first before close action)

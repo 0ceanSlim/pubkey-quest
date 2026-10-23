@@ -221,11 +221,16 @@ func StartPartyEncounter(db *sql.DB, members []FightMember, spec EncounterSpec, 
 		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks like a tough fight.", foeLabel(cs)))
 	}
 
-	cs.Log = append(cs.Log, rollEncounterInitiative(cs, members)...)
+	// Initiative is still rolled for the order of later rounds, but a sneak
+	// attack doesn't show the dice: you already have the first move.
+	sneak := spec.MonstersSurprised && !spec.Surprise
+	initLog := rollEncounterInitiative(cs, members)
+	if !sneak {
+		cs.Log = append(cs.Log, initLog...)
+	}
 	if spec.Surprise {
 		cs.Log = append(cs.Log, "⚡ You're caught off guard!")
 	}
-	sneak := spec.MonstersSurprised && !spec.Surprise
 	if sneak {
 		for i := range cs.Monsters {
 			cs.Monsters[i].Surprised = true

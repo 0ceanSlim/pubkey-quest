@@ -1,31 +1,30 @@
 {{define "game/wait-modal.html"}}
 <!-- Wait Modal Overlay -->
 <div id="wait-modal" class="hidden absolute z-50" style="top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); pointer-events: none; overflow: hidden;">
-    <div class="relative bg-win95-bgDark m-2" style="border: 2px solid #808080; max-width: 300px; max-height: calc(100% - 16px); overflow-y: auto; margin: 8px auto 0; pointer-events: auto;">
+    <div class="relative bg-win95-bgDark" style="border: 2px solid #808080; width: 220px; max-width: calc(100% - 16px); max-height: calc(100% - 16px); overflow-y: auto; margin: 8px auto 0; pointer-events: auto;">
         <!-- Title Bar -->
-        <div class="bg-blue-800 px-2 py-1 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span style="font-size: 12px;">🕐</span>
-                <span class="text-white font-bold" style="font-size: 9px;">Wait</span>
+        <div class="bg-blue-800 flex items-center justify-between" style="padding: 1px 4px;">
+            <div class="flex items-center gap-1">
+                <span style="font-size: 9px;">🕐</span>
+                <span class="text-white font-bold" style="font-size: 7px;">Wait</span>
             </div>
-            <button onclick="window.closeWaitModal()" class="text-white hover:bg-red-600 px-1" style="font-size: 9px; background: #c0c0c0; color: black; border: 1px solid #000;">✕</button>
+            <button onclick="window.closeWaitModal()" class="text-white hover:bg-red-600 px-1" style="font-size: 7px; background: #c0c0c0; color: black; border: 1px solid #000;">✕</button>
         </div>
 
         <!-- Wait Content -->
-        <div class="p-3 bg-win95-bgDark">
+        <div class="bg-win95-bgDark" style="padding: 5px 6px;">
             <!-- Wait Duration Display -->
-            <div class="text-center mb-3">
-                <div class="text-gray-400" style="font-size: 8px;">Wait Duration</div>
-                <div class="text-white font-bold" style="font-size: 14px;">
+            <div class="text-center" style="margin-bottom: 4px;">
+                <div class="text-white font-bold" style="font-size: 10px;">
                     <span id="wait-duration-display">15 minutes</span>
                 </div>
-                <div class="text-gray-400" style="font-size: 7px;">
-                    (Until <span id="wait-target-time">1:00 PM</span>)
+                <div class="text-gray-400" style="font-size: 6px;">
+                    (until <span id="wait-target-time">1:00 PM</span>)
                 </div>
             </div>
 
             <!-- Slider (15-360 minutes in 15 minute steps) -->
-            <div class="mb-3">
+            <div style="margin-bottom: 4px;">
                 <input
                     type="range"
                     id="wait-slider"
@@ -34,10 +33,10 @@
                     step="15"
                     value="15"
                     class="w-full"
-                    style="accent-color: #3b82f6;"
+                    style="accent-color: #3b82f6; height: 10px;"
                     oninput="window.updateWaitDisplay(this.value)"
                 >
-                <div class="flex justify-between text-gray-400" style="font-size: 6px;">
+                <div class="flex justify-between text-gray-400" style="font-size: 5px;">
                     <span>15m</span>
                     <span>1h</span>
                     <span>2h</span>
@@ -48,39 +47,33 @@
                 </div>
             </div>
 
-            <!-- Effects Preview -->
-            <div class="mb-3 p-2 bg-black bg-opacity-30 rounded" style="font-size: 7px;">
-                <div class="text-gray-400 mb-1">Expected effects:</div>
-                <div class="flex justify-between text-white">
-                    <span>💤 Fatigue:</span>
-                    <span id="wait-fatigue-change" class="text-yellow-400">0 → 0</span>
-                </div>
-                <div class="flex justify-between text-white">
-                    <span>🍽️ Hunger:</span>
-                    <span id="wait-hunger-change" class="text-orange-400">Full → Full</span>
-                </div>
+            <!-- Effects Preview: worked out by the server (/api/game/wait-preview) -->
+            <div class="bg-black bg-opacity-30 rounded" style="font-size: 6px; padding: 3px 4px; margin-bottom: 4px;">
+                <div id="wait-effects" class="text-white" style="line-height: 1.6;">…</div>
             </div>
 
-            <!-- Sleep the night through: an inn bed indoors, or make camp in the wild -->
+            <!-- Camp till dawn: out in the wild, after 9 PM, with a bedroll or camp set
+                 (shown by the preview's can_camp). Inn rooms have their own Sleep button. -->
             <button
+                id="wait-camp-btn"
                 onclick="window.confirmSleep()"
-                class="w-full px-3 py-2 mb-2 font-bold text-white"
-                style="font-size: 8px; background: #4338ca; border-top: 2px solid #6366f1; border-left: 2px solid #6366f1; border-right: 2px solid #312e81; border-bottom: 2px solid #312e81;">
-                🏕️ SLEEP TILL DAWN
+                class="hidden w-full font-bold text-white"
+                style="font-size: 7px; padding: 3px 4px; margin-bottom: 4px; background: #4338ca; border-top: 2px solid #6366f1; border-left: 2px solid #6366f1; border-right: 2px solid #312e81; border-bottom: 2px solid #312e81;">
+                🏕️ MAKE CAMP TILL DAWN
             </button>
 
             <!-- Buttons -->
-            <div class="flex gap-2">
+            <div class="flex gap-1">
                 <button
                     onclick="window.confirmWait()"
-                    class="flex-1 px-3 py-2 font-bold text-white"
-                    style="font-size: 8px; background: #15803d; border-top: 2px solid #22c55e; border-left: 2px solid #22c55e; border-right: 2px solid #166534; border-bottom: 2px solid #166534;">
+                    class="flex-1 font-bold text-white"
+                    style="font-size: 7px; padding: 3px 4px; background: #15803d; border-top: 2px solid #22c55e; border-left: 2px solid #22c55e; border-right: 2px solid #166534; border-bottom: 2px solid #166534;">
                     WAIT
                 </button>
                 <button
                     onclick="window.closeWaitModal()"
-                    class="flex-1 px-3 py-2 font-bold text-white"
-                    style="font-size: 8px; background: #6b7280; border-top: 2px solid #9ca3af; border-left: 2px solid #9ca3af; border-right: 2px solid #374151; border-bottom: 2px solid #374151;">
+                    class="flex-1 font-bold text-white"
+                    style="font-size: 7px; padding: 3px 4px; background: #6b7280; border-top: 2px solid #9ca3af; border-left: 2px solid #9ca3af; border-right: 2px solid #374151; border-bottom: 2px solid #374151;">
                     CANCEL
                 </button>
             </div>

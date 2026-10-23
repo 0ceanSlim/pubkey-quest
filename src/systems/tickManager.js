@@ -127,13 +127,17 @@ class TickManager {
             // markers so the new point of interest appears on the progress bar.
             if (data && data.poi_discovered) {
                 window.showMessage?.(`🗺️ ${data.poi_discovered.message}`, 'info');
-                // On the road: a new marker on the bar. In a city: a new place
-                // to enter in the district.
-                import('../ui/locationDisplay.js')
-                    .then((m) => (document.getElementById('travel-bar-container')
-                        ? m.refreshTravelPOIMarkers?.()
-                        : m.displayCurrentLocation?.()))
-                    .catch(() => {});
+                // On the road the server stopped you beside it: redraw the road
+                // from fresh state (its marker, Enter, Continue Journey, Turn
+                // Back) and the discovery XP. In a city: a new place to enter
+                // in the district.
+                const onRoad = !!document.getElementById('travel-bar-container') || data.travel_stopped;
+                (async () => {
+                    const m = await import('../ui/locationDisplay.js');
+                    if (onRoad) await refreshGameState(true);
+                    await m.displayCurrentLocation?.();
+                    if (onRoad) window.updateCharacterDisplay?.();
+                })().catch((e) => logger.warn('POI discovery redraw failed:', e));
             }
 
             // A fight or encounter fired server-side this tick. gameAPI.sendAction

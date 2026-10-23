@@ -7,7 +7,7 @@
  */
 
 import { logger } from '../lib/logger.js';
-import { gameAPI } from '../lib/api.js';
+import { gameAPI, announceQuestNews } from '../lib/api.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { showMessage } from '../ui/messaging.js';
 import { updateAllDisplays } from '../ui/displayCoordinator.js';
@@ -107,7 +107,11 @@ function openBuyQuantityModal(shopItem) {
         background: #1a1a1a;
         color: white;
         padding: 20px;
-        min-width: 300px;
+        min-width: min(300px, calc(100vw - 16px));
+        max-width: calc(100vw - 16px);
+        max-height: calc(100vh - 16px);
+        overflow-y: auto;
+        box-sizing: border-box;
         border-top: 2px solid #4a4a4a;
         border-left: 2px solid #4a4a4a;
         border-right: 2px solid #0a0a0a;
@@ -547,6 +551,7 @@ async function buyItemNow(itemID, name, quantity, price, maxStock) {
         }
 
         showMessage(`Bought ${quantity}x ${name}!`, 'success');
+        announceQuestNews(result);
 
         // Refresh shop and game state
         await refreshGameState();

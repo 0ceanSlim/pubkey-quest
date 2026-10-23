@@ -31,3 +31,17 @@ func AddRental(state *types.SaveFile, buildingID string, expiresDay, expiresMin 
 	kept = append(kept, types.Rental{Building: buildingID, ExpiresDay: expiresDay, ExpiresMin: expiresMin})
 	state.Rentals = kept
 }
+
+// EndRentalBy brings a building's rental to an end no later than day/minute:
+// a night's sleep ends it at the morning check-out. A rental that already ends
+// sooner is left alone.
+func EndRentalBy(state *types.SaveFile, buildingID string, day, minute int) {
+	for i, r := range state.Rentals {
+		if r.Building != buildingID {
+			continue
+		}
+		if r.ExpiresDay > day || (r.ExpiresDay == day && r.ExpiresMin > minute) {
+			state.Rentals[i].ExpiresDay, state.Rentals[i].ExpiresMin = day, minute
+		}
+	}
+}

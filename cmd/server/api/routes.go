@@ -378,6 +378,10 @@ func registerGameRoutes(mux *http.ServeMux) {
 	// @Router /api/game/state [get]
 	mux.HandleFunc("/api/game/state", game.GetGameStateHandler)
 
+	// What waiting 15 minutes … 6 hours would do (the Wait window's preview),
+	// worked out on a copy of the save. Read-only.
+	mux.HandleFunc("/api/game/wait-preview", game.WaitPreviewHandler)
+
 	registerCombatRoutes(mux)
 	registerPOIRoutes(mux)
 }

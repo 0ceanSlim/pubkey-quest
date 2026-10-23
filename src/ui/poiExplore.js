@@ -15,7 +15,7 @@
  */
 
 import { logger } from '../lib/logger.js';
-import { gameAPI } from '../lib/api.js';
+import { gameAPI, announceQuestNews } from '../lib/api.js';
 import { API_BASE_URL } from '../config/constants.js';
 import { eventBus } from '../lib/events.js';
 import { smoothClock } from '../systems/smoothClock.js';
@@ -23,6 +23,10 @@ import { refreshGameState } from '../state/gameState.js';
 import { showMessage } from './messaging.js';
 import { showSceneSpeech, hideSceneSpeech } from './sceneSpeech.js';
 import { getNPCById } from '../state/staticData.js';
+// Imported normally, not on demand: an on-demand chunk imports the game entry
+// as "../game.js", but the page loads it as game.js?v=…, so the browser ran the
+// whole game a second time (two music players, an empty second game state).
+import { openLockpicking } from './lockpicking.js';
 
 // Discovered POIs in the current environment (id, name, position, …), cached for
 // the travel-screen markers. Refreshed on entering a travel view and after a new
@@ -131,6 +135,8 @@ async function advancePOI(next) {
 // node hands off to combat (overlay hides, clock stays paused), everything else
 // renders the step.
 function handleStepData(data) {
+    // A step that finished a quest: its rewards screen waits for the walk to end.
+    announceQuestNews(data);
     if (!data) {
         closeOverlay();
         return;
@@ -201,7 +207,6 @@ function renderStep(step) {
 // server moves the walk on when it ends (through the door, or back to the
 // lock's choices) and sends that step back.
 async function pickInWalk(node) {
-    const { openLockpicking } = await import('./lockpicking.js');
     const r = await openLockpicking({ kind: 'poi', node });
     if (r.status === 'refused') {
         showMessage(r.message || "You can't pick that.", 'error');

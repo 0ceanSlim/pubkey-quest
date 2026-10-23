@@ -98,6 +98,8 @@ type objectiveView struct {
 	Count       int    `json:"count"`
 	Target      int    `json:"target"`
 	Done        bool   `json:"done"`
+	// TurnIn: the last step's "talk to them", met by choosing Turn in with them.
+	TurnIn bool `json:"turn_in,omitempty"`
 }
 
 type rewardItemView struct {
@@ -135,6 +137,8 @@ type questView struct {
 	Stage            int               `json:"stage"`
 	StageCount       int               `json:"stage_count"`
 	StageDescription string            `json:"stage_description,omitempty"`
+	StageTip         string            `json:"stage_tip,omitempty"`
+	StageTipPush     bool              `json:"stage_tip_push,omitempty"`
 	Objectives       []objectiveView   `json:"objectives,omitempty"`
 	Requirements     []requirementView `json:"requirements,omitempty"`
 	Recommended      *recommendedView  `json:"recommended,omitempty"`
@@ -266,6 +270,9 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 		if qp.Stage < len(qd.Stages) {
 			stage := qd.Stages[qp.Stage]
 			av.StageDescription = stage.Description
+			av.StageTip = stage.Tip
+			av.StageTipPush = stage.TipPush
+			final := quest.IsFinalStage(save, qp.Stage, qd)
 			for j, obj := range stage.Objectives {
 				target := obj.Count
 				if target <= 0 {
@@ -277,6 +284,7 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 				}
 				av.Objectives = append(av.Objectives, objectiveView{
 					Description: obj.Description, Count: count, Target: target, Done: count >= target,
+					TurnIn: quest.IsTurnIn(obj, final),
 				})
 			}
 		}
@@ -316,6 +324,9 @@ func buildQuestLog(save *types.SaveFile, ctx requirement.Context) questLogView {
 		}
 		if barredForLife(qd, ctx) {
 			continue // e.g. an elves-only quest for a human — it can never open up
+		}
+		if qd.StartCondition.Type == quest.StartAtCreation {
+			continue // the tutorial: a new character's, or nobody's — never one to wait for
 		}
 		v := baseQuestView(qd, "locked")
 		v.Requirements = questRequirements(qd, save, ctx)

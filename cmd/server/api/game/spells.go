@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/db"
 	gameSpells "pubkey-quest/cmd/server/game/spells"
@@ -35,6 +36,9 @@ type SpellPrepResponse struct {
 	SlotIndex      int    `json:"slot_index,omitempty"`
 	ReadyAtAbsolute int   `json:"ready_at_absolute,omitempty"`
 	ReadyInMinutes int    `json:"ready_in_minutes,omitempty"`
+	// Quest news (the tutorial's "prepare a spell" step), as on game actions.
+	QuestsCompleted any `json:"quests_completed,omitempty"`
+	QuestsAdvanced  any `json:"quests_advanced,omitempty"`
 }
 
 // PrepQueueItem is a single task in the queue as returned to the client.
@@ -196,6 +200,9 @@ func PrepareSpellHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Printf("🔮 Cantrip placed: %s → %s[%d] for %s", req.SpellID, req.SlotLevel, req.SlotIndex, req.Npub)
+		questsBefore := markQuests(&sess.SaveData)
+		events.Record(&sess.SaveData, events.Did, "prepare-spell", 1)
+		news := questNewsFields(questsBefore, &sess.SaveData)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(SpellPrepResponse{
 			Success:        true,
@@ -204,6 +211,8 @@ func PrepareSpellHandler(w http.ResponseWriter, r *http.Request) {
 			SlotIndex:      req.SlotIndex,
 			ReadyAtAbsolute: gameSpells.AbsoluteMinutes(sess.SaveData.CurrentDay, sess.SaveData.TimeOfDay),
 			ReadyInMinutes: 0,
+			QuestsCompleted: news["quests_completed"],
+			QuestsAdvanced:  news["quests_advanced"],
 		})
 		return
 	}
@@ -225,6 +234,9 @@ func PrepareSpellHandler(w http.ResponseWriter, r *http.Request) {
 		ReadyAtAbsolute: readyAt,
 	}
 	sess.PrepQueue = append(sess.PrepQueue, task)
+	questsBefore := markQuests(&sess.SaveData)
+	events.Record(&sess.SaveData, events.Did, "prepare-spell", 1)
+	news := questNewsFields(questsBefore, &sess.SaveData)
 
 	log.Printf("🔮 Spell prep queued: %s → %s[%d], ready in %d min (at %d) for %s",
 		req.SpellID, req.SlotLevel, req.SlotIndex, prepMins, readyAt, req.Npub)
@@ -237,6 +249,8 @@ func PrepareSpellHandler(w http.ResponseWriter, r *http.Request) {
 		SlotIndex:      req.SlotIndex,
 		ReadyAtAbsolute: readyAt,
 		ReadyInMinutes: prepMins,
+		QuestsCompleted: news["quests_completed"],
+		QuestsAdvanced:  news["quests_advanced"],
 	})
 }
 

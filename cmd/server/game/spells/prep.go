@@ -5,9 +5,23 @@ import (
 	"fmt"
 	"log"
 
+	gamedata "pubkey-quest/cmd/server/api/data"
+	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
 )
+
+// SpellName is a spell's display name (its id when it can't be looked up).
+func SpellName(spellID string) string {
+	if database := serverdb.GetDB(); database != nil {
+		if spell, err := gamedata.LoadSpellByID(database, spellID); err == nil {
+			if name, _ := spell["name"].(string); name != "" {
+				return name
+			}
+		}
+	}
+	return spellID
+}
 
 // SlotLevelToSpellLevel maps slot level strings to spell levels.
 var SlotLevelToSpellLevel = map[string]int{
@@ -192,7 +206,7 @@ func ResolvePrepTimers(sess *session.GameSession) []string {
 			// Spell is ready — slot it in
 			ok := SetSpellInSlot(spellSlots, task.SlotLevel, task.SlotIndex, task.SpellID)
 			if ok {
-				msg := fmt.Sprintf("You have finished preparing %s.", task.SpellID)
+				msg := fmt.Sprintf("You have finished preparing %s.", SpellName(task.SpellID))
 				messages = append(messages, msg)
 				log.Printf("🔮 Spell prepared: %s → %s[%d]", task.SpellID, task.SlotLevel, task.SlotIndex)
 			} else {

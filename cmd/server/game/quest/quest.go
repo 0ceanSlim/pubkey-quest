@@ -49,6 +49,10 @@ func CanStart(q types.QuestData, save *types.SaveFile, ctx requirement.Context) 
 	if IsCompleted(save, q.ID) || IsActive(save, q.ID) {
 		return false
 	}
+	// Creation quests (the tutorial) are started for a new character, never offered.
+	if q.StartCondition.Type == StartAtCreation {
+		return false
+	}
 	for _, pre := range q.Prerequisites {
 		if !IsCompleted(save, pre) {
 			return false
@@ -76,6 +80,50 @@ func Available(all []types.QuestData, save *types.SaveFile, ctx requirement.Cont
 		}
 	}
 	return out
+}
+
+// StartAtCreation is the start_condition type of a quest that a new character
+// begins with (the tutorial): StartForNewCharacter starts it, nobody offers it.
+const StartAtCreation = "creation"
+
+// StartForNewCharacter begins a creation quest on a brand-new save. It skips
+// the requirement checks Accept makes (there's no game context yet, and the
+// quest is chosen by the character's starting city, not offered), and any
+// opening stages that aren't for this character's class.
+func StartForNewCharacter(q types.QuestData, save *types.SaveFile) {
+	if IsActive(save, q.ID) || IsCompleted(save, q.ID) {
+		return
+	}
+	qp := types.QuestProgress{QuestID: q.ID}
+	skipStages(save, &qp, &q)
+	if qp.Stage < len(q.Stages) {
+		qp.ObjectiveCounts = make([]int, len(q.Stages[qp.Stage].Objectives))
+		PrimeFetch(save, &qp, q.Stages[qp.Stage])
+	}
+	save.QuestsActive = append(save.QuestsActive, qp)
+}
+
+// FinishNow completes an active quest on the spot, granting only its last
+// stage's reward: how the tutorial's "I've done this before" skips the lessons
+// but keeps the welcome. A quest that isn't active is left alone.
+func FinishNow(save *types.SaveFile, q *types.QuestData, advancement []types.AdvancementEntry) {
+	for i := range save.QuestsActive {
+		qp := &save.QuestsActive[i]
+		if qp.QuestID != q.ID || len(q.Stages) == 0 {
+			continue
+		}
+		if last := q.Stages[len(q.Stages)-1]; last.Rewards != nil {
+			GrantReward(save, last.Rewards, advancement)
+		}
+		qp.Stage = len(q.Stages)
+		pruneCompleted(save, func(id string) (*types.QuestData, error) {
+			if id == q.ID {
+				return q, nil
+			}
+			return nil, fmt.Errorf("not %s", q.ID) // other quests are left as they are
+		})
+		return
+	}
 }
 
 // Accept starts a quest after revalidating that it can be started, recording a

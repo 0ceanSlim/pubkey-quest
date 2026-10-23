@@ -87,6 +87,12 @@ func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []st
 		}
 	}
 
+	// The caretaker's letter is the first hour in town: no pickpockets or
+	// brawlers until it's done.
+	if tutorialQuest(state) != nil {
+		return
+	}
+
 	encs, err := serverdb.GetEncountersByTrigger(trigger)
 	if err != nil || len(encs) == 0 {
 		return

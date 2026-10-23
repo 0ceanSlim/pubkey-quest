@@ -194,9 +194,16 @@ function updatePlayPauseButton() {
         return;
     }
 
-    const running = smoothClock.isRunning();
-    playButton.style.display = running ? 'none' : '';
-    pauseButton.style.display = running ? '' : 'none';
+    // Held (a conversation, a fight, a vault, a find): time is stopped whatever
+    // the player chose, so show an hourglass rather than a pause button that
+    // looks like the clock is still running.
+    const held = smoothClock.isHeld();
+    const running = smoothClock.isRunning() && !held;
+    playButton.style.display = running || held ? 'none' : '';
+    pauseButton.style.display = running || held ? '' : 'none';
+    pauseButton.textContent = held ? '⏳' : '⏸';
+    const clockText = document.getElementById('time-of-day-text-stats');
+    if (clockText) clockText.style.opacity = held ? '0.6' : '';
 
     // Followers ride the leader's clock; a held clock (a fight, a POI) can't be
     // started or stopped until it's released.
@@ -208,7 +215,7 @@ function updatePlayPauseButton() {
         btn.style.opacity = locked ? '0.45' : '';
         btn.style.cursor = locked ? 'not-allowed' : 'pointer';
         btn.title = follower ? "Your party leader keeps the time"
-            : smoothClock.isHeld() ? 'Time is stopped for now'
+            : held ? 'Time stands still while this is open (talking, fighting, a vault, a find)'
             : btn === waitButton ? 'Wait' : '';
     }
 }

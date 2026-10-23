@@ -27,11 +27,11 @@ func TestQuestNews(t *testing.T) {
 	resp := &GameActionResponse{}
 	questNews(before, save, resp)
 
-	done, _ := resp.Data["quests_completed"].([]map[string]string)
+	done, _ := resp.Data["quests_completed"].([]map[string]any)
 	if len(done) != 1 || done[0]["id"] != "daily-monster-bounty" {
 		t.Fatalf("quests_completed = %v, want the bounty only (an abandoned quest isn't completed)", resp.Data["quests_completed"])
 	}
-	moved, _ := resp.Data["quests_advanced"].([]map[string]string)
+	moved, _ := resp.Data["quests_advanced"].([]map[string]any)
 	if len(moved) != 1 || moved[0]["id"] != "the-missing-mule" {
 		t.Fatalf("quests_advanced = %v", resp.Data["quests_advanced"])
 	}

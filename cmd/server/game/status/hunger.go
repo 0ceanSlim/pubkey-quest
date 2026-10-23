@@ -7,6 +7,17 @@ import (
 	"pubkey-quest/types"
 )
 
+// HungerNames are the four hunger levels by value (0 Starving … 3 Stuffed).
+var HungerNames = []string{"Starving", "Hungry", "Well Fed", "Stuffed"}
+
+// HungerName names a hunger level.
+func HungerName(level int) string {
+	if level < 0 || level >= len(HungerNames) {
+		return "Unknown"
+	}
+	return HungerNames[level]
+}
+
 // UpdateHungerPenaltyEffects applies appropriate penalty effects based on hunger level
 // Now uses data-driven system - effect activation defined in JSON system_check
 func UpdateHungerPenaltyEffects(state *types.SaveFile) (*types.EffectMessage, error) {

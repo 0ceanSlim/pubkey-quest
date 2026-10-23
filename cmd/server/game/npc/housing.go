@@ -54,7 +54,7 @@ func HandleRentRoomAction(state *types.SaveFile, _ SessionProvider, params map[s
 
 	return &types.GameActionResponse{
 		Success: true,
-		Message: fmt.Sprintf("Rented a room for %d gold. Head to your room — you can sleep there after 9 PM.", cost),
+		Message: fmt.Sprintf("Rented a room for %d gold: one night, with breakfast. Head to your room — you can sleep there after 9 PM.", cost),
 		Color:   "green",
 		Data: map[string]interface{}{
 			"rentals": state.Rentals,
@@ -70,6 +70,9 @@ type SleepSessionProvider interface {
 	UpdateSnapshotAndCalculateDeltaProvider() types.DeltaProvider
 }
 
+// CheckoutTime is when a slept-in room's rental ends the next morning (10 AM).
+const CheckoutTime = 600
+
 // Sleep window: a night activity, no daytime naps.
 const (
 	sleepEarliest = 1260 // 21:00 — sleeping is barred before 9 PM
@@ -84,8 +87,8 @@ func CanSleepNow(timeOfDay int) bool {
 
 // HandleSleepAction sleeps in the player's rented room. Requires an active rental
 // for the building, standing in the rented-state room (when the building has
-// rooms), and a time after 9 PM. The rental persists until it expires — sleeping
-// doesn't consume it.
+// rooms), and a time after 9 PM. A night's sleep uses the rental up: it ends at
+// the morning check-out (CheckoutTime).
 func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	buildingID := state.Building
 	if buildingID == "" {
@@ -135,7 +138,16 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 	}
 
 	// Inn/tavern: a real bed and breakfast in the fee — best comfort, hunger restored.
-	return applySleep(state, comfortInn, true, session, npcIdsFunc)
+	resp, err := applySleep(state, comfortInn, true, session, npcIdsFunc)
+	if err == nil && resp != nil && resp.Success {
+		// One night per rental: the room is yours until the morning check-out.
+		gameutil.EndRentalBy(state, buildingID, state.CurrentDay, CheckoutTime)
+		resp.Message += " Breakfast is served. Check-out is at 10 AM."
+		if resp.Data != nil {
+			resp.Data["rentals"] = state.Rentals
+		}
+	}
+	return resp, err
 }
 
 // comfort tiers for sleeping — bed quality drives how much fatigue a night restores.

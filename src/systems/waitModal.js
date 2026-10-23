@@ -14,8 +14,96 @@ import { smoothClock } from './smoothClock.js';
 let currentWaitMinutes = 15;
 let updateIntervalId = null;
 
-// Hunger level names (higher = better)
-const HUNGER_NAMES = ['Famished', 'Hungry', 'Satisfied', 'Full'];
+// The server's preview (/api/game/wait-preview): what each wait length does,
+// worked out by running the real wait on a copy of the save. Re-fetched when
+// the live clock has moved on a few minutes since.
+let preview = null;
+let previewAt = null; // game minute the preview was taken at
+let previewLoading = false;
+
+async function loadPreview() {
+    if (previewLoading) return;
+    previewLoading = true;
+    try {
+        const result = await gameAPI.getWaitPreview();
+        if (result?.success) {
+            preview = result.data;
+            previewAt = liveMinutes();
+            document.getElementById('wait-camp-btn')?.classList.toggle('hidden', !preview.can_camp);
+            renderEffects();
+        }
+    } catch (error) {
+        logger.warn('Wait preview unavailable:', error);
+    } finally {
+        previewLoading = false;
+    }
+}
+
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+/** The live clock's time of day, in minutes. */
+function liveMinutes() {
+    if (window.timeClock && window.timeClock.getCurrentTime) {
+        const t = window.timeClock.getCurrentTime();
+        return (t.hour * 60) + t.minute;
+    }
+    const state = getGameStateSync();
+    return state.time_of_day || state.character?.time_of_day || 720;
+}
+
+/** Draw the preview for the chosen wait length. */
+function renderEffects() {
+    const box = document.getElementById('wait-effects');
+    if (!box) return;
+    const step = preview?.steps?.find((s) => s.minutes === currentWaitMinutes);
+    // Redrawn on the modal's 100ms tick: only when something changed.
+    const key = step ? `${currentWaitMinutes}:${previewAt}` : 'loading';
+    if (box.dataset.key === key) return;
+    box.dataset.key = key;
+    if (!step) {
+        box.innerHTML = '<span class="text-gray-400">Working it out…</span>';
+        return;
+    }
+    const row = (label, value, cls = 'text-gray-300') =>
+        `<div class="flex justify-between gap-2"><span>${label}</span><span class="${cls} text-right">${value}</span></div>`;
+    const change = (from, to, max) => {
+        const d = to - from;
+        const text = `${from} → ${to}${max ? ` / ${max}` : ''}`;
+        if (d > 0) return [`${text} (+${d})`, 'text-green-400'];
+        if (d < 0) return [`${text} (${d})`, 'text-red-400'];
+        return [text, 'text-gray-400'];
+    };
+    const lines = [];
+    const [hp, hpCls] = change(preview.hp, step.hp, preview.max_hp);
+    lines.push(row('❤️ HP', hp, hpCls));
+    if (step.hp_lost) lines.push(row('', `${step.hp_lost} lost along the way`, 'text-red-400'));
+    if (preview.max_mana > 0) {
+        const [mana, manaCls] = change(preview.mana, step.mana, preview.max_mana);
+        lines.push(row('✨ Mana', mana, manaCls));
+    }
+    const hungerCls = step.hunger < preview.hunger ? (step.hunger <= 1 ? 'text-red-400' : 'text-orange-400') : 'text-gray-400';
+    lines.push(row('🍽️ Hunger', step.hunger === preview.hunger
+        ? esc(step.hunger_name) : `${esc(preview.hunger_name)} → ${esc(step.hunger_name)}`, hungerCls));
+    lines.push(row('💤 Fatigue', `${preview.fatigue} (holds; sleep clears it)`, 'text-gray-400'));
+
+    const list = (icon, label, names, cls) => {
+        if (names?.length) lines.push(`<div class="${cls}">${icon} ${label}: ${names.map(esc).join(', ')}</div>`);
+    };
+    list('🔮', 'Ready to cast', step.spells_ready, 'text-purple-300');
+    list('⏳', 'Wears off', step.effects_end, 'text-yellow-300');
+    list('⚠️', 'Sets in', step.effects_gain, 'text-red-400');
+    list('🏪', 'Opens', step.opens, 'text-green-400');
+    list('🚪', 'Closes', step.closes, 'text-orange-400');
+    if (preview.walking) {
+        lines.push(`<div class="text-yellow-300">🚶 You'll keep walking (you haven't stopped).</div>`);
+    }
+    if (preview.in_wild) {
+        lines.push('<div class="text-red-400">⚔️ Out here, something may find you.</div>');
+    }
+    box.innerHTML = lines.join('');
+}
 
 /**
  * Open the wait modal
@@ -37,7 +125,12 @@ export function openWaitModal() {
     }
 
     // Update display with initial values
+    preview = null;
+    document.getElementById('wait-camp-btn')?.classList.add('hidden');
+    const box = document.getElementById('wait-effects');
+    if (box) delete box.dataset.key;
     updateWaitDisplay(15);
+    loadPreview();
 
     // Start updating the display every 100ms to sync with live time
     updateIntervalId = setInterval(() => {
@@ -119,58 +212,11 @@ export function updateWaitDisplay(minutes) {
         targetTimeDisplay.textContent = `${targetHours12}:${targetMins.toString().padStart(2, '0')} ${targetPeriod}`;
     }
 
-    // Get current fatigue and hunger from game state
-    const state = getGameStateSync();
-    const currentFatigue = state.character?.fatigue ?? 0;
-    const currentHunger = state.character?.hunger ?? 3; // 3 = Full
-
-    // Calculate expected effects based on actual game ticker rates
-    // Fatigue: increases by 1 per hour (60 minutes)
-    // Hunger: decreases by 1 every 3 hours (180 minutes)
-    // These match the backend effects system
-
-    const fatiguePerMinute = 1 / 60; // 1 fatigue per 60 minutes
-    const hungerPerMinute = 1 / 180; // 1 hunger loss per 180 minutes
-
-    // Calculate expected fatigue (capped at 10)
-    const expectedFatigueIncrease = Math.floor(currentWaitMinutes * fatiguePerMinute);
-    const expectedFatigue = Math.min(10, currentFatigue + expectedFatigueIncrease);
-
-    // Calculate expected hunger decrease (capped at 0=Famished)
-    const expectedHungerDecrease = Math.floor(currentWaitMinutes * hungerPerMinute);
-    const expectedHunger = Math.max(0, currentHunger - expectedHungerDecrease);
-
-    // Update fatigue display
-    const fatigueChange = document.getElementById('wait-fatigue-change');
-    if (fatigueChange) {
-        if (expectedFatigueIncrease > 0) {
-            fatigueChange.textContent = `${currentFatigue} → ${expectedFatigue} (+${expectedFatigueIncrease})`;
-            fatigueChange.className = 'text-red-400';
-        } else {
-            fatigueChange.textContent = `${currentFatigue} → ${expectedFatigue}`;
-            fatigueChange.className = 'text-gray-400';
-        }
+    // The live clock moved on since the preview was taken: take it again.
+    if (preview && previewAt !== null && Math.abs(currentTimeMinutes - previewAt) >= 5) {
+        loadPreview();
     }
-
-    // Update hunger display - show level names
-    const hungerChange = document.getElementById('wait-hunger-change');
-    if (hungerChange) {
-        const currentHungerName = HUNGER_NAMES[currentHunger] || 'Unknown';
-        const expectedHungerName = HUNGER_NAMES[expectedHunger] || 'Unknown';
-
-        if (expectedHungerDecrease > 0) {
-            hungerChange.textContent = `${currentHungerName} → ${expectedHungerName}`;
-            // Color based on how bad it's getting
-            if (expectedHunger <= 1) {
-                hungerChange.className = 'text-red-400'; // Getting hungry/famished
-            } else {
-                hungerChange.className = 'text-orange-400';
-            }
-        } else {
-            hungerChange.textContent = `${currentHungerName} → ${expectedHungerName}`;
-            hungerChange.className = 'text-gray-400';
-        }
-    }
+    renderEffects();
 }
 
 /**

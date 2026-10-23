@@ -236,6 +236,10 @@ type CombatEndResponse struct {
 	// (a monster node). The client reopens the exploration overlay on it. Nil for
 	// ordinary fights and on defeat.
 	POIResumed *poi.StepResult `json:"poi_resumed,omitempty"`
+	// Quests the fight finished or moved on (a last "slay" step), as on game
+	// actions: the client shows the rewards screen.
+	QuestsCompleted any `json:"quests_completed,omitempty"`
+	QuestsAdvanced  any `json:"quests_advanced,omitempty"`
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1396,6 +1400,11 @@ func CombatEndHandler(w http.ResponseWriter, r *http.Request) {
 
 	sess.ActiveCombat = nil
 	me.Ended = true
+	if sess.FightQuestMarks != nil {
+		news := questNewsFields(*sess.FightQuestMarks, &sess.SaveData)
+		resp.QuestsCompleted, resp.QuestsAdvanced = news["quests_completed"], news["quests_advanced"]
+		sess.FightQuestMarks = nil
+	}
 	if combat.PartyFight(cs) {
 		allDone := true
 		for i := range cs.Party {
@@ -1951,6 +1960,11 @@ func init() {
 func enterFight(w http.ResponseWriter, sess *session.GameSession, needTurn bool) (func(), bool) {
 	cs := sess.ActiveCombat
 	unlock := combat.LockFight(cs)
+	if sess.FightQuestMarks == nil {
+		// Where the quests stood as the fight began: its end reports the change.
+		m := markQuests(&sess.SaveData)
+		sess.FightQuestMarks = &m
+	}
 	if lines := combat.ExpireTurn(serverdb.GetDB(), cs, time.Now()); len(lines) > 0 {
 		cs.Log = append(cs.Log, lines...)
 	}

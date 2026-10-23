@@ -1,0 +1,310 @@
+{
+  "id": "caretakers-letter-verdant",
+  "name": "The Caretaker's Letter",
+  "category": "main",
+  "difficulty": "Novice",
+  "step_count": 8,
+  "total_qp": 1,
+  "description": "Your caretaker's last letter sends you to Silvanthir Moonbough, the Warden of Roots of the Glade of Safekeeping in Verdant, who has held your inheritance in trust. Claim it, then get yourself ready for the road.",
+  "start_condition": {
+    "type": "creation",
+    "target": "warden-of-roots",
+    "location": "verdant",
+    "start_hint": "Every new character who starts in Verdant begins with this, from their caretaker's letter."
+  },
+  "dialogue": {
+    "giver": "warden-of-roots",
+    "active": {
+      "option": "About my caretaker's letter…",
+      "start": "hub",
+      "nodes": {
+        "hub": {
+          "text": "Silvanthir rests a hand on the oldest tree in the glade and waits, unhurried, as if you have all the time in the world.",
+          "options": [
+            "inherit",
+            "skip",
+            "vault",
+            "ask-stone",
+            "supplies",
+            "lessons",
+            "bed"
+          ]
+        },
+        "inherit": {
+          "label": "My caretaker left something here for me.",
+          "text": "He reads the letter slowly, then lays his palm flat against the bark. \"Hush. Listen.\" Somewhere deep in the wood something shifts, and a hollow opens at the root. \"Your caretaker sang this into the Glade, year by year. The tree has held it in your name, and it answers to your sigil. It always has.\" \"Your caretaker's savings rest in the Glade too, and your Homeward Stone. They had it sung to our waystone the spring you were born.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-caretaker",
+            "ask-stone"
+          ],
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "ask-sigil": {
+          "label": "How did you know it was me?",
+          "text": "\"Every soul is born with a true sigil. The trees can read it as easily as you read a face. It can't be forged and it can't be borrowed, which is why the Glade only opens for the one it was sung for.\"",
+          "options": [
+            "take",
+            "ask-caretaker",
+            "ask-stone"
+          ]
+        },
+        "ask-caretaker": {
+          "label": "Did you know my caretaker?",
+          "text": "\"They came every spring with the same song, never quite in tune.\" A faint smile. \"The trees forgave them. So did I. There was more love in it than skill.\" His face clouds. \"The waystones in the plaza sing too, or did. Their song is thinner every year. Mind that, as you travel.\"",
+          "options": [
+            "take",
+            "ask-sigil",
+            "ask-stone"
+          ]
+        },
+        "ask-stone": {
+          "label": "What is a Homeward Stone?",
+          "text": "\"A Homeward Stone remembers one waystone, and when you ask it, it carries you there: here, to Verdant. It must rest for a week after, as all songs must. Your caretaker had it made for you so you would never be lost.\""
+        },
+        "take": {
+          "label": "I'd like to see it.",
+          "text": "\"Take what suits you. The rest will wait for no one; I will see it put to good use.\"",
+          "action": "open_starting_gear",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "skip": {
+          "label": "I've done this before. Just the gear, please.",
+          "text": "\"Ah, an old soul. Very well.\" The hollow opens.",
+          "action": "open_starting_gear_skip",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 2,
+              "max": 2
+            }
+          ]
+        },
+        "vault": {
+          "label": "Could you open my vault?",
+          "text": "Silvanthir murmurs to the tree, and the hollow at its root widens. \"Take what is yours. The Glade keeps what you leave, and the keepers of every city's vault can open it for you.\"",
+          "action": "open_vault",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 3,
+              "max": 3
+            }
+          ]
+        },
+        "supplies": {
+          "label": "Where can I buy supplies for the road?",
+          "text": "\"Thalindra Greenleaf keeps Greenleaf Provisions, in the Artisan Quarter to the west. Buy something for the road. The forest is generous, but not to the unprepared.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 4,
+              "max": 4
+            }
+          ]
+        },
+        "lessons": {
+          "label": "Is there anything else I should do first?",
+          "text": "\"The letter speaks of lessons. If magic answers you, prepare it before you need it: open your Spells & Abilities and set a spell in a slot. A spell half-remembered is worse than none.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 5,
+              "max": 5
+            }
+          ]
+        },
+        "bed": {
+          "label": "Where should I sleep tonight?",
+          "text": "\"Rest at the Moonlit Glade, in the Forest Quarter to the north. Faelyn will give you a bed in the branches and breakfast in the morning. Sleep, then save your game: set down what you've done, so it is yours. Then come back to me.\"",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "caretakers-letter-verdant",
+              "min": 6,
+              "max": 6
+            }
+          ]
+        }
+      }
+    },
+    "completed": {
+      "option": "Thank you for keeping it safe.",
+      "start": "after",
+      "nodes": {
+        "after": {
+          "text": "\"You've rested. Good.\" He listens to the tree for a moment. \"If you want work, the keepers of every vault post the realm's bounties, day by day and week by week. And when you pass the waystone in the plaza, put your hand to it. Tell me if it still hums. I'm no longer sure I hear it.\""
+        }
+      }
+    },
+    "with": {
+      "nature-supplier": {
+        "option": "I'm new in town. What do I need for the road?",
+        "start": "advice",
+        "nodes": {
+          "advice": {
+            "text": "\"Rations, wrapped in leaf and wax so they keep through any season.\" Thalindra turns one in her hands. \"Each is a day's food. When you feel Hungry, take one from your pack: right-click it, then Eat. And a torch, for the forest is dark beneath the old trees.\"",
+            "options": [
+              "how-buy"
+            ]
+          },
+          "how-buy": {
+            "label": "How do I buy something?",
+            "text": "\"Look as long as you like, then right-click what you need: Buy 1, or Buy X. Click an item to learn its price. If you would sell, the Sell tab is there; lay your things upon the counter.\""
+          }
+        }
+      },
+      "verdant-barkeep": {
+        "option": "How does a room work?",
+        "start": "room",
+        "nodes": {
+          "room": {
+            "text": "\"A room is yours for one night.\" Faelyn's voice is soft as leaves. \"Rest after the ninth hour, when the glade grows quiet. You will wake to breakfast, and the room is free again at the tenth hour of the morning.\""
+          }
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "id": "read-letter",
+      "description": "Your caretaker left you a letter. Read it: right-click it in your bag and choose Read.",
+      "tip": "Items have actions: right-click one (long-press on a phone) to see what you can do with it. Your next step always shows in the quest tracker over the scene, and the Quest Log has the rest.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "read-letter",
+          "description": "Read your caretaker's letter."
+        }
+      ]
+    },
+    {
+      "id": "the-keeper",
+      "description": "The letter sends you to Silvanthir Moonbough, the Warden of Roots, at the Glade of Safekeeping in the Garden Plaza. Go inside and talk to them.",
+      "tip": "Buildings are listed under Buildings: click one to go in. Inside, the People column shows who's there; click someone to talk. Time stands still while you talk.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "warden-of-roots",
+          "description": "Talk to Silvanthir Moonbough at the Glade of Safekeeping."
+        }
+      ]
+    },
+    {
+      "id": "the-inheritance",
+      "description": "Silvanthir has held your inheritance in trust. Ask for it, and choose what suits you.",
+      "tip": "Ask the keeper for it, then choose one option on each screen. Tap ? on any item to see what it does: damage, armor, weight, value. Once it's yours, what you can wear you'll be wearing: check the Equipment tab, and what you carry in Inventory.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "claim-starting-gear",
+          "description": "Take up your inheritance from Silvanthir."
+        }
+      ]
+    },
+    {
+      "id": "your-vault",
+      "description": "Your caretaker's savings and your Homeward Stone are in your vault. Ask Silvanthir to open it, and take both out.",
+      "tip": "Your vault is one store shared across the realm: deposit here, withdraw in any city whose keeper has accepted you. What's in it is safe, even if you fall. In the vault window, click an item to take it (set the amount first: 1, 5, 10 or ALL), or drag it into your bag. Gold has weight, so carry what you'll spend and leave the rest here. Your Homeward Stone: right-click → Use to return to your city's waystone, then it rests for a week.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "gold-piece",
+          "description": "Take your gold from the vault."
+        },
+        {
+          "type": "fetch",
+          "target": "homeward-stone-verdant",
+          "description": "Take your Homeward Stone from the vault."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "supplies",
+      "description": "Buy something for the road. Thalindra Greenleaf keeps Greenleaf Provisions in the Artisan Quarter; any shop will do.",
+      "tip": "Shops: talk to the shopkeeper and browse. To buy, right-click an item → Buy 1 or Buy X (click it to see the price; your Charisma helps). To sell, open the Sell tab, click your items to put them on the counter, then confirm the sale. Rations are food that never spoils: when you're Hungry, right-click one → Eat. Your bag: the 4 general slots are your belt, the things you can reach in a fight; the darker slots are your backpack. Drag items onto a container (backpack, pouch) to put them in, or right-click it → Open. Bag full? Use your backpack, or leave things in the vault.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "shop-buy",
+          "description": "Buy supplies at Greenleaf Provisions."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "your-lessons",
+      "description": "If you learned magic, have it ready before you need it. Open Spells & Abilities and prepare a spell in a slot.",
+      "classes": [
+        "Wizard",
+        "Sorcerer",
+        "Warlock",
+        "Bard",
+        "Cleric",
+        "Druid"
+      ],
+      "tip": "Spells & Abilities: your spell slots are at the top, the spells you know below. Click an empty slot to choose a spell for it. Cantrips are ready at once; a levelled spell takes an hour per level to prepare, and the clock has to run. Spells cost mana, and some need runes or components. In a fight you cast from the combat bar. Outside one, right-click a prepared spell → Cast: that works for spells that heal, cure, create something or leave a lasting effect.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "prepare-spell",
+          "description": "Prepare a spell (Spells & Abilities)."
+        }
+      ]
+    },
+    {
+      "id": "a-bed-for-the-night",
+      "description": "Take a room at the Moonlit Glade in the Forest Quarter and sleep. Inns serve breakfast, so you'll wake well fed. Then save your game: there's no autosave, so a save is how you keep what you've done.",
+      "tip": "Inns: talk to the innkeeper to rent a room (one night, breakfast included, check-out at 10 AM), go into your room (Rooms), then Sleep, any time after 9 PM. Sleep is what clears fatigue; 🕐 Wait only passes the time. Saving: Settings → Save game, or Ctrl+S. There's no autosave, so closing the game takes you back to your last save.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "sleep-inn",
+          "description": "Sleep at the Moonlit Glade."
+        },
+        {
+          "type": "do",
+          "target": "save-game",
+          "description": "Save your game (Settings → Save game)."
+        }
+      ],
+      "tip_push": true
+    },
+    {
+      "id": "report-back",
+      "description": "Go back to Silvanthir at the Glade of Safekeeping and tell them you're settled.",
+      "tip": "Vault keepers post the realm's bounties, a new one every day and every week: ask any keeper for work.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "warden-of-roots",
+          "description": "Report back to Silvanthir."
+        }
+      ],
+      "rewards": {
+        "xp": 150,
+        "gold": 100
+      }
+    }
+  ]
+}

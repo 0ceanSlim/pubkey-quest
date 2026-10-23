@@ -38,7 +38,8 @@ type StepResult struct {
 	Choices  []Choice `json:"choices,omitempty"` // present on choice nodes
 	Combat   string   `json:"combat,omitempty"`  // monster id — the caller bridges into combat
 	// CombatCount / CombatSurprise carry a monster node's authored group size and
-	// ambush flag through to the combat bridge.
+	// ambush flag (the player's ambush: the monsters are surprised) through to
+	// the combat bridge.
 	CombatCount    int      `json:"-"`
 	CombatSurprise bool     `json:"-"`
 	CombatArena    []string `json:"-"`
@@ -74,6 +75,9 @@ type Deps struct {
 	// PayCost takes a transaction node's price, all or nothing; false when the
 	// player can't afford it.
 	PayCost func(save *types.SaveFile, c *types.POICost) bool
+	// TakeGold takes up to n gold from what the player carries (a theft
+	// transaction) and returns how much it took.
+	TakeGold func(save *types.SaveFile, n int) int
 	// Locks serves lock nodes (nil: lock nodes only take their key).
 	Locks LockDeps
 	// ChangeFatigue raises (or lowers) the fatigue stat — an effect node whose
@@ -191,6 +195,19 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.Next = node.Next
 
 	case types.POIStepTransaction:
+		if node.Cost != nil && node.Cost.Theft {
+			taken := 0
+			if deps.TakeGold != nil {
+				taken = deps.TakeGold(save, node.Cost.Gold)
+			}
+			if taken > 0 {
+				res.Outcome = append(res.Outcome, fmt.Sprintf("You're %d gold lighter.", taken))
+			} else {
+				res.Outcome = append(res.Outcome, "Your purse was empty: they got nothing.")
+			}
+			res.Next = node.Next
+			break
+		}
 		if node.Cost != nil && deps.PayCost != nil && !deps.PayCost(save, node.Cost) {
 			res.Outcome = append(res.Outcome, nonEmpty(node.FailureText, "You can't afford that."))
 			res.Next = node.FailureNext

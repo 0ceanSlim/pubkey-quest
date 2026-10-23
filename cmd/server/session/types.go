@@ -35,6 +35,10 @@ type GameSession struct {
 	// Combat state — lives in server memory only, never written to save files.
 	// Nil when no combat is in progress.
 	ActiveCombat *types.CombatSession `json:"-"`
+	// FightQuestMarks is where the quests stood when this fight began (taken on
+	// its first combat request), so ending it can report the quests it finished
+	// or moved on (the rewards screen). Nil outside a fight.
+	FightQuestMarks *QuestMarks `json:"-"`
 
 	// PendingSave is a save prepared for signing (relay saves): the exact
 	// event content the player must sign, and the disk copy to write once a
@@ -347,4 +351,14 @@ type PendingSave struct {
 	Tags      [][]string
 	CreatedAt int64
 	DiskJSON  []byte // the full save as it was when prepared, written to disk on success
+}
+
+// QuestMarks is where a save's quests stood: the active stage of each, which
+// are done for good, and the period each repeatable was last completed in.
+// Compared before and after something happens, it says which quests finished
+// or moved on.
+type QuestMarks struct {
+	Active     map[string]int
+	Completed  []string
+	Repeatable map[string]int
 }

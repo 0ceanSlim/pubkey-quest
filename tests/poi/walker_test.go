@@ -212,6 +212,31 @@ func TestTransactionPaysOrRefuses(t *testing.T) {
 	}
 }
 
+// A theft (the pickpocket) takes what's in the purse and never reads as a
+// failed purchase: an empty purse loses nothing and the walk carries on.
+func TestTheftTakesWhatIsThere(t *testing.T) {
+	node := types.POIStep{Type: types.POIStepTransaction, Cost: &types.POICost{Gold: 10, Theft: true}, IsTerminal: true}
+	purse := 0
+	deps := poi.Deps{
+		Ctx: fakeCtx{}, Rng: rng(),
+		PayCost: func(*types.SaveFile, *types.POICost) bool { t.Error("a theft isn't paid"); return false },
+		TakeGold: func(_ *types.SaveFile, n int) int {
+			took := min(n, purse)
+			purse -= took
+			return took
+		},
+	}
+	res := poi.Resolve(node, "t", &types.SaveFile{}, deps)
+	if !res.Terminal || len(res.Outcome) != 1 || !strings.Contains(res.Outcome[0], "empty") {
+		t.Errorf("empty purse: %+v", res)
+	}
+	purse = 4
+	res = poi.Resolve(node, "t", &types.SaveFile{}, deps)
+	if purse != 0 || !strings.Contains(res.Outcome[0], "4 gold") {
+		t.Errorf("4 in the purse: left %d, %+v", purse, res.Outcome)
+	}
+}
+
 func TestMonsterNodeCarriesArena(t *testing.T) {
 	arena := []string{"..~~..", "..WW.."}
 	res := poi.Resolve(types.POIStep{Type: types.POIStepMonster, MonsterID: "giant-rat", Count: 3, Arena: arena, Next: "won"},

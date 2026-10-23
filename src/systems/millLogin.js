@@ -184,6 +184,16 @@ function injectMillResponsiveStyles() {
                    secondary buttons (Back) keep their width. */
                 .mill-btn { overflow-wrap: normal; line-height: 1.4; }
                 .mill-btn.ghost { flex-shrink: 0; white-space: nowrap; }
+                /* Signing permissions (Customize): each row puts a label beside two
+                   pills that never shrink. In the pixel font the pills alone are
+                   wider than the modal, which squeezed the label to one letter per
+                   line and pushed the pills off the side. Stack them instead: the
+                   label on its own line, the pills below, free to wrap. */
+                .mill-perm-row { flex-wrap: wrap; align-items: flex-start; row-gap: 6px; }
+                .mill-perm-row-left { flex: 1 1 100%; }
+                .mill-perm-row-label, .mill-perm-row-kinds { overflow-wrap: normal; word-break: normal; }
+                .mill-perm-pills { flex-wrap: wrap; flex-shrink: 1; max-width: 100%; }
+                .mill-perm-pill { white-space: normal; overflow-wrap: normal; line-height: 1.4; }
                 @media (max-width: 480px) {
                     .mill-overlay { padding: 10px !important; }
                     /* Reflow-shrink the fixed-px layout so the pixel font fits a phone. */

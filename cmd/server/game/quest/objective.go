@@ -1,6 +1,7 @@
 package quest
 
 import (
+	"strings"
 	"time"
 
 	"pubkey-quest/cmd/server/game/events"
@@ -35,10 +36,22 @@ func advanceObjectives(save *types.SaveFile, ev events.Event, lookup QuestLookup
 		}
 		stage := quest.Stages[qp.Stage]
 		ensureCounts(qp, len(stage.Objectives))
+		final := IsFinalStage(save, qp.Stage, quest)
 
 		changed := false
+		if ev.Kind == events.TurnedIn && ev.Target == quest.ID {
+			// Handing in: count what's carried right now.
+			PrimeFetch(save, qp, stage)
+			changed = true
+		}
 		for j, obj := range stage.Objectives {
-			if !objectiveMatches(obj, ev) {
+			if IsTurnIn(obj, final) {
+				// The last step's "talk to them" is the turn-in: only choosing
+				// Turn in meets it, not opening the conversation.
+				if ev.Kind != events.TurnedIn || ev.Target != quest.ID {
+					continue
+				}
+			} else if !objectiveMatches(obj, ev) {
 				continue
 			}
 			need := objectiveTarget(obj)
@@ -84,6 +97,7 @@ func completeStage(save *types.SaveFile, qp *types.QuestProgress, quest *types.Q
 		GrantReward(save, stage.Rewards, advancement)
 	}
 	qp.Stage++
+	skipStages(save, qp, quest)
 	if qp.Stage < len(quest.Stages) {
 		// NOTE: wait stages (Stage.WaitMinutes) advance immediately for now —
 		// the ready_at clock gating is a later refinement.
@@ -94,6 +108,76 @@ func completeStage(save *types.SaveFile, qp *types.QuestProgress, quest *types.Q
 		if len(next.Objectives) > 0 && stageComplete(next, qp.ObjectiveCounts) {
 			completeStage(save, qp, quest, advancement)
 		}
+	}
+}
+
+// IsFinalStage reports whether a stage is the last one this character will do
+// (any later stages are for other classes).
+func IsFinalStage(save *types.SaveFile, stageIdx int, quest *types.QuestData) bool {
+	for k := stageIdx + 1; k < len(quest.Stages); k++ {
+		if stageApplies(quest.Stages[k], save) {
+			return false
+		}
+	}
+	return true
+}
+
+// IsTurnIn reports whether an objective is a quest's turn-in: a "talk" objective
+// on its final stage, met only by choosing Turn in (events.TurnedIn).
+func IsTurnIn(obj types.QuestObjective, finalStage bool) bool {
+	return finalStage && obj.Type == types.ObjectiveTalk
+}
+
+// ReadyToTurnIn reports whether an active quest is on its final stage, with a
+// turn-in to targetNPC (or quest.AnyVaultKeeper, when keeper is true) and every
+// other objective of the stage done. Fetch objectives count what's carried now.
+func ReadyToTurnIn(save *types.SaveFile, quest *types.QuestData, npcID string, keeper bool) bool {
+	for i := range save.QuestsActive {
+		qp := &save.QuestsActive[i]
+		if qp.QuestID != quest.ID || qp.Stage >= len(quest.Stages) || !IsFinalStage(save, qp.Stage, quest) {
+			continue
+		}
+		stage := quest.Stages[qp.Stage]
+		ensureCounts(qp, len(stage.Objectives))
+		turnIn := false
+		for j, obj := range stage.Objectives {
+			switch {
+			case IsTurnIn(obj, true):
+				if obj.Target == npcID || (keeper && obj.Target == AnyVaultKeeper) {
+					turnIn = true
+				}
+			case obj.Type == types.ObjectiveFetch:
+				if gameutil.CountItem(save, obj.Target) < objectiveTarget(obj) {
+					return false
+				}
+			case qp.ObjectiveCounts[j] < objectiveTarget(obj):
+				return false
+			}
+		}
+		return turnIn
+	}
+	return false
+}
+
+// stageApplies reports whether a stage is for this character: a stage limited
+// to some classes (types.QuestStage.Classes) is skipped by everyone else.
+func stageApplies(stage types.QuestStage, save *types.SaveFile) bool {
+	if len(stage.Classes) == 0 {
+		return true
+	}
+	for _, c := range stage.Classes {
+		if strings.EqualFold(c, save.Class) {
+			return true
+		}
+	}
+	return false
+}
+
+// skipStages moves past any stages from the current one on that aren't for this
+// character, without their objectives or rewards.
+func skipStages(save *types.SaveFile, qp *types.QuestProgress, quest *types.QuestData) {
+	for qp.Stage < len(quest.Stages) && !stageApplies(quest.Stages[qp.Stage], save) {
+		qp.Stage++
 	}
 }
 
@@ -175,6 +259,8 @@ func objectiveMatches(obj types.QuestObjective, ev events.Event) bool {
 		return ev.Kind == events.NPCTalked && obj.Target == ev.Target
 	case types.ObjectiveCheck:
 		return ev.Kind == events.SkillCheckPassed && obj.Skill == ev.Target
+	case types.ObjectiveDo:
+		return ev.Kind == events.Did && obj.Target == ev.Target
 	}
 	return false
 }

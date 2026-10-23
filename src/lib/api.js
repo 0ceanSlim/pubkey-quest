@@ -12,6 +12,28 @@ import { eventBus } from './events.js';
 import { API_BASE_URL } from '../config/constants.js';
 import { handleWorldHandoff } from '../systems/worldHandoff.js';
 
+/**
+ * A quest finished or moved on (quests_completed / quests_advanced on a
+ * response): say so (a finished quest gets its rewards screen), and refresh the
+ * tracker and the journal now rather than on the next full reload. Game actions, the shop, preparing a spell and
+ * saving all carry it.
+ * @param {object} data - the response (or its data) carrying the quest news
+ */
+export function announceQuestNews(data) {
+    const done = data?.quests_completed ?? [];
+    const moved = data?.quests_advanced ?? [];
+    const turnedIn = data?.turned_in; // a turn-in: the giver's closing line
+    for (const q of done) {
+        window.showMessage?.(`📜 Quest complete: ${q.name}`, 'success');
+        const entry = turnedIn?.id === q.id ? { ...q, closing: turnedIn.closing, speaker: turnedIn.speaker } : q;
+        window.showQuestComplete?.(entry); // the rewards screen (ui/questComplete.js)
+    }
+    if (done.length || moved.length) {
+        window.updateQuestTracker?.();
+        window.questDisplay?.loadQuestLog?.();
+    }
+}
+
 class GameAPI {
     constructor() {
         this.npub = null;
@@ -87,15 +109,7 @@ class GameAPI {
             if (typeof result.data?.clock_running === 'boolean') {
                 eventBus.emit('clock:running', result.data.clock_running);
             }
-            // A quest finished or moved on: say so, and refresh the tracker and
-            // the journal now rather than on the next full reload.
-            const done = result.data?.quests_completed ?? [];
-            const moved = result.data?.quests_advanced ?? [];
-            for (const q of done) window.showMessage?.(`📜 Quest complete: ${q.name}`, 'success');
-            if (done.length || moved.length) {
-                window.updateQuestTracker?.();
-                window.questDisplay?.loadQuestLog?.();
-            }
+            announceQuestNews(result.data);
             // Death outside a fight (starving, a hazard on the road): the server
             // already woke the player in town; offer the last save instead.
             if (result.data?.death) {
@@ -210,9 +224,11 @@ class GameAPI {
                     throw new Error(out.error || `Save not stored (${pub.status})`);
                 }
                 logger.info(`Signed save stored on ${out.relays?.length ?? 0} relay(s)`);
+                announceQuestNews(result);
                 return true;
             }
 
+            announceQuestNews(result);
             logger.info('Game saved to disk');
             return true;
 
@@ -371,7 +387,9 @@ class GameAPI {
             try { reason = (await response.text()).trim() || reason; } catch { /* ignore */ }
             throw new Error(reason);
         }
-        return await response.json();
+        const result = await response.json();
+        announceQuestNews(result);
+        return result;
     }
 
     /**
@@ -410,6 +428,14 @@ class GameAPI {
             body: JSON.stringify({ npub: this.npub, save_id: this.saveID, spell_id: spellId })
         });
         if (!response.ok) throw new Error(`scribe failed: ${response.status}`);
+        return await response.json();
+    }
+
+    /** What waiting 15 minutes … 6 hours would do ({success, data: {hp, …, steps[]}}). */
+    async getWaitPreview() {
+        this.ensureInitialized();
+        const response = await fetch(`${API_BASE_URL}/game/wait-preview?npub=${this.npub}&save_id=${this.saveID}`);
+        if (!response.ok) throw new Error(`wait-preview failed: ${response.status}`);
         return await response.json();
     }
 

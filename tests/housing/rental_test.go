@@ -55,3 +55,27 @@ func TestCanSleepNow(t *testing.T) {
 		}
 	}
 }
+
+// A night's sleep uses the rental up: it ends at the morning check-out, and
+// never later than it would have anyway.
+func TestEndRentalBy(t *testing.T) {
+	state := &types.SaveFile{CurrentDay: 6, TimeOfDay: 360}
+	gameutil.AddRental(state, "sailors_tavern", 6, 1439)
+	gameutil.AddRental(state, "miners_inn", 6, 300)
+
+	gameutil.EndRentalBy(state, "sailors_tavern", 6, npc.CheckoutTime)
+	gameutil.EndRentalBy(state, "miners_inn", 6, npc.CheckoutTime)
+
+	if !gameutil.HasActiveRental(state, "sailors_tavern") {
+		t.Error("the room is still yours until check-out")
+	}
+	state.TimeOfDay = npc.CheckoutTime
+	if gameutil.HasActiveRental(state, "sailors_tavern") {
+		t.Error("the rental should end at check-out")
+	}
+	for _, r := range state.Rentals {
+		if r.Building == "miners_inn" && r.ExpiresMin != 300 {
+			t.Errorf("an earlier end was pushed back to %d", r.ExpiresMin)
+		}
+	}
+}

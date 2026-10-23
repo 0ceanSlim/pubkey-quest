@@ -46,7 +46,7 @@ export function characterFaceHTML(size = 18) {
 /** Redraw the small portrait next to the character's name. */
 export function renderPortraitThumb() {
     const el = document.getElementById('char-portrait-thumb');
-    if (el) el.innerHTML = characterFaceHTML(9);
+    if (el) el.innerHTML = characterFaceHTML(22);
 }
 
 let _el = null;
@@ -122,6 +122,7 @@ export function openPortraitDialog() {
     box.addEventListener('click', e => { if (e.target === box) close(); });
     $('pd-url').value = currentPortrait();
     renderPreview();
+    checkPortraitLoads();
 
     $('pd-gen').addEventListener('click', writePrompt);
     $('pd-copy').addEventListener('click', async () => {
@@ -156,6 +157,25 @@ function renderPreview() {
         <div><div class="pd-frame" style="width:50px;height:50px;">${characterFaceHTML(48)}</div>portrait</div>
         <div><div class="pd-frame" style="width:24px;height:24px;">${characterFaceHTML(20)}</div>on the grid</div>
         <div><div class="pd-frame" style="width:24px;height:24px;border-color:#6b7280;">${crestSVG(gameAPI.npub ?? '', window.getGameStateSync?.()?.character?.name ?? '', 20)}</div>your crest</div>`;
+}
+
+/**
+ * A portrait that won't load quietly shows the crest instead, which looks like
+ * it was never set. Say so here, with the reason the server got.
+ */
+async function checkPortraitLoads() {
+    const url = currentPortrait();
+    if (!url) return;
+    try {
+        const resp = await fetch(portraitSrc(url));
+        if (resp.ok) return;
+        const why = (await resp.text()).trim();
+        say(resp.status === 404
+            ? "Your portrait isn't on this character yet: set it again, then save your game."
+            : `Your portrait isn't loading (${why || `HTTP ${resp.status}`}). Try another link.`, '#fbbf24');
+    } catch (err) {
+        say(`Your portrait isn't loading: ${err.message}`, '#fbbf24');
+    }
 }
 
 async function writePrompt() {

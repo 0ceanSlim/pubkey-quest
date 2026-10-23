@@ -12,7 +12,9 @@ import (
 	"pubkey-quest/cmd/server/db"
 	gamecharacter "pubkey-quest/cmd/server/game/character"
 	gameinventory "pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/teleport"
+	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/types"
 )
 
@@ -159,17 +161,30 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		startingGold = 1000 // Default
 	}
 
-	// 5. Build inventory from equipment choices
-	inventory, err := buildInventoryFromChoices(database, startingGear, req.EquipmentChoices, req.PackChoice)
+	// 5. The inventory. A new character arrives with only their gold, the
+	// caretaker's letter and their Homeward Stone: the gear is their
+	// inheritance, claimed in game from their vault's keeper inside the
+	// tutorial quest (api/game/starting_gear.go). A client that still sends
+	// gear picks (an intro page from before the rework) gets them as before.
+	legacyGear := len(req.EquipmentChoices) > 0
+	var inventory map[string]interface{}
+	if legacyGear {
+		inventory, err = buildInventoryFromChoices(database, startingGear, req.EquipmentChoices, req.PackChoice)
+	} else {
+		inventory, err = createInventoryStructure(database, nil)
+	}
 	if err != nil {
 		respondWithError(w, "Failed to build inventory: "+err.Error())
 		return
 	}
 
-	// 6. Add gold to inventory as an item
-	err = AddGoldToInventory(inventory, startingGold)
-	if err != nil {
-		log.Printf("⚠️  Failed to add gold to inventory: %v", err)
+	// 6. Gold. A new character's gold is their caretaker's savings, held in
+	// trust in their people's vault (step 16) and taken out in the tutorial; a
+	// legacy client's character carries it, as before.
+	if legacyGear {
+		if err := AddGoldToInventory(inventory, startingGold); err != nil {
+			log.Printf("⚠️  Failed to add gold to inventory: %v", err)
+		}
 	}
 
 	// 7. Generate spell slots
@@ -274,14 +289,37 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 15. The home city's Homeward Stone — the only free one. The home keeper's
-	// gift is marked given, so it can't be claimed a second time.
+	// gift is marked given, so it can't be claimed a second time. A new
+	// character's is part of the inheritance, waiting in their vault with the
+	// gold; a legacy client's character carries it.
 	if c, ok := teleport.Load().Cities[startingCity]; ok {
-		if n, _ := gameinventory.AddItemToInventory(&saveFile, c.Stone, 1); n > 0 {
+		if legacyGear {
+			if n, _ := gameinventory.AddItemToInventory(&saveFile, c.Stone, 1); n > 0 {
+				saveFile.DialogueGifts = append(saveFile.DialogueGifts, c.Keeper+":homeward_gift")
+			}
+		} else if err := vault.Deposit(&saveFile, c.Stone, 1); err == nil {
 			saveFile.DialogueGifts = append(saveFile.DialogueGifts, c.Keeper+":homeward_gift")
 		}
 	}
+	if !legacyGear && startingGold > 0 {
+		if err := vault.Deposit(&saveFile, "gold-piece", startingGold); err != nil {
+			log.Printf("⚠️  Failed to put the starting gold in the vault: %v", err)
+		}
+	}
 
-	// 16. Save to disk
+	// 16. The caretaker's letter, and the tutorial quest it starts: "The
+	// Caretaker's Letter" for this starting city, which sends them to their
+	// vault's keeper for their inheritance.
+	if !legacyGear {
+		gameinventory.AddItemToInventory(&saveFile, CaretakersLetter, 1)
+		if q, err := db.GetQuestByID(TutorialQuestFor(startingCity)); err == nil && q != nil {
+			quest.StartForNewCharacter(*q, &saveFile)
+		} else {
+			log.Printf("⚠️  No tutorial quest for %s: %v", startingCity, err)
+		}
+	}
+
+	// 17. Save to disk
 	if err := saveToDisk(req.Npub, &saveFile); err != nil {
 		respondWithError(w, "Failed to save character: "+err.Error())
 		return
@@ -307,6 +345,15 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 			"stats":      saveFile.Stats,
 		},
 	})
+}
+
+// CaretakersLetter is the item a new character arrives with: the caretaker's
+// last letter, readable any time.
+const CaretakersLetter = "caretakers-letter"
+
+// TutorialQuestFor names a starting city's tutorial quest.
+func TutorialQuestFor(city string) string {
+	return "caretakers-letter-" + city
 }
 
 // ============================================================================
