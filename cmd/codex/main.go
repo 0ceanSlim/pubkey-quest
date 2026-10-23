@@ -14,6 +14,7 @@ import (
 	"pubkey-quest/cmd/codex/imagegen"
 	"pubkey-quest/cmd/codex/itemeditor"
 	"pubkey-quest/cmd/codex/migration"
+	"pubkey-quest/cmd/codex/openai"
 	"pubkey-quest/cmd/codex/pixellab"
 	"pubkey-quest/cmd/codex/staging"
 	"pubkey-quest/cmd/codex/systemseditor"
@@ -306,11 +307,27 @@ func main() {
 
 	// Standalone image-generation batch (dev tool): generate candidates and exit.
 	if *generateImagesFlag != "" {
-		if editor.PixelLabClient == nil {
-			log.Fatal("❌ pixellab.api_key not configured — cannot generate images")
+		spec, err := imagegen.ReadSpec(*generateImagesFlag)
+		if err != nil {
+			fmt.Printf("❌ %v\n", err)
+			os.Exit(1)
 		}
-		fmt.Printf("🎨 Generating sprite candidates from %s...\n", *generateImagesFlag)
-		if err := imagegen.RunBatch(editor.PixelLabClient, *generateImagesFlag); err != nil {
+		fmt.Printf("🎨 Generating candidates from %s...\n", *generateImagesFlag)
+		switch spec.Provider {
+		case "openai":
+			if cfg.OpenAI.APIKey == "" {
+				log.Fatal("❌ openai.api_key not configured — cannot generate scenes")
+			}
+			err = imagegen.RunOpenAIBatch(openai.NewClient(cfg.OpenAI.APIKey), spec)
+		case "", "pixellab":
+			if editor.PixelLabClient == nil {
+				log.Fatal("❌ pixellab.api_key not configured — cannot generate images")
+			}
+			err = imagegen.RunBatch(editor.PixelLabClient, spec)
+		default:
+			log.Fatalf("❌ unknown provider %q (pixellab | openai)", spec.Provider)
+		}
+		if err != nil {
 			fmt.Printf("❌ %v\n", err)
 			os.Exit(1)
 		}

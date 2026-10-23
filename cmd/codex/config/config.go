@@ -21,6 +21,9 @@ type Config struct {
 	PixelLab struct {
 		APIKey string `yaml:"api_key"`
 	} `yaml:"pixellab"`
+	OpenAI struct {
+		APIKey string `yaml:"api_key"` // scene and location art (--generate-images with provider "openai")
+	} `yaml:"openai"`
 }
 
 // Load loads the application configuration.
