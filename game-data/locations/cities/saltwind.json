@@ -4,6 +4,7 @@
   "map_position": [722, 905],
   "music": "Mysteries",
   "type": "village",
+  "image": "/res/img/locations/saltwind.png",
   "description": "A picturesque fishing village perched on coastal cliffs overlooking the sea. Boats bob in the protected harbor while nets dry in the salty breeze. The villagers make their living from the bounty of the ocean.",
   "starting_races": [],
   "racial_entry_fees": {

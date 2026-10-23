@@ -4,6 +4,7 @@
   "map_position": [617, 112],
   "music": "Pondering",
   "type": "town",
+  "image": "/res/img/locations/frosthold.png",
   "description": "A hardy northern town built to withstand the harsh arctic winds. Stone buildings with thick walls and small windows cluster around a central square dominated by a massive bonfire that never goes out.",
   "starting_races": [],
   "racial_entry_fees": {

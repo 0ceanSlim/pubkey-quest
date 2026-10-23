@@ -4,7 +4,7 @@
   "name": "Goldenhaven City",
   "map_position": [1062, 398],
   "type": "city",
-  "image": "/res/img/locations/kingdom.png",
+  "image": "/res/img/locations/goldenhaven.png",
   "music": "God of Dreams",
   "description": "A prosperous trading city built where a river spills down out of the Cragspire Mountains. Barges laden with ore and goods crowd its river port, and exotic wares from distant lands fill the markets. Golden banners flutter from tall buildings raised on the wealth of the river trade.",
   "starting_races": ["Dragonborn"],
