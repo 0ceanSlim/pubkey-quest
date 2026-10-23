@@ -154,12 +154,21 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 const (
 	comfortInn     = 1.0  // a real bed at an inn (breakfast is in the fee)
 	comfortBedroll = 0.75 // camping with a bedroll
+	comfortBlanket = 0.6  // a blanket on the ground: thin, but better than nothing
 	comfortRough   = 0.5  // no gear — a rough night on hard ground
 )
 
+// HasBedding reports whether the player carries something to camp with: a
+// bedroll, a blanket, or the party's camp set. The Wait window offers to make
+// camp only then.
+func HasBedding(state *types.SaveFile) bool {
+	return gameutil.PlayerHasItem(state, "bedroll") || gameutil.PlayerHasItem(state, "blanket") ||
+		gameutil.PlayerHasItem(state, "camp-set")
+}
+
 // HandleWildernessSleepAction lets a player bed down for the night out in a travel
-// environment (not a town). A bedroll makes for a decent camp; without one it's a
-// rough sleep that recovers less fatigue. No breakfast out here, so hunger isn't
+// environment (not a town). A bedroll makes for a decent camp, a blanket a
+// thinner one; without either it's a rough sleep that recovers less fatigue. No breakfast out here, so hunger isn't
 // restored — you wake a little hungrier. Same night-time gate as an inn.
 func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
 	if state.Building != "" {
@@ -173,8 +182,11 @@ func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProv
 	}
 
 	comfort := comfortRough
-	if gameutil.PlayerHasItem(state, "bedroll") {
+	switch {
+	case gameutil.PlayerHasItem(state, "bedroll"):
 		comfort = comfortBedroll
+	case gameutil.PlayerHasItem(state, "blanket"):
+		comfort = comfortBlanket
 	}
 	return applySleep(state, comfort, false, session, npcIdsFunc)
 }
@@ -265,6 +277,8 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 		msg += ", warm and rested."
 	case comfort >= comfortBedroll:
 		msg += ", stiff but recovered from your camp."
+	case comfort >= comfortBlanket:
+		msg += " wrapped in your blanket, a little stiff but rested."
 	default:
 		msg += " on the hard ground — better than nothing."
 	}

@@ -3,6 +3,7 @@ package combat
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"pubkey-quest/types"
 )
@@ -12,9 +13,12 @@ import (
 // proficiency (5e treats these as improvised weapons) — then its damage and
 // any condition it lands (a net restrains, alchemist's fire keeps burning).
 // It costs the action, and the item is used up whether it hits or not.
+// creature_types limits the damage to those monster types (holy water burns
+// only undead and fiends); anything else just gets wet.
 //
 //	"throw": {"damage": "2d6", "damage_type": "acid",
 //	          "condition": {"condition": "restrained", "save_each_turn": "strength"}, "dc": 10}
+//	"throw": {"damage": "2d6", "damage_type": "radiant", "creature_types": ["undead", "fiend"]}
 func throwItem(cs *types.CombatSession, save *types.SaveFile, item, throw map[string]interface{}, itemID, name string, slot map[string]interface{}, fromPack bool, targetID string) ([]string, error) {
 	me := actor(cs)
 	state := &me.CombatState
@@ -73,6 +77,10 @@ func throwItem(cs *types.CombatSession, save *types.SaveFile, item, throw map[st
 			}
 		}
 	}
+	if kinds, ok := throw["creature_types"].([]interface{}); ok && len(kinds) > 0 && !typeListed(kinds, monster.Data.Type) {
+		log = append(log, fmt.Sprintf("  The %s splashes over %s, and does nothing.", name, monster.Name))
+		return log, nil
+	}
 	if dice, _ := throw["damage"].(string); dice != "" {
 		dtype, _ := throw["damage_type"].(string)
 		dmg := ResolveDamageToMonster(dice, 0, dtype, result.IsCrit, monster)
@@ -84,4 +92,14 @@ func throwItem(cs *types.CombatSession, save *types.SaveFile, item, throw map[st
 		log = append(log, spellDamageToMonster(cs, me, save, monster, dmg)...)
 	}
 	return log, nil
+}
+
+// typeListed reports whether a monster type is in a throw's creature_types.
+func typeListed(list []interface{}, monsterType string) bool {
+	for _, t := range list {
+		if s, ok := t.(string); ok && strings.EqualFold(s, monsterType) {
+			return true
+		}
+	}
+	return false
 }

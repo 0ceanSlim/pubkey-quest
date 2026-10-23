@@ -4,6 +4,19 @@ Running notes from the user's local playthroughs of the intro and tutorial
 ([intro-and-tutorial.md](intro-and-tutorial.md)). Newest first. Each item says what was seen, the
 cause where known, and the fix planned. Nothing here is pushed until the user says so.
 
+## Starting packs (2026-10-23)
+
+- Rations moved out of every pack: each class's given gear has 6 rations, and each pack's value
+  dropped by the rations taken out.
+- The Priest's Pack (blanket, candles, holy water) lost to the Explorer's Pack (bedroll, rope,
+  torches). **Changed:** the blanket is thin bedding (camp in the wild at comfort 0.6, between
+  rough 0.5 and a bedroll 0.75; the Wait window's "Make camp" counts it). Holy water is thrown as
+  in 5e: 2d6 radiant against undead and fiends, nothing to anything else (`throw.creature_types`).
+  It's still a spell component, and the pack holds 3 instead of 1 (value 2100). Test:
+  `TestHolyWaterBurnsOnlyUndeadAndFiends`.
+- The parchment, ink and pen notes were stale ("no use yet"): scroll scribing uses them.
+- Still no use: tinderbox and waterskin (degradation and food), hammer and pitons.
+
 ## Playtest 3 (2026-10-22): the reworked start
 
 - **P1** The gear cards showed no damage and looked clunky. **Fixed:** the stats sit under

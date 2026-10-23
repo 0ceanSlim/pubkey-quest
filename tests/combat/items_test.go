@@ -1,6 +1,7 @@
 package combat_test
 
 import (
+	"strings"
 	"testing"
 
 	"pubkey-quest/cmd/server/db"
@@ -84,5 +85,55 @@ func TestItemsFromThePackCostTheBonusAction(t *testing.T) {
 	}
 	if !st.BonusActionUsed || !st.ActionUsed {
 		t.Errorf("using it from the pack should spend both: action=%v bonus=%v", st.ActionUsed, st.BonusActionUsed)
+	}
+}
+
+// Holy water burns undead and fiends (2d6 radiant on a hit) and only wets
+// anything else.
+func TestHolyWaterBurnsOnlyUndeadAndFiends(t *testing.T) {
+	for _, tc := range []struct {
+		monster string
+		burns   bool
+	}{{"ghoul", true}, {"giant-rat", false}} {
+		combatSetup(t)
+		adv, err := character.LoadAdvancement(db.GetDB())
+		if err != nil {
+			t.Fatal(err)
+		}
+		save := fighterSave()
+		save.Inventory = map[string]interface{}{
+			"general_slots": []interface{}{map[string]interface{}{"slot": 0, "item": "holy-water", "quantity": 10}},
+			"gear_slots":    map[string]interface{}{},
+		}
+		cs, err := combat.StartEncounter(db.GetDB(), save, "npub_test", combat.EncounterSpec{MonsterIDs: []string{tc.monster}, EnvironmentID: "forest"}, adv)
+		if err != nil {
+			t.Fatal(err)
+		}
+		m := &cs.Monsters[0]
+		m.ArmorClass = 0
+		me := combat.Actor(cs)
+		m.Pos = types.Position{X: me.Pos.X + 2, Y: me.Pos.Y}
+		m.CurrentHP, m.MaxHP = 1000, 1000
+
+		hit := false
+		for i := 0; i < 10 && !hit; i++ {
+			cs.Phase = "active"
+			me.CombatState.ActionUsed, me.CombatState.BonusActionUsed = false, false
+			log, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "holy-water", m.InstanceID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, l := range log {
+				if strings.Contains(l, "radiant damage") || strings.Contains(l, "does nothing") {
+					hit = true
+				}
+			}
+		}
+		if !hit {
+			t.Fatalf("%s: ten throws and no hit against AC 0", tc.monster)
+		}
+		if burned := m.CurrentHP < 1000; burned != tc.burns {
+			t.Errorf("%s: burned=%v, want %v (HP %d)", tc.monster, burned, tc.burns, m.CurrentHP)
+		}
 	}
 }

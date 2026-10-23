@@ -40,6 +40,8 @@
         "The caretaker's letter is in your bag to read again any time (right-click → Read)",
         "Your caretaker's savings and your first Homeward Stone wait in your vault, and the keeper tells you what the stone does",
         "Each step of the tutorial comes with a short \"how it works\": shops, the vault, your bag and containers, preparing spells, inns and saving",
+        "Every new character starts with 6 rations of their own; the adventuring packs no longer carry food",
+        "The Priest's Pack is worth choosing: its blanket lets you make camp in the wild (a thinner night than a bedroll), and it holds 3 flasks of holy water, which you can throw at undead and fiends for 2d6 radiant damage",
         "Characters you already have aren't affected"
       ]
     },

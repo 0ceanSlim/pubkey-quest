@@ -8,12 +8,24 @@
   "stack": 10,
   "rarity": "common",
   "tags": [
-    "spell_component"
+    "spell_component",
+    "thrown",
+    "consumable"
   ],
   "notes": [
-    "Spell component: used up when you cast a spell that needs it.",
-    "No spell needs it yet.",
-    "Free while a Reliquary is equipped."
+    "In combat: throw it at a foe (Dexterity attack, range 2/3 squares): 2d6 radiant to undead and fiends on a hit; anything else just gets wet.",
+    "Used up whether it hits or not.",
+    "Spell component: used up when you cast a spell that needs it. Free while a Reliquary is equipped."
   ],
-  "image": "/res/img/items/holy-water.png"
+  "image": "/res/img/items/holy-water.png",
+  "range": "2",
+  "range_long": "3",
+  "throw": {
+    "damage": "2d6",
+    "damage_type": "radiant",
+    "creature_types": [
+      "undead",
+      "fiend"
+    ]
+  }
 }

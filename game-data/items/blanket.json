@@ -4,7 +4,7 @@
   "image": "/res/img/items/blanket.png",
   "name": "Blanket",
   "notes": [
-    "No use in play yet."
+    "Lets you make camp in the wild: a thinner night than a bedroll, but better than bare ground."
   ],
   "value": 50,
   "rarity": "common",

@@ -37,10 +37,6 @@
       5
     ],
     [
-      "rations",
-      5
-    ],
-    [
       "tinderbox",
       1
     ],
@@ -56,7 +52,7 @@
   "notes": [
     "Starting kit: opens into a backpack holding all its gear when a character is created."
   ],
-  "value": 1600,
+  "value": 1350,
   "rarity": "common",
   "stack": 1,
   "tags": [

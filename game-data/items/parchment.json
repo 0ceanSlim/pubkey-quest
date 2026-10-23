@@ -4,7 +4,8 @@
   "image": "/res/img/items/parchment.png",
   "name": "Parchment",
   "notes": [
-    "Writing supply: fits in a map & scroll case. No other use in play yet."
+    "Scribing: each spell scroll you scribe uses one sheet.",
+    "Writing supply: fits in a map & scroll case."
   ],
   "value": 10,
   "rarity": "common",

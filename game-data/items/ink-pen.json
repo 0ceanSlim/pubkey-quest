@@ -4,7 +4,8 @@
   "image": "/res/img/items/ink-pen.png",
   "name": "Ink pen",
   "notes": [
-    "Writing supply: fits in a map & scroll case. No other use in play yet."
+    "Scribing: carry it (with ink) to scribe spell scrolls. It isn't used up.",
+    "Writing supply: fits in a map & scroll case."
   ],
   "value": 2,
   "rarity": "common",

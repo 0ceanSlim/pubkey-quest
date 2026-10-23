@@ -8,7 +8,6 @@ import (
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gametime"
-	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/game/status"
@@ -132,10 +131,9 @@ func WaitPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	// you, and if you haven't stopped you keep walking.
 	env := travel.GetEnvironmentData(now.Location)
 	// Sleeping till dawn from the Wait window is camping: out in the wild, after
-	// 9 PM, with a bedroll (or the party's camp set). Inn rooms have their own
-	// Sleep button.
-	canCamp := env != nil && now.Building == "" && npc.CanSleepNow(now.TimeOfDay) &&
-		(gameutil.PlayerHasItem(&now, "bedroll") || gameutil.PlayerHasItem(&now, "camp-set"))
+	// 9 PM, with bedding (a bedroll, a blanket or the party's camp set). Inn
+	// rooms have their own Sleep button.
+	canCamp := env != nil && now.Building == "" && npc.CanSleepNow(now.TimeOfDay) && npc.HasBedding(&now)
 	writeQuestJSON(w, http.StatusOK, map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{

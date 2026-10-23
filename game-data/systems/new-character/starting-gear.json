@@ -211,6 +211,10 @@
         {
           "item": "javelin",
           "quantity": 4
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -458,6 +462,10 @@
         {
           "item": "dagger",
           "quantity": 1
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -687,6 +695,10 @@
         {
           "item": "shield",
           "quantity": 1
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -943,6 +955,10 @@
         {
           "item": "explorers-pack",
           "quantity": 1
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -1098,7 +1114,12 @@
           "explorers-pack"
         ]
       },
-      "given_items": []
+      "given_items": [
+        {
+          "item": "rations",
+          "quantity": 6
+        }
+      ]
     }
   },
   {
@@ -1217,7 +1238,12 @@
           "explorers-pack"
         ]
       },
-      "given_items": []
+      "given_items": [
+        {
+          "item": "rations",
+          "quantity": 6
+        }
+      ]
     }
   },
   {
@@ -1447,6 +1473,10 @@
         {
           "item": "chainmail-set",
           "quantity": 1
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -1531,6 +1561,10 @@
         {
           "item": "arrows",
           "quantity": 20
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -1598,6 +1632,10 @@
         {
           "item": "dagger",
           "quantity": 2
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -1802,6 +1840,10 @@
         {
           "item": "dagger",
           "quantity": 2
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -2085,6 +2127,10 @@
         {
           "item": "dagger",
           "quantity": 2
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
@@ -2205,6 +2251,10 @@
         {
           "item": "spellbook",
           "quantity": 1
+        },
+        {
+          "item": "rations",
+          "quantity": 6
         }
       ]
     }
