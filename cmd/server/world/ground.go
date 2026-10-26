@@ -11,6 +11,9 @@ import (
 type GroundDrop struct {
 	Item     string `json:"item"`
 	Quantity int    `json:"quantity"`
+	// State is the item's condition (a food's made-time); a pile with state
+	// never merges with another.
+	State map[string]interface{} `json:"state,omitempty"`
 }
 
 // GroundStore holds items the player has dropped, keyed by location, for a single
@@ -40,20 +43,52 @@ func GroundKey(state *types.SaveFile) string {
 
 // Add drops quantity of itemID at key, stacking onto an existing pile of the same item.
 func (g *GroundStore) Add(key, itemID string, quantity int) {
+	g.AddWithState(key, itemID, quantity, nil)
+}
+
+// AddWithState drops items that carry condition: they get a pile of their own
+// (only stateless piles of the same item stack).
+func (g *GroundStore) AddWithState(key, itemID string, quantity int, state map[string]interface{}) {
 	if g == nil || itemID == "" || quantity <= 0 {
 		return
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	pile := g.piles[key]
-	for i := range pile {
-		if pile[i].Item == itemID {
-			pile[i].Quantity += quantity
-			g.piles[key] = pile
-			return
+	if len(state) == 0 {
+		for i := range pile {
+			if pile[i].Item == itemID && len(pile[i].State) == 0 {
+				pile[i].Quantity += quantity
+				g.piles[key] = pile
+				return
+			}
 		}
 	}
-	g.piles[key] = append(pile, GroundDrop{Item: itemID, Quantity: quantity})
+	g.piles[key] = append(pile, GroundDrop{Item: itemID, Quantity: quantity, State: state})
+}
+
+// TakeWithState removes up to quantity of itemID from the first pile of it at
+// key, and returns how many were taken and that pile's condition.
+func (g *GroundStore) TakeWithState(key, itemID string, quantity int) (int, map[string]interface{}) {
+	if g == nil || itemID == "" || quantity <= 0 {
+		return 0, nil
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	pile := g.piles[key]
+	for i := range pile {
+		if pile[i].Item == itemID {
+			taken := min(quantity, pile[i].Quantity)
+			state := pile[i].State
+			pile[i].Quantity -= taken
+			if pile[i].Quantity <= 0 {
+				pile = append(pile[:i], pile[i+1:]...)
+			}
+			g.piles[key] = pile
+			return taken, state
+		}
+	}
+	return 0, nil
 }
 
 // Take removes up to quantity of itemID at key and returns how many were actually

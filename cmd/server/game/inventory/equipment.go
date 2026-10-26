@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/types"
 )
@@ -168,6 +169,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 					"item":     rightMap["item"],
 					"quantity": rightMap["quantity"],
 					"from":     "mainhand",
+					"state":    rightMap,
 				})
 			}
 		}
@@ -177,6 +179,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 					"item":     leftMap["item"],
 					"quantity": leftMap["quantity"],
 					"from":     "offhand",
+					"state":    leftMap,
 				})
 			}
 		}
@@ -190,6 +193,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 						"item":     existingItemID,
 						"quantity": existingMap["quantity"],
 						"from":     equipSlot,
+						"state":    existingMap,
 					})
 
 					// Check if existing item is two-handed
@@ -368,10 +372,18 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 			}
 		}
 
-		targetInventory[targetSlot] = map[string]interface{}{
-			"item":     unequipData["item"],
-			"quantity": unequipData["quantity"],
-			"slot":     targetSlot,
+		// It leaves the hand as it was (a lamp keeps its oil); a lit torch goes out
+		// and is spent.
+		heldState, keep := takenOutOfHand(unequipData["state"].(map[string]interface{}))
+		if keep {
+			targetInventory[targetSlot] = map[string]interface{}{
+				"item":     unequipData["item"],
+				"quantity": unequipData["quantity"],
+				"slot":     targetSlot,
+			}
+			condition.ApplyState(targetInventory[targetSlot].(map[string]interface{}), heldState)
+		} else {
+			targetInventory[targetSlot] = map[string]interface{}{"item": nil, "quantity": 0, "slot": targetSlot}
 		}
 
 		slotName := unequipData["from"].(string)
@@ -385,10 +397,12 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 
 	// Move item to equipment slot
 	if isTwoHanded {
-		gearSlots["mainhand"] = map[string]interface{}{
+		mainhand := map[string]interface{}{
 			"item":     itemData["item"],
 			"quantity": itemData["quantity"],
 		}
+		condition.CopyState(mainhand, itemData) // a two-hander's wear lives on the main hand
+		gearSlots["mainhand"] = mainhand
 		gearSlots["offhand"] = map[string]interface{}{
 			"item":     itemData["item"],
 			"quantity": itemData["quantity"],
@@ -399,6 +413,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 			"item":     itemData["item"],
 			"quantity": itemData["quantity"],
 		}
+		condition.CopyState(equippedItem, itemData) // a lamp's oil, an item's wear
 
 		// Preserve a container's own contents when equipping it (backpack → bag,
 		// quiver → ammo, etc.). Without this a filled container dropped
@@ -646,6 +661,19 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		"quantity": quantity,
 		"slot":     emptySlotIndex,
 	}
+	// It leaves the hand as it was; a lit torch or candle goes out and is spent.
+	// A two-hander's wear is on the main hand, whichever hand it's taken from.
+	if equipSlot == "offhand" && isTwoHandedWeapon(itemID) {
+		if main, ok := gearSlots["mainhand"].(map[string]interface{}); ok && main["item"] == itemID {
+			itemMap = main
+		}
+	}
+	heldState, keep := takenOutOfHand(itemMap)
+	condition.ApplyState(newItem, heldState)
+	if !keep {
+		gearSlots[equipSlot] = map[string]interface{}{"item": nil, "quantity": 0}
+		return &types.GameActionResponse{Success: true, Message: fmt.Sprintf("You put out the %s. It's spent.", condition.ItemName(itemID)), Color: "yellow"}, nil
+	}
 
 	if itemIsContainer {
 		if contents, ok := itemMap["contents"].([]interface{}); ok {
@@ -746,4 +774,19 @@ func isTwoHandedWeapon(itemID string) bool {
 		}
 	}
 	return false
+}
+
+// takenOutOfHand is a held item's condition as it leaves the hand. A lit light
+// goes out: a torch or candle is spent (keep false), a lamp keeps its oil.
+func takenOutOfHand(held map[string]interface{}) (state map[string]interface{}, keep bool) {
+	state = condition.State(held)
+	if state == nil || state[condition.KeyLit] == nil {
+		return state, true
+	}
+	tmp := map[string]interface{}{"item": held["item"]}
+	condition.ApplyState(tmp, state)
+	if !condition.Douse(tmp) {
+		return nil, false
+	}
+	return condition.State(tmp), true
 }

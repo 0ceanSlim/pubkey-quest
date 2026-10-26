@@ -30,7 +30,7 @@
 //	pi  POI state: [[id, day, minute, flags 1=passed 2=looted 4=cleared]]
 //	rn  rentals: [[building, day, minute]]
 //	ft  feats                     rq  repeatable quests {id: period}
-//	vt  vault: [[item, qty]]      vk  vault keepers             pt  portrait URL
+//	vt  vault: [[item, qty, state?]]      vk  vault keepers             pt  portrait URL
 //	x*  anything this build didn't recognise, kept verbatim (stx, ix, …)
 package savecodec
 
@@ -172,7 +172,11 @@ func Encode(s *types.SaveFile) ([]byte, error) {
 		w.RN = append(w.RN, []any{r.Building, r.ExpiresDay, r.ExpiresMin})
 	}
 	for _, v := range s.Vault {
-		w.VT = append(w.VT, []any{v.ItemID, v.Quantity})
+		if len(v.State) > 0 {
+			w.VT = append(w.VT, []any{v.ItemID, v.Quantity, v.State})
+		} else {
+			w.VT = append(w.VT, []any{v.ItemID, v.Quantity})
+		}
 	}
 	return json.Marshal(w)
 }
@@ -441,7 +445,11 @@ func decodeCurrent(data []byte) (*types.SaveFile, error) {
 		s.Rentals = append(s.Rentals, types.Rental{Building: str(r[0]), ExpiresDay: toInt(r[1]), ExpiresMin: toInt(r[2])})
 	}
 	for _, r := range w.VT {
-		s.Vault = append(s.Vault, types.VaultEntry{ItemID: str(r[0]), Quantity: toInt(r[1])})
+		e := types.VaultEntry{ItemID: str(r[0]), Quantity: toInt(r[1])}
+		if len(r) > 2 {
+			e.State, _ = r[2].(map[string]any)
+		}
+		s.Vault = append(s.Vault, e)
 	}
 	return s, nil
 }

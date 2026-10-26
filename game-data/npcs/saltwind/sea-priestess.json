@@ -1,0 +1,181 @@
+{
+  "id": "sea-priestess",
+  "name": "Mother Coralie",
+  "title": "Priestess of the Sea Mother",
+  "race": "Human",
+  "description": "An old woman with salt-white hair and hands scarred by a lifetime of nets. The fishermen bring her their first catch; she blesses their boats and keeps the shrine's remedies.",
+  "primary_home": "saltwind",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 300,
+      "location": "coralie_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 300,
+      "end": 360,
+      "location": "saltwind-center",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 1200,
+      "location": "sea_shrine",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "saltwind-center",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_home"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1440,
+      "location": "coralie_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1380,
+      "location": "fishermans_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "restday"
+      ]
+    },
+    {
+      "start": 1260,
+      "end": 1320,
+      "location": "saltwind-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
+    }
+  ],
+  "greeting": {
+    "first_time": "The Sea Mother sees you, child. I keep her shrine. Holy water, healing, the old offerings: what the sea takes, she sometimes gives back.",
+    "returning": "Still dry above the waterline, I see. Good."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*Asleep. Best come back in the morning.*",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_to_work": {
+      "text": "On my way to open up. I'm open from 6 in the morning to 8 at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_home": {
+      "text": "Closed for the day, friend. I open again at 6 in the morning.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "off_duty": {
+      "text": "Not now. Come by when I'm open: 6 in the morning to 8 at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "main_menu": {
+      "text": "What do you ask of the Sea Mother?",
+      "options": [
+        "browse_shop",
+        "ask_about_sea_mother",
+        "goodbye"
+      ]
+    },
+    "browse_shop": {
+      "text": "Holy water from the shrine cistern, healing, the offerings. Salt too: the sea's own blessing.",
+      "action": "open_shop"
+    },
+    "ask_about_sea_mother": {
+      "text": "Every boat in Saltwind has her mark on the prow. Forget it, and the fog finds you. Remember it, and you come home. Most of the time.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "goodbye": {
+      "text": "Go well.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 3000,
+    "gold_regen_rate": 300,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "holy-water",
+        "stock": 4,
+        "max_stock": 4
+      },
+      {
+        "item_id": "healing",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "blessed-incense",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "sacred-oil",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "salt",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "emblem",
+        "stock": 1,
+        "max_stock": 1
+      }
+    ]
+  }
+}

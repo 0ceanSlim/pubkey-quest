@@ -72,7 +72,15 @@
   "reactions": [],
   "legendary_actions": [],
   "loot_table": {
-    "guaranteed": [],
+    "guaranteed": [
+      {
+        "item": "raw-meat",
+        "quantity": [
+          1,
+          2
+        ]
+      }
+    ],
     "rolls": 1,
     "tiers": [
       {

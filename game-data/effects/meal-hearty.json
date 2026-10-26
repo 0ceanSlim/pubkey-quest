@@ -1,0 +1,20 @@
+{
+  "id": "meal-hearty",
+  "name": "Hearty Meal",
+  "description": "A bowl of hot stew sits well in you.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
+    {
+      "stat": "constitution",
+      "value": 1,
+      "type": "constant"
+    }
+  ],
+  "message": "Warm and full, you feel ready for anything.",
+  "visible": true
+}

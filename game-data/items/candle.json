@@ -12,9 +12,16 @@
     "light-source"
   ],
   "notes": [
-    "Hold it in your off hand: a small light, enough to fight by at night (no need with darkvision).",
+    "Light it with a tinderbox: it goes into your off hand and burns for 1 hour.",
+    "A small light, enough to fight by at night (no need with darkvision).",
+    "At night in the wild a lit light gives you away: whatever might ambush you sees you coming (−5 Stealth).",
+    "Once it goes out, it's spent.",
     "Millhaven's keywarden wants two to fit a vault lock."
   ],
   "image": "/res/img/items/candle.png",
-  "gear_slot": "offhand"
+  "gear_slot": "offhand",
+  "light": {
+    "burn": 60,
+    "spent": true
+  }
 }

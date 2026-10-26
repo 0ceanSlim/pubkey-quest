@@ -1,6 +1,7 @@
 # Item condition: spoilage, wear, burn time and charges
 
-Status: **draft, all decisions taken** (2026-10-20). Nothing built. §10 records what was decided.
+Status: **all decisions taken** (2026-10-20). **Built** (2026-10-25/26): every step of §9, with the
+food content from [food-system.md](food-system.md). §9 records what was built, §10 what was decided.
 
 One system for every item that changes as you use it or as time passes:
 
@@ -67,7 +68,8 @@ One rule, no merging maths: **an item that carries condition state stacks 1.**
 - **Once food spoils it stacks again.** Spoiled food is all the same: whatever it was, it becomes
   the one `spoiled-food` item (§3), which has no state and stacks.
 - Existing saves: a stack of 5 torches is 5 unlit torches, which is exactly what the new rule
-  wants. Existing fish stacks split into singles on load (each gets `t` on first sight).
+  wants. Existing fish and whetstone stacks split into singles on load, into empty slots
+  (`inventory.SplitStacks`; with no room the rest stay stacked), each keeping the stack's state.
 - **Goodberry stacks (decided).** The spell makes 10 berries at once; they're all made in the
   same minute, share one `t`, and all lose their magic together after 24 hours (the 5e rule),
   when the whole stack disappears rather than going stale (magic berries don't rot into spoiled
@@ -121,8 +123,8 @@ be. It stays in your bag as the emergency meal; you can eat it when you're starv
   shows it running out.
 
 ### More food (content, works with gathering, fishing and camping)
-A starting list only: the foods get a **workshop of their own**, all of them in one go (names,
-shelf lives, hunger, sources, cooking and preserving), before any are added.
+A starting list only. **The food workshop has settled the foods:** see
+[food-system.md](food-system.md) (hours of fullness, the full list, cooking at a fire, inn meals).
 
 | Food | Shelf life | Source | Notes |
 |---|---|---|---|
@@ -232,9 +234,28 @@ Every light (torch, candle, lamp, bullseye lantern, hooded lantern) has two stat
 - Engine: lit lights tick in the same time-advance path as effects (`gametime.AdvanceTime` →
   effects tick).
 
-**Sprites needed** (5): unlit torch, candle, lamp, bullseye lantern and hooded lantern. They're
-made from today's sprites with the flame and glow taken out, through the usual PixelLab review
-sheet, so they match exactly.
+**Using tools on items (decided 2026-10-25): the "Use on…" picker.** A tool's default action is
+"Use on…" (the tinderbox's reads "Light…"). It opens a small box listing only the items you carry
+that it works on, and the server decides what's listed. Pick one and it happens. It works from the
+other side too: right-click a torch and "Light" shows if you carry a tinderbox. That one pattern
+covers every tool coming in this draft: tinderbox → lights, oil → lamps, whetstone → edged weapons,
+crafting kit → armor, salt → raw fish and meat. It works on phones too, and it never offers a pair
+that does nothing (OSRS's cursor "use item on item" was considered and passed over for that).
+
+**Lighting a light that isn't in your hand (decided):** it goes into your off hand, lit. Whatever
+was there goes back to your bag; if the bag is full it doesn't light, and says why. A lit light
+only burns, and only lights, in the off hand. Taking it out of your hand puts it out (a torch or
+candle is spent; a lamp keeps its oil).
+
+**The three oil lights differ (decided 2026-10-25), and lights give you away:**
+- **A lit light gives you away at night in the wild.** It shows on the noticing checks when an encounter starts and when you sneak away: −5 Stealth. That's the trade-off: a light keeps the dark off in a fight, but things see you coming. (`api/game/light_rules.go`, applied through the travel skill context.)
+- **Lamp** (50 gold): the plain light.
+- **Bullseye lantern** (1000 gold): its long beam gives +2 Perception at night on the road, both for spotting ambushes and for finding places (`"beam": 2`).
+- **Hooded lantern** (500 gold): its shutter closes while lit (`"shutter": true`, slot `s`). It burns on but sheds no light: no −5 Stealth, but you fight in the dark. "Close shutter" / "Open shutter" are on the lantern in your hand.
+- **Road POI discovery's passive check** now uses the travel context too, so a spyglass and the bullseye count there.
+
+**Sprites (done):** unlit torch, candle, lamp, bullseye lantern and hooded lantern are `<id>.png`; the lit art is `<id>-lit.png`. They're
+today's sprites with the flame and glow taken out pixel by pixel, so they match exactly.
 
 ## 7. Charges
 
@@ -256,6 +277,52 @@ Item field `"charges": {"max": 5, "refill": "water"}`, stored as `u`.
 - **Camping**: the fire that cooking needs.
 
 ## 9. Build order
+
+**Progress (2026-10-25):**
+- **Steps 1–3 are built for food.**
+  - The `game/condition` package: slot keys, `ItemInfo` cache, `CanMerge`, the spoil pass, `SellShare`.
+  - `t` travels through add, split, stack (refused), containers, drop and pickup (`GroundDrop.State`), the vault (`VaultEntry.State`, codec `[item, qty, state]`), the sell counter (`SellStagedState`) and loot (one per slot, stamped at first sight).
+  - Inventory deltas carry `t`.
+  - The countdown bar and tooltip line: `src/ui/conditionBar.js`.
+  - Hours of fullness: `status.Feed`, `food: {hours, risky_dc}`, stale = half, refused when full or food-poisoned.
+  - `spoiled-food`, `food-poisoning`, `meal-hearty`, the goodberry's 24-hour vanish, and breakfast as `WakeWellFed`.
+  - Tests: `tests/food`, plus the codec vault round trip.
+- **Carried since:** equip and unequip (step 4), and the three items you keep on death (2026-10-26: a light you held goes out).
+- **Step 4 (lights) is built:**
+  - `condition/light.go`: `l`/`b`, `Ignite`, `Douse`, `Refill`, `BurnHeld` in the time advance and overnight.
+  - Lit-only light in `holdsLight`.
+  - Equip and unequip now carry condition: a lit light leaving the hand goes out (torch spent, lamp keeps its oil).
+  - The "Use on…" picker: `use_targets` / `use_on` (`inventory/tools.go`, `src/ui/toolUse.js`), with Light / Put out / Refill on the items themselves.
+  - Light and oil bars on slots.
+  - Tests: `tests/food/light_test.go`.
+- **Sprites done (2026-10-25):**
+  - The 5 unlit lights were edited pixel by pixel from the lit art; PixelLab image-to-image kept the flames.
+  - Spoiled food is PixelLab pixflux.
+  - Naming: `<id>.png` is now the **unlit** sprite (shops, vault, bag, gear cards). The old lit art is `<id>-lit.png`, shown only for a burning light (`itemSrc` in `src/ui/conditionBar.js`).
+- **Step 5 (wear) is built:**
+  - The codex migration bakes `durability_max` into each item (`types.DurabilityFor`, from the `condition.json` defaults).
+  - `condition/wear.go`: tiers, `AddWear`, the damage and AC cuts, the sell share.
+  - Combat: weapons wear on a damaging hit (2 on a crit) and lose damage by tier; armour wears on hits taken (body, then legs, then shield) and loses AC (`combat/wear.go`). Two-handers keep their wear on the main hand.
+  - Wear bars and tooltips on gear and bag slots. Tests: `tests/food/wear_test.go`, `tests/combat/wear_test.go`.
+- **Step 6 (repair) is built:**
+  - `condition.json` gains `materials` (anything not listed is metal) and `repair` (field repair's limit, the whetstone and kit, the five smiths).
+  - `condition/repair.go`: `FieldRepair` (back to 74% left; half the way on a failed kit check) and `SmithQuote`.
+  - The whetstone's "Sharpen…" (`use_on: sharpen`: slashing or piercing melee weapons, 10 minutes) and the crafting kit's "Mend…" (`use_on: mend`: armour, shields, blunt and ranged weapons, 30 minutes, Crafting DC 12) go through the same picker (`inventory/repair.go`).
+  - Smiths get a "🔨 Repair my gear" option: a window of your worn gear with each price, and `smith_repair` mends one (`api/game/repair.go`, `src/ui/smithRepair.js`). The bowyer's owlbear-fur discount uses up one fur.
+  - Tests: `tests/food/repair_test.go`.
+- **Step 7 (charges) is built:**
+  - `"charges": {"max", "refill", "noun"}` on the item; the slot's `u` counts uses spent (`condition/charges.go`). `gameutil.SpendCharge` spends from the part-used one first; anything without a refill is used up on its last charge.
+  - Ink: 10 scrolls (scribing spends one per attempt). Whetstone: 10 sharpenings, then it's worn smooth; honing stays free. Waterskin: 5 drinks, Drink and Fill, with water in every town and at the coast, swamp and forest (`condition.json` `water`, `api/game/water.go`). Drinking has no effect yet: it waits for the desert's dehydration, which is still undesigned.
+  - The charges bar and tooltip ("3 of 5 drinks left").
+  - `ConsumeItem` now clears condition from the slots it empties.
+- **Step 8 (content) is built:**
+  - New foods: bread, cheese, apple, raw and cooked meat, jerky, cooked and salted fish (small and large). A raw food's `cook` and `salt` name what it becomes.
+  - Cook (`inventory/cooking.go`): in the wild, stopped, with a tinderbox, 30 minutes, every raw food at once. Salt…: one salt per food at the same fire.
+  - Innkeepers (any NPC who rents rooms) offer "Order a hot meal" (Hearty Stew, 30 gold, 8 hours, +1 CON for 4 hours; one meal buff at a time) and "Cook my food" (2 gold each), from `game-data/systems/cooking.json` (`api/game/inn_kitchen.go`).
+  - Raw meat drops from wolves, dire wolves, cave bears, owlbears, hyenas, apes, giant crabs and pteranodons (there are no boars or deer yet). Bread, cheese, apples, jerky and salt are stocked in general stores; barkeeps sell bread.
+  - Tests: `tests/food/charges_test.go`, `tests/food/cooking_test.go`, `api/game/water_test.go`, `api/game/inn_kitchen_test.go`.
+- **Cleanup (2026-10-26):** the vault window draws every condition bar; the tick's slot deltas carry `w`, `b` and `u` as well as `t`, and an emptied slot drops all its bars.
+- **Left for later:** the waterskin's drink does nothing until the desert's dehydration is designed; death keeps the 3 most valuable items by their new price, not their worn one.
 
 1. **Condition core** (`game/condition`):
    - Read and write slot state; freshness from `t`, tier from `w`.
@@ -298,4 +365,4 @@ Taken (2026-10-20):
     and beer never spoil.
 11. **Food list:** workshopped separately, all the foods together in one go.
 
-Nothing open in this draft. Next: the food workshop (§3), then build in the §9 order.
+Nothing open in this draft. The food workshop is done ([food-system.md](food-system.md)); next, build in the §9 order.

@@ -48,8 +48,17 @@ func buildTravelContext(save *types.SaveFile) requirement.Context {
 func newQuestContext(save *types.SaveFile, travelling bool) questContext {
 	defs, _ := data.LoadSkillDefinitions()
 	adv, _ := loadAdvancement()
+	tools := gameutil.CarriedSkillBonus(save, travelling)
+	if travelling {
+		// Your light at night (light_rules.go): it gives you away, and a
+		// bullseye's beam helps you see. Skill scores move 2 per modifier point.
+		if stealth, perception, _ := lightAtNight(save); stealth != 0 || perception != 0 {
+			tools["thieving"] += stealth * 2
+			tools["perception"] += perception * 2
+		}
+	}
 	return questContext{save: save, skillDefs: defs, advancement: adv, effStats: effects.EffectiveStats(save),
-		toolBonus: gameutil.CarriedSkillBonus(save, travelling)}
+		toolBonus: tools}
 }
 
 func (c questContext) SkillValue(id string) int {

@@ -1,6 +1,6 @@
 {
   "name": "Rations",
-  "description": "Dried food packed in a waterproof bag, providing one day's sustenance for one person.",
+  "description": "Dried food packed in a waterproof bag. Dull, filling, and it keeps forever.",
   "value": 50,
   "type": "Food",
   "weight": 2,
@@ -12,16 +12,16 @@
   ],
   "effects": [
     {
-      "type": "hunger",
-      "value": 1
-    },
-    {
       "type": "fatigue",
       "value": -3
     }
   ],
   "notes": [
-    "Eat to restore 1 hunger level and ease fatigue by 3."
+    "Keeps you fed 6 hours and eases fatigue by 3.",
+    "Never spoils."
   ],
-  "image": "/res/img/items/rations.png"
+  "image": "/res/img/items/rations.png",
+  "food": {
+    "hours": 6
+  }
 }

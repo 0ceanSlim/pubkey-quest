@@ -145,8 +145,9 @@ type AdvancementEntry struct {
 
 // LootDrop is a single item drop result after combat
 type LootDrop struct {
-	Item     string `json:"item"`
-	Quantity int    `json:"quantity"`
+	Item     string                 `json:"item"`
+	Quantity int                    `json:"quantity"`
+	State    map[string]interface{} `json:"state,omitempty"` // condition kept through death (wear, freshness, charges)
 }
 
 // CombatCondition is a condition applied to a combatant

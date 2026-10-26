@@ -14,6 +14,7 @@ import (
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
+	"pubkey-quest/cmd/server/game/condition"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/presence"
@@ -1421,13 +1422,21 @@ func CombatEndHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If this fight happened inside a POI walk, bridge back: defeat ends the walk
 	// (the player is teleported home), victory resumes it at the node past the
-	// monster so the client can reopen the exploration overlay.
+	// monster so the client can reopen the exploration overlay. A fight nobody
+	// won (you ran, or it got away) ends the walk too: the monster node is still
+	// ahead, and re-entering the POI is the retry.
 	if sess.ActivePOI != nil {
-		if resp.Outcome == "defeat" {
+		switch {
+		case resp.Outcome == "defeat":
 			sess.ActivePOI = nil
-		} else {
+		case me.Fled || !combat.AllSlain(cs):
+			sess.ActivePOI = nil
+			resp.Message += " It's still down there. Come back to finish it."
+		default:
 			resp.POIResumed = resumePOIAfterVictory(sess)
 		}
+	} else if resp.Outcome != "defeat" && !me.Fled {
+		resp.Message += questWaveHint(&sess.SaveData)
 	}
 
 	// Combat mutated HP / XP / inventory (loot) outside the per-tick delta system,
@@ -1479,6 +1488,12 @@ func applyVictoryOutcome(sess *session.GameSession, cs *types.CombatSession) Com
 	}
 
 	msg := fmt.Sprintf("You are victorious! +%d XP.", combat.Actor(cs).XPEarned)
+	switch {
+	case combat.Actor(cs).Fled:
+		msg = fmt.Sprintf("You got away. +%d XP.", combat.Actor(cs).XPEarned)
+	case !combat.AllSlain(cs):
+		msg = fmt.Sprintf("Your foe got away. +%d XP.", combat.Actor(cs).XPEarned)
+	}
 	if len(placed) > 0 {
 		msg += fmt.Sprintf(" %d item type(s) added to inventory.", len(placed))
 	}
@@ -1568,6 +1583,11 @@ func addLootToInventory(inventory map[string]interface{}, loot []types.LootDrop)
 
 	for _, drop := range loot {
 		stackLimit := lookupItemStackLimit(drop.Item)
+		// Food that spoils goes one per slot (it's stamped as made the first
+		// time the time advance sees it).
+		if info := condition.ItemInfo(drop.Item); info.Stateful() && !info.Vanish {
+			stackLimit = 1
+		}
 		remaining := drop.Quantity
 
 		// 1) Stack onto matching general_slots entries
@@ -1738,6 +1758,7 @@ func stripInventoryForDeath(inventory map[string]interface{}) []types.LootDrop {
 type itemUnit struct {
 	itemID string
 	cost   float64
+	state  map[string]interface{} // its condition, kept with it
 }
 
 // collectItemUnits expands all inventory slots into individual item units.
@@ -1803,9 +1824,16 @@ func unitsFromSlot(slot interface{}) []itemUnit {
 	}
 
 	cost := lookupItemCost(itemID)
+	// Its condition comes back with it, but a light goes out when you fall.
+	state := condition.State(slotMap)
+	delete(state, condition.KeyLit)
+	delete(state, condition.KeyShut)
+	if len(state) == 0 {
+		state = nil
+	}
 	units := make([]itemUnit, qty)
 	for i := range units {
-		units[i] = itemUnit{itemID: itemID, cost: cost}
+		units[i] = itemUnit{itemID: itemID, cost: cost, state: state}
 	}
 	return units
 }
@@ -1837,14 +1865,14 @@ func mergeUnitsIntoDrops(units []itemUnit, maxUnits int) []types.LootDrop {
 	for _, u := range units {
 		found := false
 		for i := range drops {
-			if drops[i].Item == u.itemID {
+			if drops[i].Item == u.itemID && drops[i].State == nil && u.state == nil {
 				drops[i].Quantity++
 				found = true
 				break
 			}
 		}
 		if !found {
-			drops = append(drops, types.LootDrop{Item: u.itemID, Quantity: 1})
+			drops = append(drops, types.LootDrop{Item: u.itemID, Quantity: 1, State: u.state})
 		}
 	}
 	return drops
@@ -1880,10 +1908,29 @@ func placeItemsInGeneralSlots(inventory map[string]interface{}, drops []types.Lo
 		return
 	}
 	for _, drop := range drops {
+		if drop.State != nil {
+			// One item with its condition: find the slot it landed in.
+			before := emptySlotIndex(slots)
+			placeInEmpty(slots, drop.Item, 1, 1)
+			if before >= 0 {
+				condition.ApplyState(slots[before].(map[string]interface{}), drop.State)
+			}
+			continue
+		}
 		limit := lookupItemStackLimit(drop.Item)
 		placeInEmpty(slots, drop.Item, drop.Quantity, limit) // spills overflow across slots
 	}
 	inventory["general_slots"] = slots
+}
+
+// emptySlotIndex is the first empty slot (what placeInEmpty fills first), or -1.
+func emptySlotIndex(slots []interface{}) int {
+	for i, slot := range slots {
+		if m, ok := slot.(map[string]interface{}); !ok || m["item"] == nil || m["item"] == "" {
+			return i
+		}
+	}
+	return -1
 }
 
 // isTwoHandedItem reports whether the item carries the "two-handed" tag.

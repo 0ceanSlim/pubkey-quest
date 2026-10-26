@@ -8,11 +8,80 @@
   "schedule": [
     {
       "start": 0,
-      "end": 1440,
+      "end": 420,
+      "location": "aldebrand_manor",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 480,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 480,
+      "end": 1080,
       "location": "merchants_guild",
       "state": "working",
-      "dialogue_options": ["main_menu"],
+      "dialogue_options": [
+        "main_menu"
+      ],
       "available_actions": []
+    },
+    {
+      "start": 1080,
+      "end": 1140,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1140,
+      "end": 1440,
+      "location": "aldebrand_manor",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1140,
+      "end": 1380,
+      "location": "sailors_tavern",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "fairday",
+        "restday"
+      ]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "goldenhaven-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {
@@ -31,6 +100,18 @@
     "goodbye": {
       "text": "Walk with prosperity, friend.",
       "action": "end_dialogue"
+    },
+    "off_duty": {
+      "text": "Not now, friend. Come and find me when I'm working.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "sleeping": {
+      "text": "*Asleep. Best come back in the morning.*",
+      "options": [
+        "goodbye"
+      ]
     }
   }
 }

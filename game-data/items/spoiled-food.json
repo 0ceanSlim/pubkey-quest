@@ -1,0 +1,22 @@
+{
+  "id": "spoiled-food",
+  "name": "Spoiled Food",
+  "description": "Whatever this was, it isn't any more. It'll keep you going if you're desperate.",
+  "value": 0,
+  "type": "Food",
+  "weight": 0.5,
+  "stack": 10,
+  "rarity": "common",
+  "tags": [
+    "consumable"
+  ],
+  "food": {
+    "hours": 1,
+    "risky_dc": 10
+  },
+  "notes": [
+    "Keeps you fed 1 hour, with a Constitution save (DC 10) against food poisoning.",
+    "Food that goes past its time ends up as this. It sells for nothing."
+  ],
+  "image": "/res/img/items/spoiled-food.png"
+}

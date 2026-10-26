@@ -33,8 +33,8 @@
           "id": "frost_inn",
           "name": "The Frozen Mug Tavern",
           "description": "A warm tavern serving strong ales and hearty stews to ward off the northern cold.",
-          "open": 1140,
-          "close": 240,
+          "open": 960,
+          "close": 660,
           "default_room": "hearth_hall",
           "rooms": [
             { "id": "hearth_hall", "name": "Hearth Hall", "description": "The main hall built tight around a roaring stone hearth, where fur-clad patrons thaw over strong ale." },
@@ -53,8 +53,8 @@
           "id": "town_hall",
           "name": "Town Hall",
           "description": "The administrative center where the town elder holds court.",
-          "open": 480,
-          "close": 1080
+          "open": -1,
+          "close": null
         },
         {
           "id": "sigrid_quarters",
@@ -85,7 +85,7 @@
           "id": "guard_house",
           "name": "Guard House",
           "description": "A fortified building where the town guard maintains watch.",
-          "open": "always",
+          "open": -1,
           "close": null
         }
       ],

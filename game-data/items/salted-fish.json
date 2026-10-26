@@ -1,0 +1,26 @@
+{
+  "id": "salted-fish",
+  "name": "Salted Fish",
+  "description": "A fish split, packed in salt and dried. Not much flavour, but it keeps.",
+  "type": "Food",
+  "value": 25,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/salted-fish.png",
+  "tags": [
+    "consumable",
+    "food",
+    "fish"
+  ],
+  "notes": [
+    "Keeps you fed 2 hours.",
+    "Spoils in 30 days."
+  ],
+  "food": {
+    "hours": 2
+  },
+  "spoils": {
+    "shelf_life": 43200
+  }
+}

@@ -22,6 +22,8 @@ import { wikiEnabled, openWiki, WIKI_LABEL } from '../lib/wiki.js';
 // as "../game.js", but the page loads it as game.js?v=…, so the browser ran the
 // whole game a second time (two music players, an empty second game state).
 import { readLetter } from '../ui/letterReader.js';
+import { conditionLines } from '../ui/conditionBar.js';
+import { itemField, toolLabel, carries, isLitInHand, isShutInHand, slotRef, useOn, openToolPicker, toggleShutter, simpleAction, carriesRawFood } from '../ui/toolUse.js';
 
 // State for drag-and-drop
 let draggedItem = null;
@@ -53,6 +55,15 @@ export function setVaultOpen(isOpen) {
 export function getDefaultAction(itemData, isEquipped) {
     if (isEquipped) {
         return 'unequip';
+    }
+
+    // A tool (tinderbox, oil): its "Use on…" picker. A light, when you carry a
+    // tinderbox: light it (it goes into your off hand).
+    if (itemField(itemData, 'use_on')) {
+        return 'tool';
+    }
+    if (itemField(itemData, 'light') && carries('tinderbox')) {
+        return 'light';
     }
 
     // Check if item is a container - containers should be opened by default
@@ -103,6 +114,36 @@ export function getItemActions(itemData, isEquipped) {
         return quest;
     }
 
+    // Lights and tools (degradation §6): light or put out with a tinderbox,
+    // refill a lamp with oil, or open a tool's "Use on…" picker.
+    const light = itemField(itemData, 'light');
+    if (light && carries('tinderbox')) {
+        const lit = isEquipped && isLitInHand('offhand');
+        actions.push({ action: 'light', label: lit ? 'Put out' : 'Light' });
+    }
+    if (light?.shutter && isEquipped && isLitInHand('offhand')) {
+        actions.push({ action: 'shutter', label: isShutInHand('offhand') ? 'Open shutter' : 'Close shutter' });
+    }
+    if (light?.fuel && carries(light.fuel)) {
+        actions.push({ action: 'refill', label: 'Refill' });
+    }
+    if (itemField(itemData, 'use_on')) {
+        actions.push({ action: 'tool', label: toolLabel(itemData) });
+    }
+    // Cooking (food-system §5): a tinderbox's fire cooks every raw food you
+    // carry; a raw food cooks, or salts with salt (the server checks the fire).
+    if ((itemData.id === 'tinderbox' || itemField(itemData, 'cook')) && carries('tinderbox') && carriesRawFood()) {
+        actions.push({ action: 'cook', label: 'Cook' });
+    }
+    if (itemField(itemData, 'salt') && carries('salt')) {
+        actions.push({ action: 'salt', label: 'Salt' });
+    }
+    // A waterskin (degradation §7): drink from it, fill it where there's water.
+    if (itemField(itemData, 'charges')?.refill === 'water') {
+        actions.push({ action: 'drink', label: 'Drink' });
+        actions.push({ action: 'fill', label: 'Fill' });
+    }
+
     if (isEquipped) {
         actions.push({ action: 'unequip', label: 'Unequip' });
     } else {
@@ -138,7 +179,8 @@ export function getItemActions(itemData, isEquipped) {
         const itemType = itemData.type || itemData.item_type;
         const tags = itemData.tags || [];
         if (consumableTypes.includes(itemType) || tags.includes('consumable') || tags.includes('coating')) {
-            actions.push({ action: 'use', label: 'Use' });
+            // The whetstone's Use is its pre-fight hone (its Sharpen… repairs).
+            actions.push({ action: 'use', label: itemField(itemData, 'use_on') === 'sharpen' ? 'Hone' : 'Use' });
         }
 
         // Add split action for stackable items (quantity > 1)
@@ -231,7 +273,7 @@ export function closeContextMenu() {
 export async function performAction(action, itemId, fromSlot, toSlotOrType, fromSlotType, toSlotType, showMessage, showVaultUI, showActionText, addItemToGround, refreshGroundModal) {
     // Special case: examine (no backend call needed)
     if (action === 'examine') {
-        showItemDetails(itemId);
+        showItemDetails(itemId, null, slotElement(fromSlotType, fromSlot, itemId));
         return;
     }
     if (action === 'wiki') {
@@ -241,6 +283,35 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
     // A letter: read it (ui/letterReader.js).
     if (action === 'read') {
         await readLetter(itemId);
+        return;
+    }
+    // Tools and lights (ui/toolUse.js).
+    if (action === 'tool') {
+        await openToolPicker(itemId);
+        return;
+    }
+    if (action === 'light') {
+        await useOn('tinderbox', slotRef(fromSlot, fromSlotType));
+        return;
+    }
+    if (action === 'shutter') {
+        await toggleShutter();
+        return;
+    }
+    if (action === 'cook') {
+        await simpleAction('cook', {});
+        return;
+    }
+    if (action === 'salt') {
+        await useOn('salt', slotRef(fromSlot, fromSlotType));
+        return;
+    }
+    if (action === 'drink' || action === 'fill') {
+        await simpleAction(action === 'drink' ? 'drink' : 'fill_water', action === 'drink' ? slotRef(fromSlot, fromSlotType) : {});
+        return;
+    }
+    if (action === 'refill') {
+        await useOn(itemField(getItemById(itemId), 'light')?.fuel || 'oil', slotRef(fromSlot, fromSlotType));
         return;
     }
     // A Homeward Stone: teleport (ui/waystone.js redraws the scene after).
@@ -780,10 +851,22 @@ const TAG_DESCRIPTIONS = {
 };
 const HIDDEN_ITEM_TAGS = new Set(['equipment']);
 
+/** The slot element an action came from, for what its bars know (condition). */
+function slotElement(slotType, slot, itemId) {
+    let sel;
+    if (slotType === 'equipment') sel = `[data-slot="${CSS.escape(String(slot))}"]`;
+    else if (slotType === 'general') sel = `#general-slots [data-item-slot="${slot}"]`;
+    else if (slotType === 'inventory') sel = `#backpack-slots [data-item-slot="${slot}"]`;
+    else if (slotType === 'container') sel = `[data-container-slot="${slot}"]`;
+    else return null;
+    return [...document.querySelectorAll(sel)].find((el) => el.getAttribute('data-item-id') === itemId) || null;
+}
+
 /**
  * Show item details modal — a sectioned, rarity-aware panel sized to the scene.
+ * Given the slot it was opened from, it also shows that item's condition.
  */
-export function showItemDetails(itemId, host = null) {
+export function showItemDetails(itemId, host = null, slotEl = null) {
     const itemData = getItemById(itemId);
     if (!itemData) {
         logger.warn(`Item ${itemId} not found`);
@@ -902,6 +985,10 @@ export function showItemDetails(itemId, host = null) {
     const allowed = getProp('allowed_types');
     if (Array.isArray(allowed) && allowed.length) containRows.push(row('Holds', allowed.map(esc).join(', '), '#c4b5fd'));
 
+    // Condition: this one item's freshness, light, wear and charges.
+    const conditionRows = conditionLines(itemId, slotEl)
+        .map((c) => row(c.label, `<span style="color:${c.color};">${esc(c.text)}</span>`));
+
     // Details.
     const detailRows = [];
     const value = getProp('value') ?? getProp('price');
@@ -931,6 +1018,7 @@ export function showItemDetails(itemId, host = null) {
     }
 
     content.innerHTML = header + lore
+        + section('Condition', conditionRows)
         + section('Combat', combatRows)
         + section('In play', consumeRows)
         + section('Container', containRows)

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/game/building"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/types"
 )
 
@@ -904,6 +905,7 @@ func AddGoldToInventory(inventory map[string]interface{}, goldAmount int) error 
 		// Found empty slot - add gold here
 		if slot["item"] == nil || slot["item"] == "" {
 			slot["item"] = "gold-piece"
+			condition.ClearState(slot) // a reused slot keeps nothing of its last item
 			slot["quantity"] = goldAmount
 			log.Printf("✅ Added %dg to general_slots[%d]", goldAmount, i)
 			return nil
@@ -939,6 +941,7 @@ func AddGoldToInventory(inventory map[string]interface{}, goldAmount int) error 
 					// Found empty slot
 					if slot["item"] == nil || slot["item"] == "" {
 						slot["item"] = "gold-piece"
+						condition.ClearState(slot) // a reused slot keeps nothing of its last item
 						slot["quantity"] = goldAmount
 						log.Printf("✅ Added %dg to backpack[%d]", goldAmount, i)
 						return nil

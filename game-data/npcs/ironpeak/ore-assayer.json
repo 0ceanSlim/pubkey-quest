@@ -1,0 +1,168 @@
+{
+  "id": "ore-assayer",
+  "name": "Orin Deepvein",
+  "title": "Ore Assayer",
+  "race": "Dwarf",
+  "description": "A grey-bearded dwarf with stone dust in every crease of his coat and a jeweller's loupe on a cord. He tests and buys the ore the miners haul down from the deep.",
+  "primary_home": "ironpeak",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "orin_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "ironpeak-south",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1140,
+      "location": "ore_exchange",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "ironpeak-south",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_home"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1440,
+      "location": "orin_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1380,
+      "location": "miners_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "firstday",
+        "hearthday",
+        "fairday"
+      ]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "ironpeak-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
+    }
+  ],
+  "greeting": {
+    "first_time": "Orin Deepvein, assayer. I test it, I weigh it, I pay for it. Fair weight, fair coin.",
+    "returning": "More ore? Good. The forges are hungry."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*Asleep. Best come back in the morning.*",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_to_work": {
+      "text": "On my way to open up. I'm open from 7 in the morning to 7 at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_home": {
+      "text": "Closed for the day, friend. I open again at 7 in the morning.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "off_duty": {
+      "text": "Not now. Come by when I'm open: 7 in the morning to 7 at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "main_menu": {
+      "text": "What have you brought up from the deep?",
+      "options": [
+        "browse_shop",
+        "ask_about_assay",
+        "goodbye"
+      ]
+    },
+    "browse_shop": {
+      "text": "Iron, copper, and picks. Fair weight, fair coin.",
+      "action": "open_shop"
+    },
+    "ask_about_assay": {
+      "text": "The forgemistress takes a lump of iron for every quarter of a blade she mends, so iron never sits on my shelf long. If you're mending gear here, buy your ore from me or dig it yourself.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "goodbye": {
+      "text": "Go well.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 8000,
+    "gold_regen_rate": 1000,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "iron-ore",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "copper-ore",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "pick-miners",
+        "stock": 3,
+        "max_stock": 3
+      }
+    ]
+  }
+}

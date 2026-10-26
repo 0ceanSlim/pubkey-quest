@@ -12,16 +12,18 @@
     "healing"
   ],
   "heal": "1d4 + 1",
-  "effects": [
-    {
-      "type": "hunger",
-      "value": 1
-    }
-  ],
   "notes": [
-    "Eat to heal 1d4+1 HP and restore 1 hunger level, in or out of combat.",
+    "Eat to heal 1d4+1 HP and stay fed for 4 hours, in or out of combat.",
     "In combat it uses your action.",
+    "Its magic fades after a day: the berries are gone.",
     "Made by the Goodberry spell; merchants won't pay for it."
   ],
-  "image": "/res/img/items/goodberry.png"
+  "image": "/res/img/items/goodberry.png",
+  "food": {
+    "hours": 4
+  },
+  "spoils": {
+    "shelf_life": 1440,
+    "vanish": true
+  }
 }

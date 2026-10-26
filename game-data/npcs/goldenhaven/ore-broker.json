@@ -1,0 +1,167 @@
+{
+  "id": "ore-broker",
+  "name": "Dagna Copperseam",
+  "title": "Ore Broker",
+  "race": "Dwarf",
+  "description": "A broad dwarf with copper rings in her braids and an assayer's scale on the counter. She buys ore from every mine in the mountains and sells it on to Goldenhaven's smiths.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 360,
+      "location": "dagna_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "goldenhaven-north",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 1140,
+      "location": "miners_exchange",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "goldenhaven-north",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_home"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1440,
+      "location": "dagna_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1380,
+      "location": "sailors_tavern",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "firstday",
+        "marketday"
+      ]
+    },
+    {
+      "start": 300,
+      "end": 360,
+      "location": "dawnflame_temple",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "restday"
+      ]
+    }
+  ],
+  "greeting": {
+    "first_time": "Dagna Copperseam. If it came out of a mountain, I'll weigh it and pay for it. Better than any general store will.",
+    "returning": "Ore in your pack? Put it on the scale."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*Asleep. Best come back in the morning.*",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_to_work": {
+      "text": "On my way to open up. I'm open from 7 in the morning to 7 at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_home": {
+      "text": "Closed for the day, friend. I open again at 7 in the morning.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "off_duty": {
+      "text": "Not now. Come by when I'm open: 7 in the morning to 7 at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "main_menu": {
+      "text": "Buying ore, or selling it?",
+      "options": [
+        "browse_shop",
+        "ask_about_ore",
+        "goodbye"
+      ]
+    },
+    "browse_shop": {
+      "text": "Ore by the piece, and picks for those who dig their own.",
+      "action": "open_shop"
+    },
+    "ask_about_ore": {
+      "text": "Iron's what the smiths want: the forgemistress up in Ironpeak takes it as part of her price for mending. Copper sells steady. Bring me a full load and you'll walk out with real gold.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "goodbye": {
+      "text": "Go well.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "starting_gold": 8000,
+    "gold_regen_rate": 1000,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "copper-ore",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "iron-ore",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "pick-miners",
+        "stock": 2,
+        "max_stock": 2
+      }
+    ]
+  }
+}

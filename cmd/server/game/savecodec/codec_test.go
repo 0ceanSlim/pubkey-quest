@@ -200,3 +200,26 @@ func TestDialogueGiftsRoundTrip(t *testing.T) {
 		return // one fixture is enough
 	}
 }
+
+// A banked item's condition (a fish's made-time) survives the save; plain
+// entries stay two-element rows.
+func TestVaultConditionRoundTrip(t *testing.T) {
+	for name, orig := range loadFixtures(t) {
+		orig.Vault = []types.VaultEntry{
+			{ItemID: "rations", Quantity: 4},
+			{ItemID: "raw-fish", Quantity: 1, State: map[string]interface{}{"t": float64(5000)}},
+		}
+		data, err := Encode(orig)
+		if err != nil {
+			t.Fatalf("%s encode: %v", name, err)
+		}
+		got, err := Decode(data)
+		if err != nil {
+			t.Fatalf("%s decode: %v", name, err)
+		}
+		if !reflect.DeepEqual(got.Vault, orig.Vault) {
+			t.Fatalf("%s: vault %+v, want %+v", name, got.Vault, orig.Vault)
+		}
+		return // one fixture is enough
+	}
+}

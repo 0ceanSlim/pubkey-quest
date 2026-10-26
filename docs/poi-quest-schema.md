@@ -198,6 +198,8 @@ A discoverable, revisitable location attached to an environment.
 
 A `transaction` takes its `cost` all or nothing; when the player can't pay it goes to `failure_next` (or ends) without granting the reward.
 
+A `check` can't be rerolled forever: `attempts` (default 3) failures in a row close it for `cooldown_minutes` of game time (default 240), and reaching it while closed ends the walk with a "come back in…" line. A success clears the run. The player sees the roll (`🎲 Perception check: rolled 14 + 1 = 15 vs DC 12`) and the tries left. Retry state is session memory, like lock state.
+
 ### Node type summary
 
 | Type             | Purpose                                                  | Required fields                          | Outgoing |

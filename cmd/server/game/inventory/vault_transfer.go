@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/vault"
 	"pubkey-quest/types"
 )
@@ -50,7 +51,8 @@ func HandleVaultDeposit(state *types.SaveFile, slotType string, slotIndex, qty i
 		return &types.GameActionResponse{Success: false, Error: reason, Color: "red"}, nil
 	}
 
-	if err := vault.Deposit(state, itemID, move); err != nil {
+	// An item with condition is banked as it is (a stale fish stays stale).
+	if err := vault.DepositWithState(state, itemID, move, condition.State(slot)); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +86,36 @@ func HandleVaultWithdraw(state *types.SaveFile, itemID string, qty int) (*types.
 		qty = have
 	}
 
+	// Banked items with condition come out one entry at a time, as they went in.
+	stateful := 0
+	for stateful < qty {
+		e, ok := vault.TakeStateful(state, itemID)
+		if !ok {
+			break
+		}
+		got, err := AddItemWithState(state, itemID, e.Quantity, e.State)
+		if err != nil || got < e.Quantity {
+			if got > 0 {
+				e.Quantity -= got
+				stateful += got
+			}
+			vault.PutBack(state, e)
+			break
+		}
+		stateful += got
+	}
+	if stateful > 0 && (stateful >= qty || vault.Quantity(state, itemID) == 0) {
+		log.Printf("🏦 Withdrew %dx %s (with condition) from the shared vault", stateful, itemID)
+		return &types.GameActionResponse{Success: true, Color: "yellow", Delta: map[string]interface{}{"vault": vault.Response(state)}}, nil
+	}
+	qty -= stateful
+
 	added, err := AddItemToInventory(state, itemID, qty)
+	if (err != nil || added <= 0) && stateful > 0 {
+		// The ones with condition came out; the rest didn't fit.
+		return &types.GameActionResponse{Success: true, Message: fmt.Sprintf("Only %d would fit — the rest stays in the vault.", stateful), Color: "yellow",
+			Delta: map[string]interface{}{"vault": vault.Response(state)}}, nil
+	}
 	if err != nil {
 		// Nothing fit — the vault is untouched, so this is a plain refusal.
 		return &types.GameActionResponse{
@@ -171,4 +202,5 @@ func clearSlot(slot map[string]interface{}) {
 	slot["item"] = nil
 	slot["quantity"] = 0
 	delete(slot, "contents")
+	condition.ClearState(slot)
 }

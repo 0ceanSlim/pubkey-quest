@@ -1,0 +1,20 @@
+{
+  "id": "food-poisoning",
+  "name": "Food Poisoning",
+  "description": "Something you ate disagreed with you. You can't keep food down until it passes.",
+  "source_type": "applied",
+  "category": "debuff",
+  "removal": {
+    "type": "timed",
+    "timer": 240
+  },
+  "modifiers": [
+    {
+      "stat": "constitution",
+      "value": -1,
+      "type": "constant"
+    }
+  ],
+  "message": "Your stomach turns. That was a bad idea.",
+  "visible": true
+}

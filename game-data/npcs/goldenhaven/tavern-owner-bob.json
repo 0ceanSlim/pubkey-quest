@@ -8,6 +8,46 @@
   "schedule": [
     {
       "start": 0,
+      "end": 120,
+      "location": "sailors_tavern",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 120,
+      "end": 600,
+      "location": "bob_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 600,
+      "end": 900,
+      "location": "bob_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 900,
+      "end": 960,
+      "location": "goldenhaven-east",
+      "state": "traveling",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 960,
       "end": 1440,
       "location": "sailors_tavern",
       "state": "working",
@@ -15,6 +55,19 @@
         "main_menu"
       ],
       "available_actions": []
+    },
+    {
+      "start": 660,
+      "end": 720,
+      "location": "goldenhaven-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {
@@ -65,6 +118,18 @@
       },
       "options": [
         "main_menu"
+      ]
+    },
+    "off_duty": {
+      "text": "Not now, friend. Come and find me when I'm working.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "sleeping": {
+      "text": "*Asleep. Best come back in the morning.*",
+      "options": [
+        "goodbye"
       ]
     }
   }

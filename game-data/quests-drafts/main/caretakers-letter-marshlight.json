@@ -162,7 +162,7 @@
         "start": "advice",
         "nodes": {
           "advice": {
-            "text": "\"Rations. Wrapped in waxed cloth, so the swamp can't rot them.\" Grokmar sniffs. \"One feeds you a day. When your gut says Hungry, right-click one in your pack and Eat it. Starving out there is how the marsh gets fat.\"",
+            "text": "\"Rations. Wrapped in waxed cloth, so the swamp can't rot them.\" Grokmar sniffs. \"One feeds you till the next meal. When your gut says Hungry, right-click one in your pack and Eat it. Starving out there is how the marsh gets fat.\"",
             "options": [
               "how-buy"
             ]

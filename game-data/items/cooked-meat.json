@@ -1,0 +1,26 @@
+{
+  "id": "cooked-meat",
+  "name": "Cooked Meat",
+  "description": "Game roasted over a fire, charred outside and juicy within.",
+  "type": "Food",
+  "value": 15,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 1,
+  "image": "/res/img/items/cooked-meat.png",
+  "tags": [
+    "consumable",
+    "food",
+    "meat"
+  ],
+  "notes": [
+    "Keeps you fed 5 hours.",
+    "Spoils in 2 days."
+  ],
+  "food": {
+    "hours": 5
+  },
+  "spoils": {
+    "shelf_life": 2880
+  }
+}

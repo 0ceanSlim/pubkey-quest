@@ -157,6 +157,11 @@ type POIStep struct {
 	Arena []string `json:"arena,omitempty"`
 	// Lock is a lock node's lock (see types.Lock).
 	Lock *Lock `json:"lock,omitempty"`
+	// Attempts / CooldownMinutes limit a check node's retries: after Attempts
+	// failures in a row the check can't be tried again for CooldownMinutes of
+	// game time. Zero takes the defaults (see poi.CheckAttempts).
+	Attempts        int `json:"attempts,omitempty"`
+	CooldownMinutes int `json:"cooldown_minutes,omitempty"`
 }
 
 // POILootTable describes drops at a loot node.

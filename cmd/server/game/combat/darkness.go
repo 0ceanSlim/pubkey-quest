@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	serverdb "pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/gametime"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
@@ -34,15 +35,22 @@ func inDarkness(cs *types.CombatSession, save *types.SaveFile) bool {
 	return !holdsLight(save)
 }
 
-// holdsLight reports whether a light source is equipped: a torch, lantern or
-// lamp in either hand, or a light worn at the neck (the Amulet of Light).
+// holdsLight reports whether a light is shining: a lit torch, lamp or lantern
+// in a hand, or a light worn at the neck (the Amulet of Light, always on). A
+// light that burns (a "light" block) only counts while it's lit.
 func holdsLight(save *types.SaveFile) bool {
-	for _, slot := range []string{"mainhand", "offhand", "neck"} {
-		id := gaminventory.GetEquippedItemID(save.Inventory, slot)
+	gear, _ := save.Inventory["gear_slots"].(map[string]interface{})
+	for _, name := range []string{"mainhand", "offhand", "neck"} {
+		id := gaminventory.GetEquippedItemID(save.Inventory, name)
 		if id == "" {
 			continue
 		}
-		if item, err := loadItemProps(serverdb.GetDB(), id); err == nil && hasTag(item["tags"], "light-source") {
+		item, err := loadItemProps(serverdb.GetDB(), id)
+		if err != nil || !hasTag(item["tags"], "light-source") {
+			continue
+		}
+		slot, _ := gear[name].(map[string]interface{})
+		if condition.LightOf(id) == nil || condition.Shining(slot) {
 			return true
 		}
 	}

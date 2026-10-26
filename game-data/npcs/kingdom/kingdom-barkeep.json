@@ -22,7 +22,7 @@
     },
     {
       "start": 120,
-      "end": 360,
+      "end": 600,
       "location": "marcus_quarters",
       "state": "sleeping",
       "dialogue_options": [
@@ -31,8 +31,8 @@
       "available_actions": []
     },
     {
-      "start": 360,
-      "end": 1020,
+      "start": 600,
+      "end": 900,
       "location": "marcus_quarters",
       "state": "home",
       "dialogue_options": [
@@ -41,7 +41,17 @@
       "available_actions": []
     },
     {
-      "start": 1020,
+      "start": 900,
+      "end": 960,
+      "location": "kingdom-west",
+      "state": "traveling",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 960,
       "end": 1440,
       "location": "tavern_golden_griffin",
       "room": "tavern_floor",
@@ -52,6 +62,19 @@
       "available_actions": [
         "open_shop",
         "book_show"
+      ]
+    },
+    {
+      "start": 660,
+      "end": 720,
+      "location": "kingdom-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
       ]
     }
   ],
@@ -123,6 +146,11 @@
         "max_stock": 50,
         "restock_rate": 10,
         "restock_interval": "hourly"
+      },
+      {
+        "item_id": "bread",
+        "stock": 12,
+        "max_stock": 12
       }
     ]
   },

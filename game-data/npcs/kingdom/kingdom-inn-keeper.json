@@ -8,7 +8,7 @@
   "schedule": [
     {
       "start": 0,
-      "end": 480,
+      "end": 120,
       "location": "travelers_inn",
       "room": "common_room",
       "state": "working",
@@ -20,8 +20,44 @@
       ]
     },
     {
-      "start": 480,
-      "end": 600,
+      "start": 120,
+      "end": 360,
+      "location": "travelers_inn",
+      "room": "common_room",
+      "state": "sleeping",
+      "dialogue_options": [
+        "night_bell"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 360,
+      "end": 660,
+      "location": "travelers_inn",
+      "room": "common_room",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 660,
+      "end": 720,
+      "location": "kingdom-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 720,
+      "end": 900,
       "location": "mara_quarters",
       "state": "sleeping",
       "dialogue_options": [
@@ -30,17 +66,17 @@
       "available_actions": []
     },
     {
-      "start": 600,
-      "end": 1020,
-      "location": "mara_quarters",
-      "state": "home",
+      "start": 900,
+      "end": 960,
+      "location": "kingdom-south",
+      "state": "traveling",
       "dialogue_options": [
         "off_duty"
       ],
       "available_actions": []
     },
     {
-      "start": 1020,
+      "start": 960,
       "end": 1440,
       "location": "travelers_inn",
       "room": "common_room",
@@ -100,7 +136,7 @@
       ]
     },
     "ask_about_inn": {
-      "text": "The Wayward Traveler has been serving travelers for three generations. We pride ourselves on clean rooms, hot meals, and a safe place to rest. We're open from 5 PM to 8 AM - perfect for those arriving late or leaving early.",
+      "text": "The Wayward Traveler has been serving travelers for three generations. We pride ourselves on clean rooms, hot meals, and a safe place to rest. We're open from 4 in the afternoon until 11 the next morning, so there's always time for breakfast before check-out.",
       "options": [
         "main_menu"
       ]
@@ -108,6 +144,13 @@
     "goodbye": {
       "text": "Safe travels, and may the road be kind to you!",
       "action": "end_dialogue"
+    },
+    "night_bell": {
+      "text": "*You ring the little bell on the counter. After a while Mara shuffles out from the back, bleary-eyed.* A room, at this hour? Aye, there's a bed made up.",
+      "options": [
+        "ask_rent_room",
+        "goodbye"
+      ]
     }
   },
   "inn_config": {

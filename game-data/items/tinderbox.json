@@ -4,7 +4,8 @@
   "image": "/res/img/items/tinderbox.png",
   "name": "Tinderbox",
   "notes": [
-    "No use in play yet."
+    "Lights torches, candles, lamps and lanterns (and puts them out). It isn't used up.",
+    "Cook: out in the wild, stopped, make a small fire and cook all your raw meat and fish (30 minutes)."
   ],
   "value": 50,
   "rarity": "common",
@@ -13,5 +14,6 @@
     "tool"
   ],
   "type": "Adventuring Gear",
-  "weight": 1
+  "weight": 1,
+  "use_on": "light"
 }

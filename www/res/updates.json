@@ -2,6 +2,50 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-26-living-towns",
+      "when": "October 26, 2026",
+      "icon": "🏘️",
+      "size": "major",
+      "title": "Towns That Keep Their Own Hours",
+      "summary": "The week now has seven named days, and townsfolk live by them: they walk to work, drink at the tavern on their nights out, stroll the market and visit the shrine. Inns stay open until 11 in the morning, and five new traders have opened up.",
+      "highlights": [
+        "A 7-day week, shown on its own line under the clock: Firstday, Toilday, Midweek, Hearthday, Fairday, Marketday and Restday",
+        "Shopkeepers walk to work and home again, spend some evenings at the tavern (Fairday's the busy night), take a turn round the market on Marketday and visit the shrine on Restday",
+        "Inns are open from 4 in the afternoon until 11 the next morning. Late at night the innkeeper dozes behind the counter: ring the bell for a room",
+        "Every open shop now has its keeper in it, and shop hours match when they work. Buildings no one works in yet are closed for now",
+        "New in Dusthaven and Saltwind: shrine keepers selling holy water, healing draughts and offerings",
+        "New in Saltwind: Gull Marrow's fish market (5 in the morning to 2 in the afternoon) pays more for your catch than any general store",
+        "New ore traders at Goldenhaven's and Ironpeak's ore exchanges buy your ore for more than a general store, and sell iron ore for the forgemistress's repairs",
+        "Innkeepers only serve meals and smiths only take repairs while they're on shift"
+      ]
+    },
+    {
+      "id": "2026-10-25-food-and-light",
+      "when": "October 25, 2026",
+      "icon": "🔥",
+      "size": "major",
+      "title": "Food, Fire and Wear",
+      "summary": "Food keeps you fed for hours and spoils; cook and salt it, or eat a hot meal at the inn. Lights need a tinderbox and burn down, gear wears and can be repaired, and some tools run out. Thunderwave pushes, and save spells show the roll.",
+      "highlights": [
+        "Food keeps you fed for a number of hours: a ration 6, a fish 2 to 4. You can't eat when you're stuffed, and food past full is wasted",
+        "Fish spoil in 12 hours. A bar under food in your bag counts down (green while fresh, amber when stale). Stale food is half as filling, and spoiled food is a risky emergency meal that can give you food poisoning",
+        "Food keeps aging wherever you put it, the vault included, and shops pay less for stale food and nothing for spoiled",
+        "Goodberries lose their magic after a day",
+        "Torches, candles, lamps and lanterns are lit with a tinderbox (right-click a torch → Light, or the tinderbox's Light…). A lit light goes in your off hand and burns down: a torch lasts an hour, a flask of oil 6 hours. A torch you put out is spent; a lamp keeps its oil, and oil refills it",
+        "Only a lit light keeps the dark off at night",
+        "At night in the wild a lit light gives you away: whatever is waiting sees you coming (−5 Stealth). A bullseye lantern's beam helps you see first (+2 Perception at night on the road), and a hooded lantern's shutter hides its light without putting it out",
+        "Weapons wear as they hit and armour as it's struck. A bar under your gear shows how worn it is, and hovering or Examine gives its condition (Pristine, Worn, Damaged, Ruined): Worn gear deals 10% less damage or loses 1 AC, Damaged 25% or 2 AC, Ruined half. Nothing ever breaks, but worn gear sells for less",
+        "Repair in the field: a whetstone sharpens a blade (Sharpen…, 10 minutes) and a crafting kit mends armour, shields and other weapons (Mend…, 30 minutes and a Crafting check). Field repair only brings gear back to Worn",
+        "Smiths make it new: ask for \"Repair my gear\". Each has their own deal: the Kingdom's master smith charges the most, the forgemistress wants iron ore, the war-gear trader is cheap but rough, the bowyer takes owlbear fur off the price, and the fur trader works hides",
+        "New foods: bread, cheese, apples, jerky, and raw meat from wolves, bears and other beasts. Out in the wild, stop and use your tinderbox to Cook every raw meat and fish you carry (30 minutes), or Salt one into jerky or salted fish that keeps for weeks",
+        "Innkeepers serve a hot meal (Hearty Stew, 30 gold: 8 hours fed and +1 Constitution for 4 hours) and will cook your raw food for 2 gold each",
+        "Some tools now run out: a bottle of ink scribes 10 scrolls, a whetstone wears smooth after 10 sharpenings, and a waterskin holds 5 drinks (fill it in town, at the coast, in the swamp or by a forest stream)",
+        "Fish and whetstones no longer stack. Any stacks you were carrying are split into empty slots when you load your game (with no room they stay stacked: make room and load again)",
+        "New art: unlit torches, candles, lamps and lanterns (a burning one shows its flame), Spoiled Food and all the new foods",
+        "Thunderwave now pushes enemies 10 feet back on a failed save, and every save spell shows the enemy's roll"
+      ]
+    },
+    {
       "id": "2026-10-22-waiting-and-fixes",
       "when": "October 22, 2026",
       "icon": "📜",

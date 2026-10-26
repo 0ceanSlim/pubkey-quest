@@ -11,7 +11,9 @@
       "end": 360,
       "location": "aldwin_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -19,33 +21,56 @@
       "end": 420,
       "location": "goldenhaven-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
       "start": 420,
-      "end": 1200,
+      "end": 1140,
       "location": "dawnflame_temple",
       "room": "almonry",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "goldenhaven-north",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_home"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1440,
+      "location": "aldwin_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
     },
     {
       "start": 1200,
       "end": 1260,
       "location": "goldenhaven-center",
-      "state": "traveling",
-      "dialogue_options": ["traveling_home"],
-      "available_actions": []
-    },
-    {
-      "start": 1260,
-      "end": 1440,
-      "location": "aldwin_quarters",
-      "state": "home",
-      "dialogue_options": ["off_duty"],
-      "available_actions": []
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {

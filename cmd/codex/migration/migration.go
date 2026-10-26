@@ -9,6 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	"pubkey-quest/types"
 
 	_ "modernc.org/sqlite"
 )
@@ -556,6 +559,18 @@ func migrateItemFile(filePath string) error {
 
 	// Extract tags as JSON
 	tagsJSON, _ := json.Marshal(item["tags"])
+
+	// Wear (degradation §4): bake in how much wear it takes, from its own
+	// "durability" and the category defaults in condition.json.
+	var tags []string
+	_ = json.Unmarshal(tagsJSON, &tags)
+	rawDurability, _ := json.Marshal(item["durability"])
+	if item["durability"] == nil {
+		rawDurability = nil
+	}
+	if n := types.DurabilityFor(rawDurability, itemType, tags, durabilityDefaults()); n > 0 {
+		item["durability_max"] = n
+	}
 
 	// Serialize all properties as JSON for the properties field
 	propertiesJSON, _ := json.Marshal(item)
@@ -1417,6 +1432,8 @@ func migrateSystemsFiles() error {
 		"travel-config.json",
 		"combat-terrain.json",
 		"time-config.json",
+		"condition.json",
+		"cooking.json",
 	}
 
 	count := 0
@@ -1450,4 +1467,32 @@ func migrateSystemsFiles() error {
 
 	log.Printf("Migrated %d system config files", count)
 	return nil
+}
+
+var (
+	durabilityOnce sync.Once
+	durabilityDefs map[string]int
+)
+
+// durabilityDefaults reads game-data/systems/condition.json's wear defaults
+// (by item type), once per migration run.
+func durabilityDefaults() map[string]int {
+	durabilityOnce.Do(func() {
+		data, err := os.ReadFile(filepath.Join("game-data", "systems", "condition.json"))
+		if err != nil {
+			log.Printf("⚠️ condition.json: %v (nothing wears)", err)
+			return
+		}
+		var cfg struct {
+			Durability struct {
+				Defaults map[string]int `json:"defaults"`
+			} `json:"durability"`
+		}
+		if err := json.Unmarshal(data, &cfg); err != nil {
+			log.Printf("⚠️ condition.json: %v (nothing wears)", err)
+			return
+		}
+		durabilityDefs = cfg.Durability.Defaults
+	})
+	return durabilityDefs
 }

@@ -108,3 +108,108 @@ func HandleHungerChange(state *types.SaveFile) {
 		log.Printf("⚠️ Failed to ensure hunger accumulation: %v", err)
 	}
 }
+
+// ─── Hours of fullness (docs/draft/food-system.md) ────────────────────────────
+//
+// Food is measured in minutes of fullness. Hunger is a level (0 Starving …
+// 3 Stuffed) and a tick accumulator counting toward the next drop, so the time
+// until you're starving is what's left of this level's interval plus every
+// interval below it. Eating adds to that total and converts it back: past the
+// level's bar it spills into the next level up, and it stops at Stuffed with a
+// full bar.
+
+// hungerEffects are the accumulation effect per level (1–3); their tick
+// intervals are the level's length, configurable in the codex.
+var hungerEffects = map[int]string{1: "hunger-accumulation-hungry", 2: "hunger-accumulation-wellfed", 3: "hunger-accumulation-stuffed"}
+
+// levelMinutes is how long a hunger level lasts before it drops.
+func levelMinutes(level int) int {
+	fallback := 240
+	if level == 3 {
+		fallback = 360
+	}
+	if id, ok := hungerEffects[level]; ok {
+		if _, _, interval, _, err := effects.GetEffectTemplate(id, 0); err == nil && interval > 0 {
+			return interval
+		}
+	}
+	return fallback
+}
+
+// hungerAccumulator is the live accumulation effect (nil when starving).
+func hungerAccumulator(state *types.SaveFile) *types.ActiveEffect {
+	for i := range state.ActiveEffects {
+		switch state.ActiveEffects[i].EffectID {
+		case "hunger-accumulation-stuffed", "hunger-accumulation-wellfed", "hunger-accumulation-hungry":
+			return &state.ActiveEffects[i]
+		}
+	}
+	return nil
+}
+
+// Fullness is the minutes of food in you: the time until you're Starving.
+func Fullness(state *types.SaveFile) int {
+	if state.Hunger <= 0 {
+		return 0
+	}
+	elapsed := 0
+	if a := hungerAccumulator(state); a != nil {
+		elapsed = int(a.TickAccumulator)
+	}
+	total := max(levelMinutes(state.Hunger)-elapsed, 0)
+	for l := 1; l < state.Hunger; l++ {
+		total += levelMinutes(l)
+	}
+	return total
+}
+
+// MaxFullness is the most food you can hold: Stuffed with a full bar.
+func MaxFullness() int {
+	return levelMinutes(1) + levelMinutes(2) + levelMinutes(3)
+}
+
+// IsFull reports whether you couldn't manage another bite.
+func IsFull(state *types.SaveFile) bool {
+	return Fullness(state) >= MaxFullness()
+}
+
+// setFullness puts the hunger level and accumulator at a total of minutes.
+func setFullness(state *types.SaveFile, total int) {
+	total = min(max(total, 0), MaxFullness())
+	if total == 0 {
+		state.Hunger = 0
+		HandleHungerChange(state)
+		return
+	}
+	level, base := 1, 0
+	for level < 3 && total > base+levelMinutes(level) {
+		base += levelMinutes(level)
+		level++
+	}
+	state.Hunger = level
+	HandleHungerChange(state) // penalties, and the accumulation effect when coming back from starving
+	if a := hungerAccumulator(state); a != nil {
+		a.TickAccumulator = float64(levelMinutes(level) - (total - base))
+	}
+}
+
+// Feed adds minutes of fullness. It returns how many took and how many were
+// wasted past full.
+func Feed(state *types.SaveFile, minutes int) (gained, wasted int) {
+	if minutes <= 0 {
+		return 0, 0
+	}
+	before := Fullness(state)
+	after := min(before+minutes, MaxFullness())
+	setFullness(state, after)
+	return after - before, before + minutes - after
+}
+
+// WakeWellFed is an inn's breakfast: Well Fed with a full bar, unless you
+// went to bed fuller than that.
+func WakeWellFed(state *types.SaveFile) {
+	wellFed := levelMinutes(1) + levelMinutes(2)
+	if Fullness(state) < wellFed {
+		setFullness(state, wellFed)
+	}
+}

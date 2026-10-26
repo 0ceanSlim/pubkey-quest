@@ -11,7 +11,9 @@
       "end": 300,
       "location": "brunhild_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -19,7 +21,9 @@
       "end": 360,
       "location": "ironpeak-west",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -27,15 +31,21 @@
       "end": 1080,
       "location": "anvilheart_forge",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1080,
       "end": 1140,
       "location": "ironpeak-west",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,8 +53,37 @@
       "end": 1440,
       "location": "brunhild_quarters",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
+    },
+    {
+      "start": 1140,
+      "end": 1380,
+      "location": "miners_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "midweek",
+        "fairday"
+      ]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "ironpeak-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {

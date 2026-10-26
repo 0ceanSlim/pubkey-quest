@@ -5,15 +5,9 @@
   "type": "Food",
   "value": 15,
   "rarity": "common",
-  "stack": 20,
+  "stack": 1,
   "weight": 0.5,
   "image": "/res/img/items/raw-fish.png",
-  "effects": [
-    {
-      "type": "hunger",
-      "value": 1
-    }
-  ],
   "tags": [
     "consumable",
     "material",
@@ -21,6 +15,16 @@
   ],
   "notes": [
     "Caught at fishing spots.",
-    "Eat it to restore 1 hunger level."
-  ]
+    "Keeps you fed 2 hours. Eaten raw, it may give you food poisoning (Constitution save, DC 10).",
+    "Spoils in 12 hours: cook it at a fire (or have an innkeeper cook it), or salt it."
+  ],
+  "food": {
+    "hours": 2,
+    "risky_dc": 10
+  },
+  "spoils": {
+    "shelf_life": 720
+  },
+  "cook": "cooked-fish",
+  "salt": "salted-fish"
 }

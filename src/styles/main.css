@@ -1048,7 +1048,7 @@
   border-right: 1px solid #fff;
   border-bottom: 1px solid #fff;
 }
-/* The sun/moon, clock and day sit together after the time buttons */
+/* The sun/moon and clock sit together after the time buttons */
 .pq-when {
   display: flex;
   align-items: center;
@@ -1068,10 +1068,13 @@
   font-size: 7px;
   white-space: nowrap;
 }
+/* "Day 12 · Marketday", on its own line under the clock */
 .pq-day {
   color: #9ca3af;
   font-size: 7px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* XP, HP and the class resource share one bar shape, so their edges line up */

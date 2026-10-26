@@ -57,6 +57,32 @@
         "off_duty"
       ],
       "available_actions": []
+    },
+    {
+      "start": 1140,
+      "end": 1380,
+      "location": "moonlit_glade_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "hearthday"
+      ]
+    },
+    {
+      "start": 1140,
+      "end": 1200,
+      "location": "verdant-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {

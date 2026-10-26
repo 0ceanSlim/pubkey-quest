@@ -34,6 +34,19 @@ const (
 	roadQuestMaxTickChance   = 0.5
 )
 
+// questWaveBreatherMinutes is the in-game gap between one wave of a town quest
+// fight going down and the next arriving (about 15 real seconds at town pace).
+const questWaveBreatherMinutes = 20
+
+// questWaveHint is the combat-end note when more of a stage's monsters are
+// still to come where the player stands.
+func questWaveHint(save *types.SaveFile) string {
+	if findQuestEncounter(save, false) == nil {
+		return ""
+	}
+	return " More are coming. Catch your breath, or get out while you can."
+}
+
 // questRoll is the road quest fight's dice (swapped in tests).
 var questRoll = rand.Float64
 
@@ -57,12 +70,26 @@ func maybeStartQuestEncounter(sess *session.GameSession, response *types.GameAct
 	if sess.QuestEncounterPlace != sess.PlaceKey {
 		sess.QuestEncounterPlace = sess.PlaceKey
 		sess.QuestEncounterOwed = -1
+		sess.QuestEncounterDueAt = 0
 	}
 
 	qe := findQuestEncounter(&sess.SaveData, false)
 	if qe == nil || qe.owed == sess.QuestEncounterOwed {
 		return // nothing here, or this wave already fired and nothing changed since
 	}
+	// A wave just went down (this isn't the fight that greets you on arrival):
+	// the next one waits a while, time to bind wounds or walk out. Pausing the
+	// clock holds it off for as long as you like.
+	if sess.QuestEncounterOwed > 0 {
+		now := sess.SaveData.CurrentDay*1440 + sess.SaveData.TimeOfDay
+		if sess.QuestEncounterDueAt == 0 {
+			sess.QuestEncounterDueAt = now + questWaveBreatherMinutes
+		}
+		if now < sess.QuestEncounterDueAt {
+			return
+		}
+	}
+	sess.QuestEncounterDueAt = 0
 	sess.QuestEncounterOwed = qe.owed
 	startQuestEncounter(sess, qe, response)
 }

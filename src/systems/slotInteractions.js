@@ -24,6 +24,7 @@ import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { getGameStateSync, refreshGameState } from '../state/gameState.js';
 import { getItemById } from '../state/staticData.js';
+import { conditionText } from '../ui/conditionBar.js';
 import { updateCharacterDisplay } from '../ui/characterDisplay.js';
 import { showMessage, showActionText } from '../ui/messaging.js';
 import { showVaultUI } from '../ui/locationDisplay.js';
@@ -458,11 +459,15 @@ function ensureTip() {
 const ACTION_LABELS = {
     equip: 'Equip', unequip: 'Unequip', use: 'Use', open: 'Open',
     examine: 'Info', drop: 'Drop', remove: 'Remove',
+    tool: 'Use on', light: 'Light', refill: 'Refill',
 };
 const ACTION_COLORS = {
     equip: '#4a9eff',   // blue
     unequip: '#ff8c00', // orange
     use: '#00ff00',     // green
+    tool: '#fbbf24',    // amber
+    light: '#fbbf24',   // amber
+    refill: '#fbbf24',  // amber
     open: '#00ff00',    // green
     examine: '#ff8c00', // orange
     drop: '#ff0000',    // red
@@ -502,6 +507,19 @@ function onHoverMove(e) {
     verb.style.fontWeight = 'bold';
     tip.appendChild(verb);
     tip.appendChild(document.createTextNode(' ' + (itemData.name || desc.itemId)));
+    // Food: how fresh it is ("Fresh · 2 days left"); a light: its burn or oil.
+    let cond = conditionText(desc.itemId, desc.el?.dataset?.made);
+    for (const key of ['lightTip', 'wearTip', 'chargeTip']) {
+        if (!cond && desc.el?.dataset?.[key]) {
+            try { cond = JSON.parse(desc.el.dataset[key]); } catch (_) { cond = null; }
+        }
+    }
+    if (cond) {
+        const c = document.createElement('span');
+        c.textContent = ` · ${cond.text}`;
+        c.style.color = cond.color;
+        tip.appendChild(c);
+    }
 
     tip.style.display = 'block';
     // The inventory hugs the right edge, so flip to the cursor's other side

@@ -162,7 +162,7 @@
         "start": "advice",
         "nodes": {
           "advice": {
-            "text": "\"Rations, wrapped in leaf and wax so they keep through any season.\" Thalindra turns one in her hands. \"Each is a day's food. When you feel Hungry, take one from your pack: right-click it, then Eat. And a torch, for the forest is dark beneath the old trees.\"",
+            "text": "\"Rations, wrapped in leaf and wax so they keep through any season.\" Thalindra turns one in her hands. \"Each is a meal. When you feel Hungry, take one from your pack: right-click it, then Eat. And a torch, for the forest is dark beneath the old trees.\"",
             "options": [
               "how-buy"
             ]

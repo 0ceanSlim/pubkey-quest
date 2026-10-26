@@ -4,7 +4,7 @@
   "image": "/res/img/items/ink.png",
   "name": "Ink",
   "notes": [
-    "Scribing: carry it (with a pen) to scribe spell scrolls. It isn't used up.",
+    "Scribing: carry it (with a pen) to scribe spell scrolls. A bottle scribes 10 scrolls, then it's used up.",
     "Writing supply: fits in a map & scroll case."
   ],
   "value": 1000,
@@ -14,5 +14,9 @@
     "writing"
   ],
   "type": "Adventuring Gear",
-  "weight": 0.1
+  "weight": 0.1,
+  "charges": {
+    "max": 10,
+    "noun": "scrolls"
+  }
 }

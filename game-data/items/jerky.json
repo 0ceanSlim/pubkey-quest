@@ -1,0 +1,26 @@
+{
+  "id": "jerky",
+  "name": "Jerky",
+  "description": "Strips of salted, dried meat. Tough to chew, and it lasts for weeks.",
+  "type": "Food",
+  "value": 20,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/jerky.png",
+  "tags": [
+    "consumable",
+    "food",
+    "meat"
+  ],
+  "notes": [
+    "Keeps you fed 4 hours.",
+    "Spoils in 60 days: the long-trip food."
+  ],
+  "food": {
+    "hours": 4
+  },
+  "spoils": {
+    "shelf_life": 86400
+  }
+}

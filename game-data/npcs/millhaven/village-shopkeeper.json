@@ -51,13 +51,40 @@
     {
       "start": 1260,
       "end": 1440,
-      "location_type": "building",
-      "location_id": "pip_home",
+      "location": "pip_home",
       "state": "home",
       "dialogue_options": [
         "off_duty"
       ],
       "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1380,
+      "location": "village_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "toilday",
+        "fairday",
+        "restday"
+      ]
+    },
+    {
+      "start": 1260,
+      "end": 1320,
+      "location": "millhaven-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {
@@ -230,6 +257,26 @@
         "item_id": "fishing-rod",
         "stock": 3,
         "max_stock": 3
+      },
+      {
+        "item_id": "bread",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "cheese",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "apple",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "salt",
+        "stock": 6,
+        "max_stock": 6
       }
     ]
   }

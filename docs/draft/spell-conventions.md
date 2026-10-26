@@ -407,6 +407,9 @@ Every spell must **do something in play**. Damage/heal shapes resolve from `dama
   restrained, grappled, stunned, paralyzed, unconscious, outlined, charmed, distracted,
   exhausted, laughing, baned, dueled, burning, moonlit, beset. Monster
   `condition_immunities` are respected. A concentration spell's conditions end with it.
+- **`push`** — squares (5 ft each) a target is shoved straight away from the caster: on a
+  failed save for a save spell, on a hit for an attack spell (thunderwave 2). It moves square by
+  square and stops early at blocking terrain, the edge of the field or another creature.
 - **`aoe`** — a save spell's area: `{ "shape", "radius" }`, radius in 5-ft grid cells
   (Chebyshev, like every combat range). Every enemy caught makes its own save against the
   spell's `save_type` (required): full `damage` on a failure, half on a success, and the

@@ -234,6 +234,9 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 		dmg, turnLog := ExecuteMonsterTurn(cs, m, playerAC, !cs.IsSurprised, dexMod, save)
 		log = append(log, turnLog...)
 		log = append(log, damagePlayer(cs, save, dmg)...)
+		if dmg > 0 {
+			log = append(log, armorWear(save)...) // the hit wears your armour
+		}
 		log = append(log, monsterHazard(db, cs, save, m, m.Pos)...)
 		if !m.Active() {
 			return log
@@ -288,6 +291,9 @@ func runMonsterTurn(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, m
 	dmg, actionLog := ApplyMonsterAction(cs, m, decision, playerAC, false, 0, save)
 	log = append(log, actionLog...)
 	log = append(log, damagePlayer(cs, save, dmg)...)
+	if dmg > 0 {
+		log = append(log, armorWear(save)...) // the hit wears your armour
+	}
 	if dmg > 0 && cs.Phase == "active" {
 		log = append(log, tryDamagedReaction(cs, actor(cs), save, m)...)
 		if !m.IsAlive {

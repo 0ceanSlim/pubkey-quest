@@ -118,7 +118,36 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	}
 	deps.Locks = poiLocks{sess}
 
+	// A check that's used up its tries stays shut until its cooldown runs out:
+	// no roll, and the walk ends here.
+	checkID, now := sess.ActivePOI.POIID+"/"+nodeID, state.CurrentDay*1440+state.TimeOfDay
+	if sess.CheckTries == nil {
+		sess.CheckTries = poi.CheckTries{}
+	}
+	if node.Type == types.POIStepCheck {
+		if closed, wait := sess.CheckTries.Closed(checkID, now); closed {
+			sess.ActivePOI = nil
+			return poi.StepResult{
+				NodeID: nodeID, Text: node.Text, Terminal: true,
+				Outcome: []string{fmt.Sprintf("You've tried all you can here for now. Come back in %s.", poi.WaitText(wait))},
+			}, nil
+		}
+	}
+
 	res := poi.Resolve(node, nodeID, state, deps)
+
+	if res.Check != nil {
+		left := sess.CheckTries.Record(checkID, node, res.Check.Success, now)
+		switch {
+		case res.Check.Success:
+		case left == 1:
+			res.Outcome = append(res.Outcome, "1 try left before you need a break.")
+		case left > 1:
+			res.Outcome = append(res.Outcome, fmt.Sprintf("%d tries left before you need a break.", left))
+		default:
+			res.Outcome = append(res.Outcome, fmt.Sprintf("That was your last try for now. Come back in %s.", poi.WaitText(poi.CheckCooldown(node))))
+		}
+	}
 
 	// A POI/environment damage node can take HP to 0. Death is otherwise a
 	// combat-only concept, so without this the walk (and travel) would keep going

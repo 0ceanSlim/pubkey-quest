@@ -5,15 +5,9 @@
   "type": "Food",
   "value": 60,
   "rarity": "uncommon",
-  "stack": 10,
+  "stack": 1,
   "weight": 2,
   "image": "/res/img/items/large-fish.png",
-  "effects": [
-    {
-      "type": "hunger",
-      "value": 2
-    }
-  ],
   "tags": [
     "consumable",
     "material",
@@ -21,6 +15,16 @@
   ],
   "notes": [
     "Caught at fishing spots.",
-    "Eat it to restore 2 hunger levels."
-  ]
+    "Keeps you fed 4 hours. Eaten raw, it may give you food poisoning (Constitution save, DC 10).",
+    "Spoils in 12 hours: cook it at a fire (or have an innkeeper cook it), or salt it."
+  ],
+  "food": {
+    "hours": 4,
+    "risky_dc": 10
+  },
+  "spoils": {
+    "shelf_life": 720
+  },
+  "cook": "cooked-large-fish",
+  "salt": "salted-large-fish"
 }

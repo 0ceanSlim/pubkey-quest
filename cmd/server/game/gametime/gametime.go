@@ -10,6 +10,7 @@ import (
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/npc"
@@ -175,7 +176,7 @@ func HandleAdvanceTimeAction(state *types.SaveFile, params map[string]interface{
 
 // HandleUpdateTimeAction syncs time from frontend clock to backend state
 // This is the main tick handler that updates buildings, NPCs, and effects
-func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	// Get the new time from frontend
 	newTimeOfDay, timeOk := params["time_of_day"].(float64)
 	newCurrentDay, dayOk := params["current_day"].(float64)
@@ -215,11 +216,17 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 	}
 
 	// Only process if time actually advanced
+	var notices []string
 	if minutesElapsed > 0 {
 		// Use AdvanceTime to properly process effects. Ambient time accrues fatigue
 		// normally, EXCEPT while stopped to rest mid-travel — then the clock keeps
 		// moving (hunger, arrival timers) but fatigue is frozen.
-		AdvanceTime(state, minutesElapsed, !state.TravelStopped)
+		// What it reports (food spoiling, starving) goes to the client as notices.
+		for _, m := range AdvanceTime(state, minutesElapsed, !state.TravelStopped) {
+			if !m.Silent && m.Message != "" {
+				notices = append(notices, m.Message)
+			}
+		}
 	}
 
 	// Check for missed shows (session-only data) and apply penalty
@@ -258,6 +265,7 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 				state.District,
 				state.Building,
 				state.Room,
+				state.CurrentDay,
 				newTime,
 			)
 			// Only log when NPCs actually change (reduces spam)
@@ -286,6 +294,7 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 					"hp":             state.HP,
 					"active_effects": effects.EnrichActiveEffects(state.ActiveEffects, state),
 					"auto_pause":     autoPause,
+					"notices":        notices,
 				},
 			}, nil
 		}
@@ -303,13 +312,14 @@ func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}
 			"hp":             state.HP,
 			"active_effects": effects.EnrichActiveEffects(state.ActiveEffects, state),
 			"auto_pause":     autoPause,
+			"notices":        notices,
 		},
 	}, nil
 }
 
 // HandleWaitAction waits for a specified amount of time
 // Accepts either "minutes" (15-360) or "hours" (1-6) for backwards compatibility
-func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	var minutesToAdvance int
 
 	// Check for minutes first (more granular), fall back to hours
@@ -373,6 +383,7 @@ func HandleWaitAction(state *types.SaveFile, params map[string]interface{}, sess
 				state.District,
 				state.Building,
 				state.Room,
+				state.CurrentDay,
 				newTime,
 			)
 			session.UpdateNPCsAtLocation(npcIDs, currentHour)
@@ -477,6 +488,20 @@ func AdvanceTime(state *types.SaveFile, minutes int, accrueFatigue bool) []types
 
 	// Tick active effects (includes fatigue/hunger accumulation effects)
 	messages := effects.TickEffects(state, minutes, accrueFatigue)
+
+	// Food ages: first-seen food is stamped, food past its shelf life spoils
+	// (in the bag and in the vault). It only writes when something changes.
+	now := condition.Now(state)
+	spoilMsgs := condition.SpoilSlots(gameutil.CarriedSlotArrays(state), now)
+	// The light in your hand burns down.
+	for _, m := range condition.BurnHeld(state, minutes) {
+		messages = append(messages, types.EffectMessage{Message: "🕯️ " + m, Color: "yellow", Category: "light"})
+	}
+	var vaultMsgs []string
+	state.Vault, vaultMsgs = condition.SpoilVault(state.Vault, now)
+	for _, m := range append(spoilMsgs, vaultMsgs...) {
+		messages = append(messages, types.EffectMessage{Message: "🍂 " + m, Color: "yellow", Category: "food"})
+	}
 
 	// Update penalty effects based on current fatigue/hunger levels
 	fatigueMsg, _ := status.UpdateFatiguePenaltyEffects(state)

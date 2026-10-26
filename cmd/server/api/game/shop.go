@@ -10,6 +10,7 @@ import (
 
 	"pubkey-quest/cmd/server/api/character"
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
@@ -683,6 +684,19 @@ func handleSellToShop(w http.ResponseWriter, r *http.Request) {
 	if session.SellStaged[transaction.ItemID] == 0 {
 		delete(session.SellStaged, transaction.ItemID)
 	}
+	// Food sells by freshness: each staged unit at its own condition's share
+	// (fresh full, stale half, spoiled nothing).
+	if len(session.SellStagedState[transaction.ItemID]) > 0 {
+		now := condition.Now(save)
+		totalValue = 0
+		for i := 0; i < transaction.Quantity; i++ {
+			share := 100
+			if st := popStagedState(session, transaction.ItemID); st != nil {
+				share = condition.SellShare(transaction.ItemID, st, now)
+			}
+			totalValue += sellPrice * share / 100
+		}
+	}
 
 	// Add gold to player (using existing helper function)
 	if err := character.AddGoldToInventory(save.Inventory, totalValue); err != nil {
@@ -742,7 +756,11 @@ func handleStageSell(sess *session.GameSession, params map[string]any) (*types.G
 	if q, ok := params["quantity"].(float64); ok && q > 0 {
 		qty = int(q)
 	}
-	resp, err := handleRemoveFromInventoryAction(&sess.SaveData, params)
+	paramsIface := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		paramsIface[k] = v
+	}
+	resp, err := inventory.HandleRemoveFromInventoryAction(&sess.SaveData, paramsIface)
 	if err != nil || resp == nil || !resp.Success {
 		return resp, err
 	}
@@ -750,7 +768,29 @@ func handleStageSell(sess *session.GameSession, params map[string]any) (*types.G
 		sess.SellStaged = map[string]int{}
 	}
 	sess.SellStaged[itemID] += qty
+	if st, ok := resp.Data["state"].(map[string]interface{}); ok && st != nil {
+		if sess.SellStagedState == nil {
+			sess.SellStagedState = map[string][]map[string]interface{}{}
+		}
+		sess.SellStagedState[itemID] = append(sess.SellStagedState[itemID], st)
+	}
+	resp.Data = nil
 	return resp, nil
+}
+
+// popStagedState takes the condition of the last staged unit of an item
+// (nil when it has none).
+func popStagedState(sess *session.GameSession, itemID string) map[string]interface{} {
+	states := sess.SellStagedState[itemID]
+	if len(states) == 0 {
+		return nil
+	}
+	st := states[len(states)-1]
+	sess.SellStagedState[itemID] = states[:len(states)-1]
+	if len(sess.SellStagedState[itemID]) == 0 {
+		delete(sess.SellStagedState, itemID)
+	}
+	return st
 }
 
 // handleUnstageSell puts an item from the sell counter back in the pack.
@@ -763,9 +803,22 @@ func handleUnstageSell(sess *session.GameSession, params map[string]any) (*types
 	if sess.SellStaged[itemID] < qty {
 		return &types.GameActionResponse{Success: false, Message: "That isn't on the counter"}, nil
 	}
-	resp, err := handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(qty)})
-	if err != nil || resp == nil || !resp.Success {
-		return resp, err
+	// An item with condition comes back as it went (one per unit).
+	var resp *types.GameActionResponse
+	var err error
+	if len(sess.SellStagedState[itemID]) > 0 {
+		for i := 0; i < qty; i++ {
+			st := popStagedState(sess, itemID)
+			resp, err = handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(1), "state": st})
+			if err != nil || resp == nil || !resp.Success {
+				return resp, err
+			}
+		}
+	} else {
+		resp, err = handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(qty)})
+		if err != nil || resp == nil || !resp.Success {
+			return resp, err
+		}
 	}
 	sess.SellStaged[itemID] -= qty
 	if sess.SellStaged[itemID] == 0 {
@@ -778,9 +831,14 @@ func handleUnstageSell(sess *session.GameSession, params map[string]any) (*types
 // a save never captures items that were mid-sale.
 func ReturnStagedSales(sess *session.GameSession) {
 	for itemID, qty := range sess.SellStaged {
+		for qty > 0 && len(sess.SellStagedState[itemID]) > 0 {
+			handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(1), "state": popStagedState(sess, itemID)})
+			qty--
+		}
 		if qty > 0 {
 			handleAddItemAction(&sess.SaveData, map[string]any{"item_id": itemID, "quantity": float64(qty)})
 		}
 	}
 	sess.SellStaged = nil
+	sess.SellStagedState = nil
 }

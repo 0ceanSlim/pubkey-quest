@@ -94,8 +94,8 @@
           "id": "marsh_inn",
           "name": "The Glowing Lantern",
           "description": "A cozy inn built over the water, run by the practical orc Grishka Marshborn. Rokgar the Grim guards the door and only allows strong, powerful music that befits warriors.",
-          "open": 1020,
-          "close": 120,
+          "open": 960,
+          "close": 660,
           "default_room": "lantern_hall",
           "rooms": [
             { "id": "lantern_hall", "name": "Lantern Hall", "description": "The main hall built out over the water on stilts, lit by phosphorescent moss lanterns where warriors drink and drum." },

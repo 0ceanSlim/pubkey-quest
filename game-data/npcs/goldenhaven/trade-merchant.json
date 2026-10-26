@@ -19,7 +19,7 @@
     {
       "start": 420,
       "end": 480,
-      "location": "goldenhaven-center",
+      "location": "goldenhaven-west",
       "state": "traveling",
       "dialogue_options": [
         "traveling_to_work"
@@ -41,7 +41,7 @@
     {
       "start": 1200,
       "end": 1260,
-      "location": "goldenhaven-center",
+      "location": "goldenhaven-north",
       "state": "traveling",
       "dialogue_options": [
         "traveling_home"
@@ -51,13 +51,52 @@
     {
       "start": 1260,
       "end": 1440,
-      "location_type": "building",
-      "location_id": "aurelia_home",
+      "location": "aurelia_home",
       "state": "home",
       "dialogue_options": [
         "off_duty"
       ],
       "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1380,
+      "location": "sailors_tavern",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "toilday",
+        "fairday"
+      ]
+    },
+    {
+      "start": 1260,
+      "end": 1320,
+      "location": "goldenhaven-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "dawnflame_temple",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "restday"
+      ]
     }
   ],
   "greeting": {
@@ -252,6 +291,31 @@
         "item_id": "spices",
         "stock": 6,
         "max_stock": 6
+      },
+      {
+        "item_id": "bread",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "cheese",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "apple",
+        "stock": 10,
+        "max_stock": 10
+      },
+      {
+        "item_id": "jerky",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "salt",
+        "stock": 10,
+        "max_stock": 10
       }
     ]
   }

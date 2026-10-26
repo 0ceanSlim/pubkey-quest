@@ -23,6 +23,7 @@ import { eventBus } from '../lib/events.js';
 import { getGameStateSync } from '../state/gameState.js';
 import { effectsDisplay } from '../ui/effectsDisplay.js';
 import { buildingButton } from '../ui/locationDisplay.js';
+import { attachConditionBar, attachLightBar, attachWearBar, attachChargeBar } from '../ui/conditionBar.js';
 
 class DeltaApplier {
     constructor() {
@@ -311,6 +312,10 @@ class DeltaApplier {
             imgContainer?.remove();
             qtyLabel?.remove();
             delete slotDiv.dataset.itemId;
+            attachConditionBar(slotDiv, null);
+            attachLightBar(slotDiv, null, null);
+            attachWearBar(slotDiv, null, null);
+            attachChargeBar(slotDiv, null, null);
             return;
         }
 
@@ -339,6 +344,11 @@ class DeltaApplier {
             }
 
             slotDiv.dataset.itemId = slotDelta.item_id;
+            // Its condition bars: food, a lamp's oil, wear, charges.
+            attachConditionBar(slotDiv, slotDelta.item_id, slotDelta.t);
+            attachLightBar(slotDiv, slotDelta.item_id, slotDelta);
+            attachWearBar(slotDiv, slotDelta.item_id, slotDelta);
+            attachChargeBar(slotDiv, slotDelta.item_id, slotDelta);
         }
 
         // Update quantity

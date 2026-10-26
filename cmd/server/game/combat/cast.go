@@ -268,6 +268,19 @@ func castConsequences(cs *types.CombatSession, me *types.PartyCombatant, save *t
 		}
 	}
 
+	// Spells that shove (thunderwave's "push"): whoever failed the save (or was
+	// hit, for an attack spell) is pushed straight away from you.
+	if squares := pushOf(res.Spell); squares > 0 {
+		for _, h := range hits {
+			failed := (res.Shape == "save" && !h.SaveMade) || (res.Shape == "attack" && res.Hit)
+			if h.Monster.IsAlive && failed {
+				if line := pushMonster(cs, me.Pos, h.Monster, squares); line != "" {
+					log = append(log, line)
+				}
+			}
+		}
+	}
+
 	// Concentration — a maintained buff/control the caster must now hold.
 	if res.Concentration {
 		me.Concentration = &types.ConcentrationState{

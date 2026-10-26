@@ -32,8 +32,8 @@
           "id": "desert_inn",
           "name": "The Mirage's Rest",
           "description": "A cool, shaded inn built around the oasis where desert travelers rest.",
-          "open": 1140,
-          "close": 240,
+          "open": 960,
+          "close": 660,
           "default_room": "shaded_hall",
           "rooms": [
             { "id": "shaded_hall", "name": "Shaded Hall", "description": "A cool common hall of adobe and palm shade where the bar serves chilled water and date wine." },
@@ -52,8 +52,8 @@
           "id": "oasis_shrine",
           "name": "Shrine of the Sacred Well",
           "description": "A modest shrine dedicated to the water spirits that bless the oasis.",
-          "open": "always",
-          "close": null,
+          "open": 360,
+          "close": 1200,
           "crafting_stations": ["scribe_divine"]
         },
         {
@@ -66,6 +66,13 @@
         {
           "id": "tariq_quarters",
           "name": "Tariq's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "nadira_quarters",
+          "name": "Nadira's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null
@@ -85,7 +92,7 @@
           "id": "caravan_staging",
           "name": "Caravan Assembly Point",
           "description": "Where desert caravans gather supplies and travelers before heading into the wasteland.",
-          "open": "always",
+          "open": -1,
           "close": null
         }
       ],

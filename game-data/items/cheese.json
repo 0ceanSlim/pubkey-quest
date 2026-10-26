@@ -1,0 +1,25 @@
+{
+  "id": "cheese",
+  "name": "Cheese",
+  "description": "A wedge of hard, waxed cheese that travels well.",
+  "type": "Food",
+  "value": 10,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/cheese.png",
+  "tags": [
+    "consumable",
+    "food"
+  ],
+  "notes": [
+    "Keeps you fed 3 hours.",
+    "Spoils in 10 days."
+  ],
+  "food": {
+    "hours": 3
+  },
+  "spoils": {
+    "shelf_life": 14400
+  }
+}

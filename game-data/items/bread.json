@@ -1,0 +1,25 @@
+{
+  "id": "bread",
+  "name": "Bread",
+  "description": "A round loaf with a hard crust, baked this morning. The cheap staple of every road and table.",
+  "type": "Food",
+  "value": 2,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/bread.png",
+  "tags": [
+    "consumable",
+    "food"
+  ],
+  "notes": [
+    "Keeps you fed 4 hours.",
+    "Goes stale after a day and a half and spoils in 3 days."
+  ],
+  "food": {
+    "hours": 4
+  },
+  "spoils": {
+    "shelf_life": 4320
+  }
+}

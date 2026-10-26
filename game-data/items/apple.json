@@ -1,0 +1,25 @@
+{
+  "id": "apple",
+  "name": "Apple",
+  "description": "A crisp red apple.",
+  "type": "Food",
+  "value": 1,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.3,
+  "image": "/res/img/items/apple.png",
+  "tags": [
+    "consumable",
+    "food"
+  ],
+  "notes": [
+    "Keeps you fed 1 hour.",
+    "Spoils in 7 days."
+  ],
+  "food": {
+    "hours": 1
+  },
+  "spoils": {
+    "shelf_life": 10080
+  }
+}

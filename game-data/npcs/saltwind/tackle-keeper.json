@@ -11,7 +11,9 @@
       "end": 240,
       "location": "finn_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
@@ -19,7 +21,9 @@
       "end": 300,
       "location": "saltwind-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_to_work"],
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
       "available_actions": []
     },
     {
@@ -27,15 +31,21 @@
       "end": 1140,
       "location": "net_and_tackle",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["open_shop"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
     },
     {
       "start": 1140,
       "end": 1200,
       "location": "saltwind-center",
       "state": "traveling",
-      "dialogue_options": ["traveling_home"],
+      "dialogue_options": [
+        "traveling_home"
+      ],
       "available_actions": []
     },
     {
@@ -43,8 +53,37 @@
       "end": 1440,
       "location": "finn_quarters",
       "state": "home",
-      "dialogue_options": ["off_duty"],
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
+    },
+    {
+      "start": 1200,
+      "end": 1380,
+      "location": "fishermans_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "toilday",
+        "fairday"
+      ]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "saltwind-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {
@@ -106,7 +145,9 @@
       {"item_id": "trident", "stock": 2, "max_stock": 2},
       {"item_id": "spear", "stock": 3, "max_stock": 3},
       {"item_id": "healers-kit", "stock": 4, "max_stock": 4},
-      {"item_id": "healing", "stock": 1, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"}
+      {"item_id": "healing", "stock": 1, "max_stock": 2, "restock_rate": 1, "restock_interval": "30"},
+      {"item_id": "salt", "stock": 20, "max_stock": 20},
+      {"item_id": "bread", "stock": 8, "max_stock": 8}
     ]
   }
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/types"
@@ -115,6 +116,10 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 	if !isConsumable {
 		return nil, fmt.Errorf("item '%s' is not consumable", itemID)
 	}
+	// Full, or food poisoning: the food stays in the bag.
+	if why := WhyCantEat(state, itemID); why != "" {
+		return &types.GameActionResponse{Success: false, Message: why, Color: "yellow"}, nil
+	}
 
 	slot := -1
 	if s, ok := params["slot"].(float64); ok {
@@ -137,8 +142,8 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 			if slotMap["item"] == itemID && (slot < 0 || i == slot) {
 				itemFound = true
 
-				// Apply item effects based on item ID
-				effects = ApplyItemEffects(state, itemID)
+				// Apply item effects based on item ID (food reads the slot's freshness)
+				effects = ApplyItemEffectsFromSlot(state, itemID, slotMap)
 
 				// Remove/reduce item quantity (a reusable tool, like a whetstone, stays)
 				if !reusable {
@@ -148,6 +153,7 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 					} else {
 						slotMap["item"] = nil
 						slotMap["quantity"] = 0
+						condition.ClearState(slotMap)
 					}
 				}
 				break
@@ -170,8 +176,8 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 				if slotMap["item"] == itemID && (slot < 0 || i == slot) {
 					itemFound = true
 
-					// Apply item effects
-					effects = ApplyItemEffects(state, itemID)
+					// Apply item effects (food reads the slot's freshness)
+					effects = ApplyItemEffectsFromSlot(state, itemID, slotMap)
 
 					// Remove/reduce item quantity (a reusable tool stays)
 					if !reusable {
@@ -181,6 +187,7 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 						} else {
 							slotMap["item"] = nil
 							slotMap["quantity"] = 0
+							condition.ClearState(slotMap)
 						}
 					}
 					break
@@ -204,8 +211,15 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 	}, nil
 }
 
-// ApplyItemEffects applies item effects to the character state dynamically from item data
+// ApplyItemEffects applies item effects to the character state dynamically
+// from item data (as fresh food, when it's food).
 func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
+	return ApplyItemEffectsFromSlot(state, itemID, nil)
+}
+
+// ApplyItemEffectsFromSlot applies an item's effects; slot is the inventory
+// slot it was used from, so food knows how fresh it is (nil: fresh).
+func ApplyItemEffectsFromSlot(state *types.SaveFile, itemID string, slot map[string]interface{}) []string {
 	var effectMessages []string
 
 	// Get database connection
@@ -228,6 +242,11 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 	if err := json.Unmarshal([]byte(propertiesJSON), &properties); err != nil {
 		log.Printf("⚠️ Could not parse properties for item %s: %v", itemID, err)
 		return []string{"Used"}
+	}
+
+	// Food: hours of fullness (food.go).
+	if food := FoodOf(itemID); food != nil {
+		effectMessages = append(effectMessages, eat(state, itemID, food, slot)...)
 	}
 
 	// Top-level heal dice. Healing potions store their heal as "heal": "2d4 + 2"
@@ -333,12 +352,15 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 			}
 
 		case "hunger":
-			oldHunger := state.Hunger
-			state.Hunger = min(3, max(0, state.Hunger+int(effectValue)))
-			status.HandleHungerChange(state)
-			if state.Hunger > oldHunger {
-				effectMessages = append(effectMessages, "Hunger restored")
-			} else if state.Hunger < oldHunger {
+			// Legacy: whole hunger levels. Food now uses "food": {"hours": N};
+			// a level is a level's worth of hours.
+			if effectValue > 0 {
+				if gained, _ := status.Feed(state, int(effectValue)*240); gained > 0 {
+					effectMessages = append(effectMessages, "Hunger restored")
+				}
+			} else if effectValue < 0 {
+				state.Hunger = max(0, state.Hunger+int(effectValue))
+				status.HandleHungerChange(state)
 				effectMessages = append(effectMessages, "Hunger decreased")
 			}
 
@@ -371,10 +393,10 @@ func ApplyItemEffects(state *types.SaveFile, itemID string) []string {
 // returns how many units were dropped, so the caller can put them on the ground.
 // The item is NOT destroyed here — the caller (session-aware) moves the returned
 // quantity into the per-location ground store.
-func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, int, error) {
+func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, int, map[string]interface{}, error) {
 	itemID, ok := params["item_id"].(string)
 	if !ok {
-		return nil, 0, fmt.Errorf("missing or invalid item_id parameter")
+		return nil, 0, nil, fmt.Errorf("missing or invalid item_id parameter")
 	}
 
 	// The frontend (and every other inventory handler) sends from_slot/from_slot_type;
@@ -397,13 +419,14 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 	// Find item in appropriate inventory
 	var itemFound bool
 	var droppedQty int
+	var droppedState map[string]interface{}
 	var inventory []interface{}
 
 	switch slotType {
 	case "general":
 		generalSlots, ok := state.Inventory["general_slots"].([]interface{})
 		if !ok {
-			return nil, 0, fmt.Errorf("invalid inventory structure")
+			return nil, 0, nil, fmt.Errorf("invalid inventory structure")
 		}
 		inventory = generalSlots
 	case "inventory":
@@ -411,11 +434,11 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 		bag, _ := gearSlots["bag"].(map[string]interface{})
 		backpackContents, ok := bag["contents"].([]interface{})
 		if !ok {
-			return nil, 0, fmt.Errorf("invalid backpack structure")
+			return nil, 0, nil, fmt.Errorf("invalid backpack structure")
 		}
 		inventory = backpackContents
 	default:
-		return nil, 0, fmt.Errorf("invalid slot_type: %s", slotType)
+		return nil, 0, nil, fmt.Errorf("invalid slot_type: %s", slotType)
 	}
 
 	// Search for item
@@ -430,6 +453,7 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 
 			// Get current quantity (tolerates int from a prior split)
 			currentQty := slotQuantity(slotMap)
+			droppedState = condition.State(slotMap) // it lies on the ground as it was
 
 			// Determine how much to drop
 			if dropQuantity <= 0 || dropQuantity >= currentQty {
@@ -437,6 +461,7 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 				droppedQty = currentQty
 				slotMap["item"] = nil
 				slotMap["quantity"] = 0
+				condition.ClearState(slotMap)
 				log.Printf("✅ Dropped entire stack of %s (%d items)", itemID, currentQty)
 			} else {
 				// Drop partial stack (store as int)
@@ -449,13 +474,13 @@ func HandleDropItemAction(state *types.SaveFile, params map[string]interface{}) 
 	}
 
 	if !itemFound {
-		return nil, 0, fmt.Errorf("item not found: %s", itemID)
+		return nil, 0, nil, fmt.Errorf("item not found: %s", itemID)
 	}
 
 	return &types.GameActionResponse{
 		Success: true,
 		Message: fmt.Sprintf("Dropped %s", itemID),
-	}, droppedQty, nil
+	}, droppedQty, droppedState, nil
 }
 
 // HandleRemoveFromInventoryAction removes an item from inventory (for sell staging)
@@ -533,11 +558,13 @@ func HandleRemoveFromInventoryAction(state *types.SaveFile, params map[string]in
 	}
 
 	// Remove from stack (ALWAYS store as int, not float64)
+	removedState := condition.State(slotMap) // handed back with the response (the sell counter keeps it)
 	newQty := currentQty - removeQuantity
 	if newQty <= 0 {
 		// Remove entire stack
 		slotMap["item"] = nil
 		slotMap["quantity"] = 0
+		condition.ClearState(slotMap)
 		log.Printf("✅ Removed entire stack of %s (%d items)", itemID, currentQty)
 	} else {
 		// Remove partial stack - store as int
@@ -549,10 +576,14 @@ func HandleRemoveFromInventoryAction(state *types.SaveFile, params map[string]in
 		return nil, fmt.Errorf("item not found: %s at slot %d", itemID, int(fromSlot))
 	}
 
-	return &types.GameActionResponse{
+	resp := &types.GameActionResponse{
 		Success: true,
 		Message: fmt.Sprintf("Removed %dx %s from inventory", removeQuantity, itemID),
-	}, nil
+	}
+	if removedState != nil {
+		resp.Data = map[string]interface{}{"state": removedState}
+	}
+	return resp, nil
 }
 
 // HandleMoveItemAction moves items between inventory slots
@@ -804,6 +835,10 @@ func HandleStackItemAction(state *types.SaveFile, params map[string]interface{})
 	if fromSlotMap["item"] != itemID || toSlotMap["item"] != itemID {
 		return nil, fmt.Errorf("items don't match for stacking")
 	}
+	// Items with condition (food that spoils) each keep their own slot.
+	if !condition.CanMerge(fromSlotMap, toSlotMap) {
+		return &types.GameActionResponse{Success: false, Message: "Those don't stack: each keeps its own condition.", Color: "yellow"}, nil
+	}
 
 	// Get item data to check max stack
 	itemData, err := db.GetItemByID(itemID)
@@ -988,6 +1023,7 @@ func HandleSplitItemAction(state *types.SaveFile, params map[string]interface{})
 	toSlotMap["item"] = itemID
 	toSlotMap["quantity"] = splitQuantity
 	toSlotMap["slot"] = toSlot
+	condition.CopyState(toSlotMap, fromSlotMap) // same items, same condition
 
 	log.Printf("✅ Split complete: %s (%d remaining in slot %d, %d in new slot %d)", itemID, remainingQty, fromSlot, splitQuantity, toSlot)
 
@@ -1006,6 +1042,11 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 	}
 
 	log.Printf("➕ Adding %dx %s to inventory", quantity, itemID)
+	// A returned item (unstaged from a sale) keeps its condition; anything else is new.
+	itemState, _ := params["state"].(map[string]interface{})
+	if itemState == nil {
+		itemState = condition.NewState(itemID, condition.Now(state))
+	}
 
 	// Try general slots first
 	generalSlots, ok := state.Inventory["general_slots"].([]interface{})
@@ -1021,6 +1062,7 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 				// Add item to this slot (ensure quantity is int)
 				slotMap["item"] = itemID
 				slotMap["quantity"] = int(quantity)
+				condition.ApplyState(slotMap, itemState)
 				log.Printf("✅ Added %dx %s to general_slots[%d] (type: %T)", quantity, itemID, i, slotMap["quantity"])
 
 				return &types.GameActionResponse{
@@ -1049,6 +1091,7 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 						// Add item to this slot (ensure quantity is int)
 						slotMap["item"] = itemID
 						slotMap["quantity"] = int(quantity)
+						condition.ApplyState(slotMap, itemState)
 						log.Printf("✅ Added %dx %s to backpack[%d] (type: %T)", quantity, itemID, i, slotMap["quantity"])
 
 						return &types.GameActionResponse{

@@ -13,6 +13,7 @@ import (
 	gamedata "pubkey-quest/cmd/server/api/data"
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/gameutil"
@@ -44,8 +45,8 @@ type ScribingTable struct {
 		Item     string `json:"item"`
 		Quantity int    `json:"quantity"`
 	} `json:"consumes"`
-	Carried    []string `json:"carried"`
-	Memorize   struct {
+	Carried  []string `json:"carried"`
+	Memorize struct {
 		Classes         []string `json:"classes"`
 		GoldPerLevel    int      `json:"gold_per_level"`
 		MinutesPerLevel int      `json:"minutes_per_level"`
@@ -191,7 +192,8 @@ func scribeOption(db *sql.DB, save *types.SaveFile, tbl *ScribingTable, id strin
 		}
 	}
 	for _, it := range tbl.Carried {
-		if gameutil.CountItem(save, it) < 1 {
+		// A bottle of ink has charges (degradation §7): an empty one is no use.
+		if gameutil.CountItem(save, it) < 1 || (condition.ChargesOf(it) != nil && !gameutil.HasCharge(save, it)) {
 			o.Missing = append(o.Missing, it)
 		}
 	}
@@ -226,13 +228,14 @@ func scribeChance(save *types.SaveFile, tbl *ScribingTable, level int) int {
 
 // ScribeResult is the outcome of an attempt.
 type ScribeResult struct {
-	Scribed bool   `json:"scribed"`
-	ItemID  string `json:"item_id,omitempty"`
-	Name    string `json:"name"`
-	Chance  int    `json:"chance"`
-	Roll    int    `json:"roll"`
-	Minutes int    `json:"minutes"`
-	Gold    int    `json:"gold"`
+	Scribed bool     `json:"scribed"`
+	ItemID  string   `json:"item_id,omitempty"`
+	Name    string   `json:"name"`
+	Chance  int      `json:"chance"`
+	Roll    int      `json:"roll"`
+	Minutes int      `json:"minutes"`
+	Gold    int      `json:"gold"`
+	UsedUp  []string `json:"used_up,omitempty"` // supplies that ran out (the last of a bottle of ink)
 }
 
 // Scribe attempts a scroll. Nothing is spent unless every check passes; then
@@ -271,13 +274,23 @@ func Scribe(db *sql.DB, save *types.SaveFile, spellID string) (*ScribeResult, er
 	for _, c := range tbl.Consumes {
 		gameutil.ConsumeItem(save, c.Item, c.Quantity)
 	}
+	// Carried supplies with charges (ink) spend one per scroll, scribed or not.
+	var usedUp []string
+	for _, it := range tbl.Carried {
+		if condition.ChargesOf(it) == nil {
+			continue
+		}
+		if _, gone, _ := gameutil.SpendCharge(save, it); gone {
+			usedUp = append(usedUp, condition.ItemName(it))
+		}
+	}
 	for _, u := range plan {
 		consumeComponent(save.Inventory, u.component, u.quantity)
 	}
 	gameutil.DeductGold(save, opt.Gold)
 	gametime.AdvanceTime(save, opt.Minutes, true)
 
-	res := &ScribeResult{Name: opt.Name, Chance: opt.Chance, Roll: scribeRoll(), Minutes: opt.Minutes, Gold: opt.Gold}
+	res := &ScribeResult{Name: opt.Name, Chance: opt.Chance, Roll: scribeRoll(), Minutes: opt.Minutes, Gold: opt.Gold, UsedUp: usedUp}
 	if res.Roll <= opt.Chance {
 		if n, _ := gaminventory.AddItemToInventory(save, itemID, 1); n > 0 {
 			res.Scribed, res.ItemID = true, itemID

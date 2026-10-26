@@ -50,6 +50,10 @@ type GameSession struct {
 	// never pays for, or returns, an item the server didn't take. Memory only;
 	// returned to the pack before any save.
 	SellStaged map[string]int `json:"-"`
+	// SellStagedState keeps the condition of staged items that have one (a
+	// fish's made-time), one per unit, so handing it back returns the same
+	// fish and the sale prices it by freshness.
+	SellStagedState map[string][]map[string]interface{} `json:"-"`
 
 	// PendingEncounter is an encounter whose monsters haven't noticed the
 	// player: no fight yet, waiting on their choice (POST /api/combat/approach).
@@ -75,6 +79,9 @@ type GameSession struct {
 	// Locks remembers which locks this player picked open or jammed today
 	// (memory only; see game/locks).
 	Locks locks.Memory `json:"-"`
+	// CheckTries is each POI check node's run of failures and cooldown, so a
+	// check can't be rerolled forever (memory only; see game/poi).
+	CheckTries poi.CheckTries `json:"-"`
 	// LockSession is the lock being picked as a minigame right now (nil when
 	// not picking). Any other action abandons it.
 	LockSession *locks.Session `json:"-"`
@@ -125,8 +132,11 @@ type GameSession struct {
 	// checked at, and how many kills were still owed when it last fired there.
 	// A fight starts again only when that number changes (the next wave after a
 	// win) or after the player leaves and comes back (a retry after fleeing).
+	// QuestEncounterDueAt is the game minute (day*1440 + time) the next wave
+	// arrives once one goes down — a breather, so waves don't chain on the tick.
 	QuestEncounterPlace string `json:"-"`
 	QuestEncounterOwed  int    `json:"-"`
+	QuestEncounterDueAt int    `json:"-"`
 
 	// Spell preparation queue — lives in server memory only, cleared on session unload.
 	// Each entry tracks a spell being prepared for a specific slot.
@@ -194,6 +204,10 @@ type SessionSnapshot struct {
 type InventorySlotSnapshot struct {
 	ItemID   string
 	Quantity int
+	Made     int // a food's made-time (condition "t"), so the client's freshness bar follows it
+	Wear     int // wear taken (condition "w")
+	Burn     int // a lamp's oil or a light's burn left, in minutes (condition "b")
+	Uses     int // charges spent (condition "u")
 }
 
 // GetSaveData returns a pointer to the session's save data

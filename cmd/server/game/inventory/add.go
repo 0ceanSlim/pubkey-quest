@@ -7,13 +7,26 @@ import (
 	"slices"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/types"
 )
 
 // AddItemToInventory adds items to player inventory with intelligent stacking and slot priority
-// Returns: (itemsAdded int, error)
+// Returns: (itemsAdded int, error). The items are new: food is made now.
 func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int, error) {
+	return AddItemWithState(save, itemID, quantity, nil)
+}
+
+// AddItemWithState adds items that already have a condition (a food's
+// made-time, from the vault or the ground); nil state means they're new. An
+// item with condition never joins an existing stack and goes one per slot
+// (magic food made together, goodberries, shares a stack and its state).
+func AddItemWithState(save *types.SaveFile, itemID string, quantity int, state map[string]interface{}) (int, error) {
 	log.Printf("🔧 AddItemToInventory called: itemID=%s, quantity=%d", itemID, quantity)
+	info := condition.ItemInfo(itemID)
+	if state == nil {
+		state = condition.NewState(itemID, condition.Now(save))
+	}
 
 	inventory := save.Inventory
 
@@ -32,6 +45,12 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 				maxStack = int(val)
 			}
 		}
+	}
+
+	// Condition: one per slot, and never merged into another stack.
+	stateful := info.Stateful()
+	if stateful && !info.Vanish {
+		maxStack = 1
 	}
 
 	// Containers never nest: a backpack can't go inside the backpack. move_item
@@ -61,7 +80,7 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 	log.Printf("🔍 Inventory state: %d general slots, %d backpack slots", len(generalSlots), len(backpackSlots))
 
 	// STEP 1: Try to stack with existing items in backpack first
-	if backpackSlots != nil && !isContainer {
+	if backpackSlots != nil && !isContainer && !stateful {
 		log.Printf("🔍 Checking backpack for existing %s stacks...", itemID)
 		for i, slotData := range backpackSlots {
 			if remaining <= 0 {
@@ -99,7 +118,7 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 
 	// STEP 2: Try to stack with existing items in general slots
 	for i, slotData := range generalSlots {
-		if remaining <= 0 {
+		if remaining <= 0 || stateful {
 			break
 		}
 
@@ -144,6 +163,7 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 
 			slot["item"] = itemID
 			slot["quantity"] = toAdd
+			condition.ApplyState(slot, state) // clears whatever the last item left
 			backpackSlots[i] = slot
 			remaining -= toAdd
 			totalAdded += toAdd
@@ -170,6 +190,7 @@ func AddItemToInventory(save *types.SaveFile, itemID string, quantity int) (int,
 
 			slot["item"] = itemID
 			slot["quantity"] = toAdd
+			condition.ApplyState(slot, state) // clears whatever the last item left
 			generalSlots[i] = slot
 			remaining -= toAdd
 			totalAdded += toAdd

@@ -1,0 +1,30 @@
+{
+  "id": "raw-meat",
+  "name": "Raw Meat",
+  "description": "A cut of fresh game, still bloody. Cook it, or salt it into jerky.",
+  "type": "Food",
+  "value": 5,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 1,
+  "image": "/res/img/items/raw-meat.png",
+  "tags": [
+    "consumable",
+    "material",
+    "meat"
+  ],
+  "notes": [
+    "Taken from beasts: boars, deer, wolves and bears.",
+    "Keeps you fed 2 hours. Eaten raw, it may give you food poisoning (Constitution save, DC 10).",
+    "Spoils in 12 hours: cook it at a fire (or have an innkeeper cook it), or salt it into jerky."
+  ],
+  "food": {
+    "hours": 2,
+    "risky_dc": 10
+  },
+  "spoils": {
+    "shelf_life": 720
+  },
+  "cook": "cooked-meat",
+  "salt": "jerky"
+}

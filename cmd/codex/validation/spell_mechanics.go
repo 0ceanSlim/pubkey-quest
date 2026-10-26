@@ -79,6 +79,16 @@ func validateSpellMechanics(spell map[string]interface{}, filename string) []Iss
 			}
 		}
 	}
+	// push: squares a failed save (or a hit) shoves the target away from the caster.
+	if raw, ok := spell["push"]; ok && raw != nil {
+		n, isNum := raw.(float64)
+		switch {
+		case !isNum || n < 1 || n != float64(int(n)):
+			bad("push", "push must be a whole number of squares (5 ft each), at least 1")
+		case spell["save_type"] == nil && spell["spell_attack"] == nil:
+			bad("push", "a push needs a save_type or spell_attack: it lands on a failed save or a hit")
+		}
+	}
 	if id, ok := spell["applies_effect"].(string); ok && id != "" {
 		if _, err := os.Stat(filepath.Join("game-data", "effects", id+".json")); err != nil {
 			bad("applies_effect", "applies_effect %q has no game-data/effects/%s.json", id, id)

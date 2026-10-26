@@ -4,8 +4,8 @@
   "image": "/res/img/items/oil.png",
   "name": "Oil",
   "notes": [
-    "Used up by some quest steps.",
-    "Lamp fuel isn't in play yet."
+    "Fills a lamp or lantern: 6 hours of light.",
+    "Used up by some quest steps."
   ],
   "value": 10,
   "rarity": "common",
@@ -14,5 +14,6 @@
     "fuel"
   ],
   "type": "Adventuring Gear",
-  "weight": 1
+  "weight": 1,
+  "use_on": "fuel"
 }

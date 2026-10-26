@@ -282,14 +282,14 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 		if crit {
 			critTxt = " Critical hit!"
 		}
-		res.Log = append(res.Log, fmt.Sprintf("  💥 %s strikes for %d %s damage.%s", name, res.Damage, dtype, critTxt))
+		res.Log = append(res.Log, fmt.Sprintf("  💥 %s strikes for %d %s damage%s.%s", name, res.Damage, dtype, diceNote(spell, crit, ""), critTxt))
 
 	case "auto":
 		dtype := stringField(spell, "damage_type")
 		res.Hit = true
 		res.Damage = deps.ResolveMonsterDamage(stringField(spell, "damage"), 0, dtype, false, target)
 		res.DamageType = dtype
-		res.Log = append(res.Log, fmt.Sprintf("  You cast %s — it strikes automatically for %d %s damage.", name, res.Damage, dtype))
+		res.Log = append(res.Log, fmt.Sprintf("  You cast %s — it strikes automatically for %d %s damage%s.", name, res.Damage, dtype, diceNote(spell, false, "")))
 
 	case "save":
 		saveType := strings.ToLower(stringField(spell, "save_type"))
@@ -306,20 +306,20 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 			for _, m := range deps.Area {
 				out, roll, bonus := saveAgainst(deps, spell, saveType, dc, m)
 				res.Targets = append(res.Targets, out)
-				res.Log = append(res.Log, areaSaveLine(out, roll, bonus, dtype, hasDamage))
+				res.Log = append(res.Log, areaSaveLine(out, roll, bonus, saveType, dc, dtype, hasDamage, spell)...)
 			}
 			res.Damage, res.SaveMade = res.Targets[0].Damage, res.Targets[0].SaveMade
 			break
 		}
 		out, roll, saveBonus := saveAgainst(deps, spell, saveType, dc, target)
 		res.Damage, res.SaveMade = out.Damage, out.SaveMade
-		res.Log = append(res.Log, fmt.Sprintf("  You cast %s (DC %d). %s rolls %d%s %s save.",
-			name, dc, target.Name, roll, mod(saveBonus), saveType))
+		res.Log = append(res.Log, fmt.Sprintf("  You cast %s. %s makes a %s save: rolled %d%s vs DC %d.",
+			name, target.Name, saveName(saveType), roll, mod(saveBonus), dc))
 		switch {
 		case hasDamage && out.SaveMade:
-			res.Log = append(res.Log, fmt.Sprintf("  ✔ %s resists — %d %s damage (half).", target.Name, res.Damage, dtype))
+			res.Log = append(res.Log, fmt.Sprintf("  ✔ %s resists — %d %s damage%s.", target.Name, res.Damage, dtype, diceNote(spell, false, "half")))
 		case hasDamage:
-			res.Log = append(res.Log, fmt.Sprintf("  ✘ %s fails — %d %s damage.", target.Name, res.Damage, dtype))
+			res.Log = append(res.Log, fmt.Sprintf("  ✘ %s fails — %d %s damage%s.", target.Name, res.Damage, dtype, diceNote(spell, false, "")))
 		case out.SaveMade:
 			// A pure control save (entangle, command): the combat layer lands
 			// the spell's applies_condition on a failure.
@@ -417,18 +417,51 @@ func saveAgainst(deps Deps, spell map[string]interface{}, saveType string, dc in
 	return out, roll, bonus
 }
 
-// areaSaveLine is one creature's line in an area spell's log.
-func areaSaveLine(out TargetOutcome, roll, bonus int, dtype string, hasDamage bool) string {
-	name, rolled := out.Monster.Name, fmt.Sprintf("%d%s", roll, mod(bonus))
+// areaSaveLine is one creature's lines in an area spell's log: its save roll
+// ("rolled N", so the combat log throws its d20), then the outcome.
+func areaSaveLine(out TargetOutcome, roll, bonus int, saveType string, dc int, dtype string, hasDamage bool, spell map[string]interface{}) []string {
+	name := out.Monster.Name
+	lines := []string{fmt.Sprintf("  %s makes a %s save: rolled %d%s vs DC %d.", name, saveName(saveType), roll, mod(bonus), dc)}
 	switch {
 	case hasDamage && out.SaveMade:
-		return fmt.Sprintf("  ✔ %s saves (%s) — %d %s damage (half).", name, rolled, out.Damage, dtype)
+		lines = append(lines, fmt.Sprintf("  ✔ %s saves — %d %s damage%s.", name, out.Damage, dtype, diceNote(spell, false, "half")))
 	case hasDamage:
-		return fmt.Sprintf("  ✘ %s fails (%s) — %d %s damage.", name, rolled, out.Damage, dtype)
+		lines = append(lines, fmt.Sprintf("  ✘ %s fails — %d %s damage%s.", name, out.Damage, dtype, diceNote(spell, false, "")))
 	case out.SaveMade:
-		return fmt.Sprintf("  ✔ %s saves (%s).", name, rolled)
+		lines = append(lines, fmt.Sprintf("  ✔ %s saves.", name))
+	default:
+		lines = append(lines, fmt.Sprintf("  ✘ %s fails.", name))
 	}
-	return fmt.Sprintf("  ✘ %s fails (%s).", name, rolled)
+	return lines
+}
+
+// diceNote is the dice a spell's damage line names, " (2d6)" or " (2d6, half)",
+// so the combat log throws the right dice. A crit doubles the dice.
+func diceNote(spell map[string]interface{}, crit bool, extra string) string {
+	dice := stringField(spell, "damage")
+	var n, sides int
+	if _, err := fmt.Sscanf(dice, "%dd%d", &n, &sides); err != nil || n <= 0 || sides <= 0 {
+		if extra != "" {
+			return " (" + extra + ")"
+		}
+		return ""
+	}
+	if crit {
+		n *= 2
+	}
+	label := fmt.Sprintf("%dd%d", n, sides)
+	if extra != "" {
+		label += ", " + extra
+	}
+	return " (" + label + ")"
+}
+
+// saveName capitalises a save's ability ("constitution" → "Constitution").
+func saveName(saveType string) string {
+	if saveType == "" {
+		return "saving"
+	}
+	return strings.ToUpper(saveType[:1]) + saveType[1:]
 }
 
 // enemyCount words how many enemies an area caught.

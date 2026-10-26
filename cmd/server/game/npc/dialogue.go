@@ -44,7 +44,7 @@ func HandleTalkToNPC(state *types.SaveFile, params map[string]interface{}, prese
 	}
 
 	// Resolve NPC schedule based on current time
-	scheduleInfo := ResolveNPCSchedule(&npcData, state.TimeOfDay)
+	scheduleInfo := ResolveNPCSchedule(&npcData, state.CurrentDay, state.TimeOfDay)
 
 	// Determine location type from location ID
 	locationType := DetermineLocationType(scheduleInfo.Location)

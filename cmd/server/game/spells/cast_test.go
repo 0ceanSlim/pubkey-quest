@@ -591,7 +591,7 @@ func TestCast_AreaEachCreatureSaves(t *testing.T) {
 	if res.Damage != 6 || res.SaveMade || res.DamageType != "fire" {
 		t.Errorf("primary: %d %s saved=%v", res.Damage, res.DamageType, res.SaveMade)
 	}
-	if len(res.Log) != 4 { // the cast + one line per creature
+	if len(res.Log) != 7 { // the cast + a roll line and an outcome line per creature
 		t.Errorf("log %q", res.Log)
 	}
 }

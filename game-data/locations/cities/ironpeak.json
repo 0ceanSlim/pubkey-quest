@@ -42,8 +42,8 @@
           "id": "miners_inn",
           "name": "The Pickaxe & Pint",
           "description": "A rowdy inn run by the sturdy dwarf Helga Stonebrew, where miners gather after long shifts underground. Loud rhythmic music echoes through the halls.",
-          "open": 1020,
-          "close": 120,
+          "open": 960,
+          "close": 660,
           "default_room": "tap_hall",
           "rooms": [
             { "id": "tap_hall", "name": "Tap Hall", "description": "A boisterous stone hall carved into the rock where off-shift miners pound the bar and the music shakes the dust from the rafters." },
@@ -68,8 +68,8 @@
           "id": "miners_guild",
           "name": "Miners' Guild Hall",
           "description": "The administrative center for all mining operations in the region.",
-          "open": 480,
-          "close": 1080
+          "open": -1,
+          "close": null
         },
         {
           "id": "helga_quarters",
@@ -100,7 +100,7 @@
           "id": "cart_station",
           "name": "Mine Cart Station",
           "description": "A depot where mine carts are loaded and dispatched to various mining sites.",
-          "open": "always",
+          "open": -1,
           "close": null
         },
         {
@@ -120,6 +120,13 @@
         {
           "id": "brogni_home",
           "name": "Brogni's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "orin_quarters",
+          "name": "Orin's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null

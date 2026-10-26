@@ -87,6 +87,17 @@ func activeMonsters(cs *types.CombatSession) []*types.MonsterInstance {
 	return out
 }
 
+// AllSlain reports whether every monster in the fight died — none fled or
+// slipped away. Only that counts as beating whatever a POI's monster node holds.
+func AllSlain(cs *types.CombatSession) bool {
+	for i := range cs.Monsters {
+		if cs.Monsters[i].IsAlive {
+			return false
+		}
+	}
+	return true
+}
+
 // FindMonster returns the monster with the given instance id, or nil.
 func FindMonster(cs *types.CombatSession, instanceID string) *types.MonsterInstance {
 	for i := range cs.Monsters {

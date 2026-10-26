@@ -322,6 +322,12 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 	c.context = old + "/nodes." + nodeID
 	defer func() { c.context = old }()
 
+	if n.Attempts < 0 || n.CooldownMinutes < 0 {
+		c.errf("attempts and cooldown_minutes can't be negative")
+	}
+	if (n.Attempts != 0 || n.CooldownMinutes != 0) && n.Type != types.POIStepCheck {
+		c.errf("attempts / cooldown_minutes only apply to check nodes")
+	}
 	switch n.Type {
 	case types.POIStepCheck, types.POIStepPassiveCheck:
 		c.checkSkill(n.Skill)

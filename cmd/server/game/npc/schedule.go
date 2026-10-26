@@ -5,39 +5,57 @@ import (
 	"strings"
 )
 
-// GetCurrentScheduleSlot finds the active schedule slot for a given time of day
-// timeOfDay: minutes from midnight (0-1439)
-// Returns: the active slot, or nil if no schedule exists
-func GetCurrentScheduleSlot(schedule []types.NPCScheduleSlot, timeOfDay int) *types.NPCScheduleSlot {
+// GetCurrentScheduleSlot finds the active schedule slot on a day (the save's
+// CurrentDay) at a time of day (minutes from midnight, 0-1439). An entry for
+// this day of the week ("days") wins over the everyday entries.
+// Returns nil if no schedule exists.
+func GetCurrentScheduleSlot(schedule []types.NPCScheduleSlot, day, timeOfDay int) *types.NPCScheduleSlot {
 	if len(schedule) == 0 {
 		return nil // No schedule defined, NPC uses default behavior
 	}
 
 	// Normalize time to 0-1439 range
-	normalizedTime := timeOfDay % 1440
-	if normalizedTime < 0 {
-		normalizedTime += 1440
+	t := ((timeOfDay % 1440) + 1440) % 1440
+	today := strings.ToLower(types.Weekday(day))
+	yesterday := strings.ToLower(types.Weekday(day - 1))
+
+	// This day's own entries first. One that wraps past midnight belongs to
+	// the day it started: its early-morning part is checked against yesterday.
+	for i := range schedule {
+		slot := &schedule[i]
+		if len(slot.Days) == 0 {
+			continue
+		}
+		if slot.End < slot.Start {
+			if (t >= slot.Start && hasDay(slot.Days, today)) || (t < slot.End && hasDay(slot.Days, yesterday)) {
+				return slot
+			}
+		} else if t >= slot.Start && t < slot.End && hasDay(slot.Days, today) {
+			return slot
+		}
 	}
 
 	for i := range schedule {
 		slot := &schedule[i]
-
-		// Handle slots that wrap around midnight
-		if slot.End < slot.Start {
-			// e.g., 22:00 (1320) to 06:00 (360)
-			if normalizedTime >= slot.Start || normalizedTime < slot.End {
-				return slot
-			}
-		} else {
-			// Normal slot within same day
-			if normalizedTime >= slot.Start && normalizedTime < slot.End {
-				return slot
-			}
+		if len(slot.Days) > 0 {
+			continue
+		}
+		if types.InWindow(t, slot.Start, slot.End) {
+			return slot
 		}
 	}
 
 	// Shouldn't happen if schedule covers full 24h, but fallback to first slot
 	return &schedule[0]
+}
+
+func hasDay(days []string, day string) bool {
+	for _, d := range days {
+		if strings.EqualFold(d, day) {
+			return true
+		}
+	}
+	return false
 }
 
 // DetermineLocationType determines if a location ID is a building or district
@@ -51,8 +69,8 @@ func DetermineLocationType(locationID string) string {
 }
 
 // ResolveNPCSchedule returns current schedule state for an NPC
-func ResolveNPCSchedule(npc *types.NPCData, timeOfDay int) *types.NPCScheduleInfo {
-	currentSlot := GetCurrentScheduleSlot(npc.Schedule, timeOfDay)
+func ResolveNPCSchedule(npc *types.NPCData, day, timeOfDay int) *types.NPCScheduleInfo {
+	currentSlot := GetCurrentScheduleSlot(npc.Schedule, day, timeOfDay)
 
 	if currentSlot == nil {
 		// No schedule - NPC is always available (fallback for NPCs without schedules)

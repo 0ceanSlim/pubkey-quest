@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
@@ -88,6 +89,16 @@ func gearAC(db *sql.DB, inventory map[string]interface{}, stats map[string]inter
 		contrib, isBase := parseItemAC(item, dexMod)
 		if contrib == 0 {
 			continue
+		}
+		// Worn armour protects less (degradation §4): −1, −2, or half its AC
+		// value when ruined. The value is the piece's own number, without DEX.
+		if gear, ok := inventory["gear_slots"].(map[string]interface{}); ok {
+			if slotMap, ok := gear[slot].(map[string]interface{}); ok {
+				if tier, _ := condition.WearTier(slotMap); tier != condition.Pristine {
+					value, _ := parseItemAC(item, 0)
+					contrib -= condition.ACPenalty(tier, value)
+				}
+			}
 		}
 
 		if isBase && !baseSet {

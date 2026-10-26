@@ -30,6 +30,8 @@ import { openWaystone } from './waystone.js';
 // whole game a second time (two music players, an empty second game state).
 import { openLockpicking } from './lockpicking.js';
 import { openStartingGear } from './startingGear.js';
+import { openSmithRepair } from './smithRepair.js';
+import { attachConditionBar, attachLightBar, attachWearBar, attachChargeBar } from './conditionBar.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
 async function depositInventoryToVault() {
@@ -86,7 +88,8 @@ async function fetchNPCsAtLocation(location, district, building = '', room = '')
         const params = new URLSearchParams({
             location: location,
             district: districtId,
-            time: timeOfDay.toString()
+            time: timeOfDay.toString(),
+            day: String(state.character?.current_day ?? 1)
         });
 
         if (building) {
@@ -522,6 +525,9 @@ export async function displayCurrentLocation() {
     } finally {
         // Always reset rendering flag
         isRendering = false;
+        // This render awaits the server (NPCs, rooms, POIs), so a fight can start
+        // while it's in flight and the buttons above land on top of combat's.
+        eventBus.emit('location:rendered');
     }
 }
 
@@ -1355,6 +1361,12 @@ export async function selectDialogueOption(npcId, choice) {
                 openStartingGear(result.data.open_starting_gear);
                 return;
             }
+            // A smith's "Repair my gear": the repair window.
+            if (result.data?.open_repair) {
+                closeNPCDialogue();
+                openSmithRepair(result.data.open_repair);
+                return;
+            }
 
             // Check if vault should open (check this first before close action)
             if (result.delta?.open_vault) {
@@ -1818,6 +1830,13 @@ export function createVaultEntry(entry, index) {
     quantityLabel.style.cssText = `font-size: 8px; padding: 1px 2px; color: ${fmt.color}; text-shadow: 1px 1px 0 #000;`;
     quantityLabel.textContent = fmt.text;
     cell.appendChild(quantityLabel);
+
+    // Its condition (degradation): food's freshness, a lamp's oil, wear, charges.
+    const st = entry.state || {};
+    attachConditionBar(cell, entry.item_id, st.t);
+    attachLightBar(cell, entry.item_id, st);
+    attachWearBar(cell, entry.item_id, st);
+    attachChargeBar(cell, entry.item_id, st);
 
     return cell;
 }

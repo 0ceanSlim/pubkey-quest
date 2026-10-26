@@ -52,6 +52,9 @@ type StepResult struct {
 	// keeping resolution pure. Empty/false on every other node type.
 	CheckSkill   string `json:"-"`
 	CheckSuccess bool   `json:"-"`
+	// Check is the roll an active check node made (nil on every other node),
+	// for the caller's retry limit.
+	Check *skillcheck.Result `json:"-"`
 
 	// Waypoint is the named spot this node reached (quest explore objectives).
 	Waypoint string `json:"-"`
@@ -148,6 +151,11 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		r := skillcheck.Resolve(checkValue(deps.Ctx, node.Skill), node.DC, deps.Rng)
 		res.CheckSkill = node.Skill
 		res.CheckSuccess = r.Success
+		if node.Type == types.POIStepCheck {
+			// An active check shows its dice; a passive one stays out of sight.
+			res.Check = &r
+			res.Outcome = append(res.Outcome, RollLine(node.Skill, r))
+		}
 		if r.Success {
 			res.Outcome = append(res.Outcome, nonEmpty(node.SuccessText, fmt.Sprintf("Success (%s check).", node.Skill)))
 			res.Next = node.SuccessNext

@@ -43,22 +43,29 @@
           "id": "grand_exchange",
           "name": "Grand Exchange",
           "description": "The financial heart of the city where currencies are exchanged and large transactions occur.",
-          "open": 480,
-          "close": 1080
+          "open": -1,
+          "close": null
         },
         {
           "id": "luxury_market",
           "name": "Golden Bazaar",
           "description": "An upscale market selling rare and exotic goods from across the world. Saphra Goldscale's stall of fine blades and jewellery holds pride of place under the gilded awning.",
-          "open": 420,
-          "close": 1260
+          "open": 480,
+          "close": 1200
         },
         {
           "id": "merchants_guild",
           "name": "Merchant Princes Guild",
           "description": "The most powerful guild in the city, controlling trade routes and merchant licenses.",
           "open": 480,
-          "close": 1140
+          "close": 1080
+        },
+        {
+          "id": "aldebrand_manor",
+          "name": "Aldebrand Manor",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         },
         {
           "id": "dawnflame_temple",
@@ -90,15 +97,15 @@
           "id": "customs_house",
           "name": "Customs House",
           "description": "Where all goods entering the city are inspected and taxed.",
-          "open": 360,
-          "close": 1320
+          "open": -1,
+          "close": null
         },
         {
           "id": "caravan_rest",
           "name": "Caravan Rest Inn",
           "description": "A large inn designed to accommodate merchant caravans and their guards.",
-          "open": 1020,
-          "close": 480,
+          "open": 960,
+          "close": 660,
           "default_room": "common_room",
           "rooms": [
             { "id": "common_room", "name": "Common Room", "description": "A broad common hall where caravan guards trade road stories over the front desk and a wide hearth." },
@@ -153,6 +160,13 @@
           "description": "Private quarters.",
           "open": -1,
           "close": null
+        },
+        {
+          "id": "dagna_quarters",
+          "name": "Dagna's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
         }
       ],
       "exit_to_environment": "cragspire-mountains"
@@ -170,15 +184,15 @@
           "id": "harbor_master",
           "name": "Harbor Master's Office",
           "description": "Where river passages are booked and barge cargo is registered.",
-          "open": 360,
-          "close": 1200
+          "open": -1,
+          "close": null
         },
         {
           "id": "sailors_tavern",
           "name": "The Salty Anchor",
           "description": "A rowdy port tavern owned by Bob Cellarman and run by Captain Reylia Stormwave, where bargemen, merchants, and adventurers gather for drinks, lodging, and loud music that carries across the river.",
-          "open": 1020,
-          "close": 120,
+          "open": 960,
+          "close": 660,
           "default_room": "taproom",
           "rooms": [
             { "id": "taproom", "name": "Taproom", "description": "The rowdy main floor where the bar runs the length of one wall and river shanties drown out the rush of the water." },
@@ -211,6 +225,13 @@
         {
           "id": "crusher_quarters",
           "name": "Crusher's Private Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "bob_quarters",
+          "name": "Bob's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null

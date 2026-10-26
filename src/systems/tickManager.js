@@ -19,7 +19,8 @@ import { deltaApplier } from './deltaApplier.js';
 import { gameAPI } from '../lib/api.js';
 import { eventBus } from '../lib/events.js';
 import { effectsDisplay } from '../ui/effectsDisplay.js';
-import { refreshGameState, setGroundItems } from '../state/gameState.js';
+import { refreshGameState, setGroundItems, getGameStateSync } from '../state/gameState.js';
+import { attachLightBar } from '../ui/conditionBar.js';
 
 // Constants
 const TICK_INTERVAL_MS = 417; // 1 in-game minute at 144x speed
@@ -125,6 +126,19 @@ class TickManager {
             // Discovered a POI while travelling — surface it (the server already
             // recorded it; this is just the notification) and refresh the travel
             // markers so the new point of interest appears on the progress bar.
+            // What the passing time did (food spoiling, starving): one log line each.
+            for (const n of data?.notices ?? []) window.showMessage?.(n, 'warning');
+
+            // The light in your hand burns down: keep its minutes fresh in the
+            // cached state, and its bar with them (a burnt-out torch leaves it).
+            const held = response.state?.inventory?.gear_slots?.offhand;
+            if (held !== undefined) {
+                const cached = getGameStateSync()?.character?.inventory?.gear_slots;
+                if (cached) cached.offhand = held;
+                attachLightBar(document.querySelector('[data-slot="offhand"]'), held?.item, held);
+                if (data?.notices?.length) window.updateCharacterDisplay?.();
+            }
+
             if (data && data.poi_discovered) {
                 window.showMessage?.(`🗺️ ${data.poi_discovered.message}`, 'info');
                 // On the road the server stopped you beside it: redraw the road

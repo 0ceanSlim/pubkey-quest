@@ -1,0 +1,109 @@
+{
+  "_comment": "Item condition (docs/draft/degradation-system.md §4–§5). durability.defaults: wear points an item takes from pristine to ruined, by item type (or \"shield\"). An item's own \"durability\": {\"max\": N} wins; \"durability\": false, quest items, ammunition and thrown-only weapons don't wear. Weapons wear 1 per damaging hit (2 on a crit); armour 1 per hit taken, on one worn piece (body, then legs, then shield). Tiers by durability left: Pristine 75%+, Worn 50%+ (-10% damage, -1 AC), Damaged 25%+ (-25%, -2 AC), Ruined (-50%, half its AC). repair: field repair (whetstone, crafting kit) only brings gear back up to Worn (field_up_to: the share of durability left it restores to); smiths, by NPC id, repair the materials they work, at cost x the item's value x the share of wear they mend, plus a material per 25% of wear mended where they want one. materials: what anything not listed is made of is metal. water: where a waterskin can be filled (degradation §7): every town (wells, inns), and these wild places (coast, swamp, forest streams).",
+  "durability": {
+    "defaults": {
+      "Simple Melee Weapons": 200,
+      "Simple Ranged Weapons": 200,
+      "Martial Melee Weapons": 300,
+      "Martial Ranged Weapons": 300,
+      "Light Armor": 250,
+      "Medium Armor": 300,
+      "Heavy Armor": 400,
+      "shield": 300
+    }
+  },
+  "materials": {
+    "wood": [
+      "club",
+      "greatclub",
+      "quarterstaff",
+      "shortbow",
+      "longbow",
+      "crossbow-light",
+      "crossbow-heavy",
+      "crossbow-hand",
+      "blowgun"
+    ],
+    "leather": [
+      "leather-vest",
+      "leather-leggings",
+      "studded-leather-vest",
+      "studded-leather-leggings",
+      "padded-gambeson",
+      "padded-leggings",
+      "whip",
+      "sling"
+    ],
+    "hide": [
+      "hide-cuirass",
+      "hide-chaps"
+    ]
+  },
+  "repair": {
+    "field_up_to": 0.74,
+    "whetstone": {
+      "minutes": 10,
+      "damage_types": [
+        "slashing",
+        "piercing"
+      ]
+    },
+    "crafting_kit": {
+      "minutes": 30,
+      "skill": "crafting",
+      "dc": 12
+    },
+    "smiths": {
+      "master-smith": {
+        "materials": [
+          "metal"
+        ],
+        "cost": 1.5
+      },
+      "forgemistress": {
+        "materials": [
+          "metal"
+        ],
+        "cost": 0.6,
+        "material": "iron-ore"
+      },
+      "war-gear-trader": {
+        "materials": [
+          "metal",
+          "wood",
+          "leather",
+          "hide"
+        ],
+        "cost": 0.5,
+        "up_to": "worn"
+      },
+      "master-bowyer": {
+        "materials": [
+          "wood",
+          "leather"
+        ],
+        "cost": 1.0,
+        "discount": {
+          "item": "owlbear-fur",
+          "percent": 50
+        }
+      },
+      "fur-trader": {
+        "materials": [
+          "hide",
+          "leather"
+        ],
+        "cost": 0.6,
+        "material": "owlbear-fur"
+      }
+    }
+  },
+  "water": {
+    "towns": true,
+    "environments": [
+      "suncrest-coastlands",
+      "shadowmere-wetlands",
+      "darkwood-forest"
+    ]
+  }
+}

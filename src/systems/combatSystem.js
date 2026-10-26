@@ -1185,6 +1185,15 @@ eventBus.on('gameStateLoaded', checkActiveCombatOnLoad);
 // with the server-supplied state (same payload shape as a manual combat start).
 eventBus.on('combat:started', enterCombatMode);
 
+// A location render that was in flight when the fight started (the post-combat
+// refresh racing the next wave) has just drawn the room's buttons over ours —
+// take the bar back.
+eventBus.on('location:rendered', () => {
+    if (_actionBarOwner !== 'combat' || !_lastState) return;
+    restoreActionButtonsLayout();
+    _renderCombatButtons(_lastState);
+});
+
 // ─── Left text-box replacement ────────────────────────────────────────────────
 function _replaceGameText() {
     const gameText = $id('game-text');
@@ -1295,7 +1304,7 @@ function _rollSides(line) {
 // _damageDice reads the dice a damage line names: "You deal 9 slashing damage
 // (1d8)." → { sides: 8, label: '1d8' }. Lines without them fall back to a d6.
 function _damageDice(line) {
-    const m = line.match(/damage\s*\((\d+)d(\d+)([+-]\d+)?\)/i);
+    const m = line.match(/damage\s*\((\d+)d(\d+)([+-]\d+)?[),]/i);
     if (!m) return { sides: 6, label: 'dmg' };
     return {
         sides: parseInt(m[2], 10), label: `${m[1]}d${m[2]}${m[3] ?? ''}`,
@@ -1334,6 +1343,11 @@ function _splitRoll(total, count, sides, mod) {
 function _diceRoller(line, cs = _lastState) {
     const L = line.trim().replace(/^[⚡📯👁🧭]\s*/u, '');
     if (/^(You\b|Opportunity attack! You|Death saving throw|Stealth:|Survival:)/i.test(L) || /reflex save/i.test(L)) {
+        return { name: 'You', side: 'you' };
+    }
+    // A spell's damage ("💥 Fire Bolt strikes for 7…", "✘ Goblin fails — 7 fire
+    // damage") is the caster's dice, not the target's.
+    if (/strikes(?: automatically)? for \d|—\s*\d+\s+\w+\s+damage/i.test(L)) {
         return { name: 'You', side: 'you' };
     }
     const m = L.match(/^(.+?)\s+(?:attacks\b|rolled\b|deals\b|takes an opportunity attack|calls a retreat)/i);
@@ -1458,7 +1472,9 @@ function _syncHPBars(cs) {
 // _diceDamageNumber extracts the rolled damage from a damage line. Returns
 // null when the line isn't a damage announcement.
 function _diceDamageNumber(line) {
-    const m = line.match(/(?:You deal|deals)\s+(\d+)\s+\w+\s+damage/i);
+    // Weapons ("You deal 7", "Goblin deals 4") and spells ("Fire Bolt strikes
+    // for 7", "Goblin fails — 7 fire damage").
+    const m = line.match(/(?:You deal|deals|strikes(?: automatically)? for|—)\s+(\d+)\s+\w+\s+damage/i);
     if (!m) return null;
     const n = parseInt(m[1], 10);
     if (!Number.isFinite(n) || n < 0) return null;

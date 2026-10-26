@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"pubkey-quest/cmd/server/game/condition"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
@@ -89,7 +90,7 @@ func CanSleepNow(timeOfDay int) bool {
 // for the building, standing in the rented-state room (when the building has
 // rooms), and a time after 9 PM. A night's sleep uses the rental up: it ends at
 // the morning check-out (CheckoutTime).
-func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	buildingID := state.Building
 	if buildingID == "" {
 		log.Printf("😴 sleep rejected: not in a building (location=%s room=%q)", state.Location, state.Room)
@@ -170,7 +171,7 @@ func HasBedding(state *types.SaveFile) bool {
 // environment (not a town). A bedroll makes for a decent camp, a blanket a
 // thinner one; without either it's a rough sleep that recovers less fatigue. No breakfast out here, so hunger isn't
 // restored — you wake a little hungrier. Same night-time gate as an inn.
-func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	if state.Building != "" {
 		return &types.GameActionResponse{Success: false, Message: "You're indoors — rent a room to sleep here.", Color: "yellow"}, nil
 	}
@@ -193,7 +194,7 @@ func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProv
 
 // HandleCampSleepAction sleeps out in the wild under a party's camp set: the
 // tent and bedding put everyone at bedroll comfort, whatever they carry.
-func HandleCampSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+func HandleCampSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	if !CanSleepNow(state.TimeOfDay) {
 		return &types.GameActionResponse{Success: false, Message: "It's not time to sleep yet — make camp after 9 PM.", Color: "yellow"}, nil
 	}
@@ -204,7 +205,7 @@ func HandleCampSleepAction(state *types.SaveFile, session SleepSessionProvider, 
 // restore HP/mana in proportion to how long was slept (so it scales with level),
 // restore fatigue scaled by bed comfort × bedtime × hours, optionally restore
 // hunger (paid lodging only), then advance time and refresh the world.
-func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, session SleepSessionProvider, npcIdsFunc func(string, string, string, string, int) []string) (*types.GameActionResponse, error) {
+func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	oldTime := state.TimeOfDay
 
 	// Sleep until 6 AM (next day if already past it).
@@ -229,8 +230,13 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 		bedtime = 0.7
 	}
 
-	// Duration-based buffs/debuffs expire over the time slept.
+	// Duration-based buffs/debuffs expire over the time slept, and food ages.
 	effects.TickDownEffectDurations(state, minutesSlept)
+	spoiled := condition.SpoilSlots(gameutil.CarriedSlotArrays(state), condition.Now(state))
+	var vaultSpoiled []string
+	state.Vault, vaultSpoiled = condition.SpoilVault(state.Vault, condition.Now(state))
+	spoiled = append(spoiled, vaultSpoiled...)
+	spoiled = append(spoiled, condition.BurnHeld(state, minutesSlept)...) // a light left burning
 
 	// HP/mana — proportional to time slept, scaled to Max (so it scales with level).
 	hpGain, manaGain := status.RestoreVitalsForRest(state, minutesSlept)
@@ -247,10 +253,7 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 	// Hunger — only paid lodging includes breakfast. Out in the wild the night's
 	// calorie burn leaves you a step hungrier.
 	if restoreHunger {
-		state.Hunger = 2 // Well Fed
-		status.ResetHungerAccumulator(state)
-		status.UpdateHungerPenaltyEffects(state)
-		status.EnsureHungerAccumulation(state)
+		status.WakeWellFed(state) // Well Fed with a full bar, unless you went to bed fuller
 	} else if minutesSlept >= 240 && state.Hunger > 0 {
 		state.Hunger--
 		status.UpdateHungerPenaltyEffects(state)
@@ -265,7 +268,7 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 		if buildingStates, err := building.GetAllBuildingStatesForDistrict(database, state.Location, state.District, newTime); err == nil && len(buildingStates) > 0 {
 			session.UpdateBuildingStates(buildingStates, newTime)
 		}
-		npcIDs := npcIdsFunc(state.Location, state.District, state.Building, state.Room, newTime)
+		npcIDs := npcIdsFunc(state.Location, state.District, state.Building, state.Room, state.CurrentDay, newTime)
 		session.UpdateNPCsAtLocation(npcIDs, newTime/60)
 	}
 
@@ -284,6 +287,9 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 	}
 	if hpGain > 0 || manaGain > 0 {
 		msg += fmt.Sprintf(" (+%d HP, +%d mana)", hpGain, manaGain)
+	}
+	for _, s := range spoiled {
+		msg += " 🍂 " + s
 	}
 
 	return &types.GameActionResponse{

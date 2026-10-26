@@ -28,7 +28,7 @@
     },
     {
       "start": 420,
-      "end": 1320,
+      "end": 1260,
       "location": "kingdom_general_store",
       "state": "working",
       "dialogue_options": [
@@ -39,8 +39,8 @@
       ]
     },
     {
-      "start": 1320,
-      "end": 1380,
+      "start": 1260,
+      "end": 1320,
       "location": "kingdom-center",
       "state": "traveling",
       "dialogue_options": [
@@ -49,7 +49,7 @@
       "available_actions": []
     },
     {
-      "start": 1380,
+      "start": 1320,
       "end": 1440,
       "location": "aldric_home",
       "state": "home",
@@ -57,6 +57,33 @@
         "off_duty"
       ],
       "available_actions": []
+    },
+    {
+      "start": 1320,
+      "end": 1440,
+      "location": "tavern_golden_griffin",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "toilday",
+        "fairday"
+      ]
+    },
+    {
+      "start": 1320,
+      "end": 1380,
+      "location": "kingdom-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {
@@ -235,6 +262,31 @@
         "item_id": "perfume-vial",
         "stock": 4,
         "max_stock": 4
+      },
+      {
+        "item_id": "bread",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "cheese",
+        "stock": 6,
+        "max_stock": 6
+      },
+      {
+        "item_id": "apple",
+        "stock": 12,
+        "max_stock": 12
+      },
+      {
+        "item_id": "jerky",
+        "stock": 8,
+        "max_stock": 8
+      },
+      {
+        "item_id": "salt",
+        "stock": 10,
+        "max_stock": 10
       }
     ]
   }

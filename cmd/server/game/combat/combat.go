@@ -900,6 +900,14 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	dmg, riderLog := applyPlayerDamageRiders(state, dmg, result.IsCrit)
 	log = append(log, riderLog...)
 
+	// Wear (degradation §4): a worn weapon hits softer, and every damaging hit
+	// wears it a little more. A thrown weapon is spent, so it doesn't wear.
+	if !isUnarmed && !thrown && item != nil {
+		var wearLog []string
+		dmg, wearLog = weaponWear(save, weaponSlot, stringOf(item["name"]), dmg, result.IsCrit)
+		log = append(log, wearLog...)
+	}
+
 	applyDamageToMonster(monster, dmg)
 
 	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)

@@ -14,6 +14,7 @@
 
 import { logger } from '../lib/logger.js';
 import { eventBus } from '../lib/events.js';
+import { weekdayOf } from '../config/constants.js';
 
 // Constants
 const TIME_MULTIPLIER = 144; // 144x real-time speed
@@ -177,7 +178,7 @@ class SmoothClock {
         }
 
         const timeStr = this.formatTimeAMPM(this.gameTime);
-        const dayStr = `Day ${this.gameDay}`;
+        const dayStr = `Day ${this.gameDay} · ${weekdayOf(this.gameDay)}`;
         const currentHour = Math.floor(this.gameTime / 60) % 24;
 
         // Re-fetch DOM elements if not cached or if stale (detached from DOM)

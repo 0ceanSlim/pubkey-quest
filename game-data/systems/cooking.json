@@ -1,0 +1,10 @@
+{
+  "_comment": "Cooking at inns (docs/draft/food-system.md §4–§5). Every innkeeper (an NPC who rents rooms) offers \"Order a hot meal\" (pay, eat it on the spot: its hours of fullness and its buff) and \"Cook my food\" (cook_cost gold per raw food you carry, no wait; innkeepers don't salt). Meal buffs are one at a time: a new meal's effect replaces any in meal_effects. Cooking in the wild (a tinderbox fire, 30 minutes) and salting are item data: a raw food's \"cook\" and \"salt\".",
+  "inn": {
+    "cook_cost": 2,
+    "meals": [
+      { "id": "hearty-stew", "name": "Hearty Stew", "cost": 30, "hours": 8, "effect": "meal-hearty" }
+    ]
+  },
+  "meal_effects": ["meal-hearty"]
+}

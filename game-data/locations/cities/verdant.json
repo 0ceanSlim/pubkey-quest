@@ -76,8 +76,8 @@
           "id": "moonlit_glade_inn",
           "name": "The Moonlit Glade",
           "description": "A serene inn built among ancient trees, run by the gentle druid Faelyn Nightbreeze. Soft music flows through the branches as nature-loving guests rest beneath the stars.",
-          "open": 1020,
-          "close": 120,
+          "open": 960,
+          "close": 660,
           "default_room": "great_bough",
           "rooms": [
             { "id": "great_bough", "name": "The Great Bough", "description": "A tranquil common room grown into a vast living tree, where the bar curls along a mossy root and soft music drifts down from the branches." },

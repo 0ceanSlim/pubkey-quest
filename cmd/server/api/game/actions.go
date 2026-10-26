@@ -254,7 +254,7 @@ var combatBlockedActions = map[string]bool{
 	"move_to_room": true, "move": true, "talk_to_npc": true,
 	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
-	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true,
+	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true, "use_on": true, "shutter": true, "smith_repair": true, "cook": true,
 }
 
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
@@ -698,7 +698,8 @@ func effectiveDiscoveryChance(chance float64) float64 {
 // the chance as given (already the effective, per-member chance).
 func discoveryRollOnce(poi types.POIData, state *SaveFile, rng *rand.Rand) bool {
 	if poi.Discovery.Skill != "" && poi.Discovery.DC > 0 {
-		if skillcheck.Passive(buildQuestContext(state).SkillValue(poi.Discovery.Skill), poi.Discovery.DC) {
+		// On the road: travel tools and your light count (a bullseye's beam).
+		if skillcheck.Passive(buildTravelContext(state).SkillValue(poi.Discovery.Skill), poi.Discovery.DC) {
 			return true
 		}
 	}
@@ -836,6 +837,23 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleSleepAction(session, action.Params)
 	case "wait":
 		return handleWaitAction(session, action.Params)
+	case "use_targets":
+		// A tool's "Use on…" picker: what it works on that you carry.
+		toolID, _ := action.Params["item_id"].(string)
+		return &GameActionResponse{Success: true, Data: map[string]interface{}{"targets": inventory.UseTargets(state, toolID)}}, nil
+	case "shutter":
+		return inventory.ToggleShutter(state), nil
+	case "smith_repair":
+		return handleSmithRepair(session, action.Params)
+	case "use_on":
+		toolID, _ := action.Params["item_id"].(string)
+		return inventory.UseOn(state, toolID, slotRefFrom(action.Params))
+	case "cook":
+		return inventory.CookAll(state), nil
+	case "drink":
+		return handleDrink(state, action.Params)
+	case "fill_water":
+		return handleFillWater(state)
 	case "use_homeward_stone":
 		return handleUseHomewardStone(session, action.Params)
 	case "waystone_hop":
@@ -995,13 +1013,13 @@ func handleDropItemAction(session *GameSession, state *SaveFile, params map[stri
 	for k, v := range params {
 		paramsIface[k] = v
 	}
-	resp, dropped, err := inventory.HandleDropItemAction(state, paramsIface)
+	resp, dropped, dropState, err := inventory.HandleDropItemAction(state, paramsIface)
 	if err != nil {
 		return nil, err
 	}
 	if resp != nil && resp.Success && dropped > 0 {
 		itemID, _ := params["item_id"].(string)
-		session.Ground.Add(world.GroundKey(state), itemID, dropped)
+		session.Ground.AddWithState(world.GroundKey(state), itemID, dropped, dropState)
 	}
 	if resp != nil {
 		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, nil
@@ -1047,18 +1065,19 @@ func handlePickupItemAction(session *GameSession, state *SaveFile, params map[st
 		}
 	}
 
-	taken := session.Ground.Take(key, itemID, want)
+	taken, itemState := session.Ground.TakeWithState(key, itemID, want)
 	if taken <= 0 {
 		return nil, fmt.Errorf("%s is not on the ground here", itemID)
 	}
 
-	added, err := inventory.AddItemToInventory(state, itemID, taken)
+	// It comes back as it was left: a dropped fish keeps aging.
+	added, err := inventory.AddItemWithState(state, itemID, taken, itemState)
 	if err != nil {
-		session.Ground.Add(key, itemID, taken) // roll back — never lose it
+		session.Ground.AddWithState(key, itemID, taken, itemState) // roll back — never lose it
 		return nil, err
 	}
 	if added < taken {
-		session.Ground.Add(key, itemID, taken-added) // inventory full — leave the rest
+		session.Ground.AddWithState(key, itemID, taken-added, itemState) // inventory full — leave the rest
 	}
 	if added > 0 {
 		noteAcquired(state, itemID)
@@ -1582,6 +1601,8 @@ func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameAc
 			}
 			addLabelledOptions(resp, npcID, state)
 			injectQuestOptions(resp, npcID, state)
+			injectRepairOption(resp, npcID, state)
+			injectInnOptions(resp, npcID, state)
 		}
 	}
 	if resp != nil {
@@ -1613,6 +1634,12 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 	}
 	npcID, _ := params["npc_id"].(string)
 	choice, _ := params["choice"].(string)
+	if choice == repairChoice {
+		return openRepair(session, npcID), nil
+	}
+	if resp := handleInnChoice(session, npcID, choice); resp != nil {
+		return resp, nil
+	}
 	// A labelled option (opt:<node>:<i>): check its requirements, take its
 	// cost, then carry on to the node it leads to.
 	if strings.HasPrefix(choice, optKeyPrefix) {

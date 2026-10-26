@@ -162,7 +162,7 @@
         "start": "advice",
         "nodes": {
           "advice": {
-            "text": "\"First time out? Then rations, friend, before anything else.\" Aldric taps a stack of oilcloth bundles. \"One's a day's food. It never spoils, and when your belly says Hungry, eat one: right-click it in your bag, then Eat. A torch for the dark, a rope if you're climbing. Have a browse.\"",
+            "text": "\"First time out? Then rations, friend, before anything else.\" Aldric taps a stack of oilcloth bundles. \"One's a good meal, half a day's going. It never spoils, and when your belly says Hungry, eat one: right-click it in your bag, then Eat. A torch for the dark, a rope if you're climbing. Have a browse.\"",
             "options": [
               "how-buy"
             ]

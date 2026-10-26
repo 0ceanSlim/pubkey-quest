@@ -8,7 +8,7 @@
   "schedule": [
     {
       "start": 0,
-      "end": 240,
+      "end": 120,
       "location": "miners_inn",
       "room": "tap_hall",
       "state": "working",
@@ -22,8 +22,46 @@
       ]
     },
     {
-      "start": 240,
+      "start": 120,
       "end": 360,
+      "location": "miners_inn",
+      "room": "tap_hall",
+      "state": "sleeping",
+      "dialogue_options": [
+        "night_bell"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 360,
+      "end": 660,
+      "location": "miners_inn",
+      "room": "tap_hall",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 660,
+      "end": 720,
+      "location": "ironpeak-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 720,
+      "end": 900,
       "location": "helga_quarters",
       "state": "sleeping",
       "dialogue_options": [
@@ -32,17 +70,17 @@
       "available_actions": []
     },
     {
-      "start": 360,
-      "end": 420,
-      "location": "helga_quarters",
-      "state": "home",
+      "start": 900,
+      "end": 960,
+      "location": "ironpeak-center",
+      "state": "traveling",
       "dialogue_options": [
         "off_duty"
       ],
       "available_actions": []
     },
     {
-      "start": 420,
+      "start": 960,
       "end": 1440,
       "location": "miners_inn",
       "room": "tap_hall",
@@ -128,6 +166,13 @@
     "goodbye": {
       "text": "May yer path be as steady as stone!",
       "action": "end_dialogue"
+    },
+    "night_bell": {
+      "text": "*You ring the little bell on the counter. After a while Helga shuffles out from the back, bleary-eyed.* A room, at this hour? Aye, there's a bed made up.",
+      "options": [
+        "ask_rent_room",
+        "goodbye"
+      ]
     }
   },
   "shop_config": {
@@ -146,6 +191,11 @@
         "max_stock": 60,
         "restock_rate": 15,
         "restock_interval": "hourly"
+      },
+      {
+        "item_id": "bread",
+        "stock": 12,
+        "max_stock": 12
       }
     ]
   },

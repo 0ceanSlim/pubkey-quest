@@ -8,37 +8,85 @@
   "schedule": [
     {
       "start": 0,
-      "end": 240,
+      "end": 120,
       "location": "desert_inn",
       "room": "shaded_hall",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["rent_room"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
     },
     {
-      "start": 240,
-      "end": 540,
+      "start": 120,
+      "end": 360,
+      "location": "desert_inn",
+      "room": "shaded_hall",
+      "state": "sleeping",
+      "dialogue_options": [
+        "night_bell"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 360,
+      "end": 660,
+      "location": "desert_inn",
+      "room": "shaded_hall",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 660,
+      "end": 720,
+      "location": "dusthaven-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 720,
+      "end": 900,
       "location": "zahra_quarters",
       "state": "sleeping",
-      "dialogue_options": ["sleeping"],
+      "dialogue_options": [
+        "sleeping"
+      ],
       "available_actions": []
     },
     {
-      "start": 540,
-      "end": 1140,
-      "location": "zahra_quarters",
-      "state": "home",
-      "dialogue_options": ["off_duty"],
+      "start": 900,
+      "end": 960,
+      "location": "dusthaven-center",
+      "state": "traveling",
+      "dialogue_options": [
+        "off_duty"
+      ],
       "available_actions": []
     },
     {
-      "start": 1140,
+      "start": 960,
       "end": 1440,
       "location": "desert_inn",
       "room": "shaded_hall",
       "state": "working",
-      "dialogue_options": ["main_menu"],
-      "available_actions": ["rent_room"]
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
     }
   ],
   "greeting": {
@@ -75,6 +123,13 @@
     "goodbye": {
       "text": "May you find shade and water on the road ahead.",
       "action": "end_dialogue"
+    },
+    "night_bell": {
+      "text": "*You ring the little bell on the counter. After a while Zahra shuffles out from the back, bleary-eyed.* A room, at this hour? Aye, there's a bed made up.",
+      "options": [
+        "ask_rent_room",
+        "goodbye"
+      ]
     }
   },
   "inn_config": {

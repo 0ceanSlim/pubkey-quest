@@ -4,7 +4,8 @@
   "image": "/res/img/items/waterskin.png",
   "name": "Waterskin",
   "notes": [
-    "No use in play yet."
+    "Holds 5 drinks. Fill it in any town, or at the coast, in the swamp or by a forest stream.",
+    "Drinking matters in the desert once its heat does (coming with camping)."
   ],
   "value": 20,
   "rarity": "common",
@@ -13,5 +14,10 @@
     "camping"
   ],
   "type": "Adventuring Gear",
-  "weight": 5
+  "weight": 5,
+  "charges": {
+    "max": 5,
+    "refill": "water",
+    "noun": "drinks"
+  }
 }

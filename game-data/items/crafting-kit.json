@@ -8,7 +8,7 @@
   "name": "Crafting Kit",
   "notes": [
     "+2 Crafting while carried. Only the best carried bonus to a skill counts.",
-    "No crafting in play yet."
+    "Mend…: 30 minutes and a Crafting check (DC 12) bring worn armour, a shield or a blunt or ranged weapon back up to Worn; a failed check mends half as much. Only a smith makes it new."
   ],
   "value": 2000,
   "rarity": "common",
@@ -17,5 +17,6 @@
     "tool"
   ],
   "type": "Tools",
-  "weight": 8
+  "weight": 8,
+  "use_on": "mend"
 }

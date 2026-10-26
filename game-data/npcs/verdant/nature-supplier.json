@@ -19,7 +19,7 @@
     {
       "start": 420,
       "end": 480,
-      "location": "verdant-center",
+      "location": "verdant-west",
       "state": "traveling",
       "dialogue_options": [
         "traveling_to_work"
@@ -41,7 +41,7 @@
     {
       "start": 1200,
       "end": 1260,
-      "location": "verdant-center",
+      "location": "verdant-west",
       "state": "traveling",
       "dialogue_options": [
         "traveling_home"
@@ -51,13 +51,39 @@
     {
       "start": 1260,
       "end": 1440,
-      "location_type": "building",
-      "location_id": "thalindra_grove",
+      "location": "thalindra_grove",
       "state": "home",
       "dialogue_options": [
         "off_duty"
       ],
       "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1380,
+      "location": "moonlit_glade_inn",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "firstday",
+        "restday"
+      ]
+    },
+    {
+      "start": 1260,
+      "end": 1320,
+      "location": "verdant-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "marketday"
+      ]
     }
   ],
   "greeting": {
@@ -233,6 +259,16 @@
         "item_id": "fishing-rod",
         "stock": 3,
         "max_stock": 3
+      },
+      {
+        "item_id": "apple",
+        "stock": 15,
+        "max_stock": 15
+      },
+      {
+        "item_id": "bread",
+        "stock": 8,
+        "max_stock": 8
       }
     ]
   }

@@ -1,0 +1,26 @@
+{
+  "id": "cooked-fish",
+  "name": "Cooked Fish",
+  "description": "A fish grilled whole over the coals, the skin crisp and the flesh flaking.",
+  "type": "Food",
+  "value": 20,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/cooked-fish.png",
+  "tags": [
+    "consumable",
+    "food",
+    "fish"
+  ],
+  "notes": [
+    "Keeps you fed 4 hours.",
+    "Spoils in 2 days."
+  ],
+  "food": {
+    "hours": 4
+  },
+  "spoils": {
+    "shelf_life": 2880
+  }
+}

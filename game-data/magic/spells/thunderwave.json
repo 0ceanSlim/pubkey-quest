@@ -19,6 +19,7 @@
     "shape": "self_radius",
     "radius": 1
   },
+  "push": 2,
   "tags": [
     "combat",
     "damage",
@@ -38,8 +39,7 @@
   "prep_time": 75,
   "notes": [
     "Area: every enemy in the cells around you (a 15-foot cube's worth) saves on its own",
-    "Constitution save for half damage; full failure also pushes 10 ft away",
-    "Push mechanic noted — engine push support tracked in spell-mechanics-proposals.md"
+    "Constitution save for half damage; a failed save also pushes it 10 ft (2 squares) straight away from you, stopping at a wall or another creature"
   ],
   "material_component": {
     "required": [],

@@ -8,7 +8,7 @@
   "schedule": [
     {
       "start": 0,
-      "end": 420,
+      "end": 480,
       "location": "melodia_home",
       "state": "sleeping",
       "dialogue_options": [
@@ -17,8 +17,8 @@
       "available_actions": []
     },
     {
-      "start": 420,
-      "end": 480,
+      "start": 480,
+      "end": 540,
       "location": "kingdom-east",
       "state": "traveling",
       "dialogue_options": [
@@ -27,8 +27,8 @@
       "available_actions": []
     },
     {
-      "start": 480,
-      "end": 1260,
+      "start": 540,
+      "end": 1200,
       "location": "kingdom_instrument_shop",
       "state": "working",
       "dialogue_options": [
@@ -39,8 +39,8 @@
       ]
     },
     {
-      "start": 1260,
-      "end": 1320,
+      "start": 1200,
+      "end": 1260,
       "location": "kingdom-east",
       "state": "traveling",
       "dialogue_options": [
@@ -49,7 +49,7 @@
       "available_actions": []
     },
     {
-      "start": 1320,
+      "start": 1260,
       "end": 1440,
       "location": "melodia_home",
       "state": "home",
@@ -57,6 +57,21 @@
         "off_duty"
       ],
       "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1380,
+      "location": "tavern_golden_griffin",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "midweek",
+        "fairday",
+        "marketday"
+      ]
     }
   ],
   "greeting": {

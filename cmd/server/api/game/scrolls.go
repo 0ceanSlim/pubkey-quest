@@ -90,6 +90,9 @@ func ScribeHandler(w http.ResponseWriter, r *http.Request) {
 		msg = fmt.Sprintf("The ink blots and the scroll of %s is ruined (rolled %d, needed %d or less). The materials are spent.", res.Name, res.Roll, res.Chance)
 		color = "red"
 	}
+	for _, name := range res.UsedUp {
+		msg += fmt.Sprintf(" That was the last of your %s.", name)
+	}
 	log.Printf("📜 Scribe %s for %s: roll %d vs %d%% → scribed=%v", req.SpellID, req.Npub, res.Roll, res.Chance, res.Scribed)
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "message": msg, "color": color, "data": res})
 }

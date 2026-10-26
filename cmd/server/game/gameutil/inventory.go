@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/types"
 )
 
@@ -150,7 +151,7 @@ func DeductGold(state *types.SaveFile, amount int) bool {
 
 // PlayerHasItem checks if player has an item in inventory
 func PlayerHasItem(state *types.SaveFile, itemID string) bool {
-	for _, slots := range carriedSlotArrays(state) {
+	for _, slots := range CarriedSlotArrays(state) {
 		for _, raw := range slots {
 			if slot, ok := raw.(map[string]interface{}); ok {
 				if item, _ := slot["item"].(string); item == itemID {
@@ -196,6 +197,7 @@ func AddGoldToInventory(inventory map[string]interface{}, goldAmount int) error 
 		// Found empty slot - add gold here
 		if slot["item"] == nil || slot["item"] == "" {
 			slot["item"] = "gold-piece"
+			condition.ClearState(slot) // a reused slot keeps nothing of its last item
 			slot["quantity"] = goldAmount
 			log.Printf("✅ Added %dg to general_slots[%d]", goldAmount, i)
 			return nil
@@ -231,6 +233,7 @@ func AddGoldToInventory(inventory map[string]interface{}, goldAmount int) error 
 					// Found empty slot
 					if slot["item"] == nil || slot["item"] == "" {
 						slot["item"] = "gold-piece"
+						condition.ClearState(slot) // a reused slot keeps nothing of its last item
 						slot["quantity"] = goldAmount
 						log.Printf("✅ Added %dg to backpack[%d]", goldAmount, i)
 						return nil
@@ -249,7 +252,7 @@ func AddGoldToInventory(inventory map[string]interface{}, goldAmount int) error 
 // answer "do you have five of these?" — what an item turn-in needs.
 func CountItem(state *types.SaveFile, itemID string) int {
 	total := 0
-	for _, slots := range carriedSlotArrays(state) {
+	for _, slots := range CarriedSlotArrays(state) {
 		for _, raw := range slots {
 			slot, ok := raw.(map[string]interface{})
 			if !ok {
@@ -281,7 +284,7 @@ func ConsumeItem(state *types.SaveFile, itemID string, quantity int) bool {
 	}
 
 	remaining := quantity
-	for _, slots := range carriedSlotArrays(state) {
+	for _, slots := range CarriedSlotArrays(state) {
 		for _, raw := range slots {
 			if remaining <= 0 {
 				return true
@@ -312,16 +315,74 @@ func ConsumeItem(state *types.SaveFile, itemID string, quantity int) bool {
 				remaining -= held
 				slot["item"] = nil
 				slot["quantity"] = 0
+				condition.ClearState(slot)
 			}
 		}
 	}
 	return remaining == 0
 }
 
-// carriedSlotArrays returns the slot arrays the player carries items in: the
+// SpendCharge spends one charge of a carried item with charges (degradation
+// §7), from the one with the fewest left so a part-used one is finished
+// first. An item that can't be refilled is used up on its last charge. found
+// is false when nothing carried has a charge left.
+func SpendCharge(state *types.SaveFile, itemID string) (left int, usedUp, found bool) {
+	var pick map[string]interface{}
+	for _, slots := range CarriedSlotArrays(state) {
+		for _, raw := range slots {
+			slot, ok := raw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if id, _ := slot["item"].(string); id != itemID {
+				continue
+			}
+			if n := condition.ChargesLeft(slot); n > 0 && (pick == nil || n < condition.ChargesLeft(pick)) {
+				pick = slot
+			}
+		}
+	}
+	if pick == nil {
+		return 0, false, false
+	}
+	left, usedUp = condition.UseCharge(pick)
+	if usedUp {
+		// One is used up; any others stacked with it (older saves) are new.
+		qty := 0
+		switch v := pick["quantity"].(type) {
+		case float64:
+			qty = int(v)
+		case int:
+			qty = v
+		}
+		if qty > 1 {
+			pick["quantity"] = qty - 1
+		} else {
+			pick["item"], pick["quantity"] = nil, 0
+		}
+		condition.ClearState(pick)
+	}
+	return left, usedUp, true
+}
+
+// HasCharge reports whether a carried item has a charge left.
+func HasCharge(state *types.SaveFile, itemID string) bool {
+	for _, slots := range CarriedSlotArrays(state) {
+		for _, raw := range slots {
+			if slot, ok := raw.(map[string]interface{}); ok {
+				if id, _ := slot["item"].(string); id == itemID && condition.ChargesLeft(slot) > 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// CarriedSlotArrays returns the slot arrays the player carries items in: the
 // general slots, the equipped backpack's contents, and the contents of any
 // container sitting in those (a keyring, a pouch of lockpicks).
-func carriedSlotArrays(state *types.SaveFile) [][]interface{} {
+func CarriedSlotArrays(state *types.SaveFile) [][]interface{} {
 	var out [][]interface{}
 	if generalSlots, ok := state.Inventory["general_slots"].([]interface{}); ok {
 		out = append(out, generalSlots)
@@ -375,11 +436,11 @@ func CarriedSkillBonus(state *types.SaveFile, travelling bool) map[string]int {
 }
 
 // CarriedItemIDs lists the distinct items the player carries (see
-// carriedSlotArrays) — for "while carried" bonuses like a kit's skill bonus.
+// CarriedSlotArrays) — for "while carried" bonuses like a kit's skill bonus.
 func CarriedItemIDs(state *types.SaveFile) []string {
 	seen := map[string]bool{}
 	var ids []string
-	for _, slots := range carriedSlotArrays(state) {
+	for _, slots := range CarriedSlotArrays(state) {
 		for _, raw := range slots {
 			if slot, ok := raw.(map[string]interface{}); ok {
 				if id, _ := slot["item"].(string); id != "" && !seen[id] {

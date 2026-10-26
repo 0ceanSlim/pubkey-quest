@@ -8,7 +8,7 @@
   "schedule": [
     {
       "start": 0,
-      "end": 240,
+      "end": 120,
       "location": "marsh_inn",
       "room": "lantern_hall",
       "state": "working",
@@ -22,8 +22,46 @@
       ]
     },
     {
-      "start": 240,
+      "start": 120,
       "end": 360,
+      "location": "marsh_inn",
+      "room": "lantern_hall",
+      "state": "sleeping",
+      "dialogue_options": [
+        "night_bell"
+      ],
+      "available_actions": [
+        "rent_room"
+      ]
+    },
+    {
+      "start": 360,
+      "end": 660,
+      "location": "marsh_inn",
+      "room": "lantern_hall",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop",
+        "book_show",
+        "rent_room"
+      ]
+    },
+    {
+      "start": 660,
+      "end": 720,
+      "location": "marshlight-center",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 720,
+      "end": 900,
       "location": "grishka_quarters",
       "state": "sleeping",
       "dialogue_options": [
@@ -32,17 +70,17 @@
       "available_actions": []
     },
     {
-      "start": 360,
-      "end": 420,
-      "location": "grishka_quarters",
-      "state": "home",
+      "start": 900,
+      "end": 960,
+      "location": "marshlight-center",
+      "state": "traveling",
       "dialogue_options": [
         "off_duty"
       ],
       "available_actions": []
     },
     {
-      "start": 420,
+      "start": 960,
       "end": 1440,
       "location": "marsh_inn",
       "room": "lantern_hall",
@@ -128,6 +166,13 @@
     "goodbye": {
       "text": "May yer strength never fail!",
       "action": "end_dialogue"
+    },
+    "night_bell": {
+      "text": "*You ring the little bell on the counter. After a while Grishka shuffles out from the back, bleary-eyed.* A room, at this hour? Aye, there's a bed made up.",
+      "options": [
+        "ask_rent_room",
+        "goodbye"
+      ]
     }
   },
   "shop_config": {
@@ -146,6 +191,11 @@
         "max_stock": 50,
         "restock_rate": 13,
         "restock_interval": "hourly"
+      },
+      {
+        "item_id": "bread",
+        "stock": 12,
+        "max_stock": 12
       }
     ]
   },

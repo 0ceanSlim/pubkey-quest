@@ -67,6 +67,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, npcIssues...)
 	}
 
+	// Validate town NPC schedules against their towns' buildings
+	if scheduleIssues, err := ValidateSchedules(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, scheduleIssues...)
+	}
+
 	// Validate starting gear
 	if gearIssues, err := ValidateStartingGear(); err != nil {
 		return nil, err
@@ -311,9 +318,11 @@ func validateItemFile(filePath string, validItemIDs map[string]bool) []Issue {
 		}
 	}
 
-	// Consumable tag requires effects property
+	// Consumable tag requires effects property (food's "food" block counts:
+	// it's what eating does).
 	if contains(tags, "consumable") {
-		if _, exists := item["effects"]; !exists {
+		_, hasFood := item["food"]
+		if _, exists := item["effects"]; !exists && !hasFood {
 			issues = append(issues, Issue{
 				Type:     "warning",
 				Category: "items",

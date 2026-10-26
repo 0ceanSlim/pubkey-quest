@@ -4,7 +4,11 @@
   "image": "/res/img/items/lantern-hooded.png",
   "name": "Lantern hooded",
   "notes": [
-    "Hold it in your off hand: night fights outdoors without the darkness penalty (no need with darkvision)."
+    "Light it with a tinderbox: a flask of oil burns 6 hours.",
+    "Hold it lit in your off hand: night fights outdoors without the darkness penalty (no need with darkvision).",
+    "Close its shutter to hide the light without putting it out: it burns on, and nothing sees you coming (but you're in the dark).",
+    "At night in the wild a lit light gives you away: whatever might ambush you sees you coming (−5 Stealth).",
+    "Put it out to save the oil; refill it with a flask of oil when it runs dry."
   ],
   "value": 500,
   "rarity": "common",
@@ -16,5 +20,10 @@
   ],
   "type": "Adventuring Gear",
   "gear_slot": "offhand",
-  "weight": 2
+  "weight": 2,
+  "light": {
+    "burn": 360,
+    "fuel": "oil",
+    "shutter": true
+  }
 }

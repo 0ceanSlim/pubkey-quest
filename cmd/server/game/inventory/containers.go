@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/types"
 )
 
@@ -275,10 +276,13 @@ func HandleAddToContainerAction(state *types.SaveFile, params map[string]interfa
 		itemName = itemID
 	}
 
-	// Create item entry for container
+	// Create item entry for container (it keeps its condition: a fish keeps aging)
 	containerItem := map[string]interface{}{
 		"item":     itemID,
 		"quantity": quantity,
+	}
+	if src, ok := sourceInventory[sourceIndex].(map[string]interface{}); ok {
+		condition.CopyState(containerItem, src)
 	}
 
 	// Find first empty slot in container
@@ -429,8 +433,10 @@ func HandleRemoveFromContainerAction(state *types.SaveFile, params map[string]in
 		quantity = qty
 	}
 
-	// Try to find empty slot in general_slots first
+	// Try to find empty slot in general_slots first. The item keeps its condition.
 	emptySlotFound := false
+	moved, _ := contents[fromContainerSlot].(map[string]interface{})
+	itemState := condition.State(moved)
 
 	for i, slot := range generalSlots {
 		if slotMap, ok := slot.(map[string]interface{}); ok {
@@ -440,6 +446,7 @@ func HandleRemoveFromContainerAction(state *types.SaveFile, params map[string]in
 					"quantity": quantity,
 					"slot":     slotMap["slot"],
 				}
+				condition.ApplyState(generalSlots[i].(map[string]interface{}), itemState)
 				emptySlotFound = true
 				break
 			}
@@ -481,6 +488,7 @@ func HandleRemoveFromContainerAction(state *types.SaveFile, params map[string]in
 						"quantity": quantity,
 						"slot":     i,
 					}
+					condition.ApplyState(backpackContents[i].(map[string]interface{}), itemState)
 					emptySlotFound = true
 					break
 				}

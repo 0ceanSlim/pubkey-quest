@@ -1,0 +1,26 @@
+{
+  "id": "cooked-large-fish",
+  "name": "Cooked Large Fish",
+  "description": "A big fish, roasted on a spit. Enough for a proper meal.",
+  "type": "Food",
+  "value": 75,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 2,
+  "image": "/res/img/items/cooked-large-fish.png",
+  "tags": [
+    "consumable",
+    "food",
+    "fish"
+  ],
+  "notes": [
+    "Keeps you fed 8 hours.",
+    "Spoils in 2 days."
+  ],
+  "food": {
+    "hours": 8
+  },
+  "spoils": {
+    "shelf_life": 2880
+  }
+}

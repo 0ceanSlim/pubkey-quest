@@ -4,12 +4,13 @@
   "image": "/res/img/items/whetstone.png",
   "name": "Whetstone",
   "notes": [
-    "Use it to hone your weapon: +1 damage on every weapon hit in your next fight.",
-    "It isn't used up: hone again before each fight."
+    "Hone: +1 damage on every weapon hit in your next fight. Honing doesn't wear it.",
+    "Sharpen…: 10 minutes brings a worn slashing or piercing melee weapon back up to Worn. Only a smith makes it new.",
+    "10 sharpenings, then it's worn smooth."
   ],
   "value": 1,
   "rarity": "common",
-  "stack": 10,
+  "stack": 1,
   "tags": [
     "tool",
     "consumable",
@@ -22,5 +23,10 @@
       "apply_effect": "honed-edge"
     }
   ],
-  "reusable": true
+  "reusable": true,
+  "use_on": "sharpen",
+  "charges": {
+    "max": 10,
+    "noun": "sharpenings"
+  }
 }

@@ -1,0 +1,26 @@
+{
+  "id": "salted-large-fish",
+  "name": "Salted Large Fish",
+  "description": "A big fish salted and dried for the road.",
+  "type": "Food",
+  "value": 90,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 2,
+  "image": "/res/img/items/salted-large-fish.png",
+  "tags": [
+    "consumable",
+    "food",
+    "fish"
+  ],
+  "notes": [
+    "Keeps you fed 4 hours.",
+    "Spoils in 30 days."
+  ],
+  "food": {
+    "hours": 4
+  },
+  "spoils": {
+    "shelf_life": 43200
+  }
+}

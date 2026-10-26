@@ -162,7 +162,7 @@
         "start": "advice",
         "nodes": {
           "advice": {
-            "text": "\"Rations.\" Brogni doesn't look up from the ledger. \"Day's food in each. Won't rot. When you're Hungry, right-click one in your pack and Eat. Then a torch, because the tunnels are dark, and rope, because they're deep. That's the list.\"",
+            "text": "\"Rations.\" Brogni doesn't look up from the ledger. \"Meal in each. Won't rot. When you're Hungry, right-click one in your pack and Eat. Then a torch, because the tunnels are dark, and rope, because they're deep. That's the list.\"",
             "options": [
               "how-buy"
             ]

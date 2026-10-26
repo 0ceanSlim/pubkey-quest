@@ -57,9 +57,20 @@ func TestQuestEncounterWaves(t *testing.T) {
 		t.Error("response should hand the client the fight")
 	}
 
-	// Won the first wave: 1 of 5 killed. The next action brings the next rat.
+	// Won the first wave: 1 of 5 killed. The next rat waits out a breather...
 	sess.ActiveCombat = nil
 	sess.SaveData.QuestsActive[0].ObjectiveCounts = []int{1}
+	maybeStartQuestEncounter(sess, &types.GameActionResponse{})
+	if sess.ActiveCombat != nil {
+		t.Fatal("the next wave must not chain straight onto the last one")
+	}
+	sess.SaveData.TimeOfDay += questWaveBreatherMinutes - 1
+	maybeStartQuestEncounter(sess, &types.GameActionResponse{})
+	if sess.ActiveCombat != nil {
+		t.Fatal("the next wave arrived before the breather was up")
+	}
+	// ...then comes.
+	sess.SaveData.TimeOfDay++
 	maybeStartQuestEncounter(sess, &types.GameActionResponse{})
 	if sess.ActiveCombat == nil || ratsIn(sess.ActiveCombat) != 1 {
 		t.Fatalf("the next wave should be one more rat, got %v", sess.ActiveCombat)

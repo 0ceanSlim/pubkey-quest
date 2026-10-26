@@ -69,9 +69,13 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 	buildingID := r.URL.Query().Get("building")
 	roomID := r.URL.Query().Get("room")
 	timeOfDay := 720 // Default noon
+	day := 1
 
 	if t := r.URL.Query().Get("time"); t != "" {
 		fmt.Sscanf(t, "%d", &timeOfDay)
+	}
+	if d := r.URL.Query().Get("day"); d != "" {
+		fmt.Sscanf(d, "%d", &day)
 	}
 
 	database := db.GetDB()
@@ -104,7 +108,7 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Resolve schedule
-		scheduleInfo := npc.ResolveNPCSchedule(&npcData, timeOfDay)
+		scheduleInfo := npc.ResolveNPCSchedule(&npcData, day, timeOfDay)
 
 		// Determine location type from location ID
 		locationType := npc.DetermineLocationType(scheduleInfo.Location)
@@ -136,7 +140,7 @@ func GetNPCsAtLocationHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetNPCIDsAtLocation returns a list of NPC IDs visible at the given location
 // Used by the delta system to track NPC changes
-func GetNPCIDsAtLocation(locationID, districtID, buildingID, roomID string, timeOfDay int) []string {
+func GetNPCIDsAtLocation(locationID, districtID, buildingID, roomID string, day, timeOfDay int) []string {
 	database := db.GetDB()
 	if database == nil {
 		return []string{}
@@ -167,7 +171,7 @@ func GetNPCIDsAtLocation(locationID, districtID, buildingID, roomID string, time
 		}
 
 		// Resolve schedule
-		scheduleInfo := npc.ResolveNPCSchedule(&npcData, timeOfDay)
+		scheduleInfo := npc.ResolveNPCSchedule(&npcData, day, timeOfDay)
 
 		// Determine location type from location ID
 		locationType := npc.DetermineLocationType(scheduleInfo.Location)

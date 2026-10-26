@@ -50,6 +50,10 @@ type NPCScheduleSlot struct {
 	State            string   `json:"state"`              // "sleeping", "working", "traveling", "home"
 	DialogueOptions  []string `json:"dialogue_options"`   // Which dialogue nodes are available
 	AvailableActions []string `json:"available_actions"`  // Which actions can be performed (open_shop, etc.)
+	// Days limits the entry to these days of the week (types.WeekDays, lower
+	// case: "restday"). On those days it replaces the everyday entries it
+	// overlaps; an entry past midnight belongs to the day it started.
+	Days []string `json:"days,omitempty"`
 }
 
 // NPCData represents the full NPC structure from database

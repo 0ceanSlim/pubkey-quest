@@ -9,6 +9,7 @@
 
 import { logger } from '../lib/logger.js';
 import { getGameStateSync } from '../state/gameState.js';
+import { weekdayOf } from '../config/constants.js';
 
 /**
  * Update time of day display
@@ -92,7 +93,7 @@ export function updateTimeDisplay() {
     // Update day counter in scene (top-right)
     const dayCounter = document.getElementById('day-counter');
     if (dayCounter) {
-        dayCounter.textContent = `Day ${currentDay}`;
+        dayCounter.textContent = `Day ${currentDay} · ${weekdayOf(currentDay)}`;
     }
 }
 

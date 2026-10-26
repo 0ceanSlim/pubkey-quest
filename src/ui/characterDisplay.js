@@ -13,6 +13,7 @@ import { loadItemsFromDatabase } from '../data/items.js';
 import { eventBus } from '../lib/events.js';
 import { gameAPI } from '../lib/api.js';
 import { renderPortraitThumb } from './portraitDialog.js';
+import { attachConditionBar, attachLightBar, attachWearBar, attachChargeBar, itemSrc } from './conditionBar.js';
 import {
     getClassResource,
     calculateMaxResource,
@@ -434,6 +435,10 @@ export async function updateCharacterDisplay() {
 
                     // Rarity glow, same as the inventory slots
                     applyRarityIndicator(slotEl, itemId);
+                    // A held light's burn time (or a lamp's oil); worn gear's condition
+                    attachLightBar(slotEl, itemId, gear[slotName]);
+                    attachWearBar(slotEl, itemId, gear[slotName]);
+                    attachChargeBar(slotEl, itemId, gear[slotName]);
 
                     // Fetch item data
                     const itemData = await getItemByIdAsync(itemId);
@@ -443,7 +448,7 @@ export async function updateCharacterDisplay() {
                         const imageContainer = slotEl.querySelector('.equip-icon');
                         if (imageContainer) {
                             const img = document.createElement('img');
-                            img.src = `/res/img/items/${itemId}.png`;
+                            img.src = itemSrc(itemId, gear[slotName]); // a lit light shows its lit sprite
                             img.alt = itemData.name;
                             img.className = 'w-full h-full object-contain';
                             img.style.imageRendering = 'pixelated';
@@ -475,6 +480,9 @@ export async function updateCharacterDisplay() {
                 } else {
                     // Remove data-item-id attribute if slot is empty
                     slotEl.removeAttribute('data-item-id');
+                    attachLightBar(slotEl, null, null);
+                    attachWearBar(slotEl, null, null);
+                    attachChargeBar(slotEl, null, null);
 
                     // Clear any rarity glow and restore the slot's bevel borders
                     // (equipment slots persist across renders, unlike inventory).
@@ -589,6 +597,11 @@ export async function updateCharacterDisplay() {
 
                 // Rarity indicator (dot for common/uncommon/rare, glow for legendary/mythic)
                 applyRarityIndicator(slotDiv, slot.item);
+                // Food's countdown to spoiling; a lamp's oil
+                attachConditionBar(slotDiv, slot.item, slot.t);
+                attachLightBar(slotDiv, slot.item, slot);
+                attachWearBar(slotDiv, slot.item, slot);
+                attachChargeBar(slotDiv, slot.item, slot);
             }
 
             generalSlotsDiv.appendChild(slotDiv);
@@ -680,6 +693,11 @@ export async function updateCharacterDisplay() {
 
                     // Rarity indicator (dot for common/uncommon/rare, glow for legendary/mythic)
                     applyRarityIndicator(slotDiv, slot.item);
+                    // Food's countdown to spoiling; a lamp's oil
+                    attachConditionBar(slotDiv, slot.item, slot.t);
+                    attachLightBar(slotDiv, slot.item, slot);
+                    attachWearBar(slotDiv, slot.item, slot);
+                    attachChargeBar(slotDiv, slot.item, slot);
                 }
 
                 backpackDiv.appendChild(slotDiv);

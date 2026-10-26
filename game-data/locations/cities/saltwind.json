@@ -32,8 +32,8 @@
           "id": "fishermans_inn",
           "name": "The Anchor's Rest",
           "description": "A cozy inn serving fresh seafood and providing rooms for traveling merchants and sailors.",
-          "open": 1140,
-          "close": 240,
+          "open": 960,
+          "close": 660,
           "default_room": "common_room",
           "rooms": [
             { "id": "common_room", "name": "Common Room", "description": "A weathered common room hung with fishing nets, where the bar serves chowder and the day's fresh catch." },
@@ -52,8 +52,8 @@
           "id": "sea_shrine",
           "name": "Shrine to the Sea Mother",
           "description": "A shrine dedicated to the goddess of the sea, where fishermen pray for safe voyages.",
-          "open": "always",
-          "close": null,
+          "open": 360,
+          "close": 1200,
           "crafting_stations": ["scribe_divine"]
         },
         {
@@ -66,6 +66,20 @@
         {
           "id": "finn_quarters",
           "name": "Finn's Cottage",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "coralie_quarters",
+          "name": "Coralie's Quarters",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "gull_quarters",
+          "name": "Gull's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null
@@ -85,8 +99,8 @@
           "id": "merchants_warehouse",
           "name": "Coastal Trading Post",
           "description": "A warehouse where inland goods are traded for sea products.",
-          "open": 420,
-          "close": 1200
+          "open": 300,
+          "close": 840
         }
       ],
       "exit_to_environment": "suncrest-coastlands"

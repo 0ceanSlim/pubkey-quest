@@ -106,6 +106,9 @@ const CurrentSchemaVersion = 4
 type VaultEntry struct {
 	ItemID   string `json:"item_id"`
 	Quantity int    `json:"quantity"`
+	// State is the item's condition (game/condition: a food's made-time, wear),
+	// kept while it's banked. An item with condition gets an entry of its own.
+	State map[string]interface{} `json:"state,omitempty"`
 }
 
 // QuestProgress is one in-progress quest. ObjectiveCounts indexes the current

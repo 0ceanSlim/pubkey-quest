@@ -12,7 +12,9 @@
   ],
   "notes": [
     "Spell component: used up when you cast a spell that needs it.",
-    "Needed by: Protection from Evil and Good."
+    "Needed by: Protection from Evil and Good.",
+    "Preserving: out in the wild with a tinderbox, Salt… turns a raw fish into salted fish or raw meat into jerky (one salt each). Salted food keeps for weeks."
   ],
-  "image": "/res/img/items/salt.png"
+  "image": "/res/img/items/salt.png",
+  "use_on": "salt"
 }

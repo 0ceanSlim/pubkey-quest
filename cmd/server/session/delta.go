@@ -60,6 +60,10 @@ type InventoryDelta struct {
 type InventorySlotDelta struct {
 	ItemID   *string `json:"item_id,omitempty"`
 	Quantity *int    `json:"quantity,omitempty"`
+	Made     *int    `json:"t,omitempty"`     // a food's made-time (its freshness bar)
+	Wear     *int    `json:"w,omitempty"`     // wear taken (its wear bar)
+	Burn     *int    `json:"b,omitempty"`     // a lamp's oil left
+	Uses     *int    `json:"u,omitempty"`     // charges spent
 	Empty    bool    `json:"empty,omitempty"` // True if slot was cleared
 }
 
@@ -127,9 +131,11 @@ func CreateSnapshot(save *types.SaveFile, npcs []string, buildings map[string]bo
 				if slotMap, ok := slot.(map[string]interface{}); ok {
 					if itemID, ok := slotMap["item"].(string); ok {
 						snapshot.GeneralSlots[i].ItemID = itemID
-						if qty, ok := slotMap["quantity"].(float64); ok {
-							snapshot.GeneralSlots[i].Quantity = int(qty)
-						}
+						snapshot.GeneralSlots[i].Quantity = slotInt(slotMap, "quantity")
+						snapshot.GeneralSlots[i].Made = slotInt(slotMap, "t")
+						snapshot.GeneralSlots[i].Wear = slotInt(slotMap, "w")
+						snapshot.GeneralSlots[i].Burn = slotInt(slotMap, "b")
+						snapshot.GeneralSlots[i].Uses = slotInt(slotMap, "u")
 					}
 				}
 			}
@@ -146,9 +152,11 @@ func CreateSnapshot(save *types.SaveFile, npcs []string, buildings map[string]bo
 						if slotMap, ok := slot.(map[string]interface{}); ok {
 							if itemID, ok := slotMap["item"].(string); ok {
 								snapshot.BackpackSlots[i].ItemID = itemID
-								if qty, ok := slotMap["quantity"].(float64); ok {
-									snapshot.BackpackSlots[i].Quantity = int(qty)
-								}
+								snapshot.BackpackSlots[i].Quantity = slotInt(slotMap, "quantity")
+								snapshot.BackpackSlots[i].Made = slotInt(slotMap, "t")
+								snapshot.BackpackSlots[i].Wear = slotInt(slotMap, "w")
+								snapshot.BackpackSlots[i].Burn = slotInt(slotMap, "b")
+								snapshot.BackpackSlots[i].Uses = slotInt(slotMap, "u")
 							}
 						}
 					}
@@ -265,13 +273,15 @@ func CalculateDelta(old, new *SessionSnapshot) *Delta {
 		oldSlot := old.GeneralSlots[i]
 		newSlot := new.GeneralSlots[i]
 
-		if oldSlot.ItemID != newSlot.ItemID || oldSlot.Quantity != newSlot.Quantity {
+		if oldSlot != newSlot {
 			slotDelta := InventorySlotDelta{}
 			if newSlot.ItemID == "" {
 				slotDelta.Empty = true
 			} else {
 				slotDelta.ItemID = &newSlot.ItemID
 				slotDelta.Quantity = &newSlot.Quantity
+				slotDelta.Made, slotDelta.Wear = nonZero(newSlot.Made), nonZero(newSlot.Wear)
+				slotDelta.Burn, slotDelta.Uses = nonZero(newSlot.Burn), nonZero(newSlot.Uses)
 			}
 			generalChanges[i] = slotDelta
 		}
@@ -289,13 +299,15 @@ func CalculateDelta(old, new *SessionSnapshot) *Delta {
 		oldSlot := old.BackpackSlots[i]
 		newSlot := new.BackpackSlots[i]
 
-		if oldSlot.ItemID != newSlot.ItemID || oldSlot.Quantity != newSlot.Quantity {
+		if oldSlot != newSlot {
 			slotDelta := InventorySlotDelta{}
 			if newSlot.ItemID == "" {
 				slotDelta.Empty = true
 			} else {
 				slotDelta.ItemID = &newSlot.ItemID
 				slotDelta.Quantity = &newSlot.Quantity
+				slotDelta.Made, slotDelta.Wear = nonZero(newSlot.Made), nonZero(newSlot.Wear)
+				slotDelta.Burn, slotDelta.Uses = nonZero(newSlot.Burn), nonZero(newSlot.Uses)
 			}
 			backpackChanges[i] = slotDelta
 		}
@@ -525,6 +537,11 @@ func (d *Delta) ToMap() map[string]any {
 					if slot.Quantity != nil {
 						slotData["quantity"] = *slot.Quantity
 					}
+					for key, v := range map[string]*int{"t": slot.Made, "w": slot.Wear, "b": slot.Burn, "u": slot.Uses} {
+						if v != nil {
+							slotData[key] = *v
+						}
+					}
 				}
 				general[strconv.Itoa(idx)] = slotData
 			}
@@ -542,6 +559,11 @@ func (d *Delta) ToMap() map[string]any {
 					}
 					if slot.Quantity != nil {
 						slotData["quantity"] = *slot.Quantity
+					}
+					for key, v := range map[string]*int{"t": slot.Made, "w": slot.Wear, "b": slot.Burn, "u": slot.Uses} {
+						if v != nil {
+							slotData[key] = *v
+						}
 					}
 				}
 				backpack[strconv.Itoa(idx)] = slotData
@@ -570,4 +592,24 @@ func (d *Delta) ToMap() map[string]any {
 	}
 
 	return result
+}
+
+// slotInt reads a numeric slot field, whether it came from JSON (float64) or
+// was set in Go (int).
+func slotInt(slot map[string]interface{}, key string) int {
+	switch v := slot[key].(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	}
+	return 0
+}
+
+// nonZero points at n, or is nil for 0 (a condition field the slot doesn't have).
+func nonZero(n int) *int {
+	if n == 0 {
+		return nil
+	}
+	return &n
 }

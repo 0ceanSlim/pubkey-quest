@@ -59,12 +59,9 @@ type ApproachResponse struct {
 	Combat      *CombatStateResponse `json:"combat,omitempty"`
 }
 
-// playerAwareness returns the player's Stealth modifier (Thieving skill) and
-// passive Perception, from their effective stats.
-func playerAwareness(save *types.SaveFile) (stealthMod, passivePerception int) {
-	return awarenessFrom(buildQuestContext(save))
-}
-
+// awarenessFrom returns the player's Stealth modifier (Thieving skill) and
+// passive Perception from a skill context (the travel one on the road: tools and
+// your light count).
 func awarenessFrom(ctx requirement.Context) (stealthMod, passivePerception int) {
 	return skillcheck.Modifier(ctx.SkillValue("thieving")),
 		10 + skillcheck.Modifier(ctx.SkillValue("perception"))
@@ -82,6 +79,10 @@ func rollOpening(save *types.SaveFile, monsterIDs []string) (combat.AwarenessRol
 	stealthMod, passive := awarenessFrom(ctx)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	aw := combat.RollAwareness(rng, stealthMod, passive, monsters)
+	// Say what your light did (it's already in the modifiers).
+	if _, _, notes := lightAtNight(save); len(notes) > 0 {
+		aw.Log = append(notes, aw.Log...)
+	}
 	aw = combat.ReadTheSigns(rng, aw, skillcheck.Modifier(ctx.SkillValue("survival")), monsters)
 	// A ward (alarm, detect evil) warns you before they're on you: no ambush.
 	if aw.Opening == combat.OpeningAmbush && effects.ModifierTotal(save, "ambush_ward") > 0 {
@@ -203,7 +204,8 @@ func CombatApproachHandler(w http.ResponseWriter, r *http.Request) {
 			writeCombatError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		stealthMod, _ := playerAwareness(&sess.SaveData)
+		// Sneaking off the road: your light counts against you here too.
+		stealthMod, _ := awarenessFrom(buildTravelContext(&sess.SaveData))
 		ok, line := combat.SneakAway(rand.New(rand.NewSource(time.Now().UnixNano())), stealthMod, monsters)
 		if ok {
 			sess.PendingEncounter = nil

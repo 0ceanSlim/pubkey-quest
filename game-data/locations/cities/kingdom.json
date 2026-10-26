@@ -45,7 +45,7 @@
           "name": "Grand Market",
           "description": "The largest marketplace in the kingdom, filled with merchants from distant lands. Aldric Goodsworth runs a well-stocked general store here.",
           "open": 420,
-          "close": 1320
+          "close": 1260
         },
         {
           "id": "aldric_home",
@@ -96,8 +96,8 @@
           "id": "travelers_inn",
           "name": "The Wayward Traveler Inn",
           "description": "A cozy inn catering to merchants and adventurers from distant lands. Rooms available for weary travelers.",
-          "open": 1020,
-          "close": 480,
+          "open": 960,
+          "close": 660,
           "default_room": "common_room",
           "rooms": [
             { "id": "common_room", "name": "Common Room", "description": "A warm, lamplit common room where Mara tends the front desk beside a crackling hearth." },
@@ -116,8 +116,8 @@
           "id": "stable",
           "name": "Royal Stables",
           "description": "Well-maintained stables offering cart services to other cities.",
-          "open": 360,
-          "close": 1320
+          "open": -1,
+          "close": null
         }
       ],
       "exit_to_environment": "darkwood-forest"
@@ -142,8 +142,8 @@
           "id": "kingdom_instrument_shop",
           "name": "Songweaver's Instruments",
           "description": "A melodious shop filled with fine instruments. Melodia Songweaver, a master instrumentalist, offers everything from drums to dulcimers for bards and performers.",
-          "open": 480,
-          "close": 1020
+          "open": 540,
+          "close": 1200
         },
         {
           "id": "melodia_home",
@@ -176,13 +176,13 @@
           "name": "Western Trading Post",
           "description": "A massive warehouse where exotic goods from distant lands are bought and sold. Yusuf al-Rami keeps the import counter, ledger open, by the loading doors.",
           "open": 420,
-          "close": 1260
+          "close": 1200
         },
         {
           "id": "tavern_golden_griffin",
           "name": "The Golden Griffin Tavern",
           "description": "A popular upscale tavern where merchants, adventurers, and locals gather for fine drinks, live music, and news. Gareth Thornfield runs a refined establishment with quality entertainment.",
-          "open": 1020,
+          "open": 960,
           "close": 120,
           "default_room": "tavern_floor",
           "rooms": [

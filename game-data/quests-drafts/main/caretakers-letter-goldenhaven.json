@@ -162,7 +162,7 @@
         "start": "advice",
         "nodes": {
           "advice": {
-            "text": "\"You will want rations.\" Aurelia's golden eyes weigh your purse. \"A day's food each, sealed against rot. When you feel Hungry, eat one: right-click it in your pack, then Eat. Light, rope and a whetstone, if your coin stretches. Quality costs, and it lasts.\"",
+            "text": "\"You will want rations.\" Aurelia's golden eyes weigh your purse. \"A meal's worth each, sealed against rot. When you feel Hungry, eat one: right-click it in your pack, then Eat. Light, rope and a whetstone, if your coin stretches. Quality costs, and it lasts.\"",
             "options": [
               "how-buy"
             ]
