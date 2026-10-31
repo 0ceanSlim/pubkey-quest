@@ -26,10 +26,10 @@ func InWindow(timeOfDay, from, to int) bool {
 }
 
 // WeekDays are the names of the 7-day week, from day 1 of a new character.
-// NPC schedule entries may name the days they apply on ("days": ["restday"]).
-var WeekDays = [7]string{"Firstday", "Toilday", "Midweek", "Hearthday", "Fairday", "Marketday", "Restday"}
+// NPC schedule entries may name the days they apply on ("days": ["saturday"]).
+var WeekDays = [7]string{"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
 
-// Weekday is the day of the week of a save's CurrentDay (day 1 is Firstday).
+// Weekday is the day of the week of a save's CurrentDay (day 1 is Sunday).
 func Weekday(currentDay int) string {
 	return WeekDays[(((currentDay-1)%7)+7)%7]
 }

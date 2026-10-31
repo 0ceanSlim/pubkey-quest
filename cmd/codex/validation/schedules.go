@@ -182,8 +182,8 @@ func checkSchedule(file string, n *types.NPCData, town *townHours) []Issue {
 // which open buildings stand empty.
 func checkStaffing(town *townHours, npcs []schedNPC) []Issue {
 	var issues []Issue
-	empty := map[string][]string{}  // building -> "Firstday 03:30"
-	closed := map[string][]string{} // npc file -> "Firstday 03:30 in x"
+	empty := map[string][]string{}  // building -> "Sunday 03:30"
+	closed := map[string][]string{} // npc file -> "Sunday 03:30 in x"
 	for day := 1; day <= 7; day++ {
 		for t := 0; t < 1440; t += 30 {
 			staffed := map[string]bool{}

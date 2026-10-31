@@ -51,7 +51,7 @@ type NPCScheduleSlot struct {
 	DialogueOptions  []string `json:"dialogue_options"`   // Which dialogue nodes are available
 	AvailableActions []string `json:"available_actions"`  // Which actions can be performed (open_shop, etc.)
 	// Days limits the entry to these days of the week (types.WeekDays, lower
-	// case: "restday"). On those days it replaces the everyday entries it
+	// case: "saturday"). On those days it replaces the everyday entries it
 	// overlaps; an entry past midnight belongs to the day it started.
 	Days []string `json:"days,omitempty"`
 }

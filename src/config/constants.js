@@ -6,8 +6,8 @@ export const GAME_VERSION = '1.0.0';
 
 export const API_BASE_URL = '/api';
 
-/** The 7-day week (types.WeekDays on the server); day 1 is Firstday. */
-export const WEEK_DAYS = ['Firstday', 'Toilday', 'Midweek', 'Hearthday', 'Fairday', 'Marketday', 'Restday'];
+/** The 7-day week (types.WeekDays on the server); day 1 is Sunday. */
+export const WEEK_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /** The day of the week of a game day number. */
 export function weekdayOf(day) {
