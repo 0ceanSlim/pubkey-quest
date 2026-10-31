@@ -1,0 +1,20 @@
+{
+  "id": "darkvision",
+  "name": "Owl's Eye",
+  "description": "You see in the dark: no disadvantage fighting outdoors at night without a light.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 480
+  },
+  "modifiers": [
+    {
+      "stat": "darkvision",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "The night pales to grey. You can see.",
+  "visible": true
+}

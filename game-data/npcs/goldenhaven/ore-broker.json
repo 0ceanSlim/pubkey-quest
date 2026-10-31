@@ -68,8 +68,8 @@
       ],
       "available_actions": [],
       "days": [
-        "firstday",
-        "marketday"
+        "sunday",
+        "friday"
       ]
     },
     {
@@ -82,7 +82,7 @@
       ],
       "available_actions": [],
       "days": [
-        "restday"
+        "saturday"
       ]
     }
   ],

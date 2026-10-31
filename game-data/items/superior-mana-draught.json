@@ -1,0 +1,25 @@
+{
+  "id": "superior-mana-draught",
+  "name": "Superior Mana Draught",
+  "description": "A heavy flask of midnight-blue liquid flecked with drifting silver light.",
+  "type": "Potion",
+  "value": 20000,
+  "rarity": "rare",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/superior-mana-draught.png",
+  "tags": [
+    "consumable",
+    "mana"
+  ],
+  "effects": [
+    {
+      "type": "mana",
+      "value": 8
+    }
+  ],
+  "notes": [
+    "Drink to restore 8 mana, in or out of combat.",
+    "In combat it uses your action."
+  ]
+}

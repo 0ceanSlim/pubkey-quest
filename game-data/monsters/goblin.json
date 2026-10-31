@@ -110,6 +110,7 @@
         "name": "rare",
         "weight": 90,
         "entries": [
+          { "item": "climbers-draught", "weight": 20, "quantity": [1, 1] },
           { "item": "scimitar", "weight": 30, "quantity": [1, 1] },
           { "item": "shortbow", "weight": 30, "quantity": [1, 1] },
           { "item": "healing", "weight": 30, "quantity": [1, 1] }

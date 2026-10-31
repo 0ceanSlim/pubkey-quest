@@ -107,6 +107,7 @@
         "name": "rare",
         "weight": 30,
         "entries": [
+          { "item": "mana-draught", "weight": 20, "quantity": [1, 1] },
           { "item": "healing", "weight": 30, "quantity": [1, 1] }
         ]
       }

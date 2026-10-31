@@ -1,0 +1,20 @@
+{
+  "id": "climbing",
+  "name": "Climbing",
+  "description": "Sure hands and sticky fingers: +5 Athletics for an hour.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 60
+  },
+  "modifiers": [
+    {
+      "stat": "skill_athletics",
+      "type": "constant",
+      "value": 5
+    }
+  ],
+  "message": "Your palms tingle and grip like a gecko's.",
+  "visible": true
+}

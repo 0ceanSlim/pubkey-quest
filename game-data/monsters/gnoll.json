@@ -122,6 +122,7 @@
         "name": "rare",
         "weight": 70,
         "entries": [
+          { "item": "keen-eye-tonic", "weight": 20, "quantity": [1, 1] },
           { "item": "shield", "weight": 30, "quantity": [1, 1] },
           { "item": "healing", "weight": 40, "quantity": [1, 1] }
         ]

@@ -1,0 +1,22 @@
+{
+  "id": "climbers-draught",
+  "name": "Climber's Draught",
+  "description": "A gritty brown draught that leaves your palms tacky and your grip sure.",
+  "type": "Potion",
+  "value": 1500,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/climbers-draught.png",
+  "tags": [
+    "consumable"
+  ],
+  "effects": [
+    {
+      "apply_effect": "climbing"
+    }
+  ],
+  "notes": [
+    "Drink it: +5 Athletics for an hour (climbing, holding on)."
+  ]
+}

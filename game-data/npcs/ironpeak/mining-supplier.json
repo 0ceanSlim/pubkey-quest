@@ -69,8 +69,8 @@
       ],
       "available_actions": [],
       "days": [
-        "toilday",
-        "restday"
+        "monday",
+        "saturday"
       ]
     },
     {
@@ -83,7 +83,7 @@
       ],
       "available_actions": [],
       "days": [
-        "marketday"
+        "friday"
       ]
     }
   ],
@@ -152,6 +152,8 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "climbers-draught", "stock": 3, "max_stock": 3, "restock_rate": 1, "restock_interval": "daily"},
+      {"item_id": "owls-eye", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
       {"item_id": "caltrops", "stock": 3, "max_stock": 3},
       {"item_id": "ball-bearings", "stock": 2, "max_stock": 2},
       {"item_id": "whetstone", "stock": 3, "max_stock": 3},

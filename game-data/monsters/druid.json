@@ -114,6 +114,8 @@
         "name": "rare",
         "weight": 70,
         "entries": [
+          { "item": "mana-draught", "weight": 30, "quantity": [1, 1] },
+          { "item": "greater-mana-draught", "weight": 10, "quantity": [1, 1] },
           { "item": "yew-wand", "weight": 20, "quantity": [1, 1] },
           { "item": "healing", "weight": 50, "quantity": [1, 1] }
         ]

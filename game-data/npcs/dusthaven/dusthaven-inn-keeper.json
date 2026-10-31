@@ -16,6 +16,7 @@
         "main_menu"
       ],
       "available_actions": [
+        "open_shop",
         "rent_room"
       ]
     },
@@ -42,6 +43,7 @@
         "main_menu"
       ],
       "available_actions": [
+        "open_shop",
         "rent_room"
       ]
     },
@@ -85,6 +87,7 @@
         "main_menu"
       ],
       "available_actions": [
+        "open_shop",
         "rent_room"
       ]
     }
@@ -95,9 +98,14 @@
     "tired": "The desert's worn you thin. Rest here where it's cool."
   },
   "dialogue": {
+    "buy_tea": {
+      "text": "Desert tea, sweet and strong. Stamina tea for the road, and meditation tea for the shrine-goers. Sit in the shade and drink it slowly.",
+      "action": "open_shop",
+      "options": ["main_menu"]
+    },
     "main_menu": {
       "text": "How can I help, traveler?",
-      "options": ["ask_rent_room", "goodbye"]
+      "options": ["buy_tea", "ask_rent_room", "goodbye"]
     },
     "ask_rent_room": {
       "text": "A shaded room with cool water is 50 gold the night. Shall I draw back the curtain for you?",
@@ -131,6 +139,17 @@
         "goodbye"
       ]
     }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": false,
+    "starting_gold": 300,
+    "gold_regen_rate": 30,
+    "gold_regen_interval": "daily",
+    "inventory": [
+      {"item_id": "stamina-tea", "stock": 4, "max_stock": 4},
+      {"item_id": "meditation-tea", "stock": 4, "max_stock": 4}
+    ]
   },
   "inn_config": {
     "rest_cost": 50,

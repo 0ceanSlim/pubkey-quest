@@ -185,6 +185,8 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
+      {"item_id": "stamina-tea", "stock": 4, "max_stock": 4},
+      {"item_id": "settling-tea", "stock": 4, "max_stock": 4},
       {
         "item_id": "beer",
         "stock": 40,

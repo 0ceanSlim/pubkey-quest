@@ -1,0 +1,25 @@
+{
+  "id": "mana-draught",
+  "name": "Mana Draught",
+  "description": "A slim vial of cold blue liquid that tastes of snow and copper. It steadies the mind and refills the well a spell draws from.",
+  "type": "Potion",
+  "value": 5000,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/mana-draught.png",
+  "tags": [
+    "consumable",
+    "mana"
+  ],
+  "effects": [
+    {
+      "type": "mana",
+      "value": 2
+    }
+  ],
+  "notes": [
+    "Drink to restore 2 mana, in or out of combat.",
+    "In combat it uses your action."
+  ]
+}

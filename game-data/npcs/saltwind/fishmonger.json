@@ -68,10 +68,10 @@
       ],
       "available_actions": [],
       "days": [
-        "firstday",
-        "midweek",
-        "fairday",
-        "marketday"
+        "sunday",
+        "tuesday",
+        "thursday",
+        "friday"
       ]
     },
     {
@@ -84,7 +84,7 @@
       ],
       "available_actions": [],
       "days": [
-        "restday"
+        "saturday"
       ]
     }
   ],

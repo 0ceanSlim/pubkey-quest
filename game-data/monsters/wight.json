@@ -137,6 +137,8 @@
         "name": "rare",
         "weight": 310,
         "entries": [
+          { "item": "greater-mana-draught", "weight": 20, "quantity": [1, 1] },
+          { "item": "superior-mana-draught", "weight": 10, "quantity": [1, 1] },
           { "item": "longsword", "weight": 80, "quantity": [1, 1] },
           { "item": "studded-leather-vest", "weight": 40, "quantity": [1, 1] },
           { "item": "greatsword", "weight": 30, "quantity": [1, 1] },

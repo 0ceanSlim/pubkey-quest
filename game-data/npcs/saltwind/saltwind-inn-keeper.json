@@ -16,6 +16,7 @@
         "main_menu"
       ],
       "available_actions": [
+        "open_shop",
         "rent_room"
       ]
     },
@@ -42,6 +43,7 @@
         "main_menu"
       ],
       "available_actions": [
+        "open_shop",
         "rent_room"
       ]
     },
@@ -85,6 +87,7 @@
         "main_menu"
       ],
       "available_actions": [
+        "open_shop",
         "rent_room"
       ]
     }
@@ -95,9 +98,14 @@
     "tired": "Ye look storm-tossed. Take a room and rest those sea legs."
   },
   "dialogue": {
+    "buy_tea": {
+      "text": "Settlin' tea, for them that come ashore green. Puts a stomach right faster than chowder. Stamina tea for the night watch, too.",
+      "action": "open_shop",
+      "options": ["main_menu"]
+    },
     "main_menu": {
       "text": "What can I do for ye?",
-      "options": ["ask_rent_room", "goodbye"]
+      "options": ["buy_tea", "ask_rent_room", "goodbye"]
     },
     "ask_rent_room": {
       "text": "A harbor room for the night's 50 gold — sound sleep with the waves for a lullaby. Want it?",
@@ -131,6 +139,17 @@
         "goodbye"
       ]
     }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": false,
+    "starting_gold": 300,
+    "gold_regen_rate": 30,
+    "gold_regen_interval": "daily",
+    "inventory": [
+      {"item_id": "settling-tea", "stock": 6, "max_stock": 6},
+      {"item_id": "stamina-tea", "stock": 4, "max_stock": 4}
+    ]
   },
   "inn_config": {
     "rest_cost": 50,

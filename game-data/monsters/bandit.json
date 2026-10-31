@@ -102,6 +102,7 @@
         "name": "rare",
         "weight": 80,
         "entries": [
+          { "item": "owls-eye", "weight": 20, "quantity": [1, 1] },
           { "item": "scimitar", "weight": 30, "quantity": [1, 1] },
           { "item": "crossbow-light", "weight": 20, "quantity": [1, 1] },
           { "item": "healing", "weight": 30, "quantity": [1, 1] }

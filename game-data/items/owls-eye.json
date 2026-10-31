@@ -1,0 +1,22 @@
+{
+  "id": "owls-eye",
+  "name": "Owl's Eye",
+  "description": "An amber draught brewed from owlcap mushrooms. Your pupils swell and the night turns to grey dusk.",
+  "type": "Potion",
+  "value": 3000,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/owls-eye.png",
+  "tags": [
+    "consumable"
+  ],
+  "effects": [
+    {
+      "apply_effect": "darkvision"
+    }
+  ],
+  "notes": [
+    "Drink for darkvision for 8 hours: no disadvantage fighting outdoors at night without a light."
+  ]
+}

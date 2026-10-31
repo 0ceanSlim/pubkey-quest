@@ -63,6 +63,7 @@
     "buys_items": true,
     "starting_gold": 600,
     "inventory": [
+      {"item_id": "owls-eye", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
       {
         "item_id": "thieves-kit",
         "stock": 5,

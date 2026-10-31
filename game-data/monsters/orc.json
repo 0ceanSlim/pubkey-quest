@@ -110,6 +110,7 @@
         "name": "rare",
         "weight": 80,
         "entries": [
+          { "item": "climbers-draught", "weight": 20, "quantity": [1, 1] },
           { "item": "greataxe", "weight": 30, "quantity": [1, 1] },
           { "item": "healing", "weight": 50, "quantity": [1, 1] }
         ]

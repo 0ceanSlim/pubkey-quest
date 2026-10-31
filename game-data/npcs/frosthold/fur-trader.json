@@ -68,10 +68,10 @@
       ],
       "available_actions": [],
       "days": [
-        "firstday",
-        "midweek",
-        "fairday",
-        "restday"
+        "sunday",
+        "tuesday",
+        "thursday",
+        "saturday"
       ]
     },
     {
@@ -84,7 +84,7 @@
       ],
       "available_actions": [],
       "days": [
-        "marketday"
+        "friday"
       ]
     }
   ],
@@ -136,6 +136,7 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "climbers-draught", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
       {"item_id": "rations", "stock": 15, "max_stock": 15},
       {"item_id": "torch", "stock": 10, "max_stock": 10},
       {"item_id": "tinderbox", "stock": 4, "max_stock": 4},

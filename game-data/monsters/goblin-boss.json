@@ -122,6 +122,8 @@
         "name": "rare",
         "weight": 420,
         "entries": [
+          { "item": "owls-eye", "weight": 20, "quantity": [1, 1] },
+          { "item": "climbers-draught", "weight": 20, "quantity": [1, 1] },
           { "item": "morningstar", "weight": 80, "quantity": [1, 1] },
           { "item": "shield", "weight": 60, "quantity": [1, 1] },
           { "item": "chain-shirt", "weight": 50, "quantity": [1, 1] },

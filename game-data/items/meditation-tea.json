@@ -1,0 +1,27 @@
+{
+  "id": "meditation-tea",
+  "name": "Meditation Tea",
+  "description": "A pale, silvery tea steeped from silver moss. It smells of rain on stone and clears the head.",
+  "type": "Potion",
+  "value": 60,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/meditation-tea.png",
+  "tags": [
+    "consumable",
+    "tea"
+  ],
+  "effects": [
+    {
+      "apply_effect": "meditation"
+    }
+  ],
+  "notes": [
+    "Drink it: 1 mana every hour for 3 hours.",
+    "Best drunk fresh: it goes stale after half a day and spoils in a day."
+  ],
+  "spoils": {
+    "shelf_life": 1440
+  }
+}

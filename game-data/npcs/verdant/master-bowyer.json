@@ -68,8 +68,8 @@
       ],
       "available_actions": [],
       "days": [
-        "midweek",
-        "fairday"
+        "tuesday",
+        "thursday"
       ]
     },
     {
@@ -82,7 +82,7 @@
       ],
       "available_actions": [],
       "days": [
-        "marketday"
+        "friday"
       ]
     }
   ],
@@ -134,6 +134,7 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "keen-eye-tonic", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
       {"item_id": "shortbow", "stock": 3, "max_stock": 3},
       {"item_id": "longbow", "stock": 2, "max_stock": 2},
       {"item_id": "arrows", "stock": 20, "max_stock": 20},

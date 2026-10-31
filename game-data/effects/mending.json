@@ -1,0 +1,21 @@
+{
+  "id": "mending",
+  "name": "Mending",
+  "description": "A warm tea knitting small hurts: 1 HP every 30 minutes for 3 hours.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 180
+  },
+  "modifiers": [
+    {
+      "stat": "hp",
+      "type": "periodic",
+      "value": 1,
+      "tick_interval": 30
+    }
+  ],
+  "message": "Warmth spreads through your aches.",
+  "visible": true
+}

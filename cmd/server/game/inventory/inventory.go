@@ -1110,7 +1110,8 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 // cureEffectIDs maps a condition an item cures to the status effects that
 // represent it outside combat.
 var cureEffectIDs = map[string][]string{
-	"poisoned": {"poison"},
+	"poisoned":       {"poison"},
+	"food-poisoning": {FoodPoisoning}, // settling tea
 }
 
 // CureEffects lifts the status effects behind each named condition (an

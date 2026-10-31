@@ -155,6 +155,13 @@
       "category": "capacity",
       "allows_periodic": false
     },
+    "darkvision": {
+      "id": "darkvision",
+      "property": "darkvision",
+      "description": "When positive, you see in the dark: no disadvantage fighting outdoors at night without a light (Owl's Eye)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
     "ambush_ward": {
       "id": "ambush_ward",
       "property": "ambush_ward",

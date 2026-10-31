@@ -5,6 +5,7 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/condition"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gametime"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
@@ -24,12 +25,13 @@ func outdoors(cs *types.CombatSession) bool {
 }
 
 // inDarkness reports whether the player fights blind: night, outdoors, no
-// darkvision, and no light source held in a hand.
+// darkvision (by race, or an effect's "darkvision" stat: Owl's Eye), and no
+// light source held in a hand.
 func inDarkness(cs *types.CombatSession, save *types.SaveFile) bool {
 	if save == nil || !types.IsNight(save.TimeOfDay) || !outdoors(cs) {
 		return false
 	}
-	if gametime.HasDarkvision(save.Race) {
+	if gametime.HasDarkvision(save.Race) || effects.ModifierTotal(save, "darkvision") > 0 {
 		return false
 	}
 	return !holdsLight(save)

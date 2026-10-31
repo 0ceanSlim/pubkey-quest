@@ -2,6 +2,22 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-10-31-potions-and-teas",
+      "when": "October 31, 2026",
+      "icon": "🧪",
+      "size": "major",
+      "title": "Potions and Teas",
+      "summary": "Mana draughts for casters, Owl's Eye for night fights, climbing and keen-eye tonics, and four herbal teas served at taverns and inns across the land.",
+      "highlights": [
+        "Mana Draughts restore 2 mana, Greater 4 and Superior 8. The Court Arcanist and the Shadowmere hermit sell the first two; casters and old undead lords sometimes carry them",
+        "Owl's Eye lets you see in the dark for 8 hours: no penalty fighting at night without a light. Try the Ironpeak supply master or the Shadow Alley den",
+        "Climber's Draught (+5 Athletics) from Ironpeak and the Frosthold fur trader, and Keen-Eye Tonic (+5 Perception) from the Verdant bowyer and the Saltwind tackle keeper. Goblins, orcs, bandits, gnolls and lizardfolk carry them too",
+        "Every tavern now pours tea: Mending Tea heals slowly for 3 hours, Meditation Tea brings back mana, Stamina Tea eases fatigue and Settling Tea cures food poisoning. Each town brews its own pair",
+        "The inns in Frosthold, Saltwind and Dusthaven have opened a tea counter",
+        "Teas are best fresh: they go stale after half a day and spoil in a day"
+      ]
+    },
+    {
       "id": "2026-10-26-living-towns",
       "when": "October 26, 2026",
       "icon": "🏘️",
@@ -9,8 +25,8 @@
       "title": "Towns That Keep Their Own Hours",
       "summary": "The week now has seven named days, and townsfolk live by them: they walk to work, drink at the tavern on their nights out, stroll the market and visit the shrine. Inns stay open until 11 in the morning, and five new traders have opened up.",
       "highlights": [
-        "A 7-day week, shown on its own line under the clock: Firstday, Toilday, Midweek, Hearthday, Fairday, Marketday and Restday",
-        "Shopkeepers walk to work and home again, spend some evenings at the tavern (Fairday's the busy night), take a turn round the market on Marketday and visit the shrine on Restday",
+        "A 7-day week, shown on its own line under the clock: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday and Saturday",
+        "Shopkeepers walk to work and home again, spend some evenings at the tavern (Thursday's the busy night), take a turn round the market on Friday and visit the shrine on Saturday",
         "Inns are open from 4 in the afternoon until 11 the next morning. Late at night the innkeeper dozes behind the counter: ring the bell for a room",
         "Every open shop now has its keeper in it, and shop hours match when they work. Buildings no one works in yet are closed for now",
         "New in Dusthaven and Saltwind: shrine keepers selling holy water, healing draughts and offerings",

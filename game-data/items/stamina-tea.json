@@ -1,0 +1,28 @@
+{
+  "id": "stamina-tea",
+  "name": "Stamina Tea",
+  "description": "A strong, earthy brew of wakeroot. It won't replace sleep, but it'll get you to the next inn.",
+  "type": "Potion",
+  "value": 25,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/stamina-tea.png",
+  "tags": [
+    "consumable",
+    "tea"
+  ],
+  "effects": [
+    {
+      "type": "fatigue",
+      "value": -2
+    }
+  ],
+  "notes": [
+    "Drink it: 2 less fatigue.",
+    "Best drunk fresh: it goes stale after half a day and spoils in a day."
+  ],
+  "spoils": {
+    "shelf_life": 1440
+  }
+}

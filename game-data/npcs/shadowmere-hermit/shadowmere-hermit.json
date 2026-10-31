@@ -9,6 +9,8 @@
     "buys_items": true,
     "starting_gold": 150,
     "inventory": [
+      {"item_id": "mana-draught", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
+      {"item_id": "owls-eye", "stock": 1, "max_stock": 1, "restock_rate": 1, "restock_interval": "daily"},
       {
         "item_id": "healing",
         "stock": 2,

@@ -74,7 +74,7 @@
       ],
       "available_actions": [],
       "days": [
-        "marketday"
+        "friday"
       ]
     }
   ],
@@ -140,6 +140,8 @@
     "item_restock_interval": 10,
     "gold_restock_interval": 30,
     "inventory": [
+      {"item_id": "meditation-tea", "stock": 4, "max_stock": 4},
+      {"item_id": "settling-tea", "stock": 4, "max_stock": 4},
       {
         "item_id": "beer",
         "stock": 50,

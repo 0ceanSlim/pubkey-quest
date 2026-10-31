@@ -1,0 +1,27 @@
+{
+  "id": "mending-tea",
+  "name": "Mending Tea",
+  "description": "A bitter red-brown tea of willow bark and bloodmoss. It eases aches and closes scrapes while you walk.",
+  "type": "Potion",
+  "value": 40,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/mending-tea.png",
+  "tags": [
+    "consumable",
+    "tea"
+  ],
+  "effects": [
+    {
+      "apply_effect": "mending"
+    }
+  ],
+  "notes": [
+    "Drink it: 1 HP every 30 minutes for 3 hours.",
+    "Best drunk fresh: it goes stale after half a day and spoils in a day."
+  ],
+  "spoils": {
+    "shelf_life": 1440
+  }
+}

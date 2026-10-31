@@ -1,0 +1,25 @@
+{
+  "id": "greater-mana-draught",
+  "name": "Greater Mana Draught",
+  "description": "A round flask of deep blue draught that hums faintly against the glass.",
+  "type": "Potion",
+  "value": 10000,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/greater-mana-draught.png",
+  "tags": [
+    "consumable",
+    "mana"
+  ],
+  "effects": [
+    {
+      "type": "mana",
+      "value": 4
+    }
+  ],
+  "notes": [
+    "Drink to restore 4 mana, in or out of combat.",
+    "In combat it uses your action."
+  ]
+}

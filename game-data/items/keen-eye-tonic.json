@@ -1,0 +1,22 @@
+{
+  "id": "keen-eye-tonic",
+  "name": "Keen-Eye Tonic",
+  "description": "A sharp yellow tonic that makes your eyes water, then makes every detail stand out.",
+  "type": "Potion",
+  "value": 1500,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/keen-eye-tonic.png",
+  "tags": [
+    "consumable"
+  ],
+  "effects": [
+    {
+      "apply_effect": "keen-eye"
+    }
+  ],
+  "notes": [
+    "Drink it: +5 Perception for an hour (spotting traps and hidden things)."
+  ]
+}

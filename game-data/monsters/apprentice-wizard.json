@@ -106,6 +106,7 @@
         "name": "rare",
         "weight": 120,
         "entries": [
+          { "item": "mana-draught", "weight": 40, "quantity": [1, 1] },
           { "item": "component-pouch", "weight": 40, "quantity": [1, 1] },
           { "item": "spellbook", "weight": 30, "quantity": [1, 1] },
           { "item": "wand", "weight": 30, "quantity": [1, 1] },

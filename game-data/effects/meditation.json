@@ -1,0 +1,21 @@
+{
+  "id": "meditation",
+  "name": "Meditation",
+  "description": "A calm, clear head: 1 mana every hour for 3 hours.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 180
+  },
+  "modifiers": [
+    {
+      "stat": "mana",
+      "type": "periodic",
+      "value": 1,
+      "tick_interval": 60
+    }
+  ],
+  "message": "Your thoughts settle and your focus returns.",
+  "visible": true
+}
