@@ -19,29 +19,21 @@ func (g *gen) itemLink(id string) string {
 }
 
 func (g *gen) writeItems() error {
-	byType := map[string][]string{}
-	for _, id := range sortedKeys(g.items) {
+	ids := sortedKeys(g.items)
+	sort.SliceStable(ids, func(i, j int) bool { return g.items[ids[i]].Name < g.items[ids[j]].Name })
+
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("Every item in the game (%d). Type in the filter box to narrow the list (a name, a type like _potion_, or a rarity), and click a column header to sort by it. Values are base prices — shops charge more, and pay less, depending on your Charisma.\n\n", len(g.items)))
+	var rows [][]string
+	for _, id := range ids {
 		it := g.items[id]
-		byType[it.Type] = append(byType[it.Type], id)
+		rows = append(rows, []string{g.image(it.Image, it.Name, 32), g.itemLink(id), titleCase(it.Type),
+			titleCase(it.Rarity), gold(it.Value), num(it.Weight)})
 		if err := g.page("Items/"+id, it.Name, g.itemPage(it)); err != nil {
 			return err
 		}
 	}
-
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Every item in the game (%d), grouped by type. Values are base prices — shops charge more, and pay less, depending on your Charisma.\n\n", len(g.items)))
-	for _, t := range sortedKeys(byType) {
-		ids := byType[t]
-		sort.Slice(ids, func(i, j int) bool { return g.items[ids[i]].Name < g.items[ids[j]].Name })
-		b.WriteString("## " + titleCase(t) + "\n\n")
-		var rows [][]string
-		for _, id := range ids {
-			it := g.items[id]
-			rows = append(rows, []string{g.image(it.Image, it.Name, 32), g.itemLink(id),
-				titleCase(it.Rarity), gold(it.Value), num(it.Weight)})
-		}
-		table(&b, []string{"", "Item", "Rarity", "Value", "Weight (lb)"}, rows)
-	}
+	table(&b, []string{"", "Item", "Type", "Rarity", "Value", "Weight (lb)"}, rows)
 	return g.page("Items", "Items", b.String())
 }
 

@@ -628,7 +628,8 @@ func plural(n int, unit string) string {
 	return fmt.Sprintf("%d %ss", n, unit)
 }
 
-func gold(n int) string { return fmt.Sprintf("%d gold", n) }
+// gold keeps "N gold" on one line in narrow table cells.
+func gold(n int) string { return fmt.Sprintf("%d gold", n) }
 
 func sortedKeys[V any](m map[string]V) []string {
 	keys := make([]string, 0, len(m))

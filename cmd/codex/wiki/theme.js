@@ -51,9 +51,12 @@
   // ── Sortable tables: click a column header to sort by it, click again to flip.
   // Cells sort by their leading number ("1/4", "1500 gold", "12.5%", "3–5"),
   // falling back to text; empty cells always sort last.
+  // Rarities sort by how rare they are, not alphabetically.
+  var RARITY = { common: 0, uncommon: 1, rare: 2, 'very rare': 3, legendary: 4 };
   function sortKey(text) {
     var t = text.trim();
     if (!t) return null;
+    if (RARITY.hasOwnProperty(t.toLowerCase())) return RARITY[t.toLowerCase()];
     var frac = t.match(/^(\d+)\/(\d+)/);
     if (frac) return +frac[1] / +frac[2];
     var n = t.replace(/,/g, '').match(/^-?\d+(\.\d+)?/);
@@ -92,6 +95,36 @@
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort(); }
         });
       });
+    });
+  }
+
+  // Long tables (the Items and Monsters lists) get a filter box: rows that don't
+  // contain every typed word are hidden. Gollum strips <input>s from pages, so it's
+  // added here.
+  function filterable() {
+    var tables = document.querySelectorAll('.markdown-body table');
+    Array.prototype.forEach.call(tables, function (table) {
+      var body = table.tBodies[0];
+      if (!body || body.rows.length < 40) return;
+      var box = document.createElement('div');
+      box.className = 'pq-filter';
+      box.innerHTML = '<input type="search" placeholder="Filter…" aria-label="Filter the table"><span></span>';
+      var input = box.querySelector('input'), count = box.querySelector('span');
+      var total = body.rows.length;
+      function run() {
+        var words = input.value.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
+        Array.prototype.forEach.call(body.rows, function (r) {
+          var text = r.textContent.toLowerCase();
+          var hit = words.every(function (w) { return text.indexOf(w) >= 0; });
+          r.style.display = hit ? '' : 'none';
+          if (hit) shown++;
+        });
+        count.textContent = words.length ? shown + ' of ' + total : total + ' rows';
+      }
+      input.addEventListener('input', run);
+      run();
+      var anchor = table.parentNode.classList.contains('pq-scroll') ? table.parentNode : table;
+      anchor.parentNode.insertBefore(box, anchor);
     });
   }
 
@@ -147,6 +180,7 @@
     header();
     sortable();
     wrapTables();
+    filterable();
     inlineMap();
   }
   if (document.readyState === 'loading') {

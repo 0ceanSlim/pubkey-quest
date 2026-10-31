@@ -294,6 +294,9 @@ a { color: var(--color-textHighlighted); }
 .pq-map a:hover circle { stroke: #fff; }
 .pq-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
 .pq-scroll > table { margin-bottom: 0; }
+.pq-filter { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.pq-filter input { flex: 1; max-width: 320px; }
+.pq-filter span { color: var(--color-textMuted); font-size: 0.9em; }
 .markdown-body img { max-width: 100%; height: auto; }
 @media (max-width: 640px) {
   .markdown-body table th, .markdown-body table td { padding: 4px 6px; font-size: 13px; }
