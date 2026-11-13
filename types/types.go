@@ -117,6 +117,9 @@ type ShopConfig struct {
 	ItemRestockInterval int                 `json:"item_restock_interval"` // Minutes between item restocks (default 10)
 	GoldRestockInterval int                 `json:"gold_restock_interval"` // Minutes between gold restocks (default 30)
 	Inventory           []ShopInventoryItem `json:"inventory"`
+	// BuysTags lets a specialty shop buy items it doesn't stock that carry one of
+	// these tags (the fishmonger buys any "fish").
+	BuysTags []string `json:"buys_tags,omitempty"`
 }
 
 // ShopState represents the runtime state of a shop (stored in save file)

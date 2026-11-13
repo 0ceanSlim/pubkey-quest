@@ -1,0 +1,22 @@
+{
+  "id": "spoon",
+  "name": "Spoon",
+  "description": "A curved, polished metal lure that flashes and wobbles as it's reeled in.",
+  "type": "Adventuring Gear",
+  "value": 40,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.1,
+  "image": "/res/img/items/spoon.png",
+  "tags": [
+    "fishing",
+    "lure"
+  ],
+  "fishing": {
+    "bait": "spoon"
+  },
+  "notes": [
+    "A lure is kept after a catch. It's only lost if the line snaps.",
+    "Pike, gar, mackerel and goldscale strike at a spoon."
+  ]
+}

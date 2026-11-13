@@ -1,0 +1,22 @@
+{
+  "id": "fly",
+  "name": "Fly",
+  "description": "A hand-tied fly of feather and thread, made to dance on a stream's surface.",
+  "type": "Adventuring Gear",
+  "value": 30,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.1,
+  "image": "/res/img/items/fly.png",
+  "tags": [
+    "fishing",
+    "lure"
+  ],
+  "fishing": {
+    "bait": "fly"
+  },
+  "notes": [
+    "A lure is kept after a catch. It's only lost if the line snaps.",
+    "Trout and grayling like a fly."
+  ]
+}

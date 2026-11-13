@@ -16,7 +16,11 @@
   },
   "notes": [
     "Keeps you fed 1 hour, with a Constitution save (DC 10) against food poisoning.",
-    "Food that goes past its time ends up as this. It sells for nothing."
+    "Food that goes past its time ends up as this. It sells for nothing.",
+    "Mudcats and eels will take it as stink bait."
   ],
-  "image": "/res/img/items/spoiled-food.png"
+  "image": "/res/img/items/spoiled-food.png",
+  "fishing": {
+    "bait": "stink"
+  }
 }

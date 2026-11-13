@@ -136,7 +136,7 @@
     "inventory": [
       {"item_id": "keen-eye-tonic", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
       {"item_id": "rations", "stock": 10, "max_stock": 10},
-      {"item_id": "raw-fish", "stock": 10, "max_stock": 10},
+      {"item_id": "fish-mackerel-small", "stock": 10, "max_stock": 10},
       {"item_id": "torch", "stock": 10, "max_stock": 10},
       {"item_id": "oil", "stock": 6, "max_stock": 6},
       {"item_id": "rope", "stock": 6, "max_stock": 6},

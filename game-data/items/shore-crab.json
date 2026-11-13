@@ -1,0 +1,27 @@
+{
+  "id": "shore-crab",
+  "name": "Shore Crab",
+  "description": "A small green crab from the tide pools, still pinching.",
+  "type": "Food",
+  "value": 8,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/shore-crab.png",
+  "tags": [
+    "consumable",
+    "material",
+    "shellfish"
+  ],
+  "notes": [
+    "Keeps you fed 1 hour. Eaten raw, it may give you food poisoning (Constitution save, DC 10).",
+    "Spoils in 12 hours."
+  ],
+  "food": {
+    "hours": 1,
+    "risky_dc": 10
+  },
+  "spoils": {
+    "shelf_life": 720
+  }
+}

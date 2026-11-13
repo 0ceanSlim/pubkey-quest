@@ -1,0 +1,33 @@
+{
+  "id": "mussels",
+  "name": "Mussels",
+  "description": "A handful of blue-black mussels prised off the rocks.",
+  "type": "Food",
+  "value": 6,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.5,
+  "image": "/res/img/items/mussels.png",
+  "tags": [
+    "consumable",
+    "material",
+    "shellfish",
+    "fishing",
+    "bait"
+  ],
+  "notes": [
+    "Keeps you fed 1 hour. Eaten raw, it may give you food poisoning (Constitution save, DC 10).",
+    "Works as cut bait.",
+    "Spoils in 12 hours."
+  ],
+  "food": {
+    "hours": 1,
+    "risky_dc": 10
+  },
+  "spoils": {
+    "shelf_life": 720
+  },
+  "fishing": {
+    "bait": "cut"
+  }
+}

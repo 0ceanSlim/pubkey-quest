@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"pubkey-quest/cmd/server/game/events"
+	"slices"
 	"strings"
 
 	"pubkey-quest/cmd/server/api/character"
@@ -594,6 +595,13 @@ func handleSellToShop(w http.ResponseWriter, r *http.Request) {
 			if invItem.ItemID == transaction.ItemID {
 				itemInStock = true
 				break
+			}
+		}
+		if !itemInStock && len(shopConfig.BuysTags) > 0 {
+			if it, err := db.GetItemByID(transaction.ItemID); err == nil && it != nil {
+				var tags []string
+				_ = json.Unmarshal([]byte(it.Tags), &tags)
+				itemInStock = slices.ContainsFunc(shopConfig.BuysTags, func(t string) bool { return slices.Contains(tags, t) })
 			}
 		}
 		if !itemInStock {

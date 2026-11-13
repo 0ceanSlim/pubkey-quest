@@ -395,6 +395,9 @@ func migrateFromJSON(callback StatusCallback) error {
 	if err := generateScrollItems(); err != nil {
 		log.Printf("⚠️ Warning: failed to generate scroll items: %v", err)
 	}
+	if err := generateFishItems(); err != nil {
+		log.Printf("⚠️ Warning: failed to generate fish items: %v", err)
+	}
 
 	// Migrate content data (monsters, locations, NPCs)
 	if callback != nil {
@@ -1434,6 +1437,7 @@ func migrateSystemsFiles() error {
 		"time-config.json",
 		"condition.json",
 		"cooking.json",
+		"fishing.json",
 	}
 
 	count := 0

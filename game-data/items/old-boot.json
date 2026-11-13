@@ -1,0 +1,17 @@
+{
+  "id": "old-boot",
+  "name": "Old Boot",
+  "description": "A waterlogged leather boot, its sole flapping. Somebody, somewhere, walked home lopsided.",
+  "type": "Treasure",
+  "value": 1,
+  "rarity": "common",
+  "stack": 5,
+  "weight": 1.5,
+  "image": "/res/img/items/old-boot.png",
+  "tags": [
+    "junk"
+  ],
+  "notes": [
+    "Fished up from the water. Worth next to nothing, though Finn Brackwater has a story about one."
+  ]
+}

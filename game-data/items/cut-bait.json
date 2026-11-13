@@ -1,0 +1,25 @@
+{
+  "id": "cut-bait",
+  "name": "Cut Bait",
+  "description": "Strips of fish flesh on a hook. Predators and sea fish can't resist it.",
+  "type": "Adventuring Gear",
+  "value": 3,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.1,
+  "image": "/res/img/items/cut-bait.png",
+  "tags": [
+    "fishing",
+    "bait"
+  ],
+  "fishing": {
+    "bait": "cut"
+  },
+  "notes": [
+    "Bait is used up when a fish takes it, steals it, or comes off the hook.",
+    "Cut from a tiny or small fish (2 each). Spoils like fish."
+  ],
+  "spoils": {
+    "shelf_life": 720
+  }
+}

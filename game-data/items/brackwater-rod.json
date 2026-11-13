@@ -1,0 +1,25 @@
+{
+  "id": "brackwater-rod",
+  "name": "Brackwater Rod",
+  "description": "Finn Brackwater's own make: split cane, a brass reel and line he swears by. It casts long and holds what a plain rod can't.",
+  "type": "Tools",
+  "value": 1500,
+  "rarity": "uncommon",
+  "stack": 1,
+  "weight": 2,
+  "image": "/res/img/items/brackwater-rod.png",
+  "tags": [
+    "fishing",
+    "gathering",
+    "tool"
+  ],
+  "fishing": {
+    "line": 13,
+    "cast": 7,
+    "tell": 10
+  },
+  "notes": [
+    "Its line snaps at tension 13, enough for a huge goldscale or sturgeon.",
+    "Casts farther and reads a fish's moves better (+10% to see its tell)."
+  ]
+}

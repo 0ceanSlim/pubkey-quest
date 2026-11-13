@@ -1,0 +1,144 @@
+{
+  "_comment": "Fishing (docs/draft/fishing-system.md). Species x sizes become fish-<species>-<size> items at migration (plus cooked-/salted-fish-<size> and trophy-<species>); the server's game/fishing engine reads this file for bites, fights and spots. Weights in a spot's species/finds/shellfish are relative. Values are gold for a medium fish.",
+
+  "sizes": [
+    { "id": "tiny",   "name": "Tiny",   "max_pct": 0.10, "share": 0.22, "value": 0.2, "power": -2, "stamina": 2,  "raw_hours": 1 },
+    { "id": "small",  "name": "Small",  "max_pct": 0.25, "share": 0.38, "value": 0.5, "power": -1, "stamina": 3,  "raw_hours": 2 },
+    { "id": "medium", "name": "Medium", "max_pct": 0.50, "share": 0.28, "value": 1,   "power": 0,  "stamina": 5,  "raw_hours": 3 },
+    { "id": "large",  "name": "Large",  "max_pct": 0.80, "share": 0.10, "value": 2.5, "power": 1,  "stamina": 8,  "raw_hours": 4 },
+    { "id": "huge",   "name": "Huge",   "max_pct": 1.00, "share": 0.02, "value": 8,   "power": 3,  "stamina": 12, "raw_hours": 4 }
+  ],
+
+  "profiles": {
+    "balanced": { "run": 3, "dive": 2, "thrash": 2, "rest": 3 },
+    "runner":   { "run": 5, "dive": 1, "thrash": 2, "rest": 2 },
+    "diver":    { "run": 1, "dive": 5, "thrash": 1, "rest": 3 },
+    "jumper":   { "run": 2, "dive": 1, "thrash": 5, "rest": 2 },
+    "twister":  { "run": 1, "dive": 3, "thrash": 4, "rest": 2 },
+    "thrasher": { "run": 1, "dive": 1, "thrash": 6, "rest": 2 },
+    "rester":   { "run": 1, "dive": 2, "thrash": 1, "rest": 6 }
+  },
+
+  "species": {
+    "minnow":         { "name": "Minnow",         "water": ["river", "lake"], "bites": "any",       "max_lb": 0.2, "value": 1,   "power": 0, "profile": "rester",   "likes": ["any"], "description": "A finger of silver that darts in the shallows. Barely a mouthful, but every predator in the water wants one." },
+    "sunfish":        { "name": "Sunfish",        "water": ["lake"],          "bites": "day",       "max_lb": 1.5, "value": 10,  "power": 1, "profile": "balanced", "likes": ["worms"], "description": "A round, bright-bellied pond fish, orange and blue like a summer evening." },
+    "river-perch":    { "name": "River Perch",    "water": ["river", "lake"], "bites": "day",       "max_lb": 3,   "value": 20,  "power": 1, "profile": "balanced", "likes": ["worms"], "description": "A striped, spiny-finned perch. Sweet white flesh, if you mind the spines." },
+    "brook-trout":    { "name": "Brook Trout",    "water": ["river"],         "bites": "dawn_dusk", "max_lb": 6,   "value": 40,  "power": 2, "profile": "jumper",   "likes": ["fly", "worms"], "description": "A speckled stream trout, spotted red and gold. It leaps when it's hooked." },
+    "grayling":       { "name": "Grayling",       "water": ["river"],         "bites": "day",       "max_lb": 4,   "value": 45,  "power": 2, "profile": "runner",   "shy": true, "likes": ["fly"], "description": "A mountain fish with a great sail of a back fin. It smells faintly of thyme." },
+    "river-pike":     { "name": "River Pike",     "water": ["river", "lake"], "bites": "dawn_dusk", "max_lb": 30,  "value": 60,  "power": 4, "profile": "runner",   "likes": ["spoon", "cut"], "description": "A long green ambusher with a mouthful of needles. It hits a lure like a thrown spear." },
+    "carp":           { "name": "Carp",           "water": ["lake", "swamp", "river"], "bites": "day",       "max_lb": 40,  "value": 25,  "power": 3, "profile": "diver",    "likes": ["worms"], "description": "A heavy, bronze-scaled bottom feeder. Patient, stubborn, and muddy unless cooked well." },
+    "sturgeon":       { "name": "Sturgeon",       "water": ["river"],         "bites": "night",     "max_lb": 120, "value": 150, "power": 6, "profile": "diver",    "likes": ["cut", "worms"], "description": "An armoured giant of the deep river, older than the town on its banks. It feeds at night." },
+    "mudcat":         { "name": "Mudcat",         "water": ["swamp", "river"], "bites": "night",    "max_lb": 60,  "value": 35,  "power": 4, "profile": "diver",    "likes": ["stink", "cut"], "description": "A whiskered swamp catfish with a mouth like a bucket. It likes its food well past fresh." },
+    "bog-eel":        { "name": "Bog Eel",        "water": ["swamp"],         "bites": "night",     "max_lb": 15,  "value": 45,  "power": 3, "profile": "twister",  "likes": ["cut", "stink"], "description": "A slick black eel that ties itself in knots on the line." },
+    "marsh-gar":      { "name": "Marsh Gar",      "water": ["swamp"],         "bites": "day",       "max_lb": 50,  "value": 40,  "power": 4, "profile": "runner",   "likes": ["spoon", "cut"], "description": "A long-snouted, armour-scaled hunter of the reeds. It runs, then jumps." },
+    "quipper":        { "name": "Quipper",        "water": ["swamp", "river"], "bites": "any",      "max_lb": 0.5, "value": 5,   "power": 1, "profile": "thrasher", "likes": ["any"], "description": "A small, toothy nuisance that strips a hook bare. Worth almost nothing, and it knows it." },
+    "glowfin":        { "name": "Glowfin",        "water": ["swamp"],         "bites": "night",     "max_lb": 2,   "value": 120, "power": 2, "profile": "rester",   "shy": true, "likes": ["glow"], "rarity": "uncommon", "description": "A small fish whose fins shine a soft green in dark water. Shadowmere folk say it eats moonlight." },
+    "mackerel":       { "name": "Mackerel",       "water": ["sea"],           "bites": "day",       "max_lb": 4,   "value": 20,  "power": 2, "profile": "runner",   "likes": ["spoon", "cut"], "description": "A sleek, blue-barred sea fish that travels in shoals. Oily, and good grilled." },
+    "flounder":       { "name": "Flounder",       "water": ["sea"],           "bites": "day",       "max_lb": 10,  "value": 35,  "power": 2, "profile": "rester",   "likes": ["worms"], "description": "A flat fish with both eyes on one side, lying in the sand like a dropped plate." },
+    "sea-bass":       { "name": "Sea Bass",       "water": ["sea"],           "bites": "dawn_dusk", "max_lb": 20,  "value": 55,  "power": 3, "profile": "balanced", "likes": ["cut", "spoon"], "description": "A silver-grey bass that hunts the surf at the turn of the light." },
+    "cod":            { "name": "Cod",            "water": ["sea"],           "bites": "any",       "max_lb": 60,  "value": 45,  "power": 3, "profile": "diver",    "likes": ["cut", "worms"], "description": "A thick, speckled deep-water fish. Saltwind lives on it, fresh in summer and salted all winter." },
+    "red-snapper":    { "name": "Red Snapper",    "water": ["sea"],           "bites": "day",       "max_lb": 35,  "value": 70,  "power": 4, "profile": "diver",    "likes": ["cut"], "description": "A rose-red reef fish that lives under the cliffs and dives for the rocks when it's hooked." },
+    "goldscale":      { "name": "Goldscale",      "water": ["sea"],           "bites": "dawn",      "max_lb": 100, "value": 200, "power": 6, "profile": "jumper",   "likes": ["spoon"], "rarity": "uncommon", "description": "A great fish with scales like beaten gold. It feeds only at dawn, and fights like it knows its worth." },
+    "ice-cod":        { "name": "Ice Cod",        "water": ["ice"],           "bites": "any",       "max_lb": 8,   "value": 30,  "power": 2, "profile": "diver",    "likes": ["cut"], "description": "A pale, slow cod from under the ice, its blood thick against the cold." },
+    "arctic-char":    { "name": "Arctic Char",    "water": ["ice"],           "bites": "any",       "max_lb": 20,  "value": 60,  "power": 3, "profile": "balanced", "likes": ["cut", "spoon"], "description": "A red-bellied char from the frozen lakes, firm and rich." },
+    "frostfin":       { "name": "Frostfin",       "water": ["ice"],           "bites": "night",     "max_lb": 5,   "value": 150, "power": 3, "profile": "rester",   "shy": true, "likes": ["glow"], "rarity": "uncommon", "description": "A translucent fish from the deepest holes, cold to the touch long after it's landed." },
+    "leaping-salmon": { "name": "Leaping Salmon", "water": ["river"],         "bites": "dawn_dusk", "max_lb": 30,  "value": 80,  "power": 0, "profile": "jumper",   "barehand_only": true, "description": "A powerful salmon that climbs the falls in great leaps. No hook holds it: it has to be caught in the air." },
+    "rock-grouper":   { "name": "Rock Grouper",   "water": ["sea"],           "bites": "any",       "max_lb": 40,  "value": 90,  "power": 0, "profile": "rester",   "barehand_only": true, "description": "A big-lipped grouper that wedges itself under the shallows' rocks. You reach in and pull." }
+  },
+
+  "baits": {
+    "worms": { "name": "Worms",      "tilt": 1.0 },
+    "cut":   { "name": "Cut bait",   "tilt": 1.3 },
+    "stink": { "name": "Stink bait", "tilt": 1.1 },
+    "fly":   { "name": "Fly",        "tilt": 1.0, "lure": true },
+    "spoon": { "name": "Spoon",      "tilt": 1.2, "lure": true },
+    "glow":  { "name": "Glow lure",  "tilt": 1.0, "lure": true, "night": 1.3 }
+  },
+
+  "spots": {
+    "saltwind-harbor": {
+      "name": "Saltwind Harbor", "district": "saltwind-center", "water": "sea", "dc": 10, "bite_rate": 1.0, "daily_catch": 12,
+      "species": { "mackerel": 35, "cod": 25, "sea-bass": 20, "flounder": 10, "red-snapper": 5 },
+      "finds": { "old-boot": 2, "message-in-a-bottle": 0.3, "gold-piece": 0.3 }
+    },
+    "goldenhaven-wharf": {
+      "name": "Goldenhaven Wharf", "district": "goldenhaven-east", "water": "river", "dc": 10, "bite_rate": 1.0, "daily_catch": 12,
+      "species": { "river-perch": 35, "carp": 25, "river-pike": 20, "minnow": 10, "sturgeon": 8, "quipper": 5 },
+      "finds": { "old-boot": 2, "torch": 3, "gold-piece": 0.3 }
+    },
+    "marshlight-platforms": {
+      "name": "Marshlight Platforms", "district": "marshlight-east", "water": "swamp", "dc": 11, "bite_rate": 1.1, "daily_catch": 12,
+      "species": { "quipper": 30, "mudcat": 20, "bog-eel": 20, "carp": 15, "marsh-gar": 15 },
+      "finds": { "old-boot": 2, "torch": 4 }
+    },
+    "still-waters": {
+      "name": "Still Waters", "water": "swamp", "dc": 11, "bite_rate": 1.2, "worms": true, "daily_catch": 10,
+      "species": { "quipper": 25, "carp": 20, "mudcat": 20, "bog-eel": 15, "marsh-gar": 10, "glowfin": 10 },
+      "finds": { "torch": 4, "old-boot": 2 },
+      "monsters": [ { "monster": "bullywug", "weight": 1, "when": "night" } ]
+    },
+    "tide-pools": {
+      "name": "Tide Pools", "water": "sea", "dc": 9, "bite_rate": 1.0, "shallows": true, "daily_catch": 10,
+      "species": { "flounder": 40, "mackerel": 20, "sea-bass": 15, "cod": 5 },
+      "barehand": { "rock-grouper": 1 },
+      "shellfish": { "shore-crab": 3, "mussels": 4, "oyster": 2 },
+      "finds": { "old-boot": 1, "message-in-a-bottle": 0.5 },
+      "monsters": [ { "monster": "giant-crab", "weight": 1 } ]
+    },
+    "gull-rock": {
+      "name": "Gull Rock", "water": "sea", "dc": 12, "bite_rate": 0.9, "daily_catch": 8,
+      "species": { "red-snapper": 30, "cod": 25, "sea-bass": 20, "mackerel": 15, "goldscale": 5 },
+      "finds": { "message-in-a-bottle": 0.5 },
+      "monsters": [ { "monster": "merrow", "weight": 1, "when": "night" } ]
+    },
+    "cragspire-falls": {
+      "name": "Cragspire Falls", "water": "river", "dc": 12, "bite_rate": 1.0, "worms": true, "daily_catch": 10,
+      "species": { "brook-trout": 35, "grayling": 25, "river-pike": 15, "minnow": 15, "river-perch": 10 },
+      "barehand": { "leaping-salmon": 1 },
+      "finds": { "torch": 3 }
+    },
+    "darkwood-brook": {
+      "name": "Darkwood Brook", "water": "river", "dc": 10, "bite_rate": 1.0, "worms": true, "daily_catch": 10,
+      "species": { "river-perch": 35, "brook-trout": 30, "minnow": 20, "river-pike": 10 },
+      "finds": { "torch": 4, "old-boot": 1 }
+    },
+    "millpond": {
+      "name": "The Millpond", "water": "lake", "dc": 8, "bite_rate": 1.1, "worms": true, "daily_catch": 12,
+      "species": { "sunfish": 35, "carp": 25, "river-perch": 20, "minnow": 15, "river-pike": 5 },
+      "finds": { "old-boot": 2, "torch": 2 }
+    },
+    "ice-hole": {
+      "name": "Ice Hole", "water": "ice", "dc": 12, "bite_rate": 0.8, "daily_catch": 8,
+      "species": { "ice-cod": 45, "arctic-char": 35, "frostfin": 10 }
+    }
+  },
+
+  "prepared": {
+    "cooked": {
+      "name": "Cooked", "image": "/res/img/items/cooked-fish.png", "image_large": "/res/img/items/cooked-large-fish.png", "shelf_life": 2880,
+      "hours": { "tiny": 2, "small": 4, "medium": 6, "large": 8, "huge": 8 },
+      "value": { "tiny": 6, "small": 20, "medium": 40, "large": 75, "huge": 90 }
+    },
+    "salted": {
+      "name": "Salted", "image": "/res/img/items/salted-fish.png", "image_large": "/res/img/items/salted-large-fish.png", "shelf_life": 43200,
+      "hours": { "tiny": 1, "small": 2, "medium": 3, "large": 4, "huge": 4 },
+      "value": { "tiny": 8, "small": 25, "medium": 50, "large": 90, "huge": 110 }
+    }
+  },
+
+  "trophy": { "weight": 6, "value": 1.5, "fee": 0.25 },
+
+  "rules": {
+    "wait_minutes": 5,
+    "fight_minutes": 1,
+    "recast_minutes": 2,
+    "base_bite": 0.25,
+    "max_distance": 12,
+    "quick_minutes": 20,
+    "net_minutes": 30,
+    "worm_minutes": 10,
+    "worm_dc": 8,
+    "monster_bite": 0.04,
+    "find_bite": 0.06
+  }
+}

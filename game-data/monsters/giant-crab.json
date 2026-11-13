@@ -87,7 +87,7 @@
         "name": "common",
         "weight": 1000,
         "entries": [
-          { "item": "raw-fish", "weight": 300, "quantity": [1, 1] },
+          { "item": "fish-mackerel-small", "weight": 300, "quantity": [1, 1] },
           { "item": "nothing", "weight": 700 }
         ]
       }

@@ -123,7 +123,7 @@ type schemaRefIndex struct {
 
 func buildSchemaRefIndex(dirs SchemaDirs) *schemaRefIndex {
 	idx := &schemaRefIndex{
-		items:     withGeneratedScrolls(schemaLoadIDs(dirs.Items)),
+		items:     withGeneratedFish(withGeneratedScrolls(schemaLoadIDs(dirs.Items))),
 		monsters:  schemaLoadIDs(dirs.Monsters),
 		effects:   schemaLoadIDs(dirs.Effects),
 		npcs:      map[string]bool{},

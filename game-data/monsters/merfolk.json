@@ -88,7 +88,7 @@
         "name": "common",
         "weight": 1000,
         "entries": [
-          { "item": "raw-fish", "weight": 300, "quantity": [1, 2] },
+          { "item": "fish-mackerel-small", "weight": 300, "quantity": [1, 2] },
           { "item": "spear", "weight": 100, "quantity": [1, 1] },
           { "item": "gold-piece", "weight": 150, "quantity": [300, 1800] },
           { "item": "gold-piece", "weight": 20, "quantity": [1000, 6000] },

@@ -1,0 +1,22 @@
+{
+  "id": "worms",
+  "name": "Worms",
+  "description": "A tin of fat earthworms in damp moss. Every freshwater fish likes a worm.",
+  "type": "Adventuring Gear",
+  "value": 2,
+  "rarity": "common",
+  "stack": 20,
+  "weight": 0.1,
+  "image": "/res/img/items/worms.png",
+  "tags": [
+    "fishing",
+    "bait"
+  ],
+  "fishing": {
+    "bait": "worms"
+  },
+  "notes": [
+    "Bait is used up when a fish takes it, steals it, or comes off the hook.",
+    "Buy them, or dig for them by a river, lake or swamp."
+  ]
+}

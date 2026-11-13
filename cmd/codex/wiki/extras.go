@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"pubkey-quest/cmd/server/game/fishing"
 )
 
 // ── Scrolls, spell learning, NPC services, rewards and hand-ins ─────────────
@@ -66,6 +68,20 @@ func (g *gen) loadExtras() {
 		}
 	}
 	readJSON(filepath.Join(d, "magic", "spell-progression.json"), &g.x.progress)
+
+	// The fish, cooked/salted fish and trophies fishing.json generates.
+	if cfg, err := fishing.LoadFile(filepath.Join(d, "systems", "fishing.json")); err == nil {
+		for _, raw := range fishing.Items(cfg) {
+			id, _ := raw["id"].(string)
+			if g.items[id] != nil {
+				continue
+			}
+			var it item
+			if b, err := json.Marshal(raw); err == nil && json.Unmarshal(b, &it) == nil {
+				g.items[id] = &it
+			}
+		}
+	}
 
 	// A scroll for every spell the game generates one for.
 	maxLvl := g.x.scribe.MaxSpellLevel

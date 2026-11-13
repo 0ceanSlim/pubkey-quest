@@ -1,0 +1,22 @@
+{
+  "id": "glow-lure",
+  "name": "Glow Lure",
+  "description": "A lure set with a sliver of luminous fungus. It glows faintly green in dark water.",
+  "type": "Adventuring Gear",
+  "value": 150,
+  "rarity": "common",
+  "stack": 1,
+  "weight": 0.1,
+  "image": "/res/img/items/glow-lure.png",
+  "tags": [
+    "fishing",
+    "lure"
+  ],
+  "fishing": {
+    "bait": "glow"
+  },
+  "notes": [
+    "A lure is kept after a catch. It's only lost if the line snaps.",
+    "The only thing glowfin and frostfin will take. Fish bite better on it at night."
+  ]
+}

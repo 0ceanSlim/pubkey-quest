@@ -1,0 +1,17 @@
+{
+  "id": "message-in-a-bottle",
+  "name": "Message in a Bottle",
+  "description": "A stoppered green bottle with a rolled note inside, washed in on the tide.",
+  "type": "Treasure",
+  "value": 25,
+  "rarity": "common",
+  "stack": 5,
+  "weight": 0.5,
+  "image": "/res/img/items/message-in-a-bottle.png",
+  "tags": [
+    "curio"
+  ],
+  "notes": [
+    "Fished up from the sea. Someone wanted this found."
+  ]
+}

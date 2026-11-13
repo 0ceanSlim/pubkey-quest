@@ -1,7 +1,7 @@
 {
   "id": "fishing-rod",
   "name": "Fishing Rod",
-  "description": "A supple wooden rod strung with waxed line and a bone hook. Required to work a fishing node — cast, wait, and reel in whatever bites.",
+  "description": "A supple wooden rod strung with waxed line and a bone hook. Cast, watch the float, and fight whatever bites.",
   "type": "Tools",
   "value": 100,
   "rarity": "common",
@@ -14,6 +14,12 @@
     "tool"
   ],
   "notes": [
-    "Needed to fish at fishing spots."
-  ]
+    "Fish at any fishing spot: a town pier or a fishing place out in the wild.",
+    "Its line snaps at tension 10: big, strong fish can break it."
+  ],
+  "fishing": {
+    "line": 10,
+    "cast": 6,
+    "tell": 0
+  }
 }
