@@ -1,0 +1,248 @@
+/* Fishing window (src/ui/fishing.js). The lockpicking window's frame and
+ * buttons, with water in the viewport: Win95 bevels, pixel edges. Sizes are
+ * real CSS px (the window sits on <body>, outside the scaled game canvas). */
+
+.fs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(4, 8, 12, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.fs-window {
+  --fs-ink: #eef3f6;
+  --fs-gold: #ffd75e;
+  --fs-bad: #e0573c;
+  --fs-cool: #6fb7d6;
+
+  width: min(440px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: #3a3a3a;
+  border: 2px solid;
+  border-color: #6a6a6a #0a0a0a #0a0a0a #6a6a6a;
+  box-shadow: 0 0 0 1px #000, 6px 6px 0 rgba(0, 0, 0, 0.5);
+  font-family: 'Dogica', monospace;
+  color: var(--fs-ink);
+  image-rendering: pixelated;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.fs-window svg { shape-rendering: crispEdges; display: block; }
+
+.fs-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 6px;
+  background: linear-gradient(90deg, #12324a, #2a6a8a);
+  border-bottom: 2px solid #0a0a0a;
+}
+.fs-title-text {
+  flex: 1;
+  font-size: 8px;
+  line-height: 1.4;
+  color: #e8f6ff;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fs-close {
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 8px;
+  cursor: pointer;
+}
+.fs-close:active { border-color: #404040 #fff #fff #404040; }
+
+/* The water */
+.fs-viewport {
+  position: relative;
+  height: 120px;
+  margin: 8px;
+  overflow: hidden;
+  border: 2px solid;
+  border-color: #0a0a0a #6a6a6a #6a6a6a #0a0a0a;
+  background: linear-gradient(180deg, #8cc4e0 0 28%, #2f6f8f 28% 100%);
+}
+.fs-viewport.water-sea   { background: linear-gradient(180deg, #9cc9e6 0 28%, #1f5b86 28% 100%); }
+.fs-viewport.water-river { background: linear-gradient(180deg, #a6cf9a 0 28%, #2e6e78 28% 100%); }
+.fs-viewport.water-lake  { background: linear-gradient(180deg, #a8d0b0 0 28%, #3a7a8a 28% 100%); }
+.fs-viewport.water-swamp { background: linear-gradient(180deg, #7f8f5a 0 28%, #3c4a2a 28% 100%); }
+.fs-viewport.water-ice   { background: linear-gradient(180deg, #e6eef4 0 28%, #5e8aa6 28% 100%); }
+.fs-viewport.dark { filter: brightness(0.45) saturate(0.7); }
+
+.fs-surface {
+  position: absolute;
+  left: 0; right: 0; top: 28%;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.55) 0 6px, transparent 6px 14px);
+  animation: fs-ripple 1.6s steps(4) infinite;
+}
+
+.fs-float {
+  position: absolute;
+  left: 50%; top: calc(28% - 14px);
+  transform: translateX(-50%);
+  animation: fs-bob 1.4s steps(2) infinite;
+}
+.fs-float.float-twitch { animation: fs-twitch 300ms steps(2) infinite; }
+.fs-float.float-dive { top: calc(28% + 2px); animation: none; opacity: 0.7; }
+.fs-float.float-idle { display: none; }
+.fs-float.miss { animation: fs-shake 220ms steps(3); }
+.fs-ring {
+  position: absolute;
+  left: 50%; top: 28%;
+  width: 40px; height: 10px;
+  transform: translate(-50%, -2px);
+  border: 2px solid rgba(255,255,255,0.7);
+  border-radius: 50%;
+  animation: fs-ring 700ms steps(4) infinite;
+}
+
+/* Barehanded: a shadow in the water */
+.fs-shadow {
+  position: absolute;
+  left: 50%; top: 60%;
+  width: 44px; height: 16px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.0);
+  transition: all 300ms steps(3);
+}
+.fs-shadow.shadow-twitch { background: rgba(0,0,0,0.35); animation: fs-circle 1.2s steps(6) infinite; }
+.fs-shadow.shadow-dive { background: rgba(0,0,0,0.6); width: 70px; height: 24px; top: 78%; }
+
+/* A hooked fish thrashing */
+.fs-splash {
+  position: absolute;
+  left: 50%; top: 52%;
+  transform: translate(-50%, -50%);
+  animation: fs-thrash 500ms steps(2) infinite;
+}
+.fs-splash.spent { animation-duration: 1.4s; opacity: 0.85; }
+.fs-splash.hooked { animation: fs-shake 300ms steps(3) 2; }
+
+/* The catch */
+.fs-card {
+  position: absolute;
+  inset: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #e8dcbc;
+  color: #2a1a0a;
+  border: 2px solid;
+  border-color: #fff8e0 #7a5520 #7a5520 #fff8e0;
+  animation: fs-land 400ms steps(4);
+}
+.fs-card img { width: 64px; height: 64px; image-rendering: pixelated; }
+.fs-card-text { font-size: 8px; line-height: 1.8; }
+.fs-card-name { font-size: 10px; font-weight: bold; }
+.fs-card-value { color: #7a5520; }
+
+/* Gauges */
+.fs-gauges { margin: 0 8px; font-size: 8px; line-height: 1.4; min-height: 16px; }
+.fs-read { padding: 4px 0; color: var(--fs-cool); }
+.fs-gauge { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.fs-label { width: 64px; }
+.fs-cells { display: flex; gap: 2px; flex: 1; }
+.fs-cell { flex: 1; max-width: 14px; height: 12px; background: #1a1a1a; border: 1px solid #5a5a5a; }
+.fs-cell.hot { background: var(--fs-bad); border-color: #ffb199; }
+.fs-cell.far { background: var(--fs-cool); border-color: #bfe6f6; }
+.fs-gauge.near .fs-cell.hot { animation: fs-blink 600ms steps(2) infinite; }
+.fs-tell { padding: 2px 0; color: var(--fs-gold); }
+.fs-tell .muted { color: #9aa4aa; }
+.fs-feel { padding-bottom: 4px; }
+.fs-feel .good, .fs-message .good { color: var(--fs-gold); }
+
+/* Messages */
+.fs-message {
+  margin: 8px;
+  min-height: 64px;
+  padding: 8px 10px;
+  background: #0d1215;
+  border: 2px solid;
+  border-color: #0a0a0a #5a5a5a #5a5a5a #0a0a0a;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.fs-message .fs-line + .fs-line { margin-top: 4px; }
+.fs-message .bad { color: #ff9b7a; }
+
+/* Rod and bait */
+.fs-tray { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 8px 8px; }
+.fs-tool {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  background: #2a2a2a;
+  border: 2px solid;
+  border-color: #0a0a0a #5a5a5a #5a5a5a #0a0a0a;
+  font-size: 8px;
+  line-height: 1.4;
+}
+.fs-bait select {
+  margin-left: 4px;
+  font-family: inherit;
+  font-size: 8px;
+  background: #c0c0c0;
+  color: #000;
+  border: 2px solid;
+  border-color: #404040 #fff #fff #404040;
+}
+
+/* Buttons */
+.fs-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 8px 8px; }
+.fs-actions .fs-btn { flex: 1; }
+.fs-btn {
+  min-height: 36px;
+  padding: 6px 10px;
+  background: #c0c0c0;
+  color: #000;
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf;
+  font-family: 'Dogica', monospace;
+  font-size: 8px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.fs-btn:active:not(:disabled) { border-color: #404040 #fff #fff #404040; box-shadow: inset 1px 1px 0 #808080; }
+.fs-btn:disabled { color: #808080; text-shadow: 1px 1px 0 #fff; cursor: default; }
+.fs-btn.primary { font-weight: bold; }
+.fs-btn:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+.fs-btn kbd { font-family: inherit; opacity: 0.6; margin-left: 2px; }
+
+@keyframes fs-ripple { to { background-position: 14px 0; } }
+@keyframes fs-bob { 50% { transform: translate(-50%, 2px); } }
+@keyframes fs-twitch { 50% { transform: translate(-48%, 3px); } }
+@keyframes fs-ring { from { width: 16px; opacity: 1; } to { width: 60px; opacity: 0; } }
+@keyframes fs-circle { 0% { left: 30%; } 50% { left: 70%; } 100% { left: 30%; } }
+@keyframes fs-thrash { 50% { transform: translate(-46%, -60%) rotate(-12deg); } }
+@keyframes fs-shake { 33% { transform: translate(-54%, -50%); } 66% { transform: translate(-46%, -50%); } }
+@keyframes fs-blink { 50% { opacity: 0.4; } }
+@keyframes fs-land { from { transform: scale(0.6); opacity: 0; } }
+
+@media (max-width: 420px) {
+  .fs-backdrop { padding: 8px; align-items: flex-end; }
+  .fs-actions .fs-btn { flex: 1 1 40%; min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-window * { animation: none !important; transition: none !important; }
+}

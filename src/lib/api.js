@@ -109,6 +109,10 @@ class GameAPI {
             if (typeof result.data?.clock_running === 'boolean') {
                 eventBus.emit('clock:running', result.data.clock_running);
             }
+            // A town pier where you stand (the Fish button).
+            if (result.data && 'fishing_spot' in result.data) {
+                eventBus.emit('fishing:spot', result.data.fishing_spot);
+            }
             announceQuestNews(result.data);
             // Death outside a fight (starving, a hazard on the road): the server
             // already woke the player in town; offer the last save instead.

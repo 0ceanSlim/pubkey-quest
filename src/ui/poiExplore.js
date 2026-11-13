@@ -27,6 +27,7 @@ import { getNPCById } from '../state/staticData.js';
 // as "../game.js", but the page loads it as game.js?v=…, so the browser ran the
 // whole game a second time (two music players, an empty second game state).
 import { openLockpicking } from './lockpicking.js';
+import { openFishing } from './fishing.js';
 
 // Discovered POIs in the current environment (id, name, position, …), cached for
 // the travel-screen markers. Refreshed on entering a travel view and after a new
@@ -175,10 +176,13 @@ function renderStep(step) {
     }
     if (Array.isArray(step.choices) && step.choices.length) {
         step.choices.forEach((ch) => {
-            // A lock's "Pick the lock" plays the minigame instead of advancing.
+            // A lock's "Pick the lock" plays the minigame instead of advancing,
+            // and a fishing spot's "Fish" opens the fishing window.
             const onClick = ch.next.endsWith('#pick')
                 ? () => pickInWalk(ch.next.slice(0, -'#pick'.length))
-                : () => advancePOI(ch.next);
+                : ch.next.endsWith('#fish')
+                    ? () => fishInWalk(ch.next.slice(0, -'#fish'.length))
+                    : () => advancePOI(ch.next);
             buttons.push({ label: ch.label, onClick });
         });
     } else if (step.next) {
@@ -214,6 +218,24 @@ async function pickInWalk(node) {
     }
     await refreshGameState(true);
     if (r.data?.step) renderStep(r.data.step);
+}
+
+// fishInWalk opens the fishing window at a fishing node of the walk. When the
+// player stops, the server re-presents the node; something nasty on the line
+// hands off to combat (the walk resumes at the water after the fight).
+async function fishInWalk(node) {
+    const r = await openFishing({ kind: 'poi', node });
+    if (r.status === 'refused') {
+        showMessage(r.message || "You can't fish here.", 'error');
+        return;
+    }
+    if (r.data?.combat_started) {
+        hideOverlay();
+        return;
+    }
+    await refreshGameState(true);
+    if (r.data?.step) renderStep(r.data.step);
+    else advancePOI(node + '#fish'); // left without casting: show the node again
 }
 
 // ─── overlay open/close (clock pause mirrors combat) ────────────────────────────

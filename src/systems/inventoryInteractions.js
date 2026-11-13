@@ -138,6 +138,10 @@ export function getItemActions(itemData, isEquipped) {
     if (itemField(itemData, 'salt') && carries('salt')) {
         actions.push({ action: 'salt', label: 'Salt' });
     }
+    // A tiny or small fish can be cut into bait (fishing §4).
+    if (['tiny', 'small'].includes(itemField(itemData, 'fish')?.size)) {
+        actions.push({ action: 'cut_bait', label: 'Cut into bait' });
+    }
     // A waterskin (degradation §7): drink from it, fill it where there's water.
     if (itemField(itemData, 'charges')?.refill === 'water') {
         actions.push({ action: 'drink', label: 'Drink' });
@@ -304,6 +308,10 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
     }
     if (action === 'salt') {
         await useOn('salt', slotRef(fromSlot, fromSlotType));
+        return;
+    }
+    if (action === 'cut_bait') {
+        await simpleAction('cut_bait', { item_id: itemId });
         return;
     }
     if (action === 'drink' || action === 'fill') {
