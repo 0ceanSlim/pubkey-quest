@@ -9,13 +9,39 @@
     "chance": 0.5,
     "message": "Above the roar of the wind you hear falling water, and find a stream thundering down into a pool below the path."
   },
-  "start_node": "pool",
+  "start_node": "falls",
   "nodes": {
+    "falls": {
+      "text": "The falls thunder into a deep green pool. Spray hangs in the air. On a ledge beside the pool, smoke rises from a small camp.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "Go down to the pool.",
+          "next": "pool"
+        },
+        {
+          "label": "Walk over to the camp.",
+          "next": "camp"
+        },
+        {
+          "label": "Leave the falls.",
+          "next": "leave"
+        }
+      ]
+    },
     "pool": {
-      "text": "The falls thunder into a deep green pool. Spray hangs in the air. Trout hold in the slack water at the edges, and when the light is low, salmon hurl themselves at the falls.",
+      "text": "Trout hold in the slack water at the pool's edges, and when the light is low, salmon hurl themselves at the falls.",
       "type": "fishing",
       "spot": "cragspire-falls",
-      "next": "leave"
+      "next": "falls"
+    },
+    "camp": {
+      "type": "npc_interaction",
+      "text": "A huge red-bearded man sits by the fire, turning a salmon on a stick. He looks at your rod and grins.",
+      "npc_ids": [
+        "ottar-bare-hand"
+      ],
+      "is_terminal": true
     },
     "leave": {
       "text": "You leave the roar of the falls behind.",

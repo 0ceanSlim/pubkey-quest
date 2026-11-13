@@ -1,0 +1,51 @@
+{
+  "id": "daily-fish-order",
+  "name": "Daily Order: Fresh Fish",
+  "category": "daily",
+  "step_count": 2,
+  "difficulty": "Novice",
+  "total_qp": 0,
+  "is_randomized": true,
+  "description": "The inns are short of fresh fish for tonight's suppers and will pay for a good catch.",
+  "start_condition": {
+    "type": "vault_keeper",
+    "target": "",
+    "start_hint": "Ask the vault keeper in any town: orders are posted there day and night."
+  },
+  "requirements": [],
+  "stages": [
+    {
+      "id": "catch-them",
+      "description": "Land four fish, anywhere you like.",
+      "objectives": [
+        {
+          "type": "catch",
+          "target": "any",
+          "count": 4,
+          "description": "Land four fish."
+        }
+      ]
+    },
+    {
+      "id": "collect-reward",
+      "description": "Return to any vault keeper to be paid.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "vault-keeper",
+          "description": "Collect your pay from any vault keeper."
+        }
+      ],
+      "rewards": {
+        "xp": 150,
+        "gold": 60,
+        "items": [
+          {
+            "id": "worms",
+            "quantity": 5
+          }
+        ]
+      }
+    }
+  ]
+}

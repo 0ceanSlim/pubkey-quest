@@ -1613,6 +1613,7 @@ func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameAc
 			injectQuestOptions(resp, npcID, state)
 			injectRepairOption(resp, npcID, state)
 			injectInnOptions(resp, npcID, state)
+			injectMountOption(resp, npcID, state)
 		}
 	}
 	if resp != nil {
@@ -1648,6 +1649,9 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 		return openRepair(session, npcID), nil
 	}
 	if resp := handleInnChoice(session, npcID, choice); resp != nil {
+		return resp, nil
+	}
+	if resp := handleMountChoice(session, npcID, choice); resp != nil {
 		return resp, nil
 	}
 	// A labelled option (opt:<node>:<i>): check its requirements, take its

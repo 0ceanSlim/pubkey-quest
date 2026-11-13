@@ -261,9 +261,16 @@ func objectiveMatches(obj types.QuestObjective, ev events.Event) bool {
 		return ev.Kind == events.SkillCheckPassed && obj.Skill == ev.Target
 	case types.ObjectiveDo:
 		return ev.Kind == events.Did && obj.Target == ev.Target
+	case types.ObjectiveCatch:
+		return ev.Kind == events.FishCaught && FishMatches != nil && FishMatches(obj.Target, obj.MinSize, ev.Target)
 	}
 	return false
 }
+
+// FishMatches reports whether a landed fish (its item id) meets a catch
+// objective's target and minimum size. The fishing API sets it, since the
+// species, sizes and waters live in fishing.json.
+var FishMatches func(target, minSize, itemID string) bool
 
 // objectiveTarget is the count an objective needs (default 1).
 func objectiveTarget(obj types.QuestObjective) int {

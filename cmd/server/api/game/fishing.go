@@ -21,7 +21,9 @@ import (
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/poi"
+	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/social"
@@ -68,6 +70,28 @@ func fishingConfig() *types.FishingConfig {
 }
 
 func fishRng() *rand.Rand { return rand.New(rand.NewSource(time.Now().UnixNano())) }
+
+func init() { quest.FishMatches = fishMatches }
+
+// fishMatches: does a landed fish meet a catch objective? Target is "any", a
+// species, or "water-<water>"; minSize ("" = any) is the smallest size that counts.
+func fishMatches(target, minSize, itemID string) bool {
+	f := netFish(itemID)
+	if f == nil {
+		return false
+	}
+	cfg := fishingConfig()
+	if minSize != "" && fishing.SizeIndex(cfg, f.Size) < fishing.SizeIndex(cfg, minSize) {
+		return false
+	}
+	switch {
+	case target == "" || target == "any":
+		return true
+	case strings.HasPrefix(target, "water-"):
+		return slices.Contains(cfg.Species[f.Species].Water, strings.TrimPrefix(target, "water-"))
+	}
+	return f.Species == target
+}
 
 // barbarianFishing is the side quest that teaches barehand fishing; while it's
 // underway, its spot allows it for the lesson.
@@ -417,7 +441,7 @@ func addCatch(sess *session.GameSession, f fishing.Fish, spotID string) []string
 	}
 	st[condition.KeyLb] = f.Lb
 	fishMemory(sess).Landed(spotID, state.CurrentDay)
-	events.Record(state, events.FishCaught, f.Species, 1)
+	events.Record(state, events.FishCaught, id, 1)
 	if added, _ := inventory.AddItemWithState(state, id, 1, st); added > 0 {
 		noteAcquired(state, id)
 		return nil
@@ -677,4 +701,108 @@ func routeFishing(sess *session.GameSession, action GameAction) (*GameActionResp
 		return nil, false, nil
 	}
 	return resp, true, err
+}
+
+// ─── Finn's trophies ─────────────────────────────────────────────────────────
+
+// Finn Brackwater mounts a huge fish as a trophy for a fee (fishing.json
+// "trophy"): it stops spoiling and sells for more. His menu gets the option
+// while he's in the shop and you carry a huge fish.
+const (
+	trophyMounter = "tackle-keeper"
+	mountChoice   = "fish:mount"
+)
+
+// hugeFish is every huge fish you carry, by item id (with how many).
+func hugeFish(state *types.SaveFile) map[string]int {
+	out := map[string]int{}
+	for _, id := range gameutil.CarriedItemIDs(state) {
+		if f := netFish(id); f != nil && f.Size == "huge" {
+			out[id] = gameutil.CountItem(state, id)
+		}
+	}
+	return out
+}
+
+// mountFee is what Finn charges to mount one.
+func mountFee(itemID string) int {
+	cfg := fishingConfig()
+	f := netFish(itemID)
+	if f == nil {
+		return 0
+	}
+	size := cfg.Sizes[fishing.SizeIndex(cfg, f.Size)]
+	return max(1, int(float64(fishing.FishValue(cfg, cfg.Species[f.Species], size))*cfg.Trophy.Fee))
+}
+
+// injectMountOption adds "Mount my huge fish" to Finn's menu, before goodbye.
+func injectMountOption(resp *types.GameActionResponse, npcID string, state *types.SaveFile) {
+	if npcID != trophyMounter || resp == nil || resp.Delta == nil || !npc.OnDuty(state, npcID, "open_shop") {
+		return
+	}
+	fish := hugeFish(state)
+	if len(fish) == 0 {
+		return
+	}
+	dlg, ok := resp.Delta["npc_dialogue"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	npcData, err := serverdb.GetNPCByID(npcID)
+	if err != nil || npcData == nil {
+		return
+	}
+	fee := 0
+	for id, n := range fish {
+		fee += mountFee(id) * n
+	}
+	options, _ := dlg["options"].([]string)
+	at := len(options)
+	if at > 0 && closesDialogue(npcData, options[at-1]) {
+		at--
+	}
+	dlg["options"] = append(append(append([]string{}, options[:at]...), mountChoice), options[at:]...)
+	dlg["option_labels"] = mergeLabels(dlg["option_labels"], map[string]string{mountChoice: fmt.Sprintf("🐟 Mount my huge fish (%d gold)", fee)})
+}
+
+// handleMountChoice mounts every huge fish you carry that you can pay for; nil
+// when the choice isn't the mounting one.
+func handleMountChoice(sess *session.GameSession, npcID, choice string) *GameActionResponse {
+	if choice != mountChoice {
+		return nil
+	}
+	state := &sess.SaveData
+	if npcID != trophyMounter || !npc.OnDuty(state, npcID, "open_shop") {
+		return fishRefusal("There's no one here to mount it.")
+	}
+	var made []string
+	short := false
+	for _, id := range sortedKeys(hugeFish(state)) {
+		f := netFish(id)
+		for gameutil.CountItem(state, id) > 0 {
+			fee := mountFee(id)
+			if gameutil.GetGoldQuantity(state) < fee {
+				short = true
+				break
+			}
+			if !gameutil.ConsumeItem(state, id, 1) {
+				break
+			}
+			gameutil.DeductGold(state, fee)
+			trophy := types.TrophyItemID(f.Species)
+			if added, _ := inventory.AddItemToInventory(state, trophy, 1); added == 0 {
+				sess.Ground.Add(world.GroundKey(state), trophy, 1)
+			}
+			made = append(made, fmt.Sprintf("%s (%d gold)", itemDisplayName(trophy), fee))
+		}
+	}
+	if len(made) == 0 {
+		return fishRefusal("You can't afford Finn's fee.")
+	}
+	msg := "Finn whistles, takes your catch into the back, and returns with it varnished on a plaque: " + strings.Join(made, ", ") + "."
+	if short {
+		msg += " You couldn't pay for the rest."
+	}
+	return &GameActionResponse{Success: true, Color: "green", Message: msg,
+		Delta: map[string]interface{}{"npc_dialogue": map[string]interface{}{"action": "close"}}}
 }

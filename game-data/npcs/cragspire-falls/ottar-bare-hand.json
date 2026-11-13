@@ -1,0 +1,31 @@
+{
+  "id": "ottar-bare-hand",
+  "name": "Ottar Bare-Hand",
+  "title": "Northern Fisher",
+  "race": "Human",
+  "description": "A huge, red-bearded northerner camped by the falls, forearms scarred by teeth and fins. He has never owned a rod and finds the idea of one hilarious.",
+  "primary_home": "cragspire-falls",
+  "greeting": {
+    "first_time": "Ha! Look at you, with your little stick and your string. Sit by the fire, rod-fisher. Ottar will show you how a fish is caught.",
+    "returning": "The rod-fisher returns! The salmon are still leaping, if you have the hands for them."
+  },
+  "dialogue": {
+    "main_menu": {
+      "text": "The falls roar. Ottar turns a salmon on a stick over his fire.",
+      "options": [
+        "about_falls",
+        "goodbye"
+      ]
+    },
+    "about_falls": {
+      "text": "At dawn and dusk the salmon climb the falls, leaping, leaping. A hook is no use: they don't eat on the climb. You must take them from the air. In the pool there are trout too, if you are a child with a stick.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "goodbye": {
+      "text": "Go well. Keep your hands warm. A cold hand is a slow hand.",
+      "action": "end_dialogue"
+    }
+  }
+}

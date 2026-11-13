@@ -180,3 +180,30 @@ func knownDistricts() map[string]bool {
 	}
 	return out
 }
+
+// CatchProblem checks a catch objective's target and min_size ("" if fine).
+func CatchProblem(target, minSize string) string {
+	cfg, err := fishing.LoadFile(fishingFile)
+	if err != nil {
+		return "catch objective, but fishing.json won't load"
+	}
+	if minSize != "" && fishing.SizeIndex(cfg, minSize) < 0 {
+		return fmt.Sprintf("catch min_size %q isn't a fish size", minSize)
+	}
+	switch {
+	case target == "any":
+		return ""
+	case strings.HasPrefix(target, "water-"):
+		w := strings.TrimPrefix(target, "water-")
+		for _, sp := range cfg.Species {
+			if hasWater(sp, w) {
+				return ""
+			}
+		}
+		return fmt.Sprintf("catch target %q: no fish lives in %s water", target, w)
+	}
+	if _, ok := cfg.Species[target]; !ok {
+		return fmt.Sprintf("catch target %q isn't any, a species or water-<water>", target)
+	}
+	return ""
+}

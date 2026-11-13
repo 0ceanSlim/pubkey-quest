@@ -597,6 +597,10 @@ func (c *schemaChecker) checkQuest(q types.QuestData) {
 				if _, ok := types.DoActions[o.Target]; !ok {
 					c.errf("unknown do action %q", o.Target)
 				}
+			case types.ObjectiveCatch:
+				if why := CatchProblem(o.Target, o.MinSize); why != "" {
+					c.errf("%s", why)
+				}
 			default:
 				c.errf("unknown objective type %q", o.Type)
 			}

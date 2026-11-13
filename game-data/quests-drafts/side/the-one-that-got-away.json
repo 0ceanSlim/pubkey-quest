@@ -1,0 +1,182 @@
+{
+  "id": "the-one-that-got-away",
+  "name": "The One That Got Away",
+  "category": "side",
+  "difficulty": "Novice",
+  "step_count": 3,
+  "total_qp": 1,
+  "description": "Finn Brackwater, who runs the Net & Tackle in Saltwind, has caught every fish there is, or nearly. Show him you can land a big one, in more than one kind of water, and he might part with one of his own rods.",
+  "start_condition": {
+    "type": "talk",
+    "target": "tackle-keeper",
+    "location": "saltwind",
+    "start_hint": "Talk to Finn Brackwater at the Net & Tackle, by Saltwind's Harbor Square."
+  },
+  "requirements": [],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Survival 12"
+    ],
+    "combat_danger": "Low"
+  },
+  "stages": [
+    {
+      "id": "first-fish",
+      "description": "Land a fish, any fish, and tell Finn about it. The harbor's right outside his door.",
+      "objectives": [
+        {
+          "type": "catch",
+          "target": "any",
+          "count": 1,
+          "description": "Land a fish."
+        },
+        {
+          "type": "talk",
+          "target": "tackle-keeper",
+          "description": "Tell Finn about it."
+        }
+      ],
+      "rewards": {
+        "xp": 100,
+        "items": [
+          {
+            "id": "worms",
+            "quantity": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": "three-waters",
+      "description": "Land a large fish (or bigger) in three different waters: the sea, a river, and a swamp.",
+      "objectives": [
+        {
+          "type": "catch",
+          "target": "water-sea",
+          "min_size": "large",
+          "description": "A large sea fish."
+        },
+        {
+          "type": "catch",
+          "target": "water-river",
+          "min_size": "large",
+          "description": "A large river fish."
+        },
+        {
+          "type": "catch",
+          "target": "water-swamp",
+          "min_size": "large",
+          "description": "A large swamp fish."
+        }
+      ]
+    },
+    {
+      "id": "back-to-finn",
+      "description": "Tell Finn about your three big ones.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "tackle-keeper",
+          "description": "Return to Finn."
+        }
+      ],
+      "rewards": {
+        "xp": 900,
+        "gold": 300,
+        "quest_points": 1,
+        "items": [
+          {
+            "id": "brackwater-rod",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "Ever caught a really big one?",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "Caught? I've caught every fish in these waters. Or nearly. There was a goldscale off Gull Rock, oh, bigger than you, and the line went SNAP. Anyway. You've a fisher's look about you. Land something, anything, and come tell me. Then we'll talk about big ones.",
+          "options": [
+            "where",
+            "accept",
+            "decline"
+          ]
+        },
+        "where": {
+          "label": "Where should I start?",
+          "text": "The harbor, right out there. Mackerel, cod, bass. Bait your hook, cast, and watch the float. Strike when it dives, not before. Then don't fight the fish when it runs: give it line.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "I'll land one.",
+          "text": "Good. Here's the secret: there's no secret. Patience and worms.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "Not today.",
+          "text": "Fish'll be there tomorrow. Mostly."
+        }
+      }
+    },
+    "active": {
+      "option": "About fishing...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Well? Caught anything worth a story?",
+          "options": [
+            "first",
+            "three",
+            "back-to-it"
+          ]
+        },
+        "first": {
+          "label": "Still after my first.",
+          "text": "Watch the float. Twitch means nibbling, dive means bite. Strike on the dive.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-one-that-got-away",
+              "min": 0,
+              "max": 0
+            }
+          ]
+        },
+        "three": {
+          "label": "Where do I find big fish?",
+          "text": "Big fish want big bait: cut bait, or a spoon. Cod off the harbor, pike in Goldenhaven's river at dusk, mudcat in the Marshlight swamp at night. And give line when they run, or you'll be telling me about the one that got away.",
+          "requirements": [
+            {
+              "type": "quest_stage",
+              "id": "the-one-that-got-away",
+              "min": 1,
+              "max": 1
+            }
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll get back to it.",
+          "text": "Fair winds and full nets."
+        }
+      }
+    },
+    "completed": {
+      "option": "About the rod...",
+      "start": "done",
+      "nodes": {
+        "done": {
+          "text": "That rod's my own make. Split cane, brass reel, and a line that'll hold a goldscale, if you've the hands for one. Don't you lose it in a snap off Gull Rock, now. Land something huge, bring it here fresh, and I'll mount it for you.",
+          "options": []
+        }
+      }
+    }
+  }
+}

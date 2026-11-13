@@ -118,3 +118,41 @@ func TestCutBait(t *testing.T) {
 		t.Errorf("cut bait: %s", r.Message)
 	}
 }
+
+func TestCatchObjectiveMatches(t *testing.T) {
+	wharfSession(t) // loads the database
+	for _, c := range []struct {
+		target, min, item string
+		want              bool
+	}{
+		{"any", "", "fish-minnow-tiny", true},
+		{"water-sea", "large", "fish-cod-huge", true},
+		{"water-sea", "large", "fish-cod-small", false},
+		{"water-river", "", "fish-cod-medium", false},
+		{"leaping-salmon", "", "fish-leaping-salmon-small", true},
+		{"any", "", "worms", false},
+	} {
+		if got := fishMatches(c.target, c.min, c.item); got != c.want {
+			t.Errorf("catch %s (min %q) with %s: %v, want %v", c.target, c.min, c.item, got, c.want)
+		}
+	}
+}
+
+// Finn mounts a huge fish for a quarter of its value; it becomes a trophy.
+func TestFinnMountsATrophy(t *testing.T) {
+	sess := wharfSession(t)
+	sess.SaveData.Location, sess.SaveData.District, sess.SaveData.Building = "saltwind", "center", "net_and_tackle"
+	slots := sess.SaveData.Inventory["general_slots"].([]interface{})
+	slots[0] = map[string]interface{}{"item": "fish-cod-huge", "quantity": 1}
+	slots[1] = map[string]interface{}{"item": "gold-piece", "quantity": 500}
+	resp := handleMountChoice(sess, trophyMounter, mountChoice)
+	if resp == nil || !resp.Success {
+		t.Fatalf("mount: %+v", resp)
+	}
+	if gameutil.CountItem(&sess.SaveData, "trophy-cod") != 1 || gameutil.CountItem(&sess.SaveData, "fish-cod-huge") != 0 {
+		t.Error("the cod should be a trophy now")
+	}
+	if gold := gameutil.CountItem(&sess.SaveData, "gold-piece"); gold != 500-mountFee("fish-cod-huge") {
+		t.Errorf("gold left %d", gold)
+	}
+}

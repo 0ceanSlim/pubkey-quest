@@ -30,7 +30,8 @@ const (
 	// It's what meets a "talk" objective on a quest's last step (opening the
 	// conversation, NPCTalked, doesn't), so finishing is always deliberate.
 	TurnedIn Kind = "turned_in"
-	// FishCaught: a fish landed (rod, barehand, net or quick). Target = species id.
+	// FishCaught: a fish landed (rod, barehand, net or quick). Target = the
+	// fish's item id (fish-<species>-<size>) → quest "catch".
 	FishCaught Kind = "fish_caught"
 )
 

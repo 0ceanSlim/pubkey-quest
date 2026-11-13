@@ -1,0 +1,111 @@
+{
+  "id": "barbarian-fishing",
+  "name": "Barbarian Fishing",
+  "category": "side",
+  "difficulty": "Novice",
+  "step_count": 2,
+  "total_qp": 1,
+  "description": "Ottar Bare-Hand, camped at Cragspire Falls, thinks fishing rods are for children. Catch a leaping salmon with nothing but your hands, and he'll teach you to fish the northern way.",
+  "start_condition": {
+    "type": "talk",
+    "target": "ottar-bare-hand",
+    "location": "cragspire-falls",
+    "start_hint": "Find Ottar Bare-Hand's camp by Cragspire Falls, in the Cragspire Mountains."
+  },
+  "requirements": [],
+  "prerequisites": [],
+  "recommended": {
+    "recommended_stats": [
+      "Athletics 12"
+    ],
+    "combat_danger": "None"
+  },
+  "stages": [
+    {
+      "id": "grab-a-salmon",
+      "description": "Put the rod down. At dawn or dusk, wade into the pool below Cragspire Falls and grab a leaping salmon with your bare hands.",
+      "objectives": [
+        {
+          "type": "catch",
+          "target": "leaping-salmon",
+          "count": 1,
+          "description": "Catch a leaping salmon barehanded."
+        }
+      ]
+    },
+    {
+      "id": "back-to-ottar",
+      "description": "Show Ottar your salmon.",
+      "objectives": [
+        {
+          "type": "talk",
+          "target": "ottar-bare-hand",
+          "description": "Return to Ottar."
+        }
+      ],
+      "rewards": {
+        "xp": 450,
+        "quest_points": 1
+      }
+    }
+  ],
+  "dialogue": {
+    "offer": {
+      "option": "You laugh at my rod?",
+      "start": "offer",
+      "nodes": {
+        "offer": {
+          "text": "A stick! A string! A worm on a little hook! And then you wait, and wait, and hope the fish is stupid. In the north we do not hope. We take. Put down the stick, and catch a salmon off the falls with your hands. Then Ottar will teach you the rest.",
+          "options": [
+            "how",
+            "accept",
+            "decline"
+          ]
+        },
+        "how": {
+          "label": "Catch it how, exactly?",
+          "text": "Wade in where the water is fast. Watch for the shadow. When it comes close, you grab. Not before! The salmon leap at dawn and at dusk; any other time they sulk at the bottom.",
+          "options": [
+            "accept",
+            "decline"
+          ]
+        },
+        "accept": {
+          "label": "Fine. Barehanded it is.",
+          "text": "Ha! Good. Leave the stick on the bank. Go on, the pool will not bite. Much.",
+          "action": "accept"
+        },
+        "decline": {
+          "label": "I'll stick with the stick.",
+          "text": "Hah. Your loss, rod-fisher."
+        }
+      }
+    },
+    "active": {
+      "option": "About the salmon...",
+      "start": "status",
+      "nodes": {
+        "status": {
+          "text": "Well? Where is my salmon? Dawn or dusk, remember. Watch the shadow, then grab.",
+          "options": [
+            "back-to-it"
+          ]
+        },
+        "back-to-it": {
+          "label": "I'll get you your salmon.",
+          "text": "Ha! Go, then."
+        }
+      }
+    },
+    "completed": {
+      "option": "About fishing the northern way...",
+      "start": "done",
+      "nodes": {
+        "done": {
+          "text": "You took a salmon from the air with your own two hands. Now you know: any water, any fish, you watch the shadow and you take it. The little ones, anyway. The salmon and the rock groupers are for hands only, and they come as big as they like.",
+          "options": []
+        }
+      }
+    }
+  }
+}

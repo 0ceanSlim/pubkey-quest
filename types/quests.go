@@ -10,6 +10,7 @@ const (
 	ObjectiveSlay    QuestObjectiveType = "slay"    // Defeat monsters of a given ID
 	ObjectiveCheck   QuestObjectiveType = "check"   // Pass a skill check at a specific DC
 	ObjectiveDo      QuestObjectiveType = "do"      // Do one of the game's own actions (DoActions)
+	ObjectiveCatch   QuestObjectiveType = "catch"   // Land a fish (any, a species, or from a water)
 )
 
 // DoActions are the things a "do" objective can ask for, each recorded by the
@@ -35,6 +36,8 @@ var DoActions = map[string]string{
 //	slay     Target=monster-id, Count (default 1)
 //	check    Skill=skill-id, Value=DC
 //	do       Target=one of DoActions ("save-game", "sleep-inn", …)
+//	catch    Target="any", a fishing.json species, or "water-<water>"; MinSize
+//	         a size id ("large": large or bigger); Count (default 1)
 type QuestObjective struct {
 	Type        QuestObjectiveType `json:"type"`
 	Target      string             `json:"target,omitempty"`
@@ -42,6 +45,7 @@ type QuestObjective struct {
 	Count       int                `json:"count,omitempty"`
 	Value       int                `json:"value,omitempty"`
 	Consume     bool               `json:"consume,omitempty"`
+	MinSize     string             `json:"min_size,omitempty"`
 	Description string             `json:"description"`
 }
 
