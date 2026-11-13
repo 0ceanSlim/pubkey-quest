@@ -81,6 +81,11 @@ type Session struct {
 	Spot   types.FishingSpot
 	Gear   Gear
 	Cond   Conditions
+	// Where the caller is fishing from, and the bait item on the hook: the
+	// engine doesn't read these.
+	Kind     string // "town" | "poi"
+	Node     string // the POI fishing node
+	BaitItem string
 
 	Version int
 	Phase   Phase

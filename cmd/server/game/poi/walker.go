@@ -83,6 +83,9 @@ type Deps struct {
 	TakeGold func(save *types.SaveFile, n int) int
 	// Locks serves lock nodes (nil: lock nodes only take their key).
 	Locks LockDeps
+	// Fishing names a fishing node's spot for its "Fish here" choice (nil: the
+	// node only lets you move on).
+	Fishing FishingDeps
 	// ChangeFatigue raises (or lowers) the fatigue stat — an effect node whose
 	// id is FatigueEffect.
 	ChangeFatigue func(save *types.SaveFile, amount int)
@@ -104,6 +107,17 @@ type LockDeps interface {
 	Quick(node string, lock types.Lock) locks.Result
 	ItemName(id string) string
 }
+
+// FishingDeps is what a fishing node needs: the spot's name, and why you can't
+// fish it ("" when you can: a rod, bare hands, or a net where it's shallow).
+type FishingDeps interface {
+	SpotName(spot string) string
+	CantFish(spot string) string
+}
+
+// FishHere is a fishing node's "Fish here" sub-step: the client opens the
+// fishing window rather than advancing, so on the server it re-presents the node.
+const FishHere = "#fish"
 
 // Lock node sub-steps: a lock node's choices lead to "<node>#key" etc., which
 // resolve against the same node. "#pick" is the minigame — the client opens it
@@ -247,6 +261,9 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 
 	case types.POIStepLock:
 		resolveLock(node, nodeID, save, deps, &res)
+
+	case types.POIStepFishing:
+		resolveFishing(node, nodeID, deps, &res)
 	}
 
 	if node.IsTerminal {
@@ -513,6 +530,25 @@ func resolveLock(node types.POIStep, nodeID string, save *types.SaveFile, deps D
 		leave = base + LockLeave
 	}
 	res.Choices = append(res.Choices, Choice{Label: "Leave it", Next: leave})
+}
+
+// resolveFishing plays a fishing node: "Fish here" (the fishing window, where
+// the rod, quick roll, bare hands, net and worms are), or move on to Next.
+func resolveFishing(node types.POIStep, nodeID string, deps Deps, res *StepResult) {
+	base := BaseNode(nodeID)
+	if deps.Fishing != nil {
+		name := deps.Fishing.SpotName(node.Spot)
+		if why := deps.Fishing.CantFish(node.Spot); why != "" {
+			res.Outcome = appendOnce(res.Outcome, why)
+		} else {
+			res.Choices = append(res.Choices, Choice{Label: "Fish " + name, Next: base + FishHere})
+		}
+	}
+	if node.Next != "" {
+		res.Choices = append(res.Choices, Choice{Label: "Move on", Next: node.Next})
+	} else {
+		res.Terminal = len(res.Choices) == 0
+	}
 }
 
 func itemName(deps Deps, id string) string {

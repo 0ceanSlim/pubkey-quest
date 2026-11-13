@@ -30,6 +30,8 @@ const (
 	// It's what meets a "talk" objective on a quest's last step (opening the
 	// conversation, NPCTalked, doesn't), so finishing is always deliberate.
 	TurnedIn Kind = "turned_in"
+	// FishCaught: a fish landed (rod, barehand, net or quick). Target = species id.
+	FishCaught Kind = "fish_caught"
 )
 
 // Event is one recorded occurrence. Count is the magnitude (monsters slain,

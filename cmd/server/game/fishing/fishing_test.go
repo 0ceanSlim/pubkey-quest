@@ -18,7 +18,9 @@ func loadCfg(t *testing.T) *types.FishingConfig {
 
 var dayHours = [2]int{360, 1200}
 
-func noon() Conditions     { return Conditions{TimeOfDay: 720, Day: dayHours, Survival: 12, Athletics: 12, Bait: "worms"} }
+func noon() Conditions {
+	return Conditions{TimeOfDay: 720, Day: dayHours, Survival: 12, Athletics: 12, Bait: "worms"}
+}
 func midnight() Conditions { c := noon(); c.TimeOfDay = 0; return c }
 
 func TestGeneratedItems(t *testing.T) {

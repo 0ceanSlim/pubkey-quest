@@ -37,6 +37,18 @@ func inDarkness(cs *types.CombatSession, save *types.SaveFile) bool {
 	return !holdsLight(save)
 }
 
+// BlindAtNight reports whether the player is out in the dark: night, no
+// darkvision and no light shining. Fishing reads the water by it.
+func BlindAtNight(save *types.SaveFile) bool {
+	if save == nil || !types.IsNight(save.TimeOfDay) {
+		return false
+	}
+	if gametime.HasDarkvision(save.Race) || effects.ModifierTotal(save, "darkvision") > 0 {
+		return false
+	}
+	return !holdsLight(save)
+}
+
 // holdsLight reports whether a light is shining: a lit torch, lamp or lantern
 // in a hand, or a light worn at the neck (the Amulet of Light, always on). A
 // light that burns (a "light" block) only counts while it's lit.

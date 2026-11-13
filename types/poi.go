@@ -20,6 +20,7 @@ const (
 	POIStepExit           POIStepType = "exit"            // Terminal node (use IsTerminal on any node, but exit is explicit)
 	POIStepNPCInteraction POIStepType = "npc_interaction" // Hand off to NPC dialogue system
 	POIStepLock           POIStepType = "lock"            // A lock: its key, a pick, or walk away
+	POIStepFishing        POIStepType = "fishing"         // A fishing spot (fishing.json spots): fish, or move on
 )
 
 // POIRequirement gates a node, choice, or whole POI/encounter/quest.
@@ -157,6 +158,8 @@ type POIStep struct {
 	Arena []string `json:"arena,omitempty"`
 	// Lock is a lock node's lock (see types.Lock).
 	Lock *Lock `json:"lock,omitempty"`
+	// Spot is a fishing node's spot id in fishing.json.
+	Spot string `json:"spot,omitempty"`
 	// Attempts / CooldownMinutes limit a check node's retries: after Attempts
 	// failures in a row the check can't be tried again for CooldownMinutes of
 	// game time. Zero takes the defaults (see poi.CheckAttempts).

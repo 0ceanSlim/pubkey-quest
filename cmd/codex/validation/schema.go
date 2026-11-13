@@ -346,6 +346,10 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 		if n.SuccessNext == "" {
 			c.errf("lock node needs success_next (where opening it leads)")
 		}
+	case types.POIStepFishing:
+		if !SpotExists(n.Spot) {
+			c.errf("fishing node spot %q isn't a spot in fishing.json", n.Spot)
+		}
 	case types.POIStepNPCInteraction:
 		for _, id := range n.NPCIDs {
 			if id == "" {

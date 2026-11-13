@@ -3,6 +3,7 @@ package session
 import (
 	"sync"
 
+	"pubkey-quest/cmd/server/game/fishing"
 	"pubkey-quest/cmd/server/game/locks"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/world"
@@ -85,6 +86,12 @@ type GameSession struct {
 	// LockSession is the lock being picked as a minigame right now (nil when
 	// not picking). Any other action abandons it.
 	LockSession *locks.Session `json:"-"`
+	// FishSession is the fishing being done right now (nil when not fishing).
+	// Any other action walks away from the water.
+	FishSession *fishing.Session `json:"-"`
+	// FishMemory is the fish landed at each spot today, for depletion (memory
+	// only; see game/fishing).
+	FishMemory fishing.Memory `json:"-"`
 
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.

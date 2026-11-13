@@ -231,6 +231,8 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	response.Data["weight_capacity"] = status.CalculateWeightCapacity(&session.SaveData)
 	// Server-authoritative ground items at the player's current spot (drives the GROUND modal).
 	response.Data["ground"] = session.Ground.List(world.GroundKey(&session.SaveData))
+	// A town pier or wharf where you stand (drives the Fish button).
+	response.Data["fishing_spot"] = townFishingSpot(&session.SaveData)
 	// The play/pause button's source of truth (a follower sees the leader's).
 	response.Data["clock_running"] = clockRunningFor(session)
 
@@ -255,6 +257,7 @@ var combatBlockedActions = map[string]bool{
 	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
 	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true, "use_on": true, "shutter": true, "smith_repair": true, "cook": true,
+	"fish_open": true, "fish_begin": true, "fish_act": true, "fish_quick": true, "haul_net": true, "dig_worms": true, "cut_bait": true,
 }
 
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
@@ -278,6 +281,10 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 	// Doing anything else walks away from a lock you were picking.
 	if session.LockSession != nil && action.Type != "lock_act" && action.Type != "lock_begin" {
 		session.LockSession = nil
+	}
+	// ...and from the water.
+	if session.FishSession != nil && !fishActions[action.Type] {
+		session.FishSession = nil
 	}
 
 	// Snapshot time before action (for travel progress calculation), and the
@@ -735,6 +742,9 @@ func partyDiscoveryRoll(sess *GameSession, poi types.POIData, rng *rand.Rand) bo
 
 // processActionSwitch dispatches to specific action handlers
 func processActionSwitch(session *GameSession, state *SaveFile, action GameAction) (*GameActionResponse, error) {
+	if resp, ok, err := routeFishing(session, action); ok {
+		return resp, err
+	}
 	switch action.Type {
 	case "move":
 		return handleMoveAction(state, action.Params)
