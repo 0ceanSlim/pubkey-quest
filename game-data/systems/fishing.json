@@ -80,7 +80,7 @@
     "tide-pools": {
       "name": "Tide Pools", "water": "sea", "dc": 9, "bite_rate": 1.0, "shallows": true, "daily_catch": 10,
       "species": { "flounder": 40, "mackerel": 20, "sea-bass": 15, "cod": 5 },
-      "barehand": { "rock-grouper": 1 },
+      "barehand": { "rock-grouper": 30 },
       "shellfish": { "shore-crab": 3, "mussels": 4, "oyster": 2 },
       "finds": { "old-boot": 1, "message-in-a-bottle": 0.5 },
       "monsters": [ { "monster": "giant-crab", "weight": 1 } ]
@@ -94,7 +94,7 @@
     "cragspire-falls": {
       "name": "Cragspire Falls", "water": "river", "dc": 12, "bite_rate": 1.0, "worms": true, "daily_catch": 10,
       "species": { "brook-trout": 35, "grayling": 25, "river-pike": 15, "minnow": 15, "river-perch": 10 },
-      "barehand": { "leaping-salmon": 1 },
+      "barehand": { "leaping-salmon": 30 },
       "finds": { "torch": 3 }
     },
     "darkwood-brook": {
