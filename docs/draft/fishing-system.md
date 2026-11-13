@@ -1,9 +1,39 @@
 # Fish and fishing — draft
 
-Status: **DRAFT, decided 2026-10-22, nothing built.** Fishing is in M5.5 scope ("gathering
-nodes (mine/fish)" plus the minigames). Mining gets its own draft on the same session pattern.
-**Build order:** after degradation, the food workshop and the potions brainstorm, since fish
-plug into all three.
+Status: **BUILT 2026-11-13** (all eight slices in §11). Decided 2026-10-22. Fishing is in
+M5.5 scope ("gathering nodes (mine/fish)" plus the minigames). Mining gets its own draft on
+the same session pattern. The build notes below record where the build differs from the
+draft; the rest of the draft stands as written.
+
+### Built (2026-11-13): what differs from the draft
+- **Fight numbers, tuned by simulation** (`game/fishing/balance_test.go`): giving line
+  relieves 5 tension (draft: 3); reeling or holding keeps the line at tension 1 or more, so
+  only giving line can go slack; a thrash throws the hook only on a fully slack line (draft:
+  T ≤ 2, which threw light fish constantly); and the fish tires itself too: 2 stamina for a
+  run or a thrash, 1 for a dive. Played well, everyday fish land almost every time, a
+  huge cod about 98%, a huge goldscale about 15% on a plain rod and about a third on the
+  Brackwater rod (perfect reads; real players see the tell 35–90% of the time).
+- **The Brackwater rod casts 6, not 7.** `cast` is the starting distance, so a longer
+  cast started the fish farther out and made the better rod worse. Its edge is line 13
+  and +10% to read the tell.
+- **Shy fish:** striking on the second twitch hooks 50% of the time (any other twitch 25%).
+- **Town spots** name their district in `fishing.json` (`"district"`), not in the city
+  files. Saves store the district key (`east`), spots the id (`goldenhaven-east`); both match.
+- **Cooked and salted fish go by size:** `cooked-fish-<size>`, `salted-fish-<size>`, with
+  the food draft's hours. `raw-fish`, `large-fish` and the old cooked/salted items stay as
+  legacy items so old saves keep working; nothing makes them any more.
+- **Specialty shops can buy by tag** (`shop_config.buys_tags`): the Saltwind fishmonger buys
+  any `fish` or `shellfish`.
+- **Quests use a new `catch` objective:** `target` is `any`, a species, or `water-<water>`,
+  with an optional `min_size`. `fish_caught` events carry the fish's item id.
+- **The daily is a vault keeper's** (*Daily Order: Fresh Fish*, four fish), not an
+  innkeeper's, per the standing rule that dailies come from vault keepers.
+- **Barbarian Fishing** doesn't take the salmon from you: hand-ins by tag wait for tag
+  requirements (gem slice 3).
+- **Finn mounts every huge fish you carry** in one go, paying each fee while your gold lasts.
+- **Not yet:** pearls in oysters (gems), the message in a bottle revealing a POI (it's a
+  curio for now), the fishing animation speed setting, spearfishing (parked), and the
+  completion/highscore store (fishing only records the event).
 
 ### Decided (2026-10-22)
 - **The draft's recommendations stand** (§12): a turn-based fight, the cosmetic exact weight,
