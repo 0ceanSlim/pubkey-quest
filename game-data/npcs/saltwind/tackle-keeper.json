@@ -134,6 +134,9 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "worms", "stock": 20, "max_stock": 20},
+      {"item_id": "fly", "stock": 3, "max_stock": 3, "restock_rate": 1, "restock_interval": "daily"},
+      {"item_id": "spoon", "stock": 3, "max_stock": 3, "restock_rate": 1, "restock_interval": "daily"},
       {"item_id": "keen-eye-tonic", "stock": 2, "max_stock": 2, "restock_rate": 1, "restock_interval": "daily"},
       {"item_id": "rations", "stock": 10, "max_stock": 10},
       {"item_id": "fish-mackerel-small", "stock": 10, "max_stock": 10},

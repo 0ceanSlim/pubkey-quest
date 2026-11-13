@@ -1,0 +1,26 @@
+{
+  "id": "cragspire-falls",
+  "name": "Cragspire Falls",
+  "category": "utility",
+  "parent_environment": "cragspire-mountains",
+  "position": 0.2,
+  "description": "A mountain stream drops over a cliff into a deep pool. Trout and grayling hold in the cold water, and at dawn and dusk the salmon leap the falls.",
+  "discovery": {
+    "chance": 0.5,
+    "message": "Above the roar of the wind you hear falling water, and find a stream thundering down into a pool below the path."
+  },
+  "start_node": "pool",
+  "nodes": {
+    "pool": {
+      "text": "The falls thunder into a deep green pool. Spray hangs in the air. Trout hold in the slack water at the edges, and when the light is low, salmon hurl themselves at the falls.",
+      "type": "fishing",
+      "spot": "cragspire-falls",
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You leave the roar of the falls behind.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

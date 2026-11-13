@@ -1,0 +1,57 @@
+{
+  "id": "ice-hole",
+  "name": "The Ice Hole",
+  "category": "utility",
+  "parent_environment": "frozen-wastes",
+  "position": 0.5,
+  "description": "A frozen lake where fishers cut holes in the ice for char and cod. The deepest water, they say, holds a fish you can see through.",
+  "discovery": {
+    "chance": 0.4,
+    "message": "Out on the white, you find a frozen lake marked with the scars of old fishing holes."
+  },
+  "start_node": "ice",
+  "nodes": {
+    "ice": {
+      "text": "The lake is frozen thick. Old holes have skinned over; you'll have to cut a new one.",
+      "type": "choice",
+      "choices": [
+        {
+          "label": "[Pick] Cut a hole in the ice.",
+          "next": "cut",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "pick-miners",
+              "consumed": false
+            }
+          ]
+        },
+        {
+          "label": "Leave the ice.",
+          "next": "leave"
+        }
+      ]
+    },
+    "cut": {
+      "text": "You swing the pick into the ice.",
+      "type": "check",
+      "skill": "athletics",
+      "dc": 11,
+      "success_text": "The ice cracks, then gives. Black water wells up through a clean hole.",
+      "success_next": "hole",
+      "failure_text": "The ice is thick and your arms are cold. You chip a shallow dent and stop for breath.",
+      "failure_next": "ice"
+    },
+    "hole": {
+      "text": "Black water steams faintly in the hole. Something pale turns far below.",
+      "type": "fishing",
+      "spot": "ice-hole",
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You leave the ice to freeze over again.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

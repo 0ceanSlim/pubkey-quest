@@ -1,0 +1,26 @@
+{
+  "id": "gull-rock",
+  "name": "Gull Rock",
+  "category": "utility",
+  "parent_environment": "suncrest-coastlands",
+  "position": 0.7,
+  "description": "A sea stack of white-streaked rock with deep water churning at its foot. Snapper live under the cliff, and the old fishers talk about goldscale at dawn.",
+  "discovery": {
+    "chance": 0.45,
+    "message": "Gulls wheel over a great rock standing off the shore, joined to the land by a strip of shingle."
+  },
+  "start_node": "rock",
+  "nodes": {
+    "rock": {
+      "text": "You scramble out onto the rock. The sea heaves against its foot, deep and green. The gulls don't like you here.",
+      "type": "fishing",
+      "spot": "gull-rock",
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You climb back down to the shingle.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

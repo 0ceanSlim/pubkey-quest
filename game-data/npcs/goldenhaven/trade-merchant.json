@@ -165,6 +165,8 @@
     "gold_restock_interval": 30,
     "item_restock_interval": 10,
     "inventory": [
+      {"item_id": "fishing-rod", "stock": 2, "max_stock": 2},
+      {"item_id": "worms", "stock": 10, "max_stock": 10},
       {
         "item_id": "rations",
         "stock": 20,

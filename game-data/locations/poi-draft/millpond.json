@@ -1,0 +1,26 @@
+{
+  "id": "millpond",
+  "name": "The Millpond",
+  "category": "utility",
+  "parent_environment": "windswept-hills",
+  "position": 0.3,
+  "description": "An old millpond near Millhaven, still and green, where the village children fish for sunfish on summer evenings.",
+  "discovery": {
+    "chance": 0.65,
+    "message": "A lane off the road leads to a quiet pond behind a broken-down mill."
+  },
+  "start_node": "pond",
+  "nodes": {
+    "pond": {
+      "text": "The pond lies still behind the old mill race, lily pads crowding the edges. Sunfish turn in the shallows, and the carp are fat and lazy.",
+      "type": "fishing",
+      "spot": "millpond",
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You leave the pond to the dragonflies.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

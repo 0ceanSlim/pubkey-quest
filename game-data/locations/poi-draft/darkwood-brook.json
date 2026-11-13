@@ -1,0 +1,26 @@
+{
+  "id": "darkwood-brook",
+  "name": "Darkwood Brook",
+  "category": "utility",
+  "parent_environment": "darkwood-forest",
+  "position": 0.4,
+  "description": "A clear brook running fast over stones under the dark trees. Trout hang in the current, and the banks are soft enough to dig.",
+  "discovery": {
+    "chance": 0.6,
+    "message": "You hear running water, and find a brook chattering through a gap in the trees."
+  },
+  "start_node": "brook",
+  "nodes": {
+    "brook": {
+      "text": "The brook is clear and cold, quick over the stones. Speckled trout hold in the slack water behind the rocks, and the bank is soft, black earth.",
+      "type": "fishing",
+      "spot": "darkwood-brook",
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You leave the brook to its chattering.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

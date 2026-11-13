@@ -1,0 +1,26 @@
+{
+  "id": "tide-pools",
+  "name": "Tide Pools",
+  "category": "utility",
+  "parent_environment": "suncrest-coastlands",
+  "position": 0.3,
+  "description": "Rock pools left by the tide, full of crabs, mussels and small fish. Big groupers wedge themselves under the ledges.",
+  "discovery": {
+    "chance": 0.55,
+    "message": "Below the path, the falling tide has left a scatter of shining rock pools."
+  },
+  "start_node": "pools",
+  "nodes": {
+    "pools": {
+      "text": "Warm, shallow pools between the rocks, bright with weed and darting fish. Mussels crust the ledges, and something large shifts under the biggest rock. Mind the crabs.",
+      "type": "fishing",
+      "spot": "tide-pools",
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You pick your way back up the rocks.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}
