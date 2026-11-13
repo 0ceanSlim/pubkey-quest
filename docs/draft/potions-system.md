@@ -12,10 +12,11 @@ Brainstorm started 2026-10-30. The last undesigned piece of the pre-beta item sy
   reuse what's built (condition, effects, `cures`, commissions, loot tables).
 - **Mana potions are required**: mana is the caster's whole budget (the game's spell points),
   so unlike 5e (spell slots, no restoring potions) there must be a way to buy it back.
-- **Drinking is a bonus action** (2024 5e). Today it costs the action, and digging an item out
-  of the backpack costs the bonus action; the new rule: a drink is the bonus action, pulling
-  it from the pack costs the action. Not built yet (`combat/cast.go`, the use-item path, and
-  every potion's "In combat it uses your action" note change with it).
+- **Drinking is a bonus action** (2024 5e). ✅ Built 2026-11-13: any `type: "Potion"` (teas
+  too) at hand is the bonus action, to drink or give to an adjacent ally; from the pack it
+  costs the action instead (`combat.reachPotion`). Other consumables are unchanged (action,
+  plus the bonus action from the pack). A turn doesn't auto-end while a potion at hand could
+  still be drunk.
 - **Feather fall is cut.**
 - **The list comes first** (§4, drafted 2026-10-31); how each is made, found or bought is
   decided after. §2 stays a proposal until then.

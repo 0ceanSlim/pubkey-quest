@@ -7,7 +7,7 @@
   "name": "Healing",
   "notes": [
     "Drink to heal 2d4+2 HP, in or out of combat.",
-    "In combat it uses your action."
+    "In combat it takes your bonus action (your action if you dig it out of your pack)."
   ],
   "value": 5000,
   "rarity": "common",

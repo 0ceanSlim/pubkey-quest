@@ -751,29 +751,44 @@ export function openCombatItemMenu() {
     }
     for (const slot of pack) tally(inPack, slot);
 
+    // Potions are a bonus action to drink at hand, or your action dug out of the
+    // pack (2024 rules, mirrors combat.reachPotion); everything else takes your
+    // action, plus the bonus action when it's in the pack.
+    const actionUsed = _lastState?.action_used ?? false;
     const bonusUsed = _lastState?.bonus_action_used ?? false;
+    const isPotion = (item) => String(item?.type ?? '').toLowerCase() === 'potion';
     const entries = [];
     for (const [id, qty] of atHand) {
         if (qty <= 0) continue;
         const item = window.getItemById?.(id);
+        const potion = isPotion(item);
+        const blocked = potion ? bonusUsed : actionUsed;
         entries.push({
             label: item?.name ?? id,
-            meta:  `×${qty}`,
-            disabled: false,
-            tip: item?.description ?? '',
+            meta:  potion ? `×${qty} · bonus action` : `×${qty}`,
+            disabled: blocked,
+            tip: blocked
+                ? (potion ? 'Drinking a potion takes your bonus action, and it\'s used this turn.' : 'Your action is used this turn.')
+                : (item?.description ?? ''),
             onClick: () => window.doUseCombatItem(id),
         });
     }
     for (const [id, qty] of inPack) {
         if (qty <= 0 || atHand.has(id)) continue;
         const item = window.getItemById?.(id);
+        const potion = isPotion(item);
+        const blocked = potion ? actionUsed : (actionUsed || bonusUsed);
         entries.push({
             label: `${item?.name ?? id} (in pack)`,
-            meta:  `×${qty} · +bonus action`,
-            disabled: bonusUsed,
-            tip: bonusUsed
-                ? 'In your backpack, and your bonus action is used. Keep what you need in your general slots or a pouch.'
-                : 'In your backpack: digging it out also uses your bonus action.',
+            meta:  potion ? `×${qty} · action` : `×${qty} · +bonus action`,
+            disabled: blocked,
+            tip: potion
+                ? (blocked
+                    ? 'In your backpack: digging a potion out takes your action, and it\'s used. Keep potions in your general slots or a pouch.'
+                    : 'In your backpack: digging it out and drinking it takes your action.')
+                : (blocked
+                    ? 'In your backpack: it takes your action and your bonus action. Keep what you need in your general slots or a pouch.'
+                    : 'In your backpack: digging it out also uses your bonus action.'),
             onClick: () => window.doUseCombatItem(id),
         });
     }
@@ -2366,10 +2381,10 @@ function _renderCombatButtons(cs) {
                 ? _B_GRAYED('✨ Cast Spell', 'Action used this turn')
                 : `<button style="${_B('color:#c4b5fd;')}" onclick="window.openCombatSpellMenu()"
                     title="Cast a prepared spell">✨ Cast Spell</button>`}
-            ${actionUsed
-                ? _B_GRAYED('🧪 Use Item', 'Action used this turn')
+            ${actionUsed && bonusUsed
+                ? _B_GRAYED('🧪 Use Item', 'Action and bonus action used this turn')
                 : `<button style="${_B('color:#fca5a5;')}" onclick="window.openCombatItemMenu()"
-                    title="Use a consumable (potion, food)">🧪 Use Item</button>`}
+                    title="Use a consumable (a potion at hand is a bonus action)">🧪 Use Item</button>`}
             ${_abilityButton(cs)}
         </div>`;
 

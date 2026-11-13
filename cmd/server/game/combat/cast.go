@@ -400,7 +400,8 @@ func checkConcentrationOnDamage(cs *types.CombatSession, save *types.SaveFile, d
 // stashed in a pouch/sack container occupying one (the equipped backpack itself
 // isn't reachable in a fight). Healing and mana route through the shared item
 // effect path, bridged onto the combat HP pool so the heal lands on the live
-// combatant rather than the resting save HP. Uses the player's action.
+// combatant rather than the resting save HP. Uses the player's action — except a
+// potion, which is a bonus action to drink or give (2024 rules; see reachPotion).
 // targetID aims a spell scroll ("" = nearest); other consumables ignore it.
 func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveFile, itemID, targetID string) ([]string, error) {
 	if cs.Phase != "active" {
@@ -410,9 +411,6 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		return nil, fmt.Errorf("no player in combat")
 	}
 	state := &actor(cs).CombatState
-	if state.ActionUsed {
-		return nil, fmt.Errorf("action already used this turn")
-	}
 
 	item, err := gamedata.LoadItemByID(db, itemID)
 	if err != nil {
@@ -421,6 +419,10 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	name := itemID
 	if n, _ := item["name"].(string); n != "" {
 		name = n
+	}
+	potion := IsPotion(item)
+	if !potion && state.ActionUsed {
+		return nil, fmt.Errorf("action already used this turn")
 	}
 
 	// A spell scroll casts the spell it carries (bypassing prepared/known/components).
@@ -434,7 +436,13 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 
 	// Locate a stack of the item at hand (loose general slot or a general-slot
 	// container) — or in the backpack, which costs the bonus action to dig out.
-	slot, fromPack, err := reachItem(save.Inventory, state, itemID, name)
+	var slot map[string]interface{}
+	var fromPack bool
+	if potion {
+		slot, fromPack, err = reachPotion(save.Inventory, state, itemID, name)
+	} else {
+		slot, fromPack, err = reachItem(save.Inventory, state, itemID, name)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -481,9 +489,16 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	if reusable, _ := item["reusable"].(bool); !reusable {
 		decrementSlotStack(slot)
 	}
-	state.ActionUsed = true
-	if fromPack {
+	switch {
+	case potion && fromPack:
+		state.ActionUsed = true
+	case potion:
 		state.BonusActionUsed = true
+	default:
+		state.ActionUsed = true
+		if fromPack {
+			state.BonusActionUsed = true
+		}
 	}
 
 	// A smoke bomb ("escape": true) gets you out, no roll.
@@ -504,7 +519,12 @@ func ProcessPlayerUseItem(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 		line = strings.TrimSuffix(line, ".") + " — " + strings.Join(msgs, ", ") + "."
 	}
 	log := []string{line}
-	if fromPack {
+	switch {
+	case potion && fromPack:
+		log = append([]string{fmt.Sprintf("  You dig the %s out of your pack (your action).", name)}, log...)
+	case potion:
+		log[0] = strings.TrimSuffix(line, ".") + " (bonus action)."
+	case fromPack:
 		log = append([]string{fmt.Sprintf("  You dig the %s out of your pack (bonus action).", name)}, log...)
 	}
 	for _, c := range cured {
@@ -541,6 +561,66 @@ func reachItem(inv map[string]interface{}, state *types.PlayerCombatState, itemI
 		return nil, false, fmt.Errorf("your %s is in your pack, and digging it out takes your bonus action (keep it in your general slots or a pouch)", name)
 	}
 	return slot, true, nil
+}
+
+// IsPotion reports whether an item is drunk as a potion (type "Potion", teas
+// included), which in a fight is a bonus action rather than an action.
+func IsPotion(item map[string]interface{}) bool {
+	t, _ := item["type"].(string)
+	return strings.EqualFold(t, "potion")
+}
+
+// reachPotion finds a potion to drink or give mid-fight. At hand it takes the
+// bonus action; one still in the backpack takes the action instead (digging it
+// out and drinking it is the whole turn's work).
+func reachPotion(inv map[string]interface{}, state *types.PlayerCombatState, itemID, name string) (slot map[string]interface{}, fromPack bool, err error) {
+	if slot = findReachableConsumable(inv, itemID); slot != nil {
+		if state.BonusActionUsed {
+			return nil, false, fmt.Errorf("drinking a %s takes your bonus action, and you've used it this turn", name)
+		}
+		return slot, false, nil
+	}
+	if slot = findPackItem(inv, itemID); slot == nil {
+		return nil, false, fmt.Errorf("you aren't carrying a %s", name)
+	}
+	if state.ActionUsed {
+		return nil, false, fmt.Errorf("your %s is in your pack, and digging it out takes your action (keep potions in your general slots or a pouch)", name)
+	}
+	return slot, true, nil
+}
+
+// PotionAtHand reports whether a potion sits in the general slots or a container
+// in them, i.e. whether the bonus action could still be spent drinking one.
+func PotionAtHand(db *sql.DB, inv map[string]interface{}) bool {
+	if db == nil {
+		return false
+	}
+	gen, _ := inv["general_slots"].([]interface{})
+	isPotion := func(raw interface{}) bool {
+		s, ok := raw.(map[string]interface{})
+		if !ok || slotQty(s, "quantity") <= 0 {
+			return false
+		}
+		id, _ := s["item"].(string)
+		if id == "" {
+			return false
+		}
+		item, err := gamedata.LoadItemByID(db, id)
+		return err == nil && IsPotion(item)
+	}
+	for _, raw := range gen {
+		if isPotion(raw) {
+			return true
+		}
+		slot, _ := raw.(map[string]interface{})
+		contents, _ := slot["contents"].([]interface{})
+		for _, c := range contents {
+			if isPotion(c) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // findPackItem finds a stack of itemID in the equipped backpack.

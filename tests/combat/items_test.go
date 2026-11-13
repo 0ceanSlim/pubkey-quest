@@ -64,27 +64,65 @@ func TestAntidoteCuresPoison(t *testing.T) {
 	}
 }
 
+// inPack moves the only stack of itemID into the backpack.
+func inPack(save *types.SaveFile, itemID string) {
+	save.Inventory["general_slots"] = []interface{}{}
+	save.Inventory["gear_slots"] = map[string]interface{}{"bag": map[string]interface{}{
+		"item": "backpack", "contents": []interface{}{map[string]interface{}{"item": itemID, "quantity": 1}},
+	}}
+}
+
 // Items at hand cost the action; ones in the backpack can be used too, but
 // digging them out takes the bonus action as well.
 func TestItemsFromThePackCostTheBonusAction(t *testing.T) {
-	cs, save := fightWithItem(t, "antidote")
-	save.Inventory["general_slots"] = []interface{}{}
-	save.Inventory["gear_slots"] = map[string]interface{}{"bag": map[string]interface{}{
-		"item": "backpack", "contents": []interface{}{map[string]interface{}{"item": "antidote", "quantity": 1}},
-	}}
+	cs, save := fightWithItem(t, "goodberry")
+	inPack(save, "goodberry")
 	st := &combat.Actor(cs).CombatState
 
 	st.BonusActionUsed = true
-	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "antidote", ""); err == nil {
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "goodberry", ""); err == nil {
 		t.Fatal("with the bonus action spent, the pack is out of reach")
 	}
 
 	st.BonusActionUsed, st.ActionUsed = false, false
-	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "antidote", ""); err != nil {
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "goodberry", ""); err != nil {
 		t.Fatal(err)
 	}
 	if !st.BonusActionUsed || !st.ActionUsed {
 		t.Errorf("using it from the pack should spend both: action=%v bonus=%v", st.ActionUsed, st.BonusActionUsed)
+	}
+}
+
+// A potion at hand is a bonus action (2024 rules), so it can follow an attack;
+// one in the backpack takes the action instead.
+func TestPotionsAreABonusAction(t *testing.T) {
+	cs, save := fightWithItem(t, "healing")
+	st := &combat.Actor(cs).CombatState
+
+	st.ActionUsed = true // attacked already
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "healing", ""); err != nil {
+		t.Fatalf("a potion after the action: %v", err)
+	}
+	if !st.BonusActionUsed {
+		t.Error("drinking should spend the bonus action")
+	}
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "healing", ""); err == nil {
+		t.Error("a second potion in one turn needs a second bonus action")
+	}
+
+	cs, save = fightWithItem(t, "healing")
+	inPack(save, "healing")
+	st = &combat.Actor(cs).CombatState
+	st.ActionUsed = true
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "healing", ""); err == nil {
+		t.Fatal("a potion in the pack takes the action, which is spent")
+	}
+	st.ActionUsed = false
+	if _, err := combat.ProcessPlayerUseItem(db.GetDB(), cs, save, "healing", ""); err != nil {
+		t.Fatal(err)
+	}
+	if !st.ActionUsed || st.BonusActionUsed {
+		t.Errorf("from the pack: action=%v bonus=%v, want the action only", st.ActionUsed, st.BonusActionUsed)
 	}
 }
 

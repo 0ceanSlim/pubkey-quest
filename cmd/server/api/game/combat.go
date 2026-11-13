@@ -1202,6 +1202,10 @@ func shouldAutoEndTurn(cs *types.CombatSession, save *types.SaveFile) bool {
 	if state.BonusActionUsed {
 		return true
 	}
+	// A potion at hand can still be drunk with the bonus action.
+	if combat.PotionAtHand(serverdb.GetDB(), save.Inventory) {
+		return false
+	}
 	return !checkBonusAttackAvailable(cs, save)
 }
 
