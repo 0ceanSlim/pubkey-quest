@@ -60,6 +60,7 @@ func TestNoRodNoFishing(t *testing.T) {
 // and the spot's count for the day goes up.
 func TestCastAndLand(t *testing.T) {
 	sess := wharfSession(t, "fishing-rod", "worms")
+	xp0 := sess.SaveData.Experience
 	r := fishAction(t, sess, "fish_begin", map[string]any{"kind": "town", "bait": "worms"})
 	if !r.Success || sess.FishSession == nil {
 		t.Fatalf("fish_begin: %s", r.Message)
@@ -102,10 +103,31 @@ landed:
 			}
 		}
 	}
+	if sess.SaveData.Experience <= xp0 {
+		t.Error("landing a fish gave no XP")
+	}
 	// Anything else walks away from the water.
 	fishAction(t, sess, "wait", map[string]any{"minutes": float64(5)})
 	if sess.FishSession != nil {
 		t.Error("the fishing session survived another action")
+	}
+}
+
+// A catch pays a little XP by size, and its exertion adds up to fatigue.
+func TestCatchToll(t *testing.T) {
+	sess := wharfSession(t)
+	sess.SaveData.Fatigue = 0
+	xp0 := sess.SaveData.Experience
+	catchToll(sess, "huge", nil) // exertion 4 of 6
+	if sess.SaveData.Fatigue != 0 {
+		t.Fatalf("fatigue after one huge fish = %d, want 0", sess.SaveData.Fatigue)
+	}
+	catchToll(sess, "huge", nil) // 8: one fatigue, 2 carried
+	if sess.SaveData.Fatigue != 1 || sess.Exertion != 2 {
+		t.Fatalf("fatigue %d, exertion %d; want 1 and 2", sess.SaveData.Fatigue, sess.Exertion)
+	}
+	if gained := sess.SaveData.Experience - xp0; gained < 40 {
+		t.Errorf("two huge fish gave %d XP, want at least 40", gained)
 	}
 }
 

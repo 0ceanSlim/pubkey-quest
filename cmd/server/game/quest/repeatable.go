@@ -8,7 +8,7 @@ import (
 )
 
 // Repeatable (daily/weekly) quests. Unlike one-shot quests, these cycle: one is
-// picked from the category pool per real-world period, offered by innkeepers,
+// picked from the category pool per real-world period, offered by vault keepers,
 // and on completion the period is recorded (not the permanent completed list) so
 // it re-opens next reset. Selection is a deterministic rotation through the pool
 // so it's stable within a period and cycles predictably across periods.

@@ -26,6 +26,10 @@ draft; the rest of the draft stands as written.
   any `fish` or `shellfish`.
 - **Quests use a new `catch` objective:** `target` is `any`, a species, or `water-<water>`,
   with an optional `min_size`. `fish_caught` events carry the fish's item id.
+- **A catch gives a little XP and costs exertion** (decided 2026-11-13 with mining, `mining-system.md`
+  §11): `xp` and `exertion` per size in `fishing.json` (tiny 1 / small 2 / medium 4 / large 8 / huge 20
+  XP, with the level bonus), and every `exertion_per_fatigue` (6) points of exertion is one fatigue
+  (`status.Exert`, a session-only tally). Quests still pay the most.
 - **The daily is a vault keeper's** (*Daily Order: Fresh Fish*, four fish), not an
   innkeeper's, per the standing rule that dailies come from vault keepers.
 - **Barbarian Fishing** doesn't take the salmon from you: hand-ins by tag wait for tag

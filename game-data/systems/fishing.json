@@ -2,11 +2,11 @@
   "_comment": "Fishing (docs/draft/fishing-system.md). Species x sizes become fish-<species>-<size> items at migration (plus cooked-/salted-fish-<size> and trophy-<species>); the server's game/fishing engine reads this file for bites, fights and spots. Weights in a spot's species/finds/shellfish are relative. Values are gold for a medium fish.",
 
   "sizes": [
-    { "id": "tiny",   "name": "Tiny",   "max_pct": 0.10, "share": 0.22, "value": 0.2, "power": -2, "stamina": 2,  "raw_hours": 1 },
-    { "id": "small",  "name": "Small",  "max_pct": 0.25, "share": 0.38, "value": 0.5, "power": -1, "stamina": 3,  "raw_hours": 2 },
-    { "id": "medium", "name": "Medium", "max_pct": 0.50, "share": 0.28, "value": 1,   "power": 0,  "stamina": 5,  "raw_hours": 3 },
-    { "id": "large",  "name": "Large",  "max_pct": 0.80, "share": 0.10, "value": 2.5, "power": 1,  "stamina": 8,  "raw_hours": 4 },
-    { "id": "huge",   "name": "Huge",   "max_pct": 1.00, "share": 0.02, "value": 8,   "power": 3,  "stamina": 12, "raw_hours": 4 }
+    { "id": "tiny",   "name": "Tiny",   "max_pct": 0.10, "share": 0.22, "value": 0.2, "power": -2, "stamina": 2,  "raw_hours": 1, "xp": 1, "exertion": 1 },
+    { "id": "small",  "name": "Small",  "max_pct": 0.25, "share": 0.38, "value": 0.5, "power": -1, "stamina": 3,  "raw_hours": 2, "xp": 2, "exertion": 1 },
+    { "id": "medium", "name": "Medium", "max_pct": 0.50, "share": 0.28, "value": 1,   "power": 0,  "stamina": 5,  "raw_hours": 3, "xp": 4, "exertion": 2 },
+    { "id": "large",  "name": "Large",  "max_pct": 0.80, "share": 0.10, "value": 2.5, "power": 1,  "stamina": 8,  "raw_hours": 4, "xp": 8, "exertion": 3 },
+    { "id": "huge",   "name": "Huge",   "max_pct": 1.00, "share": 0.02, "value": 8,   "power": 3,  "stamina": 12, "raw_hours": 4, "xp": 20, "exertion": 4 }
   ],
 
   "profiles": {
@@ -139,6 +139,7 @@
     "worm_minutes": 10,
     "worm_dc": 8,
     "monster_bite": 0.04,
-    "find_bite": 0.06
+    "find_bite": 0.06,
+    "exertion_per_fatigue": 6
   }
 }

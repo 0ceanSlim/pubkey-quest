@@ -93,6 +93,10 @@ type GameSession struct {
 	// only; see game/fishing).
 	FishMemory fishing.Memory `json:"-"`
 
+	// Exertion is hard work toward the next point of fatigue (status.Exert),
+	// shared by fishing and mining. Session-only.
+	Exertion int `json:"-"`
+
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.
 	// Session-only.

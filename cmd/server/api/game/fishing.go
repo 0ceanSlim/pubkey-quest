@@ -14,6 +14,7 @@ import (
 
 	gamedata "pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/events"
@@ -24,6 +25,7 @@ import (
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/game/quest"
+	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/social"
@@ -414,7 +416,7 @@ func applyFishOutcome(sess *session.GameSession, fs *fishing.Session, out fishin
 		}
 	}
 	if out.Landed != nil {
-		lines = append(lines, addCatch(sess, *out.Landed, fs.SpotID)...)
+		lines = append(lines, addCatch(sess, *out.Landed, fs.SpotID, data)...)
 	}
 	if out.Find != "" {
 		lines = append(lines, addFind(sess, out.Find, out.FindQty)...)
@@ -431,8 +433,9 @@ func applyFishOutcome(sess *session.GameSession, fs *fishing.Session, out fishin
 }
 
 // addCatch puts a landed fish in the pack with its weight (or on the ground if
-// the pack's full), counts it toward the spot's day, and records it.
-func addCatch(sess *session.GameSession, f fishing.Fish, spotID string) []string {
+// the pack's full), counts it toward the spot's day, records it, and pays its
+// size's small XP and exertion (a level-up lands in data["level_up"]).
+func addCatch(sess *session.GameSession, f fishing.Fish, spotID string, data map[string]any) []string {
 	state := &sess.SaveData
 	id := f.ItemID()
 	st := condition.NewState(id, condition.Now(state))
@@ -442,12 +445,41 @@ func addCatch(sess *session.GameSession, f fishing.Fish, spotID string) []string
 	st[condition.KeyLb] = f.Lb
 	fishMemory(sess).Landed(spotID, state.CurrentDay)
 	events.Record(state, events.FishCaught, id, 1)
+	lines := catchToll(sess, f.Size, data)
 	if added, _ := inventory.AddItemWithState(state, id, 1, st); added > 0 {
 		noteAcquired(state, id)
-		return nil
+		return lines
 	}
 	sess.Ground.AddWithState(world.GroundKey(state), id, 1, st)
-	return []string{"Your pack is full, so you lay it on the bank."}
+	return append(lines, "Your pack is full, so you lay it on the bank.")
+}
+
+// catchToll is what landing a fish of a size gives and takes: a little XP, and
+// exertion that adds up to fatigue.
+func catchToll(sess *session.GameSession, sizeID string, data map[string]any) []string {
+	state := &sess.SaveData
+	cfg := fishingConfig()
+	i := fishing.SizeIndex(cfg, sizeID)
+	if i < 0 {
+		return nil
+	}
+	size := cfg.Sizes[i]
+	var lines []string
+	if size.XP > 0 {
+		if adv, err := loadAdvancement(); err == nil {
+			xp := character.BonusedXP(state, size.XP, adv)
+			if lvl := character.GrantXP(state, xp, adv); lvl.Leveled && data != nil {
+				data["level_up"] = lvl
+			}
+			lines = append(lines, fmt.Sprintf("(+%d XP)", xp))
+		} else {
+			log.Printf("⚠️ fishing XP: advancement load failed: %v", err)
+		}
+	}
+	if status.Exert(state, &sess.Exertion, size.Exertion, cfg.Rules.ExertionPerFatigue) > 0 {
+		lines = append(lines, "Your arms ache. (+1 fatigue)")
+	}
+	return lines
 }
 
 // addFind adds something fished up that isn't a fish.
@@ -557,9 +589,11 @@ func handleFishQuick(sess *session.GameSession, params map[string]any) (*GameAct
 		return &GameActionResponse{Success: true, Message: msg, Color: "yellow", Data: map[string]any{"lines": []string{msg}, "window": fishWindow(sess, spotID)}}, nil
 	}
 	sp, size := cfg.Species[r.Fish.Species], r.Fish.Size
+	data := map[string]any{}
 	lines := []string{fmt.Sprintf("You land a %s %s, %s. %s", size, strings.ToLower(sp.Name), fishing.WeighOut(r.Fish.Lb), check)}
-	lines = append(lines, addCatch(sess, *r.Fish, spotID)...)
-	return &GameActionResponse{Success: true, Message: strings.Join(lines, " "), Color: "green", Data: map[string]any{"lines": lines, "window": fishWindow(sess, spotID)}}, nil
+	lines = append(lines, addCatch(sess, *r.Fish, spotID, data)...)
+	data["lines"], data["window"] = lines, fishWindow(sess, spotID)
+	return &GameActionResponse{Success: true, Message: strings.Join(lines, " "), Color: "green", Data: data}, nil
 }
 
 // handleHaulNet drags the net through the shallows. params: kind, node
@@ -586,6 +620,7 @@ func handleHaulNet(sess *session.GameSession, params map[string]any) (*GameActio
 		msg := "You drag the net through the shallows and haul up weed and mud. " + check
 		return &GameActionResponse{Success: true, Message: msg, Color: "yellow", Data: map[string]any{"lines": []string{msg}, "window": fishWindow(sess, spotID)}}, nil
 	}
+	data := map[string]any{}
 	lines := []string{"You drag the net through the shallows and haul it in. " + check}
 	for _, id := range sortedKeys(r.Items) {
 		n := r.Items[id]
@@ -593,7 +628,7 @@ func handleHaulNet(sess *session.GameSession, params map[string]any) (*GameActio
 		for range n {
 			if strings.HasPrefix(id, "fish-") {
 				if f := netFish(id); f != nil {
-					lines = append(lines, addCatch(sess, *f, spotID)...)
+					lines = append(lines, addCatch(sess, *f, spotID, data)...)
 					continue
 				}
 			}
@@ -605,7 +640,8 @@ func handleHaulNet(sess *session.GameSession, params map[string]any) (*GameActio
 			}
 		}
 	}
-	return &GameActionResponse{Success: true, Message: strings.Join(lines, " "), Color: "green", Data: map[string]any{"lines": lines, "window": fishWindow(sess, spotID)}}, nil
+	data["lines"], data["window"] = lines, fishWindow(sess, spotID)
+	return &GameActionResponse{Success: true, Message: strings.Join(lines, " "), Color: "green", Data: data}, nil
 }
 
 // netFish turns a netted fish's item id back into a fish with a weight in its band.

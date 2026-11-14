@@ -29,6 +29,8 @@ type FishSize struct {
 	Power    int     `json:"power"`     // + the species' power
 	Stamina  int     `json:"stamina"`   // fight stamina
 	RawHours int     `json:"raw_hours"` // fullness eaten raw (food-system.md §3)
+	XP       int     `json:"xp"`        // base XP for landing one
+	Exertion int     `json:"exertion"`  // work toward fatigue (rules.exertion_per_fatigue)
 }
 
 // FishProfile weights the four fight moves.
@@ -119,6 +121,8 @@ type FishingRules struct {
 	WormDC       int     `json:"worm_dc"`
 	MonsterBite  float64 `json:"monster_bite"` // share of bites that are a monster, where a spot has any
 	FindBite     float64 `json:"find_bite"`    // share of bites that are a find
+	// ExertionPerFatigue is how much catch exertion makes one point of fatigue.
+	ExertionPerFatigue int `json:"exertion_per_fatigue"`
 }
 
 // FishItemID is the generated item for a species at a size.
