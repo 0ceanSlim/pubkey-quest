@@ -62,8 +62,11 @@
 .mn-tag {
     position: absolute;
     bottom: 1px;
-    right: 3px;
+    left: 2px;
+    right: 2px;
     font-size: 6px;
+    line-height: 1.4;
+    text-align: right;
     pointer-events: none;
 }
 
