@@ -441,6 +441,7 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sess.LockSession = nil // moving the walk on walks away from any lock being picked
+	sess.MineSession = nil // ...or rock face being worked
 	if !sess.ActivePOI.AllowsNext(req.Next) {
 		writePOIError(w, http.StatusBadRequest, "invalid step")
 		return

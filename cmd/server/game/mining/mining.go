@@ -48,12 +48,16 @@ func QuickLoot(s types.Seam) *types.POILootTable {
 }
 
 // Describe is the quick-work choice's label for a seam.
-func Describe(s types.Seam, minutes, left int) string {
-	faces := "faces"
+func Describe(s types.Seam, minutes int) string {
+	return fmt.Sprintf("Quick work (Athletics DC %d, %d minutes)", s.DC, minutes)
+}
+
+// FacesLeftText is "3 faces left today".
+func FacesLeftText(left int) string {
 	if left == 1 {
-		faces = "face"
+		return "1 face left today"
 	}
-	return fmt.Sprintf("Work the face (Athletics DC %d, %d minutes; %d %s left today)", s.DC, minutes, left, faces)
+	return fmt.Sprintf("%d faces left today", left)
 }
 
 // ─── Faces worked today (session memory, like picked locks) ──────────────────

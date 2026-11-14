@@ -136,8 +136,13 @@ type MineResult struct {
 	Lines   []string
 }
 
-// MineQuick is a mine node's quick-work sub-step.
-const MineQuick = "#quick"
+// Mine node sub-steps: "#quick" is one Athletics roll; "#mine" is the Veins
+// minigame, which the client opens rather than advancing, so on the server it
+// re-presents the face.
+const (
+	MineQuick = "#quick"
+	MineWork  = "#mine"
+)
 
 // FishHere is a fishing node's "Fish here" sub-step: the client opens the
 // fishing window rather than advancing, so on the server it re-presents the node.
@@ -602,7 +607,9 @@ func resolveMine(node types.POIStep, nodeID string, save *types.SaveFile, deps D
 		case why != "":
 			res.Outcome = appendOnce(res.Outcome, why)
 		default:
-			res.Choices = append(res.Choices, Choice{Label: mining.Describe(seam, deps.Mining.QuickMinutes(), left), Next: base + MineQuick})
+			res.Choices = append(res.Choices,
+				Choice{Label: fmt.Sprintf("Work the face (%s)", mining.FacesLeftText(left)), Next: base + MineWork},
+				Choice{Label: mining.Describe(seam, deps.Mining.QuickMinutes()), Next: base + MineQuick})
 		}
 	}
 	if node.Next != "" {

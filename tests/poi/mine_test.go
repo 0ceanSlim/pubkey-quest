@@ -39,10 +39,10 @@ func TestMineNodeOffersAFace(t *testing.T) {
 	deps := poi.Deps{Ctx: fakeCtx{}, Rng: rng(), Mining: &fakeMining{left: 3}}
 	res := poi.Resolve(mineNode(), "face", &types.SaveFile{}, deps)
 	got := strings.Join(labels(res), "|")
-	if got != "Work the face (Athletics DC 10, 30 minutes; 3 faces left today)|Move on" {
+	if got != "Work the face (3 faces left today)|Quick work (Athletics DC 10, 30 minutes)|Move on" {
 		t.Fatalf("choices: %s", got)
 	}
-	if res.Choices[0].Next != "face#quick" || res.Choices[1].Next != "leave" {
+	if res.Choices[0].Next != "face#mine" || res.Choices[1].Next != "face#quick" || res.Choices[2].Next != "leave" {
 		t.Errorf("nexts: %+v", res.Choices)
 	}
 }
@@ -56,7 +56,7 @@ func TestMineNodeQuickWork(t *testing.T) {
 	if fm.quicks != 1 || got["iron-ore"] < 2 {
 		t.Fatalf("a good face should grant ore: quicks %d, items %v", fm.quicks, got)
 	}
-	if !strings.Contains(labels(res)[0], "1 face left") {
+	if !strings.Contains(labels(res)[0], "1 face left today") {
 		t.Errorf("faces left after one: %v", labels(res))
 	}
 

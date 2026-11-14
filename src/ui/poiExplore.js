@@ -28,6 +28,7 @@ import { getNPCById } from '../state/staticData.js';
 // whole game a second time (two music players, an empty second game state).
 import { openLockpicking } from './lockpicking.js';
 import { openFishing } from './fishing.js';
+import { openMining } from './mining.js';
 
 // Discovered POIs in the current environment (id, name, position, …), cached for
 // the travel-screen markers. Refreshed on entering a travel view and after a new
@@ -177,12 +178,15 @@ function renderStep(step) {
     if (Array.isArray(step.choices) && step.choices.length) {
         step.choices.forEach((ch) => {
             // A lock's "Pick the lock" plays the minigame instead of advancing,
-            // and a fishing spot's "Fish" opens the fishing window.
+            // a fishing spot's "Fish" opens the fishing window, and a seam's
+            // "Work the face" opens the mining window.
             const onClick = ch.next.endsWith('#pick')
                 ? () => pickInWalk(ch.next.slice(0, -'#pick'.length))
                 : ch.next.endsWith('#fish')
                     ? () => fishInWalk(ch.next.slice(0, -'#fish'.length))
-                    : () => advancePOI(ch.next);
+                    : ch.next.endsWith('#mine')
+                        ? () => mineInWalk(ch.next.slice(0, -'#mine'.length))
+                        : () => advancePOI(ch.next);
             buttons.push({ label: ch.label, onClick });
         });
     } else if (step.next) {
@@ -236,6 +240,26 @@ async function fishInWalk(node) {
     await refreshGameState(true);
     if (r.data?.step) renderStep(r.data.step);
     else advancePOI(node + '#fish'); // left without casting: show the node again
+}
+
+// mineInWalk works a rock face at a mine node of the walk. When the face ends
+// the server re-presents the node (faces left today) and sends that step back.
+async function mineInWalk(node) {
+    const r = await openMining({ node });
+    if (r.status === 'refused') {
+        showMessage(r.message || "You can't work that rock.", 'error');
+        return;
+    }
+    await refreshGameState(true);
+    if (r.data?.death) {
+        // A cave-in killed you: the walk is over server-side.
+        hideOverlay();
+        smoothClock.release('poi');
+        eventBus.emit('player:died', { ...r.data.death, message: (r.data.lines ?? []).slice(-1)[0] });
+        return;
+    }
+    if (r.data?.step) renderStep(r.data.step);
+    else advancePOI(node + '#mine'); // stepped back before a move: show the face again
 }
 
 // ─── overlay open/close (clock pause mirrors combat) ────────────────────────────

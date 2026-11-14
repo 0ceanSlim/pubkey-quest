@@ -1,10 +1,14 @@
 {
   "tiers": [
-    { "tier": 1, "dc": 10, "faces_per_day": 3, "grid": [5, 4], "veins": [1, 2], "gems": [0, 1], "faults": [1, 2], "hard": 0.10, "cave_in_dice": 1, "xp": 6,  "exertion": 4 },
-    { "tier": 2, "dc": 12, "faces_per_day": 3, "grid": [6, 5], "veins": [2, 2], "gems": [0, 1], "faults": [2, 3], "hard": 0.20, "cave_in_dice": 2, "xp": 10, "exertion": 5 },
-    { "tier": 3, "dc": 14, "faces_per_day": 2, "grid": [7, 5], "veins": [2, 3], "gems": [0, 2], "faults": [3, 4], "hard": 0.30, "cave_in_dice": 3, "xp": 20, "exertion": 6 },
-    { "tier": 4, "dc": 16, "faces_per_day": 2, "grid": [8, 6], "veins": [3, 3], "gems": [1, 2], "faults": [4, 5], "hard": 0.40, "cave_in_dice": 4, "xp": 35, "exertion": 6 }
+    {"tier": 1, "dc": 10, "faces_per_day": 3, "grid": [5, 4], "veins": [1, 2], "gems": [0, 1], "faults": [1, 2], "hard": 0.1, "cave_in_dice": 1, "xp": 6, "exertion": 4},
+    {"tier": 2, "dc": 12, "faces_per_day": 3, "grid": [6, 5], "veins": [2, 2], "gems": [0, 1], "faults": [2, 3], "hard": 0.2, "cave_in_dice": 2, "xp": 10, "exertion": 5},
+    {"tier": 3, "dc": 14, "faces_per_day": 2, "grid": [7, 5], "veins": [2, 3], "gems": [0, 2], "faults": [3, 4], "hard": 0.3, "cave_in_dice": 3, "xp": 20, "exertion": 6},
+    {"tier": 4, "dc": 16, "faces_per_day": 2, "grid": [8, 6], "veins": [3, 3], "gems": [1, 2], "faults": [4, 5], "hard": 0.4, "cave_in_dice": 4, "xp": 35, "exertion": 6}
   ],
+  "ores": {
+    "iron-ore":   { "tier": 1, "pick": 1 },
+    "copper-ore": { "tier": 1, "pick": 1 }
+  },
   "rules": {
     "swing_minutes": 5,
     "sound_minutes": 1,

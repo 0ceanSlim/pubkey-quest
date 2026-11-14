@@ -6,8 +6,15 @@ package types
 
 // MiningConfig is mining.json.
 type MiningConfig struct {
-	Tiers []MiningTier `json:"tiers"` // tier 1 first
-	Rules MiningRules  `json:"rules"`
+	Tiers []MiningTier         `json:"tiers"` // tier 1 first
+	Ores  map[string]MiningOre `json:"ores"`  // item id → what it takes to cut
+	Rules MiningRules          `json:"rules"`
+}
+
+// MiningOre is an ore's tier and the pick tier that cuts it.
+type MiningOre struct {
+	Tier int `json:"tier"`
+	Pick int `json:"pick"`
 }
 
 // MiningTier is what a face of a tier is like by default.

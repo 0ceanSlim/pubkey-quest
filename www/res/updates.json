@@ -5,13 +5,14 @@
       "id": "2026-11-13-mining-seams",
       "when": "November 13, 2026",
       "icon": "⛏️",
-      "size": "minor",
-      "title": "Mining seams have faces",
-      "summary": "The Ironvein Seam is no longer endless: it has three faces to work each day, each takes half an hour of hard work and tires you, and a good face pays a little XP along with the ore.",
+      "size": "major",
+      "title": "Mining: work the rock face",
+      "summary": "Work the Ironvein Seam with a pick in a new rock-face minigame: tap the rock to hear where the ore runs, then swing to break it out, and mind the faults. A seam has three faces a day, and the work tires you.",
       "highlights": [
-        "Each seam has a few faces a day; once they're worked out, come back tomorrow",
-        "Working a face is an Athletics roll, takes 30 minutes and adds up to fatigue",
-        "A face worked well gives a little XP on top of the ore"
+        "Work the face: Tap a cell to sound it (Perception). A good tap tells you how much ore touches it, and warns you of hollow faults",
+        "Swing to break a cell: ore goes straight into your pack. Striped hard rock takes two swings with a plain pickaxe. Three cracks from striking faults bring the face down on you",
+        "Or take a quick go: one Athletics roll and half an hour for a simple haul",
+        "Each seam has a few faces a day; once they're worked out, come back tomorrow. Every face adds up to fatigue, and a face worked well gives a little XP"
       ]
     },
     {

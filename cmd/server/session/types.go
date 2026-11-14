@@ -90,6 +90,9 @@ type GameSession struct {
 	// FishSession is the fishing being done right now (nil when not fishing).
 	// Any other action walks away from the water.
 	FishSession *fishing.Session `json:"-"`
+	// MineSession is the rock face being worked right now (nil when not
+	// mining). Any other action steps away from it.
+	MineSession *mining.Session `json:"-"`
 	// FishMemory is the fish landed at each spot today, for depletion (memory
 	// only; see game/fishing).
 	FishMemory fishing.Memory `json:"-"`

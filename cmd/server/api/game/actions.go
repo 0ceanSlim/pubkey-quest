@@ -258,6 +258,7 @@ var combatBlockedActions = map[string]bool{
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
 	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true, "use_on": true, "shutter": true, "smith_repair": true, "cook": true,
 	"fish_open": true, "fish_begin": true, "fish_act": true, "fish_quick": true, "haul_net": true, "dig_worms": true, "cut_bait": true,
+	"mine_begin": true, "mine_act": true,
 }
 
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
@@ -281,6 +282,10 @@ func processGameAction(session *GameSession, action GameAction) (*GameActionResp
 	// Doing anything else walks away from a lock you were picking.
 	if session.LockSession != nil && action.Type != "lock_act" && action.Type != "lock_begin" {
 		session.LockSession = nil
+	}
+	// ...and from a rock face.
+	if session.MineSession != nil && action.Type != "mine_act" && action.Type != "mine_begin" {
+		session.MineSession = nil
 	}
 	// ...and from the water.
 	if session.FishSession != nil && !fishActions[action.Type] {
@@ -776,6 +781,16 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		} else {
 			resp, err = handleLockAct(session, action.Params)
 		}
+		if resp == nil {
+			return nil, err
+		}
+		return &GameActionResponse{Success: resp.Success, Message: resp.Message, Color: resp.Color, Data: resp.Data}, err
+	case "mine_begin", "mine_act":
+		handle := handleMineAct
+		if action.Type == "mine_begin" {
+			handle = handleMineBegin
+		}
+		resp, err := handle(session, action.Params)
 		if resp == nil {
 			return nil, err
 		}

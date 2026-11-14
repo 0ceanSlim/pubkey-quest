@@ -9,6 +9,7 @@
 import '../styles/main.css';
 import '../styles/lockpicking.css';
 import '../styles/fishing.css';
+import '../styles/mining.css';
 
 // Core libraries
 import { logger } from '../lib/logger.js';

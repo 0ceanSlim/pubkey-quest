@@ -1,0 +1,75 @@
+/* Mining minigame (Veins): the rock face. The window chrome is lockpicking.css. */
+
+.mn-window { --mn-cell: 44px; }
+.mn-title-icon { font-size: 14px; line-height: 1; }
+
+.mn-viewport {
+    margin: 6px;
+    padding: 8px;
+    background: #1b1714;
+    border: 2px solid;
+    border-color: #404040 #fff #fff #404040;
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+}
+.mn-viewport.collapsed { filter: sepia(0.5) brightness(0.7); }
+
+.mn-grid { display: grid; gap: 2px; }
+.mn-grid.shake { animation: mn-shake 260ms steps(3); }
+@keyframes mn-shake { 33% { transform: translateX(-3px); } 66% { transform: translateX(3px); } }
+
+.mn-cell {
+    width: var(--mn-cell);
+    height: var(--mn-cell);
+    position: relative;
+    padding: 0;
+    cursor: pointer;
+    background: #6b5f55;
+    border: 3px solid;
+    border-color: #85776b #4a413a #4a413a #85776b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 12px/1 'Dogica', monospace;
+    color: #fff;
+    text-shadow: 1px 1px 0 #000;
+    image-rendering: pixelated;
+}
+.mn-cell:disabled { cursor: default; }
+.mn-cell:not(:disabled):hover { filter: brightness(1.15); }
+.mn-cell:focus-visible { outline: 2px solid #ffd24a; outline-offset: -4px; }
+.mn-cell.sounded { background: #7a6d62; }
+.mn-cell.thud { background-image: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.25) 61%); }
+.mn-cell.hard { background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(0, 0, 0, 0.18) 6px 9px); }
+.mn-cell.cracked::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    background:
+        linear-gradient(60deg, transparent 46%, #111 46% 54%, transparent 54%),
+        linear-gradient(-30deg, transparent 47%, #111 47% 53%, transparent 53%);
+    opacity: 0.8;
+    pointer-events: none;
+}
+.mn-cell.broken { background: #2a2420; border-color: #120f0d #3a322c #3a322c #120f0d; }
+.mn-cell.broken.kind-fault { background: radial-gradient(circle, #000 0 30%, #2a2420 31%); }
+.mn-cell.hit { animation: mn-hit 200ms steps(2); }
+@keyframes mn-hit { 50% { filter: brightness(1.8); } }
+
+.mn-ring { pointer-events: none; }
+.mn-chunk { width: 20px; height: 14px; border: 2px solid #000; pointer-events: none; }
+.mn-tag {
+    position: absolute;
+    bottom: 1px;
+    right: 3px;
+    font-size: 6px;
+    pointer-events: none;
+}
+
+.mn-tools { display: flex; gap: 6px; justify-content: center; margin: 0 6px 6px; }
+
+@media (max-width: 480px) {
+    .mn-window { --mn-cell: 34px; }
+    .mn-cell { font-size: 10px; }
+}

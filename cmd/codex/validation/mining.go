@@ -49,6 +49,14 @@ func ValidateMining() ([]Issue, error) {
 	if len(cfg.Tiers) != 4 {
 		add("tiers", "has %d tiers, want 4", len(cfg.Tiers))
 	}
+	for id, o := range cfg.Ores {
+		if !itemHasTag(id, "ore") {
+			add("ores."+id, "isn't an item tagged \"ore\"")
+		}
+		if o.Tier < 1 || o.Tier > 4 || o.Pick < 1 || o.Pick > 3 {
+			add("ores."+id, "tier must be 1–4 and pick 1–3")
+		}
+	}
 	r := cfg.Rules
 	if r.QuickMinutes <= 0 || r.SwingMinutes <= 0 || r.SoundMinutes <= 0 || r.ExertionPerFatigue <= 0 {
 		add("rules", "quick_minutes, swing_minutes, sound_minutes and exertion_per_fatigue must be positive")

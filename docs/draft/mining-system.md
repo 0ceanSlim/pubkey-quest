@@ -360,7 +360,7 @@ share:
 
 1. ✅ **Seam core** (built 2026-11-13: `game/mining`, `api/game/mining.go`, the walker's `mine` node with `#quick`; tier defaults + `xp`/`exertion` in `mining.json`; picks carry `"mining": {"tier"}`): the `mine` node type, `mining.json`, the daily store, the quick roll, time
    and fatigue. Ironvein moves onto it. *This alone fixes the free endless seam.*
-2. **Veins:** the server session (layout, sound/strike/pry, exactly-once grants) with seeded
+2. ✅ **Veins** (built 2026-11-13: `game/mining/veins.go`, `mine_begin`/`mine_act`, `src/ui/mining.js`; ore pick needs in `mining.json` `ores`; gem cells and Pry wait for gems; XP when a face that gave ore ends without a cave-in; the face counts and its exertion lands on the first move): the server session (layout, sound/strike/pry, exactly-once grants) with seeded
    tests next to the locks tests, then the overlay.
 3. **Pick tiers + light:** the `mining` block on picks, hard rock, tier-gated ore, no-light
    rules.
