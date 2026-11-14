@@ -1,7 +1,8 @@
 # Mining: seams, deep mines, ore and the Veins minigame
 
-Status: **DRAFT** (2026-10-22). Nothing built. Roadmap slot: M5.5 "mining/fishing minigames",
-plus beta work for the smith commissions. Fishing has its own draft
+Status: **BUILT** (2026-11-13/14) through slice 7; §12 says what each slice became. Gem cells,
+Pry, geodes and the stub mines' lower levels wait for the gem generator; mithral and adamantine
+armor (slice 8) is beta. Roadmap slot: M5.5 "mining/fishing minigames". Fishing has its own draft
 ([fishing-system.md](fishing-system.md)) on the same session pattern; §9 lists what they share.
 
 ## What exists today
@@ -362,12 +363,40 @@ share:
    and fatigue. Ironvein moves onto it. *This alone fixes the free endless seam.*
 2. ✅ **Veins** (built 2026-11-13: `game/mining/veins.go`, `mine_begin`/`mine_act`, `src/ui/mining.js`; ore pick needs in `mining.json` `ores`; gem cells and Pry wait for gems; XP when a face that gave ore ends without a cave-in; the face counts and its exertion lands on the first move): the server session (layout, sound/strike/pry, exactly-once grants) with seeded
    tests next to the locks tests, then the overlay.
-3. **Pick tiers + light:** the `mining` block on picks, hard rock, tier-gated ore, no-light
-   rules.
-4. **Content:** the five new surface seams, the three new ores, geodes (once gems land).
-5. **Commissions:** the dwarven and deepiron picks at the Forgemistress.
-6. **Deep mines:** the Flooded Mine levels; Rimehollow and the Glass Pits as stubs, filled in with gems.
-7. **With degradation:** pick wear and repair; copper as a repair material; lights burning while you mine.
+3. ✅ **Pick tiers + light** (built 2026-11-14): `dwarven-pick` (tier 2, +2 swings) and
+   `deepiron-pick` (tier 3, +3); ore pick needs in `mining.json` `ores` (deepiron needs tier 2,
+   mithral and adamantine tier 3). The dark is `combat.InTheDark(save, underground)`: a seam's
+   `"underground": true` is always dark, a surface one only at night, and darkvision or any
+   shining light (`holdsLight`: a lit torch or lantern in a hand, the Amulet of Light) answers
+   it. In the dark Sound is refused and the window greys the Tap tool; the server rechecks
+   before every move, so a torch burning out mid-face ends the soundings. Deep-mine gates use
+   a new `"light"` requirement (the evaluator's optional `requirement.Sighted`).
+4. ✅ **Content** (built 2026-11-14): Redcliff Cut, Glasswind Scarp, Rimewall Outcrop (rare
+   deepiron), Mossback Quarry and Bloodfen Ledge; `deepiron-ore`, `mithral-ore` and
+   `adamantine-ore`; the `daily-ore-order` vault-keeper daily (work 2 faces, a `"do"`
+   objective on the new `mine-face` action, then hand in 4 iron ore). Gem leanings and
+   geodes wait for gems.
+5. ✅ **Commissions** (built 2026-11-14): the Forgemistress's "Picks?" node. A dialogue node
+   can now `"gives"` items every time it's reached; it's only reached through a labelled
+   option with a `cost`, from an NPC on duty for their shop, so it can't be asked for
+   directly (the server refuses it, and `--validate` flags a `gives` node that's a plain
+   option or that nothing pays for). The deepiron pick takes the dwarven pick in trade.
+6. ✅ **Deep mines** (built 2026-11-14): the Flooded Mine's adit (tier 2, needs a light;
+   loose rock, rats), galleries (tier 3, light and rope; bad air is Resolve or +2 fatigue,
+   the flooded stretch is a potion of water breathing or an Athletics swim, a giant spider)
+   and Deeps (tier 4, one face a day; gas is Perception or fire damage, grimlocks; mithral
+   and adamantine). The shaft bottom gained a way back up. Rimehollow Delve (cold: +1
+   fatigue) and the Glass Pits (gas) are stubs: a light-gated entrance, one tier-2 face and
+   a blocked way down for gem slice 2 to open.
+7. ✅ **With degradation** (built 2026-11-14): picks wear (`durability` 200/300/400; +1 per
+   strike, 3 for a fault, 5 for a quick roll, in `mining.json` `rules`); a worn pick costs a
+   swing, a damaged one two (and hard rock takes two strikes whatever the pick), a ruined
+   one half. Field repair is the crafting kit (picks are Tools); a smith who wants a
+   material takes the ore in `condition.json` `repair.fittings` instead of their usual one
+   (copper for lights, picks and riveted armor; deepiron for the deepiron pick). Lights
+   burn with the game time a face takes, and the window passes on a burn-out. Not built:
+   deepiron as the Forgemistress's heavy-armor repair discount (§7). A smith's discount spends
+   a carried item automatically, which would burn a 300-gold ore on a cheap repair.
 8. **Beta:** gear commissions, mithral and adamantine armor.
 
 Each slice that players notice gets an entry in `www/res/updates.json`.

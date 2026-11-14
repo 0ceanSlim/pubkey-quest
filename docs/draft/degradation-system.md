@@ -204,7 +204,9 @@ Different smiths, different deals, which gives ore and hides a use:
 
 Copper ore joins iron as a repair material (decided 2026-11-13, `mining-system.md` §11):
 smiths take it for gear with copper or brass in it (lights, picks and tools, riveted armor),
-iron for the rest of the metal. It lands with mining's pick-wear slice.
+iron for the rest of the metal. Built 2026-11-14 with mining's pick wear: `repair.fittings`
+maps an ore to the items that take it (copper for lights, picks and riveted armor; deepiron for
+the deepiron pick), in place of a smith's usual material.
 
 Repair costs and materials are data (`condition.json` `repair` per NPC), so smiths can be added
 without code.

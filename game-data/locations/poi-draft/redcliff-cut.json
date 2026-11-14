@@ -1,0 +1,46 @@
+{
+  "id": "redcliff-cut",
+  "name": "Redcliff Cut",
+  "category": "utility",
+  "parent_environment": "windswept-hills",
+  "position": 0.4,
+  "description": "A road cutting through a red sandstone ridge, its walls streaked green where the copper shows through.",
+  "discovery": {
+    "chance": 0.5,
+    "message": "Green streaks run through the red rock of a cutting: copper, and plenty of it."
+  },
+  "start_node": "face",
+  "nodes": {
+    "face": {
+      "text": "The cutting's walls are banded red and green. Copper close to the surface, and rust-brown iron below it. Easy work for a pick.",
+      "type": "mine",
+      "seam": {
+        "tier": 1,
+        "ores": [
+          {
+            "item": "copper-ore",
+            "weight": 60,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "iron-ore",
+            "weight": 40,
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You shoulder your pack and leave the seam behind.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

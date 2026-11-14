@@ -1,0 +1,95 @@
+{
+  "id": "glass-pits",
+  "name": "The Glass Pits",
+  "category": "dungeon",
+  "parent_environment": "sunscorch-desert",
+  "position": 0.7,
+  "description": "A cluster of open pits where the sand has been fused into black glass, and old shafts lead down into the heat.",
+  "discovery": {
+    "chance": 0.2,
+    "skill": "perception",
+    "dc": 14,
+    "message": "The sand ahead glitters black: fused glass, around the mouths of old mine shafts."
+  },
+  "start_node": "entrance",
+  "nodes": {
+    "entrance": {
+      "type": "narrative",
+      "text": "You climb down a shaft rimmed with black glass. The air gets hotter with every rung.",
+      "requirements": [
+        {
+          "type": "light",
+          "description": "You need a light to go underground."
+        }
+      ],
+      "failure_text": "Past the entrance it's black as pitch. You'd need a lit torch or lantern, or eyes that see in the dark, to go any further.",
+      "failure_next": "leave",
+      "next": "hazard"
+    },
+    "hazard": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 13,
+      "text": "A sour smell hangs in the heat at the bottom of the shaft.",
+      "success_text": "Gas. You hold your breath, keep your flame low and hurry through to clean air.",
+      "success_next": "face",
+      "failure_text": "The gas catches a spark and flares around you.",
+      "failure_next": "gas-burn"
+    },
+    "gas-burn": {
+      "type": "damage",
+      "text": "You stagger out of the flare, singed.",
+      "damage": {
+        "type": "fire",
+        "amount": 5
+      },
+      "next": "face"
+    },
+    "face": {
+      "text": "The first pit's face is streaked with iron and copper, baked hard by the heat below.",
+      "type": "mine",
+      "seam": {
+        "tier": 2,
+        "underground": true,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 60,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "copper-ore",
+            "weight": 40,
+            "quantity": [
+              1,
+              3
+            ]
+          }
+        ]
+      },
+      "next": "way-down"
+    },
+    "way-down": {
+      "type": "choice",
+      "text": "The tunnel beyond the face is choked with fused glass where something once burned hot enough to melt the rock. Nobody's getting deeper until it's cleared.",
+      "choices": [
+        {
+          "label": "Work the face again.",
+          "next": "face"
+        },
+        {
+          "label": "Climb back out.",
+          "next": "leave"
+        }
+      ]
+    },
+    "leave": {
+      "text": "You climb back up into the daylight.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

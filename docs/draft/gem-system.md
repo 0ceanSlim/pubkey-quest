@@ -158,6 +158,9 @@ gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 
 - **Deep mines** (`mining-system.md` §2): the Flooded Mine ships with mining. **Rimehollow
   Delve** (moonstone, sapphire) and **The Glass Pits** (obsidian, topaz) are stubs until this
   system lands, and get filled in as part of it: their gem tables are their whole reason to go.
+  The stubs are built (2026-11-14: `rimehollow-delve`, `glass-pits`): a light-gated entrance,
+  one tier-2 face and a `way-down` node whose blocked shaft this system opens. Veins' gem
+  cells and Pry, and the seams' gem leanings, also wait here.
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
 - **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific gem).
 

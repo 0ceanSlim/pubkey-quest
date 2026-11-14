@@ -1,0 +1,38 @@
+{
+  "id": "mossback-quarry",
+  "name": "Mossback Quarry",
+  "category": "utility",
+  "parent_environment": "darkwood-forest",
+  "position": 0.7,
+  "description": "An old quarry swallowed by the forest, its terraces green with moss and the copper stain still bright beneath it.",
+  "discovery": {
+    "chance": 0.5,
+    "message": "Through the trees you see cut stone terraces: an old quarry, gone green."
+  },
+  "start_node": "face",
+  "nodes": {
+    "face": {
+      "text": "The forest has nearly taken the quarry back, but where the moss is scraped away the rock is stained bright with copper.",
+      "type": "mine",
+      "seam": {
+        "tier": 1,
+        "ores": [
+          {
+            "item": "copper-ore",
+            "weight": 100,
+            "quantity": [
+              1,
+              3
+            ]
+          }
+        ]
+      },
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You shoulder your pack and leave the seam behind.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

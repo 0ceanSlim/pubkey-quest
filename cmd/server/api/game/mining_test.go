@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	serverdb "pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/mining"
 	"pubkey-quest/cmd/server/game/poi"
@@ -141,5 +142,57 @@ func TestVeinsThroughTheActions(t *testing.T) {
 	fishAction(t, sess, "wait", map[string]any{"minutes": float64(5)})
 	if sess.MineSession != nil {
 		t.Error("the face survived another action")
+	}
+}
+
+// The Flooded Mine's adit: the way in needs a light, and so does reading the
+// rock at its face. Every strike wears the pick, and a worked face is the
+// "mine-face" a daily asks for.
+func TestTheAditNeedsALight(t *testing.T) {
+	sess := wharfSession(t, "pick-miners")
+	mine, err := serverdb.GetPOIByID("flooded-mine")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sess.ActivePOI = &poi.Session{POIID: mine.ID, Title: mine.Name, Nodes: mine.Nodes, CurrentNode: "mine-shaft-bottom"}
+	state := &sess.SaveData
+	state.HP = 999
+	gear := state.Inventory["gear_slots"].(map[string]interface{})
+
+	res, err := stepPOI(sess, "adit-entry", map[string]any{})
+	if err != nil || res.Next != "mine-shaft-bottom" {
+		t.Fatalf("no light should turn you back: %+v %v", res, err)
+	}
+	gear["offhand"] = map[string]interface{}{"item": "torch", "quantity": 1, "l": 1, "b": 60}
+	if res, _ = stepPOI(sess, "adit-entry", map[string]any{}); res.Next != "adit-loose-rock" {
+		t.Fatalf("with a lit torch the adit should open: %+v", res)
+	}
+
+	// At the face in the dark: no soundings, but you can swing.
+	delete(gear, "offhand")
+	sess.ActivePOI.CurrentNode = "adit-face"
+	r := fishAction(t, sess, "mine_begin", map[string]any{"node": "adit-face"})
+	if !r.Success || r.Data["mine"].(map[string]any)["dark"] != true {
+		t.Fatalf("mine_begin in the dark: %+v", r)
+	}
+	ms := sess.MineSession
+	if r = fishAction(t, sess, "mine_act", map[string]any{"session_id": ms.ID, "version": float64(ms.Version), "act": "sound", "cell": float64(0)}); r.Success {
+		t.Fatal("sounded the rock in the dark")
+	}
+	// Light the torch and the rock can be read again.
+	gear["offhand"] = map[string]interface{}{"item": "torch", "quantity": 1, "l": 1, "b": 60}
+	if r = fishAction(t, sess, "mine_act", map[string]any{"session_id": ms.ID, "version": float64(ms.Version), "act": "sound", "cell": float64(0)}); !r.Success {
+		t.Fatalf("sounding by torchlight: %s", r.Message)
+	}
+	r = fishAction(t, sess, "mine_act", map[string]any{"session_id": ms.ID, "version": float64(ms.Version), "act": "strike", "cell": float64(1)})
+	if !r.Success {
+		t.Fatalf("strike: %s", r.Message)
+	}
+	slot := state.Inventory["general_slots"].([]interface{})[0].(map[string]interface{})
+	if condition.WearOf(slot) < 1 {
+		t.Errorf("the strike didn't wear the pick: %v", slot)
+	}
+	if burn := gear["offhand"].(map[string]interface{})["b"]; burn == 60 {
+		t.Error("the torch didn't burn while you worked")
 	}
 }

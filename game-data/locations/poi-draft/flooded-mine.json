@@ -4,7 +4,7 @@
   "category": "dungeon",
   "parent_environment": "cragspire-mountains",
   "position": 0.65,
-  "description": "An old iron mine that has partially filled with groundwater. The entrance is a vertical shaft disappearing into the dark.",
+  "description": "An old iron mine that has partially filled with groundwater. The entrance is a vertical shaft disappearing into the dark, and the workings below it go down three levels.",
   "discovery": {
     "chance": 0.2,
     "skill": "perception",
@@ -48,6 +48,14 @@
         {
           "label": "Wade into the deeper water in the side passage.",
           "next": "water-passage"
+        },
+        {
+          "label": "Follow the old adit into the workings.",
+          "next": "adit-entry"
+        },
+        {
+          "label": "Climb back up the shaft.",
+          "next": "mine-exit"
         }
       ]
     },
@@ -317,6 +325,349 @@
           "next": "mine-shaft-bottom"
         }
       ]
+    },
+    "adit-entry": {
+      "type": "narrative",
+      "requirements": [
+        {
+          "type": "light",
+          "description": "You need a light to go into the workings."
+        }
+      ],
+      "failure_text": "Past the shaft's grey daylight the adit is black as pitch. You'd need a lit torch or lantern, or eyes that see in the dark, to go on.",
+      "failure_next": "mine-shaft-bottom",
+      "text": "A level tunnel runs off into the hill, its props grey with age. The miners' tracks run along the floor under an inch of water.",
+      "next": "adit-loose-rock"
+    },
+    "adit-loose-rock": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 12,
+      "text": "Halfway along, the roof sags between two cracked props.",
+      "success_text": "You spot the loose slab hanging over the tracks and edge past it.",
+      "success_next": "adit-rats",
+      "failure_text": "A slab peels off the roof as you pass under it.",
+      "failure_next": "adit-rockfall"
+    },
+    "adit-rockfall": {
+      "type": "damage",
+      "text": "It catches you across the shoulders.",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 4
+      },
+      "next": "adit-rats"
+    },
+    "adit-rats": {
+      "type": "monster",
+      "monster_id": "swarm-of-rats",
+      "count": 1,
+      "text": "Your light sets a hundred eyes shining at the end of the adit, and the floor starts to move.",
+      "next": "adit-face"
+    },
+    "adit-face": {
+      "text": "The adit ends at the old miners' last face. The iron here is richer than anything at the surface, and they left plenty behind when the water came.",
+      "type": "mine",
+      "seam": {
+        "tier": 2,
+        "faces_per_day": 2,
+        "underground": true,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 70,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "copper-ore",
+            "weight": 30,
+            "quantity": [
+              1,
+              3
+            ]
+          }
+        ]
+      },
+      "next": "adit-junction"
+    },
+    "adit-junction": {
+      "type": "choice",
+      "text": "Beside the face an old ladder drops down a winze into the galleries below. Water drips from every rung.",
+      "choices": [
+        {
+          "label": "Climb down to the galleries.",
+          "next": "galleries-entry"
+        },
+        {
+          "label": "Work the face again.",
+          "next": "adit-face"
+        },
+        {
+          "label": "Go back to the shaft.",
+          "next": "mine-shaft-bottom"
+        }
+      ]
+    },
+    "galleries-entry": {
+      "type": "narrative",
+      "requirements": [
+        {
+          "type": "light",
+          "description": "You need a light."
+        },
+        {
+          "type": "item",
+          "id": "rope",
+          "description": "The ladder is rotten below the first rungs: you need a rope."
+        }
+      ],
+      "failure_text": "The ladder is rotten through below the first few rungs. You'd need a rope, and a light, to get down there.",
+      "failure_next": "adit-junction",
+      "text": "You tie off your rope and lower yourself into the galleries. Old workings open off in every direction, half full of black water.",
+      "next": "galleries-air"
+    },
+    "galleries-air": {
+      "type": "check",
+      "skill": "resolve",
+      "dc": 13,
+      "text": "The air down here is thick and stale. Your head starts to pound.",
+      "success_text": "You slow your breathing and push on until the air clears a little.",
+      "success_next": "galleries-flood",
+      "failure_text": "You have to stop, gasping, until the dizziness passes.",
+      "failure_next": "galleries-bad-air"
+    },
+    "galleries-bad-air": {
+      "type": "effect",
+      "text": "The bad air leaves you drained.",
+      "effect": {
+        "id": "fatigue",
+        "amount": 2
+      },
+      "next": "galleries-flood"
+    },
+    "galleries-flood": {
+      "type": "choice",
+      "text": "The way to the working face runs under water for a long stretch: a flooded gallery, roof and all.",
+      "choices": [
+        {
+          "label": "Drink a potion of water breathing and swim it.",
+          "next": "galleries-potion",
+          "requirements": [
+            {
+              "type": "item",
+              "id": "potion-of-water-breathing"
+            }
+          ]
+        },
+        {
+          "label": "Hold your breath and swim for it (Athletics).",
+          "next": "galleries-swim"
+        },
+        {
+          "label": "Turn back.",
+          "next": "adit-junction"
+        }
+      ]
+    },
+    "galleries-potion": {
+      "type": "transaction",
+      "text": "The potion tastes of brine. You breathe the black water like air and swim the gallery at your leisure.",
+      "cost": {
+        "items": [
+          {
+            "id": "potion-of-water-breathing",
+            "quantity": 1
+          }
+        ]
+      },
+      "failure_text": "You don't have a potion of water breathing.",
+      "failure_next": "galleries-flood",
+      "next": "galleries-spider"
+    },
+    "galleries-swim": {
+      "type": "check",
+      "skill": "athletics",
+      "dc": 14,
+      "text": "You fill your lungs and dive.",
+      "success_text": "You come up gasping on the far side.",
+      "success_next": "galleries-spider",
+      "failure_text": "Halfway along your lungs give out and you claw your way back the way you came.",
+      "failure_next": "galleries-half-drowned"
+    },
+    "galleries-half-drowned": {
+      "type": "damage",
+      "text": "You cough up black water on the near side.",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 3
+      },
+      "next": "galleries-flood"
+    },
+    "galleries-spider": {
+      "type": "monster",
+      "monster_id": "giant-spider",
+      "count": 1,
+      "text": "Webs choke the gallery past the water, and something big moves in them.",
+      "next": "galleries-face"
+    },
+    "galleries-face": {
+      "text": "The working face is cut deep into dark rock. Iron runs through it, and here and there a blue-black seam of deepiron, too hard for a common pick.",
+      "type": "mine",
+      "seam": {
+        "tier": 3,
+        "underground": true,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 50,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "deepiron-ore",
+            "weight": 30,
+            "quantity": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "copper-ore",
+            "weight": 20,
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "next": "galleries-junction"
+    },
+    "galleries-junction": {
+      "type": "choice",
+      "text": "Past the face, a second winze drops into the Deeps: the mine's last level, where the water came in.",
+      "choices": [
+        {
+          "label": "Go down into the Deeps.",
+          "next": "deeps-entry"
+        },
+        {
+          "label": "Work the face again.",
+          "next": "galleries-face"
+        },
+        {
+          "label": "Climb back up to the adit.",
+          "next": "adit-junction"
+        }
+      ]
+    },
+    "deeps-entry": {
+      "type": "narrative",
+      "requirements": [
+        {
+          "type": "light",
+          "description": "You need a light."
+        },
+        {
+          "type": "item",
+          "id": "rope",
+          "description": "You need a rope to get down."
+        }
+      ],
+      "failure_text": "The winze drops straight down into nothing. You'd need a rope, and a light, to go down there.",
+      "failure_next": "galleries-junction",
+      "text": "You lower yourself into the Deeps. The rock here is warm to the touch, and the walls glitter in your light.",
+      "next": "deeps-gas"
+    },
+    "deeps-gas": {
+      "type": "check",
+      "skill": "perception",
+      "dc": 15,
+      "text": "A faint rotten-egg smell hangs in the warm air.",
+      "success_text": "Firedamp. You shield your flame and hurry through before it can catch.",
+      "success_next": "deeps-grimlocks",
+      "failure_text": "The gas finds your flame and the tunnel fills with fire.",
+      "failure_next": "deeps-gas-burn"
+    },
+    "deeps-gas-burn": {
+      "type": "damage",
+      "text": "You throw yourself flat, but the flare catches you.",
+      "damage": {
+        "type": "fire",
+        "amount": 7
+      },
+      "next": "deeps-grimlocks"
+    },
+    "deeps-grimlocks": {
+      "type": "monster",
+      "monster_id": "grimlock",
+      "count": 2,
+      "text": "Pale, eyeless things come loping out of the dark, sniffing the air.",
+      "next": "deeps-face"
+    },
+    "deeps-face": {
+      "text": "The deepest face in the mine. Deepiron runs thick through the warm rock, and in places it's laced with something brighter: silver-white mithral, and the black, violet-sheened adamantine that only a deepiron pick will cut.",
+      "type": "mine",
+      "seam": {
+        "tier": 4,
+        "faces_per_day": 1,
+        "underground": true,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 30,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "deepiron-ore",
+            "weight": 45,
+            "quantity": [
+              1,
+              2
+            ]
+          },
+          {
+            "item": "mithral-ore",
+            "weight": 15,
+            "quantity": [
+              1,
+              1
+            ]
+          },
+          {
+            "item": "adamantine-ore",
+            "weight": 10,
+            "quantity": [
+              1,
+              1
+            ]
+          }
+        ]
+      },
+      "next": "deeps-way-out"
+    },
+    "deeps-way-out": {
+      "type": "choice",
+      "text": "There's nowhere deeper to go. Water seeps in through every crack in the floor.",
+      "choices": [
+        {
+          "label": "Climb back up to the galleries.",
+          "next": "galleries-junction"
+        }
+      ]
+    },
+    "mine-exit": {
+      "type": "exit",
+      "text": "You climb the shaft back up into the daylight.",
+      "is_terminal": true
     }
   }
 }

@@ -15,6 +15,7 @@ type nodeSummary struct {
 	monsters []string // "2 × [[Bandit]]"
 	checks   []string // "Perception DC 10"
 	keys     []string // item links
+	seams    []string // "Tier 2, underground: [[Iron Ore]], …"
 	loot     []string // item ids
 	npcs     []string
 	xp, gold int
@@ -56,6 +57,17 @@ func (g *gen) summarize(nodes map[string]node) nodeSummary {
 		if n.Lock != nil && n.Lock.Key != "" {
 			s.keys = append(s.keys, g.itemLink(n.Lock.Key))
 		}
+		if n.Seam != nil {
+			var ores []string
+			for _, o := range n.Seam.Ores {
+				ores = append(ores, g.itemLink(o.Item))
+			}
+			where := ""
+			if n.Seam.Underground {
+				where = ", underground (bring a light)"
+			}
+			s.seams = append(s.seams, fmt.Sprintf("Tier %d%s: %s", n.Seam.Tier, where, strings.Join(ores, ", ")))
+		}
 		addLoot := func(id string) {
 			if id != "" && id != "nothing" && !seenLoot[id] {
 				seenLoot[id] = true
@@ -88,6 +100,7 @@ func (g *gen) writeSummary(b *strings.Builder, s nodeSummary) {
 	bullets(b, "Creatures", s.monsters)
 	bullets(b, "Checks", s.checks)
 	bullets(b, "Keys", s.keys)
+	bullets(b, "Rock faces", s.seams)
 	var loot []string
 	for _, id := range s.loot {
 		loot = append(loot, g.itemLink(id))
@@ -112,6 +125,8 @@ func requirementText(r requirement) string {
 		return fmt.Sprintf("%d Quest Points", r.Min)
 	case "item":
 		return titleCase(r.ID)
+	case "light":
+		return "A light (or darkvision)"
 	}
 	if len(r.Values) > 0 {
 		return titleCase(r.Type) + ": " + strings.Join(r.Values, ", ")

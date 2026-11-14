@@ -1,0 +1,85 @@
+{
+  "id": "rimehollow-delve",
+  "name": "Rimehollow Delve",
+  "category": "dungeon",
+  "parent_environment": "frozen-wastes",
+  "position": 0.75,
+  "description": "An old dwarven delve sunk into the ice, its entrance a black mouth in a glacier wall.",
+  "discovery": {
+    "chance": 0.2,
+    "skill": "perception",
+    "dc": 14,
+    "message": "A square-cut doorway in the glacier wall, half buried in snow: an old delve."
+  },
+  "start_node": "entrance",
+  "nodes": {
+    "entrance": {
+      "type": "narrative",
+      "text": "Cut stone steps lead down into the ice. Your breath hangs in front of you, and the walls are glazed with frost.",
+      "requirements": [
+        {
+          "type": "light",
+          "description": "You need a light to go underground."
+        }
+      ],
+      "failure_text": "Past the entrance it's black as pitch. You'd need a lit torch or lantern, or eyes that see in the dark, to go any further.",
+      "failure_next": "leave",
+      "next": "hazard"
+    },
+    "hazard": {
+      "type": "effect",
+      "text": "The cold down here gets into your bones. Every step takes more out of you.",
+      "effect": {
+        "id": "fatigue",
+        "amount": 1
+      },
+      "next": "face"
+    },
+    "face": {
+      "text": "The first gallery's face is laced with iron, and deeper, darker veins of deepiron catch your light.",
+      "type": "mine",
+      "seam": {
+        "tier": 2,
+        "underground": true,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 70,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "deepiron-ore",
+            "weight": 30,
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "next": "way-down"
+    },
+    "way-down": {
+      "type": "choice",
+      "text": "Beyond the face the delve drops away down a shaft choked with fallen ice. Nobody's getting deeper until it's cleared.",
+      "choices": [
+        {
+          "label": "Work the face again.",
+          "next": "face"
+        },
+        {
+          "label": "Climb back out.",
+          "next": "leave"
+        }
+      ]
+    },
+    "leave": {
+      "text": "You climb back up into the daylight.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

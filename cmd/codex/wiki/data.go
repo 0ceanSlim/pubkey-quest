@@ -378,6 +378,13 @@ type node struct {
 	Lock      *struct {
 		Key string `json:"key"`
 	} `json:"lock"`
+	Seam *struct {
+		Tier        int  `json:"tier"`
+		Underground bool `json:"underground"`
+		Ores        []struct {
+			Item string `json:"item"`
+		} `json:"ores"`
+	} `json:"seam"`
 	Choices []struct {
 		Requirements []requirement `json:"requirements"`
 	} `json:"choices"`

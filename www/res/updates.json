@@ -2,17 +2,22 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
-      "id": "2026-11-13-mining-seams",
-      "when": "November 13, 2026",
+      "id": "2026-11-14-mining",
+      "when": "November 14, 2026",
       "icon": "⛏️",
       "size": "major",
-      "title": "Mining: work the rock face",
-      "summary": "Work the Ironvein Seam with a pick in a new rock-face minigame: tap the rock to hear where the ore runs, then swing to break it out, and mind the faults. A seam has three faces a day, and the work tires you.",
+      "title": "Mining",
+      "summary": "Take a pick to seams across the land and down into the old mines. Tap the rock to hear where the ore runs, swing to break it out, and mind the faults. Deep down there's deepiron, mithral and adamantine, if you can reach it and your pick can cut it.",
       "highlights": [
-        "Work the face: Tap a cell to sound it (Perception). A good tap tells you how much ore touches it, and warns you of hollow faults",
+        "Work the face: Tap a cell to sound it (Perception). A good tap tells you how much ore touches it, and warns you of hollow faults and ore too hard for your pick",
         "Swing to break a cell: ore goes straight into your pack. Striped hard rock takes two swings with a plain pickaxe. Three cracks from striking faults bring the face down on you",
         "Or take a quick go: one Athletics roll and half an hour for a simple haul",
-        "Each seam has a few faces a day; once they're worked out, come back tomorrow. Every face adds up to fatigue, and a face worked well gives a little XP"
+        "Six seams to find: the Ironvein Seam, Redcliff Cut, Glasswind Scarp, Rimewall Outcrop, Mossback Quarry and Bloodfen Ledge. Each has a few faces a day; once they're worked out, come back tomorrow",
+        "The Flooded Mine goes deeper now: an adit, flooded galleries and the Deeps, with bad air, black water and gas on the way down. Bring a light and a rope, and a potion of water breathing helps. Rimehollow Delve and the Glass Pits have opened their first galleries too",
+        "You need a light to read the rock underground, or out at night. In the dark you can still swing, just blind",
+        "Better picks: the Forgemistress in Ironpeak forges a dwarven pick from your iron and copper, and reworks it into a deepiron pick that cuts mithral and adamantine",
+        "Picks wear as you swing them, and a worn pick costs you swings. A crafting kit or a smith puts it right; smiths now take copper ore to mend copper-fitted gear like lanterns, picks and riveted armor",
+        "Every face adds up to fatigue, and a face worked well gives a little XP. An ore order for the forges turns up among the vault keepers' dailies"
       ]
     },
     {

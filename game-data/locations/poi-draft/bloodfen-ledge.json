@@ -1,0 +1,38 @@
+{
+  "id": "bloodfen-ledge",
+  "name": "Bloodfen Ledge",
+  "category": "utility",
+  "parent_environment": "shadowmere-wetlands",
+  "position": 0.65,
+  "description": "A ledge of rust-red rock rising out of the fen. The water around it runs red with iron.",
+  "discovery": {
+    "chance": 0.5,
+    "message": "The marsh water turns rust-red around a ledge of iron-rich rock."
+  },
+  "start_node": "face",
+  "nodes": {
+    "face": {
+      "text": "The ledge is slick with marsh water, and the rock bleeds red where the iron runs close to the surface.",
+      "type": "mine",
+      "seam": {
+        "tier": 1,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 100,
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You shoulder your pack and leave the seam behind.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}

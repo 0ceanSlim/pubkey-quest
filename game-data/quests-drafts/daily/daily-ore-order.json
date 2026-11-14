@@ -1,0 +1,52 @@
+{
+  "id": "daily-ore-order",
+  "name": "Daily Order: Ore for the Forges",
+  "category": "daily",
+  "step_count": 2,
+  "difficulty": "Novice",
+  "total_qp": 0,
+  "is_randomized": true,
+  "description": "The smiths are burning through iron faster than the carters can haul it, and will pay for a few loads dug fresh from a seam.",
+  "start_condition": {
+    "type": "vault_keeper",
+    "target": "",
+    "start_hint": "Ask the vault keeper in any town: orders are posted there day and night."
+  },
+  "requirements": [],
+  "stages": [
+    {
+      "id": "work-the-rock",
+      "description": "Work two rock faces at any mining seam.",
+      "objectives": [
+        {
+          "type": "do",
+          "target": "mine-face",
+          "count": 2,
+          "description": "Work two rock faces."
+        }
+      ]
+    },
+    {
+      "id": "deliver-ore",
+      "description": "Bring four iron ore to any vault keeper.",
+      "objectives": [
+        {
+          "type": "fetch",
+          "target": "iron-ore",
+          "count": 4,
+          "consume": true,
+          "description": "Hand over four iron ore."
+        },
+        {
+          "type": "talk",
+          "target": "vault-keeper",
+          "description": "Deliver the ore to any vault keeper."
+        }
+      ],
+      "rewards": {
+        "xp": 150,
+        "gold": 220
+      }
+    }
+  ]
+}

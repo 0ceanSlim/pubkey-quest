@@ -1,0 +1,46 @@
+{
+  "id": "glasswind-scarp",
+  "name": "Glasswind Scarp",
+  "category": "utility",
+  "parent_environment": "sunscorch-desert",
+  "position": 0.35,
+  "description": "A sheer scarp of wind-polished rock, hot enough at noon to burn a bare hand. Old pick marks climb its face.",
+  "discovery": {
+    "chance": 0.45,
+    "message": "Wind has scoured a scarp down to bare, ore-dark rock. Someone mined it once."
+  },
+  "start_node": "face",
+  "nodes": {
+    "face": {
+      "text": "The scarp is baked hard by the sun, and the wind has polished the ore veins until they shine. Hard going, but rich.",
+      "type": "mine",
+      "seam": {
+        "tier": 2,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 55,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "copper-ore",
+            "weight": 45,
+            "quantity": [
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      "next": "leave"
+    },
+    "leave": {
+      "text": "You shoulder your pack and leave the seam behind.",
+      "type": "exit",
+      "is_terminal": true
+    }
+  }
+}
