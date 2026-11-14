@@ -71,6 +71,8 @@
 }
 
 .mn-tools { display: flex; gap: 6px; justify-content: center; margin: 0 6px 6px; }
+.mn-dark { color: #9aa4b5; }
+.mn-viewport.dark .mn-cell:not(.broken) { filter: brightness(0.55); }
 
 @media (max-width: 480px) {
     .mn-window { --mn-cell: 34px; }

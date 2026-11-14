@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -1219,6 +1220,10 @@ func validateNPCFile(filePath string) []Issue {
 		}
 	}
 
+	for _, p := range givesProblems(npc) {
+		issues = append(issues, Issue{Type: "error", Category: "npcs", File: filename, Field: "dialogue", Message: p})
+	}
+
 	known := knownItemIDs()
 	dropOnly := dropOnlyItemIDs()
 	for _, ref := range npcItemRefs(npc) {
@@ -1272,12 +1277,59 @@ func npcItemRefs(npc map[string]interface{}) []npcItemRef {
 		for key, raw := range dialogue {
 			node, _ := raw.(map[string]interface{})
 			listIDs(node["consume_items"], "dialogue."+key+".consume_items", "id", "item_id")
+			listIDs(node["gives"], "dialogue."+key+".gives", "id", "item_id")
 			if req, ok := node["requirements"].(map[string]interface{}); ok {
 				listIDs(req["items"], "dialogue."+key+".requirements.items", "id", "item_id")
+			}
+			opts, _ := node["options"].([]interface{})
+			for i, o := range opts {
+				m, _ := o.(map[string]interface{}) // plain keys are strings
+				if cost, ok := m["cost"].(map[string]interface{}); ok {
+					listIDs(cost["items"], fmt.Sprintf("dialogue.%s.options[%d].cost.items", key, i), "id", "item_id")
+				}
 			}
 		}
 	}
 	return refs
+}
+
+// givesProblems checks commissions: a node that "gives" items is reached only
+// through a labelled option with a cost (the server refuses it otherwise), so
+// one that's a plain option, or that nothing pays for, is a mistake.
+func givesProblems(npc map[string]interface{}) []string {
+	dialogue, _ := npc["dialogue"].(map[string]interface{})
+	paid := map[string]bool{}
+	plain := map[string]bool{}
+	for _, raw := range dialogue {
+		node, _ := raw.(map[string]interface{})
+		opts, _ := node["options"].([]interface{})
+		for _, o := range opts {
+			switch v := o.(type) {
+			case string:
+				plain[v] = true
+			case map[string]interface{}:
+				next, _ := v["next"].(string)
+				if cost, ok := v["cost"].(map[string]interface{}); ok && (cost["gold"] != nil || cost["items"] != nil) {
+					paid[next] = true
+				}
+			}
+		}
+	}
+	var out []string
+	for key, raw := range dialogue {
+		node, _ := raw.(map[string]interface{})
+		if node["gives"] == nil {
+			continue
+		}
+		if !paid[key] {
+			out = append(out, fmt.Sprintf("dialogue.%s gives items, but no labelled option with a cost leads to it", key))
+		}
+		if plain[key] {
+			out = append(out, fmt.Sprintf("dialogue.%s gives items, so it can't be a plain option (it has to be paid for)", key))
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 var (

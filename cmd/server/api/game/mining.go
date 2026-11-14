@@ -13,8 +13,10 @@ import (
 	gamedata "pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/combat"
+	"pubkey-quest/cmd/server/game/condition"
+	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gametime"
-	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/mining"
 	"pubkey-quest/cmd/server/game/poi"
@@ -27,8 +29,9 @@ import (
 
 // Mining (docs/draft/mining-system.md). A seam is a POI "mine" node; each has a
 // few faces a day (session memory, like picked locks). Working one takes a
-// pick, game time and exertion, and a face worked well pays a little XP. A face
-// is worked two ways:
+// pick, game time and exertion, wears the pick, and a face worked well pays a
+// little XP. Underground (or at night) you need a light to read the rock. A
+// face is worked two ways:
 //
 //   - the node's "#quick": one Athletics roll for the seam's quick loot
 //   - mine_begin + mine_act: the Veins minigame (mining.Session)
@@ -57,23 +60,75 @@ func miningConfig() *types.MiningConfig {
 	return mineCfg
 }
 
-// bestPick is the best pick you carry (an item's "mining" block: tier, swings);
-// tier 0 means none.
-func bestPick(state *types.SaveFile) mining.Pick {
-	var best mining.Pick
-	for _, id := range gameutil.CarriedItemIDs(state) {
+// heldPick is the pick you'd work a face with, and where it is.
+type heldPick struct {
+	mining.Pick
+	ID  string
+	Ref inventory.SlotRef
+}
+
+// bestPick is the best pick you carry or hold (an item's "mining" block: tier,
+// swings): the highest tier, then the most swings, then the least worn. Tier 0
+// means none.
+func bestPick(state *types.SaveFile) heldPick {
+	var best heldPick
+	inventory.EachGear(state, func(ref inventory.SlotRef, slot map[string]interface{}) {
+		id, _ := slot["item"].(string)
 		item, err := gamedata.LoadItemByID(serverdb.GetDB(), id)
 		if err != nil {
-			continue
+			return
 		}
 		m, _ := item["mining"].(map[string]any)
 		t, _ := m["tier"].(float64)
 		sw, _ := m["swings"].(float64)
-		if p := (mining.Pick{Tier: int(t), Swings: int(sw)}); p.Tier > best.Tier || (p.Tier == best.Tier && p.Swings > best.Swings) {
-			best = p
+		if t <= 0 {
+			return
+		}
+		wear, _ := condition.WearTier(slot)
+		p := mining.Pick{Name: condition.ItemName(id), Tier: int(t), Swings: int(sw), Wear: int(wear)}
+		better := p.Tier > best.Tier ||
+			(p.Tier == best.Tier && p.Swings > best.Swings) ||
+			(p.Tier == best.Tier && p.Swings == best.Swings && p.Wear < best.Wear)
+		if better {
+			best = heldPick{Pick: p, ID: id, Ref: ref}
+		}
+	})
+	return best
+}
+
+// wearPick wears the pick a face is worked with, and says when it drops a tier.
+func wearPick(state *types.SaveFile, pick heldPick, n int) []string {
+	if pick.ID == "" || n <= 0 {
+		return nil
+	}
+	slot := inventory.SlotAt(state, pick.Ref)
+	if id, _ := slot["item"].(string); id != pick.ID {
+		// It moved: wear whichever copy is the best now.
+		again := bestPick(state)
+		if again.ID != pick.ID {
+			return nil
+		}
+		slot = inventory.SlotAt(state, again.Ref)
+	}
+	if slot == nil {
+		return nil
+	}
+	before, after := condition.AddWear(slot, n)
+	if after > before {
+		return []string{fmt.Sprintf("Your %s is %s now.", strings.ToLower(pick.Name), strings.ToLower(after.String()))}
+	}
+	return nil
+}
+
+// timeLines are what passing time had to say (a torch burning out).
+func timeLines(msgs []types.EffectMessage) []string {
+	var out []string
+	for _, m := range msgs {
+		if !m.Silent && m.Message != "" {
+			out = append(out, m.Message)
 		}
 	}
-	return best
+	return out
 }
 
 func seamMemory(sess *session.GameSession) mining.Memory {
@@ -85,12 +140,14 @@ func seamMemory(sess *session.GameSession) mining.Memory {
 
 func mineRng() *rand.Rand { return rand.New(rand.NewSource(time.Now().UnixNano())) }
 
-// useFace counts a face worked at a seam today and charges its exertion.
+// useFace counts a face worked at a seam today and charges its exertion. It's
+// the "mine-face" a quest's "do" objective asks for.
 func useFace(sess *session.GameSession, seamID string, tierN int) []string {
 	state := &sess.SaveData
 	cfg := miningConfig()
 	tier, _ := mining.Tier(cfg, tierN)
 	seamMemory(sess).Work(seamID, state.CurrentDay)
+	events.Record(state, events.Did, "mine-face", 1)
 	if status.Exert(state, &sess.Exertion, tier.Exertion, cfg.Rules.ExertionPerFatigue) > 0 {
 		return []string{"Your back aches. (+1 fatigue)"}
 	}
@@ -124,7 +181,7 @@ func (p poiMining) FacesLeft(node string, s types.Seam) int {
 	return seamMemory(p.sess).Left(p.seamID(node), p.sess.SaveData.CurrentDay, s.FacesPerDay)
 }
 
-func (p poiMining) CantMine(s types.Seam) string {
+func (p poiMining) CantMine(_ types.Seam) string {
 	if bestPick(&p.sess.SaveData).Tier == 0 {
 		return "You'd need a pick to work this rock."
 	}
@@ -134,11 +191,16 @@ func (p poiMining) CantMine(s types.Seam) string {
 func (p poiMining) QuickMinutes() int { return miningConfig().Rules.QuickMinutes }
 
 // Quick works one face with a single Athletics roll: the face is used either
-// way, time passes, the work tires you, and a success pays the tier's XP.
+// way, time passes, the pick wears, the work tires you, and a success pays the
+// tier's XP.
 func (p poiMining) Quick(node string, s types.Seam) poi.MineResult {
 	state := &p.sess.SaveData
-	gametime.AdvanceTime(state, miningConfig().Rules.QuickMinutes, true)
+	rules := miningConfig().Rules
+	pick := bestPick(state)
+	passed := timeLines(gametime.AdvanceTime(state, rules.QuickMinutes, true))
 	tired := useFace(p.sess, p.seamID(node), s.Tier)
+	tired = append(tired, wearPick(state, pick, rules.QuickWear)...)
+	tired = append(tired, passed...)
 	r := skillcheck.Resolve(buildQuestContext(state).SkillValue("athletics"), s.DC, mineRng())
 	res := poi.MineResult{Success: r.Success, Lines: []string{poi.RollLine("athletics", r)}}
 	if r.Success {
@@ -178,15 +240,23 @@ func handleMineBegin(sess *session.GameSession, params map[string]any) (*types.G
 		return mineRefusal("The face is worked out. Come back tomorrow.")
 	}
 	ctx := buildQuestContext(state)
+	pick := bestPick(state)
 	ms, err := mining.NewSession(miningConfig(), p.seamID(node), node, sess.ActivePOI.Title, seam,
-		bestPick(state), ctx.SkillValue("athletics"), ctx.SkillValue("perception"), mineRng())
+		pick.Pick, ctx.SkillValue("athletics"), ctx.SkillValue("perception"), mineRng())
 	if err != nil {
 		return mineRefusal(err.Error())
 	}
+	ms.Dark = combat.InTheDark(state, seam.Underground)
 	sess.MineSession = ms
-	msg := fmt.Sprintf("You size up the rock face. %d swings in your arms, %d soundings.", ms.SwingsMax, ms.SoundingsMax)
-	return &types.GameActionResponse{Success: true, Color: "blue", Message: msg,
-		Data: map[string]any{"mine": ms.View(itemDisplayName), "lines": []string{msg}}}, nil
+	lines := []string{fmt.Sprintf("You size up the rock face. %d swings in your arms, %d soundings.", ms.SwingsMax, ms.SoundingsMax)}
+	if pick.Wear > 0 {
+		lines = append(lines, fmt.Sprintf("Your %s is %s: it costs you swings.", strings.ToLower(pick.Name), strings.ToLower(condition.Tier(pick.Wear).String())))
+	}
+	if ms.Dark {
+		lines = append(lines, "It's too dark to read the rock. Without a light you'll be swinging blind.")
+	}
+	return &types.GameActionResponse{Success: true, Color: "blue", Message: strings.Join(lines, " "),
+		Data: map[string]any{"mine": ms.View(itemDisplayName), "lines": lines}}, nil
 }
 
 // handleMineAct resolves one move and applies its consequences once: time, the
@@ -202,6 +272,7 @@ func handleMineAct(sess *session.GameSession, params map[string]any) (*types.Gam
 	}
 	act, _ := params["act"].(string)
 	wasWorked := ms.Worked
+	ms.Dark = combat.InTheDark(state, ms.Underground)
 	out, err := ms.Act(mining.Action{Kind: act, Cell: paramIntOr(params["cell"], -1)}, paramIntOr(params["version"], -1), itemDisplayName)
 	data := map[string]any{}
 	if errors.Is(err, mining.ErrStale) {
@@ -216,10 +287,14 @@ func handleMineAct(sess *session.GameSession, params map[string]any) (*types.Gam
 
 	lines := out.Lines
 	if out.Minutes > 0 {
-		gametime.AdvanceTime(state, out.Minutes, true)
+		// A lit light burns while you work (and may burn out).
+		lines = append(lines, timeLines(gametime.AdvanceTime(state, out.Minutes, true))...)
 	}
 	if ms.Worked && !wasWorked {
 		lines = append(lines, useFace(sess, ms.SeamID, ms.Tier.Tier)...)
+	}
+	if out.Wear > 0 {
+		lines = append(lines, wearPick(state, bestPick(state), out.Wear)...)
 	}
 	for _, ore := range sortedKeys(out.Items) {
 		n := out.Items[ore]

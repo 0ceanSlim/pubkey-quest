@@ -23,6 +23,7 @@ var DoActions = map[string]string{
 	"sleep-inn":           "sleep in a rented room at an inn",
 	"save-game":           "save the game",
 	"read-letter":         "read the caretaker's letter",
+	"mine-face":           "work a rock face at a mining seam",
 }
 
 // QuestObjective is one task within a quest stage.

@@ -1,0 +1,19 @@
+{
+  "id": "deepiron-ore",
+  "name": "Deepiron Ore",
+  "description": "A heavy blue-black lump that rings like a bell when it's struck. Deepiron only forms far below the surface, where the rock is hot and the air is bad.",
+  "type": "Material",
+  "value": 300,
+  "rarity": "uncommon",
+  "stack": 50,
+  "weight": 2,
+  "image": "/res/img/items/deepiron-ore.png",
+  "tags": [
+    "material",
+    "ore"
+  ],
+  "notes": [
+    "Found deep: the Flooded Mine's galleries and deeps, and rarely in the Rimewall Outcrop. Cutting it takes a dwarven pick or better.",
+    "The Forgemistress in Ironpeak makes deepiron picks from it."
+  ]
+}

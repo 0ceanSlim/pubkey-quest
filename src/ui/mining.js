@@ -9,7 +9,8 @@
  * can't count twice.
  *
  * Controls: pick a tool (Tap = sound, Swing = strike; T / S), then click or tap
- * a cell. Stop (Esc / ×) steps back with what you have.
+ * a cell. Stop (Esc / ×) steps back with what you have. In the dark (no light
+ * underground, or at night) there's no Tap: you swing blind.
  *
  * @module ui/mining
  */
@@ -25,6 +26,9 @@ const ORE_COLOURS = {
     'mithral-ore': '#cfe3ef',
     'adamantine-ore': '#3f2d5c',
 };
+
+// A pick's wear tier (the server's condition tiers).
+const WEAR = ['Pristine', 'Worn', 'Damaged', 'Ruined'];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -92,9 +96,14 @@ function isActive() {
     return open?.view?.status === 'active';
 }
 
+// canSound: soundings left, and light to read the rock by.
+function canSound(view) {
+    return (view.soundings ?? 0) > 0 && !view.dark;
+}
+
 function setTool(tool) {
     if (!open || !isActive()) return;
-    if (tool === 'sound' && (open.view.soundings ?? 0) <= 0) return;
+    if (tool === 'sound' && !canSound(open.view)) return;
     open.tool = tool;
     render();
 }
@@ -116,7 +125,7 @@ function render(flash = {}) {
     if (!open) return;
     const { el, view } = open;
     const active = isActive();
-    if (active && open.tool === 'sound' && (view.soundings ?? 0) <= 0) open.tool = 'strike';
+    if (active && open.tool === 'sound' && !canSound(view)) open.tool = 'strike';
     const [w] = view.grid || [5, 4];
 
     el.querySelector('.lp-title-text').textContent = `Mining — ${view.name || 'Rock face'}`;
@@ -151,14 +160,21 @@ function render(flash = {}) {
         grid.appendChild(b);
     });
     grid.classList.toggle('shake', !!flash.shake);
-    el.querySelector('.mn-viewport').classList.toggle('collapsed', view.status === 'collapsed');
+    const viewport = el.querySelector('.mn-viewport');
+    viewport.classList.toggle('collapsed', view.status === 'collapsed');
+    viewport.classList.toggle('dark', !!view.dark);
 
     // Tools
     el.querySelectorAll('.mn-tool').forEach((b) => {
         const on = b.dataset.tool === open.tool;
         b.classList.toggle('selected', on && active);
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
-        b.disabled = !active || open.busy || (b.dataset.tool === 'sound' && (view.soundings ?? 0) <= 0);
+        b.disabled = !active || open.busy || (b.dataset.tool === 'sound' && !canSound(view));
+        if (b.dataset.tool === 'sound') {
+            b.title = view.dark
+                ? 'Too dark to read the rock: you need a light'
+                : 'Tap (T): sound a cell, Perception, 1 minute';
+        }
     });
 
     // Message panel
@@ -179,7 +195,9 @@ function render(flash = {}) {
         <span class="lp-strain${near ? ' near' : ''}" title="Cracks">Cracks
             <span class="lp-strain-cells" aria-hidden="true">${pips}</span>
             <span>${cracks}/${maxCracks}${near ? ' !' : ''}</span></span>
-        <span>Tier ${esc(view.tier)} · DC ${esc(view.dc)}</span>`;
+        <span>Tier ${esc(view.tier)} · DC ${esc(view.dc)}</span>
+        ${view.pick_name ? `<span title="Your pick">${esc(view.pick_name)}${view.pick_wear > 0 ? ` (${WEAR[view.pick_wear] ?? ''})` : ''}</span>` : ''}
+        ${view.dark ? '<span class="mn-dark" title="No light: you can\'t read the rock">Dark</span>' : ''}`;
 
     // Actions
     const actions = el.querySelector('.lp-actions');

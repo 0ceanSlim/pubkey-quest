@@ -6,13 +6,19 @@
     {"tier": 4, "dc": 16, "faces_per_day": 2, "grid": [8, 6], "veins": [3, 3], "gems": [1, 2], "faults": [4, 5], "hard": 0.4, "cave_in_dice": 4, "xp": 35, "exertion": 6}
   ],
   "ores": {
-    "iron-ore":   { "tier": 1, "pick": 1 },
-    "copper-ore": { "tier": 1, "pick": 1 }
+    "iron-ore":       { "tier": 1, "pick": 1 },
+    "copper-ore":     { "tier": 1, "pick": 1 },
+    "deepiron-ore":   { "tier": 3, "pick": 2 },
+    "mithral-ore":    { "tier": 4, "pick": 3 },
+    "adamantine-ore": { "tier": 4, "pick": 3 }
   },
   "rules": {
     "swing_minutes": 5,
     "sound_minutes": 1,
     "quick_minutes": 30,
-    "exertion_per_fatigue": 6
+    "exertion_per_fatigue": 6,
+    "wear_per_strike": 1,
+    "wear_per_fault": 3,
+    "quick_wear": 5
   }
 }

@@ -49,6 +49,19 @@ func BlindAtNight(save *types.SaveFile) bool {
 	return !holdsLight(save)
 }
 
+// InTheDark reports whether the player can't see to work: underground (always
+// dark) or out at night, with no darkvision and no light shining. Mining reads
+// the rock by it, and a deep mine's "light" requirement turns on it.
+func InTheDark(save *types.SaveFile, underground bool) bool {
+	if save == nil || (!underground && !types.IsNight(save.TimeOfDay)) {
+		return false
+	}
+	if gametime.HasDarkvision(save.Race) || effects.ModifierTotal(save, "darkvision") > 0 {
+		return false
+	}
+	return !holdsLight(save)
+}
+
 // holdsLight reports whether a light is shining: a lit torch, lamp or lantern
 // in a hand, or a light worn at the neck (the Amulet of Light, always on). A
 // light that burns (a "light" block) only counts while it's lit.

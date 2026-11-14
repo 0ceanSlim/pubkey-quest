@@ -41,6 +41,28 @@ func (f fakeContext) QuestStage(id string) int {
 	return requirement.StageNotStarted
 }
 
+// sightedContext can see in the dark (a light, or darkvision) or not.
+type sightedContext struct {
+	fakeContext
+	sees bool
+}
+
+func (s sightedContext) CanSeeInTheDark() bool { return s.sees }
+
+// "light" needs a Context that knows about light; one that doesn't fails it.
+func TestLightRequirement(t *testing.T) {
+	light := types.POIRequirement{Type: "light"}
+	if requirement.EvaluateOne(light, baseCtx()) {
+		t.Error("a context with no sight passed a light requirement")
+	}
+	if !requirement.EvaluateOne(light, sightedContext{baseCtx(), true}) {
+		t.Error("a lit player failed a light requirement")
+	}
+	if requirement.EvaluateOne(light, sightedContext{baseCtx(), false}) {
+		t.Error("a player in the dark passed a light requirement")
+	}
+}
+
 func baseCtx() fakeContext {
 	return fakeContext{
 		skills:    map[string]int{"athletics": 14, "thieving": 8},

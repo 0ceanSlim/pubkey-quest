@@ -1,0 +1,19 @@
+{
+  "id": "mithral-ore",
+  "name": "Mithral Ore",
+  "description": "Silver-white ore so light it seems hollow, and it never tarnishes. A fist-sized lump is worth more than most people earn in a season.",
+  "type": "Material",
+  "value": 2500,
+  "rarity": "rare",
+  "stack": 50,
+  "weight": 1,
+  "image": "/res/img/items/mithral-ore.png",
+  "tags": [
+    "material",
+    "ore"
+  ],
+  "notes": [
+    "Only found in the deepest workings of a mine, and only a deepiron pick cuts it.",
+    "Mithral armor isn't forged yet: for now it sells."
+  ]
+}

@@ -266,6 +266,8 @@ func (c *schemaChecker) checkRequirements(reqs []types.POIRequirement) {
 			}
 		case "level", "quest_points":
 			// numeric only — Min carries the value
+		case "light":
+			// a light shining, or darkvision: nothing to check
 		case "class", "race", "alignment":
 			if len(r.Values) == 0 {
 				c.errf("%s requirement missing values[]", r.Type)

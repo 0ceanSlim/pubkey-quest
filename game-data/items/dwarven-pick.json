@@ -1,0 +1,28 @@
+{
+  "damage": "1d6",
+  "description": "A dwarven miner's pick: a long steel head banded in bronze on an ash haft, balanced so the swing does half the work. It bites through hard rock in one blow.",
+  "id": "dwarven-pick",
+  "image": "/res/img/items/dwarven-pick.png",
+  "name": "Dwarven Pick",
+  "notes": [
+    "Mining tier 2: two extra swings at every face, hard rock breaks in one strike, and it cuts deepiron.",
+    "Forged to order by the Forgemistress in Ironpeak from 10 iron ore and 5 copper ore, for 400 gold.",
+    "Wears as you swing it. A worn pick costs you swings; a crafting kit or a smith puts it right."
+  ],
+  "value": 900,
+  "rarity": "uncommon",
+  "stack": 1,
+  "tags": [
+    "improvised-weapon",
+    "tool"
+  ],
+  "type": "Tools",
+  "weight": 10,
+  "mining": {
+    "tier": 2,
+    "swings": 2
+  },
+  "durability": {
+    "max": 300
+  }
+}

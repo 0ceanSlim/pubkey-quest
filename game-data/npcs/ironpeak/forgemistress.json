@@ -110,7 +110,7 @@
     },
     "main_menu": {
       "text": "Axes, hammers, crossbows, mail. Pick.",
-      "options": ["browse_shop", "ask_about_crossbows", "goodbye"]
+      "options": ["browse_shop", "ask_about_crossbows", "ask_about_picks", "goodbye"]
     },
     "browse_shop": {
       "text": "Mind your fingers on the heavy crossbow. It doesn't care whose they are.",
@@ -119,6 +119,33 @@
     "ask_about_crossbows": {
       "text": "The Hammerfall clan has strung crossbows for nine generations. Nobody else in the realm makes them, and nobody else sells bolts that fly true. The little hand crossbows? Bah. Toys for assassins. You'll take those off a dead goblin chief, not buy them from me.",
       "options": ["main_menu"]
+    },
+    "ask_about_picks": {
+      "text": "Picks? Now you're talking. That shop pickaxe is pig iron on a stick. Bring me ten iron ore and five copper and I'll forge you a proper dwarven pick, bronze-banded, for four hundred gold. Hard rock breaks in one blow, and it'll cut deepiron. Dig deep enough to bring me eight lumps of deepiron and I'll rework it into a pick that cuts mithral. Two thousand gold for that one, and your old pick goes in the fire.",
+      "options": [
+        {
+          "label": "Commission a dwarven pick (10 iron ore, 5 copper ore, 400 gold)",
+          "next": "dwarven_pick_made",
+          "cost": {"gold": 400, "items": [{"id": "iron-ore", "quantity": 10}, {"id": "copper-ore", "quantity": 5}]}
+        },
+        {
+          "label": "Commission a deepiron pick (8 deepiron ore, your dwarven pick, 2,000 gold)",
+          "next": "deepiron_pick_made",
+          "requirements": [{"type": "item", "id": "dwarven-pick"}],
+          "cost": {"gold": 2000, "items": [{"id": "deepiron-ore", "quantity": 8}, {"id": "dwarven-pick", "quantity": 1}]}
+        },
+        "main_menu"
+      ]
+    },
+    "dwarven_pick_made": {
+      "text": "She tips your ore into the bin by the furnace, takes a pick head off the rack, and fits it to an ash haft while you watch, driving the wedge home with three blows. \"Swing from the hips and let the head do the work. Bring it back when it's dull.\"",
+      "gives": [{"id": "dwarven-pick", "quantity": 1}],
+      "options": ["main_menu", "goodbye"]
+    },
+    "deepiron_pick_made": {
+      "text": "She holds a lump of deepiron to her ear and taps it, listening, then nods. Your old pick goes into the coals. By the time she's done, the head is blue-black and cold to the touch though it's just come off the anvil. \"There. Nothing under this mountain will stand up to that.\"",
+      "gives": [{"id": "deepiron-pick", "quantity": 1}],
+      "options": ["main_menu", "goodbye"]
     },
     "goodbye": {
       "text": "Go well. Keep your edge sharp and your string waxed.",

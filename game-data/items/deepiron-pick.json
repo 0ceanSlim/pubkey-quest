@@ -1,0 +1,28 @@
+{
+  "damage": "1d6",
+  "description": "A pick with a head of deepiron, blue-black and colder than the air around it. The Hammerfall clan made one a generation; the deepest rock in the realm still gives way to it.",
+  "id": "deepiron-pick",
+  "image": "/res/img/items/deepiron-pick.png",
+  "name": "Deepiron Pick",
+  "notes": [
+    "Mining tier 3: three extra swings at every face, hard rock breaks in one strike, and it cuts mithral and adamantine.",
+    "Forged by the Forgemistress in Ironpeak from 8 deepiron ore and your dwarven pick, for 2,000 gold.",
+    "Wears as you swing it; a smith mends it with deepiron ore."
+  ],
+  "value": 5000,
+  "rarity": "rare",
+  "stack": 1,
+  "tags": [
+    "improvised-weapon",
+    "tool"
+  ],
+  "type": "Tools",
+  "weight": 10,
+  "mining": {
+    "tier": 3,
+    "swings": 3
+  },
+  "durability": {
+    "max": 400
+  }
+}

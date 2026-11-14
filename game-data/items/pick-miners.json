@@ -5,7 +5,8 @@
   "image": "/res/img/items/pick-miners.png",
   "name": "Pickaxe",
   "notes": [
-    "Needed to work a rock face at a mining seam: each face takes half an hour and a strong back."
+    "Works a rock face at a mining seam: iron and copper. Harder ore needs a better pick (the Forgemistress in Ironpeak forges them).",
+    "Wears as you swing it. A worn pick costs you swings; a crafting kit or a smith puts it right."
   ],
   "value": 200,
   "rarity": "common",
@@ -19,5 +20,8 @@
   "mining": {
     "tier": 1,
     "swings": 0
+  },
+  "durability": {
+    "max": 200
   }
 }

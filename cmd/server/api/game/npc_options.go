@@ -9,9 +9,11 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/gameutil"
+	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -30,6 +32,11 @@ import (
 // A node may also carry a one-time "reward" (xp, gold, items): it's granted
 // the first time a character reaches that node, and remembered in
 // SaveFile.DialogueGifts so asking again doesn't pay out again.
+//
+// Or a node can "give" items every time: a commission (a smith forging a pick
+// from your ore). A "gives" node is only reached through a labelled option with
+// a cost, from someone at work (on duty for their shop), so it's paid for on
+// every visit and can't be asked for directly.
 
 const optKeyPrefix = "opt:"
 
@@ -200,6 +207,44 @@ func payOptionCost(state *types.SaveFile, cost types.POICost) string {
 		gameutil.ConsumeItem(state, it.ID, max(it.Quantity, 1))
 	}
 	return ""
+}
+
+// dialogueGives is what a node hands over every time it's reached (nil: none).
+func dialogueGives(npcData *serverdb.NPCData, node string) []npc.ItemRequirement {
+	if npcData == nil {
+		return nil
+	}
+	n, _ := npcData.Dialogue[node].(map[string]interface{})
+	return npc.ParseItemRequirements(n["gives"])
+}
+
+// paidFor reports whether an option has a cost to pay.
+func paidFor(cost types.POICost) bool { return cost.Gold > 0 || len(cost.Items) > 0 }
+
+// giveItems hands a commission over: into the pack, or onto the ground at your
+// feet when it's full.
+func giveItems(sess *GameSession, items []npc.ItemRequirement) []string {
+	state := &sess.SaveData
+	var got []string
+	for _, it := range items {
+		n := max(it.Quantity, 1)
+		added, _ := inventory.AddItemToInventory(state, it.ID, n)
+		if added > 0 {
+			noteAcquired(state, it.ID)
+		}
+		if added < n {
+			sess.Ground.Add(world.GroundKey(state), it.ID, n-added)
+		}
+		name := itemDisplayName(it.ID)
+		if n > 1 {
+			name = fmt.Sprintf("%d× %s", n, name)
+		}
+		if added < n {
+			name += " (your pack is full: it's on the ground)"
+		}
+		got = append(got, name)
+	}
+	return got
 }
 
 // giftClaimed reports whether a dialogue node carries a one-time reward this

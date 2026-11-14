@@ -1,5 +1,5 @@
 {
-  "_comment": "Item condition (docs/draft/degradation-system.md §4–§5). durability.defaults: wear points an item takes from pristine to ruined, by item type (or \"shield\"). An item's own \"durability\": {\"max\": N} wins; \"durability\": false, quest items, ammunition and thrown-only weapons don't wear. Weapons wear 1 per damaging hit (2 on a crit); armour 1 per hit taken, on one worn piece (body, then legs, then shield). Tiers by durability left: Pristine 75%+, Worn 50%+ (-10% damage, -1 AC), Damaged 25%+ (-25%, -2 AC), Ruined (-50%, half its AC). repair: field repair (whetstone, crafting kit) only brings gear back up to Worn (field_up_to: the share of durability left it restores to); smiths, by NPC id, repair the materials they work, at cost x the item's value x the share of wear they mend, plus a material per 25% of wear mended where they want one. materials: what anything not listed is made of is metal. water: where a waterskin can be filled (degradation §7): every town (wells, inns), and these wild places (coast, swamp, forest streams).",
+  "_comment": "Item condition (docs/draft/degradation-system.md §4–§5). durability.defaults: wear points an item takes from pristine to ruined, by item type (or \"shield\"). An item's own \"durability\": {\"max\": N} wins; \"durability\": false, quest items, ammunition and thrown-only weapons don't wear. Weapons wear 1 per damaging hit (2 on a crit); armour 1 per hit taken, on one worn piece (body, then legs, then shield). Tiers by durability left: Pristine 75%+, Worn 50%+ (-10% damage, -1 AC), Damaged 25%+ (-25%, -2 AC), Ruined (-50%, half its AC). repair: field repair (whetstone, crafting kit) only brings gear back up to Worn (field_up_to: the share of durability left it restores to); smiths, by NPC id, repair the materials they work, at cost x the item's value x the share of wear they mend, plus a material per 25% of wear mended where they want one. fittings: gear with another metal in it (copper and brass: lights, picks, riveted armor; a deepiron pick) takes that ore, not the smith's usual material. materials: what anything not listed is made of is metal. water: where a waterskin can be filled (degradation §7): every town (wells, inns), and these wild places (coast, swamp, forest streams).",
   "durability": {
     "defaults": {
       "Simple Melee Weapons": 200,
@@ -41,6 +41,24 @@
   },
   "repair": {
     "field_up_to": 0.74,
+    "fittings": {
+      "copper-ore": [
+        "pick-miners",
+        "dwarven-pick",
+        "lamp",
+        "lantern-bullseye",
+        "lantern-hooded",
+        "studded-leather-vest",
+        "studded-leather-leggings",
+        "scalemail-cuirass",
+        "scalemail-greaves",
+        "ringmail-hauberk",
+        "ringmail-chausses"
+      ],
+      "deepiron-ore": [
+        "deepiron-pick"
+      ]
+    },
     "whetstone": {
       "minutes": 10,
       "damage_types": [

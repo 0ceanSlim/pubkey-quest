@@ -22,8 +22,8 @@ import (
 // replayed or doubled request can't grant ore or cost time twice.
 //
 // The session decides what happened; the caller applies it (time, ore into the
-// pack, cave-in damage, exertion and XP when the face is done). Gem cells and
-// prying wait for the gem generator (gem-system.md slice 1).
+// pack, cave-in damage, pick wear, exertion and XP when the face is done). Gem
+// cells and prying wait for the gem generator (gem-system.md slice 1).
 
 // Status is where a face stands.
 type Status string
@@ -45,11 +45,22 @@ const (
 // MaxCracks is the crack that brings a face down.
 const MaxCracks = 3
 
-// Pick is the pick in hand: its tier and extra swings.
+// Pick is the pick in hand: its tier, extra swings and how worn it is.
 type Pick struct {
+	Name   string
 	Tier   int
 	Swings int
+	// Wear is its wear tier (degradation): 0 pristine, 1 worn (−1 swing),
+	// 2 damaged (−2 swings, and hard rock takes two strikes whatever the
+	// pick), 3 ruined (half the swings).
+	Wear int
 }
+
+// Wear tiers a pick can be in.
+const (
+	WearDamaged = 2
+	WearRuined  = 3
+)
 
 // Action is one move.
 type Action struct {
@@ -62,6 +73,7 @@ type Outcome struct {
 	Minutes int
 	Items   map[string]int // ore broken out, into the pack
 	Damage  int            // a cave-in
+	Wear    int            // wear points on the pick
 	Ended   bool           // the face is done (status says how)
 	Lines   []string
 }
@@ -87,10 +99,15 @@ type Session struct {
 	Name   string
 	Tier   types.MiningTier
 	DC     int
+	// Underground faces are always dark (see Dark).
+	Underground bool
 
 	Pick       Pick
 	Athletics  int // effective skill values
 	Perception int
+	// Dark: no light to read the rock by, so there's no sounding. The caller
+	// sets it before every move (a torch can burn out mid-face).
+	Dark bool
 
 	Version      int
 	Status       Status
@@ -124,15 +141,30 @@ func NewSession(cfg *types.MiningConfig, seamID, node, name string, seam types.S
 		return nil, fmt.Errorf("this seam has no ore to find")
 	}
 	s := &Session{
-		ID: newID(), SeamID: seamID, Node: node, Name: name, Tier: tier, DC: seam.DC,
+		ID: newID(), SeamID: seamID, Node: node, Name: name, Tier: tier, DC: seam.DC, Underground: seam.Underground,
 		Pick: pick, Athletics: athletics, Perception: perception, Status: StatusActive,
 		W: tier.Grid[0], H: tier.Grid[1], cfg: cfg, rng: rng,
 	}
-	s.SwingsMax = max(3, 6+skillcheck.Modifier(athletics)+pick.Swings)
+	s.SwingsMax = swingsFor(athletics, pick)
 	s.SoundingsMax = max(2, 3+skillcheck.Modifier(perception))
 	s.Swings, s.Soundings = s.SwingsMax, s.SoundingsMax
 	s.layout(seam)
 	return s, nil
+}
+
+// swingsFor is how many swings you have at a face: 6 + Athletics + the pick's
+// bonus (at least 3), less what the pick's wear costs.
+func swingsFor(athletics int, pick Pick) int {
+	n := max(3, 6+skillcheck.Modifier(athletics)+pick.Swings)
+	switch pick.Wear {
+	case 1:
+		n--
+	case WearDamaged:
+		n -= 2
+	case WearRuined:
+		n /= 2
+	}
+	return max(n, 2)
 }
 
 // layout hides the ore veins, faults and hard rock.
@@ -285,6 +317,8 @@ func (s *Session) Act(a Action, version int, names func(string) string) (Outcome
 func (s *Session) sound(i int, out *Outcome) error {
 	c := &s.cells[i]
 	switch {
+	case s.Dark:
+		return fmt.Errorf("it's too dark to read the rock: you need a light")
 	case s.Soundings <= 0:
 		return fmt.Errorf("you've no soundings left")
 	case c.broken:
@@ -326,11 +360,13 @@ func (s *Session) strike(i int, out *Outcome, names func(string) string) error {
 	}
 	s.Swings--
 	out.Minutes += s.cfg.Rules.SwingMinutes
-	// Hard rock takes two strikes with a tier-1 pick.
-	crackFirst := c.hard && !c.cracked && s.Pick.Tier < 2
+	out.Wear += max(s.cfg.Rules.WearPerStrike, 1)
+	// Hard rock takes two strikes with a tier-1 pick, or a damaged one.
+	crackFirst := c.hard && !c.cracked && (s.Pick.Tier < 2 || s.Pick.Wear >= WearDamaged)
 	switch {
 	case c.kind == cellFault:
 		c.broken = true
+		out.Wear = max(s.cfg.Rules.WearPerFault, out.Wear)
 		s.Cracks++
 		if s.Cracks >= MaxCracks {
 			s.caveIn(out)
@@ -417,7 +453,8 @@ func (s *Session) View(names func(string) string) map[string]any {
 		"status": s.Status, "tier": s.Tier.Tier, "dc": s.DC, "grid": []int{s.W, s.H},
 		"swings": s.Swings, "swings_max": s.SwingsMax, "soundings": s.Soundings,
 		"soundings_max": s.SoundingsMax, "cracks": s.Cracks, "cracks_max": MaxCracks,
-		"pick_tier": s.Pick.Tier, "cells": cells,
+		"pick_tier": s.Pick.Tier, "pick_name": s.Pick.Name, "pick_wear": s.Pick.Wear,
+		"dark": s.Dark, "cells": cells,
 	}
 }
 

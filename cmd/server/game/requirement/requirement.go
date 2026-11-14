@@ -31,6 +31,13 @@ type Context interface {
 	QuestStage(questID string) int
 }
 
+// Sighted is a Context that knows whether the player can see in the dark: a
+// light shining, or darkvision. A "light" requirement needs it (deep mines);
+// a Context without it fails the requirement.
+type Sighted interface {
+	CanSeeInTheDark() bool
+}
+
 // Quest-stage sentinels for Context.QuestStage.
 const (
 	StageNotStarted = -1
@@ -85,6 +92,9 @@ func EvaluateOne(req types.POIRequirement, ctx Context) bool {
 	case "quest_active":
 		s := ctx.QuestStage(req.ID)
 		return s != StageNotStarted && s != StageCompleted
+	case "light":
+		sc, ok := ctx.(Sighted)
+		return ok && sc.CanSeeInTheDark()
 	case "quest_stage":
 		s := ctx.QuestStage(req.ID)
 		if s == StageNotStarted || s < req.Min {

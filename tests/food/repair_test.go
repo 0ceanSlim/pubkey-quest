@@ -117,6 +117,16 @@ func TestSmithQuotes(t *testing.T) {
 	if q := condition.SmithQuote(smiths["master-bowyer"], bow, 5000); q.CantWork || q.Discount != "owlbear-fur" || q.Percent != 50 {
 		t.Errorf("bowyer: %+v", q)
 	}
+	// Copper-fitted gear takes copper ore from the Forgemistress, not iron;
+	// a deepiron pick takes deepiron.
+	ring := map[string]interface{}{"item": "ringmail-hauberk", "quantity": 1, condition.KeyWear: 150}
+	if q := condition.SmithQuote(smiths["forgemistress"], ring, 3000); q.Material != "copper-ore" || q.Count < 1 {
+		t.Errorf("ring mail at the forgemistress: %+v", q)
+	}
+	pick := map[string]interface{}{"item": "deepiron-pick", "quantity": 1, condition.KeyWear: 200}
+	if q := condition.SmithQuote(smiths["forgemistress"], pick, 5000); q.Material != "deepiron-ore" {
+		t.Errorf("deepiron pick at the forgemistress: %+v", q)
+	}
 	if !strings.EqualFold(condition.MaterialOf("hide-cuirass"), "hide") {
 		t.Errorf("hide cuirass is %s", condition.MaterialOf("hide-cuirass"))
 	}

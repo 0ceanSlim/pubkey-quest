@@ -1671,9 +1671,10 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 	}
 	// A labelled option (opt:<node>:<i>): check its requirements, take its
 	// cost, then carry on to the node it leads to.
+	npcData, _ := serverdb.GetNPCByID(npcID)
+	var gives []npc.ItemRequirement
 	if strings.HasPrefix(choice, optKeyPrefix) {
-		npcData, err := serverdb.GetNPCByID(npcID)
-		if err != nil || npcData == nil {
+		if npcData == nil {
 			return nil, fmt.Errorf("NPC not found: %s", npcID)
 		}
 		opt, ok := labelledOption(npcData, choice)
@@ -1683,13 +1684,30 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 		if !requirement.Evaluate(opt.Requirements, buildQuestContext(&session.SaveData)).OK {
 			return &GameActionResponse{Success: false, Message: "That isn't open to you.", Color: "red"}, nil
 		}
+		// A commission: paid for here, made by someone at work.
+		if gives = dialogueGives(npcData, opt.Next); len(gives) > 0 {
+			if !paidFor(opt.Cost) || !npc.OnDuty(&session.SaveData, npcID, "open_shop") {
+				return &GameActionResponse{Success: false, Message: "They can't do that for you now.", Color: "yellow"}, nil
+			}
+		}
 		if missing := payOptionCost(&session.SaveData, opt.Cost); missing != "" {
 			return &GameActionResponse{Success: false, Message: missing, Color: "yellow"}, nil
 		}
 		choice = opt.Next
 		paramsIface["choice"] = choice
+	} else if len(dialogueGives(npcData, choice)) > 0 {
+		// Only reached by paying for it.
+		return &GameActionResponse{Success: false, Message: "That has to be paid for first.", Color: "yellow"}, nil
+	}
+	// Paid for: hand it over before anything else can go wrong.
+	var given []string
+	if len(gives) > 0 {
+		given = giveItems(session, gives)
 	}
 	resp, err := npc.HandleNPCDialogueChoiceActionWithSession(&session.SaveData, paramsIface, session)
+	if resp != nil && len(given) > 0 {
+		resp.Message = strings.TrimSpace(resp.Message + "\n\n🔨 You receive " + strings.Join(given, ", ") + ".")
+	}
 	if resp != nil && resp.Success {
 		// A node's one-time gift (Thok's battleaxe), then its labelled options.
 		if got := grantDialogueGift(&session.SaveData, npcID, choice); len(got) > 0 {

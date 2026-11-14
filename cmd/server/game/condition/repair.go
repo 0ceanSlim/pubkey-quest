@@ -37,8 +37,13 @@ type RepairRules struct {
 		Skill   string `json:"skill"`
 		DC      int    `json:"dc"`
 	} `json:"crafting_kit"`
-	Smiths    map[string]SmithDeal `json:"smiths"`
-	materials map[string]string    // item id → material
+	Smiths map[string]SmithDeal `json:"smiths"`
+	// Fittings: gear with another metal in it (copper and brass: lights,
+	// picks, riveted armour) takes that ore instead of a smith's usual one,
+	// keyed by the ore it takes.
+	Fittings  map[string][]string `json:"fittings"`
+	materials map[string]string   // item id → material
+	fitted    map[string]string   // item id → the ore its fittings take
 }
 
 var (
@@ -73,6 +78,12 @@ func Repair() *RepairRules {
 		for material, ids := range cfg.Materials {
 			for _, id := range ids {
 				repairRules.materials[id] = material
+			}
+		}
+		repairRules.fitted = map[string]string{}
+		for ore, ids := range repairRules.Fittings {
+			for _, id := range ids {
+				repairRules.fitted[id] = ore
 			}
 		}
 	})
@@ -158,6 +169,9 @@ func SmithQuote(deal SmithDeal, slot map[string]interface{}, value int) Quote {
 	q.Gold = max1(int(math.Ceil(float64(value) * share * deal.Cost)))
 	if deal.Material != "" {
 		q.Material, q.Count = deal.Material, int(math.Ceil(share/0.25))
+		if ore := Repair().fitted[id]; ore != "" {
+			q.Material = ore // copper-fitted gear takes copper
+		}
 	}
 	if deal.Discount != nil {
 		q.Discount, q.Percent = deal.Discount.Item, deal.Discount.Percent

@@ -12,7 +12,7 @@ func testCfg() *types.MiningConfig {
 	return &types.MiningConfig{
 		Tiers: []types.MiningTier{{Tier: 1, DC: 10, FacesPerDay: 3, Grid: [2]int{5, 4}, Veins: [2]int{1, 2}, Faults: [2]int{1, 2}, Hard: 0.1, CaveInDice: 1}},
 		Ores:  map[string]types.MiningOre{"iron-ore": {Tier: 1, Pick: 1}, "mithral-ore": {Tier: 4, Pick: 3}},
-		Rules: types.MiningRules{SwingMinutes: 5, SoundMinutes: 1, QuickMinutes: 30, ExertionPerFatigue: 6},
+		Rules: types.MiningRules{SwingMinutes: 5, SoundMinutes: 1, QuickMinutes: 30, ExertionPerFatigue: 6, WearPerStrike: 1, WearPerFault: 3},
 	}
 }
 
@@ -161,5 +161,72 @@ func TestOutOfSwings(t *testing.T) {
 	}
 	if s.Status != StatusExhausted || s.Swings != 0 || v != s.SwingsMax {
 		t.Fatalf("status %s after %d strikes (max %d)", s.Status, v, s.SwingsMax)
+	}
+}
+
+// A worn pick costs swings: Athletics 12 gives 7 with a pristine one.
+func TestPickWearCostsSwings(t *testing.T) {
+	for wear, want := range []int{7, 6, 5, 3} {
+		if got := swingsFor(12, Pick{Tier: 1, Wear: wear}); got != want {
+			t.Errorf("wear tier %d: %d swings, want %d", wear, got, want)
+		}
+	}
+	if got := swingsFor(1, Pick{Tier: 1, Wear: WearRuined}); got != 2 {
+		t.Errorf("a weak arm and a ruined pick: %d swings, want the floor of 2", got)
+	}
+}
+
+// Every strike wears the pick; a fault wears it more.
+func TestStrikesWearThePick(t *testing.T) {
+	s := newFace(t, 3, Pick{Tier: 2}, "iron-ore")
+	rock := s.find(func(c cell) bool { return c.kind == cellRock })
+	out, err := s.Act(Action{Kind: "strike", Cell: rock}, 0, name)
+	if err != nil || out.Wear != 1 {
+		t.Fatalf("a strike on rock: wear %d, %v", out.Wear, err)
+	}
+	fault := s.find(func(c cell) bool { return c.kind == cellFault })
+	if out, err = s.Act(Action{Kind: "strike", Cell: fault}, 1, name); err != nil || out.Wear != 3 {
+		t.Fatalf("a strike on a fault: wear %d, %v", out.Wear, err)
+	}
+	if out, _ = s.Act(Action{Kind: "stop"}, 2, name); out.Wear != 0 {
+		t.Errorf("stopping wore the pick %d", out.Wear)
+	}
+}
+
+// A damaged pick needs two strikes on hard rock, whatever its tier.
+func TestADamagedPickCracksHardRock(t *testing.T) {
+	for seed := range int64(50) {
+		s := newFace(t, seed, Pick{Tier: 2, Wear: WearDamaged}, "iron-ore")
+		hard := s.find(func(c cell) bool { return c.hard && c.kind != cellFault })
+		if hard < 0 {
+			continue
+		}
+		if _, err := s.Act(Action{Kind: "strike", Cell: hard}, 0, name); err != nil {
+			t.Fatal(err)
+		}
+		if !s.cells[hard].cracked || s.cells[hard].broken {
+			t.Fatalf("a damaged dwarven pick broke hard rock in one strike")
+		}
+		return
+	}
+	t.Fatal("no hard rock in 50 faces")
+}
+
+// No light, no reading the rock: a sounding is refused and changes nothing.
+func TestNoSoundingInTheDark(t *testing.T) {
+	s := newFace(t, 4, Pick{Tier: 1}, "iron-ore")
+	s.Dark = true
+	if _, err := s.Act(Action{Kind: "sound", Cell: 0}, 0, name); err == nil {
+		t.Fatal("sounded in the dark")
+	}
+	if s.Soundings != s.SoundingsMax || s.Version != 0 || s.Worked {
+		t.Errorf("a refused sounding changed the face: %d soundings, version %d", s.Soundings, s.Version)
+	}
+	if s.View(name)["dark"] != true {
+		t.Error("the view doesn't say it's dark")
+	}
+	// Swinging blind still works.
+	if _, err := s.Act(Action{Kind: "strike", Cell: 0}, 0, name); err != nil {
+		t.Fatalf("strike in the dark: %v", err)
 	}
 }

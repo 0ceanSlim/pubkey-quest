@@ -38,13 +38,20 @@ type MiningRules struct {
 	SoundMinutes       int `json:"sound_minutes"`
 	QuickMinutes       int `json:"quick_minutes"`
 	ExertionPerFatigue int `json:"exertion_per_fatigue"`
+	// Pick wear (degradation): per strike, per fault struck, per quick roll.
+	WearPerStrike int `json:"wear_per_strike"`
+	WearPerFault  int `json:"wear_per_fault"`
+	QuickWear     int `json:"quick_wear"`
 }
 
 // Seam is a mine node's rock face. Zero fields take the tier's defaults.
 type Seam struct {
-	Tier        int       `json:"tier"`
-	DC          int       `json:"dc,omitempty"`
-	FacesPerDay int       `json:"faces_per_day,omitempty"`
+	Tier        int `json:"tier"`
+	DC          int `json:"dc,omitempty"`
+	FacesPerDay int `json:"faces_per_day,omitempty"`
+	// Underground: always dark, so reading the rock takes a light (or
+	// darkvision). A surface face is only dark at night.
+	Underground bool      `json:"underground,omitempty"`
 	Ores        []SeamOre `json:"ores"`
 	// QuickLoot is what a quick roll yields on a success. Left out, it's one
 	// roll per ore weight, twice.

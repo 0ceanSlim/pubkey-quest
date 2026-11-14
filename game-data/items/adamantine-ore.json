@@ -1,0 +1,19 @@
+{
+  "id": "adamantine-ore",
+  "name": "Adamantine Ore",
+  "description": "Black ore shot through with a faint violet sheen, and heavier than it has any right to be. Ordinary picks don't scratch it.",
+  "type": "Material",
+  "value": 5000,
+  "rarity": "rare",
+  "stack": 50,
+  "weight": 3,
+  "image": "/res/img/items/adamantine-ore.png",
+  "tags": [
+    "material",
+    "ore"
+  ],
+  "notes": [
+    "Only found in the deepest workings of a mine, and only a deepiron pick cuts it.",
+    "Adamantine armor isn't forged yet: for now it sells."
+  ]
+}

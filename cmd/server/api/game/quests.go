@@ -10,6 +10,7 @@ import (
 	"pubkey-quest/cmd/server/api/data"
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
+	"pubkey-quest/cmd/server/game/combat"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/quest"
@@ -90,6 +91,9 @@ func (c questContext) Race() string                    { return c.save.Race }
 func (c questContext) Alignment() string               { return c.save.Alignment }
 func (c questContext) IsQuestCompleted(id string) bool { return quest.IsCompleted(c.save, id) }
 func (c questContext) QuestStage(id string) int        { return quest.StageOf(c.save, id) }
+
+// CanSeeInTheDark: a light shining, or darkvision ("light" requirements).
+func (c questContext) CanSeeInTheDark() bool { return !combat.InTheDark(c.save, true) }
 
 // ─── log view ─────────────────────────────────────────────────────────────────
 //
