@@ -358,7 +358,7 @@ share:
 
 ## 12. Build slices
 
-1. **Seam core:** the `mine` node type, `mining.json`, the daily store, the quick roll, time
+1. ✅ **Seam core** (built 2026-11-13: `game/mining`, `api/game/mining.go`, the walker's `mine` node with `#quick`; tier defaults + `xp`/`exertion` in `mining.json`; picks carry `"mining": {"tier"}`): the `mine` node type, `mining.json`, the daily store, the quick roll, time
    and fatigue. Ironvein moves onto it. *This alone fixes the free endless seam.*
 2. **Veins:** the server session (layout, sound/strike/pry, exactly-once grants) with seeded
    tests next to the locks tests, then the overlay.

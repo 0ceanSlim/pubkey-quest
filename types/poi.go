@@ -21,6 +21,7 @@ const (
 	POIStepNPCInteraction POIStepType = "npc_interaction" // Hand off to NPC dialogue system
 	POIStepLock           POIStepType = "lock"            // A lock: its key, a pick, or walk away
 	POIStepFishing        POIStepType = "fishing"         // A fishing spot (fishing.json spots): fish, or move on
+	POIStepMine           POIStepType = "mine"            // A rock face (Seam): work it, or move on
 )
 
 // POIRequirement gates a node, choice, or whole POI/encounter/quest.
@@ -160,6 +161,8 @@ type POIStep struct {
 	Lock *Lock `json:"lock,omitempty"`
 	// Spot is a fishing node's spot id in fishing.json.
 	Spot string `json:"spot,omitempty"`
+	// Seam is a mine node's rock face.
+	Seam *Seam `json:"seam,omitempty"`
 	// Attempts / CooldownMinutes limit a check node's retries: after Attempts
 	// failures in a row the check can't be tried again for CooldownMinutes of
 	// game time. Zero takes the defaults (see poi.CheckAttempts).

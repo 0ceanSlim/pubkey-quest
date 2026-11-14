@@ -118,6 +118,7 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	}
 	deps.Locks = poiLocks{sess}
 	deps.Fishing = poiFishing{sess}
+	deps.Mining = poiMining{sess}
 
 	// A check that's used up its tries stays shut until its cooldown runs out:
 	// no roll, and the walk ends here.

@@ -81,6 +81,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, fishIssues...)
 	}
 
+	// Validate mining.json
+	if mineIssues, err := ValidateMining(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, mineIssues...)
+	}
+
 	// Validate starting gear
 	if gearIssues, err := ValidateStartingGear(); err != nil {
 		return nil, err

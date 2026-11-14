@@ -5,7 +5,7 @@
   "image": "/res/img/items/pick-miners.png",
   "name": "Pickaxe",
   "notes": [
-    "Needed to mine ore at mining spots."
+    "Needed to work a rock face at a mining seam: each face takes half an hour and a strong back."
   ],
   "value": 200,
   "rarity": "common",
@@ -15,5 +15,9 @@
     "tool"
   ],
   "type": "Tools",
-  "weight": 10
+  "weight": 10,
+  "mining": {
+    "tier": 1,
+    "swings": 0
+  }
 }

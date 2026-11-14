@@ -5,6 +5,7 @@ import (
 
 	"pubkey-quest/cmd/server/game/fishing"
 	"pubkey-quest/cmd/server/game/locks"
+	"pubkey-quest/cmd/server/game/mining"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
@@ -96,6 +97,10 @@ type GameSession struct {
 	// Exertion is hard work toward the next point of fatigue (status.Exert),
 	// shared by fishing and mining. Session-only.
 	Exertion int `json:"-"`
+
+	// Seams is the faces worked at each mine node today (memory only; see
+	// game/mining).
+	Seams mining.Memory `json:"-"`
 
 	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
 	// time_of_day) of the last biome encounter, so they can't fire back-to-back.

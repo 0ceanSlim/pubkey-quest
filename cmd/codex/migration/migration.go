@@ -1438,6 +1438,7 @@ func migrateSystemsFiles() error {
 		"condition.json",
 		"cooking.json",
 		"fishing.json",
+		"mining.json",
 	}
 
 	count := 0

@@ -2,6 +2,19 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-13-mining-seams",
+      "when": "November 13, 2026",
+      "icon": "⛏️",
+      "size": "minor",
+      "title": "Mining seams have faces",
+      "summary": "The Ironvein Seam is no longer endless: it has three faces to work each day, each takes half an hour of hard work and tires you, and a good face pays a little XP along with the ore.",
+      "highlights": [
+        "Each seam has a few faces a day; once they're worked out, come back tomorrow",
+        "Working a face is an Athletics roll, takes 30 minutes and adds up to fatigue",
+        "A face worked well gives a little XP on top of the ore"
+      ]
+    },
+    {
       "id": "2026-11-13-fishing",
       "when": "November 13, 2026",
       "icon": "🎣",

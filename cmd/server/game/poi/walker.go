@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"pubkey-quest/cmd/server/game/locks"
+	"pubkey-quest/cmd/server/game/mining"
 
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/game/skillcheck"
@@ -86,6 +87,8 @@ type Deps struct {
 	// Fishing names a fishing node's spot for its "Fish here" choice (nil: the
 	// node only lets you move on).
 	Fishing FishingDeps
+	// Mining works a mine node's faces (nil: the node only lets you move on).
+	Mining MiningDeps
 	// ChangeFatigue raises (or lowers) the fatigue stat — an effect node whose
 	// id is FatigueEffect.
 	ChangeFatigue func(save *types.SaveFile, amount int)
@@ -114,6 +117,27 @@ type FishingDeps interface {
 	SpotName(spot string) string
 	CantFish(spot string) string
 }
+
+// MiningDeps is what a mine node needs: its seam with the tier defaults filled
+// in, how many faces are left today, why you can't work it ("" when you can),
+// and a quick roll at a face (which uses the face, passes time and pays its
+// XP and exertion). The walker grants the quick loot on a success.
+type MiningDeps interface {
+	Seam(s types.Seam) types.Seam
+	FacesLeft(node string, s types.Seam) int
+	CantMine(s types.Seam) string
+	Quick(node string, s types.Seam) MineResult
+	QuickMinutes() int
+}
+
+// MineResult is one quick roll at a face.
+type MineResult struct {
+	Success bool
+	Lines   []string
+}
+
+// MineQuick is a mine node's quick-work sub-step.
+const MineQuick = "#quick"
 
 // FishHere is a fishing node's "Fish here" sub-step: the client opens the
 // fishing window rather than advancing, so on the server it re-presents the node.
@@ -264,6 +288,9 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 
 	case types.POIStepFishing:
 		resolveFishing(node, nodeID, deps, &res)
+
+	case types.POIStepMine:
+		resolveMine(node, nodeID, save, deps, &res)
 	}
 
 	if node.IsTerminal {
@@ -542,6 +569,40 @@ func resolveFishing(node types.POIStep, nodeID string, deps Deps, res *StepResul
 			res.Outcome = appendOnce(res.Outcome, why)
 		} else {
 			res.Choices = append(res.Choices, Choice{Label: "Fish " + name, Next: base + FishHere})
+		}
+	}
+	if node.Next != "" {
+		res.Choices = append(res.Choices, Choice{Label: "Move on", Next: node.Next})
+	} else {
+		res.Terminal = len(res.Choices) == 0
+	}
+}
+
+// resolveMine plays a mine node: "#quick" works a face with one Athletics
+// roll (ore on a success); the node offers that while faces are left today,
+// and moving on to Next.
+func resolveMine(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps, res *StepResult) {
+	base := BaseNode(nodeID)
+	action := strings.TrimPrefix(nodeID, base)
+	if node.Seam != nil && deps.Mining != nil {
+		seam := deps.Mining.Seam(*node.Seam)
+		why := deps.Mining.CantMine(seam)
+		left := deps.Mining.FacesLeft(base, seam)
+		if action == MineQuick && why == "" && left > 0 {
+			r := deps.Mining.Quick(base, seam)
+			res.Outcome = append(res.Outcome, r.Lines...)
+			if r.Success {
+				res.Outcome = append(res.Outcome, grantLoot(mining.QuickLoot(seam), save, deps)...)
+			}
+			left = deps.Mining.FacesLeft(base, seam)
+		}
+		switch {
+		case left == 0:
+			res.Outcome = appendOnce(res.Outcome, "The face is worked out. Come back tomorrow.")
+		case why != "":
+			res.Outcome = appendOnce(res.Outcome, why)
+		default:
+			res.Choices = append(res.Choices, Choice{Label: mining.Describe(seam, deps.Mining.QuickMinutes(), left), Next: base + MineQuick})
 		}
 	}
 	if node.Next != "" {

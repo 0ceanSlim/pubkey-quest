@@ -350,6 +350,13 @@ func (c *schemaChecker) checkNode(nodeID string, n types.POIStep, localNPCs map[
 		if !SpotExists(n.Spot) {
 			c.errf("fishing node spot %q isn't a spot in fishing.json", n.Spot)
 		}
+	case types.POIStepMine:
+		for _, p := range SeamProblems(n.Seam) {
+			c.errf("%s", p)
+		}
+		if n.Seam != nil {
+			c.checkLootTable(n.Seam.QuickLoot)
+		}
 	case types.POIStepNPCInteraction:
 		for _, id := range n.NPCIDs {
 			if id == "" {
