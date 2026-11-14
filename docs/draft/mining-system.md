@@ -73,8 +73,9 @@ mithral and adamantine turn up.
 
 - **The Flooded Mine** grows into the first one: today's shaft bottom becomes level 1, the
   water passage leads to level 2 (the Potion of Water Breathing finally has a dig-site use).
-- Two more proposed: **Rimehollow Delve** (Frozen Wastes, moonstone and sapphire, cold
-  hazards) and **The Glass Pits** (Sunscorch, obsidian and topaz, heat and gas).
+- Two more: **Rimehollow Delve** (Frozen Wastes, moonstone and sapphire, cold hazards) and
+  **The Glass Pits** (Sunscorch, obsidian and topaz, heat and gas). Both are stubs until gems
+  land (§11).
 - Hazards are ordinary POI nodes (checks, damage, effects, fatigue); only the faces are new.
   Bad air: a Resolve check or +2 fatigue. Flooding: water breathing, an Athletics check, or
   turn back. Gas near a naked flame: a Perception check to notice it, else fire damage.
@@ -251,7 +252,7 @@ Mining uses the `gems.json` machinery (gem draft §2) with **tier in place of CR
 ### The roster
 | Ore | Tier | Value | Weight | Found | Uses |
 |---|---|---|---|---|---|
-| Copper ore *(exists)* | 1 | 25 | 1 | surface | sell; dwarven-pick commission (the head is bronze-banded); lantern and tool repair at the general smiths |
+| Copper ore *(exists)* | 1 | 25 | 1 | surface | sell; dwarven-pick commission (the head is bronze-banded); repair material for copper- and brass-fitted gear: lights, tools, riveted armor (§11) |
 | Iron ore *(exists)* | 1 | 40 | 1 | surface, deep 1–2 | sell; Forgemistress repair (1 per 25% wear); every commission |
 | Deepiron ore *(new)* | 3 | 300 | 2 | deep 2–3, rare in Rimewall | sell; deepiron pick; the Forgemistress takes it for heavy-armor repair at a discount |
 | Mithral ore *(new)* | 4 | 2,500 | 1 | deep 3 only | mithral armor commission (beta) |
@@ -282,7 +283,7 @@ new engine.
 
 ### Quests
 - Fetch objectives already count items you obtain, so "bring 10 iron ore" works today.
-- Natural hooks: an Ironpeak supply order (repeatable daily, the innkeeper roll), a missing
+- Natural hooks: an Ironpeak ore order (a vault-keeper daily in the shared pool), a missing
   miner in the Flooded Mine, the Forgemistress's first commission as a tutorial for the
   dwarven pick, a jeweller asking for a specific uncut gem type.
 - A new `mine` event (one per face worked, with the tier) would let quests ask for "work 3
@@ -330,18 +331,30 @@ share:
 - **Art needed:** ~8 rock tiles, a crack overlay, ore chunks for the three new ores, two pick
   sprites, a geode sprite.
 
-## 11. Still open
+## 11. Decided (2026-11-13)
 
-1. **Numbers:** the tier table, swings and soundings formulas, cave-in damage, the economy
-   targets. All are data; settle them in play.
-2. **Copper's second use:** dwarven pick + light repairs, or something better?
-3. **Deep-mine roster:** grow the Flooded Mine, plus Rimehollow and the Glass Pits, or
-   different places?
-4. **Mithral and adamantine pricing** and which armors they apply to.
-5. **Party mining:** each member works their own face from a shared daily count, or one face
-   per party? (The party-quests work is next on the list anyway.)
-6. **Discovery XP only?** No XP per face is the proposal (it keeps mining from becoming the
-   best way to level).
+1. **Numbers** (tier table, swings and soundings, cave-in damage, economy targets) stay data,
+   tuned in play.
+2. **Copper is a repair material.** Besides the dwarven-pick commission, smiths take copper
+   ore for gear with copper or brass in it: lanterns and lamps, picks and other tools, and the
+   riveted armors (studded leather, scale, ring). Iron ore stays the material for the rest of
+   the metal. Which item takes which ore is data in `condition.json`'s `repair` block (built
+   with slice 7, next to pick wear).
+3. **Deep mines:** the Flooded Mine is built out to all three levels. **Rimehollow Delve** and
+   **The Glass Pits** are only stubbed until gems land, since gems are their whole draw
+   (noted in `gem-system.md` §2).
+4. **Mithral and adamantine** go on medium and heavy armor except hide, as in 5e. The ore cost
+   is a flat count per armor class, not by weight (weight made plate absurd: about 110,000
+   gold of adamantine): **4 ore for medium armor, 6 for heavy, 8 for plate**, plus the base
+   armor and a fee. Beta, with the other magic items.
+5. **Party mining:** each member works their own face, from their own daily count. Nobody
+   watches someone else play the puzzle.
+6. **XP:** a worked face gives a **little XP on success**, scaled by tier, and the same now holds
+   for fishing (each landed fish, by size). Both stay low sources and both cost you: game
+   time, and **exertion** that adds up to fatigue (`status.Exert`, shared with fishing). A
+   failed or collapsed face gives none. Discovery XP and quests still pay the most.
+7. **The mining daily** is an ordinary vault-keeper daily, one more entry in the rotating
+   daily pool like the fish order (not an innkeeper roll, and not an extra daily on top).
 
 ## 12. Build slices
 
@@ -353,8 +366,8 @@ share:
    rules.
 4. **Content:** the five new surface seams, the three new ores, geodes (once gems land).
 5. **Commissions:** the dwarven and deepiron picks at the Forgemistress.
-6. **Deep mines:** the Flooded Mine levels, then the other two.
-7. **With degradation:** pick wear and repair; lights burning while you mine.
+6. **Deep mines:** the Flooded Mine levels; Rimehollow and the Glass Pits as stubs, filled in with gems.
+7. **With degradation:** pick wear and repair; copper as a repair material; lights burning while you mine.
 8. **Beta:** gear commissions, mithral and adamantine armor.
 
 Each slice that players notice gets an entry in `www/res/updates.json`.

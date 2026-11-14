@@ -155,6 +155,9 @@ gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 
   numbers: tune by editing the curves and re-running the generator.
 
 - **Mining POIs** (Ironvein Seam etc.), mostly uncut low-value gems (quartz to amethyst).
+- **Deep mines** (`mining-system.md` §2): the Flooded Mine ships with mining. **Rimehollow
+  Delve** (moonstone, sapphire) and **The Glass Pits** (obsidian, topaz) are stubs until this
+  system lands, and get filled in as part of it: their gem tables are their whole reason to go.
 - **Geodes:** an item you crack open (`dwarven-geode-cache` encounter) for a random gem.
 - **Treasure:** strongboxes, boss hoards, quest rewards (a quest can reward a specific gem).
 
@@ -348,7 +351,8 @@ such as random enchant strengths or durability. Those were ruled out today.
 
 1. **Generator:** migration expands `gems.json` into uncut and cut gem items, with value,
    rarity-from-value, tags, and sprite path + size scale. Replaces `rough-gem`.
-2. **Gem drops:** the shared table on every kill (plus mining POIs).
+2. **Gem drops:** the shared table on every kill (plus mining POIs), and fill in the
+   Rimehollow Delve and Glass Pits deep-mine stubs.
 3. **Tag requirements:** dialogue `requirements.items` / `consume_items` accept a tag. The
    Ember Vault rite asks for any 2 uncut gems.
 4. **Jeweller cutting:** NPC + `cut_gem` dialogue action (quality rolled at the cut).
