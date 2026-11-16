@@ -8,6 +8,7 @@ import (
 	mrand "math/rand"
 	"strings"
 
+	"pubkey-quest/cmd/server/game/gems"
 	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/types"
 )
@@ -21,9 +22,11 @@ import (
 // accepted move bumps Version; a move carrying an old version is refused, so a
 // replayed or doubled request can't grant ore or cost time twice.
 //
-// The session decides what happened; the caller applies it (time, ore into the
-// pack, cave-in damage, pick wear, exertion and XP when the face is done). Gem
-// cells and prying wait for the gem generator (gem-system.md slice 1).
+// The session decides what happened; the caller applies it (time, ore and gems
+// into the pack, cave-in damage, pick wear, exertion and XP when the face is
+// done). A gem cell holds one rough gem (gems.json mining, by tier and the
+// seam's leaning) or a geode: struck blind, a gem chips a size down; once a
+// cell beside it is broken it glints, and prying it frees it whole.
 
 // Status is where a face stands.
 type Status string
@@ -39,6 +42,7 @@ const (
 const (
 	cellRock  = "rock"
 	cellOre   = "ore"
+	cellGem   = "gem"
 	cellFault = "fault"
 )
 
@@ -64,14 +68,14 @@ const (
 
 // Action is one move.
 type Action struct {
-	Kind string `json:"act"` // "sound" | "strike" | "stop"
+	Kind string `json:"act"` // "sound" | "strike" | "pry" | "stop"
 	Cell int    `json:"cell"`
 }
 
 // Outcome is what a move did, for the caller to apply.
 type Outcome struct {
 	Minutes int
-	Items   map[string]int // ore broken out, into the pack
+	Items   map[string]int // ore and gems broken out, into the pack
 	Damage  int            // a cave-in
 	Wear    int            // wear points on the pick
 	Ended   bool           // the face is done (status says how)
@@ -80,7 +84,9 @@ type Outcome struct {
 
 type cell struct {
 	kind    string
-	ore     string
+	ore     string // the ore, or a gem cell's item (a rough gem or a geode)
+	gem     gems.Gem
+	glitter bool // sounded well beside a gem
 	hard    bool
 	cracked bool
 	broken  bool
@@ -184,6 +190,7 @@ func (s *Session) layout(seam types.Seam) {
 			c = s.emptyNeighbour(c)
 		}
 	}
+	s.layGems(seam)
 	for f := s.between(s.Tier.Faults); f > 0; f-- {
 		if c := s.emptyCell(); c >= 0 {
 			s.cells[c].kind = cellFault
@@ -194,6 +201,53 @@ func (s *Session) layout(seam types.Seam) {
 			s.cells[i].hard = true
 		}
 	}
+}
+
+// layGems hides the gem cells: the seam's own count or the tier's, each a
+// rough gem of the seam's leaning or (now and then) a geode.
+func (s *Session) layGems(seam types.Seam) {
+	gc := gems.Config()
+	if len(gc.Types) == 0 {
+		return
+	}
+	count, leaning := s.Tier.Gems, map[string]int(nil)
+	if seam.Gems != nil {
+		leaning = seam.Gems.Types
+		if seam.Gems.Cells[1] > 0 {
+			count = seam.Gems.Cells
+		}
+	}
+	for n := s.between(count); n > 0; n-- {
+		c := s.emptyCell()
+		if c < 0 {
+			return
+		}
+		if s.rng.Float64() < gc.Mining.GeodeShare {
+			s.cells[c].kind, s.cells[c].ore = cellGem, types.GeodeID
+			continue
+		}
+		g, ok := gems.ForFace(gc, s.Tier.Tier, leaning, -1, s.rng)
+		if !ok {
+			return
+		}
+		s.cells[c].kind, s.cells[c].ore, s.cells[c].gem = cellGem, g.ID(), g
+	}
+}
+
+// exposed reports whether a cell has a broken neighbour (a gem in it glints).
+func (s *Session) exposed(i int) bool {
+	for _, n := range s.around(i) {
+		if s.cells[n].broken {
+			return true
+		}
+	}
+	return false
+}
+
+// glints reports whether you can see a gem in an unbroken cell.
+func (s *Session) glints(i int) bool {
+	c := s.cells[i]
+	return c.kind == cellGem && !c.broken && !s.Dark && s.exposed(i)
 }
 
 func (s *Session) between(r [2]int) int {
@@ -299,6 +353,10 @@ func (s *Session) Act(a Action, version int, names func(string) string) (Outcome
 		if err := s.strike(a.Cell, &out, names); err != nil {
 			return out, err
 		}
+	case "pry":
+		if err := s.pry(a.Cell, &out, names); err != nil {
+			return out, err
+		}
 	default:
 		return out, fmt.Errorf("unknown move %q", a.Kind)
 	}
@@ -335,12 +393,23 @@ func (s *Session) sound(i int, out *Outcome) error {
 		return nil
 	}
 	c.read, c.thud = true, false
+	nearGem := false
 	for _, n := range s.around(i) {
-		if s.cells[n].kind == cellOre {
+		switch s.cells[n].kind {
+		case cellOre:
 			c.ring++
+		case cellGem:
+			c.ring++
+			nearGem = nearGem || !s.cells[n].broken
 		}
 	}
 	line := fmt.Sprintf("Tap... it rings %d. (Perception %d vs %d)", c.ring, r.Total, r.DC)
+	// A sharp ear (Perception +2 and up) sometimes catches a gem nearby: 15%
+	// a point above +1, at most 60%.
+	if mod := skillcheck.Modifier(s.Perception); nearGem && mod >= 2 && s.rng.Float64() < min(0.15*float64(mod-1), 0.6) {
+		c.glitter = true
+		line += " Something glitters nearby."
+	}
 	if c.kind == cellFault {
 		c.hollow = true
 		line += " It sounds hollow!"
@@ -379,6 +448,9 @@ func (s *Session) strike(i int, out *Outcome, names func(string) string) error {
 	case c.kind == cellOre && !s.pickCuts(c.ore):
 		c.tooHard = true
 		out.Lines = append(out.Lines, fmt.Sprintf("Your pick skids off the %s. It's too hard for it.", strings.ToLower(names(c.ore))))
+	case c.kind == cellGem:
+		c.broken = true
+		s.strikeGem(c, out, names)
 	case crackFirst:
 		c.cracked = true
 		out.Lines = append(out.Lines, "Hard rock. It cracks; one more strike.")
@@ -395,6 +467,50 @@ func (s *Session) strike(i int, out *Outcome, names func(string) string) error {
 		out.Lines = append(out.Lines, "Rock. Nothing in it.")
 	}
 	return nil
+}
+
+// strikeGem is a gem cell struck blind: a geode comes out whole, but a gem
+// chips a size down, and a tiny one is lost.
+func (s *Session) strikeGem(c *cell, out *Outcome, names func(string) string) {
+	if c.ore == types.GeodeID {
+		addItem(out, c.ore, 1)
+		out.Lines = append(out.Lines, fmt.Sprintf("Your pick knocks a lump of rock loose: a %s!", strings.ToLower(names(c.ore))))
+		return
+	}
+	gc := gems.Config()
+	i := gems.SizeIndex(gc, c.gem.Size)
+	if i <= 0 {
+		c.ore = ""
+		out.Lines = append(out.Lines, fmt.Sprintf("Something bright shatters under your pick: a tiny %s, now dust.", strings.ToLower(gc.Types[c.gem.Type].Name)))
+		return
+	}
+	chipped := c.gem
+	chipped.Size = gc.Sizes[i-1].ID
+	c.ore = chipped.ID()
+	addItem(out, c.ore, 1)
+	out.Lines = append(out.Lines, fmt.Sprintf("Your pick catches a gem and chips it: %s. Prying it would have freed it whole.", names(c.ore)))
+}
+
+// pry frees a glinting gem whole: a swing's time and wear.
+func (s *Session) pry(i int, out *Outcome, names func(string) string) error {
+	c := &s.cells[i]
+	if !s.glints(i) {
+		return fmt.Errorf("you can't see a gem there to pry")
+	}
+	s.Swings--
+	out.Minutes += s.cfg.Rules.SwingMinutes
+	out.Wear += max(s.cfg.Rules.WearPerStrike, 1)
+	c.broken = true
+	addItem(out, c.ore, 1)
+	out.Lines = append(out.Lines, fmt.Sprintf("You work the point of your pick around it and it drops into your hand: %s!", names(c.ore)))
+	return nil
+}
+
+func addItem(out *Outcome, id string, n int) {
+	if out.Items == nil {
+		out.Items = map[string]int{}
+	}
+	out.Items[id] += n
 }
 
 // caveIn brings the face down: the tier's d6s, halved by an Athletics check.
@@ -423,10 +539,16 @@ func (s *Session) View(names func(string) string) map[string]any {
 		case c.broken:
 			v["state"] = "broken"
 			v["kind"] = c.kind
-			if c.kind == cellOre {
+			if c.kind == cellOre || (c.kind == cellGem && c.ore != "") {
 				v["ore"], v["ore_name"] = c.ore, names(c.ore)
 			}
 		default:
+			if s.glints(i) {
+				v["glint"] = true
+			}
+			if c.glitter {
+				v["glitter"] = true
+			}
 			if c.read {
 				v["state"], v["ring"] = "sounded", c.ring
 			} else if c.thud {

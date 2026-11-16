@@ -33,7 +33,14 @@
               2
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "amethyst": 2,
+            "citrine": 2,
+            "quartz": 1
+          }
+        }
       },
       "next": "leave"
     },

@@ -17,6 +17,7 @@
   ],
   "type": "Tools",
   "weight": 10,
+  "use_on": "crack",
   "mining": {
     "tier": 1,
     "swings": 0

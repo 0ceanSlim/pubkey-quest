@@ -58,14 +58,25 @@
               2
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "moonstone": 3,
+            "quartz": 2,
+            "sapphire": 1
+          }
+        }
       },
       "next": "way-down"
     },
     "way-down": {
       "type": "choice",
-      "text": "Beyond the face the delve drops away down a shaft choked with fallen ice. Nobody's getting deeper until it's cleared.",
+      "text": "Beyond the face the delve drops away down a shaft glazed with ice. Far below, your light catches on something pale and gleaming.",
       "choices": [
+        {
+          "label": "Climb down the ice shaft.",
+          "next": "depths-entry"
+        },
         {
           "label": "Work the face again.",
           "next": "face"
@@ -73,6 +84,112 @@
         {
           "label": "Climb back out.",
           "next": "leave"
+        }
+      ]
+    },
+    "depths-entry": {
+      "type": "narrative",
+      "requirements": [
+        {
+          "type": "light",
+          "description": "You need a light."
+        },
+        {
+          "type": "item",
+          "id": "rope",
+          "description": "The shaft is sheer ice: you need a rope."
+        }
+      ],
+      "failure_text": "The shaft is sheer ice, straight down. You'd need a rope, and a light, to get down there.",
+      "failure_next": "way-down",
+      "text": "You tie off your rope to an old iron ring in the wall and lower yourself into the dark.",
+      "next": "depths-climb"
+    },
+    "depths-climb": {
+      "type": "check",
+      "skill": "athletics",
+      "dc": 13,
+      "text": "Halfway down the rope stiffens with frost and your hands start to slip.",
+      "success_text": "You lock your legs round the rope and work your way down to the floor.",
+      "success_next": "depths-cold",
+      "failure_text": "Your grip goes and you drop the last stretch onto the ice.",
+      "failure_next": "depths-fall"
+    },
+    "depths-fall": {
+      "type": "damage",
+      "text": "You land hard on the ice.",
+      "damage": {
+        "type": "bludgeoning",
+        "amount": 4
+      },
+      "next": "depths-cold"
+    },
+    "depths-cold": {
+      "type": "effect",
+      "text": "The Rime Galleries are colder than the ice above: a cold that bites through furs and settles in your chest.",
+      "effect": {
+        "id": "fatigue",
+        "amount": 1
+      },
+      "next": "depths-mephits"
+    },
+    "depths-mephits": {
+      "type": "monster",
+      "monster_id": "ice-mephit",
+      "count": 2,
+      "text": "Two shapes of jagged ice peel themselves off the gallery wall, cackling.",
+      "next": "depths-face"
+    },
+    "depths-face": {
+      "text": "The old dwarves' deepest face, rimed with frost. Deepiron runs through it in dark bands, and pale moonstone and blue sapphire glitter in the ice-bound rock: the reason they dug this far.",
+      "type": "mine",
+      "seam": {
+        "tier": 3,
+        "faces_per_day": 2,
+        "underground": true,
+        "ores": [
+          {
+            "item": "iron-ore",
+            "weight": 40,
+            "quantity": [
+              1,
+              3
+            ]
+          },
+          {
+            "item": "deepiron-ore",
+            "weight": 60,
+            "quantity": [
+              1,
+              2
+            ]
+          }
+        ],
+        "gems": {
+          "types": {
+            "moonstone": 4,
+            "sapphire": 2,
+            "quartz": 2
+          },
+          "cells": [
+            1,
+            3
+          ]
+        }
+      },
+      "next": "depths-junction"
+    },
+    "depths-junction": {
+      "type": "choice",
+      "text": "The gallery ends in a wall of solid ice. The only way out is back up the rope.",
+      "choices": [
+        {
+          "label": "Work the face again.",
+          "next": "depths-face"
+        },
+        {
+          "label": "Climb back up.",
+          "next": "way-down"
         }
       ]
     },

@@ -25,7 +25,14 @@
               3
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "malachite": 4,
+            "amber": 2,
+            "emerald": 1
+          }
+        }
       },
       "next": "leave"
     },

@@ -17,6 +17,7 @@ import (
 	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gametime"
+	"pubkey-quest/cmd/server/game/gems"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/mining"
 	"pubkey-quest/cmd/server/game/poi"
@@ -205,12 +206,40 @@ func (p poiMining) Quick(node string, s types.Seam) poi.MineResult {
 	res := poi.MineResult{Success: r.Success, Lines: []string{poi.RollLine("athletics", r)}}
 	if r.Success {
 		res.Lines = append(res.Lines, "The rock splits along the vein and the ore comes free.")
+		res.Lines = append(res.Lines, p.quickGem(s)...)
 		res.Lines = append(res.Lines, faceXP(state, s.Tier)...)
 	} else {
 		res.Lines = append(res.Lines, "You hack at the face for half an hour and break nothing but rock.")
 	}
 	res.Lines = append(res.Lines, tired...)
 	return res
+}
+
+// quickGem is a quick roll's chance of a rough gem (gems.json mining): the
+// seam's leaning, no bigger than quick_max_size.
+func (p poiMining) quickGem(s types.Seam) []string {
+	gc := gems.Config()
+	rng := mineRng()
+	if rng.Float64() >= gc.Mining.QuickChance {
+		return nil
+	}
+	var leaning map[string]int
+	if s.Gems != nil {
+		leaning = s.Gems.Types
+	}
+	g, ok := gems.ForFace(gc, s.Tier, leaning, gems.SizeIndex(gc, gc.Mining.QuickMaxSize), rng)
+	if !ok {
+		return nil
+	}
+	state := &p.sess.SaveData
+	line := fmt.Sprintf("Something glints in the broken rock: a %s!", strings.ToLower(itemDisplayName(g.ID())))
+	if added, _ := inventory.AddItemToInventory(state, g.ID(), 1); added == 0 {
+		p.sess.Ground.Add(world.GroundKey(state), g.ID(), 1)
+		line += " Your pack is full, so it goes on the ground."
+	} else {
+		noteAcquired(state, g.ID())
+	}
+	return []string{line}
 }
 
 // ─── Veins: the face as a minigame ───────────────────────────────────────────

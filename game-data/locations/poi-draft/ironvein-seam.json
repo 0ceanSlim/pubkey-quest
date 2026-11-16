@@ -65,6 +65,12 @@
               "entries": []
             }
           ]
+        },
+        "gems": {
+          "types": {
+            "quartz": 3,
+            "jasper": 2
+          }
         }
       },
       "next": "leave"

@@ -13,7 +13,7 @@ import (
 
 // Using a tool on an item (degradation §6, "the Use on… picker"): a tool's
 // "use_on" names what it does to other items: "light" for the tinderbox,
-// "fuel" for oil, "sharpen" for the whetstone, "mend" for the crafting kit and "salt" for salt. UseTargets lists the items you carry it works on (the client
+// "fuel" for oil, "sharpen" for the whetstone, "mend" for the crafting kit, "salt" for salt and "crack" for a pick (a geode). UseTargets lists the items you carry it works on (the client
 // shows them in a small box); UseOn does it. One pattern for every tool, and it
 // never offers a pair that does nothing.
 
@@ -89,6 +89,9 @@ func UseTargets(state *types.SaveFile, toolID string) []UseTarget {
 	if use == "salt" {
 		return saltTargets(state)
 	}
+	if use == "crack" {
+		return geodeTargets(state)
+	}
 	eachCarried(state, func(ref SlotRef, slot map[string]interface{}) {
 		id, _ := slot["item"].(string)
 		name := condition.ItemName(id)
@@ -130,6 +133,8 @@ func UseOn(state *types.SaveFile, toolID string, ref SlotRef) (*types.GameAction
 		return fieldRepair(state, toolID, use, slot), nil
 	case "salt":
 		return saltIt(state, slot), nil
+	case "crack":
+		return crackGeode(state, toolID, slot), nil
 	case "light":
 		if condition.LightOf(id) == nil {
 			return refuse("That doesn't light."), nil

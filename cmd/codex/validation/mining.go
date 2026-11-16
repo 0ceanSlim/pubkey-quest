@@ -78,6 +78,7 @@ func SeamProblems(s *types.Seam) []string {
 	if len(s.Ores) == 0 && s.QuickLoot == nil {
 		out = append(out, "seam has no ores and no quick_loot")
 	}
+	out = append(out, SeamGemProblems(s.Gems)...)
 	for _, o := range s.Ores {
 		if !itemHasTag(o.Item, "ore") {
 			out = append(out, fmt.Sprintf("seam ore %q isn't an item tagged \"ore\"", o.Item))

@@ -1,0 +1,19 @@
+{
+  "id": "geode",
+  "name": "Geode",
+  "description": "A lumpy, rough-skinned stone, heavier than it looks. Shake it and nothing rattles, but there's a hairline crack, and something in it catches the light.",
+  "type": "Treasure",
+  "value": 500,
+  "rarity": "common",
+  "stack": 10,
+  "weight": 2,
+  "image": "/res/img/items/geode.png",
+  "tags": [
+    "treasure",
+    "geode"
+  ],
+  "notes": [
+    "Crack it open with a pickaxe (the pick's \"Crack a geode…\") for the rough gem inside. Takes 10 minutes and wears the pick a little.",
+    "Found in the rock at mining seams."
+  ]
+}

@@ -25,7 +25,13 @@
               2
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "bloodstone": 3,
+            "malachite": 2
+          }
+        }
       },
       "next": "leave"
     },

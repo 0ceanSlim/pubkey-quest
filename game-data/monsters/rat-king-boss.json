@@ -99,6 +99,7 @@
   "bonus_actions": [],
   "reactions": [],
   "legendary_actions": [],
+  "gem_chance": 0.75,
   "loot_table": {
     "guaranteed": [
       { "item": "gold-piece", "quantity": [50, 400] }

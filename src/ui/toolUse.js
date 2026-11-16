@@ -22,7 +22,7 @@ export function itemField(item, name) {
     return item?.[name] ?? item?.properties?.[name];
 }
 
-const TOOL_VERBS = { light: 'Light…', sharpen: 'Sharpen…', mend: 'Mend…', salt: 'Salt…' };
+const TOOL_VERBS = { light: 'Light…', sharpen: 'Sharpen…', mend: 'Mend…', salt: 'Salt…', crack: 'Crack a geode…' };
 
 /** The tool's verb: the tinderbox "Light…", the whetstone "Sharpen…", the crafting kit "Mend…", anything else "Use on…". */
 export function toolLabel(item) {
@@ -116,6 +116,7 @@ export async function openToolPicker(toolId) {
         const use = itemField(tool, 'use_on');
         showMessage(use === 'light' ? "You've nothing to light."
             : use === 'salt' ? "You've no raw meat or fish to salt."
+            : use === 'crack' ? "You've no geode to crack."
             : use === 'sharpen' || use === 'mend' ? `Nothing of yours needs the ${tool?.name ?? toolId}: field repair only goes up to Worn.`
             : `There's nothing to use the ${tool?.name ?? toolId} on.`, 'info');
         return;

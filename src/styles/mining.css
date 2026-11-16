@@ -58,6 +58,20 @@
 @keyframes mn-hit { 50% { filter: brightness(1.8); } }
 
 .mn-ring { pointer-events: none; }
+.mn-gem { width: 26px; height: 26px; image-rendering: pixelated; pointer-events: none; }
+.mn-cell.glint { border-color: #c9b98f #5a4f3f #5a4f3f #c9b98f; }
+.mn-glint {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    font-size: 12px;
+    color: #fff6c8;
+    text-shadow: 0 0 3px #fff;
+    pointer-events: none;
+    animation: mn-glint 1.4s steps(4) infinite;
+}
+@keyframes mn-glint { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .mn-glint { animation: none; } }
 .mn-chunk { width: 20px; height: 14px; border: 2px solid #000; pointer-events: none; }
 .mn-tag {
     position: absolute;

@@ -33,7 +33,14 @@
               3
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "obsidian": 4,
+            "turquoise": 3,
+            "topaz": 1
+          }
+        }
       },
       "next": "leave"
     },

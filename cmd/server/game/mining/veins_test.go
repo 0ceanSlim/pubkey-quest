@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"pubkey-quest/cmd/server/game/gems"
 	"pubkey-quest/types"
 )
 
@@ -228,5 +229,71 @@ func TestNoSoundingInTheDark(t *testing.T) {
 	// Swinging blind still works.
 	if _, err := s.Act(Action{Kind: "strike", Cell: 0}, 0, name); err != nil {
 		t.Fatalf("strike in the dark: %v", err)
+	}
+}
+
+// gemFace is a face whose seam leans to rubies, with two gem cells.
+func gemFace(t *testing.T, seed int64) *Session {
+	t.Helper()
+	gc, err := gems.LoadFile("../../../../game-data/systems/gems.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	gc.Mining.GeodeShare = 0
+	gems.SetConfig(gc)
+	t.Cleanup(func() { gems.SetConfig(&types.GemsConfig{}) })
+	seam := testSeam("iron-ore")
+	seam.Gems = &types.SeamGems{Types: map[string]int{"ruby": 1}, Cells: [2]int{2, 2}}
+	s, err := NewSession(testCfg(), "seam", "face", "Test Seam", seam, Pick{Tier: 1}, 12, 12, rand.New(rand.NewSource(seed)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return s
+}
+
+// A gem glints once a cell beside it is broken, and prying frees it whole; in
+// the dark it doesn't show and can't be pried.
+func TestPryAGlintingGem(t *testing.T) {
+	s := gemFace(t, 3)
+	g := s.find(func(c cell) bool { return c.kind == cellGem })
+	if g < 0 || s.cells[g].gem.Type != "ruby" {
+		t.Fatalf("no ruby cell: %+v", s.cells)
+	}
+	if _, err := s.Act(Action{Kind: "pry", Cell: g}, s.Version, name); err == nil {
+		t.Fatal("pried a gem nobody can see")
+	}
+	s.cells[s.around(g)[0]].broken = true
+	if v := s.View(name)["cells"].([]map[string]any)[g]; v["glint"] != true {
+		t.Fatalf("an exposed gem should glint: %v", v)
+	}
+	s.Dark = true
+	if _, err := s.Act(Action{Kind: "pry", Cell: g}, s.Version, name); err == nil {
+		t.Fatal("pried in the dark")
+	}
+	s.Dark = false
+	want := s.cells[g].ore
+	out, err := s.Act(Action{Kind: "pry", Cell: g}, s.Version, name)
+	if err != nil || out.Items[want] != 1 || out.Wear == 0 || out.Minutes == 0 {
+		t.Fatalf("pry: %+v %v", out, err)
+	}
+}
+
+// Struck blind, a gem chips a size down; a tiny one is lost.
+func TestStrikingAGemChipsIt(t *testing.T) {
+	s := gemFace(t, 5)
+	g := s.find(func(c cell) bool { return c.kind == cellGem })
+	s.cells[g].gem.Size = "small"
+	out, err := s.Act(Action{Kind: "strike", Cell: g}, s.Version, name)
+	if err != nil || out.Items[types.UncutGemID("ruby", "tiny")] != 1 {
+		t.Fatalf("strike: %+v %v", out, err)
+	}
+	g2 := s.find(func(c cell) bool { return c.kind == cellGem && !c.broken })
+	s.cells[g2].gem.Size = "tiny"
+	out, err = s.Act(Action{Kind: "strike", Cell: g2}, s.Version, name)
+	if err != nil || len(out.Items) != 0 {
+		t.Fatalf("a tiny gem struck blind should be lost: %+v %v", out, err)
+	}
+	if v := s.View(name)["cells"].([]map[string]any)[g2]; v["ore"] != nil {
+		t.Fatalf("a shattered gem shows as %v", v)
 	}
 }

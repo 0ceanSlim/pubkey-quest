@@ -81,6 +81,7 @@
   "bonus_actions": [],
   "reactions": [],
   "legendary_actions": [],
+  "gem_chance": 0.45,
   "loot_table": {
     "guaranteed": [],
     "rolls": 1,

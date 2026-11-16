@@ -13,6 +13,7 @@ import (
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/encounter"
 	"pubkey-quest/cmd/server/game/events"
+	"pubkey-quest/cmd/server/game/gems"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/types"
 )
@@ -1393,6 +1394,12 @@ func killRewards(cs *types.CombatSession, monster *types.MonsterInstance, save *
 		distributePartyLoot(cs, monster, members)
 	} else {
 		members[0].Loot = append(members[0].Loot, RollLoot(monster.Data.LootTable)...)
+	}
+	// A gem, rough (gems.json drops): one roll per kill, by CR, to someone in
+	// the fight.
+	if gem := gems.ForKill(gems.Config(), &monster.Data, gems.Global); gem != "" {
+		who := members[rand.Intn(len(members))]
+		who.Loot = appendOrStack(who.Loot, types.LootDrop{Item: gem, Quantity: 1})
 	}
 
 	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on

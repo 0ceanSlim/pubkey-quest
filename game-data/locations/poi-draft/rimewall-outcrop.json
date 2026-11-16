@@ -33,7 +33,14 @@
               1
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "moonstone": 3,
+            "quartz": 2,
+            "sapphire": 1
+          }
+        }
       },
       "next": "leave"
     },

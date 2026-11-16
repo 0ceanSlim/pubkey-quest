@@ -389,7 +389,14 @@
               3
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "quartz": 2,
+            "onyx": 2,
+            "garnet": 1
+          }
+        }
       },
       "next": "adit-junction"
     },
@@ -544,7 +551,15 @@
               2
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "onyx": 2,
+            "garnet": 2,
+            "alexandrite": 1,
+            "ruby": 1
+          }
+        }
       },
       "next": "galleries-junction"
     },
@@ -650,7 +665,16 @@
               1
             ]
           }
-        ]
+        ],
+        "gems": {
+          "types": {
+            "garnet": 2,
+            "ruby": 2,
+            "emerald": 1,
+            "sapphire": 1,
+            "diamond": 1
+          }
+        }
       },
       "next": "deeps-way-out"
     },

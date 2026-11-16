@@ -9,8 +9,10 @@
  * can't count twice.
  *
  * Controls: pick a tool (Tap = sound, Swing = strike; T / S), then click or tap
- * a cell. Stop (Esc / ×) steps back with what you have. In the dark (no light
- * underground, or at night) there's no Tap: you swing blind.
+ * a cell. A gem glints once a cell beside it is broken: clicking it pries it
+ * out whole, whatever the tool (a swing would only chip it). Stop (Esc / ×)
+ * steps back with what you have. In the dark (no light underground, or at
+ * night) there's no Tap and no glint: you swing blind.
  *
  * @module ui/mining
  */
@@ -111,7 +113,9 @@ function setTool(tool) {
 function cellLabel(c, i, w) {
     const pos = `row ${Math.floor(i / w) + 1}, column ${(i % w) + 1}`;
     if (c.state === 'broken') return `${pos}: broken${c.ore_name ? `, ${c.ore_name}` : c.kind === 'fault' ? ', a fault' : ''}`;
+    if (c.glint) return `${pos}: a gem glints here, pry it out`;
     const bits = [];
+    if (c.glitter) bits.push('something glitters nearby');
     if (c.state === 'sounded') bits.push(`rings ${c.ring}`);
     if (c.thud) bits.push('a dull thud');
     if (c.hollow) bits.push('hollow');
@@ -144,19 +148,27 @@ function render(flash = {}) {
         if (c.cracked) cls.push('cracked');
         if (c.hollow) cls.push('hollow');
         if (c.thud) cls.push('thud');
+        if (c.glint) cls.push('glint');
         if (flash.cell === i) cls.push('hit');
         b.className = cls.join(' ');
         b.setAttribute('aria-label', cellLabel(c, i, w));
         let inner = '';
         if (c.state === 'sounded') inner += `<span class="mn-ring">${c.ring}</span>`;
-        if (c.state === 'broken' && c.ore) inner += `<span class="mn-chunk" style="background:${ORE_COLOURS[c.ore] || '#9a8f80'}"></span>`;
+        if (c.state === 'broken' && c.ore && c.kind === 'gem') {
+            inner += `<img class="mn-gem" src="/res/img/items/${esc(c.ore)}.png" alt="">`;
+        } else if (c.state === 'broken' && c.ore) {
+            inner += `<span class="mn-chunk" style="background:${ORE_COLOURS[c.ore] || '#9a8f80'}"></span>`;
+        }
+        if (c.glint) inner += '<span class="mn-glint" aria-hidden="true">✦</span>';
         const tags = [];
+        if (c.glint) tags.push('pry');
+        if (c.glitter) tags.push('glitters');
         if (c.hollow) tags.push('hollow');
         if (c.too_hard) tags.push('too hard');
         if (tags.length) inner += `<span class="mn-tag">${tags.join(' ')}</span>`;
         b.innerHTML = inner;
-        b.disabled = !active || open.busy || c.state === 'broken' || (open.tool === 'sound' && c.state === 'sounded');
-        b.addEventListener('click', () => act(open.tool, i));
+        b.disabled = !active || open.busy || c.state === 'broken' || (open.tool === 'sound' && c.state === 'sounded' && !c.glint);
+        b.addEventListener('click', () => act(c.glint ? 'pry' : open.tool, i));
         grid.appendChild(b);
     });
     grid.classList.toggle('shake', !!flash.shake);
@@ -254,7 +266,7 @@ async function act(kind, cell = -1) {
         close();
         return;
     }
-    render({ cell: kind === 'strike' ? cell : -1, shake: cracked });
+    render({ cell: kind === 'strike' || kind === 'pry' ? cell : -1, shake: cracked });
 }
 
 function onKey(e) {
