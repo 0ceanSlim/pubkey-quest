@@ -65,13 +65,14 @@ func ValidateGems() ([]Issue, error) {
 		return issues, nil
 	}
 	for id, t := range cfg.Types {
-		if strings.Contains(id, "-") {
-			add("error", "types."+id, "a gem type id can't contain \"-\" (it's part of the item id)")
+		if t.Name == "" || t.BaseValue <= 0 || (t.DropRate <= 0 && !t.Natural) {
+			add("error", "types."+id, "needs a name, a base_value and a drop_rate (a natural gem needs none)")
 		}
-		if t.Name == "" || t.BaseValue <= 0 || t.DropRate <= 0 {
-			add("error", "types."+id, "needs a name, a base_value and a drop_rate")
+		imgs := []string{"gem-" + id, "ring-" + id, "necklace-" + id}
+		if !t.Natural {
+			imgs = append(imgs, "gem-"+id+"-uncut")
 		}
-		for _, img := range []string{"gem-" + id, "gem-" + id + "-uncut", "ring-" + id, "necklace-" + id} {
+		for _, img := range imgs {
 			if _, err := os.Stat(filepath.Join("www", "res", "img", "items", img+".png")); err != nil {
 				add("warning", "types."+id, "no sprite %s.png", img)
 			}
@@ -82,6 +83,9 @@ func ValidateGems() ([]Issue, error) {
 	}
 	prev := 0.0
 	for _, s := range cfg.Sizes {
+		if strings.Contains(s.ID, "-") {
+			add("error", "sizes."+s.ID, "a size id can't contain \"-\" (it's part of the item id)")
+		}
 		if s.Multiplier <= prev || s.DropRate <= 0 || s.CutFee <= 0 {
 			add("error", "sizes."+s.ID, "multipliers must grow, and every size needs a drop_rate and a cut_fee")
 		}
@@ -89,6 +93,9 @@ func ValidateGems() ([]Issue, error) {
 	}
 	total := 0.0
 	for _, q := range cfg.Qualities {
+		if strings.Contains(q.ID, "-") || q.ID == "uncut" {
+			add("error", "qualities."+q.ID, "a quality id can't contain \"-\" or be \"uncut\" (it's part of the item id)")
+		}
 		if q.Multiplier <= 0 || q.DropRate < 0 || q.Name == "" {
 			add("error", "qualities."+q.ID, "needs a name, a multiplier and a drop_rate")
 		}
@@ -126,6 +133,25 @@ func ValidateGems() ([]Issue, error) {
 	if m.GeodeTier < 1 || m.CrackMinutes <= 0 {
 		add("error", "mining", "geode_tier and crack_minutes must be positive")
 	}
+	for item, sf := range cfg.Pearls.Shellfish {
+		if strings.HasPrefix(item, "_") {
+			continue
+		}
+		if _, err := os.Stat(filepath.Join("game-data", "items", item+".json")); err != nil {
+			add("error", "pearls.shellfish."+item, "no item %q", item)
+		}
+		if sf.Chance <= 0 || sf.Chance > 1 || sf.SizeTilt <= 0 {
+			add("error", "pearls.shellfish."+item, "chance must be 0–1 and size_tilt positive")
+		}
+		if sf.MaxSize != "" && gems.SizeIndex(cfg, sf.MaxSize) < 0 {
+			add("error", "pearls.shellfish."+item+".max_size", "%q isn't a size", sf.MaxSize)
+		}
+		for t, w := range sf.Types {
+			if gt, ok := cfg.Types[t]; !ok || !gt.Natural || w <= 0 {
+				add("error", "pearls.shellfish."+item+".types."+t, "must be a natural gem type with a positive weight")
+			}
+		}
+	}
 	j := cfg.Jeweller
 	if _, err := os.Stat(npcFile(j.NPC)); err != nil {
 		add("error", "jeweller.npc", "no NPC %q", j.NPC)
@@ -159,8 +185,10 @@ func SeamGemProblems(g *types.SeamGems) []string {
 	}
 	var out []string
 	for t, w := range g.Types {
-		if _, ok := cfg.Types[t]; !ok {
+		if gt, ok := cfg.Types[t]; !ok {
 			out = append(out, fmt.Sprintf("seam gem type %q isn't in gems.json", t))
+		} else if gt.Natural {
+			out = append(out, fmt.Sprintf("seam gem type %q is natural: it isn't found in rock", t))
 		}
 		if w <= 0 {
 			out = append(out, fmt.Sprintf("seam gem type %q needs a positive weight", t))

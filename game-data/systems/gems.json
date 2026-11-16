@@ -1,5 +1,5 @@
 {
-  "description": "Gems (docs/draft/gem-system.md). Generated at --migrate into items: gem-<type>-<size>-uncut, gem-<type>-<size>-<quality>, and ring-/necklace-<type>-<size>-<quality>. A gem's value is base_value x the size multiplier (x the quality multiplier once cut); its rarity follows the value. Curves are [x, value] points, interpolated log-linearly between points and held flat past the ends. type_tilt and size_tilt reweight the type and size rolls: weight = drop_rate x tilt ^ log10(base_value / 1000) for types, and drop_rate x tilt ^ log10(multiplier) for sizes. A tilt of 1 leaves the base drop_rates alone; below 1 favours cheap/small gems, above 1 valuable/large ones.",
+  "description": "Gems (docs/draft/gem-system.md). Generated at --migrate into items: gem-<type>-<size>-uncut, gem-<type>-<size>-<quality>, and ring-/necklace-<type>-<size>-<quality>. A natural type (pearls) has no rough form: it is found with its quality and never rolls from kills or rock. A gem's value is base_value x the size multiplier (x the quality multiplier once cut); its rarity follows the value. Curves are [x, value] points, interpolated log-linearly between points and held flat past the ends. type_tilt and size_tilt reweight the type and size rolls: weight = drop_rate x tilt ^ log10(base_value / 1000) for types, and drop_rate x tilt ^ log10(multiplier) for sizes. A tilt of 1 leaves the base drop_rates alone; below 1 favours cheap/small gems, above 1 valuable/large ones.",
   "types": {
     "diamond": {
       "name": "Diamond",
@@ -58,8 +58,14 @@
     "pearl": {
       "name": "Pearl",
       "base_value": 10000,
-      "drop_rate": 0.08,
-      "description": "Lustrous sphere formed in oysters and mussels"
+      "natural": true,
+      "description": "A lustrous white sphere grown inside an oyster or a mussel"
+    },
+    "black-pearl": {
+      "name": "Black Pearl",
+      "base_value": 50000,
+      "natural": true,
+      "description": "A dark pearl with a green and violet sheen, grown inside an oyster"
     },
     "bloodstone": {
       "name": "Bloodstone",
@@ -236,6 +242,23 @@
     "geode_tier": 2,
     "crack_minutes": 10,
     "crack_wear": 2
+  },
+  "pearls": {
+    "_comment": "Pearls: natural gems, never rough or cut, found by opening shellfish (shucked with a dagger, or eaten). Per shellfish item: the chance of a pearl, which pearls (weights), the size tilt (as above) and the largest size. Its quality is rolled when it's found.",
+    "shellfish": {
+      "oyster": {
+        "chance": 0.06,
+        "types": { "pearl": 9, "black-pearl": 1 },
+        "size_tilt": 0.3,
+        "max_size": "large"
+      },
+      "mussels": {
+        "chance": 0.02,
+        "types": { "pearl": 1 },
+        "size_tilt": 0.2,
+        "max_size": "small"
+      }
+    }
   },
   "jeweller": {
     "_comment": "Cutting costs the size's cut_fee and reveals the quality (rolled at the cut). Setting a cut gem takes the piece's gold plus labour x the cut gem's value; the piece is worth its gold plus the gem.",

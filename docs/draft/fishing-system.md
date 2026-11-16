@@ -35,7 +35,9 @@ draft; the rest of the draft stands as written.
 - **Barbarian Fishing** doesn't take the salmon from you: hand-ins by tag wait for tag
   requirements (gem slice 3).
 - **Finn mounts every huge fish you carry** in one go, paying each fee while your gold lasts.
-- **Not yet:** pearls in oysters (gems), the message in a bottle revealing a POI (it's a
+- **Pearls** (gem-system.md §2): shuck an oyster or mussels with a dagger, or eat them, and
+  one may hold a pearl.
+- **Not yet:** the message in a bottle revealing a POI (it's a
   curio for now), the fishing animation speed setting, spearfishing (parked), and the
   completion/highscore store (fishing only records the event).
 
@@ -179,7 +181,7 @@ Tide pools and net hauls also turn up these (simple items, no sizes):
 |---|---|---|
 | shore crab | sea shallows | sells; food use is the food workshop's call |
 | mussels | sea shallows | cut bait; food use is the food workshop's call |
-| oyster | sea shallows | **open it:** 4% a tiny uncut pearl, 0.5% a small one (gem system ids) |
+| oyster | sea shallows | **shuck or eat it:** 6% a pearl, 1 in 10 of them black (gems.json `pearls`) |
 | dry branch | river, lake, swamp | it *is* an unlit `torch` (the find just says how you got it) |
 | old boot | any | junk; sells for 1 gold; Finn has a story about it |
 | message in a bottle | sea, rare | a lore note, sometimes revealing a POI on the map (discovery) |

@@ -77,7 +77,9 @@ func (g *gen) loadFamilies() {
 		for _, t := range gems.SortedTypes(cfg) {
 			f := &family{page: "Items/gem-" + t, name: cfg.Types[t].Name, image: "/res/img/items/gem-" + t + ".png", kind: "Treasure"}
 			for _, s := range cfg.Sizes {
-				f.members = append(f.members, types.UncutGemID(t, s.ID))
+				if !cfg.Types[t].Natural {
+					f.members = append(f.members, types.UncutGemID(t, s.ID))
+				}
 				for _, q := range cfg.Qualities {
 					f.members = append(f.members, types.CutGemID(t, s.ID, q.ID))
 					for _, p := range types.GemPieces {
@@ -240,6 +242,9 @@ func (g *gen) fishPage(cfg *types.FishingConfig, sid string) string {
 
 func (g *gen) gemPage(cfg *types.GemsConfig, t string) string {
 	gt := cfg.Types[t]
+	if gt.Natural {
+		return g.pearlPage(cfg, t)
+	}
 	f := g.families["Items/gem-"+t]
 	var b strings.Builder
 	imgs := []string{g.image("/res/img/items/gem-"+t+"-uncut.png", "Rough "+gt.Name, 64), g.image(f.image, gt.Name, 64)}
@@ -269,14 +274,7 @@ func (g *gen) gemPage(cfg *types.GemsConfig, t string) string {
 	}
 	b.WriteString("At the cut: " + strings.Join(qual, ", ") + ".\n\n")
 
-	j := cfg.Jeweller
-	var pieces []string
-	for _, p := range types.GemPieces {
-		pc := j.Pieces[p]
-		pieces = append(pieces, fmt.Sprintf("a %s takes %s", strings.ToLower(pc.Name), gold(pc.Gold)))
-	}
-	b.WriteString(fmt.Sprintf("## Jewelry\n\n%s cuts rough gems and sets cut ones in gold: %s, and her work costs %d%% of the gem's value. The piece is worth its gold and its gem together.\n\n",
-		g.npcLink(j.NPC), strings.Join(pieces, ", "), int(math.Round(j.Labour*100))))
+	g.jewelrySection(&b, cfg)
 
 	type face struct {
 		tier int
@@ -304,6 +302,85 @@ func (g *gen) gemPage(cfg *types.GemsConfig, t string) string {
 		g.itemLink(types.GeodeID) + " cracked open with a pick may hold one too.\n\n")
 	g.memberBullets(&b, f)
 	return b.String()
+}
+
+// jewelrySection is the jeweller's terms for setting a gem.
+func (g *gen) jewelrySection(b *strings.Builder, cfg *types.GemsConfig) {
+	j := cfg.Jeweller
+	var pieces []string
+	for _, p := range types.GemPieces {
+		pc := j.Pieces[p]
+		pieces = append(pieces, fmt.Sprintf("a %s takes %s", strings.ToLower(pc.Name), gold(pc.Gold)))
+	}
+	b.WriteString(fmt.Sprintf("## Jewelry\n\n%s cuts rough gems and sets cut ones and pearls in gold: %s, and her work costs %d%% of the gem's value. The piece is worth its gold and its gem together.\n\n",
+		g.npcLink(j.NPC), strings.Join(pieces, ", "), int(math.Round(j.Labour*100))))
+}
+
+// pearlPage is a natural gem's page: found with its quality, in shellfish.
+func (g *gen) pearlPage(cfg *types.GemsConfig, t string) string {
+	gt := cfg.Types[t]
+	f := g.families["Items/gem-"+t]
+	var b strings.Builder
+	b.WriteString(strings.TrimSpace(g.image(f.image, gt.Name, 64)) + "\n\n")
+	b.WriteString("_" + gt.Description + "._\n\n")
+	b.WriteString("A pearl is never cut: it's found as it is, and its quality shows from the start. " +
+		"Its value is its type's, times its size, times its quality.\n\n")
+
+	qualName := func(q types.GemQuality) string {
+		if q.ID == "standard" {
+			return "Standard"
+		}
+		return q.Name
+	}
+	head := []string{"Size", "Carats"}
+	for _, q := range cfg.Qualities {
+		head = append(head, qualName(q))
+	}
+	var rows [][]string
+	for _, s := range cfg.Sizes {
+		row := []string{s.Name, fmt.Sprintf("%s–%s", num(s.Carats[0]), num(s.Carats[1]))}
+		for _, q := range cfg.Qualities {
+			row = append(row, gold(gems.Value(cfg, gems.Gem{Type: t, Size: s.ID, Quality: q.ID})))
+		}
+		rows = append(rows, row)
+	}
+	b.WriteString("## Values\n\n")
+	table(&b, head, rows)
+	var qual []string
+	for _, q := range cfg.Qualities {
+		qual = append(qual, fmt.Sprintf("%s %d%%", strings.ToLower(qualName(q)), int(math.Round(q.DropRate*100))))
+	}
+	b.WriteString("As found: " + strings.Join(qual, ", ") + ".\n\n")
+	g.jewelrySection(&b, cfg)
+
+	var from []string
+	for _, item := range sortedKeys(cfg.Pearls.Shellfish) {
+		sf := cfg.Pearls.Shellfish[item]
+		total, w := 0, sf.Types[t]
+		for _, n := range sf.Types {
+			total += n
+		}
+		if w <= 0 || total == 0 {
+			continue
+		}
+		line := fmt.Sprintf("%s: %s of them hold one", g.itemLink(item), percent(sf.Chance*float64(w)/float64(total)))
+		if i := gems.SizeIndex(cfg, sf.MaxSize); i >= 0 {
+			line += fmt.Sprintf(", %s at most", strings.ToLower(cfg.Sizes[i].Name))
+		}
+		from = append(from, line)
+	}
+	bullets(&b, "Found in", from)
+	b.WriteString("Shuck one with a " + g.itemLink("dagger") + " to look inside, or find out when you eat it.\n\n")
+	g.memberBullets(&b, f)
+	return b.String()
+}
+
+// percent writes a chance as a percentage ("6%", "0.6%").
+func percent(p float64) string {
+	if p >= 0.1 {
+		return fmt.Sprintf("%d%%", int(math.Round(p*100)))
+	}
+	return fmt.Sprintf("%s%%", strings.TrimSuffix(strings.TrimRight(fmt.Sprintf("%.2f", p*100), "0"), "."))
 }
 
 func contains(xs []string, s string) bool {

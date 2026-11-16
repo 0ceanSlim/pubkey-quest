@@ -13,6 +13,9 @@ import (
 //   - gem-<type>-<size>-<quality>: the cut gem;
 //   - ring-/necklace-<type>-<size>-<quality>: a cut gem set in gold.
 //
+// A natural type (pearls) has no rough gem: gem-pearl-<size>-<quality> is how
+// it's found.
+//
 // One sprite per type serves every size and quality ("sprite"); "image" is the
 // id's own path, which the server answers with the sprite (routes/sprites.go),
 // and the client sizes it and makes it shine from the id (src/styles/gems.css).
@@ -20,7 +23,9 @@ func Items(c *types.GemsConfig) []map[string]any {
 	var out []map[string]any
 	for _, t := range SortedTypes(c) {
 		for _, s := range c.Sizes {
-			out = append(out, gemItem(c, Gem{Type: t, Size: s.ID}))
+			if !c.Types[t].Natural {
+				out = append(out, gemItem(c, Gem{Type: t, Size: s.ID}))
+			}
 			for _, q := range c.Qualities {
 				cut := Gem{Type: t, Size: s.ID, Quality: q.ID}
 				out = append(out, gemItem(c, cut))
@@ -50,7 +55,8 @@ func qualityOf(c *types.GemsConfig, g Gem) types.GemQuality {
 }
 
 // Name is a gem's or piece's display name: "Rough Ruby (small)", "Fine Ruby
-// (small)", "Ruby Ring (small, fine)".
+// (small)", "Ruby Ring (small, fine)". A standard pearl is just "Pearl
+// (small)": "Cut" means nothing on a pearl.
 func Name(c *types.GemsConfig, g Gem) string {
 	t := c.Types[g.Type].Name
 	size := strings.ToLower(sizeOf(c, g).Name)
@@ -61,6 +67,8 @@ func Name(c *types.GemsConfig, g Gem) string {
 			qual = ", " + strings.ToLower(qualityOf(c, g).Name)
 		}
 		return fmt.Sprintf("%s %s (%s%s)", t, c.Jeweller.Pieces[g.Piece].Name, size, qual)
+	case g.Cut() && c.Types[g.Type].Natural && g.Quality == "standard":
+		return fmt.Sprintf("%s (%s)", t, size)
 	case g.Cut():
 		return fmt.Sprintf("%s %s (%s)", qualityOf(c, g).Name, t, size)
 	}
@@ -76,8 +84,11 @@ func trimFloat(f float64) string {
 	return strings.TrimSuffix(strings.TrimRight(fmt.Sprintf("%.1f", f), "0"), ".")
 }
 
-func gemTags(g Gem) []string {
+func gemTags(c *types.GemsConfig, g Gem) []string {
 	tags := []string{"treasure", "gem", "gem-" + g.Type, "size-" + g.Size}
+	if c.Types[g.Type].Natural {
+		return append(tags, "natural", "quality-"+g.Quality)
+	}
 	if g.Cut() {
 		return append(tags, "cut", "quality-"+g.Quality)
 	}
@@ -96,15 +107,21 @@ func gemItem(c *types.GemsConfig, g Gem) map[string]any {
 		"stack":     10,
 		"weight":    0,
 		"image":     "/res/img/items/" + g.ID() + ".png",
-		"tags":      gemTags(g),
+		"tags":      gemTags(c, g),
 		"gem":       map[string]any{"type": g.Type, "size": g.Size, "quality": g.Quality},
 		"generated": true,
+	}
+	if t.Natural {
+		item["description"] = fmt.Sprintf("%s: %s.", t.Description, carats(s))
+		item["sprite"] = "/res/img/items/gem-" + g.Type + ".png"
+		item["notes"] = []string{qualityNote(qualityOf(c, g), "pearl"), "Found as it is: it needs no cutting. A jeweller sets it in a gold ring or necklace."}
+		return item
 	}
 	if g.Cut() {
 		q := qualityOf(c, g)
 		item["description"] = fmt.Sprintf("%s, cut and polished: %s.", t.Description, carats(s))
 		item["sprite"] = "/res/img/items/gem-" + g.Type + ".png"
-		item["notes"] = []string{qualityNote(q), "A jeweller sets it in a gold ring or necklace."}
+		item["notes"] = []string{qualityNote(q, "cut"), "A jeweller sets it in a gold ring or necklace."}
 		return item
 	}
 	item["description"] = fmt.Sprintf("%s, still in its rough skin: %s.", t.Description, carats(s))
@@ -116,15 +133,16 @@ func gemItem(c *types.GemsConfig, g Gem) map[string]any {
 	return item
 }
 
-// qualityNote is what a quality means for the price.
-func qualityNote(q types.GemQuality) string {
+// qualityNote is what a quality means for the price, against a standard one
+// of its kind ("cut", "pearl").
+func qualityNote(q types.GemQuality, kind string) string {
 	switch {
 	case q.Multiplier == 1:
-		return "A standard cut."
+		return "A standard " + kind + "."
 	case q.Multiplier == 0.5:
-		return q.Name + ": worth half a standard cut."
+		return fmt.Sprintf("%s: worth half a standard %s.", q.Name, kind)
 	}
-	return fmt.Sprintf("%s: worth %s× a standard cut.", q.Name, trimFloat(q.Multiplier))
+	return fmt.Sprintf("%s: worth %s× a standard %s.", q.Name, trimFloat(q.Multiplier), kind)
 }
 
 func pieceItem(c *types.GemsConfig, g Gem) map[string]any {

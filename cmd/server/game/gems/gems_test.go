@@ -34,11 +34,13 @@ func TestIDsRoundTrip(t *testing.T) {
 			t.Fatalf("%s: value %v, item says %v", id, Value(c, g), it["value"])
 		}
 	}
-	// 20 types × 5 sizes × (1 uncut + 4 cut × (1 + 2 pieces)).
-	if len(seen) != 20*5*(1+4*3) {
+	// 19 types × 5 sizes × (1 uncut + 4 cut × (1 + 2 pieces)), and the two
+	// pearls, which are never uncut.
+	if len(seen) != 19*5*(1+4*3)+2*5*4*3 {
 		t.Fatalf("%d items", len(seen))
 	}
-	for _, bad := range []string{"gem-ruby-small", "gem-rubyx-small-fine", "ring-ruby-small-uncut", "gem-ruby-vast-fine", "hat-ruby-small-fine"} {
+	for _, bad := range []string{"gem-ruby-small", "gem-rubyx-small-fine", "ring-ruby-small-uncut", "gem-ruby-vast-fine", "hat-ruby-small-fine",
+		"gem-pearl-small-uncut", "gem-black-pearl-small-uncut", "gem-black-small-fine"} {
 		if _, ok := Parse(c, bad); ok {
 			t.Fatalf("%s parsed", bad)
 		}
@@ -136,5 +138,41 @@ func TestForFaceLeaningAndCap(t *testing.T) {
 	}
 	if counts["standard"] < 4500 || counts["flawless"] > 700 || counts["flawless"] == 0 {
 		t.Errorf("qualities %v", counts)
+	}
+}
+
+func TestPearls(t *testing.T) {
+	c := testCfg(t)
+	if g, ok := Parse(c, "ring-black-pearl-medium-fine"); !ok || g.Type != "black-pearl" || g.Piece != "ring" || g.Quality != "fine" {
+		t.Fatalf("parsed %+v", g)
+	}
+	for _, tilt := range []float64{0.5, 1, 5} {
+		for typ := range TypeWeights(c, tilt, map[string]int{"pearl": 5, "ruby": 1}) {
+			if c.Types[typ].Natural {
+				t.Fatalf("%s in a rock or kill roll", typ)
+			}
+		}
+	}
+	rng := rand.New(rand.NewSource(2))
+	found := map[string]int{}
+	for range 20000 {
+		g, ok := ForShellfish(c, "oyster", rng)
+		if !ok {
+			continue
+		}
+		if !c.Types[g.Type].Natural || g.Quality == "" || SizeIndex(c, g.Size) > SizeIndex(c, c.Pearls.Shellfish["oyster"].MaxSize) {
+			t.Fatalf("rolled %+v", g)
+		}
+		found[g.Type]++
+	}
+	n := found["pearl"] + found["black-pearl"]
+	if n < 900 || n > 1500 || found["black-pearl"] == 0 || found["black-pearl"] > n/5 {
+		t.Errorf("20,000 oysters gave %v", found)
+	}
+	if _, ok := ForShellfish(c, "trout", rng); ok {
+		t.Error("a trout held a pearl")
+	}
+	if got := Name(c, Gem{Type: "pearl", Size: "small", Quality: "standard"}); got != "Pearl (small)" {
+		t.Errorf("name %q", got)
 	}
 }

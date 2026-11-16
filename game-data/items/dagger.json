@@ -9,7 +9,8 @@
   "notes": [
     "Finesse: uses the better of Strength or Dexterity.",
     "Light: with another light weapon, you can attack off-hand as a bonus action.",
-    "Can be thrown up to 2 tiles; a thrown weapon is used up."
+    "Can be thrown up to 2 tiles; a thrown weapon is used up.",
+    "Shucks oysters and mussels: some hold a pearl."
   ],
   "value": 200,
   "range": "2",
@@ -25,5 +26,6 @@
     "thrown"
   ],
   "type": "Simple Melee Weapons",
+  "use_on": "shuck",
   "weight": 1
 }

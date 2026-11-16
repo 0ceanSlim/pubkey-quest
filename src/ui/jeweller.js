@@ -58,7 +58,7 @@ function render(el, data) {
     }
     let html = '';
     if (rough.length) html += `<div class="jw-head2">Rough: cut to see what it is</div>` + rough.map((r) => roughRow(r, data.gold)).join('');
-    if (cut.length) html += `<div class="jw-head2">Cut: set in gold</div>` + cut.map((r) => cutRow(r, data.gold)).join('');
+    if (cut.length) html += `<div class="jw-head2">Cut gems and pearls: set in gold</div>` + cut.map((r) => cutRow(r, data.gold)).join('');
     list.innerHTML = html;
     const rows = [...rough, ...cut];
     list.querySelectorAll('.jw-row').forEach((rowEl, i) => {

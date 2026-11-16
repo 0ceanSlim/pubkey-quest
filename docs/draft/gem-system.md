@@ -37,7 +37,7 @@ Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting 
 
 | Axis | Values | What it drives |
 |---|---|---|
-| **Type** | 20 types, quartz (1,000) … diamond (500,000) | base value; the **affinity** (what it enchants into, §4) |
+| **Type** | 21 types, quartz (1,000) … diamond (500,000), two of them pearls | base value; the **affinity** (what it enchants into, §4) |
 | **Size** | derived from **weight in carats** | value multiplier; **power** of an enchant (§4); sprite scale (§6) |
 | **Quality** | flawed · standard · fine · flawless | value multiplier; **ease of enchanting** (§4) |
 | **State** | uncut · cut | uncut is a trade good; cut is needed to set into jewelry (§3) |
@@ -105,6 +105,14 @@ Huge is ×100 by decision, so a huge flawless diamond is 500,000 × 100 × 4 = *
 gold**. That's deliberately astronomical at a 0.5% size roll × 1% type roll × 5% flawless.
 
 ## 2. Where gems come from
+
+- **Pearls are natural gems (decided 2026-11-16).** The white pearl (10,000) and the black
+  pearl (50,000) have `"natural": true`: no rough form and no cutting, a quality from the
+  moment they're found (flawed to flawless, on the same shares as the wheel), and never in a
+  kill's or a rock face's roll. They come from shellfish, per `gems.json` → `pearls.shellfish`:
+  an oyster holds one 6% of the time (1 in 10 of them black, up to large), mussels 2%
+  (white only, up to small). Shuck one with a dagger (`"use_on": "shuck"`) to look, or
+  bite on it when you eat it raw. Nissa sets them like cut gems.
 
 - **Monster kills: one shared gem table, overridable per monster.** No monster JSON has a gem
   entry today (31 checked), so a shared table is the base:
@@ -204,6 +212,7 @@ Each step is an ordinary NPC dialogue action, like the vault rite: `requirements
 | 5,000 | jasper | **Endurance:** stamina/rage pool, fatigue resistance |
 | 5,000 | bloodstone | **Vitality:** HP regen, healing received |
 | 10,000 | pearl | **Grace:** CHA, water breathing |
+| 50,000 | black pearl | **Grace, deeper** (to author with slice 6) |
 | 10,000 | amber | **Stillness:** lightning resistance |
 | 10,000 | amethyst | **Clarity:** WIS, resist charm/fright |
 | 50,000 | topaz | **Swiftness:** DEX, lightning damage |
@@ -287,7 +296,10 @@ charges, anything that degrades.
 
 ## 6. Sprites
 
-One sprite per type, plus an uncut variant per type, so 40 images. The **UI scales the
+One sprite per type, plus an uncut variant per type except the pearls, so 40 images
+(plus a ring and a necklace per type). The cut and rough shapes are the user's picks from
+generated candidates, recoloured per gem (2026-11-16); the black pearl is the white one
+recoloured. The **UI scales the
 sprite by size** (tiny 0.5× … huge 1.1×) and adds a shimmer overlay by quality. No extra
 art per size or quality.
 

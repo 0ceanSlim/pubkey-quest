@@ -5,7 +5,7 @@ import "fmt"
 // Gems config (docs/draft/gem-system.md), mirrors game-data/systems/gems.json.
 // Gems are generated items, not files: every type × size becomes an uncut gem,
 // every type × size × quality a cut one, and each cut gem a ring and a necklace
-// (game/gems.Items, run by --migrate).
+// (game/gems.Items, run by --migrate). A natural type (pearls) has no uncut gem.
 
 // GemsConfig is gems.json.
 type GemsConfig struct {
@@ -15,6 +15,7 @@ type GemsConfig struct {
 	Drops     GemDrops           `json:"drops"`
 	Mining    GemMining          `json:"mining"`
 	Jeweller  GemJeweller        `json:"jeweller"`
+	Pearls    GemPearls          `json:"pearls"`
 }
 
 // GemType is one kind of gem.
@@ -23,6 +24,9 @@ type GemType struct {
 	BaseValue   int     `json:"base_value"` // a medium, standard gem, in gold
 	DropRate    float64 `json:"drop_rate"`  // weight in the type roll
 	Description string  `json:"description"`
+	// Natural gems (pearls) are found finished: no rough form, a quality
+	// from the moment they're found, and never in a kill's or a rock's roll.
+	Natural bool `json:"natural,omitempty"`
 }
 
 // GemSize is a size band.
@@ -72,6 +76,21 @@ type GemMining struct {
 	GeodeTier    int `json:"geode_tier"`
 	CrackMinutes int `json:"crack_minutes"`
 	CrackWear    int `json:"crack_wear"`
+}
+
+// GemPearls is where pearls come from: shellfish, by item id ("oyster").
+type GemPearls struct {
+	Shellfish map[string]GemShellfish `json:"shellfish"`
+}
+
+// GemShellfish is one shellfish's pearls: the chance one holds a pearl,
+// which (weights by type), how big (a size tilt, as GemDrops') and the
+// largest size it can be.
+type GemShellfish struct {
+	Chance   float64        `json:"chance"`
+	Types    map[string]int `json:"types"`
+	SizeTilt float64        `json:"size_tilt"`
+	MaxSize  string         `json:"max_size"`
 }
 
 // GemJeweller is the jeweller's trade: cutting, and setting a cut gem in gold.

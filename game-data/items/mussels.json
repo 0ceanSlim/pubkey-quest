@@ -18,7 +18,8 @@
   "notes": [
     "Keeps you fed 1 hour. Eaten raw, it may give you food poisoning (Constitution save, DC 10).",
     "Works as cut bait.",
-    "Spoils in 12 hours."
+    "Spoils in 12 hours.",
+    "May hold a pearl: shuck it with a dagger, or find out when you eat it."
   ],
   "food": {
     "hours": 1,

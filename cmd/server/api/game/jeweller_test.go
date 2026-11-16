@@ -120,3 +120,45 @@ func TestCrackAGeode(t *testing.T) {
 		t.Fatalf("expected one rough gem, found %d: %s", found, r.Message)
 	}
 }
+
+// A wielded dagger shucks an oyster; the pearl inside comes with its quality,
+// and Nissa sets it without cutting it.
+func TestShuckAndSetAPearl(t *testing.T) {
+	old := gems.Config()
+	sure := *old
+	sure.Pearls.Shellfish = map[string]types.GemShellfish{"oyster": {Chance: 1, Types: map[string]int{"black-pearl": 1}, SizeTilt: 1, MaxSize: "tiny"}}
+	gems.SetConfig(&sure)
+	defer gems.SetConfig(old)
+
+	sess := bazaarSession(t, carrying("oyster", 1), carrying("gold-piece", 10000))
+	state := &sess.SaveData
+	gear := state.Inventory["gear_slots"].(map[string]interface{})
+	gear["mainhand"] = map[string]interface{}{"item": "dagger", "quantity": 1}
+	r := fishAction(t, sess, "use_targets", map[string]any{"item_id": "dagger"})
+	targets, _ := r.Data["targets"].([]inventory.UseTarget)
+	if len(targets) != 1 || targets[0].ItemID != "oyster" {
+		t.Fatalf("targets: %+v", r.Data)
+	}
+	r = fishAction(t, sess, "use_on", map[string]any{"item_id": "dagger", "slot_type": targets[0].Type, "slot": targets[0].Index})
+	if !r.Success || gameutil.CountItem(state, "oyster") != 0 || !strings.Contains(r.Message, "black pearl") {
+		t.Fatalf("shuck: %+v", r)
+	}
+	var pearl string
+	for _, id := range gameutil.CarriedItemIDs(state) {
+		if strings.HasPrefix(id, "gem-black-pearl-tiny-") {
+			pearl = id
+		}
+	}
+	if pearl == "" {
+		t.Fatalf("no pearl: %v", gameutil.CarriedItemIDs(state))
+	}
+	if r := bench(t, sess, map[string]any{"op": "cut", "item_id": pearl}); r.Success {
+		t.Fatalf("cut a pearl: %s", r.Message)
+	}
+	if r := bench(t, sess, map[string]any{"op": "set", "item_id": pearl, "piece": "ring"}); !r.Success {
+		t.Fatalf("set: %s", r.Message)
+	}
+	if gameutil.CountItem(state, "ring"+strings.TrimPrefix(pearl, "gem")) != 1 {
+		t.Fatalf("no ring: %v", gameutil.CarriedItemIDs(state))
+	}
+}

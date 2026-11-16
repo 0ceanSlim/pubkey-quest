@@ -13,7 +13,7 @@ import (
 
 // Using a tool on an item (degradation §6, "the Use on… picker"): a tool's
 // "use_on" names what it does to other items: "light" for the tinderbox,
-// "fuel" for oil, "sharpen" for the whetstone, "mend" for the crafting kit, "salt" for salt and "crack" for a pick (a geode). UseTargets lists the items you carry it works on (the client
+// "fuel" for oil, "sharpen" for the whetstone, "mend" for the crafting kit, "salt" for salt, "crack" for a pick (a geode) and "shuck" for a dagger (an oyster). UseTargets lists the items you carry it works on (the client
 // shows them in a small box); UseOn does it. One pattern for every tool, and it
 // never offers a pair that does nothing.
 
@@ -92,6 +92,9 @@ func UseTargets(state *types.SaveFile, toolID string) []UseTarget {
 	if use == "crack" {
 		return geodeTargets(state)
 	}
+	if use == "shuck" {
+		return shuckTargets(state)
+	}
 	eachCarried(state, func(ref SlotRef, slot map[string]interface{}) {
 		id, _ := slot["item"].(string)
 		name := condition.ItemName(id)
@@ -120,7 +123,7 @@ func fuelOf(toolID string) string { return toolID }
 
 // UseOn uses a tool on the item in a slot.
 func UseOn(state *types.SaveFile, toolID string, ref SlotRef) (*types.GameActionResponse, error) {
-	if !gameutil.PlayerHasItem(state, toolID) {
+	if !hasTool(state, toolID) {
 		return refuse(fmt.Sprintf("You need a %s.", condition.ItemName(toolID))), nil
 	}
 	slot := SlotAt(state, ref)
@@ -135,6 +138,8 @@ func UseOn(state *types.SaveFile, toolID string, ref SlotRef) (*types.GameAction
 		return saltIt(state, slot), nil
 	case "crack":
 		return crackGeode(state, toolID, slot), nil
+	case "shuck":
+		return shuck(state, toolID, slot), nil
 	case "light":
 		if condition.LightOf(id) == nil {
 			return refuse("That doesn't light."), nil
@@ -229,6 +234,21 @@ func putOut(state *types.SaveFile, ref SlotRef, slot map[string]interface{}) *ty
 		condition.ClearState(slot)
 	}
 	return ok(fmt.Sprintf("You put out the %s. It's spent.", name))
+}
+
+// hasTool reports whether you carry a tool or have it in hand (a dagger you
+// wield is still a dagger).
+func hasTool(state *types.SaveFile, toolID string) bool {
+	if gameutil.PlayerHasItem(state, toolID) {
+		return true
+	}
+	found := false
+	EachGear(state, func(_ SlotRef, slot map[string]interface{}) {
+		if id, _ := slot["item"].(string); id == toolID {
+			found = true
+		}
+	})
+	return found
 }
 
 func ok(msg string) *types.GameActionResponse {

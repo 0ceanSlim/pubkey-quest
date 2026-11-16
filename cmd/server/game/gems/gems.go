@@ -1,7 +1,7 @@
 // Package gems is gems (docs/draft/gem-system.md): the items gems.json
 // generates, what each is worth, and the rolls that find them, at a kill (by
 // challenge rating), at a rock face (by tier) and at the jeweller's wheel (the
-// quality, which no uncut gem carries).
+// quality, which no uncut gem carries), and the pearls shellfish hold.
 package gems
 
 import (
@@ -106,26 +106,33 @@ type Gem struct {
 	Piece   string // "ring" / "necklace" for jewelry
 }
 
-// Cut reports whether it's been cut.
+// Cut reports whether it's finished: cut, or a natural gem (a pearl), which
+// is found with its quality.
 func (g Gem) Cut() bool { return g.Quality != "" }
 
 // Parse reads a generated gem or piece id ("gem-ruby-small-uncut",
-// "gem-ruby-small-fine", "ring-ruby-small-fine").
+// "gem-ruby-small-fine", "ring-ruby-small-fine", "gem-black-pearl-tiny-fine").
+// A type id may hold dashes; sizes and qualities don't.
 func Parse(c *types.GemsConfig, id string) (Gem, bool) {
 	parts := strings.Split(id, "-")
-	if len(parts) != 4 {
+	n := len(parts)
+	if n < 4 {
 		return Gem{}, false
 	}
-	g := Gem{Type: parts[1], Size: parts[2]}
-	if _, ok := c.Types[g.Type]; !ok || SizeIndex(c, g.Size) < 0 {
+	g := Gem{Type: strings.Join(parts[1:n-2], "-"), Size: parts[n-2]}
+	t, ok := c.Types[g.Type]
+	if !ok || SizeIndex(c, g.Size) < 0 {
 		return Gem{}, false
 	}
 	switch {
-	case parts[0] == "gem" && parts[3] == "uncut":
+	case parts[0] == "gem" && parts[n-1] == "uncut":
+		if t.Natural {
+			return Gem{}, false
+		}
 	case parts[0] == "gem":
-		g.Quality = parts[3]
+		g.Quality = parts[n-1]
 	case c.Jeweller.Pieces[parts[0]].Gold > 0:
-		g.Piece, g.Quality = parts[0], parts[3]
+		g.Piece, g.Quality = parts[0], parts[n-1]
 	default:
 		return Gem{}, false
 	}
@@ -230,9 +237,13 @@ func At(curve types.Curve, x float64) float64 {
 
 // TypeWeights are the type roll's weights at a tilt: drop_rate ×
 // tilt^log10(base_value/1000). A leaning (type → weight) replaces drop_rate.
+// Natural gems are never in it.
 func TypeWeights(c *types.GemsConfig, tilt float64, leaning map[string]int) map[string]float64 {
 	out := map[string]float64{}
 	for id, t := range c.Types {
+		if t.Natural {
+			continue
+		}
 		w := t.DropRate
 		if len(leaning) > 0 {
 			w = float64(leaning[id])
@@ -341,6 +352,33 @@ func ForFace(c *types.GemsConfig, tier int, leaning map[string]int, maxSize int,
 		return Gem{}, false
 	}
 	return roll(c, At(c.Mining.TypeTilt, float64(tier)), At(c.Mining.SizeTilt, float64(tier)), leaning, maxSize, rng)
+}
+
+// ForShellfish rolls what's inside a shellfish (an item id): a pearl, with its
+// quality, or false for nothing (or a shellfish gems.json doesn't list).
+func ForShellfish(c *types.GemsConfig, itemID string, rng Rng) (Gem, bool) {
+	sf, ok := c.Pearls.Shellfish[itemID]
+	if !ok || rng.Float64() >= sf.Chance {
+		return Gem{}, false
+	}
+	w := map[string]float64{}
+	for t, n := range sf.Types {
+		if n > 0 {
+			w[t] = float64(n)
+		}
+	}
+	t := pickType(w, rng)
+	s := pickIndex(SizeWeights(c, sf.SizeTilt, SizeIndex(c, sf.MaxSize)), rng)
+	if t == "" || s < 0 {
+		return Gem{}, false
+	}
+	return Gem{Type: t, Size: c.Sizes[s].ID, Quality: RollQuality(c, rng)}, true
+}
+
+// IsShellfish reports whether an item can hold a pearl.
+func IsShellfish(c *types.GemsConfig, itemID string) bool {
+	_, ok := c.Pearls.Shellfish[itemID]
+	return ok
 }
 
 // RollQuality is the quality a gem shows when it's cut.

@@ -204,6 +204,10 @@ func HandleUseItemAction(state *types.SaveFile, params map[string]interface{}) (
 	if len(effects) > 0 {
 		effectMsg = fmt.Sprintf("Used %s: %s", itemID, effects[0])
 	}
+	// A shellfish may hold a pearl (pearls.go): its slot is free now.
+	if found := pearlIn(state, itemID); found != "" {
+		effectMsg += ". You bite on something hard: " + found
+	}
 
 	return &types.GameActionResponse{
 		Success: true,
