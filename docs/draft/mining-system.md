@@ -1,8 +1,8 @@
 # Mining: seams, deep mines, ore and the Veins minigame
 
 Status: **BUILT** (2026-11-13/14) through slice 7; §12 says what each slice became. Gem cells,
-Pry, geodes and the stub mines' lower levels wait for the gem generator; mithral and adamantine
-armor (slice 8) is beta. Roadmap slot: M5.5 "mining/fishing minigames". Fishing has its own draft
+Pry, geodes and the stub mines' lower levels came with gems (2026-11-15, `gem-system.md` §9
+slice 2); mithral and adamantine armor (slice 8) is beta. Roadmap slot: M5.5 "mining/fishing minigames". Fishing has its own draft
 ([fishing-system.md](fishing-system.md)) on the same session pattern; §9 lists what they share.
 
 ## What exists today

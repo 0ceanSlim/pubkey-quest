@@ -1,8 +1,7 @@
 # Gems, jewelry & enchanting — brainstorm
 
-Status: **DESIGN — first decisions made** (2026-10-08). Source data:
-`game-data/systems/gems.json` (not read by any code yet). Only one gem item exists:
-`rough-gem` (placeholder, 500 gold), the Ember Vault rite's price.
+Status: **BUILT through slice 5** (2026-11-15): §9 says what each slice became. Enchanting
+(slice 6) is the next pass. Source data: `game-data/systems/gems.json`, read by `game/gems`.
 
 Scope note: the roadmap keeps **general item crafting** and **magic items** out of alpha.
 Gems as loot plus a sell value are alpha-sized; cutting, jewelry and enchanting are beta.
@@ -347,17 +346,37 @@ such as random enchant strengths or durability. Those were ruled out today.
 
 ## 8. Still open
 
-1. **Jeweller figures:** 1,000 / 2,000 gold + 10% labour, and the cutting fee table — OK?
-2. **Enchanter roster:** which ones, where, and their numbers.
+1. ~~**Jeweller figures**~~ decided 2026-11-15: 1,000 / 2,000 gold + 10% labour; cutting
+   50 / 200 / 500 / 1,500 / 5,000 gold by size.
+2. **Enchanter roster:** which ones, where, and their numbers (slice 6).
 
 ## 9. Build slices (Option A)
 
-1. **Generator:** migration expands `gems.json` into uncut and cut gem items, with value,
-   rarity-from-value, tags, and sprite path + size scale. Replaces `rough-gem`.
-2. **Gem drops:** the shared table on every kill (plus mining POIs), and fill in the
-   Rimehollow Delve and Glass Pits deep-mine stubs.
-3. **Tag requirements:** dialogue `requirements.items` / `consume_items` accept a tag. The
-   Ember Vault rite asks for any 2 uncut gems.
-4. **Jeweller cutting:** NPC + `cut_gem` dialogue action (quality rolled at the cut).
-5. **Jeweller crafting:** gold rings and necklaces from coins + cut gem + labour.
+1. ✅ **Generator** (built 2026-11-15): `game/gems.Items` expands `gems.json` at `--migrate`
+   into 100 rough gems, 400 cut gems and 800 rings and necklaces (`gem-<type>-<size>-uncut`,
+   `gem-<type>-<size>-<quality>`, `ring-`/`necklace-<type>-<size>-<quality>`), value and
+   rarity from value, tags by axis. One sprite per type serves every size and quality: an
+   item's `image` is its own id's path and `sprite` the shared file, which the server serves
+   for an id with no file of its own (`routes/sprites.go`, which also fixed fish sprites in
+   the inventory); `src/styles/gems.css` sizes and shines them from the id. The client's item
+   list is now parsed once and indexed, and `/api/game-data` is gzipped (it's ~1 MB of items).
+   `rough-gem` was already gone.
+2. ✅ **Gem drops** (built 2026-11-15): a rough gem rolled per kill on the CR curves, to someone
+   in the fight; beasts, plants and oozes carry none (`drops.no_gem_types`), and kobolds, the
+   pseudodragon, the goblin boss and the Rat King set a higher `gem_chance`. Mining: every seam
+   has a `gems.types` leaning; Veins lays gem cells (a seam can set `gems.cells`), a sounding
+   rings for them, a sharp ear hears "something glitters", a gem beside a broken cell glints
+   and clicking it pries it out whole, and striking one blind chips it a size down (tiny is
+   lost). 15% of gem cells are geodes, which a pick cracks open ("Crack a geode…") for a gem
+   rolled at tier 2. A quick roll has a 10% chance of a small-or-smaller gem. Rimehollow
+   Delve's Rime Galleries and the Glass Pits' Burning Pits are built: tier-3 faces with 1–3 gem
+   cells, past an ice climb and ice mephits, or broken glass, heat and dust mephits.
+3. ⏭ **Tag requirements:** not needed. The Ember Vault rite became 100 gold when the vaults
+   were unified, so nothing asks for "any gem" yet.
+4. ✅ **Jeweller cutting** (built 2026-11-15): Nissa Brightfacet (`gem-cutter`, a gnome at the
+   Golden Bazaar, 8:00–20:00) adds "Cut or set gems" to her menu; it opens a bench window
+   (`src/ui/jeweller.js`, the `jeweller` action). Quality is rolled at the wheel. She also buys
+   anything tagged `gem` or `jewelry` and sells a few small cut stones.
+5. ✅ **Jeweller crafting** (built 2026-11-15): a cut gem + the piece's gold + 10% labour makes
+   the ring or necklace. Plain gold pieces weren't built: the looted gold ring covers that.
 6. **Enchanters:** `enchant_config` NPCs, and the enchanted pieces with their worn effects (beta).

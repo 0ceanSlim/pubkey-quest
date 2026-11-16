@@ -2,6 +2,23 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-15-gems",
+      "when": "November 15, 2026",
+      "icon": "💎",
+      "size": "major",
+      "title": "Gems",
+      "summary": "Twenty kinds of gem, from quartz to diamond, in five sizes. They turn up rough in the rock and on the monsters you kill, and a jeweller in Goldenhaven will cut them, revealing what each one's really worth, and set them in gold.",
+      "highlights": [
+        "Monsters can carry a rough gem: the tougher the monster, the bigger and rarer it's likely to be. Beasts carry none, and kobolds hoard them",
+        "Every seam leans to its own gems. In the rock face a sounding rings for gems too, and once a cell beside one is broken it glints: click it to pry it out whole. Swing at it blind and you'll chip it",
+        "Geodes turn up in the rock as well. Crack one open with your pick for the gem inside",
+        "Rimehollow Delve's Rime Galleries and the Glass Pits' Burning Pits are open, and both are rich in gems",
+        "Nissa Brightfacet works a jeweller's wheel at the Golden Bazaar in Goldenhaven. A rough gem's quality is a mystery until she cuts it: flawed, standard, fine or flawless. She'll set a cut gem in a gold ring or necklace, and she buys gems and jewelry",
+        "Fixed: generated items like fish now show their picture in your pack instead of a question mark",
+        "The wiki gives each fish and each gem one page, with its sizes, values and where to find it"
+      ]
+    },
+    {
       "id": "2026-11-14-mining",
       "when": "November 14, 2026",
       "icon": "⛏️",

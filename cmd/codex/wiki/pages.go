@@ -13,6 +13,9 @@ func (g *gen) itemLink(id string) string {
 		return "a random spell scroll"
 	}
 	if it, ok := g.items[id]; ok {
+		if f := g.memberOf[id]; f != nil {
+			return link(it.Name, f.page)
+		}
 		return link(it.Name, "Items/"+id)
 	}
 	return titleCase(id)
@@ -22,10 +25,26 @@ func (g *gen) writeItems() error {
 	ids := sortedKeys(g.items)
 	sort.SliceStable(ids, func(i, j int) bool { return g.items[ids[i]].Name < g.items[ids[j]].Name })
 
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Every item in the game (%d). Type in the filter box to narrow the list (a name, a type like _potion_, or a rarity), and click a column header to sort by it. Values are base prices — shops charge more, and pay less, depending on your Charisma.\n\n", len(g.items)))
-	var rows [][]string
+	listed := len(g.families)
 	for _, id := range ids {
+		if g.memberOf[id] == nil {
+			listed++
+		}
+	}
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("Every item in the game (%d; each fish and gem is one entry, with its sizes on its own page). Type in the filter box to narrow the list (a name, a type like _potion_, or a rarity), and click a column header to sort by it. Values are base prices — shops charge more, and pay less, depending on your Charisma.\n\n", listed))
+	var rows [][]string
+	for _, page := range sortedKeys(g.families) {
+		f := g.families[page]
+		rows = append(rows, g.familyRow(f))
+		if err := g.page(f.page, f.name, f.body()); err != nil {
+			return err
+		}
+	}
+	for _, id := range ids {
+		if g.memberOf[id] != nil {
+			continue
+		}
 		it := g.items[id]
 		rows = append(rows, []string{g.image(it.Image, it.Name, 32), g.itemLink(id), titleCase(it.Type),
 			titleCase(it.Rarity), gold(it.Value), num(it.Weight)})
@@ -366,7 +385,7 @@ func special(v any) string {
 
 func (g *gen) lootSection(b *strings.Builder, m *monster) {
 	if m.Loot == nil {
-		return
+		m.Loot = &lootTable{}
 	}
 	qty := func(q []int) string {
 		switch {
@@ -401,14 +420,20 @@ func (g *gen) lootSection(b *strings.Builder, m *monster) {
 			rows = append(rows, []string{g.itemLink(e.Item), qty(e.Quantity), fmt.Sprintf("%.1f%%", p)})
 		}
 	}
-	if len(rows) == 0 {
+	gem := g.gemChance(m)
+	if len(rows) == 0 && gem == 0 {
 		return
 	}
 	b.WriteString("## Loot\n\n")
-	if m.Loot.Rolls > 0 {
-		b.WriteString(fmt.Sprintf("Chances are per roll; this creature gets %s on the loot table.\n\n", plural(m.Loot.Rolls, "roll")))
+	if len(rows) > 0 {
+		if m.Loot.Rolls > 0 {
+			b.WriteString(fmt.Sprintf("Chances are per roll; this creature gets %s on the loot table.\n\n", plural(m.Loot.Rolls, "roll")))
+		}
+		table(b, []string{"Item", "Quantity", "Chance"}, rows)
 	}
-	table(b, []string{"Item", "Quantity", "Chance"}, rows)
+	if gem > 0 {
+		b.WriteString(fmt.Sprintf("**Gems:** a %.0f%% chance of a rough gem each kill (any type: the tougher the monster, the bigger and rarer).\n\n", gem*100))
+	}
 }
 
 // ── spells ───────────────────────────────────────────────────────────────────

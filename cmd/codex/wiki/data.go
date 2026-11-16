@@ -74,6 +74,7 @@ type monster struct {
 	CR                    float64        `json:"challenge_rating"`
 	XP                    int            `json:"xp"`
 	Type                  string         `json:"type"`
+	GemChance             *float64       `json:"gem_chance"`
 	Size                  string         `json:"size"`
 	AC                    int            `json:"armor_class"`
 	HP                    int            `json:"hit_points"`
@@ -384,7 +385,11 @@ type node struct {
 		Ores        []struct {
 			Item string `json:"item"`
 		} `json:"ores"`
+		Gems *struct {
+			Types map[string]int `json:"types"`
+		} `json:"gems"`
 	} `json:"seam"`
+	Spot    string `json:"spot"`
 	Choices []struct {
 		Requirements []requirement `json:"requirements"`
 	} `json:"choices"`

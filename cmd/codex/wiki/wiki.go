@@ -113,6 +113,9 @@ type gen struct {
 	neededFor map[string][]string // item id → what it's handed in for / used by
 	giftOf    map[string][]string // item id → npcs who give it in dialogue
 	questsBy  map[string][]string // npc id → quests they give
+
+	families map[string]*family // page → a species' or gem type's generated items
+	memberOf map[string]*family // generated item id → its family
 }
 
 // ── loading ──────────────────────────────────────────────────────────────────
@@ -629,7 +632,19 @@ func plural(n int, unit string) string {
 }
 
 // gold keeps "N gold" on one line in narrow table cells.
-func gold(n int) string { return fmt.Sprintf("%d gold", n) }
+func gold(n int) string { return thousands(n) + " gold" }
+
+// thousands writes 1234567 as 1,234,567 (gem values run to the millions).
+func thousands(n int) string {
+	if n < 0 {
+		return "-" + thousands(-n)
+	}
+	s := fmt.Sprint(n)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	return s
+}
 
 func sortedKeys[V any](m map[string]V) []string {
 	keys := make([]string, 0, len(m))

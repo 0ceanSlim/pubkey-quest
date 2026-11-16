@@ -66,7 +66,17 @@ func (g *gen) summarize(nodes map[string]node) nodeSummary {
 			if n.Seam.Underground {
 				where = ", underground (bring a light)"
 			}
-			s.seams = append(s.seams, fmt.Sprintf("Tier %d%s: %s", n.Seam.Tier, where, strings.Join(ores, ", ")))
+			line := fmt.Sprintf("Tier %d%s: %s", n.Seam.Tier, where, strings.Join(ores, ", "))
+			if n.Seam.Gems != nil && len(n.Seam.Gems.Types) > 0 {
+				var gemLinks []string
+				for _, t := range sortedKeys(n.Seam.Gems.Types) {
+					if f := g.families["Items/gem-"+t]; f != nil {
+						gemLinks = append(gemLinks, link(f.name, f.page))
+					}
+				}
+				line += "; gems: " + strings.Join(gemLinks, ", ")
+			}
+			s.seams = append(s.seams, line)
 		}
 		addLoot := func(id string) {
 			if id != "" && id != "nothing" && !seenLoot[id] {
