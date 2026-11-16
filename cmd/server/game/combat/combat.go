@@ -646,6 +646,10 @@ func ProcessPlayerFlee(cs *types.CombatSession, save *types.SaveFile) ([]string,
 	if len(foes) == 0 {
 		return nil, fmt.Errorf("no living enemy to flee from")
 	}
+	// A failed attempt spends the action, so it can't be retried until it works.
+	if actor(cs).CombatState.ActionUsed {
+		return nil, fmt.Errorf("action already used this turn")
+	}
 	for _, b := range actor(cs).CombatState.SpellBuffs {
 		if b.EasyEscape {
 			return escapeFight(cs, fmt.Sprintf("  Under cover of %s, you slip away unseen!", b.Name)), nil
@@ -759,12 +763,21 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 	if IsIncapacitated(state.Conditions) {
 		return nil, fmt.Errorf("you are incapacitated and can't act")
 	}
+	isOffHand := hand == "off"
+	// An attack spends the action (or an extra one from Action Surge); the
+	// off-hand attack spends the bonus action. Neither was checked once, and
+	// a player could attack any number of times a turn.
+	if !isOffHand && state.ActionUsed && state.ExtraActions == 0 {
+		return nil, fmt.Errorf("action already used this turn")
+	}
+	if isOffHand && state.BonusActionUsed {
+		return nil, fmt.Errorf("bonus action already used this turn")
+	}
 	monster, err := ResolveTarget(cs, targetID)
 	if err != nil {
 		return nil, err
 	}
 	r := rangeTo(cs, monster)
-	isOffHand := hand == "off"
 
 	if isOffHand {
 		// Validate two-weapon fighting conditions before doing anything
@@ -909,9 +922,9 @@ func ProcessPlayerAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveFi
 		log = append(log, wearLog...)
 	}
 
-	applyDamageToMonster(monster, dmg)
+	dealt := applyDamageToMonster(monster, dmg)
 
-	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
+	xp := awardDamageXP(cs, monster, dealt, save.TimeOfDay, level, advancement)
 	if xp > 0 {
 		log = append(log, fmt.Sprintf("  +%d XP", xp))
 	}
@@ -1344,12 +1357,16 @@ func isOffhandEmpty(inventory map[string]interface{}) bool {
 }
 
 // applyDamageToMonster reduces monster HP and marks it dead when HP reaches zero.
-func applyDamageToMonster(monster *types.MonsterInstance, dmg int) {
+// applyDamageToMonster takes damage off a monster and returns how much it
+// actually lost: XP is paid on that, not on a blow's overkill.
+func applyDamageToMonster(monster *types.MonsterInstance, dmg int) int {
+	dealt := min(max(dmg, 0), monster.CurrentHP)
 	monster.CurrentHP -= dmg
 	if monster.CurrentHP <= 0 {
 		monster.CurrentHP = 0
 		monster.IsAlive = false
 	}
+	return dealt
 }
 
 // awardDamageXP computes XP for the hit and adds it to the session total. The
@@ -1384,9 +1401,17 @@ func killRewards(cs *types.CombatSession, monster *types.MonsterInstance, save *
 	}
 	party := len(members) > 1
 
-	// Everyone in the fight gets the kill for "slay" quest objectives.
+	// Everyone in the fight gets the kill for "slay" quest objectives: each
+	// on their own save. A member whose session is gone gets none (falling
+	// back to the actor's save once credited the actor twice).
 	for _, m := range members {
-		events.Record(saveOf(m, save), events.MonsterKilled, monster.Data.ID, 1)
+		ms := saveOf(m, nil)
+		if ms == nil && m == actor(cs) {
+			ms = save
+		}
+		if ms != nil {
+			events.Record(ms, events.MonsterKilled, monster.Data.ID, 1)
+		}
 	}
 
 	// Loot: a solo kill pays the whole table; a party shares one table's worth.
@@ -1592,9 +1617,9 @@ func executePlayerOA(cs *types.CombatSession, save *types.SaveFile, db *sql.DB, 
 	offhandEmpty := isOffhandEmpty(save.Inventory)
 	dmg := resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, false)
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit, offhandEmpty))
-	applyDamageToMonster(monster, dmg)
+	dealt := applyDamageToMonster(monster, dmg)
 
-	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
+	xp := awardDamageXP(cs, monster, dealt, save.TimeOfDay, level, advancement)
 	if xp > 0 {
 		log = append(log, fmt.Sprintf("  +%d XP", xp))
 	}
@@ -1649,9 +1674,9 @@ func executeReadiedAttack(db *sql.DB, cs *types.CombatSession, save *types.SaveF
 	offhandEmpty := isOffhandEmpty(save.Inventory)
 	dmg := resolvePlayerDamage(item, effectiveStats(save), monster, isUnarmed, offhandEmpty, result.IsCrit, false)
 	log = append(log, formatDamage(item, isUnarmed, dmg, result.IsCrit, offhandEmpty))
-	applyDamageToMonster(monster, dmg)
+	dealt := applyDamageToMonster(monster, dmg)
 
-	xp := awardDamageXP(cs, monster, dmg, save.TimeOfDay, level, advancement)
+	xp := awardDamageXP(cs, monster, dealt, save.TimeOfDay, level, advancement)
 	if xp > 0 {
 		log = append(log, fmt.Sprintf("  +%d XP", xp))
 	}

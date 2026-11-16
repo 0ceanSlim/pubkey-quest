@@ -682,9 +682,9 @@ func spellDamageToMonster(cs *types.CombatSession, caster *types.PartyCombatant,
 
 	adv, _ := character.LoadAdvancement(serverdb.GetDB())
 	level := character.GetLevelFromXP(save.Experience, adv)
-	applyDamageToMonster(m, dmg)
+	dealt := applyDamageToMonster(m, dmg)
 	var log []string
-	if xp := awardDamageXP(cs, m, dmg, save.TimeOfDay, level, adv); xp > 0 {
+	if xp := awardDamageXP(cs, m, dealt, save.TimeOfDay, level, adv); xp > 0 {
 		log = append(log, fmt.Sprintf("  +%d XP", xp))
 	}
 	if !m.IsAlive {

@@ -171,9 +171,10 @@ func TestAreaCastHitsEveryoneCaught(t *testing.T) {
 	if HasCondition(g1.Conditions, "blinded") {
 		t.Error("the dead goblin shouldn't be blinded")
 	}
-	// Damage XP for all 15 HP dealt, reported in one line.
-	if n := strings.Count(text, "XP"); n != 1 || cs.Party[0].XPEarned != 150 {
-		t.Errorf("want one XP line and 150 XP, got %d lines, %d XP\n%s", n, cs.Party[0].XPEarned, text)
+	// Damage XP for the 13 HP the goblins lost (the 9 on Goblin 1's 7 HP
+	// counts as 7: no XP for overkill), reported in one line.
+	if n := strings.Count(text, "XP"); n != 1 || cs.Party[0].XPEarned != 130 {
+		t.Errorf("want one XP line and 130 XP, got %d lines, %d XP\n%s", n, cs.Party[0].XPEarned, text)
 	}
 	if cs.Phase != "active" {
 		t.Errorf("phase %q: a goblin is still up", cs.Phase)

@@ -35,6 +35,10 @@ func ProcessPartyRetreat(cs *types.CombatSession, save *types.SaveFile) ([]strin
 	if len(foes) == 0 {
 		return nil, fmt.Errorf("no living enemy to retreat from")
 	}
+	// A failed call spends the leader's action: no retrying until it works.
+	if actor(cs).CombatState.ActionUsed {
+		return nil, fmt.Errorf("action already used this turn")
+	}
 	standing := standingMembers(cs)
 	closest := noTargetRange
 	for _, p := range standing {

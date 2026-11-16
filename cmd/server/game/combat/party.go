@@ -181,7 +181,21 @@ func ExpireTurn(db *sql.DB, cs *types.CombatSession, now time.Time) []string {
 		}
 		save := saveOf(m, nil)
 		if save == nil {
-			return log
+			// Their session is gone (they quit): they've left the fight, and
+			// the fight goes on without them, run from someone still in it.
+			// Waiting on them once froze it for everyone.
+			m.Fled = true
+			log = append(log, fmt.Sprintf("  🚪 %s has left the fight.", m.Name))
+			for _, p := range standingMembers(cs) {
+				if save = saveOf(p, nil); save != nil {
+					break
+				}
+			}
+			if save == nil {
+				return log
+			}
+			log = append(log, runUntilPlayerTurn(db, cs, save, false)...)
+			continue
 		}
 		log = append(log, endPlayerTurn(cs, save)...)
 		log = append(log, runUntilPlayerTurn(db, cs, save, false)...)

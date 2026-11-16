@@ -219,8 +219,8 @@ func castConsequences(cs *types.CombatSession, me *types.PartyCombatant, save *t
 			log = append(log, lines...)
 		}
 		if h.Damage > 0 {
-			applyDamageToMonster(h.Monster, h.Damage)
-			xp += awardDamageXP(cs, h.Monster, h.Damage, save.TimeOfDay, level, advancement)
+			dealt := applyDamageToMonster(h.Monster, h.Damage)
+			xp += awardDamageXP(cs, h.Monster, dealt, save.TimeOfDay, level, advancement)
 		}
 	}
 	if xp > 0 {
