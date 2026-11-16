@@ -53,6 +53,9 @@ func (sm *SessionManagerWrapper) LoadSession(npub, saveID string) (*GameSession,
 // reload is an explicit "discard in-memory changes", so it also drops any
 // crash-recovery journal before reloading from the deliberate save.
 func (sm *SessionManagerWrapper) ReloadSession(npub, saveID string) (*GameSession, error) {
+	if err := ValidSlot(npub, saveID); err != nil {
+		return nil, err
+	}
 	RemoveJournal(npub, saveID)
 	return sm.SessionManager.ReloadSession(
 		npub,
@@ -135,6 +138,9 @@ func sessionKey(npub, saveID string) string {
 
 // LoadSession loads a save file into memory using the provided loader function
 func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string, string) (*types.SaveFile, error), initEffects func(*types.SaveFile) error, getNPCIDs func(location, district, building, room string, day, timeOfDay int) []string, getBuildingStates func(string, string, int) (map[string]bool, error)) (*GameSession, error) {
+	if err := ValidSlot(npub, saveID); err != nil {
+		return nil, err
+	}
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -203,6 +209,9 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 
 // ReloadSession forces a reload from disk, discarding in-memory changes
 func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(string, string) (*types.SaveFile, error), initEffects func(*types.SaveFile) error, getNPCIDs func(location, district, building, room string, day, timeOfDay int) []string, getBuildingStates func(string, string, int) (map[string]bool, error)) (*GameSession, error) {
+	if err := ValidSlot(npub, saveID); err != nil {
+		return nil, err
+	}
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 

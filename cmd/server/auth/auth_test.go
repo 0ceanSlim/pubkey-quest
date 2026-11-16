@@ -92,6 +92,7 @@ func TestRequireIdentity(t *testing.T) {
 		gotBody = string(b)
 		w.WriteHeader(http.StatusOK)
 	}))
+	contentType := "application/json"
 	do := func(method, target, body string, withCookie bool) int {
 		var rd io.Reader
 		if body != "" {
@@ -99,7 +100,7 @@ func TestRequireIdentity(t *testing.T) {
 		}
 		req := httptest.NewRequest(method, target, rd)
 		if body != "" {
-			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Content-Type", contentType)
 		}
 		if withCookie {
 			req.AddCookie(cookie)
@@ -127,12 +128,25 @@ func TestRequireIdentity(t *testing.T) {
 		{"names no player, signed in", "POST", "/api/game/action", `{"action":"x"}`, true, 200},
 		{"names no player, anonymous", "POST", "/api/game/action", `{"action":"x"}`, false, 401},
 		{"npub-less protected route still needs a session", "GET", "/api/debug/state", "", false, 401},
+		// Every place a handler might read the npub from is checked, not just the first.
+		{"own npub in query, someone else's in body", "POST", "/api/combat/end?npub=" + aliceNpub, `{"npub":"` + bobNpub + `"}`, true, 403},
+		{"someone else's npub in a second query value", "GET", "/api/session/state?npub=" + aliceNpub + "&npub=" + bobNpub, "", true, 403},
+		{"field name in another case", "POST", "/api/game/action", `{"NPUB":"` + bobNpub + `"}`, true, 403},
+		{"npub that isn't a string", "POST", "/api/game/action", `{"npub":42}`, true, 400},
 	}
 	for _, c := range cases {
 		if got := do(c.method, c.target, c.body, c.cookie); got != c.want {
 			t.Errorf("%s: status %d, want %d", c.name, got, c.want)
 		}
 	}
+
+	// A body sent as text/plain is still decoded by the handler, so it's
+	// still checked.
+	contentType = "text/plain"
+	if got := do("POST", "/api/game/action", `{"npub":"`+bobNpub+`"}`, true); got != 403 {
+		t.Errorf("someone else's npub as text/plain: status %d, want 403", got)
+	}
+	contentType = "application/json"
 
 	// The handler still sees the body the middleware inspected.
 	do("POST", "/api/game/action", `{"npub":"`+aliceNpub+`","action":"move"}`, true)

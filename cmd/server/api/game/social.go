@@ -245,10 +245,8 @@ func SocialPollHandler(w http.ResponseWriter, r *http.Request) {
 		writeCombatError(w, http.StatusNotFound, "Session not found")
 		return
 	}
-	sess.Lock()
 	partySync := applyPartySyncs(sess)
 	publishPresence(sess)
-	sess.Unlock()
 
 	now := time.Now()
 	dropStaleMembers(sess.Npub, now)

@@ -35,10 +35,13 @@ func SaveDTag(saveID string) string { return "pubkey-quest:save:" + saveID }
 
 // SaveIDFromDTag is the inverse of SaveDTag ("" when it isn't one of ours).
 func SaveIDFromDTag(d string) string {
-	if !strings.HasPrefix(d, "pubkey-quest:save:") {
+	id, ok := strings.CutPrefix(d, "pubkey-quest:save:")
+	// A d tag comes off a relay, written by whoever signed the event, and the
+	// id becomes a file path: only one the game makes counts.
+	if !ok || !session.ValidSaveID(id) {
 		return ""
 	}
-	return strings.TrimPrefix(d, "pubkey-quest:save:")
+	return id
 }
 
 // UnsignedSave is the event the browser signs.

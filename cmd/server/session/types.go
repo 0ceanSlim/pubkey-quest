@@ -13,10 +13,9 @@ import (
 
 // GameSession holds the in-memory game state for an active session
 type GameSession struct {
-	// mu serializes requests that change this session (Lock/Unlock). Party
-	// moves never lock another player's session: they queue PartySyncs, which
-	// that player's own next request applies under its own lock.
-	mu sync.Mutex
+	// Requests for this session run one at a time under its slot's lock
+	// (serialize.go). Party moves never take another player's lock: they queue
+	// PartySyncs, which that player's own next request applies.
 
 	// PartySyncs is the queue of leader moves waiting to be applied to this
 	// (follower) session, guarded by its own tiny mutex.
@@ -328,12 +327,6 @@ func (s *GameSession) ShouldRefreshBuildings(currentTime int) bool {
 	}
 	return currentTime-s.BuildingsLastCheck >= 5
 }
-
-// Lock serializes a request against this session.
-func (s *GameSession) Lock() { s.mu.Lock() }
-
-// Unlock releases the session.
-func (s *GameSession) Unlock() { s.mu.Unlock() }
 
 // PartySync is a party leader's move, queued for a follower: where the party
 // now is, its clock, and its travel state (docs/draft/social-plan.md §9).

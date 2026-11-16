@@ -97,9 +97,13 @@ func RecoverJournaledSave(npub, saveID, diskSavePath string) *types.SaveFile {
 // JournalAllSessions snapshots every active session for crash recovery.
 func JournalAllSessions() {
 	for _, sess := range GetSessionManager().GetAllSessions() {
+		// Under the slot's lock, so the save isn't read while a request
+		// changes it.
+		unlock := LockSlot(sess.Npub, sess.SaveID)
 		if err := WriteJournal(sess); err != nil {
 			log.Printf("⚠️ Failed to journal session %s:%s: %v", sess.Npub, sess.SaveID, err)
 		}
+		unlock()
 	}
 }
 

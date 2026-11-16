@@ -58,10 +58,8 @@ func WaitPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess.Lock()
 	raw, err := json.Marshal(&sess.SaveData)
 	queue := append([]types.SpellPrepTask(nil), sess.PrepQueue...)
-	sess.Unlock()
 	if err != nil {
 		writeQuestError(w, http.StatusInternalServerError, "could not read save")
 		return

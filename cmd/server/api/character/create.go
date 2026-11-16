@@ -147,13 +147,6 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Load starting gear data
-	startingGear, err := loadStartingGearForClass(database, generatedChar.Class)
-	if err != nil {
-		respondWithError(w, "Failed to load starting gear: "+err.Error())
-		return
-	}
-
 	// 4. Get starting gold
 	startingGold, err := getStartingGold(database, generatedChar.Background)
 	if err != nil {
@@ -161,30 +154,20 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 		startingGold = 1000 // Default
 	}
 
-	// 5. The inventory. A new character arrives with only their gold, the
-	// caretaker's letter and their Homeward Stone: the gear is their
-	// inheritance, claimed in game from their vault's keeper inside the
-	// tutorial quest (api/game/starting_gear.go). A client that still sends
-	// gear picks (an intro page from before the rework) gets them as before.
-	legacyGear := len(req.EquipmentChoices) > 0
-	var inventory map[string]interface{}
-	if legacyGear {
-		inventory, err = buildInventoryFromChoices(database, startingGear, req.EquipmentChoices, req.PackChoice)
-	} else {
-		inventory, err = createInventoryStructure(database, nil)
+	// 5. The inventory. A new character arrives with only the caretaker's
+	// letter: the gear is their inheritance, claimed in game from their
+	// vault's keeper inside the tutorial quest (api/game/starting_gear.go,
+	// which checks every pick), and the gold and Homeward Stone wait in the
+	// vault. Gear picks sent with the request are refused: the old path that
+	// took them handed out whatever items and quantities it was sent.
+	if len(req.EquipmentChoices) > 0 || req.PackChoice != "" {
+		respondWithError(w, "Starting gear is claimed in game, from your vault's keeper")
+		return
 	}
+	inventory, err := createInventoryStructure(database, nil)
 	if err != nil {
 		respondWithError(w, "Failed to build inventory: "+err.Error())
 		return
-	}
-
-	// 6. Gold. A new character's gold is their caretaker's savings, held in
-	// trust in their people's vault (step 16) and taken out in the tutorial; a
-	// legacy client's character carries it, as before.
-	if legacyGear {
-		if err := AddGoldToInventory(inventory, startingGold); err != nil {
-			log.Printf("⚠️  Failed to add gold to inventory: %v", err)
-		}
 	}
 
 	// 7. Generate spell slots
@@ -289,19 +272,14 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 15. The home city's Homeward Stone — the only free one. The home keeper's
-	// gift is marked given, so it can't be claimed a second time. A new
-	// character's is part of the inheritance, waiting in their vault with the
-	// gold; a legacy client's character carries it.
+	// gift is marked given, so it can't be claimed a second time. It's part of
+	// the inheritance, waiting in their vault with the gold.
 	if c, ok := teleport.Load().Cities[startingCity]; ok {
-		if legacyGear {
-			if n, _ := gameinventory.AddItemToInventory(&saveFile, c.Stone, 1); n > 0 {
-				saveFile.DialogueGifts = append(saveFile.DialogueGifts, c.Keeper+":homeward_gift")
-			}
-		} else if err := vault.Deposit(&saveFile, c.Stone, 1); err == nil {
+		if err := vault.Deposit(&saveFile, c.Stone, 1); err == nil {
 			saveFile.DialogueGifts = append(saveFile.DialogueGifts, c.Keeper+":homeward_gift")
 		}
 	}
-	if !legacyGear && startingGold > 0 {
+	if startingGold > 0 {
 		if err := vault.Deposit(&saveFile, "gold-piece", startingGold); err != nil {
 			log.Printf("⚠️  Failed to put the starting gold in the vault: %v", err)
 		}
@@ -310,13 +288,11 @@ func CreateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	// 16. The caretaker's letter, and the tutorial quest it starts: "The
 	// Caretaker's Letter" for this starting city, which sends them to their
 	// vault's keeper for their inheritance.
-	if !legacyGear {
-		gameinventory.AddItemToInventory(&saveFile, CaretakersLetter, 1)
-		if q, err := db.GetQuestByID(TutorialQuestFor(startingCity)); err == nil && q != nil {
-			quest.StartForNewCharacter(*q, &saveFile)
-		} else {
-			log.Printf("⚠️  No tutorial quest for %s: %v", startingCity, err)
-		}
+	gameinventory.AddItemToInventory(&saveFile, CaretakersLetter, 1)
+	if q, err := db.GetQuestByID(TutorialQuestFor(startingCity)); err == nil && q != nil {
+		quest.StartForNewCharacter(*q, &saveFile)
+	} else {
+		log.Printf("⚠️  No tutorial quest for %s: %v", startingCity, err)
 	}
 
 	// 17. Save to disk

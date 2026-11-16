@@ -346,9 +346,8 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "session not found")
 		return
 	}
-	// One request at a time per session, after any moves the leader made.
-	sess.Lock()
-	defer sess.Unlock()
+	// After any moves the leader made (one request at a time per session:
+	// session.SerializeRequests).
 	applyPartySyncs(sess)
 	if social.IsFollower(sess.Npub) {
 		writePOIError(w, http.StatusForbidden, "Your party leader leads the way in.")
@@ -434,8 +433,6 @@ func POIAdvanceHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "session not found")
 		return
 	}
-	sess.Lock()
-	defer sess.Unlock()
 	if sess.ActivePOI == nil {
 		writePOIError(w, http.StatusBadRequest, "no active POI")
 		return

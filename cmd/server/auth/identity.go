@@ -82,7 +82,7 @@ func RequireIdentity(next http.Handler) http.Handler {
 			return
 		}
 
-		claimed, err := claimedNpub(r)
+		claimed, err := claimedNpubs(r)
 		if err != nil {
 			writeIdentityError(w, http.StatusBadRequest, "Invalid request body", false)
 			return
@@ -98,10 +98,10 @@ func RequireIdentity(next http.Handler) http.Handler {
 			return
 		}
 
-		if claimed != "" {
-			claimedHex, err := normalizePubkey(claimed)
+		for _, c := range claimed {
+			claimedHex, err := normalizePubkey(c)
 			if err != nil || !strings.EqualFold(claimedHex, user.PublicKey) {
-				log.Printf("🚫 Identity mismatch on %s: session %s... claimed %s", r.URL.Path, user.PublicKey[:16], claimed)
+				log.Printf("🚫 Identity mismatch on %s: session %s... claimed %s", r.URL.Path, user.PublicKey[:16], c)
 				writeIdentityError(w, http.StatusForbidden, "That character belongs to another player", false)
 				return
 			}
@@ -131,46 +131,60 @@ func OwnerNpub(r *http.Request) string {
 	return npub
 }
 
-// claimedNpub finds the player a request names: /api/saves/{npub}, the `npub`
-// query parameter, or a top-level `npub` field in a JSON body. The body is
-// buffered and restored so the handler still reads it.
-func claimedNpub(r *http.Request) (string, error) {
+// claimedNpubs finds every player a request names: /api/saves/{npub}, the
+// `npub` query parameter, and a top-level `npub` field in the body. Every one
+// must be the caller: a handler may read any of them, so checking only the
+// first (or skipping a body whose Content-Type isn't JSON, which handlers
+// decode anyway) once let a player act as someone else. The body is buffered
+// and restored so the handler still reads it, and capped whatever its type.
+func claimedNpubs(r *http.Request) ([]string, error) {
+	var out []string
 	// /api/saves/{npub}/… names the player in the path — but /api/saves/publish
 	// is an action, not a player, so only a key-shaped segment counts.
 	if rest, ok := strings.CutPrefix(r.URL.Path, "/api/saves/"); ok {
 		if npub, _, _ := strings.Cut(rest, "/"); looksLikeKey(npub) {
-			return npub, nil
+			out = append(out, npub)
 		}
 	}
-	if npub := r.URL.Query().Get("npub"); npub != "" {
-		return npub, nil
+	for _, npub := range r.URL.Query()["npub"] {
+		out = append(out, npub)
 	}
 	if r.Body == nil || r.Method == http.MethodGet || r.Method == http.MethodHead {
-		return "", nil
-	}
-	if ct := r.Header.Get("Content-Type"); ct != "" && !strings.Contains(ct, "json") {
-		return "", nil
+		return out, nil
 	}
 
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxIdentityBody+1))
 	r.Body.Close()
 	if err != nil || len(body) > maxIdentityBody {
-		return "", errBodyTooLarge
+		return nil, errBodyTooLarge
 	}
 	r.Body = io.NopCloser(bytes.NewReader(body))
 	if len(bytes.TrimSpace(body)) == 0 {
-		return "", nil
+		return out, nil
 	}
 
-	var probe struct {
-		Npub string `json:"npub"`
+	// Decoded the way a handler would, ignoring Content-Type. A body that
+	// isn't a JSON object names no one; the handler makes its own error.
+	var probe map[string]json.RawMessage
+	if json.Unmarshal(body, &probe) != nil {
+		return out, nil
 	}
-	if err := json.Unmarshal(body, &probe); err != nil {
-		// Not a JSON object (or malformed) — let the handler produce its own error.
-		return "", nil
+	for k, raw := range probe {
+		if !strings.EqualFold(k, "npub") { // encoding/json matches field names case-insensitively
+			continue
+		}
+		var npub string
+		if json.Unmarshal(raw, &npub) != nil {
+			return nil, errBadNpub
+		}
+		if npub != "" {
+			out = append(out, npub)
+		}
 	}
-	return probe.Npub, nil
+	return out, nil
 }
+
+var errBadNpub = &identityErr{"npub must be a string"}
 
 var errBodyTooLarge = &identityErr{"request body too large"}
 

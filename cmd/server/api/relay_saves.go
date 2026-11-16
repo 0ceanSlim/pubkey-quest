@@ -96,6 +96,11 @@ func PublishSaveHandler(w http.ResponseWriter, r *http.Request) {
 	fail := func(status int, msg string) {
 		writeJSONStatus(w, status, map[string]any{"success": false, "error": msg})
 	}
+	// The save is filed under req.Npub, so it must be the signer's own.
+	if owner, err := tools.EncodePubkey(user.PublicKey); err != nil || req.Npub != owner {
+		fail(http.StatusForbidden, "That character belongs to another player")
+		return
+	}
 	sess, err := session.GetSessionManager().GetSession(req.Npub, req.SaveID)
 	if err != nil {
 		fail(http.StatusNotFound, "Session not found")

@@ -106,6 +106,11 @@ func SavesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	npub := pathParts[0]
+	// Both become file paths (session/slot.go).
+	if !session.ValidNpub(npub) || (len(pathParts) > 1 && pathParts[1] != "" && !session.ValidSaveID(pathParts[1])) {
+		http.Error(w, "Invalid npub or save ID", http.StatusBadRequest)
+		return
+	}
 
 	switch r.Method {
 	case "GET":
@@ -276,6 +281,10 @@ func handleCreateSave(w http.ResponseWriter, r *http.Request, npub string) {
 
 	// Check if 'id' was provided in the request (for overwrites)
 	if id, ok := rawData["id"].(string); ok && id != "" {
+		if !session.ValidSaveID(id) {
+			http.Error(w, "Invalid save ID", http.StatusBadRequest)
+			return
+		}
 		saveData.InternalID = id
 		log.Printf("📝 Overwriting existing save: %s", id)
 	} else if saveData.InternalID == "" {

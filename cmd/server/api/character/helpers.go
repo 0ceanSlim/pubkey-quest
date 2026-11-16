@@ -43,89 +43,6 @@ func loadStartingGearForClass(database *sql.DB, class string) (*StartingGearData
 }
 
 // ============================================================================
-// INVENTORY BUILDING
-// ============================================================================
-
-func buildInventoryFromChoices(database *sql.DB, startingGear *StartingGearData, choices map[string]string, packChoice string) (map[string]interface{}, error) {
-	// 1. Collect all items from given_items + player choices
-	allItems := []ItemWithQty{}
-
-	// Add given items
-	allItems = append(allItems, startingGear.StartingGear.GivenItems...)
-
-	// Log what we received
-	log.Printf("📦 Received equipment choices: %+v", choices)
-	log.Printf("📦 Pack choice: %s", packChoice)
-
-	// Add selected equipment
-	for i, equipChoice := range startingGear.StartingGear.EquipmentChoices {
-		choiceKey := fmt.Sprintf("choice-%d", i)
-		selectedID := choices[choiceKey]
-
-		if selectedID == "" {
-			log.Printf("⚠️  No selection for %s (available keys: %v)", choiceKey, getKeys(choices))
-			continue
-		}
-
-		// Check if it's a JSON array (complex weapon choice OR bundle)
-		if len(selectedID) > 0 && selectedID[0] == '[' {
-			log.Printf("📦 Parsing JSON array for %s: %s", choiceKey, selectedID)
-			var itemList [][]interface{}
-			if err := json.Unmarshal([]byte(selectedID), &itemList); err == nil {
-				// Successfully parsed as array
-				log.Printf("✅ Parsed %d items from JSON array", len(itemList))
-				for _, itemPair := range itemList {
-					if len(itemPair) >= 2 {
-						itemID, ok1 := itemPair[0].(string)
-						qty, ok2 := itemPair[1].(float64)
-						if ok1 && ok2 {
-							log.Printf("  - Adding %s x%d", itemID, int(qty))
-							allItems = append(allItems, ItemWithQty{Item: itemID, Quantity: int(qty)})
-						}
-					}
-				}
-				continue
-			} else {
-				log.Printf("❌ Failed to parse JSON array: %v", err)
-			}
-		}
-
-		// Find the selected option
-		for _, option := range equipChoice.Options {
-			if option.Type == "single" && option.Item == selectedID {
-				allItems = append(allItems, ItemWithQty{Item: option.Item, Quantity: option.Quantity})
-				break
-			} else if option.Type == "bundle" {
-				// Check if this bundle's first item matches (simplified check)
-				if len(option.Items) > 0 && option.Items[0].Item == selectedID {
-					allItems = append(allItems, option.Items...)
-					break
-				}
-			}
-		}
-	}
-
-	// Add pack choice
-	if packChoice != "" {
-		allItems = append(allItems, ItemWithQty{Item: packChoice, Quantity: 1})
-	}
-
-	// 2. Stack items (respect stack limits)
-	stackedItems, err := stackItems(database, allItems)
-	if err != nil {
-		return nil, fmt.Errorf("failed to stack items: %v", err)
-	}
-
-	// 3. Build inventory structure with auto-equipping
-	inventory, err := createInventoryStructure(database, stackedItems)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create inventory: %v", err)
-	}
-
-	return inventory, nil
-}
-
-// ============================================================================
 // ITEM STACKING
 // ============================================================================
 
@@ -660,14 +577,6 @@ func min(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func getKeys(m map[string]string) []string {
-	keys := []string{}
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
 }
 
 // ============================================================================

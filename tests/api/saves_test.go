@@ -118,7 +118,7 @@ func TestSavesHandler_DeleteSave(t *testing.T) {
 	})
 
 	t.Run("returns 404 for non-existent save", func(t *testing.T) {
-		resp := ts.DELETE(t, "/api/saves/"+helpers.MockNpub+"/nonexistent_save")
+		resp := ts.DELETE(t, "/api/saves/"+helpers.MockNpub+"/save_1")
 		helpers.AssertStatus(t, resp, http.StatusNotFound)
 	})
 
@@ -183,5 +183,22 @@ func TestSavesHandler_FullCycle(t *testing.T) {
 	saves = helpers.AssertJSONArray(t, resp)
 	if len(saves) != 0 {
 		t.Fatalf("Expected 0 saves after delete, got %d", len(saves))
+	}
+}
+
+// A save id or npub that isn't one the game makes never reaches the disk: they
+// become file paths, and "../" once reached other players' files.
+func TestSavesHandler_RefusesBadPaths(t *testing.T) {
+	ts := setupSavesTestServer(t)
+	defer ts.Close()
+	defer db.Close()
+	for _, target := range []string{
+		"/api/saves/" + helpers.MockNpub + "/..%2F..%2Fledger%2Fx",
+		"/api/saves/" + helpers.MockNpub + "/save_1.json",
+		"/api/saves/npub1notreal/save_1",
+	} {
+		if resp := ts.DELETE(t, target); resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("DELETE %s: status %d, want 400", target, resp.StatusCode)
+		}
 	}
 }

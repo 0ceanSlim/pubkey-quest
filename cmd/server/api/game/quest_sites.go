@@ -102,8 +102,6 @@ func QuestSiteEnterHandler(w http.ResponseWriter, r *http.Request) {
 		writePOIError(w, http.StatusNotFound, "session not found")
 		return
 	}
-	sess.Lock()
-	defer sess.Unlock()
 	applyPartySyncs(sess)
 	if sess.ActiveCombat != nil || sess.ActivePOI != nil || sess.PendingEncounter != nil {
 		writePOIError(w, http.StatusConflict, "You're busy.")

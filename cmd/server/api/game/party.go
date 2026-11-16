@@ -216,10 +216,8 @@ func PartyAcceptHandler(w http.ResponseWriter, r *http.Request) {
 	if leader, err := session.GetSessionManager().GetSession(p.Leader().Npub, p.Leader().SaveID); err == nil {
 		sess.QueuePartySync(syncFromLeader(leader, ""))
 	}
-	sess.Lock()
 	applyPartySyncs(sess)
 	publishPresence(sess)
-	sess.Unlock()
 
 	systemLine(fmt.Sprintf("🎉 %s joined the party.", sess.SaveData.D), partyMembersNpubs(p)...)
 	partyOK(w, req.Npub, "You joined the party.")

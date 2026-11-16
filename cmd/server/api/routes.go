@@ -406,20 +406,10 @@ func registerPOIRoutes(mux *http.ServeMux) {
 // ============================================================================
 
 func registerCombatRoutes(mux *http.ServeMux) {
-	// @Summary      Start a combat encounter
-	// @Description  Initialises a new combat session for the given monster and environment.
-	//               Combat state lives in server memory only and is never saved to disk.
-	//               Returns the full initial state including initiative order.
-	// @Tags         Combat
-	// @Accept       json
-	// @Produce      json
-	// @Param        request  body      game.CombatStartRequest  true  "Encounter parameters"
-	// @Success      200      {object}  game.CombatStateResponse
-	// @Failure      400      {string}  string  "Invalid request or already in combat"
-	// @Failure      404      {string}  string  "Session not found"
-	// @Failure      500      {string}  string  "Internal error"
-	// @Router       /api/combat/start [post]
-	mux.HandleFunc("/api/combat/start", game.StartCombatHandler)
+	// Fights start from the game (travel encounters, POI and quest nodes),
+	// never from a request naming its monsters: /api/combat/start is a debug
+	// route (registerDebugRoutes), or anyone could farm any monster anywhere.
+
 
 	// @Summary      Get current combat state
 	// @Description  Returns the live combat state. Use this to re-sync after a page refresh.
@@ -788,6 +778,21 @@ func registerDebugRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} game.CombatStateResponse
 	// @Router /api/combat/debug/start [post]
 	mux.HandleFunc("/api/combat/debug/start", game.DebugCombatStartHandler)
+
+	// @Summary      Start a combat encounter
+	// @Description  Debug only. Initialises a new combat session for the given monsters and environment.
+	//               Combat state lives in server memory only and is never saved to disk.
+	//               Returns the full initial state including initiative order.
+	// @Tags         Combat
+	// @Accept       json
+	// @Produce      json
+	// @Param        request  body      game.CombatStartRequest  true  "Encounter parameters"
+	// @Success      200      {object}  game.CombatStateResponse
+	// @Failure      400      {string}  string  "Invalid request or already in combat"
+	// @Failure      404      {string}  string  "Session not found"
+	// @Failure      500      {string}  string  "Internal error"
+	// @Router       /api/combat/start [post]
+	mux.HandleFunc("/api/combat/start", game.StartCombatHandler)
 
 	// @Summary Grant XP (debug)
 	// @Description Adds XP to the character and re-derives level/HP/mana (debug only)

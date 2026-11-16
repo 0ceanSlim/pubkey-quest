@@ -102,10 +102,8 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// One request at a time per session; a party leader's moves reach this
-	// session as queued syncs, applied first.
-	session.Lock()
-	defer session.Unlock()
+	// One request at a time per session (session.SerializeRequests); a party
+	// leader's moves reach this session as queued syncs, applied first.
 	partySynced := applyPartySyncs(session)
 
 	// Followers go where the leader goes, on the leader's clock.

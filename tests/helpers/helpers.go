@@ -169,7 +169,7 @@ func AssertError(t *testing.T, result map[string]interface{}) {
 }
 
 // MockNpub is a test npub for use in tests
-const MockNpub = "npub1test000000000000000000000000000000000000000000000000000"
+const MockNpub = "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqshp52w2" // a well-formed npub (pubkey 0…01): handlers refuse malformed ones
 
 // MockSaveID is a test save ID for use in tests
 const MockSaveID = "save_test_12345"
