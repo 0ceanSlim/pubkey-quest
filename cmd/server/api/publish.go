@@ -11,6 +11,7 @@ import (
 	"github.com/0ceanslim/grain/client/core"
 	"github.com/0ceanslim/grain/client/session"
 	nostr "github.com/0ceanslim/grain/server/types"
+	"pubkey-quest/cmd/server/utils"
 )
 
 // Publishing a player's own Nostr events.
@@ -102,7 +103,7 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	relays := routeWrites(uc, req.Event)
-	results, err := uc.PublishEvent(r.Context(), req.Event, relays)
+	results, err := uc.PublishEvent(r.Context(), req.Event, utils.PublicRelays(relays))
 	if err != nil {
 		log.Printf("❌ Failed to publish %s for %s...: %v", label, shortKey(user.PublicKey), err)
 		writeJSONStatus(w, http.StatusInternalServerError, PublishResponse{

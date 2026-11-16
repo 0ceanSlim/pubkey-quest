@@ -308,7 +308,7 @@ func (auth *AuthHandler) validateLoginRequest(req *LoginRequest) error {
 // isLocalConnection checks if the request is from localhost or local network
 func isLocalConnection(r *http.Request) bool {
 	// Get the client IP from the request
-	clientIP := getClientIP(r)
+	clientIP := utils.ClientIP(r)
 
 	// Parse the IP
 	ip := net.ParseIP(clientIP)
@@ -333,27 +333,6 @@ func isLocalConnection(r *http.Request) bool {
 	return false
 }
 
-// getClientIP extracts the client IP from the request, handling proxies
-func getClientIP(r *http.Request) string {
-	// Check X-Forwarded-For header (for proxies)
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		// X-Forwarded-For can contain multiple IPs, take the first one
-		ips := strings.Split(xff, ",")
-		return strings.TrimSpace(ips[0])
-	}
-
-	// Check X-Real-IP header
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return strings.TrimSpace(xri)
-	}
-
-	// Fall back to RemoteAddr
-	ip, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
-	}
-	return ip
-}
 
 // normalizePubkey converts npub to hex or returns hex unchanged
 func normalizePubkey(pubkey string) (string, error) {

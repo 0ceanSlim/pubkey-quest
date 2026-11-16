@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"pubkey-quest/cmd/server/game/events"
 
+	"pubkey-quest/cmd/server/auth"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/cmd/server/game/status"
@@ -453,14 +454,21 @@ func DebugStateHandler(w http.ResponseWriter, r *http.Request, debugMode bool) {
 
 	sessionMgr := session.GetSessionManager()
 
-	// If no parameters, return all sessions
+	// With no slot named, the caller's own sessions only: every player's
+	// save once went to anyone who asked (beta exploit audit E5).
 	if npub == "" || saveID == "" {
-		sessions := sessionMgr.GetAllSessions()
+		owner := auth.OwnerNpub(r)
+		mine := map[string]*session.GameSession{}
+		for key, s := range sessionMgr.GetAllSessions() {
+			if owner != "" && s.Npub == owner {
+				mine[key] = s
+			}
+		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
 			"success":       true,
-			"session_count": len(sessions),
-			"sessions":      sessions,
+			"session_count": len(mine),
+			"sessions":      mine,
 		})
 		return
 	}
@@ -510,6 +518,7 @@ func CleanupSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	leaveSocial(npub, saveID)
 	session.GetSessionManager().UnloadSession(npub, saveID)
+	session.ForgetSlot(npub, saveID)
 	// Clean quit: unsaved progress is intentionally discarded (revert to last
 	// deliberate save), so the crash journal goes too.
 	session.RemoveJournal(npub, saveID)

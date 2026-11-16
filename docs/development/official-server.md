@@ -34,7 +34,7 @@ There's no separate `codex --migrate` step, and no repo checkout on the server.
      debug_mode: false   # required: the official server refuses to start with it on
    saves:
      relay: true         # signed saves on the players' relays
-     validation: true    # only the save this server last accepted is playable
+     validation: true    # required: only the save this server last accepted is playable (a release won't start without the key)
      max_slots: 5
    launch:
      closed: true        # not open yet: everyone gets a "play on the test server" page

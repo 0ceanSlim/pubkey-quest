@@ -3,7 +3,6 @@ package report
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -62,17 +61,6 @@ func allow(ip string) bool {
 // nowFunc is a seam for tests; production uses time.Now.
 var nowFunc = time.Now
 
-func clientIP(r *http.Request) string {
-	if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
-		// First hop is the original client.
-		return strings.TrimSpace(strings.Split(fwd, ",")[0])
-	}
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
-	}
-	return host
-}
 
 // ---------------------------------------------------------------------------
 // Shared helpers

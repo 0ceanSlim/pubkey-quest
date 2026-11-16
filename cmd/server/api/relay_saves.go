@@ -139,7 +139,7 @@ func PublishSaveHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
 	defer cancel()
 	relays := routeWrites(uc, ev)
-	results, _ := uc.PublishEvent(ctx, ev, relays)
+	results, _ := uc.PublishEvent(ctx, ev, utils.PublicRelays(relays))
 	var accepted, refused []string
 	for _, res := range results {
 		if res.Accepted {
@@ -208,7 +208,7 @@ func fetchEvents(pubkey string, filter nostr.Filter, extra []string, timeout tim
 	relays = append(relays, DefaultRelays()...)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	return c.QueryEvents(ctx, filter, relays, core.WithTimeout(timeout))
+	return c.QueryEvents(ctx, filter, utils.PublicRelays(relays), core.WithTimeout(timeout))
 }
 
 // decodeSaveEvent checks a fetched save event and decodes it.
@@ -338,7 +338,7 @@ func publishSaveDeletion(r *http.Request, npub, saveID string, ev *nostr.Event) 
 	relays := routeWrites(uc, ev)
 	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
-	results, err := uc.PublishEvent(ctx, ev, relays)
+	results, err := uc.PublishEvent(ctx, ev, utils.PublicRelays(relays))
 	if err != nil {
 		return 0, relays, err
 	}

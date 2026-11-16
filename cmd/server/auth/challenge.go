@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -31,6 +32,9 @@ const (
 	LoginProofKind = 27235
 
 	challengeTTL = 5 * time.Minute
+	// maxPendingChallenges caps unspent nonces: anyone may ask for one, so
+	// without a cap the store grew with every request (beta exploit audit E3).
+	maxPendingChallenges = 10000
 	// proofMaxSkew bounds how far the proof's created_at may sit from server time.
 	proofMaxSkew = 5 * time.Minute
 )
@@ -59,9 +63,14 @@ func (s *challengeStore) issue() (string, error) {
 			delete(s.pending, n)
 		}
 	}
+	if len(s.pending) >= maxPendingChallenges {
+		return "", errTooManyChallenges
+	}
 	s.pending[nonce] = now.Add(challengeTTL)
 	return nonce, nil
 }
+
+var errTooManyChallenges = errors.New("too many pending login challenges")
 
 // consume spends a nonce, reporting whether it was issued and still live.
 func (s *challengeStore) consume(nonce string) bool {
@@ -90,6 +99,10 @@ func (auth *AuthHandler) HandleChallenge(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	nonce, err := challenges.issue()
+	if err == errTooManyChallenges {
+		auth.sendErrorResponse(w, "Too many sign-ins at once — try again in a minute", http.StatusServiceUnavailable)
+		return
+	}
 	if err != nil {
 		auth.sendErrorResponse(w, "Could not create a login challenge", http.StatusInternalServerError)
 		return

@@ -89,5 +89,21 @@ func LoadConfig(configPath string) error {
 		return fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
+	// Whether saves.validation was written at all, not just its value: a
+	// release binary won't guess (SavesModeStated).
+	var probe struct {
+		Saves map[string]any `yaml:"saves"`
+	}
+	if yaml.Unmarshal(data, &probe) == nil {
+		_, savesModeStated = probe.Saves["validation"]
+	}
 	return nil
 }
+
+var savesModeStated bool
+
+// SavesModeStated reports whether the config says saves.validation outright.
+// A release binary refuses to start without it: a missing key reads as
+// false, and a server that meant to be official would quietly run as a test
+// server that accepts any save (beta exploit audit E2).
+func SavesModeStated() bool { return savesModeStated }

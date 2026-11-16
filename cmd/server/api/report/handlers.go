@@ -53,7 +53,7 @@ func BugHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"success": false, "error": "Method not allowed"})
 		return
 	}
-	if !allow(clientIP(r)) {
+	if !allow(utils.ClientIP(r)) {
 		writeJSON(w, http.StatusTooManyRequests, map[string]any{"success": false, "error": "Too many reports — please wait a moment."})
 		return
 	}
@@ -174,7 +174,7 @@ func AccessHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"success": false, "error": "Method not allowed"})
 		return
 	}
-	if !allow(clientIP(r)) {
+	if !allow(utils.ClientIP(r)) {
 		writeJSON(w, http.StatusTooManyRequests, map[string]any{"success": false, "error": "Too many requests — please wait a moment."})
 		return
 	}

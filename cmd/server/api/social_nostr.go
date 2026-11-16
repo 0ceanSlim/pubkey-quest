@@ -18,6 +18,7 @@ import (
 	nostr "github.com/0ceanslim/grain/server/types"
 
 	"pubkey-quest/cmd/server/api/game"
+	"pubkey-quest/cmd/server/utils"
 )
 
 // ─── Friends, follows, mutes and whispers over Nostr (social-plan §5, §7, §8) ─
@@ -94,7 +95,7 @@ func latestList(ctx context.Context, pubkey string, kind int) *nostr.Event {
 		return nil
 	}
 	f := nostr.Filter{Authors: []string{pubkey}, Kinds: []int{kind}}
-	return newest(c.QueryEvents(ctx, f, c.OwnListRelays(pubkey), core.WithTimeout(6*time.Second)))
+	return newest(c.QueryEvents(ctx, f, utils.PublicRelays(c.OwnListRelays(pubkey)), core.WithTimeout(6*time.Second)))
 }
 
 // pTags returns the hex pubkeys a list tags.
@@ -134,7 +135,7 @@ func loadFriends(ctx context.Context, me string, fresh bool) friendsEntry {
 				end = len(entry.follows)
 			}
 			f := nostr.Filter{Authors: entry.follows[i:end], Kinds: []int{3}}
-			for _, e := range c.QueryEvents(ctx, f, relays, core.WithTimeout(8*time.Second)) {
+			for _, e := range c.QueryEvents(ctx, f, utils.PublicRelays(relays), core.WithTimeout(8*time.Second)) {
 				if cur := latestBy[e.PubKey]; cur == nil || e.CreatedAt > cur.CreatedAt {
 					latestBy[e.PubKey] = e
 				}
@@ -181,7 +182,7 @@ func lastSeen(ctx context.Context, pubkeys []string) map[string]statusEntry {
 			end = len(need)
 		}
 		f := nostr.Filter{Authors: need[i:end], Since: &since}
-		for _, e := range c.QueryEvents(ctx, f, relays, core.WithTimeout(6*time.Second), core.WithLimit(1000)) {
+		for _, e := range c.QueryEvents(ctx, f, utils.PublicRelays(relays), core.WithTimeout(6*time.Second), core.WithLimit(1000)) {
 			cur := out[e.PubKey]
 			if e.CreatedAt <= cur.last {
 				continue
@@ -322,7 +323,7 @@ func listHandler(kind int, label string) http.HandlerFunc {
 			return
 		}
 		relays := routeWrites(uc, ev)
-		results, err := uc.PublishEvent(ctx, ev, relays)
+		results, err := uc.PublishEvent(ctx, ev, utils.PublicRelays(relays))
 		accepted := 0
 		for _, res := range results {
 			if res.Accepted { // the relay's OK, not just "sent"
@@ -480,7 +481,7 @@ func DMSendHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		relays := dmRelaysFor(c, to[0])
 		ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
-		results, err := uc.PublishEvent(ctx, wrap, relays)
+		results, err := uc.PublishEvent(ctx, wrap, utils.PublicRelays(relays))
 		cancel()
 		if to[0] == user.PublicKey {
 			continue // your own copy: best effort
@@ -588,9 +589,9 @@ func DMInboxHandler(w http.ResponseWriter, r *http.Request) {
 	// NIP-42 challenge on (see DMAuthHandler) serve their DMs.
 	var wraps []*nostr.Event
 	if uc := connection.UserFor(user.PublicKey); uc != nil {
-		wraps = uc.QueryEvents(ctx, f, relays, core.WithTimeout(8*time.Second), core.WithLimit(200))
+		wraps = uc.QueryEvents(ctx, f, utils.PublicRelays(relays), core.WithTimeout(8*time.Second), core.WithLimit(200))
 	} else {
-		wraps = c.QueryEvents(ctx, f, relays, core.WithTimeout(8*time.Second), core.WithLimit(200))
+		wraps = c.QueryEvents(ctx, f, utils.PublicRelays(relays), core.WithTimeout(8*time.Second), core.WithLimit(200))
 	}
 	if wraps == nil {
 		wraps = []*nostr.Event{}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 // ─── One request at a time per character ─────────────────────────────────────
@@ -79,8 +80,40 @@ func SerializeRequests(next http.Handler) http.Handler {
 		}
 		unlock := LockSlot(npub, saveID)
 		defer unlock()
+		touch(npub, saveID)
 		next.ServeHTTP(w, r)
 	})
+}
+
+// lastSeen is when each slot last had a request, for evicting idle sessions.
+var lastSeen = struct {
+	sync.Mutex
+	m map[string]time.Time
+}{m: map[string]time.Time{}}
+
+func touch(npub, saveID string) {
+	lastSeen.Lock()
+	lastSeen.m[sessionKey(npub, saveID)] = time.Now()
+	lastSeen.Unlock()
+}
+
+// IdleSince is when a session last had a request (its load time if none
+// has come through SerializeRequests since).
+func IdleSince(s *GameSession) time.Time {
+	lastSeen.Lock()
+	t, ok := lastSeen.m[sessionKey(s.Npub, s.SaveID)]
+	lastSeen.Unlock()
+	if !ok {
+		return time.Unix(s.LoadedAt, 0)
+	}
+	return t
+}
+
+// ForgetSlot drops a slot's last-seen time (its session is gone).
+func ForgetSlot(npub, saveID string) {
+	lastSeen.Lock()
+	delete(lastSeen.m, sessionKey(npub, saveID))
+	lastSeen.Unlock()
 }
 
 // namedSlot reads the slot a request names. The body is buffered and put back

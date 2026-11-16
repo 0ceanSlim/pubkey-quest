@@ -10,6 +10,7 @@ import (
 
 	pubkeyquest "pubkey-quest"
 	"pubkey-quest/cmd/server/api"
+	"pubkey-quest/cmd/server/api/game"
 	"pubkey-quest/cmd/server/app"
 	"pubkey-quest/cmd/server/maintenance"
 	"pubkey-quest/cmd/server/presence"
@@ -45,6 +46,11 @@ func main() {
 		}
 	}
 
+	// A release binary is told which kind of server it is: saves.validation
+	// true (official) or false (test / modded), never left to a default.
+	if pubkeyquest.Embedded && !utils.SavesModeStated() {
+		log.Fatalf("❌ config: set saves.validation (true for the official server, false for a test server) — a release won't start without it")
+	}
 	// The official server (validated saves) never runs debug tools.
 	if utils.AppConfig.Saves.Validation && utils.AppConfig.Server.DebugMode {
 		log.Fatalf("❌ config: saves.validation (the official server) can't run with server.debug_mode on")
@@ -53,6 +59,7 @@ func main() {
 	app.Init()
 	defer app.Shutdown()
 	api.InitRelaySaves()
+	game.StartIdleEviction()
 
 	// Deploys warn online players before a restart (data/restart-notice.json);
 	// release builds also watch for a newer release to promote.

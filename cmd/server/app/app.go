@@ -63,7 +63,19 @@ func Shutdown() {
 func Start(mux *http.ServeMux) {
 	port := utils.AppConfig.Server.Port
 	fmt.Printf("Server running on http://localhost:%d\n", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), auth.LaunchGate(auth.RequireIdentity(session.SerializeRequests(mux)))); err != nil {
+	// Timeouts so a slow or stalled connection can't hold the server: headers
+	// must arrive promptly, and a response may take a while (publishing a
+	// save waits on relays for up to 20 s).
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%d", port),
+		Handler:           auth.RateLimit(auth.LaunchGate(auth.RequireIdentity(session.SerializeRequests(mux)))),
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    64 << 10,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
