@@ -98,7 +98,7 @@ func applySkillScaling(tickInterval int, scaling *types.SkillScaling, stats map[
 		return tickInterval
 	}
 
-	skillValue := calculateSkillValue(stats, ratio)
+	skillValue := types.CapScore(calculateSkillValue(stats, ratio))
 
 	// No bonus at or below base level
 	if skillValue <= scaling.BaseLevel {
@@ -501,7 +501,7 @@ func SkillBonus(state *types.SaveFile, skillID string) int {
 // This is the stat block skill checks and skill gates should read from, so a
 // buff or a fatigue penalty actually changes the outcome. Effects only touch the
 // six ability scores, so skills (derived from abilities via ratios) pick up the
-// change automatically.
+// change automatically. No ability ends up past types.ScoreCap.
 func EffectiveStats(state *types.SaveFile) map[string]interface{} {
 	out := make(map[string]interface{}, len(state.Stats))
 	for k, v := range state.Stats {
@@ -531,7 +531,45 @@ func EffectiveStats(state *types.SaveFile) map[string]interface{} {
 			out[stat] = mod
 		}
 	}
+	for k, v := range out {
+		if !isAbility(k) {
+			continue
+		}
+		switch n := v.(type) {
+		case float64:
+			if n > types.ScoreCap {
+				out[k] = float64(types.ScoreCap)
+			}
+		case int:
+			out[k] = types.CapScore(n)
+		}
+	}
 	return out
+}
+
+func isAbility(name string) bool {
+	switch strings.ToLower(name) {
+	case "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma":
+		return true
+	}
+	return false
+}
+
+// Ability is one effective ability score (EffectiveStats), named in any case;
+// 10 when the save has none.
+func Ability(state *types.SaveFile, name string) int {
+	for k, v := range EffectiveStats(state) {
+		if !strings.EqualFold(k, name) {
+			continue
+		}
+		switch n := v.(type) {
+		case float64:
+			return int(n)
+		case int:
+			return n
+		}
+	}
+	return 10
 }
 
 // LoadEffectData loads effect data from database

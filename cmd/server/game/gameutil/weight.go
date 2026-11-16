@@ -136,7 +136,7 @@ func CalculateWeightCapacity(state *types.SaveFile) float64 {
 		}
 	}
 
-	capacity := baseMultiplier * strength
+	capacity := baseMultiplier * min(strength, float64(types.ScoreCap))
 
 	database := db.GetDB()
 	if database != nil {

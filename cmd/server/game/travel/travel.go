@@ -175,8 +175,8 @@ func getTravelSpeedMultiplier(state *types.SaveFile) float64 {
 		return 1.0
 	}
 
-	skillValue := calculateSkillValue(state.Stats, ratio) + gameutil.CarriedSkillBonus(state, true)[scaling.Skill] +
-		effects.SkillBonus(state, scaling.Skill)
+	skillValue := types.CapScore(calculateSkillValue(effects.EffectiveStats(state), ratio) +
+		gameutil.CarriedSkillBonus(state, true)[scaling.Skill] + effects.SkillBonus(state, scaling.Skill))
 
 	// A spell's travel_speed (longstrider: +25%) multiplies whatever the road gives.
 	spell := 1.0 + float64(effects.ModifierTotal(state, "travel_speed"))/100

@@ -13,7 +13,8 @@
         "A place's treasure, loot and guardians are yours once, then it's quiet for three days while it fills up again",
         "Mining faces, fished-out water, jammed locks, one-time encounters and the day's show now stay as they were when you save and come back",
         "In a fight you get one attack a turn (plus your off-hand and any Action Surge), a failed escape spends your action, and XP counts the damage a monster actually took",
-        "Selling never pays more than buying, however charming you are",
+        "No ability score or skill goes past 20, whatever your gear and spells add",
+        "Your Charisma now actually moves shop prices (it was being read as 10), and selling never pays more than buying, however charming you are",
         "A party member who drops out mid-fight leaves it instead of holding everyone's turn"
       ]
     },

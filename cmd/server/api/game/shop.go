@@ -33,21 +33,14 @@ func parseIntervalToMinutes(interval string) int {
 // with active ability-modifier effects folded in (effects.EffectiveStats, the
 // same value checks roll against). This is what shop pricing keys off, so a CHA
 // buff/debuff shifts buy and sell prices just like it shifts skill checks.
+// Never past types.ScoreCap.
 func getCharismaFromSession(npub, saveID string) int {
 	sess, err := session.GetSessionManager().GetSession(npub, saveID)
 	if err != nil {
 		log.Printf("⚠️ Failed to get session for charisma lookup: %v", err)
 		return 10 // Default charisma
 	}
-
-	eff := effects.EffectiveStats(&sess.SaveData)
-	switch cha := eff["charisma"].(type) {
-	case float64:
-		return int(cha)
-	case int:
-		return cha
-	}
-	return 10 // Default charisma if not found
+	return effects.Ability(&sess.SaveData, "charisma")
 }
 
 // itemRestockMinutes is an item's own restock period: set when the stock entry

@@ -18,8 +18,8 @@ import (
 
 // AbilityScoreMax is the ceiling a single ability can reach by spending earned
 // ability points. Generation caps scores at 16 (StatMax); spending lifts a stat
-// up to this D&D-standard cap.
-const AbilityScoreMax = 20
+// up to this D&D-standard cap (types.ScoreCap, which nothing gets past).
+const AbilityScoreMax = types.ScoreCap
 
 // abilityCanonical maps any accepted spelling of an ability (full name or the
 // three-letter abbreviation, any case) to the canonical capitalized key used in

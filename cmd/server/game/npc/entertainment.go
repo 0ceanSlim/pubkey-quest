@@ -257,18 +257,7 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 	}
 
 	// Get charisma stat (with active effect modifiers)
-	charisma := 10 // Default
-	if stats, ok := state.Stats["Charisma"]; ok {
-		if charInt, ok := stats.(int); ok {
-			charisma = charInt
-		} else if charFloat, ok := stats.(float64); ok {
-			charisma = int(charFloat)
-		}
-	}
-
-	// Apply active charisma modifiers from effects
-	statModifiers := effects.GetActiveStatModifiers(state)
-	charisma += statModifiers["charisma"]
+	charisma := effects.Ability(state, "charisma")
 
 	// Calculate performance success chance
 	baseSuccess := gameutil.GetFloatValue(instrumentData, "base_success", 50.0)

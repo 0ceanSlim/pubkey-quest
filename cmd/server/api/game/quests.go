@@ -67,7 +67,7 @@ func (c questContext) SkillValue(id string) int {
 	if !ok {
 		return 0
 	}
-	return data.CalculateSkillValue(c.effStats, def.Ratio) + c.toolBonus[id] + effects.SkillBonus(c.save, id)
+	return types.CapScore(data.CalculateSkillValue(c.effStats, def.Ratio) + c.toolBonus[id] + effects.SkillBonus(c.save, id))
 }
 func (c questContext) StatValue(id string) int {
 	for k, v := range c.effStats {

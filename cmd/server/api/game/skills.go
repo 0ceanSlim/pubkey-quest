@@ -9,6 +9,7 @@ import (
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/types"
 )
 
 // SkillsHandler returns skill definitions with calculated values for a character session
@@ -54,7 +55,7 @@ func SkillsHandler(w http.ResponseWriter, r *http.Request) {
 			Name:        skill.Name,
 			Description: skill.Description,
 			Ratio:       skill.Ratio,
-			Value:       data.CalculateSkillValue(stats, skill.Ratio) + tools[id] + effects.SkillBonus(&gameSession.SaveData, id),
+			Value:       types.CapScore(data.CalculateSkillValue(stats, skill.Ratio) + tools[id] + effects.SkillBonus(&gameSession.SaveData, id)),
 		}
 	}
 
