@@ -49,7 +49,7 @@
         {
           "id": "luxury_market",
           "name": "Golden Bazaar",
-          "description": "An upscale market selling rare and exotic goods from across the world. Saphra Goldscale's stall of fine blades and jewellery holds pride of place under the gilded awning.",
+          "description": "An upscale market selling rare and exotic goods from across the world. Saphra Goldscale's stall of fine blades and jewellery holds pride of place under the gilded awning, and at the back Nissa Brightfacet works a jeweller's wheel behind a pane of thick glass.",
           "open": 480,
           "close": 1200
         },
@@ -157,6 +157,13 @@
         {
           "id": "saphra_quarters",
           "name": "Saphra's Private Residence",
+          "description": "Private quarters.",
+          "open": -1,
+          "close": null
+        },
+        {
+          "id": "nissa_quarters",
+          "name": "Nissa's Quarters",
           "description": "Private quarters.",
           "open": -1,
           "close": null

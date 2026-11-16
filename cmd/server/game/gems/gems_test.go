@@ -1,0 +1,140 @@
+package gems
+
+import (
+	"math"
+	"math/rand"
+	"testing"
+
+	"pubkey-quest/types"
+)
+
+func testCfg(t *testing.T) *types.GemsConfig {
+	t.Helper()
+	c, err := LoadFile("../../../../game-data/systems/gems.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
+func TestIDsRoundTrip(t *testing.T) {
+	c := testCfg(t)
+	seen := map[string]bool{}
+	for _, it := range Items(c) {
+		id := it["id"].(string)
+		if seen[id] {
+			t.Fatalf("duplicate id %s", id)
+		}
+		seen[id] = true
+		g, ok := Parse(c, id)
+		if !ok || g.ID() != id {
+			t.Fatalf("%s parses to %+v", id, g)
+		}
+		if Value(c, g) != it["value"] {
+			t.Fatalf("%s: value %v, item says %v", id, Value(c, g), it["value"])
+		}
+	}
+	// 20 types × 5 sizes × (1 uncut + 4 cut × (1 + 2 pieces)).
+	if len(seen) != 20*5*(1+4*3) {
+		t.Fatalf("%d items", len(seen))
+	}
+	for _, bad := range []string{"gem-ruby-small", "gem-rubyx-small-fine", "ring-ruby-small-uncut", "gem-ruby-vast-fine", "hat-ruby-small-fine"} {
+		if _, ok := Parse(c, bad); ok {
+			t.Fatalf("%s parsed", bad)
+		}
+	}
+}
+
+func TestValuesAndRarity(t *testing.T) {
+	c := testCfg(t)
+	cases := []struct {
+		g      Gem
+		value  int
+		rarity string
+	}{
+		{Gem{Type: "quartz", Size: "tiny"}, 10, "common"},
+		{Gem{Type: "amethyst", Size: "medium", Quality: "flawless"}, 40000, "rare"},
+		{Gem{Type: "amethyst", Size: "medium", Quality: "flawed"}, 5000, "uncommon"},
+		{Gem{Type: "diamond", Size: "huge", Quality: "flawless"}, 200_000_000, "mythic"},
+		{Gem{Type: "ruby", Size: "small", Quality: "fine", Piece: "ring"}, 1000 + 20000, "rare"},
+		{Gem{Type: "quartz", Size: "tiny", Quality: "standard", Piece: "necklace"}, 2010, "uncommon"},
+	}
+	for _, tc := range cases {
+		if v := Value(c, tc.g); v != tc.value || Rarity(v) != tc.rarity {
+			t.Errorf("%s: %d %s, want %d %s", tc.g.ID(), v, Rarity(v), tc.value, tc.rarity)
+		}
+	}
+	if gold, labour := SetFee(c, Gem{Type: "ruby", Size: "small", Quality: "fine"}, "necklace"); gold != 2000 || labour != 2000 {
+		t.Errorf("set fee %d + %d", gold, labour)
+	}
+}
+
+func TestCurve(t *testing.T) {
+	curve := types.Curve{{0, 0.15}, {5, 0.25}, {10, 0.3}}
+	for _, tc := range []struct{ x, want float64 }{{-1, 0.15}, {0, 0.15}, {5, 0.25}, {20, 0.3}} {
+		if got := At(curve, tc.x); math.Abs(got-tc.want) > 1e-9 {
+			t.Errorf("At(%v) = %v", tc.x, got)
+		}
+	}
+	if mid := At(curve, 2.5); math.Abs(mid-math.Sqrt(0.15*0.25)) > 1e-9 {
+		t.Errorf("log-linear midpoint %v", mid)
+	}
+}
+
+// The kill curves land near the draft's table (gem-system.md §2): about 34
+// gold of gems per CR-0 kill, about 1,070 at CR 5.
+func TestKillYield(t *testing.T) {
+	c := testCfg(t)
+	for _, tc := range []struct {
+		cr     float64
+		lo, hi float64
+	}{{0, 20, 50}, {5, 700, 1500}} {
+		m := &types.MonsterData{ChallengeRating: tc.cr, Type: "Humanoid"}
+		ev := 0.0
+		tw := TypeWeights(c, At(c.Drops.TypeTilt, tc.cr), nil)
+		sw := SizeWeights(c, At(c.Drops.SizeTilt, tc.cr), -1)
+		tt, st := 0.0, 0.0
+		for _, w := range tw {
+			tt += w
+		}
+		for _, w := range sw {
+			st += w
+		}
+		for id, w := range tw {
+			for i, s := range c.Sizes {
+				ev += w / tt * sw[i] / st * float64(Value(c, Gem{Type: id, Size: s.ID}))
+			}
+		}
+		ev *= KillChance(c, m)
+		if ev < tc.lo || ev > tc.hi {
+			t.Errorf("CR %v: %.0f gold of gems per kill", tc.cr, ev)
+		}
+	}
+	none := 0.0
+	if KillChance(c, &types.MonsterData{Type: "Beast", ChallengeRating: 2}) != 0 ||
+		KillChance(c, &types.MonsterData{Type: "Beast", GemChance: ptr(0.5)}) != 0.5 ||
+		KillChance(c, &types.MonsterData{Type: "Humanoid", GemChance: &none}) != 0 {
+		t.Error("gem_chance overrides and no-gem types")
+	}
+}
+
+func ptr(f float64) *float64 { return &f }
+
+func TestForFaceLeaningAndCap(t *testing.T) {
+	c := testCfg(t)
+	rng := rand.New(rand.NewSource(1))
+	small := SizeIndex(c, "small")
+	for range 2000 {
+		g, ok := ForFace(c, 4, map[string]int{"obsidian": 3, "topaz": 1}, small, rng)
+		if !ok || (g.Type != "obsidian" && g.Type != "topaz") || SizeIndex(c, g.Size) > small {
+			t.Fatalf("rolled %+v", g)
+		}
+	}
+	counts := map[string]int{}
+	for range 10000 {
+		counts[RollQuality(c, rng)]++
+	}
+	if counts["standard"] < 4500 || counts["flawless"] > 700 || counts["flawless"] == 0 {
+		t.Errorf("qualities %v", counts)
+	}
+}

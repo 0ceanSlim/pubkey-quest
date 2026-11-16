@@ -20,8 +20,19 @@ func generateFishItems() error {
 	if err != nil {
 		return err
 	}
+	made, err := insertGeneratedItems(fishing.Items(cfg))
+	if err != nil {
+		return err
+	}
+	log.Printf("Generated %d fish items", made)
+	return nil
+}
+
+// insertGeneratedItems inserts generated item objects, skipping any id a
+// hand-written file already provides. It returns how many it inserted.
+func insertGeneratedItems(items []map[string]any) (int, error) {
 	made := 0
-	for _, item := range fishing.Items(cfg) {
+	for _, item := range items {
 		id, _ := item["id"].(string)
 		var exists int
 		if database.QueryRow("SELECT COUNT(1) FROM items WHERE id = ?", id).Scan(&exists); exists > 0 {
@@ -31,10 +42,9 @@ func generateFishItems() error {
 		tags, _ := json.Marshal(item["tags"])
 		if _, err := database.Exec(`INSERT INTO items (id, name, description, item_type, properties, tags, rarity) VALUES (?, ?, ?, ?, ?, ?, ?)`,
 			id, item["name"], item["description"], item["type"], string(props), string(tags), item["rarity"]); err != nil {
-			return fmt.Errorf("insert %s: %v", id, err)
+			return made, fmt.Errorf("insert %s: %v", id, err)
 		}
 		made++
 	}
-	log.Printf("Generated %d fish items", made)
-	return nil
+	return made, nil
 }

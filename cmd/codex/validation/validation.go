@@ -89,6 +89,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, mineIssues...)
 	}
 
+	// Validate gems.json
+	if gemIssues, err := ValidateGems(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, gemIssues...)
+	}
+
 	// Validate starting gear
 	if gearIssues, err := ValidateStartingGear(); err != nil {
 		return nil, err
@@ -750,7 +757,7 @@ func ValidateMonsters() ([]Issue, error) {
 		}
 		return nil
 	})
-	withGeneratedFish(withGeneratedScrolls(validItemIDs))
+	withGeneratedGems(withGeneratedFish(withGeneratedScrolls(validItemIDs)))
 
 	err := filepath.WalkDir(monstersPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -1347,7 +1354,7 @@ func knownItemIDs() map[string]bool {
 				itemIDs[strings.TrimSuffix(e.Name(), ".json")] = true
 			}
 		}
-		withGeneratedFish(withGeneratedScrolls(itemIDs))
+		withGeneratedGems(withGeneratedFish(withGeneratedScrolls(itemIDs)))
 	})
 	return itemIDs
 }

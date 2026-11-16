@@ -1,197 +1,259 @@
 {
-  "gem_system": {
-    "description": "Gem drops from monster kills. Every value here is tunable; see docs/draft/gem-system.md for how they combine.",
-    "gem_types": {
-      "diamond": {
-        "base_value": 500000,
-        "drop_rate": 0.01,
-        "description": "The most precious of gems, crystal clear and brilliant"
+  "description": "Gems (docs/draft/gem-system.md). Generated at --migrate into items: gem-<type>-<size>-uncut, gem-<type>-<size>-<quality>, and ring-/necklace-<type>-<size>-<quality>. A gem's value is base_value x the size multiplier (x the quality multiplier once cut); its rarity follows the value. Curves are [x, value] points, interpolated log-linearly between points and held flat past the ends. type_tilt and size_tilt reweight the type and size rolls: weight = drop_rate x tilt ^ log10(base_value / 1000) for types, and drop_rate x tilt ^ log10(multiplier) for sizes. A tilt of 1 leaves the base drop_rates alone; below 1 favours cheap/small gems, above 1 valuable/large ones.",
+  "types": {
+    "diamond": {
+      "name": "Diamond",
+      "base_value": 500000,
+      "drop_rate": 0.01,
+      "description": "The most precious of gems, crystal clear and brilliant"
+    },
+    "emerald": {
+      "name": "Emerald",
+      "base_value": 100000,
+      "drop_rate": 0.03,
+      "description": "Vibrant green gem associated with nature magic"
+    },
+    "ruby": {
+      "name": "Ruby",
+      "base_value": 100000,
+      "drop_rate": 0.03,
+      "description": "Blood-red stone that gleams like fire"
+    },
+    "sapphire": {
+      "name": "Sapphire",
+      "base_value": 100000,
+      "drop_rate": 0.03,
+      "description": "Deep blue gemstone prized by nobility"
+    },
+    "alexandrite": {
+      "name": "Alexandrite",
+      "base_value": 50000,
+      "drop_rate": 0.06,
+      "description": "Color-changing gem that shifts in different light"
+    },
+    "garnet": {
+      "name": "Garnet",
+      "base_value": 50000,
+      "drop_rate": 0.06,
+      "description": "Dark red stone often used in jewelry"
+    },
+    "topaz": {
+      "name": "Topaz",
+      "base_value": 50000,
+      "drop_rate": 0.06,
+      "description": "Golden gemstone that catches light beautifully"
+    },
+    "amber": {
+      "name": "Amber",
+      "base_value": 10000,
+      "drop_rate": 0.08,
+      "description": "Fossilized tree resin, sometimes containing ancient insects"
+    },
+    "amethyst": {
+      "name": "Amethyst",
+      "base_value": 10000,
+      "drop_rate": 0.08,
+      "description": "Purple quartz crystal with mystical properties"
+    },
+    "pearl": {
+      "name": "Pearl",
+      "base_value": 10000,
+      "drop_rate": 0.08,
+      "description": "Lustrous sphere formed in oysters and mussels"
+    },
+    "bloodstone": {
+      "name": "Bloodstone",
+      "base_value": 5000,
+      "drop_rate": 0.1,
+      "description": "Dark green stone flecked with red spots"
+    },
+    "citrine": {
+      "name": "Citrine",
+      "base_value": 5000,
+      "drop_rate": 0.1,
+      "description": "Yellow quartz that sparkles like sunlight"
+    },
+    "jasper": {
+      "name": "Jasper",
+      "base_value": 5000,
+      "drop_rate": 0.1,
+      "description": "Colorful stone with interesting patterns"
+    },
+    "moonstone": {
+      "name": "Moonstone",
+      "base_value": 5000,
+      "drop_rate": 0.1,
+      "description": "Pale gem that shimmers like moonlight"
+    },
+    "onyx": {
+      "name": "Onyx",
+      "base_value": 5000,
+      "drop_rate": 0.1,
+      "description": "Black stone with white bands"
+    },
+    "azurite": {
+      "name": "Azurite",
+      "base_value": 1000,
+      "drop_rate": 0.22,
+      "description": "Bright blue mineral used in paint and decoration"
+    },
+    "malachite": {
+      "name": "Malachite",
+      "base_value": 1000,
+      "drop_rate": 0.22,
+      "description": "Bright green stone with swirling patterns"
+    },
+    "obsidian": {
+      "name": "Obsidian",
+      "base_value": 1000,
+      "drop_rate": 0.22,
+      "description": "Volcanic glass, sharp and dark"
+    },
+    "quartz": {
+      "name": "Quartz",
+      "base_value": 1000,
+      "drop_rate": 0.22,
+      "description": "Clear crystal common in many regions"
+    },
+    "turquoise": {
+      "name": "Turquoise",
+      "base_value": 1000,
+      "drop_rate": 0.22,
+      "description": "Blue-green stone often carved into trinkets"
+    }
+  },
+  "sizes": [
+    {
+      "id": "tiny",
+      "name": "Tiny",
+      "multiplier": 0.01,
+      "drop_rate": 0.44,
+      "carats": [0.1, 0.5],
+      "cut_fee": 50
+    },
+    {
+      "id": "small",
+      "name": "Small",
+      "multiplier": 0.1,
+      "drop_rate": 0.33,
+      "carats": [0.5, 2],
+      "cut_fee": 200
+    },
+    {
+      "id": "medium",
+      "name": "Medium",
+      "multiplier": 1.0,
+      "drop_rate": 0.185,
+      "carats": [2, 5],
+      "cut_fee": 500
+    },
+    {
+      "id": "large",
+      "name": "Large",
+      "multiplier": 10.0,
+      "drop_rate": 0.04,
+      "carats": [5, 15],
+      "cut_fee": 1500
+    },
+    {
+      "id": "huge",
+      "name": "Huge",
+      "multiplier": 100.0,
+      "drop_rate": 0.005,
+      "carats": [15, 40],
+      "cut_fee": 5000
+    }
+  ],
+  "qualities": [
+    {
+      "id": "flawed",
+      "name": "Flawed",
+      "multiplier": 0.5,
+      "drop_rate": 0.3
+    },
+    {
+      "id": "standard",
+      "name": "Cut",
+      "multiplier": 1,
+      "drop_rate": 0.5
+    },
+    {
+      "id": "fine",
+      "name": "Fine",
+      "multiplier": 2,
+      "drop_rate": 0.15
+    },
+    {
+      "id": "flawless",
+      "name": "Flawless",
+      "multiplier": 4,
+      "drop_rate": 0.05
+    }
+  ],
+  "drops": {
+    "_comment": "Per kill, by the monster's challenge rating. A monster's own gem_chance overrides gem_chance; no_gem_types carry none unless they set one.",
+    "gem_chance": [
+      [0, 0.15],
+      [5, 0.25],
+      [10, 0.3],
+      [20, 0.4]
+    ],
+    "type_tilt": [
+      [0, 0.6],
+      [5, 1.3],
+      [10, 2.2],
+      [20, 5.0]
+    ],
+    "size_tilt": [
+      [0, 0.15],
+      [5, 0.5],
+      [10, 1.0],
+      [20, 2.0]
+    ],
+    "no_gem_types": [
+      "Beast",
+      "Plant",
+      "Ooze"
+    ]
+  },
+  "mining": {
+    "_comment": "Gem cells at a rock face, by the face's tier (mining-system.md section 6). A seam's gems.types replaces the type weights with its own leaning.",
+    "type_tilt": [
+      [1, 0.5],
+      [2, 1.0],
+      [3, 1.6],
+      [4, 2.5]
+    ],
+    "size_tilt": [
+      [1, 0.15],
+      [2, 0.4],
+      [3, 0.8],
+      [4, 1.5]
+    ],
+    "geode_share": 0.15,
+    "quick_chance": 0.1,
+    "quick_max_size": "small",
+    "geode_tier": 2,
+    "crack_minutes": 10,
+    "crack_wear": 2
+  },
+  "jeweller": {
+    "_comment": "Cutting costs the size's cut_fee and reveals the quality (rolled at the cut). Setting a cut gem takes the piece's gold plus labour x the cut gem's value; the piece is worth its gold plus the gem.",
+    "npc": "gem-cutter",
+    "labour": 0.1,
+    "pieces": {
+      "ring": {
+        "name": "Ring",
+        "gold": 1000,
+        "weight": 0.02,
+        "gear_slot": "ring"
       },
-      "sapphire": {
-        "base_value": 100000,
-        "drop_rate": 0.03,
-        "description": "Deep blue gemstone prized by nobility"
-      },
-      "emerald": {
-        "base_value": 100000,
-        "drop_rate": 0.03,
-        "description": "Vibrant green gem associated with nature magic"
-      },
-      "ruby": {
-        "base_value": 100000,
-        "drop_rate": 0.03,
-        "description": "Blood-red stone that gleams like fire"
-      },
-      "topaz": {
-        "base_value": 50000,
-        "drop_rate": 0.06,
-        "description": "Golden gemstone that catches light beautifully"
-      },
-      "garnet": {
-        "base_value": 50000,
-        "drop_rate": 0.06,
-        "description": "Dark red stone often used in jewelry"
-      },
-      "alexandrite": {
-        "base_value": 50000,
-        "drop_rate": 0.06,
-        "description": "Color-changing gem that shifts in different light"
-      },
-      "pearl": {
-        "base_value": 10000,
-        "drop_rate": 0.08,
-        "description": "Lustrous sphere formed in oysters and mussels"
-      },
-      "amber": {
-        "base_value": 10000,
-        "drop_rate": 0.08,
-        "description": "Fossilized tree resin, sometimes containing ancient insects"
-      },
-      "amethyst": {
-        "base_value": 10000,
-        "drop_rate": 0.08,
-        "description": "Purple quartz crystal with mystical properties"
-      },
-      "onyx": {
-        "base_value": 5000,
-        "drop_rate": 0.1,
-        "description": "Black stone with white bands"
-      },
-      "moonstone": {
-        "base_value": 5000,
-        "drop_rate": 0.1,
-        "description": "Pale gem that shimmers like moonlight"
-      },
-      "citrine": {
-        "base_value": 5000,
-        "drop_rate": 0.1,
-        "description": "Yellow quartz that sparkles like sunlight"
-      },
-      "jasper": {
-        "base_value": 5000,
-        "drop_rate": 0.1,
-        "description": "Colorful stone with interesting patterns"
-      },
-      "bloodstone": {
-        "base_value": 5000,
-        "drop_rate": 0.1,
-        "description": "Dark green stone flecked with red spots"
-      },
-      "turquoise": {
-        "base_value": 1000,
-        "drop_rate": 0.22,
-        "description": "Blue-green stone often carved into trinkets"
-      },
-      "quartz": {
-        "base_value": 1000,
-        "drop_rate": 0.22,
-        "description": "Clear crystal common in many regions"
-      },
-      "azurite": {
-        "base_value": 1000,
-        "drop_rate": 0.22,
-        "description": "Bright blue mineral used in paint and decoration"
-      },
-      "obsidian": {
-        "base_value": 1000,
-        "drop_rate": 0.22,
-        "description": "Volcanic glass, sharp and dark"
-      },
-      "malachite": {
-        "base_value": 1000,
-        "drop_rate": 0.22,
-        "description": "Bright green stone with swirling patterns"
+      "necklace": {
+        "name": "Necklace",
+        "gold": 2000,
+        "weight": 0.05,
+        "gear_slot": "neck"
       }
-    },
-    "size_multipliers": {
-      "tiny": {
-        "multiplier": 0.01,
-        "drop_rate": 0.44,
-        "description": "A tiny chip or fragment"
-      },
-      "small": {
-        "multiplier": 0.1,
-        "drop_rate": 0.33,
-        "description": "A small but noticeable piece"
-      },
-      "medium": {
-        "multiplier": 1.0,
-        "drop_rate": 0.185,
-        "description": "A standard-sized gem"
-      },
-      "large": {
-        "multiplier": 10.0,
-        "drop_rate": 0.04,
-        "description": "An impressively large specimen"
-      },
-      "huge": {
-        "multiplier": 100.0,
-        "drop_rate": 0.005,
-        "description": "A massive, museum-quality gem"
-      }
-    },
-    "cr_scaling": {
-      "description": "Each curve is a list of [CR, value] points, interpolated log-linearly between points and held flat past the ends. gem_chance is the per-kill chance of a gem (a monster's own gem_chance overrides it). type_tilt and size_tilt reweight the type and size rolls: weight = drop_rate x tilt ^ log10(base_value / 1000) for types, and drop_rate x tilt ^ log10(multiplier) for sizes. A tilt of 1 leaves the base drop_rates unchanged; below 1 favours cheap/small gems, above 1 favours valuable/large ones.",
-      "gem_chance": [
-        [
-          0,
-          0.15
-        ],
-        [
-          5,
-          0.25
-        ],
-        [
-          10,
-          0.3
-        ],
-        [
-          20,
-          0.4
-        ]
-      ],
-      "type_tilt": [
-        [
-          0,
-          0.6
-        ],
-        [
-          5,
-          1.3
-        ],
-        [
-          10,
-          2.2
-        ],
-        [
-          20,
-          5.0
-        ]
-      ],
-      "size_tilt": [
-        [
-          0,
-          0.15
-        ],
-        [
-          5,
-          0.5
-        ],
-        [
-          10,
-          1.0
-        ],
-        [
-          20,
-          2.0
-        ]
-      ]
-    },
-    "usage": {
-      "currency": "Gems can be sold to merchants for their GP value",
-      "trading": "High-value gems may be required for special purchases",
-      "crafting": "Future system may allow gem enhancement of equipment",
-      "collection": "Rare gems could unlock special content or achievements"
     }
   }
 }

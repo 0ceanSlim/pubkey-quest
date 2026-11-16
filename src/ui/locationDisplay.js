@@ -31,6 +31,7 @@ import { openWaystone } from './waystone.js';
 import { openLockpicking } from './lockpicking.js';
 import { openStartingGear } from './startingGear.js';
 import { openSmithRepair } from './smithRepair.js';
+import { openJeweller } from './jeweller.js';
 import { attachConditionBar, attachLightBar, attachWearBar, attachChargeBar } from './conditionBar.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
@@ -1365,6 +1366,12 @@ export async function selectDialogueOption(npcId, choice) {
             if (result.data?.open_repair) {
                 closeNPCDialogue();
                 openSmithRepair(result.data.open_repair);
+                return;
+            }
+            // The jeweller's "Cut or set gems": the bench window.
+            if (result.data?.open_jeweller) {
+                closeNPCDialogue();
+                openJeweller(result.data.open_jeweller);
                 return;
             }
 

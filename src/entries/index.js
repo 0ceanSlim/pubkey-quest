@@ -10,6 +10,7 @@ import '../styles/main.css';
 import '../styles/lockpicking.css';
 import '../styles/fishing.css';
 import '../styles/mining.css';
+import '../styles/gems.css';
 
 // Core libraries
 import { logger } from '../lib/logger.js';

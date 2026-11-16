@@ -13,6 +13,25 @@
 
 import { logger } from '../lib/logger.js';
 
+// The item list is large (every generated fish and gem), so it's parsed once
+// and indexed by id; replacing #all-items drops the cache.
+let itemsCache = null;
+let itemsObserved = false;
+
+function itemIndex(element) {
+    if (!itemsCache) {
+        const list = JSON.parse(element.textContent || '[]');
+        if (!list.length) return { list, byId: new Map() }; // not loaded yet: don't cache
+        itemsCache = { list, byId: new Map(list.map((item) => [item.id, item])) };
+        if (!itemsObserved && typeof MutationObserver !== 'undefined') {
+            itemsObserved = true;
+            new MutationObserver(() => { itemsCache = null; })
+                .observe(element, { childList: true, characterData: true, subtree: true });
+        }
+    }
+    return itemsCache;
+}
+
 /**
  * Get item by ID from cached data
  * @param {string} itemId - Item ID to look up
@@ -25,8 +44,7 @@ export function getItemById(itemId) {
         return undefined;
     }
 
-    const allItems = JSON.parse(element.textContent || '[]');
-    return allItems.find(item => item.id === itemId);
+    return itemIndex(element).byId.get(itemId);
 }
 
 /**
@@ -128,7 +146,7 @@ export function getAllItems() {
         return [];
     }
 
-    return JSON.parse(element.textContent || '[]');
+    return itemIndex(element).list;
 }
 
 /**

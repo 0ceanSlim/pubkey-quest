@@ -256,7 +256,7 @@ var combatBlockedActions = map[string]bool{
 	"move_to_room": true, "move": true, "talk_to_npc": true,
 	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
 	"lock_begin": true, "lock_act": true, "pick_lock": true,
-	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true, "use_on": true, "shutter": true, "smith_repair": true, "cook": true,
+	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true, "use_on": true, "shutter": true, "smith_repair": true, "jeweller": true, "cook": true,
 	"fish_open": true, "fish_begin": true, "fish_act": true, "fish_quick": true, "haul_net": true, "dig_worms": true, "cut_bait": true,
 	"mine_begin": true, "mine_act": true,
 }
@@ -870,6 +870,8 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return inventory.ToggleShutter(state), nil
 	case "smith_repair":
 		return handleSmithRepair(session, action.Params)
+	case "jeweller":
+		return handleJeweller(session, action.Params)
 	case "use_on":
 		toolID, _ := action.Params["item_id"].(string)
 		return inventory.UseOn(state, toolID, slotRefFrom(action.Params))
@@ -1629,6 +1631,7 @@ func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameAc
 			injectRepairOption(resp, npcID, state)
 			injectInnOptions(resp, npcID, state)
 			injectMountOption(resp, npcID, state)
+			injectJewellerOption(resp, npcID, state)
 		}
 	}
 	if resp != nil {
@@ -1662,6 +1665,9 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 	choice, _ := params["choice"].(string)
 	if choice == repairChoice {
 		return openRepair(session, npcID), nil
+	}
+	if choice == jewellerChoice {
+		return openJeweller(session, npcID), nil
 	}
 	if resp := handleInnChoice(session, npcID, choice); resp != nil {
 		return resp, nil

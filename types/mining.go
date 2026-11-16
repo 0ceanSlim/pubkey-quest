@@ -56,6 +56,17 @@ type Seam struct {
 	// QuickLoot is what a quick roll yields on a success. Left out, it's one
 	// roll per ore weight, twice.
 	QuickLoot *POILootTable `json:"quick_loot,omitempty"`
+	// Gems is the seam's gem leaning (gems.json mining): which types its gem
+	// cells hold, by weight, in place of the usual drop rates.
+	Gems *SeamGems `json:"gems,omitempty"`
+}
+
+// SeamGems is a seam's gem leaning.
+type SeamGems struct {
+	Types map[string]int `json:"types"`
+	// Cells overrides the tier's count of gem cells ([min, max]); a deep mine
+	// whose gems are its draw has more.
+	Cells [2]int `json:"cells,omitempty"`
 }
 
 // SeamOre is one ore a face can hold.

@@ -4,7 +4,7 @@ import "net/http"
 
 // RegisterStatic registers static file serving routes
 func RegisterStatic(mux *http.ServeMux) {
-	mux.Handle("/res/", revalidate(http.StripPrefix("/res/", http.FileServer(http.Dir("www/res/")))))
+	mux.Handle("/res/", itemSpriteFallback(revalidate(http.StripPrefix("/res/", http.FileServer(http.Dir("www/res/"))))))
 	mux.Handle("/dist/", http.StripPrefix("/dist/", http.FileServer(http.Dir("www/dist/"))))
 	mux.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("game-data/"))))
 }

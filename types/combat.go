@@ -133,6 +133,10 @@ type MonsterData struct {
 	LegendaryActions      []interface{}           `json:"legendary_actions"`
 	LootTable             LootTable               `json:"loot_table"`
 	Behavior              MonsterBehavior         `json:"behavior"`
+
+	// GemChance overrides the gem roll's CR curve (gems.json drops): 0 for a
+	// creature that carries none, more for a hoarder.
+	GemChance *float64 `json:"gem_chance,omitempty"`
 }
 
 // AdvancementEntry is one row of the XP progression table

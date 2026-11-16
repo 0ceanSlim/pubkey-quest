@@ -1,0 +1,187 @@
+{
+  "id": "gem-cutter",
+  "name": "Nissa Brightfacet",
+  "title": "Jeweller",
+  "race": "Gnome",
+  "description": "A small gnome in a leather apron, a jeweller's loupe pushed up into her white hair and a dozen tiny tools in her breast pocket. She cuts gems at a foot-treadle wheel behind a pane of thick glass, and talks to the stones while she does it.",
+  "primary_home": "goldenhaven",
+  "schedule": [
+    {
+      "start": 0,
+      "end": 420,
+      "location": "nissa_quarters",
+      "state": "sleeping",
+      "dialogue_options": [
+        "sleeping"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 420,
+      "end": 480,
+      "location": "goldenhaven-center",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_to_work"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 480,
+      "end": 1200,
+      "location": "luxury_market",
+      "state": "working",
+      "dialogue_options": [
+        "main_menu"
+      ],
+      "available_actions": [
+        "open_shop"
+      ]
+    },
+    {
+      "start": 1200,
+      "end": 1260,
+      "location": "goldenhaven-north",
+      "state": "traveling",
+      "dialogue_options": [
+        "traveling_home"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1440,
+      "location": "nissa_quarters",
+      "state": "home",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": []
+    },
+    {
+      "start": 1260,
+      "end": 1380,
+      "location": "caravan_rest",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "tuesday"
+      ]
+    },
+    {
+      "start": 360,
+      "end": 420,
+      "location": "dawnflame_temple",
+      "state": "leisure",
+      "dialogue_options": [
+        "off_duty"
+      ],
+      "available_actions": [],
+      "days": [
+        "sunday"
+      ]
+    }
+  ],
+  "greeting": {
+    "first_time": "Nissa Brightfacet, jeweller. Rough stones in, bright ones out. Let's see what the world gave you.",
+    "returning": "Back again! Show me your stones."
+  },
+  "dialogue": {
+    "sleeping": {
+      "text": "*A note on the door, in very small, very neat writing: Asleep. Open at eight.*",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_to_work": {
+      "text": "Morning! The wheel turns at eight, at the back of the Bazaar.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "traveling_home": {
+      "text": "My eyes are done for the day. Bring your stones tomorrow, from eight.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "off_duty": {
+      "text": "No stones after hours, I'd only cut them crooked. Come to the Bazaar from eight in the morning to eight at night.",
+      "options": [
+        "goodbye"
+      ]
+    },
+    "main_menu": {
+      "text": "Cutting, setting, buying, selling. What've you brought me?",
+      "options": [
+        "browse_shop",
+        "ask_about_gems",
+        "ask_about_settings",
+        "goodbye"
+      ]
+    },
+    "browse_shop": {
+      "text": "Cut stones, ready to set. And I'll buy anything that glitters, rough or cut.",
+      "action": "open_shop"
+    },
+    "ask_about_gems": {
+      "text": "A rough stone keeps its secrets. Could be flawed right through, could be flawless; nobody knows until it's on the wheel, me included. Cutting's a flat fee by size: 50 gold for a tiny chip, up to 5,000 for a huge one. Sell it rough and you get a standard stone's price. Cut it and you take your chances.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "ask_about_settings": {
+      "text": "Bring me a cut stone and the gold to set it in. A ring takes 1,000 gold, a necklace 2,000, and my work is a tenth of what the stone's worth. The gold's still yours, mind: the piece is worth its gold and its stone together. No magic in it. That's an enchanter's business, not mine.",
+      "options": [
+        "main_menu"
+      ]
+    },
+    "goodbye": {
+      "text": "Mind how you go. And mind your stones.",
+      "action": "end_dialogue"
+    }
+  },
+  "shop_config": {
+    "shop_type": "specialty",
+    "buys_items": true,
+    "buys_tags": [
+      "gem",
+      "jewelry"
+    ],
+    "starting_gold": 40000,
+    "gold_regen_rate": 4000,
+    "gold_regen_interval": "daily",
+    "gold_restock_interval": 30,
+    "item_restock_interval": 10,
+    "inventory": [
+      {
+        "item_id": "gem-quartz-small-standard",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "gem-turquoise-small-standard",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "gem-onyx-tiny-standard",
+        "stock": 3,
+        "max_stock": 3
+      },
+      {
+        "item_id": "gem-amethyst-tiny-standard",
+        "stock": 2,
+        "max_stock": 2
+      },
+      {
+        "item_id": "gem-garnet-tiny-standard",
+        "stock": 2,
+        "max_stock": 2
+      }
+    ]
+  }
+}

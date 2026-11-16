@@ -398,6 +398,9 @@ func migrateFromJSON(callback StatusCallback) error {
 	if err := generateFishItems(); err != nil {
 		log.Printf("⚠️ Warning: failed to generate fish items: %v", err)
 	}
+	if err := generateGemItems(); err != nil {
+		log.Printf("⚠️ Warning: failed to generate gem items: %v", err)
+	}
 
 	// Migrate content data (monsters, locations, NPCs)
 	if callback != nil {
@@ -1439,6 +1442,7 @@ func migrateSystemsFiles() error {
 		"cooking.json",
 		"fishing.json",
 		"mining.json",
+		"gems.json",
 	}
 
 	count := 0

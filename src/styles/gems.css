@@ -1,0 +1,43 @@
+/*
+ * Gems (gem-system.md §6): one sprite per gem type serves every size and
+ * quality. Item sprites are drawn from /res/img/items/<id>.png (the server
+ * answers a gem's id with its type's sprite), and the id says the rest:
+ *   gem-<type>-<size>-uncut    rough: drawn smaller the smaller it is
+ *   gem-<type>-<size>-<quality> cut: sized, and fine/flawless ones shine
+ *   ring-/necklace-<type>-<size>-<quality>: shines with its gem
+ * Works wherever an item sprite is an <img>, with no per-view code.
+ */
+
+img[src*="/items/gem-"][src*="-tiny-"]   { transform: scale(0.55); }
+img[src*="/items/gem-"][src*="-small-"]  { transform: scale(0.7); }
+img[src*="/items/gem-"][src*="-medium-"] { transform: scale(0.85); }
+img[src*="/items/gem-"][src*="-huge-"]   { transform: scale(1.1); }
+
+:is(img[src*="/items/gem-"], img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-flawed.png"] {
+    filter: saturate(0.6) brightness(0.9);
+}
+:is(img[src*="/items/gem-"], img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-fine.png"] {
+    animation: gem-glint 3.2s ease-in-out infinite;
+}
+:is(img[src*="/items/gem-"], img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-flawless.png"] {
+    animation: gem-shine 2.4s ease-in-out infinite;
+}
+
+@keyframes gem-glint {
+    0%, 70%, 100% { filter: none; }
+    85% { filter: brightness(1.35) drop-shadow(0 0 1px #fff); }
+}
+
+@keyframes gem-shine {
+    0%, 100% { filter: brightness(1.1) drop-shadow(0 0 1px #fff7cc); }
+    50% { filter: brightness(1.45) drop-shadow(0 0 2px #ffffff); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(img[src*="/items/gem-"], img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-fine.png"] {
+        animation: none; filter: brightness(1.15);
+    }
+    :is(img[src*="/items/gem-"], img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-flawless.png"] {
+        animation: none; filter: brightness(1.3) drop-shadow(0 0 1px #fff);
+    }
+}

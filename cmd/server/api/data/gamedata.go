@@ -1,11 +1,13 @@
 package data
 
 import (
+	"compress/gzip"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -198,12 +200,22 @@ func GameDataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("ETag", etag)
+	w.Header().Add("Vary", "Accept-Encoding")
 	if r.Header.Get("If-None-Match") == etag {
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
-	if _, err := w.Write(body); err != nil {
+	// It's mostly items (every generated fish and gem): a megabyte of JSON
+	// that compresses to a small part of that.
+	var out io.Writer = w
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		out = gz
+	}
+	if _, err := out.Write(body); err != nil {
 		log.Printf("Error writing game data: %v", err)
 		return
 	}
