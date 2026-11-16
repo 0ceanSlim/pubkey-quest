@@ -349,7 +349,7 @@ func handleMineAct(sess *session.GameSession, params map[string]any) (*types.Gam
 	case state.HP <= 0:
 		// A cave-in can kill: the same death flow as a POI damage node.
 		sess.MineSession = nil
-		kept := ApplyDeath(state)
+		kept := ApplyDeath(sess)
 		sess.ActivePOI = nil
 		lines = append(lines, fmt.Sprintf("You have fallen. You wake in %s, stripped of your belongings — but your experience endures.", state.Location))
 		data["death"] = map[string]any{"outcome": "defeat", "location": state.Location, "loot_kept": kept}

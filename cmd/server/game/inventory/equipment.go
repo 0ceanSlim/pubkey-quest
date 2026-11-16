@@ -52,9 +52,12 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 		fromSlotType = "general" // Default
 	}
 
-	// Equipment slot can be provided or auto-determined
-	equipSlot, _ := params["equipment_slot"].(string)
-	isTwoHanded := false
+	// The slot comes from the item; a requested one counts only where the
+	// item could go anyway (the other hand, the other ring finger). Taking
+	// the request on its word once put any item in any slot.
+	requested, _ := params["equipment_slot"].(string)
+	equipSlot := ""
+	isTwoHanded, eitherHand := false, false
 
 	log.Printf("⚔️ Equip action: %s from %s[%d] to equipment slot", itemID, fromSlotType, fromSlot)
 
@@ -98,6 +101,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 
 		// Determine equipment slot
 		if gearSlotProp, ok := properties["gear_slot"].(string); ok {
+			eitherHand = gearSlotProp == "hands"
 			switch gearSlotProp {
 			case "hands":
 				if itemType == "Shield" {
@@ -158,6 +162,20 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 		}
 	}
 
+	if requested != "" && requested != equipSlot {
+		pair := func(a, b string) bool {
+			return (equipSlot == a || equipSlot == b) && (requested == a || requested == b)
+		}
+		switch {
+		case isTwoHanded && pair("mainhand", "offhand"):
+			// Dropped on either hand, it takes both.
+		case (eitherHand && pair("mainhand", "offhand")) || pair("ring1", "ring2"):
+			equipSlot = requested
+		default:
+			return nil, fmt.Errorf("that doesn't go there")
+		}
+	}
+
 	log.Printf("⚔️ Equipping to slot: %s (two-handed: %v)", equipSlot, isTwoHanded)
 
 	// Handle two-handed weapons - unequip both hands
@@ -173,7 +191,12 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 				})
 			}
 		}
-		if leftMap, ok := gearSlots["offhand"].(map[string]interface{}); ok {
+		// A two-handed weapon already held fills both hands: it's one weapon,
+		// returned once from the main hand (returning the off hand's copy too
+		// once made a weapon per swap).
+		mainSlot, _ := gearSlots["mainhand"].(map[string]interface{})
+		mainID, _ := mainSlot["item"].(string)
+		if leftMap, ok := gearSlots["offhand"].(map[string]interface{}); ok && !(mainID != "" && leftMap["item"] == mainID && isTwoHandedWeapon(mainID)) {
 			if leftMap["item"] != nil && leftMap["item"] != "" {
 				itemsToUnequip = append(itemsToUnequip, map[string]interface{}{
 					"item":     leftMap["item"],

@@ -1529,7 +1529,7 @@ func applyDefeatOutcome(sess *session.GameSession, cs *types.CombatSession) Comb
 	save.Experience += combat.Actor(cs).XPEarned
 
 	// Strip inventory + restore vitals + return home (shared with non-combat deaths).
-	kept := ApplyDeath(save)
+	kept := ApplyDeath(sess)
 
 	msg := fmt.Sprintf(
 		"You have fallen. You wake in %s, stripped of your belongings. XP and level are preserved.",
@@ -1545,11 +1545,16 @@ func applyDefeatOutcome(sess *session.GameSession, cs *types.CombatSession) Comb
 	}
 }
 
-// ApplyDeath runs the on-death consequences on the save alone (no combat session):
+// ApplyDeath runs the on-death consequences on a session (no fight needed):
 // keep the 3 most valuable items, restore vitals to full, and return the player to
 // their racial starting city. Shared by combat defeat and out-of-combat deaths
 // (POI/environment damage, starvation) so death behaves identically everywhere.
-func ApplyDeath(save *types.SaveFile) []types.LootDrop {
+func ApplyDeath(sess *session.GameSession) []types.LootDrop {
+	// Anything on a shop's sell counter is still yours, so it goes back in
+	// the pack first and the death takes it like the rest (the counter once
+	// kept valuables safe from it).
+	ReturnStagedSales(sess)
+	save := &sess.SaveData
 	kept := stripInventoryForDeath(save.Inventory)
 	save.HP = save.MaxHP
 	save.Mana = save.MaxMana

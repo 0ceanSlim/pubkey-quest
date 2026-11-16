@@ -74,9 +74,14 @@ func FireHere(state *types.SaveFile) string {
 	return ""
 }
 
-// eachRaw visits every carried slot holding a food that transforms.
+// eachRaw visits every carried slot holding a food that transforms. Spoiled
+// food isn't one: cooking it once made it fresh again.
 func eachRaw(state *types.SaveFile, salt bool, visit func(ref SlotRef, slot map[string]interface{}, into string)) {
+	now := condition.Now(state)
 	eachCarried(state, func(ref SlotRef, slot map[string]interface{}) {
+		if f, _ := condition.FoodFreshness(slot, now); f == condition.Spoiled {
+			return
+		}
 		id, _ := slot["item"].(string)
 		t := transformOf(id)
 		into := t.Cook

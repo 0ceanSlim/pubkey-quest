@@ -156,7 +156,7 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	// with the player dead. Trigger the shared death flow and end the walk here —
 	// the single choke point for all POI damage.
 	if state.HP <= 0 {
-		kept := ApplyDeath(state)
+		kept := ApplyDeath(sess)
 		sess.ActivePOI = nil
 		res.Terminal = true
 		res.Combat = ""

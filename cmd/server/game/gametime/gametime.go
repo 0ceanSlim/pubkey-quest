@@ -149,31 +149,6 @@ func IsSunlit(timeOfDay int) bool {
 	return types.InWindow(timeOfDay, cfg.SunlightHours[0], cfg.SunlightHours[1])
 }
 
-// HandleAdvanceTimeAction advances game time by segments (hours)
-func HandleAdvanceTimeAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
-	segments, ok := params["segments"].(float64)
-	if !ok {
-		segments = 1 // Default to 1 time segment
-	}
-
-	// Convert hours to minutes (segments is in hours, time_of_day is now in minutes)
-	minutesToAdvance := int(segments) * 60
-
-	// Advance time in minutes (0-1439 range)
-	state.TimeOfDay += minutesToAdvance
-	daysAdvanced := state.TimeOfDay / 1440
-	state.CurrentDay += daysAdvanced
-	state.TimeOfDay = state.TimeOfDay % 1440
-
-	// Fatigue and hunger are now handled by accumulation effects (fatigue-accumulation, hunger-accumulation-*)
-	// No need to manually tick them here
-
-	return &types.GameActionResponse{
-		Success: true,
-		Message: fmt.Sprintf("Advanced %d time segment(s)", int(segments)),
-	}, nil
-}
-
 // HandleUpdateTimeAction syncs time from frontend clock to backend state
 // This is the main tick handler that updates buildings, NPCs, and effects
 func HandleUpdateTimeAction(state *types.SaveFile, params map[string]interface{}, session TimeSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {

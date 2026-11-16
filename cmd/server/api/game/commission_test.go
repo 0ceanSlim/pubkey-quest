@@ -25,8 +25,14 @@ func carrying(id string, n int) map[string]interface{} {
 	return map[string]interface{}{"item": id, "quantity": n}
 }
 
+// commission talks to the Forgemistress, asks about picks (when she offers
+// it), then makes the choice, as a player would: only offered choices count.
 func commission(t *testing.T, sess *session.GameSession, choice string) *GameActionResponse {
 	t.Helper()
+	fishAction(t, sess, "talk_to_npc", map[string]any{"npc_id": "forgemistress"})
+	if strings.HasPrefix(choice, optKeyPrefix+"ask_about_picks") && sess.DialogueOffered["ask_about_picks"] {
+		fishAction(t, sess, "npc_dialogue_choice", map[string]any{"npc_id": "forgemistress", "choice": "ask_about_picks"})
+	}
 	return fishAction(t, sess, "npc_dialogue_choice", map[string]any{"npc_id": "forgemistress", "choice": choice})
 }
 

@@ -90,9 +90,23 @@ func CalculateBuyPrice(basePrice int, shopConfig types.ShopConfig, charisma int)
 	return result
 }
 
-// CalculateSellPrice calculates the price a merchant pays when buying from the player
-// Uses pricing rules from database (shop-pricing.json)
+// CalculateSellPrice calculates the price a merchant pays when buying from the
+// player (shop-pricing.json), never more than the item would cost to buy back
+// at any shop: with Charisma buffed past 20 the formulas cross, and buying
+// and reselling (at one shop, or across a general store and a specialist)
+// made gold.
 func CalculateSellPrice(basePrice int, shopConfig types.ShopConfig, charisma int) int {
+	sell := rawSellPrice(basePrice, shopConfig, charisma)
+	for _, kind := range []string{"general", "specialty"} {
+		if buy := CalculateBuyPrice(basePrice, types.ShopConfig{ShopType: kind}, charisma); sell >= buy {
+			sell = max(buy-1, 0)
+		}
+	}
+	return sell
+}
+
+// rawSellPrice is the sell formula alone.
+func rawSellPrice(basePrice int, shopConfig types.ShopConfig, charisma int) int {
 	// Get pricing rules from database
 	rules, err := db.GetShopPricingRules()
 	if err != nil {

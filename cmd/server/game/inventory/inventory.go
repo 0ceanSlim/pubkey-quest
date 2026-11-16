@@ -500,10 +500,14 @@ func HandleRemoveFromInventoryAction(state *types.SaveFile, params map[string]in
 		fromSlotType = "general" // Default to general slots
 	}
 
-	// Get the quantity to remove (default to 1)
+	// Get the quantity to remove (default to 1). Never less: a negative one
+	// once added items instead.
 	removeQuantity := 1
 	if qty, ok := params["quantity"].(float64); ok {
 		removeQuantity = int(qty)
+	}
+	if removeQuantity < 1 {
+		return nil, fmt.Errorf("invalid quantity")
 	}
 
 	log.Printf("🛒 Removing %dx %s from %s[%d] for sell staging", removeQuantity, itemID, fromSlotType, int(fromSlot))
@@ -593,8 +597,12 @@ func HandleRemoveFromInventoryAction(state *types.SaveFile, params map[string]in
 // HandleMoveItemAction moves items between inventory slots
 func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
 	itemID, _ := params["item_id"].(string)
-	fromSlot := int(params["from_slot"].(float64))
-	toSlot := int(params["to_slot"].(float64))
+	fromF, ok1 := params["from_slot"].(float64)
+	toF, ok2 := params["to_slot"].(float64)
+	if !ok1 || !ok2 {
+		return nil, fmt.Errorf("invalid slot")
+	}
+	fromSlot, toSlot := int(fromF), int(toF)
 	fromSlotType, _ := params["from_slot_type"].(string)
 	toSlotType, _ := params["to_slot_type"].(string)
 
@@ -638,6 +646,19 @@ func HandleMoveItemAction(state *types.SaveFile, params map[string]interface{}) 
 			return nil, fmt.Errorf("invalid backpack")
 		}
 		toSlots = contents
+	}
+
+	// Slots are checked, and the item is what the source slot holds, never
+	// what the request says it is (the containers-in-the-backpack rule below
+	// once read the client's word for it).
+	if fromSlot < 0 || fromSlot >= len(fromSlots) || toSlot < 0 || toSlot >= len(toSlots) {
+		return nil, fmt.Errorf("invalid slot")
+	}
+	if src, ok := fromSlots[fromSlot].(map[string]interface{}); ok {
+		itemID, _ = src["item"].(string)
+	}
+	if itemID == "" {
+		return nil, fmt.Errorf("that slot is empty")
 	}
 
 	// CRITICAL VALIDATION: Containers cannot go into backpack
@@ -1043,6 +1064,12 @@ func HandleAddItemAction(state *types.SaveFile, params map[string]interface{}) (
 	quantity := 1
 	if q, ok := params["quantity"].(float64); ok {
 		quantity = int(q)
+	}
+	if quantity < 1 {
+		return nil, fmt.Errorf("invalid quantity")
+	}
+	if item, err := db.GetItemByID(itemID); err != nil || item == nil {
+		return nil, fmt.Errorf("no such item: %s", itemID)
 	}
 
 	log.Printf("➕ Adding %dx %s to inventory", quantity, itemID)

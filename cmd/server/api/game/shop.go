@@ -14,6 +14,7 @@ import (
 	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
+	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/shop"
 	"pubkey-quest/cmd/server/game/status"
@@ -342,6 +343,15 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if !canTrade(session, transaction.MerchantID) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]any{
+			"success": false,
+			"error":   "They aren't here to trade.",
+		})
+		return
+	}
 
 	// Parse shop config
 	configJSON, _ := json.Marshal(npcData.ShopConfig)
@@ -471,8 +481,10 @@ func handleBuyFromShop(w http.ResponseWriter, r *http.Request) {
 	// Calculate actual cost for items that fit
 	actualCost := buyPrice * itemsAdded
 
-	// Deduct gold for items that were added
+	// Deduct gold for items that were added; if it can't be taken, the
+	// goods go back.
 	if !gameutil.DeductGold(save, actualCost) {
+		gameutil.ConsumeItem(save, transaction.ItemID, itemsAdded)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]any{
@@ -568,6 +580,15 @@ func handleSellToShop(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]any{
 			"success": false,
 			"error":   "Merchant not found",
+		})
+		return
+	}
+	if !canTrade(session, transaction.MerchantID) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]any{
+			"success": false,
+			"error":   "They aren't here to trade.",
 		})
 		return
 	}
@@ -755,6 +776,14 @@ func addItemToInventory(save *SaveFile, itemID string, quantity int) (int, error
 	return inventory.AddItemToInventory(save, itemID, quantity)
 }
 
+// canTrade reports whether the player is with a merchant who's open for
+// business: on duty where the player stands, or met on a POI walk (the hermit
+// of Shadowmere). Trading from anywhere once let a player reach every
+// merchant's gold at once.
+func canTrade(sess *session.GameSession, merchantID string) bool {
+	return npc.OnDuty(&sess.SaveData, merchantID, "open_shop") || metInPOI(sess, merchantID)
+}
+
 // ─── The sell counter ────────────────────────────────────────────────────────
 
 // handleStageSell takes an item out of the pack onto the sell counter.
@@ -768,6 +797,9 @@ func handleStageSell(sess *session.GameSession, params map[string]any) (*types.G
 	for k, v := range params {
 		paramsIface[k] = v
 	}
+	// The counter gets exactly what leaves the pack (a quantity of 0 once
+	// staged one and removed none).
+	paramsIface["quantity"] = float64(qty)
 	resp, err := inventory.HandleRemoveFromInventoryAction(&sess.SaveData, paramsIface)
 	if err != nil || resp == nil || !resp.Success {
 		return resp, err

@@ -179,7 +179,7 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	// so save.HP only reaches 0 out of combat — so catch a lethal HP here and run
 	// the shared death flow. Skipped while a fight is active.
 	if session.ActiveCombat == nil && session.SaveData.HP <= 0 {
-		kept := ApplyDeath(&session.SaveData)
+		kept := ApplyDeath(session)
 		if response.Data == nil {
 			response.Data = make(map[string]interface{})
 		}
@@ -238,43 +238,104 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// processGameAction routes to specific action handlers
-// combatBlockedActions are out-of-combat game actions that must not run during a
-// fight (M5 interaction matrix): rummaging the pack, re-arming, banking, resting,
-// travelling, chatting, or casting/using through the out-of-combat paths (combat
-// has its own /api/combat/{cast,use-item,action,end-turn}). The world tick
-// (update_time) and debug add_item are intentionally exempt.
-var combatBlockedActions = map[string]bool{
-	"equip_item": true, "unequip_item": true, "drop_item": true,
-	"remove_from_inventory": true, "pickup_item": true, "move_item": true,
-	"stack_item": true, "split_item": true, "add_to_container": true,
-	"remove_from_container": true, "use_item": true, "cast_spell": true,
-	"vault_deposit": true, "vault_withdraw": true, "register_vault": true,
-	"open_vault": true, "rest": true, "enter_building": true, "exit_building": true,
-	"move_to_room": true, "move": true, "talk_to_npc": true,
-	"npc_dialogue_choice": true, "rent_room": true, "advance_time": true,
-	"lock_begin": true, "lock_act": true, "pick_lock": true,
-	"use_homeward_stone": true, "waystone_hop": true, "wait": true, "sleep": true, "use_on": true, "shutter": true, "smith_repair": true, "jeweller": true, "cook": true,
-	"fish_open": true, "fish_begin": true, "fish_act": true, "fish_quick": true, "haul_net": true, "dig_worms": true, "cut_bait": true,
-	"mine_begin": true, "mine_act": true,
+// maxActionQuantity bounds a quantity in an action's params.
+const maxActionQuantity = 1_000_000
+
+// combatAllowedActions are the only game actions that run during a fight or
+// while an encounter waits on your choice: the clock, read-only lookups and
+// debug add_item. Combat has its own /api/combat/{cast,use-item,action,
+// end-turn}. An allowlist, so a new action is blocked mid-fight until it's
+// shown to be safe (a denylist once missed the sell counter, which kept your
+// valuables out of reach of the death penalty).
+var combatAllowedActions = map[string]bool{
+	"update_time": true, "set_clock": true, "reset_idle_timer": true,
+	"use_targets": true, "add_item": true,
 }
 
+// processGameAction runs a game action: a dialogue choice only if it's one
+// the conversation on screen offers, and the choices a reply offers are
+// remembered for the next one.
 func processGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
+	switch action.Type {
+	case "npc_dialogue_choice":
+		npcID, _ := action.Params["npc_id"].(string)
+		choice, _ := action.Params["choice"].(string)
+		if npcID == "" || npcID != session.DialogueNPC || !session.DialogueOffered[choice] {
+			return &GameActionResponse{Success: false, Message: "That isn't something you can say now.", Color: "yellow"}, nil
+		}
+	case "talk_to_npc":
+	default:
+		if !combatAllowedActions[action.Type] {
+			// Doing something else ends the conversation.
+			session.DialogueNPC, session.DialogueOffered = "", nil
+		}
+	}
+	resp, err := runGameAction(session, action)
+	if action.Type == "talk_to_npc" || action.Type == "npc_dialogue_choice" {
+		rememberDialogue(session, action, resp)
+	}
+	return resp, err
+}
+
+// rememberDialogue keeps the choices a reply offers. A reply with none (or a
+// refusal) leaves the conversation as it was, or ends it after a goodbye.
+func rememberDialogue(session *GameSession, action GameAction, resp *GameActionResponse) {
+	if resp == nil || resp.Delta == nil {
+		if action.Type == "talk_to_npc" {
+			session.DialogueNPC, session.DialogueOffered = "", nil
+		}
+		return
+	}
+	dlg, ok := resp.Delta["npc_dialogue"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	var opts []string
+	switch o := dlg["options"].(type) {
+	case []string:
+		opts = o
+	case []interface{}:
+		for _, v := range o {
+			if k, ok := v.(string); ok {
+				opts = append(opts, k)
+			}
+		}
+	}
+	npcID, _ := dlg["npc_id"].(string)
+	if npcID == "" {
+		npcID, _ = action.Params["npc_id"].(string)
+	}
+	session.DialogueNPC, session.DialogueOffered = npcID, map[string]bool{}
+	for _, o := range opts {
+		session.DialogueOffered[o] = true
+	}
+}
+
+// runGameAction routes to specific action handlers
+func runGameAction(session *GameSession, action GameAction) (*GameActionResponse, error) {
 	state := &session.SaveData
 
 	// Can't do out-of-combat things mid-fight (interaction matrix).
-	if session.ActiveCombat != nil && combatBlockedActions[action.Type] {
+	if session.ActiveCombat != nil && !combatAllowedActions[action.Type] {
 		return &GameActionResponse{
 			Success: false,
 			Message: "You can't do that during combat.",
 		}, nil
 	}
 	// Nor while something that hasn't seen you yet is waiting on your choice.
-	if session.PendingEncounter != nil && combatBlockedActions[action.Type] {
+	if session.PendingEncounter != nil && !combatAllowedActions[action.Type] {
 		return &GameActionResponse{
 			Success: false,
 			Message: "Something up ahead hasn't noticed you — decide what to do first.",
 		}, nil
+	}
+
+	// A quantity is a whole number of items (0 means "all" where an action
+	// allows it). Negative and fractional ones once made items from nothing.
+	if raw, ok := action.Params["quantity"]; ok {
+		if q, ok := raw.(float64); !ok || q < 0 || q > maxActionQuantity || q != math.Trunc(q) {
+			return &GameActionResponse{Success: false, Message: "That isn't a quantity."}, nil
+		}
 	}
 
 	// Doing anything else walks away from a lock you were picking.
@@ -810,10 +871,6 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handlePickupItemAction(session, state, action.Params)
 	case "cast_spell":
 		return handleCastSpellAction(state, action.Params)
-	case "rest":
-		return handleRestAction(state, action.Params)
-	case "advance_time":
-		return handleAdvanceTimeAction(state, action.Params)
 	case "update_time":
 		return handleUpdateTimeAction(state, action.Params)
 	case "vault_deposit":
@@ -850,12 +907,8 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return handleReadLetter(session)
 	case "npc_dialogue_choice":
 		return handleNPCDialogueChoiceAction(session, action.Params)
-	case "register_vault":
-		return handleRegisterVaultAction(state, action.Params)
 	case "open_vault":
 		return handleOpenVaultAction(state, action.Params)
-	case "rent_room":
-		return handleRentRoomAction(session, action.Params)
 	case "sleep":
 		return handleSleepAction(session, action.Params)
 	case "wait":
@@ -1160,36 +1213,6 @@ func handleCastSpellAction(state *SaveFile, params map[string]any) (*GameActionR
 	}
 
 	return &GameActionResponse{Success: true, Message: msg}, nil
-}
-
-// handleRestAction rests to restore HP/Mana
-func handleRestAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
-	paramsIface := make(map[string]interface{}, len(params))
-	for k, v := range params {
-		paramsIface[k] = v
-	}
-	resp, err := npc.HandleRestAction(state, paramsIface)
-	if resp != nil {
-		msg := resp.Message
-		if cleared := effects.RemoveEffectsByAction(state, "rest"); len(cleared) > 0 {
-			msg += fmt.Sprintf("\nRest clears: %s.", strings.Join(cleared, ", "))
-		}
-		return &GameActionResponse{Success: resp.Success, Message: msg}, err
-	}
-	return nil, err
-}
-
-// handleAdvanceTimeAction advances game time
-func handleAdvanceTimeAction(state *SaveFile, params map[string]any) (*GameActionResponse, error) {
-	paramsIface := make(map[string]interface{}, len(params))
-	for k, v := range params {
-		paramsIface[k] = v
-	}
-	resp, err := gametime.HandleAdvanceTimeAction(state, paramsIface)
-	if resp != nil {
-		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, err
-	}
-	return nil, err
 }
 
 // handleUpdateTimeAction syncs time from frontend clock to backend state
@@ -1731,22 +1754,6 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 	return nil, err
 }
 
-// handleRegisterVaultAction registers a vault (called after payment)
-func handleRegisterVaultAction(state *SaveFile, _ map[string]any) (*GameActionResponse, error) {
-	buildingID := state.Building
-	if buildingID == "" {
-		return nil, fmt.Errorf("not in a building")
-	}
-
-	vault.RegisterVault(state, buildingID)
-
-	return &GameActionResponse{
-		Success: true,
-		Message: "Vault registered successfully",
-		Color:   "green",
-	}, nil
-}
-
 // handleOpenVaultAction returns vault data for UI
 func handleOpenVaultAction(state *SaveFile, _ map[string]any) (*GameActionResponse, error) {
 	buildingID := state.Building
@@ -1796,25 +1803,6 @@ func handleRemoveFromContainerAction(state *SaveFile, params map[string]any) (*G
 // ============================================================================
 // TAVERN ACTIONS
 // ============================================================================
-
-// handleRentRoomAction rents a room at an inn/tavern
-func handleRentRoomAction(session *GameSession, params map[string]any) (*GameActionResponse, error) {
-	// Convert params to map[string]interface{} for package compatibility
-	paramsIface := make(map[string]interface{}, len(params))
-	for k, v := range params {
-		paramsIface[k] = v
-	}
-	resp, err := npc.HandleRentRoomAction(&session.SaveData, session, paramsIface)
-	if resp != nil {
-		return &GameActionResponse{
-			Success: resp.Success,
-			Message: resp.Message,
-			Color:   resp.Color,
-			Data:    resp.Data,
-		}, err
-	}
-	return nil, err
-}
 
 // handleSleepAction sleeps for the night — in a rented inn room when indoors, or
 // out in the wild (bedroll or rough) when outside a town.

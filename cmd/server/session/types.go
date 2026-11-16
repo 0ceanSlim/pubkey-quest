@@ -77,6 +77,12 @@ type GameSession struct {
 	POINPCPlace    string          `json:"-"`
 	POINPCProgress float64         `json:"-"`
 
+	// DialogueNPC and DialogueOffered are the conversation on screen: who,
+	// and the choices they last offered. A choice must be one of them (a node
+	// picked by name once skipped the option that charges for it).
+	DialogueNPC     string          `json:"-"`
+	DialogueOffered map[string]bool `json:"-"`
+
 	// Locks remembers which locks this player picked open or jammed today
 	// (memory only; see game/locks).
 	Locks locks.Memory `json:"-"`

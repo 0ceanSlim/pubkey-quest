@@ -38,9 +38,14 @@ func HandleVaultDeposit(state *types.SaveFile, slotType string, slotIndex, qty i
 		return nil, fmt.Errorf("that slot is empty")
 	}
 
+	// A slot with no quantity holds one; one that says 0 holds nothing (a
+	// zero-quantity slot once deposited a real item).
 	held := GetSlotQuantity(slot)
-	if held <= 0 {
+	if slot["quantity"] == nil {
 		held = 1
+	}
+	if held <= 0 {
+		return nil, fmt.Errorf("that slot is empty")
 	}
 	move := held
 	if qty > 0 && qty < held {
