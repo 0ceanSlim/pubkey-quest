@@ -463,7 +463,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	// Cooldown: don't fire another biome encounter within CooldownMinutes of the
 	// last, so fights can't bunch up back-to-back right after one ends.
 	nowAbs := state.CurrentDay*1440 + state.TimeOfDay
-	if sess.LastEncounterTime > 0 && nowAbs-sess.LastEncounterTime < encounter.CooldownMinutes {
+	if sess.SaveData.Lim().LastEncounter > 0 && nowAbs-sess.SaveData.Lim().LastEncounter < encounter.CooldownMinutes {
 		return
 	}
 	biome, err := serverdb.GetEnvironmentType(state.Location)
@@ -499,7 +499,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	if !ok {
 		return
 	}
-	sess.LastEncounterTime = nowAbs
+	sess.SaveData.Lim().LastEncounter = nowAbs
 	sess.LastEncounterMonster = monster.ID
 
 	if response.Data == nil {
@@ -1027,6 +1027,11 @@ func handleUseItemAction(state *SaveFile, params map[string]any) (*GameActionRes
 	if itemID, _ := params["item_id"].(string); itemID != "" {
 		if item, err := data.LoadItemByID(serverdb.GetDB(), itemID); err == nil {
 			if spellID, _ := item["spell_id"].(string); spellID != "" {
+				// Only a scroll you carry (the cast once ran before anything
+				// checked you had one).
+				if !gameutil.PlayerHasItem(state, itemID) {
+					return &GameActionResponse{Success: false, Message: "You don't have that scroll."}, nil
+				}
 				msg, cerr := castFromScrollOutOfCombat(state, spellID)
 				if cerr != nil {
 					return &GameActionResponse{Success: false, Message: cerr.Error()}, nil
@@ -1250,6 +1255,12 @@ func handleUpdateTimeAction(state *SaveFile, params map[string]any) (*GameAction
 	// tick was already pinned to the leader's clock.)
 	if session != nil && !social.IsFollower(session.Npub) && !session.ClockRunning {
 		return &GameActionResponse{Success: true, Data: map[string]interface{}{"clock_running": false}}, nil
+	}
+
+	// However fast a client says its clock ran, a tick moves the world only
+	// as far as real time allows (clock_budget.go).
+	if session != nil && !social.IsFollower(session.Npub) {
+		clampTick(session, state, paramsIface, time.Now())
 	}
 
 	resp, err := gametime.HandleUpdateTimeAction(state, paramsIface, session, data.GetNPCIDsAtLocation)

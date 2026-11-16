@@ -69,13 +69,10 @@ func DigWorms(cfg *types.FishingConfig, c Conditions, rng *rand.Rand) QuickResul
 
 // ─── Depletion: a spot fished hard bites less ────────────────────────────────
 
-// Memory is the fish landed per spot today (session memory, like picked locks).
+// Memory is the fish landed per spot today (kept with the save: types.Limits).
 type Memory map[string]spotDay
 
-type spotDay struct {
-	Day    int
-	Landed int
-}
+type spotDay = types.FishDay
 
 // Landed counts a fish landed at a spot today.
 func (m Memory) Landed(spot string, day int) {

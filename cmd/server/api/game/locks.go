@@ -85,10 +85,11 @@ func poiLockID(sess *session.GameSession, node string) string {
 }
 
 func lockMemory(sess *session.GameSession) locks.Memory {
-	if sess.Locks == nil {
-		sess.Locks = locks.Memory{}
+	l := sess.SaveData.Lim()
+	if l.Locks == nil {
+		l.Locks = map[string]types.LockDay{}
 	}
-	return sess.Locks
+	return locks.Memory(l.Locks)
 }
 
 // roomPickedOpen reports whether the player picked this room's lock today.

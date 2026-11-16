@@ -223,3 +223,48 @@ func TestVaultConditionRoundTrip(t *testing.T) {
 		return // one fixture is enough
 	}
 }
+
+// What paces repeatable things travels with the save (beta exploit audit D3):
+// a reload mustn't hand back a day's mining, fishing or a one-time encounter.
+func TestLimitsRoundTrip(t *testing.T) {
+	for name, orig := range loadFixtures(t) {
+		orig.Limits = &types.Limits{
+			Seams:      map[string]types.SeamDay{"flooded-mine/adit": {Day: 4, Worked: 2}},
+			Fish:       map[string]types.FishDay{"goldenhaven-wharf": {Day: 4, Landed: 9}},
+			Locks:      map[string]types.LockDay{"room:x": {Day: 4, Jammed: true}},
+			Checks:     map[string]types.CheckTry{"crypt/door": {Fails: 2, LockedUntil: 6000}},
+			Encounters: map[string]int{"ethereal-caravan": 5000},
+			OneShots:   []string{"wounded-owlbear"},
+			Spent:      map[string]int{"buried-strongbox/clean-open": 5700},
+			Exertion:   3, ShowDay: 4, LastEncounter: 5000,
+		}
+		data, err := Encode(orig)
+		if err != nil {
+			t.Fatalf("%s encode: %v", name, err)
+		}
+		got, err := Decode(data)
+		if err != nil {
+			t.Fatalf("%s decode: %v", name, err)
+		}
+		if !reflect.DeepEqual(got.Limits, orig.Limits) {
+			t.Fatalf("%s: limits %+v, want %+v", name, got.Limits, orig.Limits)
+		}
+		return
+	}
+}
+
+// Prune keeps only what still limits anything.
+func TestLimitsPrune(t *testing.T) {
+	now := 10*1440 + 600
+	l := &types.Limits{
+		Seams:      map[string]types.SeamDay{"today": {Day: 10, Worked: 1}, "old": {Day: 9, Worked: 3}},
+		Checks:     map[string]types.CheckTry{"cooling": {Fails: 3, LockedUntil: now + 60}, "open": {LockedUntil: now - 1}},
+		Encounters: map[string]int{"recent": now - 60, "stale": now - types.EncounterMemoryMinutes},
+		OneShots:   []string{"wounded-owlbear"},
+		Spent:      map[string]int{"fresh": now - 60, "stale": now - types.SpentMinutes},
+	}
+	l.Prune(10, now)
+	if len(l.Seams) != 1 || len(l.Checks) != 1 || len(l.Encounters) != 1 || len(l.Spent) != 1 || len(l.OneShots) != 1 {
+		t.Fatalf("pruned to %+v", l)
+	}
+}

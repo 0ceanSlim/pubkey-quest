@@ -69,6 +69,9 @@ type SaveFile struct {
 	// so they never enter QuestsCompleted; this is the non-derivable runtime fact
 	// that gates "already done this period" (schema v3).
 	RepeatableQuests map[string]int `json:"repeatable_quests,omitempty"`
+	// Limits paces repeatable things (faces worked, fish landed, encounter
+	// cooldowns, a POI's spent rewards): types/limits.go.
+	Limits *Limits `json:"limits,omitempty"`
 
 	// Schema v4 fields: the vault is one shared store reached from every
 	// keeper's door (the keepers hold keys to the same space), replacing the

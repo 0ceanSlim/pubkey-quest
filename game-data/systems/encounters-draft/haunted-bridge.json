@@ -3,6 +3,7 @@
   "name": "The Ghostly Toll",
   "chance": 0.02,
   "repeatable": true,
+  "cooldown_minutes": 4320,
   "valid_locations": [
     "shadowmere-wetlands",
     "darkwood-forest"

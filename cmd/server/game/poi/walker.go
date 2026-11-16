@@ -95,6 +95,18 @@ type Deps struct {
 	// RandomScroll resolves a "random-scroll" loot entry to a scroll item id
 	// ("" = none; nil: such entries grant nothing).
 	RandomScroll func(f *types.ScrollFilter, rng *rand.Rand) string
+	// Spent reports a reward, loot or monster node had recently (a POI is
+	// fresh again after a while: docs/poi-quest-design.md §3), and Spend
+	// marks one had. A spent node gives nothing and lets the walk go on. Nil:
+	// nothing is spent (authored encounters keep their own cooldowns). Without
+	// it a POI paid out on every walk.
+	Spent func(nodeID string) bool
+	Spend func(nodeID string)
+}
+
+// spendable are the node types a POI gives out once until it's fresh again.
+func spendable(t types.POIStepType) bool {
+	return t == types.POIStepReward || t == types.POIStepLoot || t == types.POIStepMonster
 }
 
 // FatigueEffect is the effect id that means the fatigue survival stat rather
@@ -177,6 +189,20 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.Next = node.FailureNext
 		res.Terminal = node.FailureNext == ""
 		return res
+	}
+
+	if spendable(node.Type) && deps.Spent != nil {
+		if deps.Spent(nodeID) {
+			res.Outcome = append(res.Outcome, spentLine(node.Type))
+			res.Next = node.Next
+			res.Terminal = node.IsTerminal
+			return res
+		}
+		// A fight is spent when it's won (the caller marks it then): losing
+		// a quest's boss mustn't lock it away for days.
+		if deps.Spend != nil && node.Type != types.POIStepMonster {
+			defer deps.Spend(nodeID)
+		}
 	}
 
 	switch node.Type {
@@ -302,6 +328,14 @@ func Resolve(node types.POIStep, nodeID string, save *types.SaveFile, deps Deps)
 		res.Terminal = true
 	}
 	return res
+}
+
+// spentLine is what a spent node shows instead of its reward or fight.
+func spentLine(t types.POIStepType) string {
+	if t == types.POIStepMonster {
+		return "All is quiet. Whatever was here, you dealt with it not long ago."
+	}
+	return "There's nothing more to find here. You took it not long ago."
 }
 
 // grantLoot grants a loot table: every guaranteed entry always drops, then the

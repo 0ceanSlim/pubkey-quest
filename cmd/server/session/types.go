@@ -83,12 +83,10 @@ type GameSession struct {
 	DialogueNPC     string          `json:"-"`
 	DialogueOffered map[string]bool `json:"-"`
 
-	// Locks remembers which locks this player picked open or jammed today
-	// (memory only; see game/locks).
-	Locks locks.Memory `json:"-"`
-	// CheckTries is each POI check node's run of failures and cooldown, so a
-	// check can't be rerolled forever (memory only; see game/poi).
-	CheckTries poi.CheckTries `json:"-"`
+	// What paces repeatable things (locks picked today, a check's failures,
+	// faces worked, fish landed, encounter cooldowns, exertion) is kept with
+	// the save, in SaveData.Limits (types/limits.go): in memory alone, saving
+	// and reloading reset it.
 	// LockSession is the lock being picked as a minigame right now (nil when
 	// not picking). Any other action abandons it.
 	LockSession *locks.Session `json:"-"`
@@ -98,32 +96,10 @@ type GameSession struct {
 	// MineSession is the rock face being worked right now (nil when not
 	// mining). Any other action steps away from it.
 	MineSession *mining.Session `json:"-"`
-	// FishMemory is the fish landed at each spot today, for depletion (memory
-	// only; see game/fishing).
-	FishMemory fishing.Memory `json:"-"`
-
-	// Exertion is hard work toward the next point of fatigue (status.Exert),
-	// shared by fishing and mining. Session-only.
-	Exertion int `json:"-"`
-
-	// Seams is the faces worked at each mine node today (memory only; see
-	// game/mining).
-	Seams mining.Memory `json:"-"`
-
-	// Travel-encounter cooldown: the absolute in-game minute (day*1440 +
-	// time_of_day) of the last biome encounter, so they can't fire back-to-back.
-	// Session-only.
-	LastEncounterTime int `json:"-"`
-
 	// LastEncounterMonster is the previous biome-encounter monster id, so the
 	// roller can avoid an immediate repeat when the biome has alternatives.
 	// Session-only.
 	LastEncounterMonster string `json:"-"`
-
-	// Authored-encounter firing log: encounter id → absolute in-game minute it
-	// last fired, for per-encounter cooldown + non-repeatable one-shots. Session-
-	// only (M1: LastFired lives in memory, not the save).
-	EncountersFired map[string]int `json:"-"`
 
 	// Where the player is standing and when they got there, in absolute in-game
 	// minutes. Event-driven encounters (a district pickpocket, a tavern brawler)
@@ -175,6 +151,10 @@ type GameSession struct {
 	// (a follower's clock follows the leader's instead). Combat, POI walks and
 	// encounters hold the clock in the client without changing it.
 	ClockRunning bool `json:"-"`
+	// ClockBudget is how many game minutes the next tick may move the clock,
+	// earned by real time since ClockBudgetAt (api/game/clock_budget.go).
+	ClockBudget   float64 `json:"-"`
+	ClockBudgetAt int64   `json:"-"` // unix milliseconds
 
 	// Delta system: cached state for surgical updates
 	LastSnapshot       *SessionSnapshot `json:"-"` // Previous state for delta calculation

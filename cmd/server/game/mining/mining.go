@@ -60,15 +60,12 @@ func FacesLeftText(left int) string {
 	return fmt.Sprintf("%d faces left today", left)
 }
 
-// ─── Faces worked today (session memory, like picked locks) ──────────────────
+// ─── Faces worked today (kept with the save: types.Limits) ─────────────────
 
 // Memory is the faces worked at each seam today.
 type Memory map[string]seamDay
 
-type seamDay struct {
-	Day    int
-	Worked int
-}
+type seamDay = types.SeamDay
 
 // Left is how many faces the seam has left today.
 func (m Memory) Left(id string, day, perDay int) int {

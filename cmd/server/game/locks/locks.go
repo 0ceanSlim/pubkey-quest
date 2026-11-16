@@ -19,13 +19,9 @@ const Lockpick = "lockpick"
 const PickMinutes = 10
 
 // DayState is what's happened to one lock today.
-type DayState struct {
-	Day    int
-	Open   bool
-	Jammed bool
-}
+type DayState = types.LockDay
 
-// Memory is a session's lock state, by lock id ("room:goldenhaven/sailors_tavern/
+// Memory is a character's lock state (kept with the save: types.Limits), by lock id ("room:goldenhaven/sailors_tavern/
 // spare_room", "poi:<walk>/<node>").
 type Memory map[string]DayState
 

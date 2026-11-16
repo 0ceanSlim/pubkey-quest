@@ -33,13 +33,10 @@ func CheckCooldown(node types.POIStep) int {
 }
 
 // TryState is one check node's run of failures, and when it opens again.
-type TryState struct {
-	Fails       int
-	LockedUntil int // absolute game minute (day*1440 + time); 0 = open
-}
+type TryState = types.CheckTry
 
-// CheckTries is a session's check retry state, by check id
-// ("<walk id>/<node id>"). Memory only, like lock state.
+// CheckTries is a character's check retry state (kept with the save:
+// types.Limits), by check id ("<walk id>/<node id>").
 type CheckTries map[string]TryState
 
 // Closed reports whether the check is still cooling down at game minute now,

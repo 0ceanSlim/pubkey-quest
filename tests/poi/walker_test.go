@@ -348,3 +348,33 @@ func TestAbilityCheckUsesTheStat(t *testing.T) {
 		}
 	}
 }
+
+// A POI's reward is had once until the POI is fresh again (beta exploit audit
+// D2): a spent node gives nothing and the walk goes on.
+func TestSpentRewardPaysOnce(t *testing.T) {
+	node := types.POIStep{Type: types.POIStepReward, Reward: &types.POIReward{Gold: 300}, Next: "out"}
+	spent := map[string]bool{}
+	paid := 0
+	deps := poi.Deps{Ctx: fakeCtx{}, Rng: rng(),
+		GrantReward: func(*types.SaveFile, *types.POIReward) { paid++ },
+		Spent:       func(n string) bool { return spent[n] },
+		Spend:       func(n string) { spent[n] = true },
+	}
+	for range 3 {
+		if res := poi.Resolve(node, "chest", &types.SaveFile{}, deps); res.Next != "out" {
+			t.Fatalf("the walk stopped at a spent node: %+v", res)
+		}
+	}
+	if paid != 1 {
+		t.Fatalf("paid %d times", paid)
+	}
+	// A fight is only skipped once it's been won (the caller spends it then).
+	fight := types.POIStep{Type: types.POIStepMonster, MonsterID: "goblin", Next: "out"}
+	if res := poi.Resolve(fight, "guard", &types.SaveFile{}, deps); res.Combat != "goblin" || spent["guard"] {
+		t.Fatalf("an unbeaten fight: %+v (spent %v)", res, spent["guard"])
+	}
+	spent["guard"] = true
+	if res := poi.Resolve(fight, "guard", &types.SaveFile{}, deps); res.Combat != "" {
+		t.Fatal("a won fight came back before the POI was fresh")
+	}
+}

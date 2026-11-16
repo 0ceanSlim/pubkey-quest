@@ -3,6 +3,7 @@
   "name": "The Ethereal Caravan",
   "chance": 0.01,
   "repeatable": true,
+  "cooldown_minutes": 10080,
   "valid_locations": [
     "merchants-highway"
   ],

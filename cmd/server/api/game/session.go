@@ -536,6 +536,8 @@ func saveBlocked(sess *session.GameSession) string {
 		return "Take your pick out of the lock before you save."
 	case sess.FishSession != nil:
 		return "Reel in before you save."
+	case sess.MineSession != nil:
+		return "Step back from the rock face before you save."
 	}
 	return ""
 }

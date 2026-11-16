@@ -7,6 +7,7 @@ import (
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/building"
 	"pubkey-quest/cmd/server/game/gameutil"
+	"pubkey-quest/cmd/server/game/locks"
 	"pubkey-quest/types"
 )
 
@@ -76,14 +77,14 @@ func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 			for _, room := range rooms {
 				key := building.RoomKey(room)
 				lockID, day := roomLockID(save, room.ID), save.CurrentDay
-				unlocked := sess.Locks.IsOpen(lockID, day) || (key != "" && gameutil.PlayerHasItem(save, key))
+				unlocked := locks.Memory(save.Lim().Locks).IsOpen(lockID, day) || (key != "" && gameutil.PlayerHasItem(save, key))
 				isRented := gameutil.HasActiveRental(save, save.Building)
 				accessible, reason := building.RoomAccessible(room, save.TimeOfDay, unlocked, isRented)
 				lock := (*types.Lock)(nil)
 				if room.Access != nil {
 					lock = room.Access.Lock
 				}
-				jammed := lock != nil && sess.Locks.IsJammed(lockID, day)
+				jammed := lock != nil && locks.Memory(save.Lim().Locks).IsJammed(lockID, day)
 				resp.Rooms = append(resp.Rooms, RoomView{
 					ID:           room.ID,
 					Name:         room.Name,

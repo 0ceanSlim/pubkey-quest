@@ -20,6 +20,10 @@ type Session struct {
 	CurrentNode string                  // the node last resolved and shown to the player
 	ValidNexts  []string                // anti-skip allowlist: the only node ids /advance accepts next
 	ResumeNext  string                  // set when a monster node bridged into combat; resolved on victory
+	// Spends: a POI walk, whose rewards, loot and won fights are spent until
+	// the POI is fresh again (types.Limits.Spent). Encounters and quest sites
+	// keep their own limits.
+	Spends bool
 }
 
 // AllowsNext reports whether next is a node the player may legitimately advance

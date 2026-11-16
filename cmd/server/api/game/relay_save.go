@@ -59,6 +59,8 @@ func prepareRelaySave(sess *session.GameSession, saveID string) (*UnsignedSave, 
 	if why := saveBlocked(sess); why != "" {
 		return nil, fmt.Errorf("%s", why)
 	}
+	// Only what still limits anything goes into the event.
+	sess.SaveData.Limits.Prune(sess.SaveData.CurrentDay, sess.SaveData.CurrentDay*1440+sess.SaveData.TimeOfDay)
 	content, err := savecodec.Encode(&sess.SaveData)
 	if err != nil {
 		return nil, err

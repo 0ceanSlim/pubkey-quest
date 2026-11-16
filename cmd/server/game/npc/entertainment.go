@@ -114,6 +114,17 @@ func HandleBookShowAction(state *types.SaveFile, session SessionProvider, params
 		}
 	}
 
+	// One show a day. The day it was played is kept with the save
+	// (types.Limits): a booking alone is session memory, and a reload once
+	// let a player book and play again the same day.
+	if state.Lim().ShowDay == state.CurrentDay {
+		return &types.GameActionResponse{
+			Success: false,
+			Message: "You've already played a show today",
+			Color:   "yellow",
+		}, nil
+	}
+
 	// Check if already booked a show for today (session-only data)
 	bookedShows := session.GetBookedShows()
 	if bookedShows == nil {
@@ -343,7 +354,8 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 		}
 	}
 
-	// Mark show as performed (session-only data)
+	// Mark show as performed: the booking in the session, the day with the save.
+	state.Lim().ShowDay = state.CurrentDay
 	bookedShows[bookingIndex]["performed"] = true
 	session.SetBookedShows(bookedShows)
 

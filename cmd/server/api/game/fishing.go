@@ -211,10 +211,11 @@ func barehandAllowed(state *types.SaveFile, spotID string) bool {
 }
 
 func fishMemory(sess *session.GameSession) fishing.Memory {
-	if sess.FishMemory == nil {
-		sess.FishMemory = fishing.Memory{}
+	l := sess.SaveData.Lim()
+	if l.Fish == nil {
+		l.Fish = map[string]types.FishDay{}
 	}
-	return sess.FishMemory
+	return fishing.Memory(l.Fish)
 }
 
 // fishConditions is the world around a cast right now.
@@ -476,7 +477,7 @@ func catchToll(sess *session.GameSession, sizeID string, data map[string]any) []
 			log.Printf("⚠️ fishing XP: advancement load failed: %v", err)
 		}
 	}
-	if status.Exert(state, &sess.Exertion, size.Exertion, cfg.Rules.ExertionPerFatigue) > 0 {
+	if status.Exert(state, &sess.SaveData.Lim().Exertion, size.Exertion, cfg.Rules.ExertionPerFatigue) > 0 {
 		lines = append(lines, "Your arms ache. (+1 fatigue)")
 	}
 	return lines
@@ -612,6 +613,10 @@ func handleHaulNet(sess *session.GameSession, params map[string]any) (*GameActio
 	}
 	if !gameutil.PlayerHasItem(state, "net") {
 		return fishRefusal("You need a net."), nil
+	}
+	// A net is fishing too: a fished-out spot is fished out for it as well.
+	if fishMemory(sess).Factor(spotID, state.CurrentDay, spot.DailyCatch) == 0 {
+		return fishRefusal("This water's fished out for today. Try again tomorrow, or somewhere else."), nil
 	}
 	r := fishing.Haul(cfg, spot, fishConditions(sess, spotID, "", false), fishRng())
 	gametime.AdvanceTime(state, r.Minutes, true)

@@ -119,15 +119,21 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	deps.Locks = poiLocks{sess}
 	deps.Fishing = poiFishing{sess}
 	deps.Mining = poiMining{sess}
+	if sess.ActivePOI.Spends {
+		deps.Spent = func(n string) bool { return spentAt(state, sess.ActivePOI.POIID, n) }
+		deps.Spend = func(n string) { spend(state, sess.ActivePOI.POIID, n) }
+	}
 
 	// A check that's used up its tries stays shut until its cooldown runs out:
 	// no roll, and the walk ends here.
 	checkID, now := sess.ActivePOI.POIID+"/"+nodeID, state.CurrentDay*1440+state.TimeOfDay
-	if sess.CheckTries == nil {
-		sess.CheckTries = poi.CheckTries{}
+	lim := state.Lim()
+	if lim.Checks == nil {
+		lim.Checks = map[string]types.CheckTry{}
 	}
+	tries := poi.CheckTries(lim.Checks)
 	if node.Type == types.POIStepCheck {
-		if closed, wait := sess.CheckTries.Closed(checkID, now); closed {
+		if closed, wait := tries.Closed(checkID, now); closed {
 			sess.ActivePOI = nil
 			return poi.StepResult{
 				NodeID: nodeID, Text: node.Text, Terminal: true,
@@ -139,7 +145,7 @@ func stepPOI(sess *session.GameSession, nodeID string, data map[string]any) (poi
 	res := poi.Resolve(node, nodeID, state, deps)
 
 	if res.Check != nil {
-		left := sess.CheckTries.Record(checkID, node, res.Check.Success, now)
+		left := tries.Record(checkID, node, res.Check.Success, now)
 		switch {
 		case res.Check.Success:
 		case left == 1:
@@ -294,6 +300,9 @@ func resumePOIAfterVictory(sess *session.GameSession) *poi.StepResult {
 	}
 	resumeNode := sess.ActivePOI.ResumeNext
 	sess.ActivePOI.ResumeNext = ""
+	if sess.ActivePOI.Spends {
+		spend(&sess.SaveData, sess.ActivePOI.POIID, sess.ActivePOI.CurrentNode) // the fight just won
+	}
 	if resumeNode == "" {
 		// The monster node was terminal — the POI ends on victory.
 		sess.ActivePOI = nil
@@ -309,6 +318,21 @@ func resumePOIAfterVictory(sess *session.GameSession) *poi.StepResult {
 		return nil
 	}
 	return &res
+}
+
+// spentAt reports whether a POI node's reward, loot or fight was had within
+// types.SpentMinutes; spend marks it had now.
+func spentAt(state *types.SaveFile, poiID, nodeID string) bool {
+	at, ok := state.Lim().Spent[poiID+"/"+poi.BaseNode(nodeID)]
+	return ok && state.CurrentDay*1440+state.TimeOfDay-at < types.SpentMinutes
+}
+
+func spend(state *types.SaveFile, poiID, nodeID string) {
+	lim := state.Lim()
+	if lim.Spent == nil {
+		lim.Spent = map[string]int{}
+	}
+	lim.Spent[poiID+"/"+poi.BaseNode(nodeID)] = state.CurrentDay*1440 + state.TimeOfDay
 }
 
 // metInPOI reports whether the player is still with an NPC a POI walk handed
@@ -390,7 +414,7 @@ func POIEnterHandler(w http.ResponseWriter, r *http.Request) {
 		partyShare(sess, []string{req.POIID}, "🗺️ "+sess.SaveData.D+" leads the party into "+poiData.Name+".")
 	}
 
-	sess.ActivePOI = &poi.Session{POIID: req.POIID, Title: poiData.Name, Nodes: poiData.Nodes, CurrentNode: poiData.StartNode}
+	sess.ActivePOI = &poi.Session{POIID: req.POIID, Title: poiData.Name, Nodes: poiData.Nodes, CurrentNode: poiData.StartNode, Spends: true}
 	data := map[string]any{}
 	questsBefore := markQuests(&sess.SaveData)
 	res, err := stepPOI(sess, poiData.StartNode, data)

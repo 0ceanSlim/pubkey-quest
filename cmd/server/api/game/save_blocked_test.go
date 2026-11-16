@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"pubkey-quest/cmd/server/game/locks"
+	"pubkey-quest/cmd/server/game/mining"
 	"pubkey-quest/cmd/server/game/poi"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/types"
@@ -19,6 +20,7 @@ func TestSaveBlockedMidActivity(t *testing.T) {
 		"unaware": {PendingEncounter: &types.PendingEncounter{}},
 		"poi":     {ActivePOI: &poi.Session{}},
 		"lock":    {LockSession: &locks.Session{}},
+		"mine":    {MineSession: &mining.Session{}},
 	} {
 		if saveBlocked(s) == "" {
 			t.Errorf("saving allowed mid-%s", name)

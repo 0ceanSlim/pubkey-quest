@@ -123,8 +123,8 @@ func TestCatchToll(t *testing.T) {
 		t.Fatalf("fatigue after one huge fish = %d, want 0", sess.SaveData.Fatigue)
 	}
 	catchToll(sess, "huge", nil) // 8: one fatigue, 2 carried
-	if sess.SaveData.Fatigue != 1 || sess.Exertion != 2 {
-		t.Fatalf("fatigue %d, exertion %d; want 1 and 2", sess.SaveData.Fatigue, sess.Exertion)
+	if sess.SaveData.Fatigue != 1 || sess.SaveData.Lim().Exertion != 2 {
+		t.Fatalf("fatigue %d, exertion %d; want 1 and 2", sess.SaveData.Fatigue, sess.SaveData.Lim().Exertion)
 	}
 	if gained := sess.SaveData.Experience - xp0; gained < 40 {
 		t.Errorf("two huge fish gave %d XP, want at least 40", gained)

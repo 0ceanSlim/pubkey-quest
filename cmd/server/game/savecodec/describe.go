@@ -141,6 +141,28 @@ func Describe(s *types.SaveFile, level func(xp int) int) string {
 	if len(s.DialogueGifts) > 0 {
 		line("  Gifts received: %s", strings.Join(s.DialogueGifts, ", "))
 	}
+	if l := s.Limits; l != nil {
+		var parts []string
+		for id, d := range l.Seams {
+			parts = append(parts, fmt.Sprintf("%s: %d faces worked on day %d", id, d.Worked, d.Day))
+		}
+		for id, d := range l.Fish {
+			parts = append(parts, fmt.Sprintf("%s: %d fish landed on day %d", id, d.Landed, d.Day))
+		}
+		if len(l.Spent) > 0 {
+			parts = append(parts, fmt.Sprintf("%d POI rewards spent for now", len(l.Spent)))
+		}
+		if len(l.OneShots) > 0 {
+			parts = append(parts, "one-time encounters seen: "+strings.Join(l.OneShots, ", "))
+		}
+		if l.ShowDay > 0 {
+			parts = append(parts, fmt.Sprintf("last show on day %d", l.ShowDay))
+		}
+		if len(parts) > 0 {
+			sort.Strings(parts)
+			line("  Limits: %s", strings.Join(parts, "; "))
+		}
+	}
 	if len(s.Vault) > 0 {
 		var v []string
 		for _, e := range s.Vault {

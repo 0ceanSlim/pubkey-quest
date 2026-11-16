@@ -133,10 +133,11 @@ func timeLines(msgs []types.EffectMessage) []string {
 }
 
 func seamMemory(sess *session.GameSession) mining.Memory {
-	if sess.Seams == nil {
-		sess.Seams = mining.Memory{}
+	l := sess.SaveData.Lim()
+	if l.Seams == nil {
+		l.Seams = map[string]types.SeamDay{}
 	}
-	return sess.Seams
+	return mining.Memory(l.Seams)
 }
 
 func mineRng() *rand.Rand { return rand.New(rand.NewSource(time.Now().UnixNano())) }
@@ -149,7 +150,7 @@ func useFace(sess *session.GameSession, seamID string, tierN int) []string {
 	tier, _ := mining.Tier(cfg, tierN)
 	seamMemory(sess).Work(seamID, state.CurrentDay)
 	events.Record(state, events.Did, "mine-face", 1)
-	if status.Exert(state, &sess.Exertion, tier.Exertion, cfg.Rules.ExertionPerFatigue) > 0 {
+	if status.Exert(state, &sess.SaveData.Lim().Exertion, tier.Exertion, cfg.Rules.ExertionPerFatigue) > 0 {
 		return []string{"Your back aches. (+1 fatigue)"}
 	}
 	return nil

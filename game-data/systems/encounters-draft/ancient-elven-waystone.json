@@ -9,6 +9,7 @@
   ],
   "chance": 0.015,
   "repeatable": true,
+  "cooldown_minutes": 4320,
   "start_node": "waystone-initial",
   "nodes": {
     "waystone-initial": {

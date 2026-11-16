@@ -73,7 +73,7 @@ func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []st
 	}
 	state := &sess.SaveData
 	nowAbs := state.CurrentDay*1440 + state.TimeOfDay
-	if sess.LastEncounterTime > 0 && nowAbs-sess.LastEncounterTime < encounter.CooldownMinutes {
+	if lim := state.Lim(); lim.LastEncounter > 0 && nowAbs-lim.LastEncounter < encounter.CooldownMinutes {
 		return
 	}
 
@@ -111,13 +111,11 @@ func maybeFireEncounter(sess *session.GameSession, trigger string, contexts []st
 		if !requirement.Evaluate(enc.Requirements, ctx).OK {
 			continue
 		}
-		if last, fired := sess.EncountersFired[enc.ID]; fired {
-			if !enc.Repeatable {
-				continue // one-shot, already seen
-			}
-			if enc.CooldownMinutes > 0 && nowAbs-last < enc.CooldownMinutes {
-				continue // still cooling down
-			}
+		if !enc.Repeatable && slices.Contains(state.Lim().OneShots, enc.ID) {
+			continue // one-shot, already seen
+		}
+		if last, fired := state.Lim().Encounters[enc.ID]; fired && enc.CooldownMinutes > 0 && nowAbs-last < enc.CooldownMinutes {
+			continue // still cooling down
 		}
 		chance := enc.Chance
 		if !eventDriven {
@@ -160,11 +158,17 @@ func encounterContextMatches(enc types.EncounterData, contexts []string) bool {
 func fireEncounter(sess *session.GameSession, enc types.EncounterData, response *types.GameActionResponse) {
 	state := &sess.SaveData
 	nowAbs := state.CurrentDay*1440 + state.TimeOfDay
-	if sess.EncountersFired == nil {
-		sess.EncountersFired = map[string]int{}
+	// Kept with the save (types.Limits): in memory alone, a reload re-armed
+	// one-shots and cooldowns.
+	lim := state.Lim()
+	if lim.Encounters == nil {
+		lim.Encounters = map[string]int{}
 	}
-	sess.EncountersFired[enc.ID] = nowAbs
-	sess.LastEncounterTime = nowAbs // share the encounter cooldown with biome fights
+	lim.Encounters[enc.ID] = nowAbs
+	if !enc.Repeatable && !slices.Contains(lim.OneShots, enc.ID) {
+		lim.OneShots = append(lim.OneShots, enc.ID)
+	}
+	lim.LastEncounter = nowAbs // share the encounter cooldown with biome fights
 
 	sess.ActivePOI = &poi.Session{POIID: enc.ID, Title: enc.Name, Nodes: enc.Nodes, CurrentNode: enc.StartNode}
 	data := map[string]any{}

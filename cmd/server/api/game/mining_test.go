@@ -49,7 +49,7 @@ func TestIronveinFacesRunOut(t *testing.T) {
 	}
 
 	// No pick, no work.
-	sess.Seams = nil
+	sess.SaveData.Lim().Seams = nil
 	gameutil.ConsumeItem(state, "pick-miners", 5)
 	res, _ = stepPOI(sess, "face", map[string]any{})
 	if len(res.Choices) != 1 || !strings.Contains(strings.Join(res.Outcome, " "), "pick") {
@@ -69,8 +69,8 @@ func TestAFaceTiresYou(t *testing.T) {
 	for range 3 {
 		good = p.Quick("face", seam).Success || good
 	}
-	if sess.Exertion != 0 || sess.SaveData.Fatigue < 2 {
-		t.Errorf("three tier-1 faces: exertion %d left, fatigue %d; want 0 and at least 2", sess.Exertion, sess.SaveData.Fatigue)
+	if sess.SaveData.Lim().Exertion != 0 || sess.SaveData.Fatigue < 2 {
+		t.Errorf("three tier-1 faces: exertion %d left, fatigue %d; want 0 and at least 2", sess.SaveData.Lim().Exertion, sess.SaveData.Fatigue)
 	}
 	if good != (sess.SaveData.Experience > xp0) {
 		t.Errorf("XP %d → %d with a good face: %v", xp0, sess.SaveData.Experience, good)
