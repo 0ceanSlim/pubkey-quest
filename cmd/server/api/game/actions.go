@@ -356,8 +356,15 @@ func runGameAction(session *GameSession, action GameAction) (*GameActionResponse
 	oldTimeOfDay := state.TimeOfDay
 	oldCurrentDay := state.CurrentDay
 	effectsBefore := activeEffectIDs(state)
+	gearBefore := gearSignature(state)
 
 	response, err := processActionSwitch(session, state, action)
+
+	// Whatever took a piece off or put one on (a swap, a drag, a sale), its
+	// worn effects follow it.
+	if gearSignature(state) != gearBefore {
+		effects.SyncWorn(state)
+	}
 
 	// After any action, advance travel progress if time changed and player is in environment
 	if err == nil && response != nil && response.Success {
@@ -921,6 +928,8 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return inventory.ToggleShutter(state), nil
 	case "smith_repair":
 		return handleSmithRepair(session, action.Params)
+	case "enchant":
+		return handleEnchant(session, action.Params)
 	case "jeweller":
 		return handleJeweller(session, action.Params)
 	case "use_on":
@@ -1664,6 +1673,7 @@ func handleTalkToNPCAction(session *GameSession, params map[string]any) (*GameAc
 			injectInnOptions(resp, npcID, state)
 			injectMountOption(resp, npcID, state)
 			injectJewellerOption(resp, npcID, state)
+			injectEnchanterOption(resp, npcID, state)
 		}
 	}
 	if resp != nil {
@@ -1700,6 +1710,9 @@ func handleNPCDialogueChoiceAction(session *GameSession, params map[string]any) 
 	}
 	if choice == jewellerChoice {
 		return openJeweller(session, npcID), nil
+	}
+	if choice == enchanterChoice {
+		return openEnchanter(session, npcID), nil
 	}
 	if resp := handleInnChoice(session, npcID, choice); resp != nil {
 		return resp, nil

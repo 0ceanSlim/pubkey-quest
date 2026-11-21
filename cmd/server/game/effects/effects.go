@@ -275,6 +275,15 @@ func GetEffectTemplate(effectID string, effectIndex int) (stat string, value int
 	return modifier.Stat, modifier.Value, modifier.TickInterval, effectData.Name, nil
 }
 
+// modifierWhen is a modifier's "when" ("night"), or "".
+func modifierWhen(effectID string, index int) string {
+	data, err := LoadEffectData(effectID)
+	if err != nil || index >= len(data.Modifiers) {
+		return ""
+	}
+	return data.Modifiers[index].When
+}
+
 // TickEffects processes all active effects, applying stat modifiers and ticking down durations
 // Returns a slice of messages from effects that triggered (like starvation damage).
 //
@@ -345,6 +354,14 @@ func TickEffects(state *types.SaveFile, minutesElapsed int, accrueFatigue bool) 
 			// doesn't advance and no fatigue is applied (time still flows for everything
 			// else, including hunger and starvation).
 			if activeEffect.EffectID == "fatigue-accumulation" && !accrueFatigue {
+				tickInterval = 0
+			}
+			// A gem that steadies you (jasper's Unbroken): fatigue builds half as fast.
+			if activeEffect.EffectID == "fatigue-accumulation" && tickInterval > 0 && ModifierTotal(state, "fatigue_slow") > 0 {
+				tickInterval *= 2
+			}
+			// A night-only tick (moonstone's Moonwell) waits for the dark.
+			if tickInterval > 0 && modifierWhen(activeEffect.EffectID, activeEffect.EffectIndex) == "night" && !types.IsNight(state.TimeOfDay) {
 				tickInterval = 0
 			}
 

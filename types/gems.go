@@ -9,13 +9,14 @@ import "fmt"
 
 // GemsConfig is gems.json.
 type GemsConfig struct {
-	Types     map[string]GemType `json:"types"`
-	Sizes     []GemSize          `json:"sizes"`     // smallest first
-	Qualities []GemQuality       `json:"qualities"` // worst first
-	Drops     GemDrops           `json:"drops"`
-	Mining    GemMining          `json:"mining"`
-	Jeweller  GemJeweller        `json:"jeweller"`
-	Pearls    GemPearls          `json:"pearls"`
+	Types      map[string]GemType `json:"types"`
+	Sizes      []GemSize          `json:"sizes"`     // smallest first
+	Qualities  []GemQuality       `json:"qualities"` // worst first
+	Drops      GemDrops           `json:"drops"`
+	Mining     GemMining          `json:"mining"`
+	Jeweller   GemJeweller        `json:"jeweller"`
+	Pearls     GemPearls          `json:"pearls"`
+	Enchanting GemEnchanting      `json:"enchanting"`
 }
 
 // GemType is one kind of gem.
@@ -124,6 +125,86 @@ func CutGemID(gemType, size, quality string) string {
 // GemPieceID is a ring's or necklace's item id.
 func GemPieceID(piece, gemType, size, quality string) string {
 	return fmt.Sprintf("%s-%s-%s-%s", piece, gemType, size, quality)
+}
+
+// EnchantedSuffix ends an enchanted piece's item id
+// ("ring-ruby-large-fine-enchanted").
+const EnchantedSuffix = "-enchanted"
+
+// GemEnchanting is enchanting (docs/draft/enchanting.md): what an enchanted
+// piece does, by gem and size, and what the work costs. The enchanters
+// themselves are NPCs with an enchant_config.
+type GemEnchanting struct {
+	// Fees is the base fee by size, before the enchanter's and the
+	// quality's factors.
+	Fees map[string]int `json:"fees"`
+	// MaxSuccess caps the chance short of a flawless gem, which always takes.
+	MaxSuccess float64 `json:"max_success"`
+	// ValueShare is how much of its base fee an enchanted piece is worth
+	// over the plain one: under the cheapest fee a player can pay, so selling
+	// an enchanted piece never pays back the work (a shop at CHA 20 buys at
+	// 0.95× value; a flawless stone at a ×1 enchanter costs 0.8× base).
+	ValueShare float64                   `json:"value_share"`
+	Quality    map[string]EnchantQuality `json:"quality"`
+	// Classes is what alexandrite follows: each class's ability and skill.
+	Classes map[string]EnchantClass `json:"classes"`
+	// Effects is each gem's effect by size ("tiny" … "huge").
+	Effects map[string]map[string]GemEnchant `json:"effects"`
+}
+
+// EnchantQuality is what a gem's quality does to the work.
+type EnchantQuality struct {
+	Success float64 `json:"success"` // added to the enchanter's chance
+	Fee     float64 `json:"fee"`     // times the fee
+	Always  bool    `json:"always"`  // never fails
+	// AddsTiny: the piece also carries the gem's tiny effect.
+	AddsTiny bool `json:"adds_tiny"`
+}
+
+// EnchantClass is a class's ability and skill, for alexandrite.
+type EnchantClass struct {
+	Ability string `json:"ability"`
+	Skill   string `json:"skill"`
+	// Resource: the class has a fight resource pool (Rage, Stamina, Ki,
+	// Cunning). Without one, Heart of Change's resource bonus is mana at a
+	// fight's start instead.
+	Resource bool `json:"resource"`
+}
+
+// GemEnchant is one gem's effect at one size. Mods are constant modifiers
+// (an ability, "skill_<id>", "armor_class", "darkvision", "travel_speed",
+// "ambush_ward", "temp_hp", "combat_move", "weight_capacity", and the gem
+// hooks "fight_mana", "fatigue_slow", "light", "heal_d6",
+// "resource_pct"); Ticks restore hp or mana over time; CombatBuff rides
+// every fight. Alexandrite's Class* fields follow the wearer's class.
+type GemEnchant struct {
+	Name       string         `json:"name,omitempty"` // a huge effect's own name
+	Mods       map[string]int `json:"mods,omitempty"`
+	Ticks      []GemTick      `json:"ticks,omitempty"`
+	CombatBuff *SpellBuff     `json:"combat_buff,omitempty"`
+	// ResistByQuality (diamonds) adds resistances that grow with the gem's
+	// quality, so a diamond's effect is per quality.
+	ResistByQuality map[string][]string `json:"resist_by_quality,omitempty"`
+	ClassAbility    int                 `json:"class_ability,omitempty"`
+	ClassSkill      int                 `json:"class_skill,omitempty"`
+	ClassResource   bool                `json:"class_resource,omitempty"`
+}
+
+// GemTick restores one point of a resource every so many minutes, all day,
+// or only at night ("when": "night").
+type GemTick struct {
+	Stat    string `json:"stat"` // "hp" or "mana"
+	Minutes int    `json:"minutes"`
+	When    string `json:"when,omitempty"`
+}
+
+// EnchantConfig makes an NPC an enchanter (enchant_config on the NPC JSON).
+type EnchantConfig struct {
+	Pieces  []string `json:"pieces"`         // "ring", "necklace"
+	Gems    []string `json:"gems,omitempty"` // gem types they know; empty = all
+	MaxSize string   `json:"max_size"`       // the largest size they'll take
+	Success float64  `json:"success"`        // base chance, before quality
+	Fee     float64  `json:"fee"`            // times the base fee
 }
 
 // GeodeID is the geode item.

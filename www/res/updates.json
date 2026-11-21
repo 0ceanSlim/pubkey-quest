@@ -2,6 +2,22 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-20-enchanting",
+      "when": "November 20, 2026",
+      "icon": "✨",
+      "size": "major",
+      "title": "Enchanting",
+      "summary": "The gem in a ring or necklace can be woken. Four people in the world know how, and what a stone does depends on what it is and how big it is: a little skill from a tiny one, an ability point from a medium one, and from the biggest stones a working all its own.",
+      "highlights": [
+        "Corvin Ashgrove in the Kingdom enchants any stone up to large. Silvanthir in Verdant works the nature and mind stones, and Brunhild in Ironpeak cuts runes into rings for the warding and strength stones, each for a little less",
+        "Only Seraphina, the oracle in Goldenhaven's Dawnflame Temple, will touch a huge stone. Each of the nineteen huge gems has its own working, from Emberheart to the Heart of Purity",
+        "Quality sets the odds and the fee: a flawed stone often won't take, and a flawless one always does and gives a little extra. A failed try costs the fee, never the piece",
+        "Large stones bring riders into a fight: fire or frost on every hit, a resistance, a ward against fear. Two pieces with the same gem add their abilities, but a gem's combat effect counts once",
+        "Fixed: the Ring of Protection now adds its AC whether or not you wear armour",
+        "Fixed: swapping a ring or necklace for another left the old one's effect on you; worn effects now always match what you're wearing"
+      ]
+    },
+    {
       "id": "2026-11-16-fair-play",
       "when": "November 16, 2026",
       "icon": "🛡️",

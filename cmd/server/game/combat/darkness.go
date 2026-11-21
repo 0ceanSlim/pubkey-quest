@@ -66,6 +66,9 @@ func InTheDark(save *types.SaveFile, underground bool) bool {
 // in a hand, or a light worn at the neck (the Amulet of Light, always on). A
 // light that burns (a "light" block) only counts while it's lit.
 func holdsLight(save *types.SaveFile) bool {
+	if effects.ModifierTotal(save, "light") > 0 {
+		return true // a worn light that never burns down (citrine's Sunshard)
+	}
 	gear, _ := save.Inventory["gear_slots"].(map[string]interface{})
 	for _, name := range []string{"mainhand", "offhand", "neck"} {
 		id := gaminventory.GetEquippedItemID(save.Inventory, name)

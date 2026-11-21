@@ -205,16 +205,21 @@ func StartPartyEncounter(db *sql.DB, members []FightMember, spec EncounterSpec, 
 
 	// Seed each martial class's resource pool (Rage/Stamina/Ki/Cunning).
 	levelSum := 0
+	var gemLog []string
 	for i, m := range members {
 		level := character.GetLevelFromXP(m.Save.Experience, advancement)
 		levelSum += level
 		InitResourcePool(&cs.Party[i].CombatState, m.Save.Class, level, m.Save.Stats)
+		growResourcePool(cs.Party[i].CombatState.Resource, effects.ModifierTotal(m.Save, "resource_pct"))
+		if n := fightStartMana(m.Save); n > 0 {
+			gemLog = append(gemLog, fmt.Sprintf("  💎 %s's gem stirs: +%d mana.", cs.Party[i].Name, n))
+		}
 	}
 	// Rate the whole group against the party's level band (M5 §22 difficulty
 	// guardrail): several weak monsters can add up to a deadly fight.
 	cs.Difficulty = encounter.GroupDifficulty(crs, (levelSum+len(members)/2)/len(members), len(cs.Party))
 
-	cs.Log = append(cs.Log, encounterOpeningLine(cs))
+	cs.Log = append(append(cs.Log, encounterOpeningLine(cs)), gemLog...)
 	switch cs.Difficulty {
 	case "deadly":
 		cs.Log = append(cs.Log, fmt.Sprintf("  ⚠️ %s looks deadly — you may want to flee.", foeLabel(cs)))
@@ -361,10 +366,23 @@ func newPlayerCombatant(npub string, save *types.SaveFile) types.PartyCombatant 
 			// HP, a familiar's help on your first attack.
 			TempHP: effects.ModifierTotal(save, "temp_hp"),
 			Helped: effects.ModifierTotal(save, "combat_help") > 0,
-			// Weapon coatings applied before the fight (basic poison, a honed edge).
-			SpellBuffs: takeCoatings(save),
+			// Worn gear's riders, and weapon coatings applied before the
+			// fight (basic poison, a honed edge).
+			SpellBuffs: append(wornBuffs(save), takeCoatings(save)...),
 		},
 	}
+}
+
+// fightStartMana tops up a caster's mana as a fight starts by what their gear
+// gives (azurite's Wellspring: "fight_mana"), up to their max. Returns what
+// it added.
+func fightStartMana(save *types.SaveFile) int {
+	n := min(effects.ModifierTotal(save, "fight_mana"), save.MaxMana-save.Mana)
+	if n <= 0 {
+		return 0
+	}
+	save.Mana += n
+	return n
 }
 
 // newMonsterInstance builds a live monster from its stat block, rolling HP.

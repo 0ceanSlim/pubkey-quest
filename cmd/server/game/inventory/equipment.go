@@ -475,25 +475,8 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 		log.Printf("✅ Equipped %s to %s (swapped %d items)", itemID, equipSlot, len(itemsToUnequip))
 	}
 
-	// Apply effects_when_worn
-	database := db.GetDB()
-	if database != nil {
-		var propertiesJSON string
-		err := database.QueryRow("SELECT properties FROM items WHERE id = ?", itemID).Scan(&propertiesJSON)
-		if err == nil {
-			var properties map[string]interface{}
-			if err := json.Unmarshal([]byte(propertiesJSON), &properties); err == nil {
-				for _, effectIDStr := range effects.WornEffectIDs(properties, state.Race) {
-					// Apply effect silently (no message)
-					if err := effects.ApplyEffect(state, effectIDStr); err != nil {
-						log.Printf("⚠️ Failed to apply equipment effect '%s': %v", effectIDStr, err)
-					} else {
-						log.Printf("⚙️ Applied equipment effect: %s from %s", effectIDStr, itemID)
-					}
-				}
-			}
-		}
-	}
+	// Worn effects follow the gear: the new piece's on, a swapped-out one's off.
+	effects.SyncWorn(state)
 
 	return &types.GameActionResponse{
 		Success: true,
@@ -503,6 +486,7 @@ func HandleEquipItemAction(state *types.SaveFile, params map[string]interface{})
 
 // HandleUnequipItemAction unequips an item from equipment to inventory
 func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{}) (*types.GameActionResponse, error) {
+	defer effects.SyncWorn(state) // its worn effects come off with it
 	equipSlot, ok := params["equipment_slot"].(string)
 	if !ok || equipSlot == "" {
 		equipSlot, ok = params["from_equip"].(string)
@@ -716,22 +700,6 @@ func HandleUnequipItemAction(state *types.SaveFile, params map[string]interface{
 		generalSlots[emptySlotIndex] = newItem
 		state.Inventory["general_slots"] = generalSlots
 		log.Printf("✅ Moved to general slot %d", emptySlotIndex)
-	}
-
-	// Remove effects_when_worn before unequipping
-	database := db.GetDB()
-	if database != nil {
-		var propertiesJSON string
-		err := database.QueryRow("SELECT properties FROM items WHERE id = ?", itemID).Scan(&propertiesJSON)
-		if err == nil {
-			var properties map[string]interface{}
-			if err := json.Unmarshal([]byte(propertiesJSON), &properties); err == nil {
-				for _, effectIDStr := range effects.WornEffectIDs(properties, state.Race) {
-					effects.RemoveEffect(state, effectIDStr)
-					log.Printf("⚙️ Removed equipment effect: %s from %s", effectIDStr, itemID)
-				}
-			}
-		}
 	}
 
 	gearSlots[equipSlot] = map[string]interface{}{

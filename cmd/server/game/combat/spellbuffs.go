@@ -232,7 +232,10 @@ func buffSummary(b *types.SpellBuff, marked *types.MonsterInstance) string {
 	case b.SaveDice != "":
 		add("+%s to saving throws", b.SaveDice)
 	}
-	if b.AttackBonus != 0 {
+	switch {
+	case b.AttackBonus != 0 && b.AttackSpells:
+		add("%+d to attacks", b.AttackBonus)
+	case b.AttackBonus != 0:
 		add("%+d to weapon attacks", b.AttackBonus)
 	}
 	if b.HitDice != "" || b.HitBonus != 0 {
@@ -271,7 +274,13 @@ func buffSummary(b *types.SpellBuff, marked *types.MonsterInstance) string {
 	if b.Decoys > 0 {
 		add("%d illusory double(s)", b.Decoys)
 	}
-	if b.Sanctuary {
+	if len(b.Immune) > 0 {
+		add("can't be %s", strings.Join(b.Immune, " or "))
+	}
+	switch {
+	case b.Sanctuary && b.SanctuaryOnce:
+		add("the first foe to attack must pass a Wisdom save (DC %d) or lose the attack", b.SaveDC)
+	case b.Sanctuary:
 		add("foes must pass a Wisdom save (DC %d) to attack", b.SaveDC)
 	}
 	if b.DeathWard {
@@ -348,7 +357,7 @@ func buffedAC(st *types.PlayerCombatState, ac int) int {
 func buffAttackRoll(st *types.PlayerCombatState, weapon bool) (bonus, adv int, log []string) {
 	for i := range st.SpellBuffs {
 		b := &st.SpellBuffs[i]
-		if weapon && b.AttackBonus != 0 {
+		if (weapon || b.AttackSpells) && b.AttackBonus != 0 {
 			bonus += b.AttackBonus
 		}
 		if b.AttackDice != "" {
@@ -576,16 +585,23 @@ func attackDefense(cs *types.CombatSession, target *types.PartyCombatant, m *typ
 			}
 		}
 	}
-	for _, b := range st.SpellBuffs {
+	for i := range st.SpellBuffs {
+		b := &st.SpellBuffs[i]
 		if !b.Sanctuary {
 			continue
 		}
 		total := monsterSaveTotal(m, "wisdom")
-		if total < b.SaveDC {
-			return adv, penalty, true, append(log, fmt.Sprintf("  %s can't bring itself to strike %s (Wisdom save %d vs DC %d).",
-				m.Name, target.Name, total, b.SaveDC))
+		dc := b.SaveDC
+		if b.SanctuaryOnce {
+			// Only the fight's first attack is turned (a black pearl's ward).
+			b.Sanctuary = false
+			dropSpent(st)
 		}
-		log = append(log, fmt.Sprintf("  %s pushes past the sanctuary (Wisdom save %d vs DC %d).", m.Name, total, b.SaveDC))
+		if total < dc {
+			return adv, penalty, true, append(log, fmt.Sprintf("  %s can't bring itself to strike %s (Wisdom save %d vs DC %d).",
+				m.Name, target.Name, total, dc))
+		}
+		log = append(log, fmt.Sprintf("  %s pushes past the sanctuary (Wisdom save %d vs DC %d).", m.Name, total, dc))
 		break
 	}
 	return adv, penalty, false, log

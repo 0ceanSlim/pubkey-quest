@@ -417,6 +417,10 @@ func migrateFromJSON(callback StatusCallback) error {
 	if err := migrateEffects(callback); err != nil {
 		return fmt.Errorf("failed to migrate effects: %v", err)
 	}
+	// Enchanted jewelry's worn effects (needs the effects table cleared first).
+	if err := generateGemEffects(); err != nil {
+		log.Printf("⚠️ Warning: failed to generate gem effects: %v", err)
+	}
 
 	// Migrate abilities
 	if callback != nil {

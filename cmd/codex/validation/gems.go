@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -161,7 +162,162 @@ func ValidateGems() ([]Issue, error) {
 			add("error", "jeweller.pieces."+p, "needs a name, gold and a gear_slot")
 		}
 	}
+	for _, p := range EnchantingProblems(cfg) {
+		add("error", "enchanting", "%s", p)
+	}
 	return issues, nil
+}
+
+// gemModStats are the constant modifiers an enchanted piece may carry, beside
+// the abilities and skill_<id> (types.GemEnchant).
+var gemModStats = map[string]bool{
+	"armor_class": true, "darkvision": true, "travel_speed": true, "ambush_ward": true, "temp_hp": true,
+	"combat_move": true, "weight_capacity": true, "fight_mana": true, "fatigue_slow": true, "light": true,
+	"heal_d6": true, "resource_pct": true,
+}
+
+// gemSkills is skills.json's skill ids.
+func gemSkills() map[string]bool {
+	out := map[string]bool{}
+	var raw map[string]any
+	if b, err := os.ReadFile(filepath.Join("game-data", "systems", "skills.json")); err == nil && json.Unmarshal(b, &raw) == nil {
+		for id := range raw {
+			out[id] = true
+		}
+	}
+	return out
+}
+
+// EnchantingProblems checks gems.json's enchanting table: a fee for every
+// size, a quality entry for every quality, an effect for every gem from tiny
+// to large, and only stats, ticks, conditions and classes the engine knows.
+func EnchantingProblems(cfg *types.GemsConfig) []string {
+	var out []string
+	bad := func(format string, a ...any) { out = append(out, fmt.Sprintf(format, a...)) }
+	en := cfg.Enchanting
+	prev := 0
+	for _, s := range cfg.Sizes {
+		if en.Fees[s.ID] <= prev {
+			bad("fees.%s must be above the size below it", s.ID)
+		}
+		prev = en.Fees[s.ID]
+	}
+	for _, q := range cfg.Qualities {
+		if eq, ok := en.Quality[q.ID]; !ok || (eq.Fee <= 0) {
+			bad("quality.%s needs a fee factor", q.ID)
+		}
+	}
+	if en.MaxSuccess <= 0 || en.MaxSuccess > 1 {
+		bad("max_success must be 0–1")
+	}
+	// Selling an enchanted piece (a shop pays at most 0.95× value) must never
+	// pay back the cheapest fee, the best quality's factor at a ×1 enchanter
+	// (none charges less): no enchant-and-sell profit.
+	cheapest := math.MaxFloat64
+	for _, q := range en.Quality {
+		cheapest = math.Min(cheapest, q.Fee)
+	}
+	if en.ValueShare < 0 || en.ValueShare*0.95 >= cheapest {
+		bad("value_share %.2f lets an enchanted piece sell for more than the cheapest fee", en.ValueShare)
+	}
+	skills := gemSkills()
+	for id, cl := range en.Classes {
+		if !abilityNames[cl.Ability] || !skills[cl.Skill] {
+			bad("classes.%s needs a real ability and skill", id)
+		}
+	}
+	for t := range cfg.Types {
+		for _, size := range []string{"tiny", "small", "medium", "large"} {
+			if _, ok := en.Effects[t][size]; !ok {
+				bad("effects.%s.%s is missing", t, size)
+			}
+		}
+	}
+	for t, bySize := range en.Effects {
+		if _, ok := cfg.Types[t]; !ok {
+			bad("effects.%s isn't a gem type", t)
+		}
+		for size, e := range bySize {
+			at := "effects." + t + "." + size
+			if gems.SizeIndex(cfg, size) < 0 {
+				bad("%s: %q isn't a size", at, size)
+			}
+			for stat, v := range e.Mods {
+				known := abilityNames[stat] || gemModStats[stat] || skills[strings.TrimPrefix(stat, "skill_")] && strings.HasPrefix(stat, "skill_")
+				if !known || v == 0 {
+					bad("%s: mod %q isn't something a worn effect does", at, stat)
+				}
+			}
+			for _, tk := range e.Ticks {
+				if (tk.Stat != "hp" && tk.Stat != "mana") || tk.Minutes <= 0 || (tk.When != "" && tk.When != "night") {
+					bad("%s: a tick restores hp or mana every so many minutes, at any time or \"night\"", at)
+				}
+			}
+			if b := e.CombatBuff; b != nil {
+				for _, c := range b.Immune {
+					if !spellConditions[c] {
+						bad("%s: immune to %q, which isn't a condition", at, c)
+					}
+				}
+				if b.Sanctuary && b.SaveDC <= 0 {
+					bad("%s: a sanctuary needs its save_dc", at)
+				}
+			}
+			for q := range e.ResistByQuality {
+				if gems.QualityIndex(cfg, q) < 0 {
+					bad("%s: resist_by_quality.%s isn't a quality", at, q)
+				}
+			}
+			if (e.ClassAbility > 0 || e.ClassSkill > 0 || e.ClassResource) && len(en.Classes) == 0 {
+				bad("%s follows the class, but there's no classes table", at)
+			}
+		}
+	}
+	return out
+}
+
+// EnchanterProblems checks an NPC's enchant_config: real pieces, gems and
+// size, a chance and a fee, and the "enchant" action on a shift, so they
+// can be found at work.
+func EnchanterProblems(n *types.NPCData) []string {
+	ec := n.EnchantConfig
+	if ec == nil {
+		return nil
+	}
+	cfg, err := gems.LoadFile(gemsFile)
+	if err != nil {
+		return nil
+	}
+	var out []string
+	for _, p := range ec.Pieces {
+		if cfg.Jeweller.Pieces[p].Gold <= 0 {
+			out = append(out, fmt.Sprintf("enchant_config: %q isn't a piece", p))
+		}
+	}
+	if len(ec.Pieces) == 0 {
+		out = append(out, "enchant_config: needs pieces")
+	}
+	for _, g := range ec.Gems {
+		if _, ok := cfg.Types[g]; !ok {
+			out = append(out, fmt.Sprintf("enchant_config: %q isn't a gem type", g))
+		}
+	}
+	if gems.SizeIndex(cfg, ec.MaxSize) < 0 {
+		out = append(out, fmt.Sprintf("enchant_config: max_size %q isn't a size", ec.MaxSize))
+	}
+	if ec.Success <= 0 || ec.Success > 1 || ec.Fee < 1 {
+		out = append(out, "enchant_config: success must be 0–1 and fee at least 1 (a cheaper enchanter would let enchant-and-sell pay)")
+	}
+	shift := false
+	for _, s := range n.Schedule {
+		for _, a := range s.AvailableActions {
+			shift = shift || a == "enchant"
+		}
+	}
+	if !shift {
+		out = append(out, "enchant_config: no schedule entry offers the \"enchant\" action")
+	}
+	return out
 }
 
 // npcFile finds an NPC's file under game-data/npcs/<home>/<id>.json.

@@ -35,7 +35,8 @@
         "main_menu"
       ],
       "available_actions": [
-        "open_shop"
+        "open_shop",
+        "enchant"
       ]
     },
     {
@@ -176,5 +177,6 @@
       {"item_id": "splint-cuirass", "stock": 1, "max_stock": 1},
       {"item_id": "splint-greaves", "stock": 1, "max_stock": 1}
     ]
-  }
+  },
+  "enchant_config": {"pieces": ["ring"], "gems": ["onyx", "garnet", "jasper", "ruby", "amber", "bloodstone", "diamond"], "max_size": "large", "success": 0.8, "fee": 1.0}
 }

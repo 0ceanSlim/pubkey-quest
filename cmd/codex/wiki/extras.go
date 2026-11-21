@@ -373,6 +373,9 @@ func (g *gen) npcServices(n *npc) []string {
 			out = append(out, fmt.Sprintf("🌀 Sells %s (see %s)", g.itemLink(c.Stone), link("Homeward Stones", "Rules/Teleportation")))
 		}
 	}
+	if ec := n.Enchant; ec != nil {
+		out = append(out, "✨ Enchanter: "+g.enchanterTerms(ec))
+	}
 	works := map[string]bool{}
 	for _, s := range n.Schedule {
 		if s.State == "working" {

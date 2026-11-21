@@ -104,6 +104,8 @@ type Gem struct {
 	Size    string
 	Quality string // "" while uncut
 	Piece   string // "ring" / "necklace" for jewelry
+	// Enchanted: a piece an enchanter has worked (enchant.go).
+	Enchanted bool
 }
 
 // Cut reports whether it's finished: cut, or a natural gem (a pearl), which
@@ -111,9 +113,18 @@ type Gem struct {
 func (g Gem) Cut() bool { return g.Quality != "" }
 
 // Parse reads a generated gem or piece id ("gem-ruby-small-uncut",
-// "gem-ruby-small-fine", "ring-ruby-small-fine", "gem-black-pearl-tiny-fine").
-// A type id may hold dashes; sizes and qualities don't.
+// "gem-ruby-small-fine", "ring-ruby-small-fine", "gem-black-pearl-tiny-fine",
+// "ring-ruby-large-fine-enchanted"). A type id may hold dashes; sizes and
+// qualities don't.
 func Parse(c *types.GemsConfig, id string) (Gem, bool) {
+	if plain, ok := strings.CutSuffix(id, types.EnchantedSuffix); ok {
+		g, ok := Parse(c, plain)
+		if !ok || g.Piece == "" || g.Enchanted {
+			return Gem{}, false
+		}
+		g.Enchanted = true
+		return g, true
+	}
 	parts := strings.Split(id, "-")
 	n := len(parts)
 	if n < 4 {
@@ -145,6 +156,8 @@ func Parse(c *types.GemsConfig, id string) (Gem, bool) {
 // ID is the item id for a gem or piece.
 func (g Gem) ID() string {
 	switch {
+	case g.Piece != "" && g.Enchanted:
+		return types.GemPieceID(g.Piece, g.Type, g.Size, g.Quality) + types.EnchantedSuffix
 	case g.Piece != "":
 		return types.GemPieceID(g.Piece, g.Type, g.Size, g.Quality)
 	case g.Quality != "":
@@ -167,6 +180,9 @@ func Value(c *types.GemsConfig, g Gem) int {
 	gold := max(1, int(math.Round(v)))
 	if g.Piece != "" {
 		gold += c.Jeweller.Pieces[g.Piece].Gold
+	}
+	if g.Enchanted {
+		gold += int(math.Round(float64(c.Enchanting.Fees[g.Size]) * c.Enchanting.ValueShare))
 	}
 	return gold
 }

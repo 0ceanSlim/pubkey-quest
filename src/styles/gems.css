@@ -5,6 +5,7 @@
  *   gem-<type>-<size>-uncut    rough: drawn smaller the smaller it is
  *   gem-<type>-<size>-<quality> cut: sized, and fine/flawless ones shine
  *   ring-/necklace-<type>-<size>-<quality>: shines with its gem
+ *   …-enchanted: an enchanted piece, with a slow blue-violet glow
  * Works wherever an item sprite is an <img>, with no per-view code.
  */
 
@@ -39,5 +40,20 @@ img[src*="/items/gem-"][src*="-huge-"]   { transform: scale(1.1); }
     }
     :is(img[src*="/items/gem-"], img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-flawless.png"] {
         animation: none; filter: brightness(1.3) drop-shadow(0 0 1px #fff);
+    }
+}
+
+/* Enchanted pieces glow, whatever their quality. */
+:is(img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-enchanted.png"] {
+    animation: gem-enchanted 3s ease-in-out infinite;
+}
+@keyframes gem-enchanted {
+    0%, 100% { filter: drop-shadow(0 0 1px rgba(103, 232, 249, 0.7)); }
+    50%      { filter: drop-shadow(0 0 3px rgba(167, 139, 250, 0.95)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(img[src*="/items/ring-"], img[src*="/items/necklace-"])[src$="-enchanted.png"] {
+        animation: none;
+        filter: drop-shadow(0 0 2px rgba(167, 139, 250, 0.9));
     }
 }

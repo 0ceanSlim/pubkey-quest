@@ -2,21 +2,27 @@ package types
 
 // EffectData represents the complete effect definition (from JSON files)
 type EffectData struct {
-	ID          string           `json:"id"`
-	Name        string           `json:"name"`
-	Description string           `json:"description"`
-	SourceType  string           `json:"source_type"` // "system_ticker", "system_status", "applied"
-	Category    string           `json:"category"`    // "buff", "debuff", "status"
-	Removal     RemovalCondition `json:"removal"`
+	ID           string           `json:"id"`
+	Name         string           `json:"name"`
+	Description  string           `json:"description"`
+	SourceType   string           `json:"source_type"` // "system_ticker", "system_status", "applied"
+	Category     string           `json:"category"`    // "buff", "debuff", "status"
+	Removal      RemovalCondition `json:"removal"`
 	SystemCheck  *SystemCheck     `json:"system_check,omitempty"`  // For system_status effects: when to activate
-	SkillScaling *SkillScaling   `json:"skill_scaling,omitempty"` // Optional: skill-based tick interval scaling
-	Modifiers    []Modifier      `json:"modifiers"`
-	Message     string           `json:"message,omitempty"`
-	Visible     bool             `json:"visible"`
+	SkillScaling *SkillScaling    `json:"skill_scaling,omitempty"` // Optional: skill-based tick interval scaling
+	Modifiers    []Modifier       `json:"modifiers"`
+	Message      string           `json:"message,omitempty"`
+	Visible      bool             `json:"visible"`
 	// CombatBuff makes the effect a weapon coating: when your next fight
 	// starts (or at once, if you apply it mid-fight) it becomes this buff and
 	// the effect is used up. Basic poison, a honed edge.
+	//
+	// A worn effect (removal "equipment") with a combat_buff isn't used up:
+	// the buff rides every fight while the piece is worn. Two worn buffs with
+	// the same spell_id count once, the higher Rank winning (a ruby ring and
+	// a ruby necklace give one fire rider, not two).
 	CombatBuff *SpellBuff `json:"combat_buff,omitempty"`
+	Rank       int        `json:"rank,omitempty"`
 }
 
 // RemovalCondition describes how an effect is removed
@@ -33,6 +39,7 @@ type Modifier struct {
 	Type         string `json:"type"`                    // "instant" or "periodic"
 	Delay        int    `json:"delay,omitempty"`         // Minutes before this modifier activates
 	TickInterval int    `json:"tick_interval,omitempty"` // For periodic: minutes between applications
+	When         string `json:"when,omitempty"`          // For periodic: "night" ticks only at night
 }
 
 // SkillScaling defines how a skill modifies an effect's tick interval

@@ -84,6 +84,9 @@ func (g *gen) loadFamilies() {
 					f.members = append(f.members, types.CutGemID(t, s.ID, q.ID))
 					for _, p := range types.GemPieces {
 						f.members = append(f.members, types.GemPieceID(p, t, s.ID, q.ID))
+						if _, ok := gems.Enchant(cfg, t, s.ID); ok {
+							f.members = append(f.members, types.GemPieceID(p, t, s.ID, q.ID)+types.EnchantedSuffix)
+						}
 					}
 				}
 			}
@@ -275,6 +278,7 @@ func (g *gen) gemPage(cfg *types.GemsConfig, t string) string {
 	b.WriteString("At the cut: " + strings.Join(qual, ", ") + ".\n\n")
 
 	g.jewelrySection(&b, cfg)
+	g.enchantSection(&b, cfg, t)
 
 	type face struct {
 		tier int
@@ -352,6 +356,7 @@ func (g *gen) pearlPage(cfg *types.GemsConfig, t string) string {
 	}
 	b.WriteString("As found: " + strings.Join(qual, ", ") + ".\n\n")
 	g.jewelrySection(&b, cfg)
+	g.enchantSection(&b, cfg, t)
 
 	var from []string
 	for _, item := range sortedKeys(cfg.Pearls.Shellfish) {
@@ -398,4 +403,72 @@ func (g *gen) gemChance(m *monster) float64 {
 		return 0
 	}
 	return gems.KillChance(g.x.gems, &types.MonsterData{Type: m.Type, ChallengeRating: m.CR, GemChance: m.GemChance})
+}
+
+// enchantSection is what a gem does once an enchanter wakes it in a ring or a
+// necklace, size by size, and who'll do it (docs/draft/enchanting.md).
+func (g *gen) enchantSection(b *strings.Builder, cfg *types.GemsConfig, t string) {
+	if _, ok := gems.Enchant(cfg, t, "tiny"); !ok {
+		return
+	}
+	b.WriteString("## Enchanted\n\n")
+	b.WriteString("An enchanter can wake the stone in a ring or a necklace. Its size sets what it does; its quality sets the odds and the fee. " +
+		"A flawless stone always takes, and adds its tiny effect too. Abilities and skills from two pieces add up; a gem's combat effects count once.\n\n")
+	var rows [][]string
+	byClass := false
+	for _, s := range cfg.Sizes {
+		e, ok := gems.Enchant(cfg, t, s.ID)
+		if !ok {
+			continue
+		}
+		piece := gems.Gem{Type: t, Size: s.ID, Quality: "standard", Piece: "ring"}
+		what := gems.PieceDescription(cfg, piece, "fighter")
+		switch {
+		case e.ClassAbility > 0 || e.ClassSkill > 0 || e.ClassResource:
+			byClass = true
+		case len(e.ResistByQuality) > 0:
+			var parts []string
+			for _, q := range cfg.Qualities {
+				piece.Quality = q.ID
+				parts = append(parts, fmt.Sprintf("%s: %s", strings.ToLower(q.Name), gems.PieceDescription(cfg, piece, "")))
+			}
+			what = strings.Join(parts, "; ")
+		}
+		name := e.Name
+		if name != "" {
+			name = "**" + name + "**"
+		}
+		rows = append(rows, []string{s.Name, name, what, gold(cfg.Enchanting.Fees[s.ID])})
+	}
+	table(b, []string{"Size", "Name", "While worn", "Base fee"}, rows)
+	if byClass {
+		b.WriteString("It follows its wearer's class: the table shows a fighter's (Strength, Athletics); a wizard would get Intelligence and Crafting.\n\n")
+	}
+	var who []string
+	for _, id := range sortedKeys(g.npcs) {
+		ec := g.npcs[id].Enchant
+		if ec == nil || (len(ec.Gems) > 0 && !contains(ec.Gems, t)) {
+			continue
+		}
+		who = append(who, fmt.Sprintf("%s: %s", g.npcLink(id), g.enchanterTerms(ec)))
+	}
+	bullets(b, "Enchanters who work it", who)
+}
+
+// enchanterTerms is an enchanter's trade in a line: pieces, stones, size,
+// odds, fee.
+func (g *gen) enchanterTerms(ec *types.EnchantConfig) string {
+	pieces := strings.Join(ec.Pieces, "s and ") + "s"
+	stones := "any stone"
+	if len(ec.Gems) > 0 && g.x.gems != nil {
+		var names []string
+		for _, t := range ec.Gems {
+			if gt, ok := g.x.gems.Types[t]; ok {
+				names = append(names, strings.ToLower(gt.Name))
+			}
+		}
+		stones = strings.Join(names, ", ")
+	}
+	return fmt.Sprintf("%s, %s, up to %s; %s base chance; fees ×%s", pieces, stones, ec.MaxSize,
+		percent(ec.Success), strings.TrimSuffix(strings.TrimRight(fmt.Sprintf("%.2f", ec.Fee), "0"), "."))
 }

@@ -17,7 +17,8 @@
       "available_actions": [
         "open_storage",
         "register_storage",
-        "open_shop"
+        "open_shop",
+        "enchant"
       ]
     }
   ],
@@ -209,5 +210,6 @@
         "restock_interval": "7"
       }
     ]
-  }
+  },
+  "enchant_config": {"pieces": ["ring", "necklace"], "gems": ["malachite", "emerald", "amethyst", "moonstone", "azurite", "pearl", "black-pearl"], "max_size": "large", "success": 0.9, "fee": 1.2}
 }

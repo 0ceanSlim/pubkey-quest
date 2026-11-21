@@ -1,7 +1,6 @@
 package status
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -57,8 +56,7 @@ func InitializeEquipmentEffects(state *types.SaveFile) error {
 		return nil
 	}
 
-	gearSlots, ok := state.Inventory["gear_slots"].(map[string]interface{})
-	if !ok {
+	if _, ok := state.Inventory["gear_slots"].(map[string]interface{}); !ok {
 		return nil
 	}
 
@@ -68,60 +66,8 @@ func InitializeEquipmentEffects(state *types.SaveFile) error {
 		return nil
 	}
 
-	// Scan all equipment slots
-	for slotName, slotData := range gearSlots {
-		slotMap, ok := slotData.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		itemID, ok := slotMap["item"].(string)
-		if !ok || itemID == "" {
-			continue
-		}
-
-		// Skip if this is the same item in both hands (two-handed weapon, only process once)
-		if slotName == "offhand" {
-			if mainhandSlot, ok := gearSlots["mainhand"].(map[string]interface{}); ok {
-				if mainhandItem, _ := mainhandSlot["item"].(string); mainhandItem == itemID {
-					continue // Already processed in mainhand
-				}
-			}
-		}
-
-		// Load item properties
-		var propertiesJSON string
-		err := database.QueryRow("SELECT properties FROM items WHERE id = ?", itemID).Scan(&propertiesJSON)
-		if err != nil {
-			continue
-		}
-
-		var properties map[string]interface{}
-		if err := json.Unmarshal([]byte(propertiesJSON), &properties); err != nil {
-			continue
-		}
-
-		// Apply each effect the item grants this wearer (incl. race-only ones)
-		for _, effectIDStr := range effects.WornEffectIDs(properties, state.Race) {
-			// Check if effect is already active (don't duplicate)
-			alreadyActive := false
-			for _, ae := range state.ActiveEffects {
-				if ae.EffectID == effectIDStr {
-					alreadyActive = true
-					break
-				}
-			}
-
-			if !alreadyActive {
-				// Apply effect silently
-				if err := effects.ApplyEffect(state, effectIDStr); err != nil {
-					log.Printf("⚠️ Failed to initialize equipment effect '%s' from %s: %v", effectIDStr, itemID, err)
-				} else {
-					log.Printf("🔄 Initialized equipment effect: %s from %s", effectIDStr, itemID)
-				}
-			}
-		}
-	}
-
+	// One instance per piece that grants it (two ruby rings, two), and none
+	// left over from gear that's gone.
+	effects.SyncWorn(state)
 	return nil
 }

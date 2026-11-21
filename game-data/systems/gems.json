@@ -278,5 +278,260 @@
         "gear_slot": "neck"
       }
     }
+  },
+  "enchanting": {
+    "_comment": "Enchanting (docs/draft/enchanting.md). An enchanter NPC (enchant_config) turns a plain ring or necklace into ring-/necklace-<type>-<size>-<quality>-enchanted, which wears jewel-<type>-<size> (and jewel-<type>-tiny too when flawless). Diamonds' effects are per quality from large up (jewel-diamond-<size>-<quality>); alexandrite's per class (jewel-alexandrite-<size>-<class>, from classes). The fee is fees[size] x the enchanter's fee x the quality's fee; the chance is the enchanter's success + the quality's, at most max_success, and a flawless gem never fails. A failure costs the fee and the piece survives. mods are constant modifiers (types.GemEnchant), ticks give 1 hp or mana every so many minutes, and combat_buff rides every fight (the same gem's counts once).",
+    "fees": {
+      "tiny": 100,
+      "small": 500,
+      "medium": 2500,
+      "large": 10000,
+      "huge": 50000
+    },
+    "max_success": 0.95,
+    "value_share": 0.5,
+    "quality": {
+      "flawed": {"success": -0.2, "fee": 1},
+      "standard": {"success": 0, "fee": 1},
+      "fine": {"success": 0.15, "fee": 0.8},
+      "flawless": {"always": true, "fee": 0.8, "adds_tiny": true}
+    },
+    "classes": {
+      "barbarian": {"ability": "strength", "skill": "athletics", "resource": true},
+      "fighter": {"ability": "strength", "skill": "athletics", "resource": true},
+      "paladin": {"ability": "strength", "skill": "resolve"},
+      "ranger": {"ability": "dexterity", "skill": "survival"},
+      "rogue": {"ability": "dexterity", "skill": "thieving", "resource": true},
+      "monk": {"ability": "dexterity", "skill": "perception", "resource": true},
+      "wizard": {"ability": "intelligence", "skill": "crafting"},
+      "cleric": {"ability": "wisdom", "skill": "medicine"},
+      "druid": {"ability": "wisdom", "skill": "survival"},
+      "bard": {"ability": "charisma", "skill": "influence"},
+      "sorcerer": {"ability": "charisma", "skill": "resolve"},
+      "warlock": {"ability": "charisma", "skill": "influence"}
+    },
+    "effects": {
+      "quartz": {
+        "tiny": {"mods": {"skill_perception": 1}},
+        "small": {"mods": {"skill_perception": 2}},
+        "medium": {"mods": {"intelligence": 1}},
+        "large": {"mods": {"intelligence": 2}},
+        "huge": {
+          "name": "Lens of Clear Sight",
+          "mods": {"intelligence": 2, "skill_perception": 3},
+          "combat_buff": {"attack_bonus": 1, "attack_spells": true}
+        }
+      },
+      "malachite": {
+        "tiny": {"mods": {"skill_medicine": 1}},
+        "small": {"mods": {"skill_medicine": 2}},
+        "medium": {"mods": {"constitution": 1}},
+        "large": {"mods": {"constitution": 1}, "combat_buff": {"resist": ["poison"]}},
+        "huge": {
+          "name": "Serpent's Bane",
+          "mods": {"constitution": 2, "skill_medicine": 3},
+          "combat_buff": {"resist": ["poison"], "immune": ["poisoned"]}
+        }
+      },
+      "azurite": {
+        "tiny": {"mods": {"skill_resolve": 1}},
+        "small": {"ticks": [{"stat": "mana", "minutes": 240}]},
+        "medium": {"mods": {"intelligence": 1}},
+        "large": {"mods": {"intelligence": 1}, "ticks": [{"stat": "mana", "minutes": 120}]},
+        "huge": {"name": "Wellspring", "mods": {"intelligence": 2, "fight_mana": 2}, "ticks": [{"stat": "mana", "minutes": 60}]}
+      },
+      "obsidian": {
+        "tiny": {"mods": {"skill_thieving": 1}},
+        "small": {"mods": {"skill_thieving": 2}},
+        "medium": {"mods": {"dexterity": 1}},
+        "large": {"mods": {"dexterity": 1}, "combat_buff": {"hit_dice": "1d4", "hit_type": "necrotic"}},
+        "huge": {
+          "name": "Nightglass",
+          "mods": {"dexterity": 2, "skill_thieving": 3},
+          "combat_buff": {"hit_dice": "1d6", "hit_type": "necrotic"}
+        }
+      },
+      "turquoise": {
+        "tiny": {"mods": {"skill_survival": 1}},
+        "small": {"mods": {"travel_speed": 5}},
+        "medium": {"mods": {"dexterity": 1}},
+        "large": {"mods": {"dexterity": 1, "travel_speed": 10, "ambush_ward": 1}},
+        "huge": {
+          "name": "Wayfarer's Star",
+          "mods": {"dexterity": 2, "travel_speed": 20, "ambush_ward": 1, "weight_capacity": 20}
+        }
+      },
+      "onyx": {
+        "tiny": {"mods": {"skill_resolve": 1}},
+        "small": {"mods": {"skill_resolve": 2}},
+        "medium": {"mods": {"constitution": 1}},
+        "large": {"mods": {"constitution": 1, "armor_class": 1}},
+        "huge": {
+          "name": "Black Bulwark",
+          "mods": {"constitution": 2, "armor_class": 1},
+          "combat_buff": {"resist": ["necrotic"], "ward_types": ["undead"]}
+        }
+      },
+      "moonstone": {
+        "tiny": {"mods": {"skill_perception": 1}},
+        "small": {"mods": {"skill_perception": 2}},
+        "medium": {"mods": {"wisdom": 1}},
+        "large": {"mods": {"wisdom": 1, "darkvision": 1}},
+        "huge": {
+          "name": "Moonwell",
+          "mods": {"wisdom": 2, "darkvision": 1},
+          "ticks": [{"stat": "mana", "minutes": 30, "when": "night"}]
+        }
+      },
+      "citrine": {
+        "tiny": {"mods": {"skill_influence": 1}},
+        "small": {"mods": {"skill_medicine": 2}},
+        "medium": {"mods": {"charisma": 1}},
+        "large": {"mods": {"charisma": 1}, "combat_buff": {"hit_dice": "1d4", "hit_type": "radiant"}},
+        "huge": {
+          "name": "Sunshard",
+          "mods": {"charisma": 2, "light": 1},
+          "combat_buff": {"hit_dice": "1d6", "hit_type": "radiant"}
+        }
+      },
+      "jasper": {
+        "tiny": {"mods": {"skill_athletics": 1}},
+        "small": {"mods": {"weight_capacity": 10}},
+        "medium": {"mods": {"strength": 1}},
+        "large": {"mods": {"strength": 1, "temp_hp": 4}},
+        "huge": {
+          "name": "Unbroken",
+          "mods": {"strength": 2, "skill_athletics": 2, "skill_resolve": 2, "temp_hp": 4, "fatigue_slow": 1}
+        }
+      },
+      "bloodstone": {
+        "tiny": {"mods": {"skill_medicine": 1}},
+        "small": {"ticks": [{"stat": "hp", "minutes": 120}]},
+        "medium": {"mods": {"constitution": 1}},
+        "large": {"mods": {"constitution": 1}, "ticks": [{"stat": "hp", "minutes": 60}]},
+        "huge": {
+          "name": "Heartstone",
+          "mods": {"constitution": 2},
+          "ticks": [{"stat": "hp", "minutes": 30}],
+          "combat_buff": {"death_ward": true}
+        }
+      },
+      "pearl": {
+        "tiny": {"mods": {"skill_influence": 1}},
+        "small": {"mods": {"skill_influence": 2}},
+        "medium": {"mods": {"charisma": 1}},
+        "large": {"mods": {"charisma": 2, "skill_influence": 2}}
+      },
+      "black-pearl": {
+        "tiny": {"mods": {"skill_influence": 1}},
+        "small": {"mods": {"skill_thieving": 2}},
+        "medium": {"mods": {"charisma": 1}},
+        "large": {
+          "name": "Abyssal Pearl",
+          "mods": {"charisma": 2},
+          "combat_buff": {"sanctuary": true, "sanctuary_once": true, "save_dc": 13}
+        }
+      },
+      "amber": {
+        "tiny": {"mods": {"skill_resolve": 1}},
+        "small": {"mods": {"skill_resolve": 2}},
+        "medium": {"mods": {"wisdom": 1}},
+        "large": {"mods": {"wisdom": 1}, "combat_buff": {"resist": ["lightning", "thunder"]}},
+        "huge": {
+          "name": "Stormstill",
+          "mods": {"wisdom": 2},
+          "combat_buff": {"resist": ["lightning", "thunder"], "immune": ["stunned", "paralyzed"]}
+        }
+      },
+      "amethyst": {
+        "tiny": {"mods": {"skill_resolve": 1}},
+        "small": {"mods": {"skill_resolve": 2}},
+        "medium": {"mods": {"wisdom": 1}},
+        "large": {"mods": {"wisdom": 1}, "combat_buff": {"immune": ["frightened"]}},
+        "huge": {
+          "name": "Clear Mind",
+          "mods": {"wisdom": 2},
+          "combat_buff": {"immune": ["charmed", "frightened"], "save_dice": "1d4"}
+        }
+      },
+      "topaz": {
+        "tiny": {"mods": {"skill_thieving": 1}},
+        "small": {"mods": {"skill_thieving": 2}},
+        "medium": {"mods": {"dexterity": 1}},
+        "large": {"mods": {"dexterity": 1, "combat_move": 1}},
+        "huge": {
+          "name": "Quicksilver",
+          "mods": {"dexterity": 2, "combat_move": 2},
+          "combat_buff": {"hit_dice": "1d6", "hit_type": "lightning"}
+        }
+      },
+      "garnet": {
+        "tiny": {"mods": {"skill_athletics": 1}},
+        "small": {"mods": {"skill_athletics": 2}},
+        "medium": {"mods": {"strength": 1}},
+        "large": {"mods": {"strength": 2}},
+        "huge": {"name": "Lifeblood", "mods": {"strength": 2, "skill_athletics": 2, "temp_hp": 8}}
+      },
+      "alexandrite": {
+        "tiny": {"class_skill": 1},
+        "small": {"class_skill": 2},
+        "medium": {"class_ability": 1},
+        "large": {"class_ability": 2},
+        "huge": {"name": "Heart of Change", "class_ability": 2, "class_skill": 3, "class_resource": true}
+      },
+      "ruby": {
+        "tiny": {"mods": {"skill_athletics": 1}},
+        "small": {"mods": {"skill_athletics": 2}},
+        "medium": {"mods": {"strength": 1}},
+        "large": {"mods": {"strength": 1}, "combat_buff": {"hit_dice": "1d4", "hit_type": "fire"}},
+        "huge": {
+          "name": "Emberheart",
+          "mods": {"strength": 2},
+          "combat_buff": {"hit_dice": "1d6", "hit_type": "fire", "retaliate": "1d6", "retaliate_type": "fire"}
+        }
+      },
+      "sapphire": {
+        "tiny": {"mods": {"skill_crafting": 1}},
+        "small": {"mods": {"skill_crafting": 2}},
+        "medium": {"mods": {"intelligence": 1}},
+        "large": {"mods": {"intelligence": 1}, "combat_buff": {"hit_dice": "1d4", "hit_type": "cold", "hit_spells": true}},
+        "huge": {
+          "name": "Rimeheart",
+          "mods": {"intelligence": 2},
+          "combat_buff": {"hit_dice": "1d6", "hit_type": "cold", "hit_spells": true, "resist": ["cold"]}
+        }
+      },
+      "emerald": {
+        "tiny": {"mods": {"skill_survival": 1}},
+        "small": {"mods": {"skill_survival": 2}},
+        "medium": {"mods": {"wisdom": 1}},
+        "large": {"mods": {"wisdom": 2}},
+        "huge": {"name": "Verdant Heart", "mods": {"wisdom": 2, "skill_medicine": 3, "heal_d6": 1}}
+      },
+      "diamond": {
+        "tiny": {"mods": {"skill_resolve": 1}},
+        "small": {"mods": {"skill_resolve": 2}},
+        "medium": {"mods": {"constitution": 1}},
+        "large": {
+          "mods": {"constitution": 1},
+          "resist_by_quality": {
+            "flawed": ["fire"],
+            "standard": ["fire", "cold"],
+            "fine": ["fire", "cold", "lightning"],
+            "flawless": ["fire", "cold", "lightning", "acid", "poison"]
+          }
+        },
+        "huge": {
+          "name": "Heart of Purity",
+          "mods": {"constitution": 2},
+          "resist_by_quality": {
+            "flawed": ["fire", "cold"],
+            "standard": ["fire", "cold", "lightning"],
+            "fine": ["fire", "cold", "lightning", "acid", "poison"],
+            "flawless": ["fire", "cold", "lightning", "acid", "poison", "necrotic", "radiant"]
+          }
+        }
+      }
+    }
   }
 }

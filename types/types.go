@@ -43,13 +43,13 @@ type WeightedOption struct {
 
 // NPCScheduleSlot represents a time period in an NPC's schedule
 type NPCScheduleSlot struct {
-	Start            int      `json:"start"`              // Minutes from midnight (0-1439)
-	End              int      `json:"end"`                // Minutes from midnight (0-1439, wraps to next day if < start)
-	Location         string   `json:"location"`           // Building ID or district ID (backend determines type)
-	Room             string   `json:"room,omitempty"`     // Optional room within the building (M2); empty = the building's default room
-	State            string   `json:"state"`              // "sleeping", "working", "traveling", "home"
-	DialogueOptions  []string `json:"dialogue_options"`   // Which dialogue nodes are available
-	AvailableActions []string `json:"available_actions"`  // Which actions can be performed (open_shop, etc.)
+	Start            int      `json:"start"`             // Minutes from midnight (0-1439)
+	End              int      `json:"end"`               // Minutes from midnight (0-1439, wraps to next day if < start)
+	Location         string   `json:"location"`          // Building ID or district ID (backend determines type)
+	Room             string   `json:"room,omitempty"`    // Optional room within the building (M2); empty = the building's default room
+	State            string   `json:"state"`             // "sleeping", "working", "traveling", "home"
+	DialogueOptions  []string `json:"dialogue_options"`  // Which dialogue nodes are available
+	AvailableActions []string `json:"available_actions"` // Which actions can be performed (open_shop, etc.)
 	// Days limits the entry to these days of the week (types.WeekDays, lower
 	// case: "saturday"). On those days it replaces the everyday entries it
 	// overlaps; an entry past midnight belongs to the day it started.
@@ -65,10 +65,12 @@ type NPCData struct {
 	Description   string                 `json:"description,omitempty"`
 	Greeting      map[string]string      `json:"greeting,omitempty"`
 	Dialogue      map[string]interface{} `json:"dialogue,omitempty"`
-	Schedule      []NPCScheduleSlot      `json:"schedule,omitempty"`      // NPC schedule (location is per time slot)
+	Schedule      []NPCScheduleSlot      `json:"schedule,omitempty"` // NPC schedule (location is per time slot)
 	ShopConfig    map[string]interface{} `json:"shop_config,omitempty"`
 	StorageConfig map[string]interface{} `json:"storage_config,omitempty"`
 	InnConfig     map[string]interface{} `json:"inn_config,omitempty"`
+	// EnchantConfig makes the NPC an enchanter (docs/draft/enchanting.md).
+	EnchantConfig *EnchantConfig `json:"enchant_config,omitempty"`
 
 	// PrimaryHome is the canonical "home" location ID for an external NPC
 	// (a city, environment, or POI ID). Required for NPCs in game-data/npcs/;
@@ -86,8 +88,8 @@ type NPCData struct {
 type NPCScheduleInfo struct {
 	CurrentSlot       *NPCScheduleSlot `json:"current_slot"`
 	IsAvailable       bool             `json:"is_available"`
-	Location          string           `json:"location"`            // Current location (building or district)
-	Room              string           `json:"room,omitempty"`      // Resolved room within the building (M2)
+	Location          string           `json:"location"`       // Current location (building or district)
+	Room              string           `json:"room,omitempty"` // Resolved room within the building (M2)
 	State             string           `json:"state"`
 	AvailableDialogue []string         `json:"available_dialogue"`
 	AvailableActions  []string         `json:"available_actions"`
@@ -111,7 +113,7 @@ type ShopConfig struct {
 	BuyPriceMultiplier  float64             `json:"buy_price_multiplier"`  // What merchant pays player (deprecated - not used)
 	SellPriceMultiplier float64             `json:"sell_price_multiplier"` // What player pays merchant (deprecated - not used)
 	StartingGold        int                 `json:"starting_gold"`
-	MaxGold             int                 `json:"max_gold"` // Not enforced - merchants can accumulate unlimited gold
+	MaxGold             int                 `json:"max_gold"`              // Not enforced - merchants can accumulate unlimited gold
 	GoldRegenRate       int                 `json:"gold_regen_rate"`       // Gold restored per gradual regen interval
 	GoldRegenInterval   string              `json:"gold_regen_interval"`   // "daily" (10min), "hourly" (1min), "weekly" (70min), or direct minutes
 	ItemRestockInterval int                 `json:"item_restock_interval"` // Minutes between item restocks (default 10)

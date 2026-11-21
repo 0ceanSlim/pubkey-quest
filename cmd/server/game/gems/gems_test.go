@@ -35,12 +35,14 @@ func TestIDsRoundTrip(t *testing.T) {
 		}
 	}
 	// 19 types × 5 sizes × (1 uncut + 4 cut × (1 + 2 pieces)), and the two
-	// pearls, which are never uncut.
-	if len(seen) != 19*5*(1+4*3)+2*5*4*3 {
+	// pearls, which are never uncut; then every piece enchanted at a size its
+	// gem has an effect for (no pearl is huge enough): 824 more.
+	if len(seen) != 19*5*(1+4*3)+2*5*4*3+(19*5+2*4)*4*2 {
 		t.Fatalf("%d items", len(seen))
 	}
 	for _, bad := range []string{"gem-ruby-small", "gem-rubyx-small-fine", "ring-ruby-small-uncut", "gem-ruby-vast-fine", "hat-ruby-small-fine",
-		"gem-pearl-small-uncut", "gem-black-pearl-small-uncut", "gem-black-small-fine"} {
+		"gem-pearl-small-uncut", "gem-black-pearl-small-uncut", "gem-black-small-fine",
+		"gem-ruby-small-fine-enchanted", "ring-ruby-small-fine-enchanted-enchanted"} {
 		if _, ok := Parse(c, bad); ok {
 			t.Fatalf("%s parsed", bad)
 		}

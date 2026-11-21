@@ -26,7 +26,9 @@
       "dialogue_options": [
         "main_menu"
       ],
-      "available_actions": []
+      "available_actions": [
+        "enchant"
+      ]
     },
     {
       "start": 1320,
@@ -50,6 +52,7 @@
       "options": [
         "ask_bowl",
         "ask_temple",
+        "ask_stones",
         "goodbye"
       ]
     },
@@ -65,6 +68,12 @@
         "main_menu"
       ]
     },
+    "ask_stones": {
+      "text": "Stones listen, the way the water does. Bring me one set in gold and I'll wake what's in it, even the great ones the others won't touch. It doesn't always take, and the temple wants its gold either way.",
+      "options": [
+        "main_menu"
+      ]
+    },
     "sleeping": {
       "text": "(Seraphina is asleep on a pallet beside the bowl, murmuring.)",
       "options": [
@@ -75,5 +84,6 @@
       "text": "Mind the smoke on your way out.",
       "action": "end_dialogue"
     }
-  }
+  },
+  "enchant_config": {"pieces": ["ring", "necklace"], "max_size": "huge", "success": 0.75, "fee": 2.0}
 }

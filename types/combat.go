@@ -20,7 +20,7 @@ type MonsterSpeed struct {
 
 // MonsterSenses represents sensory abilities
 type MonsterSenses struct {
-	Darkvision       int `json:"darkvision"`
+	Darkvision        int `json:"darkvision"`
 	PassivePerception int `json:"passive_perception"`
 }
 
@@ -218,22 +218,23 @@ type SpellBuff struct {
 	// Rounds counts down at the start of the holder's turn; 0 = the rest of the fight.
 	Rounds int `json:"rounds,omitempty"`
 
-	ACBonus     int    `json:"ac_bonus,omitempty"`
-	ACFloor     int    `json:"ac_floor,omitempty"`     // AC can't be lower than this (barkskin)
-	AttackBonus int    `json:"attack_bonus,omitempty"` // flat, to weapon attack rolls (magic weapon)
-	AttackDice  string `json:"attack_dice,omitempty"`  // rolled and added to attack rolls (bless)
-	SaveDice    string `json:"save_dice,omitempty"`    // rolled and added to saving throws (bless, resistance)
+	ACBonus      int    `json:"ac_bonus,omitempty"`
+	ACFloor      int    `json:"ac_floor,omitempty"`      // AC can't be lower than this (barkskin)
+	AttackBonus  int    `json:"attack_bonus,omitempty"`  // flat, to weapon attack rolls (magic weapon)
+	AttackSpells bool   `json:"attack_spells,omitempty"` // AttackBonus counts on spell attacks too
+	AttackDice   string `json:"attack_dice,omitempty"`   // rolled and added to attack rolls (bless)
+	SaveDice     string `json:"save_dice,omitempty"`     // rolled and added to saving throws (bless, resistance)
 
 	// Extra damage when the holder hits. HitOnce spends the buff on the first
 	// hit (smites); MeleeOnly limits it to melee weapon hits; HitSpells lets it
 	// ride spell-attack hits too (hex). MarkedID limits it to one foe.
-	HitDice      string          `json:"hit_dice,omitempty"`
-	HitType      string          `json:"hit_type,omitempty"`
-	HitBonus     int             `json:"hit_bonus,omitempty"`
-	HitOnce      bool            `json:"hit_once,omitempty"`
+	HitDice  string `json:"hit_dice,omitempty"`
+	HitType  string `json:"hit_type,omitempty"`
+	HitBonus int    `json:"hit_bonus,omitempty"`
+	HitOnce  bool   `json:"hit_once,omitempty"`
 	// Hits spends the hit damage after this many hits (a weapon coating's
 	// "next 3 hits"); 0 = every hit while the buff lasts.
-	Hits int `json:"hits,omitempty"`
+	Hits         int             `json:"hits,omitempty"`
 	MeleeOnly    bool            `json:"melee_only,omitempty"`
 	HitSpells    bool            `json:"hit_spells,omitempty"`
 	HitCondition *SpellCondition `json:"hit_condition,omitempty"`
@@ -247,6 +248,7 @@ type SpellBuff struct {
 	Immune                []string `json:"immune,omitempty"`                 // conditions that can't take hold (heroism: frightened)
 	Decoys                int      `json:"decoys,omitempty"`                 // illusory doubles: each takes one attack that would have hit
 	Sanctuary             bool     `json:"sanctuary,omitempty"`              // an attacker must pass a WIS save or lose the attack
+	SanctuaryOnce         bool     `json:"sanctuary_once,omitempty"`         // only the first attack of the fight is checked
 	EndsOnAttack          bool     `json:"ends_on_attack,omitempty"`         // drops when the holder attacks or casts at a foe
 	DeathWard             bool     `json:"death_ward,omitempty"`             // the first drop to 0 HP leaves the holder at 1
 	EasyEscape            bool     `json:"easy_escape,omitempty"`            // fleeing needs no distance and always works
@@ -315,8 +317,8 @@ type PlayerCombatState struct {
 	Conditions         []CombatCondition `json:"conditions"`
 
 	// Class-ability state (M5 §12) — all memory-only, initialised at combat start.
-	Resource           *ResourcePool `json:"resource,omitempty"`             // martial resource pool; nil for casters
-	RageTurnsLeft      int           `json:"rage_turns_left,omitempty"`      // barbarian rage: turns remaining (0 = not raging)
+	Resource           *ResourcePool `json:"resource,omitempty"`              // martial resource pool; nil for casters
+	RageTurnsLeft      int           `json:"rage_turns_left,omitempty"`       // barbarian rage: turns remaining (0 = not raging)
 	RageDamageBonusPct int           `json:"rage_damage_bonus_pct,omitempty"` // % bonus to weapon damage while raging
 	RageResistPct      int           `json:"rage_resist_pct,omitempty"`       // % reduction to incoming damage while raging
 	ExtraActions       int           `json:"extra_actions,omitempty"`         // granted by Action Surge / Flurry — extra attack actions this turn
@@ -333,23 +335,23 @@ type PlayerCombatState struct {
 
 // MonsterInstance is a live monster in the current combat encounter
 type MonsterInstance struct {
-	TemplateID string           `json:"template_id"` // ID from monster JSON
-	InstanceID string           `json:"instance_id"` // Unique per-combat ID ("goblin", "goblin#2", …)
-	Name       string           `json:"name"`
-	CurrentHP  int              `json:"current_hp"`
-	MaxHP      int              `json:"max_hp"`
-	ArmorClass int              `json:"armor_class"`
-	Initiative int              `json:"initiative"`
-	Conditions []CombatCondition `json:"conditions"`
-	IsAlive    bool             `json:"is_alive"`
-	ReactionUsed bool           `json:"reaction_used"` // Reaction consumed this round (OA)
-	Disengaged   bool           `json:"disengaged"`    // Monster used Disengage this turn
-	Fled         bool           `json:"fled"`          // Escaped off the grid edge — out of the fight, no kill
+	TemplateID   string            `json:"template_id"` // ID from monster JSON
+	InstanceID   string            `json:"instance_id"` // Unique per-combat ID ("goblin", "goblin#2", …)
+	Name         string            `json:"name"`
+	CurrentHP    int               `json:"current_hp"`
+	MaxHP        int               `json:"max_hp"`
+	ArmorClass   int               `json:"armor_class"`
+	Initiative   int               `json:"initiative"`
+	Conditions   []CombatCondition `json:"conditions"`
+	IsAlive      bool              `json:"is_alive"`
+	ReactionUsed bool              `json:"reaction_used"` // Reaction consumed this round (OA)
+	Disengaged   bool              `json:"disengaged"`    // Monster used Disengage this turn
+	Fled         bool              `json:"fled"`          // Escaped off the grid edge — out of the fight, no kill
 	// WaitingOnDowned: it has stopped attacking a downed player and is standing
 	// over them (said once, so the log doesn't repeat it every round).
-	WaitingOnDowned bool `json:"waiting_on_downed,omitempty"`
-	Surprised    bool           `json:"surprised,omitempty"` // Caught unaware by a sneak attack: loses its first turn
-	Pos          Position       `json:"pos"`           // Grid cell
+	WaitingOnDowned bool     `json:"waiting_on_downed,omitempty"`
+	Surprised       bool     `json:"surprised,omitempty"` // Caught unaware by a sneak attack: loses its first turn
+	Pos             Position `json:"pos"`                 // Grid cell
 	// SpawnPos is set only for the opening response of an encounter when this
 	// monster won initiative and moved before the player ever saw the board, so
 	// the client can animate the step from where it appeared. Cleared via
@@ -395,9 +397,9 @@ func (p *PartyCombatant) Standing() bool {
 
 // InitiativeEntry records a combatant's position in the initiative order
 type InitiativeEntry struct {
-	ID         string `json:"id"`         // npub for player, instance_id for monster
-	Type       string `json:"type"`       // "player" or "monster"
-	Name       string `json:"name"`       // display name for the turn-order strip
+	ID         string `json:"id"`   // npub for player, instance_id for monster
+	Type       string `json:"type"` // "player" or "monster"
+	Name       string `json:"name"` // display name for the turn-order strip
 	Initiative int    `json:"initiative"`
 	DEXScore   int    `json:"dex_score"` // For tie-breaking
 }
@@ -414,19 +416,19 @@ type ConcentrationState struct {
 // CombatSession holds all in-memory state for an active combat encounter.
 // This is NEVER written to the save file — it lives only in GameSession memory.
 type CombatSession struct {
-	Party              []PartyCombatant  `json:"party"`
-	Monsters           []MonsterInstance `json:"monsters"`
-	Initiative         []InitiativeEntry `json:"initiative"`
-	CurrentTurnIndex   int               `json:"current_turn_index"` // index into Initiative of whoever is acting
-	Round              int               `json:"round"`              // increments each time the turn order wraps
-	GridWidth          int               `json:"grid_width"`   // Sized by combatant count (combat.GridSizeFor)
-	GridHeight         int               `json:"grid_height"`  // Sized by combatant count (combat.GridSizeFor)
-	Log                []string          `json:"log"`
-	EnvironmentID      string            `json:"environment_id"`
-	Battlefield        string            `json:"battlefield,omitempty"` // terrain profile: "forest", "interior", "cellar", …
-	Terrain            []string          `json:"terrain,omitempty"`     // row-major GridWidth×GridHeight terrain ids; "" = open ground
-	IsSurprised        bool              `json:"is_surprised"`  // Party was surprised (every monster acts before the party in round 1)
-	Phase              string            `json:"phase"`         // "active", "loot", "victory", "defeat", "death_saves"
+	Party            []PartyCombatant  `json:"party"`
+	Monsters         []MonsterInstance `json:"monsters"`
+	Initiative       []InitiativeEntry `json:"initiative"`
+	CurrentTurnIndex int               `json:"current_turn_index"` // index into Initiative of whoever is acting
+	Round            int               `json:"round"`              // increments each time the turn order wraps
+	GridWidth        int               `json:"grid_width"`         // Sized by combatant count (combat.GridSizeFor)
+	GridHeight       int               `json:"grid_height"`        // Sized by combatant count (combat.GridSizeFor)
+	Log              []string          `json:"log"`
+	EnvironmentID    string            `json:"environment_id"`
+	Battlefield      string            `json:"battlefield,omitempty"` // terrain profile: "forest", "interior", "cellar", …
+	Terrain          []string          `json:"terrain,omitempty"`     // row-major GridWidth×GridHeight terrain ids; "" = open ground
+	IsSurprised      bool              `json:"is_surprised"`          // Party was surprised (every monster acts before the party in round 1)
+	Phase            string            `json:"phase"`                 // "active", "loot", "victory", "defeat", "death_saves"
 
 	// Actor is the party member the current request acts as (an index into
 	// Party). Set per request by the API layer, and to a monster's target
@@ -442,7 +444,6 @@ type CombatSession struct {
 	// ("trivial"…"deadly", see encounter.Difficulty). Surfaced so the client can
 	// warn on a fight that outclasses the player (M5 §22). Set once, memory-only.
 	Difficulty string `json:"difficulty,omitempty"`
-
 }
 
 // PendingEncounter is an encounter whose monsters haven't noticed the player

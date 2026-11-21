@@ -335,6 +335,10 @@ func resolveCast(deps Deps, save *types.SaveFile, spell map[string]interface{}, 
 		if heal < 1 {
 			heal = 1
 		}
+		// An emerald's Verdant Heart: healing spells heal more.
+		if n := effects.ModifierTotal(save, "heal_d6"); n > 0 {
+			heal += deps.RollDice(fmt.Sprintf("%dd6", n), false)
+		}
 		res.Heal = heal
 		res.Log = append(res.Log, fmt.Sprintf("  You cast %s, mending %d HP.", name, heal))
 

@@ -35,7 +35,8 @@
         "main_menu"
       ],
       "available_actions": [
-        "open_shop"
+        "open_shop",
+        "enchant"
       ]
     },
     {
@@ -149,5 +150,6 @@
       {"item_id": "sulfur", "stock": 6, "max_stock": 6},
       {"item_id": "elemental-sparks", "stock": 3, "max_stock": 3}
     ]
-  }
+  },
+  "enchant_config": {"pieces": ["ring", "necklace"], "max_size": "large", "success": 0.85, "fee": 1.5}
 }

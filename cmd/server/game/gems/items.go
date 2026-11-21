@@ -11,7 +11,9 @@ import (
 // (as a game-data/items file would be) with "generated": true:
 //   - gem-<type>-<size>-uncut: a rough gem, quality unknown until it's cut;
 //   - gem-<type>-<size>-<quality>: the cut gem;
-//   - ring-/necklace-<type>-<size>-<quality>: a cut gem set in gold.
+//   - ring-/necklace-<type>-<size>-<quality>: a cut gem set in gold;
+//   - …-enchanted: that piece after an enchanter's work (enchant.go), at
+//     every size its gem has an effect for.
 //
 // A natural type (pearls) has no rough gem: gem-pearl-<size>-<quality> is how
 // it's found.
@@ -33,6 +35,9 @@ func Items(c *types.GemsConfig) []map[string]any {
 					if c.Jeweller.Pieces[p].Gold > 0 {
 						cut.Piece = p
 						out = append(out, pieceItem(c, cut))
+						if Enchantable(c, cut) {
+							out = append(out, enchantedItem(c, cut))
+						}
 					}
 				}
 			}
@@ -166,8 +171,51 @@ func pieceItem(c *types.GemsConfig, g Gem) map[string]any {
 		"image":       "/res/img/items/" + g.ID() + ".png",
 		"sprite":      fmt.Sprintf("/res/img/items/%s-%s.png", g.Piece, g.Type),
 		"tags":        []string{"equipment", "jewelry", "valuable", "gem-" + g.Type, "size-" + g.Size, "quality-" + g.Quality},
-		"notes":       []string{"Worth its gold and its gem together. No magic in it."},
+		"notes":       []string{pieceNote(c, g)},
 		"gem":         map[string]any{"type": g.Type, "size": g.Size, "quality": g.Quality, "piece": g.Piece},
 		"generated":   true,
 	}
+}
+
+// enchantedItem is a piece after an enchanter's work: the same ring or
+// necklace, worth its base fee more, wearing its gem's effect.
+func enchantedItem(c *types.GemsConfig, plain Gem) map[string]any {
+	g := plain
+	g.Enchanted = true
+	item := pieceItem(c, plain)
+	value := Value(c, g)
+	e, _ := Enchant(c, g.Type, g.Size)
+	name := "Enchanted " + Name(c, plain)
+	if e.Name != "" {
+		name = fmt.Sprintf("%s: %s", e.Name, Name(c, plain))
+	}
+	item["id"] = g.ID()
+	item["name"] = name
+	item["description"] = strings.TrimSuffix(item["description"].(string), ".") + ", and enchanted: the stone holds a working."
+	item["value"] = value
+	item["rarity"] = Rarity(value)
+	item["image"] = "/res/img/items/" + g.ID() + ".png"
+	item["tags"] = append(item["tags"].([]string), "enchanted", "magic")
+	gem := item["gem"].(map[string]any)
+	gem["enchanted"] = true
+	worn := wornFields(c, g)
+	for k, v := range worn {
+		item[k] = v
+	}
+	if _, byClass := worn["effects_when_worn_by_class"]; byClass {
+		item["notes"] = []string{"Its working follows its wearer's calling: their class's ability and skill.",
+			"A fighter would get " + PieceDescription(c, g, "fighter") + "."}
+	} else {
+		item["notes"] = []string{"While worn: " + PieceDescription(c, g, "") + "."}
+	}
+	return item
+}
+
+// pieceNote is a plain piece's note: what it's worth, and whether an
+// enchanter could wake its stone.
+func pieceNote(c *types.GemsConfig, g Gem) string {
+	if Enchantable(c, g) {
+		return "Worth its gold and its gem together. No magic in it yet: an enchanter could wake the stone."
+	}
+	return "Worth its gold and its gem together. No magic in it."
 }

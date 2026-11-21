@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"pubkey-quest/cmd/server/game/condition"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/types"
 )
@@ -26,6 +27,10 @@ func lightAtNight(save *types.SaveFile) (stealth, perception int, notes []string
 	}
 	id, slot, light := condition.HeldLight(save)
 	if slot == nil || !condition.Shining(slot) {
+		if effects.ModifierTotal(save, "light") > 0 {
+			// A gem's light never burns down, and can't be hooded either.
+			return -lightStealthPenalty, 0, []string{fmt.Sprintf("  ☀️ Your gem's light gives you away in the dark (−%d Stealth).", lightStealthPenalty)}
+		}
 		return 0, 0, nil
 	}
 	name := condition.ItemName(id)

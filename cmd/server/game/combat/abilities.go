@@ -66,6 +66,19 @@ func InitResourcePool(state *types.PlayerCombatState, class string, level int, s
 	}
 }
 
+// growResourcePool raises a pool's max by pct percent (at least 1), and a pool
+// that starts full starts at the new max: alexandrite's Heart of Change.
+func growResourcePool(p *types.ResourcePool, pct int) {
+	if p == nil || pct <= 0 {
+		return
+	}
+	full := p.Current == p.Max
+	p.Max += max(1, p.Max*pct/100)
+	if full {
+		p.Current = p.Max
+	}
+}
+
 // regenResource adds to a pool, clamped to its max. Nil-safe.
 func regenResource(p *types.ResourcePool, amount int) {
 	if p == nil || amount <= 0 {

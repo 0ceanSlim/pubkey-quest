@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"path/filepath"
 	"strings"
+
+	"pubkey-quest/types"
 )
 
 // Wiki-side views of the game-data JSON. They decode only what the pages show and
@@ -302,6 +304,7 @@ type npc struct {
 		} `json:"inventory"`
 	} `json:"shop_config"`
 	Storage  json.RawMessage            `json:"storage_config"`
+	Enchant  *types.EnchantConfig       `json:"enchant_config"`
 	Dialogue map[string]json.RawMessage `json:"dialogue"`
 }
 

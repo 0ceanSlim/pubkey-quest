@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"pubkey-quest/types"
 )
 
 // Issue represents a validation issue found in game data
@@ -1229,6 +1231,12 @@ func validateNPCFile(filePath string) []Issue {
 
 	for _, p := range givesProblems(npc) {
 		issues = append(issues, Issue{Type: "error", Category: "npcs", File: filename, Field: "dialogue", Message: p})
+	}
+	var typed types.NPCData
+	if json.Unmarshal(data, &typed) == nil {
+		for _, p := range EnchanterProblems(&typed) {
+			issues = append(issues, Issue{Type: "error", Category: "npcs", File: filename, Field: "enchant_config", Message: p})
+		}
 	}
 
 	known := knownItemIDs()

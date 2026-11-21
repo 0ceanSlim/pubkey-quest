@@ -9,12 +9,7 @@
   },
   "modifiers": [
     {
-      "stat": "armored_ac",
-      "type": "constant",
-      "value": 1
-    },
-    {
-      "stat": "unarmored_ac",
+      "stat": "armor_class",
       "type": "constant",
       "value": 1
     }

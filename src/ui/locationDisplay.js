@@ -32,6 +32,7 @@ import { openLockpicking } from './lockpicking.js';
 import { openStartingGear } from './startingGear.js';
 import { openSmithRepair } from './smithRepair.js';
 import { openJeweller } from './jeweller.js';
+import { openEnchanter } from './enchanter.js';
 import { attachConditionBar, attachLightBar, attachWearBar, attachChargeBar } from './conditionBar.js';
 
 /** Deposit everything carried (imported lazily: inventoryInteractions imports this module). */
@@ -1372,6 +1373,12 @@ export async function selectDialogueOption(npcId, choice) {
             if (result.data?.open_jeweller) {
                 closeNPCDialogue();
                 openJeweller(result.data.open_jeweller);
+                return;
+            }
+            // An enchanter's "Enchant jewelry": the enchanting table.
+            if (result.data?.open_enchanter) {
+                closeNPCDialogue();
+                openEnchanter(result.data.open_enchanter);
                 return;
             }
 
