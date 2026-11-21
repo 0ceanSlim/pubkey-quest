@@ -24,7 +24,6 @@ import (
 	"pubkey-quest/cmd/server/game/skillcheck"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/session"
-	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -235,7 +234,7 @@ func (p poiMining) quickGem(s types.Seam) []string {
 	state := &p.sess.SaveData
 	line := fmt.Sprintf("Something glints in the broken rock: a %s!", strings.ToLower(itemDisplayName(g.ID())))
 	if added, _ := inventory.AddItemToInventory(state, g.ID(), 1); added == 0 {
-		p.sess.Ground.Add(world.GroundKey(state), g.ID(), 1)
+		p.sess.Ground.Add(groundSpot(p.sess), g.ID(), 1)
 		line += " Your pack is full, so it goes on the ground."
 	} else {
 		noteAcquired(state, g.ID())
@@ -333,7 +332,7 @@ func handleMineAct(sess *session.GameSession, params map[string]any) (*types.Gam
 			noteAcquired(state, ore)
 		}
 		if added < n {
-			sess.Ground.Add(world.GroundKey(state), ore, n-added)
+			sess.Ground.Add(groundSpot(sess), ore, n-added)
 			lines = append(lines, "Your pack is full, so it goes on the ground.")
 		}
 		ms.Gained += n

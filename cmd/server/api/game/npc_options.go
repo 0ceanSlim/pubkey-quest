@@ -13,7 +13,6 @@ import (
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
-	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -233,7 +232,7 @@ func giveItems(sess *GameSession, items []npc.ItemRequirement) []string {
 			noteAcquired(state, it.ID)
 		}
 		if added < n {
-			sess.Ground.Add(world.GroundKey(state), it.ID, n-added)
+			sess.Ground.Add(groundSpot(sess), it.ID, n-added)
 		}
 		name := itemDisplayName(it.ID)
 		if n > 1 {

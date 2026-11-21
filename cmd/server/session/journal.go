@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -31,6 +32,9 @@ type journalEntry struct {
 	SaveID  string         `json:"save_id"`
 	SavedAt int64          `json:"saved_at"`
 	Save    types.SaveFile `json:"save"`
+	// Ground is what the player had dropped since their last save, at the
+	// same moment: the save above still lacks it, so it comes back with it.
+	Ground []world.Pile `json:"ground,omitempty"`
 }
 
 // journalPath builds a flat, filesystem-safe path for a session's journal file.
@@ -46,6 +50,7 @@ func WriteJournal(sess *GameSession) error {
 		SaveID:  sess.SaveID,
 		SavedAt: time.Now().Unix(),
 		Save:    sess.SaveData,
+		Ground:  sess.Ground.Snapshot(),
 	}
 	data, err := json.Marshal(entry)
 	if err != nil {
@@ -70,6 +75,28 @@ func RemoveJournal(npub, saveID string) {
 // progress past the last deliberate save). Returns nil when there's nothing to
 // recover. diskSavePath is the player's deliberate-save file.
 func RecoverJournaledSave(npub, saveID, diskSavePath string) *types.SaveFile {
+	entry := readJournal(npub, saveID, diskSavePath)
+	if entry == nil {
+		return nil
+	}
+	save := entry.Save
+	save.InternalNpub = npub
+	save.InternalID = saveID
+	return &save
+}
+
+// recoveredGround is the player's own drops kept in the journal that
+// RecoverJournaledSave restores a session from (none if it doesn't).
+func recoveredGround(npub, saveID, diskSavePath string) []world.Pile {
+	if entry := readJournal(npub, saveID, diskSavePath); entry != nil {
+		return entry.Ground
+	}
+	return nil
+}
+
+// readJournal reads a session's journal if it's at least as new as the
+// deliberate save.
+func readJournal(npub, saveID, diskSavePath string) *journalEntry {
 	jPath := journalPath(npub, saveID)
 	jInfo, err := os.Stat(jPath)
 	if err != nil {
@@ -88,10 +115,7 @@ func RecoverJournaledSave(npub, saveID, diskSavePath string) *types.SaveFile {
 		log.Printf("⚠️ Corrupt session journal %s — ignoring: %v", jPath, err)
 		return nil
 	}
-	save := entry.Save
-	save.InternalNpub = npub
-	save.InternalID = saveID
-	return &save
+	return &entry
 }
 
 // JournalAllSessions snapshots every active session for crash recovery.
@@ -105,6 +129,9 @@ func JournalAllSessions() {
 		}
 		unlock()
 	}
+	// The shared ground after the journals: a crash between them can lose a
+	// pile, never make two of one (world.SaveWorldGround).
+	world.SaveWorldGround()
 }
 
 // StartJournalLoop launches a goroutine that snapshots active sessions on the

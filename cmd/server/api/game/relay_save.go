@@ -86,6 +86,7 @@ func prepareRelaySave(sess *session.GameSession, saveID string) (*UnsignedSave, 
 		return nil, err
 	}
 	now := time.Now().Unix()
-	sess.PendingSave = &session.PendingSave{D: d, Content: string(content), Tags: tags, CreatedAt: now, DiskJSON: disk}
+	sess.PendingSave = &session.PendingSave{D: d, Content: string(content), Tags: tags, CreatedAt: now, DiskJSON: disk,
+		GroundMark: sess.Ground.Mark()}
 	return &UnsignedSave{Kind: SaveKind, CreatedAt: now, Tags: tags, Content: string(content)}, nil
 }

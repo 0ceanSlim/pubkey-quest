@@ -268,6 +268,7 @@ let _serverGround = [];
 /** Replace the ground mirror with the server's list for the current location. */
 export function setGroundItems(list) {
     _serverGround = Array.isArray(list) ? list : [];
+    eventBus.emit('ground:changed', _serverGround);
 }
 
 /**

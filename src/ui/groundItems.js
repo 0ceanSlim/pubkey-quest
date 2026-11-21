@@ -8,9 +8,21 @@
  */
 
 import { logger } from '../lib/logger.js';
+import { eventBus } from '../lib/events.js';
 import { refreshGameState, getGroundItems, setGroundItems } from '../state/gameState.js';
 import { showMessage, showActionText } from './messaging.js';
 import { getItemById } from '../state/staticData.js';
+
+// The GROUND button shows how many piles lie here, and lights up when any do.
+eventBus.on('ground:changed', (list) => {
+    const btn = document.getElementById('check-ground-btn');
+    if (!btn) return;
+    const n = Array.isArray(list) ? list.length : 0;
+    btn.textContent = n > 0 ? `GROUND (${n})` : 'GROUND';
+    btn.classList.toggle('bg-gray-700', n === 0);
+    btn.classList.toggle('bg-yellow-700', n > 0);
+    btn.title = n > 0 ? `${n} pile${n === 1 ? '' : 's'} on the ground here` : 'Nothing on the ground here';
+});
 
 /**
  * Open the ground items modal
@@ -74,7 +86,11 @@ export function openGroundModal() {
             const itemSlot = document.createElement('div');
             itemSlot.className = 'relative cursor-pointer hover:bg-gray-600 flex items-center justify-center';
             itemSlot.style.cssText = `aspect-ratio: 1; background: #2a2a2a; border-top: 2px solid #1a1a1a; border-left: 2px solid #1a1a1a; border-right: 2px solid #4a4a4a; border-bottom: 2px solid #4a4a4a; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px);`;
-            itemSlot.onclick = () => pickupGroundItem(ground.item);
+            itemSlot.onclick = () => pickupGroundItem(ground.item, ground.id);
+            const name = getItemById(ground.item)?.name || ground.item;
+            itemSlot.title = ground.yours
+                ? `${name}: you dropped this. It's yours until you save, then anyone here can take it.`
+                : name;
 
             // Create image container
             const imgDiv = document.createElement('div');
@@ -93,6 +109,15 @@ export function openGroundModal() {
             imgDiv.appendChild(img);
             itemSlot.appendChild(imgDiv);
 
+            // Your own drop since you last saved: no one else can see it yet.
+            if (ground.yours) {
+                const mine = document.createElement('div');
+                mine.className = 'absolute top-0 left-0 text-yellow-300';
+                mine.style.fontSize = '8px';
+                mine.textContent = '●';
+                itemSlot.appendChild(mine);
+            }
+
             // Add quantity label if > 1
             if (ground.quantity > 1) {
                 const quantityLabel = document.createElement('div');
@@ -107,6 +132,13 @@ export function openGroundModal() {
     }
 
     // Assemble modal structure
+    if (groundItems.some(g => g.yours)) {
+        const note = document.createElement('div');
+        note.className = 'text-gray-400';
+        note.style.cssText = 'font-size: 8px; grid-column: 1 / -1; margin-top: 6px; text-align: center;';
+        note.textContent = '● Your drops: only you see them until you save. Then anyone here can take them.';
+        gridContainer.appendChild(note);
+    }
     contentWrapper.appendChild(gridContainer);
     modal.appendChild(header);
     modal.appendChild(contentWrapper);
@@ -157,8 +189,9 @@ export function refreshGroundModal() {
 /**
  * Pick up an item from the ground
  * @param {string} itemId - Item ID to pick up
+ * @param {string} [pileId] - The pile to take it from (several may hold the same item)
  */
-export async function pickupGroundItem(itemId) {
+export async function pickupGroundItem(itemId, pileId) {
     if (!window.gameAPI || !window.gameAPI.initialized) {
         logger.error('Game API not initialized');
         showMessage('❌ Game not initialized', 'error');
@@ -171,7 +204,7 @@ export async function pickupGroundItem(itemId) {
         // Server-authoritative pickup: the backend validates the item is actually on
         // the ground here and moves it into the inventory (no quantity → the whole
         // pile). Nothing is removed client-side until the server confirms.
-        const result = await window.gameAPI.sendAction('pickup_item', { item_id: itemId });
+        const result = await window.gameAPI.sendAction('pickup_item', pileId ? { item_id: itemId, pile: pileId } : { item_id: itemId });
 
         if (result.success) {
             showActionText(result.message || `Picked up ${itemData?.name || itemId}`, 'green');
@@ -182,7 +215,11 @@ export async function pickupGroundItem(itemId) {
             closeGroundModal();
             openGroundModal();        // re-render with the updated ground
         } else {
-            showMessage(result.error || 'Failed to pick up item', 'error');
+            showMessage(result.message || result.error || 'Failed to pick up item', 'error');
+            if (result.data && result.data.ground !== undefined) {
+                setGroundItems(result.data.ground); // someone else got there first
+                refreshGroundModal();
+            }
         }
     } catch (error) {
         showMessage('Error picking up item: ' + error.message, 'error');

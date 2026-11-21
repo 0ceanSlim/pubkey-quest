@@ -9,7 +9,6 @@ import (
 	"pubkey-quest/cmd/server/game/gems"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/npc"
-	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -200,7 +199,7 @@ func handleJeweller(session *GameSession, params map[string]any) (*GameActionRes
 	}
 	gameutil.DeductGold(state, paid)
 	if added, _ := inventory.AddItemToInventory(state, made.ID(), 1); added == 0 {
-		session.Ground.Add(world.GroundKey(state), made.ID(), 1)
+		session.Ground.Add(groundSpot(session), made.ID(), 1)
 		msg += " Your pack is full: it's on the ground."
 	}
 	return &GameActionResponse{Success: true, Color: "green", Message: fmt.Sprintf("%s (Paid %d gold.)", msg, paid),

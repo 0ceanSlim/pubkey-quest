@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/utils"
+	"pubkey-quest/cmd/server/world"
 )
 
 // Init initializes all application services
@@ -26,7 +27,6 @@ func Init() {
 	if err := auth.InitializeGrainClient(&utils.AppConfig); err != nil {
 		log.Fatalf("Failed to initialize Grain client: %v", err)
 	}
-
 
 	// Wire the event-recorder consumers: the quest objective tracker advances
 	// active quests from gameplay events, and the discovery reward grants XP for
@@ -41,6 +41,8 @@ func Init() {
 
 	// Crash resilience: periodically snapshot active sessions so an unexpected
 	// server death doesn't eat unsaved progress (restored on next load).
+	// The shared ground, as it was left before the restart (kept with the journals).
+	world.LoadWorldGround()
 	session.StartJournalLoop(2 * time.Minute)
 
 	// Presence: forget players who've been gone a while.

@@ -29,7 +29,6 @@ import (
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/social"
-	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -451,7 +450,7 @@ func addCatch(sess *session.GameSession, f fishing.Fish, spotID string, data map
 		noteAcquired(state, id)
 		return lines
 	}
-	sess.Ground.AddWithState(world.GroundKey(state), id, 1, st)
+	sess.Ground.AddWithState(groundSpot(sess), id, 1, st)
 	return append(lines, "Your pack is full, so you lay it on the bank.")
 }
 
@@ -498,7 +497,7 @@ func addFind(sess *session.GameSession, itemID string, qty int) []string {
 	if added, _ := inventory.AddItemToInventory(state, itemID, qty); added > 0 {
 		noteAcquired(state, itemID)
 	} else {
-		sess.Ground.Add(world.GroundKey(state), itemID, qty)
+		sess.Ground.Add(groundSpot(sess), itemID, qty)
 		line += " Your pack is full, so you leave it on the bank."
 	}
 	return []string{line}
@@ -640,7 +639,7 @@ func handleHaulNet(sess *session.GameSession, params map[string]any) (*GameActio
 			if added, _ := inventory.AddItemToInventory(state, id, 1); added > 0 {
 				noteAcquired(state, id)
 			} else {
-				sess.Ground.Add(world.GroundKey(state), id, 1)
+				sess.Ground.Add(groundSpot(sess), id, 1)
 				lines = append(lines, "Your pack is full, so you leave it on the bank.")
 			}
 		}
@@ -832,7 +831,7 @@ func handleMountChoice(sess *session.GameSession, npcID, choice string) *GameAct
 			gameutil.DeductGold(state, fee)
 			trophy := types.TrophyItemID(f.Species)
 			if added, _ := inventory.AddItemToInventory(state, trophy, 1); added == 0 {
-				sess.Ground.Add(world.GroundKey(state), trophy, 1)
+				sess.Ground.Add(groundSpot(sess), trophy, 1)
 			}
 			made = append(made, fmt.Sprintf("%s (%d gold)", itemDisplayName(trophy), fee))
 		}

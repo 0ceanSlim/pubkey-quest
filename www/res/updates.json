@@ -2,6 +2,21 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-21-ground",
+      "when": "November 21, 2026",
+      "icon": "🎒",
+      "size": "major",
+      "title": "Shared ground",
+      "summary": "What you drop now stays where it fell, and other players can find it. Leave something for a friend, or find what a stranger left behind.",
+      "highlights": [
+        "Only you can see what you drop until you save, and you can pick it back up. Reload or quit without saving and it's back in your pack, as if you'd never dropped it",
+        "Once you save, anyone standing in the same spot can take it. On the road, that means anyone passing nearby, whichever way they're heading",
+        "Things on the ground last two hours after they're left, then they're gone",
+        "The GROUND button shows how many piles are there and lights up when anything is. Your own unsaved drops are marked with a dot",
+        "Quest items never go to anyone else: one that lands on the ground stays visible only to you"
+      ]
+    },
+    {
       "id": "2026-11-21-weather",
       "when": "November 21, 2026",
       "icon": "🥶",

@@ -6,7 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/0ceanslim/grain/client/core/tools"
+
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -64,5 +67,41 @@ func TestJournalNotNewerThanDisk(t *testing.T) {
 	_ = os.Chtimes(diskPath, past, past)
 	if rec := session.RecoverJournaledSave(npub, saveID, diskPath); rec == nil || rec.Experience != 7 {
 		t.Errorf("disk older than journal: want recovered XP 7, got %+v", rec)
+	}
+}
+
+// What was dropped since the last save is journaled with the play it came
+// from: a session recovered from the journal gets its drops back, still its
+// own; one loaded from the deliberate save doesn't.
+func TestJournalKeepsOwnDrops(t *testing.T) {
+	session.JournalDir = t.TempDir()
+	hex := "7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e"
+	npub, err := tools.EncodePubkey(hex)
+	if err != nil {
+		t.Fatal(err)
+	}
+	saveID := "save_77"
+	here := world.Spot{Key: "kingdom|center||"}
+
+	sess := &session.GameSession{Npub: npub, SaveID: saveID, Ground: world.NewGroundStore(),
+		SaveData: types.SaveFile{Location: "kingdom", District: "center"}}
+	sess.Ground.Add(here, "torch", 2)
+	if err := session.WriteJournal(sess); err != nil {
+		t.Fatal(err)
+	}
+	load := func(string, string) (*types.SaveFile, error) { return &types.SaveFile{}, nil }
+
+	got, err := session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if l := got.Ground.List(here, npub); len(l) != 1 || l[0].Quantity != 2 || !l[0].Yours {
+		t.Fatalf("recovered drops: %+v", l)
+	}
+
+	session.RemoveJournal(npub, saveID) // a clean quit
+	got, _ = session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
+	if l := got.Ground.List(here, npub); len(l) != 0 {
+		t.Fatalf("drops came back without the play they belonged to: %+v", l)
 	}
 }

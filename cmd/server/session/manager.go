@@ -178,6 +178,8 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 		BuildingStates:     make(map[string]bool),
 		Ground:             world.NewGroundStore(),
 	}
+	// Restored from a crash journal: so are the drops made since the last save.
+	session.Ground.Restore(recoveredGround(npub, saveID, GetSavePath(npub, saveID)))
 
 	// Initialize building states and NPCs for current location
 	timeOfDay := saveData.TimeOfDay

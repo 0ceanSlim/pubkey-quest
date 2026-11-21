@@ -364,6 +364,9 @@ type PendingSave struct {
 	Tags      [][]string
 	CreatedAt int64
 	DiskJSON  []byte // the full save as it was when prepared, written to disk on success
+	// GroundMark is where the player's own drops stood (Ground.Mark): those up
+	// to it go on the shared ground once the save is kept.
+	GroundMark int
 }
 
 // QuestMarks is where a save's quests stood: the active stage of each, which

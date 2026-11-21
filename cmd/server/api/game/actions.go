@@ -34,7 +34,6 @@ import (
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/social"
 	"pubkey-quest/cmd/server/utils"
-	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
 
@@ -227,8 +226,9 @@ func GameActionHandler(w http.ResponseWriter, r *http.Request) {
 	response.Data["enriched_effects"] = effects.EnrichActiveEffects(session.SaveData.ActiveEffects, &session.SaveData)
 	response.Data["total_weight"] = status.CalculateTotalWeight(&session.SaveData)
 	response.Data["weight_capacity"] = status.CalculateWeightCapacity(&session.SaveData)
-	// Server-authoritative ground items at the player's current spot (drives the GROUND modal).
-	response.Data["ground"] = session.Ground.List(world.GroundKey(&session.SaveData))
+	// What's on the ground where the player stands: their own unsaved drops and
+	// everyone's (drives the GROUND modal and its button).
+	response.Data["ground"] = groundHere(session)
 	// A town pier or wharf where you stand (drives the Fish button).
 	response.Data["fishing_spot"] = townFishingSpot(&session.SaveData)
 	// The play/pause button's source of truth (a follower sees the leader's).
@@ -1119,9 +1119,8 @@ func castFromScrollOutOfCombat(state *SaveFile, spellID string) (string, error) 
 
 // Equipment handlers are now in equipment.go
 
-// handleDropItemAction drops an item from inventory ONTO THE GROUND (session-scoped
-// ground store) — it is no longer destroyed. The dropped quantity is added to the
-// per-location ground pile so it can be picked back up.
+// handleDropItemAction drops an item from inventory onto the ground where you
+// stand. It's yours alone until you save, then anyone's there (ground.go).
 func handleDropItemAction(session *GameSession, state *SaveFile, params map[string]any) (*GameActionResponse, error) {
 	paramsIface := make(map[string]interface{}, len(params))
 	for k, v := range params {
@@ -1133,7 +1132,7 @@ func handleDropItemAction(session *GameSession, state *SaveFile, params map[stri
 	}
 	if resp != nil && resp.Success && dropped > 0 {
 		itemID, _ := params["item_id"].(string)
-		session.Ground.AddWithState(world.GroundKey(state), itemID, dropped, dropState)
+		session.Ground.AddWithState(groundSpot(session), itemID, dropped, dropState)
 	}
 	if resp != nil {
 		return &GameActionResponse{Success: resp.Success, Message: resp.Message}, nil
@@ -1154,52 +1153,47 @@ func handleRemoveFromInventoryAction(state *SaveFile, params map[string]any) (*G
 	return nil, err
 }
 
-// handlePickupItemAction picks an item up off the ground (server-authoritative):
-// it must actually be in the per-location ground store, then it's added back to the
-// inventory. Anything that won't fit stays on the ground, so nothing is ever lost.
+// handlePickupItemAction picks a pile up off the ground (server-authoritative):
+// it must really lie where you stand, yours or anyone's (pile, else the first of
+// item_id). Anything that won't fit stays on the ground, so nothing is lost.
 func handlePickupItemAction(session *GameSession, state *SaveFile, params map[string]any) (*GameActionResponse, error) {
-	itemID, ok := params["item_id"].(string)
-	if !ok {
+	pileID, _ := params["pile"].(string)
+	itemID, _ := params["item_id"].(string)
+	if pileID == "" && itemID == "" {
 		return nil, fmt.Errorf("missing or invalid item_id parameter")
 	}
 
-	key := world.GroundKey(state)
-
-	// How much to pick up: an explicit quantity, else the whole pile of that item.
+	// How much to pick up: an explicit quantity, else the whole pile.
 	want := -1
-	if q, ok := params["quantity"].(float64); ok {
+	if q, ok := params["quantity"].(float64); ok && q > 0 {
 		want = int(q)
 	}
-	if want <= 0 {
-		for _, d := range session.Ground.List(key) {
-			if d.Item == itemID {
-				want = d.Quantity
-				break
-			}
-		}
-	}
 
-	taken, itemState := session.Ground.TakeWithState(key, itemID, want)
+	pile, taken, from := takeFromGround(session, pileID, itemID, want)
 	if taken <= 0 {
-		return nil, fmt.Errorf("%s is not on the ground here", itemID)
+		return &GameActionResponse{Success: false, Color: "yellow", Message: "That's not on the ground here any more."}, nil
 	}
+	itemID = pile.Item
 
 	// It comes back as it was left: a dropped fish keeps aging.
-	added, err := inventory.AddItemWithState(state, itemID, taken, itemState)
+	added, err := inventory.AddItemWithState(state, itemID, taken, pile.State)
 	if err != nil {
-		session.Ground.AddWithState(key, itemID, taken, itemState) // roll back — never lose it
+		from.Return(pile, taken) // roll back — never lose it
 		return nil, err
 	}
 	if added < taken {
-		session.Ground.AddWithState(key, itemID, taken-added, itemState) // inventory full — leave the rest
+		from.Return(pile, taken-added) // inventory full — leave the rest
 	}
 	if added > 0 {
 		noteAcquired(state, itemID)
 	}
 
-	msg := fmt.Sprintf("Picked up %s", itemID)
+	msg := fmt.Sprintf("Picked up %s", itemDisplayName(itemID))
+	if taken > 1 {
+		msg = fmt.Sprintf("Picked up %d× %s", taken, itemDisplayName(itemID))
+	}
 	if added < taken {
-		msg = fmt.Sprintf("Picked up %d %s (inventory full — %d left on the ground)", added, itemID, taken-added)
+		msg = fmt.Sprintf("Picked up %d× %s (your pack is full: %d left on the ground)", added, itemDisplayName(itemID), taken-added)
 	}
 	return &GameActionResponse{Success: true, Message: msg}, nil
 }
