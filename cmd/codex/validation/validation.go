@@ -98,6 +98,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, gemIssues...)
 	}
 
+	// Validate survival.json
+	if survivalIssues, err := ValidateSurvival(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, survivalIssues...)
+	}
+
 	// Validate starting gear
 	if gearIssues, err := ValidateStartingGear(); err != nil {
 		return nil, err
@@ -1637,6 +1644,7 @@ func ValidateStartingGear() ([]Issue, error) {
 
 	return issues, nil
 }
+
 // Helper function to validate an equipment choice
 func validateEquipmentChoice(choice map[string]interface{}, className string, choiceIdx int, validItemIDs map[string]bool, issues *[]Issue) {
 	options, ok := choice["options"].([]interface{})

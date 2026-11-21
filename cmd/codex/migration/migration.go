@@ -475,13 +475,13 @@ func migrateCharacterData() error {
 
 	// Define the files we want to migrate for character data
 	characterFiles := map[string]string{
-		"base-hp.json":              "character_base_hp",
-		"generation-weights.json":   "generation_weights",
-		"introductions.json":        "introductions",
-		"starting-gear.json":        "starting_gear",
-		"starting-gold.json":        "starting_gold",
-		"starting-locations.json":   "starting_locations",
-		"starting-spells.json":      "starting_spells",
+		"base-hp.json":            "character_base_hp",
+		"generation-weights.json": "generation_weights",
+		"introductions.json":      "introductions",
+		"starting-gear.json":      "starting_gear",
+		"starting-gold.json":      "starting_gold",
+		"starting-locations.json": "starting_locations",
+		"starting-spells.json":    "starting_spells",
 	}
 
 	for filename, tableName := range characterFiles {
@@ -1447,6 +1447,7 @@ func migrateSystemsFiles() error {
 		"fishing.json",
 		"mining.json",
 		"gems.json",
+		"survival.json",
 	}
 
 	count := 0

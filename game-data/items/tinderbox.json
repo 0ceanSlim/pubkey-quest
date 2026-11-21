@@ -5,7 +5,8 @@
   "name": "Tinderbox",
   "notes": [
     "Lights torches, candles, lamps and lanterns (and puts them out). It isn't used up.",
-    "Cook: out in the wild, stopped, make a small fire and cook all your raw meat and fish (30 minutes)."
+    "Cook: out in the wild, stopped, make a small fire and cook all your raw meat and fish (30 minutes).",
+    "In the Frozen Wastes its campfire keeps the cold off all night while you sleep (one fire warms a whole party)."
   ],
   "value": 50,
   "rarity": "common",

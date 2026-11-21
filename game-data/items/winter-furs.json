@@ -1,0 +1,17 @@
+{
+  "description": "A hooded coat of thick fur with mittens tied to the cuffs, made by northerners for the long walk across the ice.",
+  "id": "winter-furs",
+  "image": "/res/img/items/winter-furs.png",
+  "name": "Winter furs",
+  "notes": [
+    "Carry them and the Frozen Wastes' cold can't get at you: no hourly Constitution saves out there."
+  ],
+  "value": 450,
+  "rarity": "common",
+  "stack": 1,
+  "tags": [
+    "camping"
+  ],
+  "type": "Adventuring Gear",
+  "weight": 8
+}

@@ -336,6 +336,7 @@ type PartySync struct {
 	// follower sleeps the same night. The sync's clock is the leader's time
 	// before sleeping. Rest is the same for the old rest action.
 	Sleep string
+	Fire  bool // the party's camp has a fire: the Wastes' cold stays off all night
 	Rest  bool
 	Note  string // a log line for the follower ("Your party moves on — …")
 }

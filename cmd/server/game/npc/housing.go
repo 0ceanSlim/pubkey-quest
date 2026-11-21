@@ -11,6 +11,7 @@ import (
 	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/status"
+	"pubkey-quest/cmd/server/game/survival"
 	"pubkey-quest/types"
 )
 
@@ -105,7 +106,7 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 				if !CanSleepNow(state.TimeOfDay) {
 					return &types.GameActionResponse{Success: false, Message: "It's too early to sleep — come back after 9 PM.", Color: "yellow"}, nil
 				}
-				return applySleep(state, comfortInn, false, session, npcIdsFunc)
+				return applySleep(state, comfortInn, false, false, session, npcIdsFunc)
 			}
 		}
 	}
@@ -139,7 +140,7 @@ func HandleSleepAction(state *types.SaveFile, session SleepSessionProvider, npcI
 	}
 
 	// Inn/tavern: a real bed and breakfast in the fee — best comfort, hunger restored.
-	resp, err := applySleep(state, comfortInn, true, session, npcIdsFunc)
+	resp, err := applySleep(state, comfortInn, true, false, session, npcIdsFunc)
 	if err == nil && resp != nil && resp.Success {
 		// One night per rental: the room is yours until the morning check-out.
 		gameutil.EndRentalBy(state, buildingID, state.CurrentDay, CheckoutTime)
@@ -171,7 +172,8 @@ func HasBedding(state *types.SaveFile) bool {
 // environment (not a town). A bedroll makes for a decent camp, a blanket a
 // thinner one; without either it's a rough sleep that recovers less fatigue. No breakfast out here, so hunger isn't
 // restored — you wake a little hungrier. Same night-time gate as an inn.
-func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
+// partyFire: someone in the party has a fire going (survival: the Wastes' cold).
+func HandleWildernessSleepAction(state *types.SaveFile, partyFire bool, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	if state.Building != "" {
 		return &types.GameActionResponse{Success: false, Message: "You're indoors — rent a room to sleep here.", Color: "yellow"}, nil
 	}
@@ -189,23 +191,25 @@ func HandleWildernessSleepAction(state *types.SaveFile, session SleepSessionProv
 	case gameutil.PlayerHasItem(state, "blanket"):
 		comfort = comfortBlanket
 	}
-	return applySleep(state, comfort, false, session, npcIdsFunc)
+	return applySleep(state, comfort, false, partyFire, session, npcIdsFunc)
 }
 
 // HandleCampSleepAction sleeps out in the wild under a party's camp set: the
 // tent and bedding put everyone at bedroll comfort, whatever they carry.
-func HandleCampSleepAction(state *types.SaveFile, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
+func HandleCampSleepAction(state *types.SaveFile, partyFire bool, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	if !CanSleepNow(state.TimeOfDay) {
 		return &types.GameActionResponse{Success: false, Message: "It's not time to sleep yet — make camp after 9 PM.", Color: "yellow"}, nil
 	}
-	return applySleep(state, comfortBedroll, false, session, npcIdsFunc)
+	return applySleep(state, comfortBedroll, false, partyFire, session, npcIdsFunc)
 }
 
 // applySleep is the shared sleep resolution: sleep until the 6 AM wake time,
 // restore HP/mana in proportion to how long was slept (so it scales with level),
 // restore fatigue scaled by bed comfort × bedtime × hours, optionally restore
-// hunger (paid lodging only), then advance time and refresh the world.
-func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
+// hunger (paid lodging only), then advance time and refresh the world. Out in
+// the wild's weather the night's hours are saves too, unless a fire (fire, or
+// a tinderbox you carry) keeps the cold off.
+func applySleep(state *types.SaveFile, comfort float64, restoreHunger, fire bool, session SleepSessionProvider, npcIdsFunc func(location, district, building, room string, day, timeOfDay int) []string) (*types.GameActionResponse, error) {
 	oldTime := state.TimeOfDay
 
 	// Sleep until 6 AM (next day if already past it).
@@ -259,6 +263,11 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 		status.UpdateHungerPenaltyEffects(state)
 		status.EnsureHungerAccumulation(state)
 	}
+	// The Wastes' cold doesn't stop for the night (survival).
+	wake := state.CurrentDay*1440 + state.TimeOfDay
+	weather := survival.Sleep(state, wake-minutesSlept, wake, fire)
+	status.UpdateFatiguePenaltyEffects(state)
+
 	log.Printf("😴 slept %dm (comfort=%.2f bedtime=%.2f) → +%d HP +%d mana, fatigue=%d hunger=%d",
 		minutesSlept, comfort, bedtime, hpGain, manaGain, state.Fatigue, state.Hunger)
 
@@ -290,6 +299,9 @@ func applySleep(state *types.SaveFile, comfort float64, restoreHunger bool, sess
 	}
 	for _, s := range spoiled {
 		msg += " 🍂 " + s
+	}
+	for _, w := range weather {
+		msg += "\n" + w.Message
 	}
 
 	return &types.GameActionResponse{

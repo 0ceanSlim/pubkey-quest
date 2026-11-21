@@ -139,11 +139,21 @@ func Roll(candidates []Candidate, level, minutesElapsed int, rng *rand.Rand, avo
 // RollAtRate is Roll with the tick's chance scaled by rate (more fights at
 // night), still capped at maxTickChance.
 func RollAtRate(candidates []Candidate, level, minutesElapsed int, rate float64, rng *rand.Rand, avoidID string) (Candidate, bool) {
-	eligible := Eligible(candidates, level)
-	if len(eligible) == 0 {
+	if len(Eligible(candidates, level)) == 0 {
 		return Candidate{}, false
 	}
 	if rng.Float64() >= min(TickChance(minutesElapsed)*rate, maxTickChance) {
+		return Candidate{}, false
+	}
+	return Pick(candidates, level, rng, avoidID)
+}
+
+// Pick chooses the monster for an encounter that is happening (no chance
+// roll): any CR-eligible one, avoiding the last one met when there's another.
+// A signal whistle calls one this way.
+func Pick(candidates []Candidate, level int, rng *rand.Rand, avoidID string) (Candidate, bool) {
+	eligible := Eligible(candidates, level)
+	if len(eligible) == 0 {
 		return Candidate{}, false
 	}
 	if avoidID != "" && len(eligible) > 1 {

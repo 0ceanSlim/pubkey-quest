@@ -15,6 +15,7 @@ import (
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/npc"
 	"pubkey-quest/cmd/server/game/status"
+	"pubkey-quest/cmd/server/game/survival"
 	"pubkey-quest/types"
 )
 
@@ -477,6 +478,11 @@ func AdvanceTime(state *types.SaveFile, minutes int, accrueFatigue bool) []types
 	for _, m := range append(spoilMsgs, vaultMsgs...) {
 		messages = append(messages, types.EffectMessage{Message: "🍂 " + m, Color: "yellow", Category: "food"})
 	}
+
+	// The wild's weather: each hour on the clock in the Wastes' cold or the
+	// desert's heat is a Constitution save (survival).
+	abs := state.CurrentDay*1440 + state.TimeOfDay
+	messages = append(messages, survival.Pass(state, abs-minutes, abs)...)
 
 	// Update penalty effects based on current fatigue/hunger levels
 	fatigueMsg, _ := status.UpdateFatiguePenaltyEffects(state)

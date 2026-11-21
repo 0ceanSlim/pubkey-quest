@@ -198,6 +198,11 @@
         "max_stock": 4
       },
       {
+        "item_id": "winter-furs",
+        "stock": 2,
+        "max_stock": 2
+      },
+      {
         "item_id": "blanket",
         "stock": 4,
         "max_stock": 4

@@ -25,6 +25,7 @@ import (
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/game/requirement"
 	"pubkey-quest/cmd/server/game/skillcheck"
+	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/cmd/server/game/spells"
 	"pubkey-quest/cmd/server/game/status"
 	"pubkey-quest/cmd/server/game/travel"
@@ -35,7 +36,6 @@ import (
 	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
-	"pubkey-quest/cmd/server/game/spellbook"
 )
 
 // Type aliases for backward compatibility
@@ -459,31 +459,38 @@ func leaderNews(leader *GameSession, discoveredBefore int, response *GameActionR
 // is the generic, scheduled travel-combat source (see the encounter package),
 // separate from the hand-authored encounter vignettes.
 func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed int, response *GameActionResponse) {
+	rollTravelEncounter(sess, state, minutesElapsed, false, response)
+}
+
+// rollTravelEncounter is the road encounter: rolled on a travel tick, or
+// called by a signal whistle (force), which skips the chance roll but not the
+// cooldown. Reports whether a monster came.
+func rollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed int, force bool, response *GameActionResponse) bool {
 	if sess.ActiveCombat != nil || sess.PendingEncounter != nil || sess.ActivePOI != nil {
-		return
+		return false
 	}
 	// A party's road fights are the leader's to roll; everyone with them fights.
 	inParty := social.PartyOf(sess.Npub) != nil
 	if social.IsFollower(sess.Npub) {
-		return
+		return false
 	}
 	// Cooldown: don't fire another biome encounter within CooldownMinutes of the
 	// last, so fights can't bunch up back-to-back right after one ends.
 	nowAbs := state.CurrentDay*1440 + state.TimeOfDay
 	if sess.SaveData.Lim().LastEncounter > 0 && nowAbs-sess.SaveData.Lim().LastEncounter < encounter.CooldownMinutes {
-		return
+		return false
 	}
 	biome, err := serverdb.GetEnvironmentType(state.Location)
 	if err != nil || biome == "" {
-		return
+		return false
 	}
 	refs, err := serverdb.GetMonstersByBiome(biome)
 	if err != nil || len(refs) == 0 {
-		return
+		return false
 	}
 	advancement, err := loadAdvancement()
 	if err != nil {
-		return
+		return false
 	}
 
 	// Night monsters roam after dark, day monsters by day (time-config's
@@ -502,9 +509,15 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	if types.IsNight(state.TimeOfDay) {
 		rate = gametime.Config().NightEncounterMultiplier
 	}
-	monster, ok := encounter.RollAtRate(candidates, level, minutesElapsed, rate, rng, sess.LastEncounterMonster)
+	pick := func() (encounter.Candidate, bool) {
+		if force {
+			return encounter.Pick(candidates, level, rng, sess.LastEncounterMonster)
+		}
+		return encounter.RollAtRate(candidates, level, minutesElapsed, rate, rng, sess.LastEncounterMonster)
+	}
+	monster, ok := pick()
 	if !ok {
-		return
+		return false
 	}
 	sess.SaveData.Lim().LastEncounter = nowAbs
 	sess.LastEncounterMonster = monster.ID
@@ -525,7 +538,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 			if !inParty {
 				response.Data["encounter_unaware"] = holdUnawareEncounter(sess, ids, state.Location, aw.Log)
 				log.Printf("👁 Travel encounter (unaware): %s in biome %q", monster.ID, biome)
-				return
+				return true
 			}
 		case combat.OpeningAmbush:
 			spec.Surprise = true
@@ -540,7 +553,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	}
 	if err != nil {
 		log.Printf("⚠️ travel encounter: StartEncounter failed: %v", err)
-		return
+		return false
 	}
 	sess.ActiveCombat = cs
 	// Build the combat payload, then clear the spawn position so later state
@@ -550,6 +563,7 @@ func maybeRollTravelEncounter(sess *GameSession, state *SaveFile, minutesElapsed
 	response.Data["combat_started"] = true
 	response.Data["combat"] = combatPayload
 	log.Printf("⚔️  Travel encounter: %s (CR %.2f) in biome %q at level %d", monster.ID, monster.CR, biome, level)
+	return true
 }
 
 // activeEffectIDs is the set of effects on the player right now.
@@ -937,6 +951,8 @@ func processActionSwitch(session *GameSession, state *SaveFile, action GameActio
 		return inventory.UseOn(state, toolID, slotRefFrom(action.Params))
 	case "cook":
 		return inventory.CookAll(state), nil
+	case "blow_whistle":
+		return handleBlowWhistle(session)
 	case "drink":
 		return handleDrink(state, action.Params)
 	case "fill_water":
@@ -1057,6 +1073,12 @@ func handleUseItemAction(state *SaveFile, params map[string]any) (*GameActionRes
 	resp, err := inventory.HandleUseItemAction(state, paramsIface)
 	if resp != nil {
 		msg := resp.Message
+		// A potion or a tea is a drink: it keeps the desert's heat off a while.
+		if itemID, _ := params["item_id"].(string); resp.Success && itemID != "" {
+			if item, err := data.LoadItemByID(serverdb.GetDB(), itemID); err == nil && combat.IsPotion(item) {
+				effects.Drink(state, 0)
+			}
+		}
 		if scrollMsg != "" {
 			msg = scrollMsg // the scroll's cast line reads better than "you used a scroll"
 		}
@@ -1839,7 +1861,7 @@ func handleSleepAction(session *GameSession, _ map[string]any) (*GameActionRespo
 			events.Record(&session.SaveData, events.Did, "sleep-inn", 1)
 		}
 	} else {
-		resp, err = npc.HandleWildernessSleepAction(&session.SaveData, session, data.GetNPCIDsAtLocation)
+		resp, err = npc.HandleWildernessSleepAction(&session.SaveData, partyFire(session), session, data.GetNPCIDsAtLocation)
 	}
 	if resp != nil {
 		msg := resp.Message

@@ -1,0 +1,19 @@
+{
+  "id": "bitter-cold",
+  "name": "Bitter Cold",
+  "description": "The Wastes' cold is getting into you. Every hour: a Constitution save (DC 10) or 1 fatigue. Winter furs, cold resistance or a campfire at night keep it off; a blanket helps.",
+  "source_type": "applied",
+  "category": "debuff",
+  "removal": {
+    "type": "permanent"
+  },
+  "modifiers": [
+    {
+      "stat": "exposed",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "🥶 The cold bites through your clothes.",
+  "visible": true
+}

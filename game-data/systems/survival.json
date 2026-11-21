@@ -1,0 +1,30 @@
+{
+  "_comment": "The wild's weather (docs/draft/survival-gear.md). Out in it, every hour on the clock is a Constitution save; a failure costs fatigue. from/to are the hours it bites (both left out: all day). The whistle draws a road encounter where you stand.",
+  "cold": {
+    "name": "cold",
+    "environments": ["frozen-wastes"],
+    "dc": 10,
+    "resist": "cold",
+    "protect": ["winter-furs"],
+    "advantage": ["blanket"],
+    "fire": ["tinderbox"],
+    "fatigue": 1,
+    "effect": "bitter-cold",
+    "fail": "🥶 The cold gets into you: 1 fatigue."
+  },
+  "heat": {
+    "name": "heat",
+    "environments": ["sunscorch-desert"],
+    "from": 8,
+    "to": 18,
+    "dc": 5,
+    "dc_per_dry_hour": 1,
+    "water": true,
+    "resist": "fire",
+    "disadvantage": ["Medium Armor", "Heavy Armor"],
+    "fatigue": 1,
+    "effect": "desert-heat",
+    "fail": "🥵 The heat saps you: 1 fatigue."
+  },
+  "whistle": "signal-whistle"
+}

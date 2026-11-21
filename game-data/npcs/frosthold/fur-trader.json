@@ -119,7 +119,7 @@
       "action": "open_shop"
     },
     "ask_about_wastes": {
-      "text": "The Frozen Wastes don't kill you fast. The cold works slow: fingers, then feet, then judgement. Wolves and worgs finish the job. Carry a blanket, keep a fire, and don't stay out longer than you have to.",
+      "text": "The Frozen Wastes don't kill you fast. The cold works slow: fingers, then feet, then judgement. Wolves and worgs finish the job. Wear furs, mine if you can afford them. A blanket helps, and at night a fire's the difference. Don't stay out longer than you have to.",
       "options": ["main_menu"]
     },
     "goodbye": {
@@ -141,6 +141,7 @@
       {"item_id": "torch", "stock": 10, "max_stock": 10},
       {"item_id": "tinderbox", "stock": 4, "max_stock": 4},
       {"item_id": "oil", "stock": 6, "max_stock": 6},
+      {"item_id": "winter-furs", "stock": 3, "max_stock": 3},
       {"item_id": "blanket", "stock": 6, "max_stock": 6},
       {"item_id": "bedroll", "stock": 3, "max_stock": 3},
       {"item_id": "camp-set", "stock": 1, "max_stock": 1},

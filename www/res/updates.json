@@ -2,6 +2,21 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-21-weather",
+      "when": "November 21, 2026",
+      "icon": "🥶",
+      "size": "major",
+      "title": "Cold, heat and the whistle",
+      "summary": "The wild has weather now. The Frozen Wastes' cold and the Sunscorch Desert's sun wear you down by the hour unless you're ready for them, and a signal whistle finally does something.",
+      "highlights": [
+        "In the Frozen Wastes every hour is a Constitution save, and a failure costs fatigue. Winter furs keep the cold off completely; Bjorn Frostmantle in Frosthold and Ironpeak's mining supplier sell them. A blanket in your pack helps",
+        "Sleeping out in the Wastes, a tinderbox's campfire keeps the cold off all night, and one fire warms a whole party. Without one, the cold keeps working while you sleep",
+        "Crossing the Sunscorch Desert by day (8 AM to 6 PM), a drink keeps the heat off for two hours. You drink from your waterskin by yourself when it comes due, and a full skin lasts one day's crossing. Without water it gets harder every hour, and medium or heavy armour makes it worse",
+        "Potions, teas and Create Water count as a drink too. Cold or fire resistance from an enchanted sapphire or diamond keeps that weather off entirely",
+        "Blow a signal whistle in the wild to call trouble to you. It won't bring a fight within six hours of your last one"
+      ]
+    },
+    {
       "id": "2026-11-20-enchanting",
       "when": "November 20, 2026",
       "icon": "✨",

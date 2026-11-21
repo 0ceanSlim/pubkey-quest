@@ -8,6 +8,7 @@ import (
 
 	serverdb "pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/condition"
+	"pubkey-quest/cmd/server/game/effects"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/travel"
@@ -16,7 +17,8 @@ import (
 
 // The waterskin (degradation §7): its charges are drinks, filled wherever
 // there's water. condition.json "water" says where: every town, and the wild
-// places listed. Drinking will matter in the desert once its heat does.
+// places listed. A drink keeps the desert's heat off for a while (survival;
+// a waterskin is drunk from by itself when a heat save comes due).
 
 var (
 	waterOnce sync.Once
@@ -63,6 +65,7 @@ func handleDrink(state *types.SaveFile, params map[string]any) (*GameActionRespo
 		return &GameActionResponse{Success: false, Message: fmt.Sprintf("Your %s is empty.", condition.ItemName(id)), Color: "yellow"}, nil
 	}
 	left, _ := condition.UseCharge(slot)
+	effects.Drink(state, 0)
 	msg := fmt.Sprintf("You take a long drink from your %s. (%d left)", condition.ItemName(id), left)
 	if left == 0 {
 		msg = fmt.Sprintf("You drain the last of your %s.", condition.ItemName(id))

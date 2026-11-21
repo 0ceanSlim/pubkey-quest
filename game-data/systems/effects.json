@@ -162,6 +162,27 @@
       "category": "capacity",
       "allows_periodic": false
     },
+    "water": {
+      "id": "water",
+      "property": "water",
+      "description": "An instant drink of water: keeps the desert's heat off while Watered lasts (Create Water's fresh water)",
+      "category": "resource",
+      "allows_periodic": false
+    },
+    "watered": {
+      "id": "watered",
+      "property": "watered",
+      "description": "Marks the Watered effect: a recent drink keeps the desert's heat off (survival.json)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
+    "exposed": {
+      "id": "exposed",
+      "property": "exposed",
+      "description": "Marks a weather effect (Bitter Cold, Desert Heat): out in it unprotected, every hour is a Constitution save (survival.json)",
+      "category": "capacity",
+      "allows_periodic": false
+    },
     "ambush_ward": {
       "id": "ambush_ward",
       "property": "ambush_ward",

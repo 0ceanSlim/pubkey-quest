@@ -5,7 +5,7 @@
   "name": "Waterskin",
   "notes": [
     "Holds 5 drinks. Fill it in any town, or at the coast, in the swamp or by a forest stream.",
-    "Drinking matters in the desert once its heat does (coming with camping)."
+    "In the Sunscorch Desert's daytime heat a drink keeps it off for two hours, and you drink from it by yourself when the heat comes due. A full skin sees you through one day's crossing."
   ],
   "value": 20,
   "rarity": "common",

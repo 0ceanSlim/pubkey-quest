@@ -257,6 +257,9 @@ func ApplyImmediateEffect(state *types.SaveFile, effectType string, value int) {
 		if state.Hunger > 3 {
 			state.Hunger = 3
 		}
+	case "water":
+		// A drink: keeps the desert's heat off for a while (water.go).
+		Drink(state, 0)
 	}
 }
 
@@ -932,5 +935,3 @@ func EvaluateCondition(condition string, state *types.SaveFile) bool {
 		return false
 	}
 }
-
-

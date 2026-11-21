@@ -11,6 +11,7 @@ import (
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/npc"
+	"pubkey-quest/cmd/server/game/survival"
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
@@ -480,7 +481,7 @@ func queuePartyMoves(leader *session.GameSession, before partyPlace, actionType,
 		sync.CurrentDay, sync.TimeOfDay = before.Abs/1440, before.Abs%1440
 	}
 	if sleepKind != "" {
-		sync.Sleep = sleepKind
+		sync.Sleep, sync.Fire = sleepKind, partyFire(leader)
 		sync.CurrentDay, sync.TimeOfDay = before.Abs/1440, before.Abs%1440
 		sync.Note = "😴 The party beds down for the night."
 	}
@@ -609,9 +610,9 @@ func applyPartySync(sess *session.GameSession, p session.PartySync) {
 	case p.Sleep == "inn":
 		npc.HandleSleepAction(s, sess, data.GetNPCIDsAtLocation)
 	case p.Sleep == "camp":
-		npc.HandleCampSleepAction(s, sess, data.GetNPCIDsAtLocation)
+		npc.HandleCampSleepAction(s, p.Fire, sess, data.GetNPCIDsAtLocation)
 	case p.Sleep != "":
-		npc.HandleWildernessSleepAction(s, sess, data.GetNPCIDsAtLocation)
+		npc.HandleWildernessSleepAction(s, p.Fire, sess, data.GetNPCIDsAtLocation)
 	case p.Rest:
 		npc.HandleRestAction(s, nil)
 	}
@@ -658,4 +659,19 @@ func followerClock(sess *session.GameSession, params map[string]any) {
 	// Followers don't act on their own, so never auto-pause them.
 	sess.LastActionGameTime = abs
 	sess.LastActionTime = time.Now().Unix()
+}
+
+// partyFire reports whether anyone in your party (or you, alone) can light a
+// camp's fire: one fire warms everyone sleeping by it (survival).
+func partyFire(sess *session.GameSession) bool {
+	p := social.PartyOf(sess.Npub)
+	if p == nil {
+		return survival.HasFire(&sess.SaveData)
+	}
+	for _, m := range p.Members {
+		if s, err := session.GetSessionManager().GetSession(m.Npub, m.SaveID); err == nil && survival.HasFire(&s.SaveData) {
+			return true
+		}
+	}
+	return false
 }

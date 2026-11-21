@@ -23,6 +23,9 @@ type Limits struct {
 	Spent map[string]int `json:"spent,omitempty"` // "<poi>/<node>" → minute a POI's reward, loot or fight was had
 
 	Exertion int `json:"exertion,omitempty"` // hard work toward the next point of fatigue
+	Exposure int `json:"exposure,omitempty"` // failed cold/heat saves toward the next point of fatigue (Unbroken)
+	Dry      int `json:"dry,omitempty"`      // hours in the heat since your last drink
+	Drank    int `json:"drank,omitempty"`    // minute of your last drink
 	ShowDay  int `json:"show_day,omitempty"` // the day a show was last played
 }
 

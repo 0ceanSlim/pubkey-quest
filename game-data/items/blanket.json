@@ -4,7 +4,8 @@
   "image": "/res/img/items/blanket.png",
   "name": "Blanket",
   "notes": [
-    "Lets you make camp in the wild: a thinner night than a bedroll, but better than bare ground."
+    "Lets you make camp in the wild: a thinner night than a bedroll, but better than bare ground.",
+    "In the Frozen Wastes it gives advantage on the hourly Constitution save against the cold."
   ],
   "value": 50,
   "rarity": "common",

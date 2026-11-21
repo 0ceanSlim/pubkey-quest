@@ -1,0 +1,20 @@
+{
+  "id": "watered",
+  "name": "Watered",
+  "description": "You've had a good drink: the desert's heat can't get at you for two hours.",
+  "source_type": "applied",
+  "category": "buff",
+  "removal": {
+    "type": "timed",
+    "timer": 120
+  },
+  "modifiers": [
+    {
+      "stat": "watered",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "Cool water, at last.",
+  "visible": true
+}

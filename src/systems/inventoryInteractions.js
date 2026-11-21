@@ -147,6 +147,10 @@ export function getItemActions(itemData, isEquipped) {
         actions.push({ action: 'drink', label: 'Drink' });
         actions.push({ action: 'fill', label: 'Fill' });
     }
+    // A signal whistle calls a road encounter where you stand (survival §3).
+    if (itemData.id === 'signal-whistle') {
+        actions.push({ action: 'whistle', label: 'Blow' });
+    }
 
     if (isEquipped) {
         actions.push({ action: 'unequip', label: 'Unequip' });
@@ -316,6 +320,10 @@ export async function performAction(action, itemId, fromSlot, toSlotOrType, from
     }
     if (action === 'drink' || action === 'fill') {
         await simpleAction(action === 'drink' ? 'drink' : 'fill_water', action === 'drink' ? slotRef(fromSlot, fromSlotType) : {});
+        return;
+    }
+    if (action === 'whistle') {
+        await simpleAction('blow_whistle', {});
         return;
     }
     if (action === 'refill') {

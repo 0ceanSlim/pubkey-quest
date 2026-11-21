@@ -1,0 +1,19 @@
+{
+  "id": "desert-heat",
+  "name": "Desert Heat",
+  "description": "The sun is beating down. Every hour: a Constitution save (DC 5, plus 1 for each hour since you last drank) or 1 fatigue; medium or heavy armour makes it harder. A drink keeps it off for two hours, and you'll drink from a waterskin by yourself.",
+  "source_type": "applied",
+  "category": "debuff",
+  "removal": {
+    "type": "permanent"
+  },
+  "modifiers": [
+    {
+      "stat": "exposed",
+      "type": "constant",
+      "value": 1
+    }
+  ],
+  "message": "🥵 The sun beats down on you.",
+  "visible": true
+}

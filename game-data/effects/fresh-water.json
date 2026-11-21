@@ -1,7 +1,7 @@
 {
   "id": "fresh-water",
   "name": "Fresh Water",
-  "description": "Clean, cold water to drink and wash with: eases fatigue.",
+  "description": "Clean, cold water to drink and wash with: eases fatigue, and keeps the desert's heat off for two hours.",
   "source_type": "applied",
   "category": "buff",
   "removal": {
@@ -13,6 +13,11 @@
       "stat": "fatigue",
       "type": "instant",
       "value": -2
+    },
+    {
+      "stat": "water",
+      "type": "instant",
+      "value": 1
     }
   ],
   "message": "You drink deep and wash the road off your face.",

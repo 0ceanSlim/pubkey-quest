@@ -4,7 +4,7 @@
   "image": "/res/img/items/signal-whistle.png",
   "name": "Signal whistle",
   "notes": [
-    "No use in play yet."
+    "Blow it in the wild to call a road encounter to where you stand. Nothing answers within six hours of your last fight."
   ],
   "value": 5,
   "rarity": "common",
