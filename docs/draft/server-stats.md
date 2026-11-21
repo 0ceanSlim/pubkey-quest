@@ -40,6 +40,10 @@ as a future consumer), [Gamestr for developers](https://gamestr.io/developers) (
   relay.0xchat.com). Both lists are in `dm.relays` / `dm.inbox` and were published
   2026-11-21. oslim.dev's `nostr.json` also whitelists him on wheat, which otherwise sweeps
   unlisted keys' events.
+- **One DM for test and official.** Test is the production nightly and shares his key, but it
+  never awards a badge or signs a score: the store and everything it signs run only with
+  `saves.validation` on, which test never has (§4). The badge list is
+  [badges.md](badges.md).
 - **His face:** the hooded reader with the crackling book is his profile picture
   (`www/res/img/dm/avatar.jpg`), and the world map is his banner (`www/res/img/dm/banner.jpg`,
   a 3:1 cut of `map/world-map.png`).
@@ -490,7 +494,8 @@ and boards.
 6. ~~**The DM's key:** NIP-46 bunker or a key file?~~ **Decided 2026-11-21:** the nsec in
    `config.yml`. Import the same nsec into your own Nostr client to post and answer DMs as
    him.
-7. **Test's DM:** a separate npub, publishing to `test.gamestr.io`? **Recommend yes.**
+7. ~~**Test's DM:** a separate npub?~~ **Decided 2026-11-21:** the same DM, but test never
+   signs badges or scores (stats are off without `saves.validation`).
 8. **Opting out:** can a player keep their badges or scores off Nostr?
    **Recommend no** for alpha. Saves are already public, and a badge *is* its event, so
    there's no in-game-only version to fall back to.

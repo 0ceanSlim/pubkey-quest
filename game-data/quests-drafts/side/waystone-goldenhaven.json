@@ -1,7 +1,7 @@
 {
   "id": "waystone-goldenhaven",
   "name": "The Harbor Beacon",
-  "category": "main",
+  "category": "side",
   "difficulty": "Experienced",
   "step_count": 3,
   "total_qp": 2,
