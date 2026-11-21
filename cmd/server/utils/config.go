@@ -59,6 +59,20 @@ type WikiConfig struct {
 	URL string `yaml:"url"`
 }
 
+// DMConfig is the server's own Nostr identity, the Dungeon Master
+// (docs/draft/server-stats.md §6): he posts the game's news, signs badges and
+// highscores, and takes bug reports and support by DM. Nsec is his private
+// key (config.yml is gitignored); each server gets its own DM, so test's
+// events never pass for official ones. Empty = no DM.
+type DMConfig struct {
+	Name    string `yaml:"name"`
+	About   string `yaml:"about"`
+	Picture string `yaml:"picture"` // profile picture URL
+	Banner  string `yaml:"banner"`  // profile banner URL
+	Npub    string `yaml:"npub"`
+	Nsec    string `yaml:"nsec"`
+}
+
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	Report ReportConfig `yaml:"report"`
@@ -66,6 +80,7 @@ type Config struct {
 	Launch LaunchConfig `yaml:"launch"`
 	Wiki   WikiConfig   `yaml:"wiki"`
 	Relays RelaysConfig `yaml:"relays"`
+	DM     DMConfig     `yaml:"dm"`
 }
 
 // RelaysConfig overrides the game's default relay set: where players with no

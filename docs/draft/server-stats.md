@@ -1,8 +1,8 @@
 # Server stats, badges, highscores & the Dungeon Master — draft
 
-Status: **DRAFT, 2026-10-22, nothing built.** Not on the alpha critical path. It doesn't
-block degradation, food or potions. Fishing (§8 of [fishing-system.md](fishing-system.md))
-is its first concrete producer.
+Status: **DRAFT, 2026-10-22; the DM's key and profile set up 2026-11-21, nothing else
+built.** A beta gate (competition: XP leaderboard, badges, highscores). Fishing (§8 of
+[fishing-system.md](fishing-system.md)) is its first concrete producer.
 
 Related: roadmap §4 (saves, the hydration rule, official vs modded),
 [relay-saves-plan.md](relay-saves-plan.md) (the ledger), [game-relay-plan.md](game-relay-plan.md)
@@ -26,6 +26,18 @@ as a future consumer), [Gamestr for developers](https://gamestr.io/developers) (
 - **Highscores blend save data and store data, and publish when the player saves.** The
   headline score is **XP**. Another is **net worth**: the base value of everything you own,
   equipped, carried or in the vault. More fun metrics are welcome (§7).
+
+### Decided (2026-11-21, your words)
+- **Every achievement is a badge, and every badge gets drafted and its own art.** The badge
+  list is its own pass (§5), with an image for each.
+- **Everything the store publishes comes from the DM's npub:** badges, highscores, and posts
+  for server updates.
+- **Bug reports and support go to the DM by DM.**
+- **The DM holds his own key in `config.yml`** (`dm.nsec`, gitignored), not a bunker (§6).
+  The key is made and in the local config: `npub1sw8vxd4gapxhysytdqe0j95yks8hwx8a8z20rg9agsalhe5t5xrqrvmq3a`.
+- **His face:** the hooded reader with the crackling book is his profile picture
+  (`www/res/img/dm/avatar.jpg`), and the world map is his banner (`www/res/img/dm/banner.jpg`,
+  a 3:1 cut of `map/world-map.png`).
 
 Everything else below is a recommendation, collected in §11.
 
@@ -221,11 +233,17 @@ shows things from that npub, and the server signs as it.
 
 ```yaml
 dm:
-  npub: npub1…                 # public; the client reads posts, profile, badges, scores from this
-  name: The Dungeon Master
-  bunker: bunker://…           # NIP-46 remote signer (recommended), or
-  key_file: data/dm.key        # fallback, official host only, 0600
+  name: "The Dungeon Master"
+  about: "…"
+  picture: "https://pubkey.quest/res/img/dm/avatar.jpg"
+  banner: "https://pubkey.quest/res/img/dm/banner.jpg"
+  npub: "npub1…"   # public; the client reads posts, profile, badges, scores from this
+  nsec: "nsec1…"   # his private key; config.yml only (gitignored), backed up
 ```
+
+`utils.DMConfig.DMKey()` checks at start-up that the nsec is the npub's key, and the server
+won't start if it isn't. It decodes the nsec itself, because Grain's `tools.DecodeNsec` logs
+what it decodes.
 
 ### What the DM does
 | Use | How | Signed by |
@@ -233,7 +251,7 @@ dm:
 | **Game updates and news** | kind 1 notes (short news, maintenance, MOTD); kind 30023 long-form for big patch notes; shown in-game in a news panel | DM (you, from any client, or the server for automatic ones) |
 | **Badges** | NIP-58 definitions and awards, §5 | DM (server, automatic) |
 | **Highscores** | Gamestr kind 30762 scores, §7 | DM (server, automatic) |
-| **Support** | "Message the DM" in settings sends a NIP-17 DM (the same gift wraps whispers already use) to the DM's inbox relays. You answer from your own Nostr client | player → DM; DM replies |
+| **Support and bug reports** | "Message the DM" in settings, and the 🐛 reporter, send a NIP-17 DM (the same gift wraps whispers already use) to the DM's inbox relays. You answer from your own Nostr client | player → DM; DM replies |
 | **Restart notices** | the existing restart warning also goes out as a DM note, so people outside the game see it | DM (server) |
 | **Server identity** | NIP-05 `dm@pubkey.quest`; the game relay's NIP-11 `pubkey` field; the DM's kind 0 profile is the server's face; the developer pubkey Gamestr lists | — |
 
@@ -257,7 +275,7 @@ The DM is the server's own identity, but the same caution applies.
 | Option | Server holds the key? | Notes |
 |---|---|---|
 | **NIP-46 bunker** | no | The key stays in your signer (nsec.app, nsecbunker, your own). The server connects as a client, scoped to the kinds it signs automatically (8, 30009, 30762, 1, 1063). You post and answer support DMs as the DM from any client through the same bunker. If the bunker is down, awards and scores queue (the sweeper). |
-| **Key file** | yes | Simplest, and what Gamestr's own examples do. `data/dm.key`, 0600, official host only, never in `config.yml` or the repo. A leak lets someone issue official-looking badges and verified scores until you rotate, and rotating orphans every old event's provenance. |
+| **Key in config (chosen)** | yes | Simplest, and what Gamestr's own examples do. `dm.nsec` in the gitignored `config.yml`, never in the repo. A leak lets someone issue official-looking badges and verified scores until you rotate, and rotating orphans every old event's provenance. |
 
 **Test gets its own DM**, a separate npub (e.g. "the Apprentice DM"). Test badges, scores and
 posts can then never pass for official ones.
@@ -461,9 +479,9 @@ and boards.
    **Recommend yes.**
 5. **Quest badge scope:** main, side, class and race quests, not dailies or weeklies?
    **Recommend yes,** generated at migration.
-6. **The DM's key:** NIP-46 bunker or a key file? **Recommend the bunker,** with the key file
-   as a fallback. The server then never holds a private key, and you use the same identity
-   from your own client for posts and support.
+6. ~~**The DM's key:** NIP-46 bunker or a key file?~~ **Decided 2026-11-21:** the nsec in
+   `config.yml`. Import the same nsec into your own Nostr client to post and answer DMs as
+   him.
 7. **Test's DM:** a separate npub, publishing to `test.gamestr.io`? **Recommend yes.**
 8. **Opting out:** can a player keep their badges or scores off Nostr?
    **Recommend no** for alpha. Saves are already public, and a badge *is* its event, so

@@ -28,6 +28,13 @@ func Init() {
 		log.Fatalf("Failed to initialize Grain client: %v", err)
 	}
 
+	// The Dungeon Master: the server's own Nostr identity (docs/draft/server-stats.md §6).
+	if _, _, ok, err := utils.AppConfig.DM.DMKey(); err != nil {
+		log.Fatalf("❌ Dungeon Master: %v", err)
+	} else if ok {
+		log.Printf("✅ Dungeon Master: %s", utils.AppConfig.DM.Npub)
+	}
+
 	// Wire the event-recorder consumers: the quest objective tracker advances
 	// active quests from gameplay events, and the discovery reward grants XP for
 	// reaching new places. Both need the advancement table for level-ups.
