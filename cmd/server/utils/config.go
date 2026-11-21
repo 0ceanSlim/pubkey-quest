@@ -69,8 +69,14 @@ type DMConfig struct {
 	About   string `yaml:"about"`
 	Picture string `yaml:"picture"` // profile picture URL
 	Banner  string `yaml:"banner"`  // profile banner URL
-	Npub    string `yaml:"npub"`
-	Nsec    string `yaml:"nsec"`
+	Nip05   string `yaml:"nip05"`   // e.g. dm@oslim.dev
+	// Relays is his NIP-65 list (kind 10002, read and write): where his posts,
+	// badges and scores go. Inbox is his NIP-17 list (kind 10050): where bug
+	// reports and support DMs reach him.
+	Relays []string `yaml:"relays"`
+	Inbox  []string `yaml:"inbox"`
+	Npub   string   `yaml:"npub"`
+	Nsec   string   `yaml:"nsec"`
 }
 
 type Config struct {

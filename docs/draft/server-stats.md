@@ -35,6 +35,11 @@ as a future consumer), [Gamestr for developers](https://gamestr.io/developers) (
 - **Bug reports and support go to the DM by DM.**
 - **The DM holds his own key in `config.yml`** (`dm.nsec`, gitignored), not a bunker (§6).
   The key is made and in the local config: `npub1sw8vxd4gapxhysytdqe0j95yks8hwx8a8z20rg9agsalhe5t5xrqrvmq3a`.
+- **His NIP-05 is `dm@oslim.dev`,** and his relays match yours: kind 10002 (wheat.oslim.dev,
+  offchain.pub, relay.ditto.pub, relay.0xchat.com) and kind 10050 for DMs (wheat.oslim.dev,
+  relay.0xchat.com). Both lists are in `dm.relays` / `dm.inbox` and were published
+  2026-11-21. oslim.dev's `nostr.json` also whitelists him on wheat, which otherwise sweeps
+  unlisted keys' events.
 - **His face:** the hooded reader with the crackling book is his profile picture
   (`www/res/img/dm/avatar.jpg`), and the world map is his banner (`www/res/img/dm/banner.jpg`,
   a 3:1 cut of `map/world-map.png`).
@@ -237,6 +242,9 @@ dm:
   about: "…"
   picture: "https://pubkey.quest/res/img/dm/avatar.jpg"
   banner: "https://pubkey.quest/res/img/dm/banner.jpg"
+  nip05: "dm@oslim.dev"
+  relays: [ "wss://wheat.oslim.dev/", … ]   # his kind 10002: where his events go
+  inbox:  [ "wss://wheat.oslim.dev/", … ]   # his kind 10050: where DMs to him go
   npub: "npub1…"   # public; the client reads posts, profile, badges, scores from this
   nsec: "nsec1…"   # his private key; config.yml only (gitignored), backed up
 ```
