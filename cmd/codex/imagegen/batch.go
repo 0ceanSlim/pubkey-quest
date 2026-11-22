@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,8 +26,14 @@ type Spec struct {
 	Provider string `json:"provider"` // "pixellab" (default) | "openai"
 	Model    string `json:"model"`    // default model for jobs ("bitforge"|"pixflux"; openai: "gpt-image-2")
 	Quality  string `json:"quality"`  // openai: "low" | "medium" | "high"
-	Size     int    `json:"size"`     // default sprite size (px, square); 0 → 32
-	Width    int    `json:"width"`    // overrides Size for non-square sprites (e.g. 96×72 monsters)
+	// Background, openai: "transparent" for a cut-out on alpha (badges) | "opaque".
+	Background string `json:"background"`
+	// Key, openai: a "#rrggbb" the prompt asks the background to be drawn in; it's
+	// keyed out to transparency (keyout.go), and the drawn original kept beside
+	// the candidate as <name>-raw.png. For cut-outs a model can't make itself.
+	Key      string `json:"key"`
+	Size     int    `json:"size"`  // default sprite size (px, square); 0 → 32
+	Width    int    `json:"width"` // overrides Size for non-square sprites (e.g. 96×72 monsters)
 	Height   int    `json:"height"`
 	ImgDir   string `json:"img_dir"`  // sprite folder for ids + candidates; default www/res/img/items
 	Count    int    `json:"count"`    // default variants per job; 0 → 3
@@ -174,6 +181,15 @@ func RunOpenAIBatch(client *openai.Client, spec *Spec) error {
 	width := firstNonZero(spec.Width, spec.Size, 1408)
 	height := firstNonZero(spec.Height, spec.Size, 736)
 
+	var key color.RGBA
+	if spec.Key != "" {
+		k, err := parseKey(spec.Key)
+		if err != nil {
+			return err
+		}
+		key = k
+	}
+
 	var in, out, made, skipped, failed int
 	for _, job := range spec.Jobs {
 		if job.ID == "" || job.Prompt == "" {
@@ -202,17 +218,29 @@ func RunOpenAIBatch(client *openai.Client, spec *Spec) error {
 				continue
 			}
 			img, usage, err := client.Generate(openai.GenerateOptions{
-				Model:   model,
-				Prompt:  job.Prompt,
-				Width:   width,
-				Height:  height,
-				Quality: spec.Quality,
-				Refs:    refs,
+				Model:      model,
+				Prompt:     job.Prompt,
+				Width:      width,
+				Height:     height,
+				Quality:    spec.Quality,
+				Background: spec.Background,
+				Refs:       refs,
 			})
 			if err != nil {
 				fmt.Printf("   ❌ v%d: %v\n", v, err)
 				failed++
 				continue
+			}
+			if spec.Key != "" {
+				raw := strings.TrimSuffix(outFile, ".png") + "-raw.png"
+				if err := os.WriteFile(raw, img, 0644); err != nil {
+					return fmt.Errorf("write %s: %w", raw, err)
+				}
+				if img, err = keyOutPNG(img, key); err != nil {
+					fmt.Printf("   ❌ v%d: keying out %s: %v\n", v, spec.Key, err)
+					failed++
+					continue
+				}
 			}
 			if err := os.WriteFile(outFile, img, 0644); err != nil {
 				return fmt.Errorf("write %s: %w", outFile, err)

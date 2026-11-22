@@ -110,13 +110,18 @@ Dailies count once per npub per day, however many of your characters do them.
 
 - **One image per badge, 1024×1024**, NIP-58's recommended size, plus two thumbnails: 256 for
   badge lists and profiles, 64 for inline icons. The DM's kind 30009 definition carries
-  `["image", "<url>/<id>.jpg", "1024x1024"]`, `["thumb", "<url>/<id>-256.jpg", "256x256"]` and
-  `["thumb", "<url>/<id>-64.jpg", "64x64"]`.
-- **Made with gpt-image-2**, the scene-art path, at medium quality: about 4¢ an image, so roughly
-  $3 for the 36 with a spare candidate each.
+  `["image", "<url>/<id>.png", "1024x1024"]`, `["thumb", "<url>/<id>-256.png", "256x256"]` and
+  `["thumb", "<url>/<id>-64.png", "64x64"]`.
+- **Made with gpt-image-2 at high quality** (your call: no cheaper model). gpt-image-2 can't draw
+  on transparency, so each badge is drawn on flat magenta (spec `"key": "#ff00ff"`) and codex
+  keys it out (`imagegen/keyout.go`): a flood fill from the edge, stopped by the rim's outline,
+  then the magenta tint is taken off the edge pixels. The drawn original is kept beside each
+  candidate as `-raw.png`.
 - **Style: the DM's own.** His portrait is the reference: chunky pixel art with black outlines
   on aged parchment.
-- **Each badge is a round medallion** with its own emblem, and the rim tells the kind:
+- **Each badge is a round medallion on a transparent background,** with its own emblem. The rim
+  is strongly defined: a black outer outline, a bevelled highlight and shadow, an engraved
+  band, and a dark inner outline. The rim tells the kind:
   - **gold:** main story;
   - **silver:** side quests;
   - **bronze:** class and race;
@@ -128,8 +133,8 @@ Dailies count once per npub per day, however many of your characters do them.
 - **You approve every badge one by one.** Candidates wait in `www/res/img/badges/_candidates/<id>/`
   (gitignored). Publish a pick with
   `go run ./cmd/codex --badge-art every-fish=v1,level-20=v2`.
-- **Web-optimised:** `--badge-art` writes `www/res/img/badges/<id>.jpg` (1024) and
-  `<id>-256.jpg`, `<id>-64.jpg`. JPEG at quality 85 looks the same as the 2 MB PNG and weighs
-  about 300 KB, 25 KB and 3 KB; WebP was no smaller, and JPEG works in every Nostr client.
+- **Web images:** `--badge-art` writes `www/res/img/badges/<id>.png` (1024) and
+  `<id>-256.png`, `<id>-64.png`. PNG, because the background is transparent and JPEG can't hold
+  that.
 - **Hosted on the main server:** the files are committed and served at
   `https://pubkey.quest/res/img/badges/`, so a badge's image lives as long as the game does.

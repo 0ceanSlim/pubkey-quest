@@ -38,8 +38,11 @@ type GenerateOptions struct {
 	Prompt  string // required
 	Width   int    // multiples of 16 (gpt-image-2 takes custom sizes)
 	Height  int
-	Quality string   // "low" | "medium" | "high"; empty → the API default
-	Refs    [][]byte // PNG reference images; any → /images/edits
+	Quality string // "low" | "medium" | "high"; empty → the API default
+	// Background: "transparent" (a cut-out on alpha, e.g. badges) | "opaque";
+	// empty → the API default.
+	Background string
+	Refs       [][]byte // PNG reference images; any → /images/edits
 }
 
 // Usage is the token count the API reports for one image.
@@ -75,6 +78,9 @@ func (c *Client) Generate(opts GenerateOptions) ([]byte, Usage, error) {
 		if opts.Quality != "" {
 			body["quality"] = opts.Quality
 		}
+		if opts.Background != "" {
+			body["background"] = opts.Background
+		}
 		raw, _ := json.Marshal(body)
 		req, err = http.NewRequest("POST", c.BaseURL+"/images/generations", bytes.NewReader(raw))
 		if err != nil {
@@ -87,6 +93,9 @@ func (c *Client) Generate(opts GenerateOptions) ([]byte, Usage, error) {
 		fields := map[string]string{"model": opts.Model, "prompt": opts.Prompt, "size": size, "n": "1"}
 		if opts.Quality != "" {
 			fields["quality"] = opts.Quality
+		}
+		if opts.Background != "" {
+			fields["background"] = opts.Background
 		}
 		for k, v := range fields {
 			if err := mw.WriteField(k, v); err != nil {
