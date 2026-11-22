@@ -30,8 +30,8 @@ import (
 	"pubkey-quest/cmd/server/auth"
 	"pubkey-quest/cmd/server/utils"
 
-	_ "pubkey-quest/docs/api/swagger"
 	httpSwagger "github.com/swaggo/http-swagger"
+	_ "pubkey-quest/docs/api/swagger"
 )
 
 // RegisterRoutes registers all API routes on the given ServeMux.
@@ -410,7 +410,6 @@ func registerCombatRoutes(mux *http.ServeMux) {
 	// never from a request naming its monsters: /api/combat/start is a debug
 	// route (registerDebugRoutes), or anyone could farm any monster anywhere.
 
-
 	// @Summary      Get current combat state
 	// @Description  Returns the live combat state. Use this to re-sync after a page refresh.
 	// @Tags         Combat
@@ -711,6 +710,10 @@ func registerProgressionRoutes(mux *http.ServeMux) {
 
 	// @Router       /api/teleport/status [get]
 	mux.HandleFunc("/api/teleport/status", game.TeleportStatusHandler)
+	// @Router       /api/badges [get]
+	mux.HandleFunc("/api/badges", game.BadgesHandler)
+	// @Router       /api/highscores [get]
+	mux.HandleFunc("/api/highscores", game.HighscoresHandler)
 	// @Router       /api/scrolls/scribable [get]
 	mux.HandleFunc("/api/scrolls/scribable", game.GetScribableHandler)
 	// @Router       /api/scrolls/scribe [post]

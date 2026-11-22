@@ -48,6 +48,7 @@ func loadBoards() {
 // Ranked is one player's place on a board.
 type Ranked struct {
 	Npub string `json:"npub"`
+	Name string `json:"name"` // a character of theirs, for boards with no one character
 	Score
 }
 
@@ -59,7 +60,7 @@ func Top(board string, n int) []Ranked {
 	var out []Ranked
 	for npub, scores := range boardScores {
 		if s, ok := scores[board]; ok && s.Value > 0 {
-			out = append(out, Ranked{Npub: npub, Score: s})
+			out = append(out, Ranked{Npub: npub, Name: nameOf(scores), Score: s})
 		}
 	}
 	boardMu.Unlock()
@@ -78,8 +79,24 @@ func Top(board string, n int) []Ranked {
 	return out
 }
 
-// resetBoards forgets the in-memory board (tests moving Dir).
-func resetBoards() {
+// nameOf is a character's name from a player's scores, the same one every
+// time.
+func nameOf(scores map[string]Score) string {
+	keys := make([]string, 0, len(scores))
+	for k := range scores {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		if w := scores[k].Who; w != "" {
+			return w
+		}
+	}
+	return ""
+}
+
+// ResetBoards forgets the in-memory board (tests moving Dir).
+func ResetBoards() {
 	boardMu.Lock()
 	boardLoaded, boardScores = false, map[string]map[string]Score{}
 	boardMu.Unlock()

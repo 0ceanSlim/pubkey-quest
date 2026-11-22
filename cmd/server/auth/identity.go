@@ -54,6 +54,7 @@ var protectedPrefixes = []string{
 // also catch public siblings, e.g. /api/skills/definitions).
 var exactProtected = map[string]bool{
 	"/api/skills": true,
+	"/api/badges": true, // a player's own badges; /api/highscores is public
 }
 
 // maxIdentityBody caps how much of a request body is buffered to find its npub.

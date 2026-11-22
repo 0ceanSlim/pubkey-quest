@@ -166,8 +166,8 @@ func TestOff(t *testing.T) {
 // to whoever got there first. A record written later shows straight away.
 func TestTop(t *testing.T) {
 	useStore(t)
-	resetBoards()
-	t.Cleanup(resetBoards)
+	ResetBoards()
+	t.Cleanup(ResetBoards)
 	for npub, s := range map[string]Score{
 		"npub_a": {Entry: Entry{Value: 500}, At: 20},
 		"npub_b": {Entry: Entry{Value: 900}, At: 30},

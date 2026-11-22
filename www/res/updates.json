@@ -2,6 +2,22 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-21-badges",
+      "when": "November 21, 2026",
+      "icon": "🏅",
+      "size": "major",
+      "title": "Badges and highscores",
+      "summary": "The Dungeon Master now keeps track. Finish quests, fill your collections and climb the levels to earn badges, and see where you stand against everyone else.",
+      "highlights": [
+        "43 badges to earn: one for every quest, collections like catching one of every fish or finding every place in the realm, the dailies, and a level rank from 5 to 20 that grows grander as you climb",
+        "Your badges are in the Journal's 🏆 Badges tab, with how far you are toward each one. Your level badge shows only your highest",
+        "Highscores are in the Journal's 🏅 Scores tab: experience, net worth, quest points, places found, monsters slain, your toughest kill, fish landed and the biggest of every fish. Your best character stands for you",
+        "Everything counts when you save. Play that isn't saved doesn't count, so reloading never counts anything twice",
+        "Lifetime records follow you, not the character: a fish any of your characters catches counts toward catching every fish",
+        "Quests you finished before today count too: your badges arrive at your next save"
+      ]
+    },
+    {
       "id": "2026-11-21-ground",
       "when": "November 21, 2026",
       "icon": "🎒",

@@ -229,10 +229,12 @@ class GameAPI {
                 }
                 logger.info(`Signed save stored on ${out.relays?.length ?? 0} relay(s)`);
                 announceQuestNews(result);
+                window.showBadgesEarned?.(out.badges_earned);
                 return true;
             }
 
             announceQuestNews(result);
+            window.showBadgesEarned?.(result.badges_earned);
             logger.info('Game saved to disk');
             return true;
 

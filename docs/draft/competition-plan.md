@@ -142,7 +142,14 @@ on Gamestr at its old value.
   takes it.
 - Never with `saves.validation` off (test).
 
-### 6. In the game
+### 6. In the game — BUILT 2026-11-21 (not bundled or played yet)
+
+`GET /api/badges` (protected: the player's own, with progress) and `GET /api/highscores` (public,
+one board, every board listed) in `api/game/badges.go`. `src/ui/badges.js`: the journal's 🏆 Badges
+tab (grouped, earned in colour, progress bars, the level rank showing its highest earned and the
+next) and 🏅 Scores tab (board picker, your row marked), and "The Dungeon Master awards you…" after
+a save that earns one (`badges_earned` on both save paths). An `updates.json` entry.
+
 - **Badges:** a badges screen on the character (earned, with the level rank showing only its
   highest; locked ones greyed with how to earn them), and a "The Dungeon Master awards you…"
   popup at the save that earns one.

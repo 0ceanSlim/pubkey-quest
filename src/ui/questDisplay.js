@@ -1,5 +1,6 @@
 /**
- * Quest Display — the journal tab (Quests | Badges) and the quest guide popup.
+ * Quest Display — the journal tab (Quests | Badges | Scores) and the quest
+ * guide popup. Badges and Scores are drawn by ui/badges.js.
  *
  * Reads /api/quests/log, where every quest carries a status — active,
  * available, locked (a requirement unmet) or completed — and renders one list
@@ -18,6 +19,7 @@
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
 import { API_BASE_URL } from '../config/constants.js';
+import { loadBadges, loadHighscores, wireBadgeViews } from './badges.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
@@ -220,10 +222,14 @@ function wireJournalPanel() {
     panel.addEventListener('click', (e) => {
         const sub = e.target.closest('.qj-subtab');
         if (sub) {
-            const badges = sub.dataset.qjSub === 'badges';
+            const which = sub.dataset.qjSub;
             panel.querySelectorAll('.qj-subtab').forEach((b) => b.classList.toggle('on', b === sub));
-            $('qj-quests-view')?.classList.toggle('hidden', badges);
-            $('qj-badges-view')?.classList.toggle('hidden', !badges);
+            $('qj-quests-view')?.classList.toggle('hidden', which !== 'quests');
+            $('qj-badges-view')?.classList.toggle('hidden', which !== 'badges');
+            $('qj-scores-view')?.classList.toggle('hidden', which !== 'scores');
+            wireBadgeViews();
+            if (which === 'badges') loadBadges();
+            if (which === 'scores') loadHighscores();
             return;
         }
         const group = e.target.closest('.qj-group');

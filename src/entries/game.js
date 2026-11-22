@@ -41,6 +41,7 @@ import '../ui/portraitDialog.js'; // Character portrait dialog (window.openPortr
 import '../ui/spellPicker.js'; // Known-spells picker (window.openSpellPicker)
 import '../ui/questTracker.js'; // Active-quest tracker chip — registers its own state listeners
 import '../ui/questComplete.js'; // "Quest complete!" rewards screen (window.showQuestComplete)
+import '../ui/badges.js'; // Badges + highscores tabs, "the Dungeon Master awards you" (window.showBadgesEarned)
 import * as combatSystem from '../systems/combatSystem.js';
 
 // UI modules

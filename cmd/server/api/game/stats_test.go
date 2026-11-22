@@ -1,6 +1,8 @@
 package game
 
 import (
+	"encoding/json"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -19,7 +21,9 @@ func statsOn(t *testing.T, sess *session.GameSession) {
 	stats.Enabled, stats.Dir = true, t.TempDir()
 	sess.SaveData.InternalNpub, sess.SaveData.InternalID = sess.Npub, sess.SaveID
 	sess.Stats = stats.Open(sess.Npub, sess.SaveID, nil)
+	stats.ResetBoards()
 	t.Cleanup(func() {
+		stats.ResetBoards()
 		stats.Close(sess.Npub, sess.SaveID)
 		stats.Enabled, stats.Dir = oldOn, oldDir
 	})
@@ -129,5 +133,58 @@ func TestSaveStandsOnTheBoards(t *testing.T) {
 	}
 	if r.Scores[boards.FishLanded].Value != 1 {
 		t.Error("deleting a character took the player's lifetime record with it")
+	}
+}
+
+// The highscores page: a board's players in order, each with their line and
+// a character's name, the asker marked.
+func TestHighscoresHandler(t *testing.T) {
+	sess := wharfSession(t)
+	statsOn(t, sess)
+	for npub, xp := range map[string]int64{"npub_a": 500, "npub_b": 900} {
+		err := stats.Update(npub, func(r *stats.Record) bool {
+			r.Scores = map[string]stats.Score{boards.XP: {Entry: stats.Entry{Value: xp, Who: "Hero " + npub[5:], Detail: "level 3 Fighter"}, At: 1}}
+			return true
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	w := httptest.NewRecorder()
+	HighscoresHandler(w, httptest.NewRequest("GET", "/api/highscores?board=xp&npub=npub_a", nil))
+	var out struct {
+		Data struct {
+			Entries []ScoreView `json:"entries"`
+			Boards  []BoardView `json:"boards"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &out); err != nil {
+		t.Fatal(err)
+	}
+	e := out.Data.Entries
+	if len(e) != 2 || e[0].Npub != "npub_b" || e[0].Rank != 1 || e[1].Name != "Hero a" || !e[1].You {
+		t.Fatalf("entries %+v", e)
+	}
+	if e[0].Line != "Hero b, level 3 Fighter: 900 XP." {
+		t.Errorf("line %q", e[0].Line)
+	}
+	if len(out.Data.Boards) < 8 || out.Data.Boards[0].ID != boards.XP {
+		t.Errorf("boards %+v", out.Data.Boards)
+	}
+}
+
+// Progress toward a badge: a collection, a counter, a level.
+func TestBadgeProgress(t *testing.T) {
+	r := &stats.Record{Sets: map[string]map[string]int64{stats.FishSpecies: {"carp": 1}}, Counters: map[string]int64{stats.Dailies: 64}}
+	cat := map[string][]string{types.CollectionFish: {"carp", "river-pike", "minnow"}}
+	save := &types.SaveFile{}
+	if h, o := progress(types.BadgeRule{Collection: types.CollectionFish}, cat, r, save, 1); h != 1 || o != 3 {
+		t.Errorf("fish %d/%d, want 1/3", h, o)
+	}
+	if h, o := progress(types.BadgeRule{Counter: stats.Dailies, At: 50}, cat, r, save, 1); h != 50 || o != 50 {
+		t.Errorf("dailies %d/%d, want 50/50 (capped)", h, o)
+	}
+	if h, o := progress(types.BadgeRule{Level: 10}, cat, r, save, 7); h != 7 || o != 10 {
+		t.Errorf("level %d/%d, want 7/10", h, o)
 	}
 }
