@@ -2,8 +2,10 @@ package quest
 
 import (
 	"sort"
+	"strconv"
 	"time"
 
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/types"
 )
 
@@ -85,5 +87,11 @@ func markRepeatableDone(save *types.SaveFile, q *types.QuestData, now time.Time)
 	if save.RepeatableQuests == nil {
 		save.RepeatableQuests = map[string]int{}
 	}
-	save.RepeatableQuests[q.ID] = CurrentPeriod(q.Category, now)
+	period := CurrentPeriod(q.Category, now)
+	save.RepeatableQuests[q.ID] = period
+	key := stats.Dailies
+	if q.Category == types.QuestWeekly {
+		key = stats.Weeklies
+	}
+	stats.CountOnce(save, key, q.ID, strconv.Itoa(period))
 }

@@ -232,6 +232,7 @@ func (p poiMining) quickGem(s types.Seam) []string {
 		return nil
 	}
 	state := &p.sess.SaveData
+	noteFound(state, g.ID())
 	line := fmt.Sprintf("Something glints in the broken rock: a %s!", strings.ToLower(itemDisplayName(g.ID())))
 	if added, _ := inventory.AddItemToInventory(state, g.ID(), 1); added == 0 {
 		p.sess.Ground.Add(groundSpot(p.sess), g.ID(), 1)
@@ -327,6 +328,7 @@ func handleMineAct(sess *session.GameSession, params map[string]any) (*types.Gam
 	}
 	for _, ore := range sortedKeys(out.Items) {
 		n := out.Items[ore]
+		noteFound(state, ore)
 		added, _ := inventory.AddItemToInventory(state, ore, n)
 		if added > 0 {
 			noteAcquired(state, ore)

@@ -45,7 +45,8 @@ type Op struct {
 	N      int64  `json:"n,omitempty"` // opCount: how many; opBest: the value
 	Member string `json:"m,omitempty"` // opMember: the member; opOnce: what's counted once a period
 	Period string `json:"p,omitempty"` // opOnce: the period (a day)
-	Label  string `json:"l,omitempty"` // opBest: what it was ("Mara, river pike")
+	Label  string `json:"l,omitempty"` // opBest: what it was (a monster id)
+	Who    string `json:"w,omitempty"` // opBest: the character who set it
 	seq    int
 }
 
@@ -175,10 +176,11 @@ func AddMember(save *types.SaveFile, key, member string) {
 }
 
 // Best records value for a best-ever (the biggest pike, in ounces); only a
-// new high counts.
+// new high counts. label says what it was; the character who set it is the
+// save's.
 func Best(save *types.SaveFile, key string, value int64, label string) {
 	if p := pendingFor(save); p != nil {
-		p.add(Op{Kind: opBest, Key: key, N: value, Label: label})
+		p.add(Op{Kind: opBest, Key: key, N: value, Label: label, Who: save.D})
 	}
 }
 
@@ -193,10 +195,11 @@ type Record struct {
 	Updated  int64                       `json:"updated_at"`
 }
 
-// BestEntry is a best-ever: the value, what it was, and when.
+// BestEntry is a best-ever: the value, what it was, who, and when.
 type BestEntry struct {
 	Value int64  `json:"v"`
 	Label string `json:"l,omitempty"`
+	Who   string `json:"w,omitempty"`
 	At    int64  `json:"at"`
 }
 
@@ -233,7 +236,7 @@ func (r *Record) Apply(ops []Op, now int64) {
 			}
 		case opBest:
 			if b, ok := r.Bests[op.Key]; !ok || op.N > b.Value {
-				r.Bests[op.Key] = BestEntry{Value: op.N, Label: op.Label, At: now}
+				r.Bests[op.Key] = BestEntry{Value: op.N, Label: op.Label, Who: op.Who, At: now}
 			}
 		}
 	}

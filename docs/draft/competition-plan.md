@@ -72,7 +72,15 @@ the relay save, journaled, `stats.enabled` in config. Publishing the record is s
 - Tests: a reload drops; a save applies; five characters do one daily and it counts once; a crash
   restores the pending stats from the journal.
 
-### 2. Producers
+### 2. Producers — BUILT 2026-11-21
+
+Built simpler than planned: the places that matter call the store directly (`stats.Count`,
+`CountOnce`, `AddMember`, `Best`, keys in `stats/keys.go`) instead of new event kinds and a
+translating consumer. Fish land in `addCatch`; kills and the kill's rough gem in
+`combat.killRewards`; dailies and weeklies in `quest.markRepeatableDone`; pearls and geodes in
+`inventory`; mined gems and ores through `noteFound` (the quick face, Veins, and POI loot, so a
+cache's gem counts as found too). A best remembers the character who set it.
+
 - New events: `QuestCompleted` (target = quest id, from `FinishNow` and the repeatable path),
   `GemFound` (kills, rock faces, Veins cells, shucking), `OreMined`.
 - `FishCaught` gains the catch's weight (the `lb` slot key). `MonsterKilled` already names the

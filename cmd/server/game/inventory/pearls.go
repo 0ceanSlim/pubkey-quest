@@ -7,6 +7,7 @@ import (
 	"pubkey-quest/cmd/server/game/condition"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/gems"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/types"
 )
 
@@ -49,6 +50,7 @@ func pearlIn(state *types.SaveFile, shellfishID string) string {
 	if !found {
 		return ""
 	}
+	stats.AddMember(state, stats.GemTypes, g.Type)
 	name := "a " + strings.ToLower(condition.ItemName(g.ID()))
 	if added, _ := AddItemToInventory(state, g.ID(), 1); added == 0 {
 		return name + ", but your pack's too full to keep it and it rolls away."

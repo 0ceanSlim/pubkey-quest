@@ -8,6 +8,7 @@ import (
 	"pubkey-quest/cmd/server/game/gametime"
 	"pubkey-quest/cmd/server/game/gameutil"
 	"pubkey-quest/cmd/server/game/gems"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/types"
 )
 
@@ -40,6 +41,7 @@ func crackGeode(state *types.SaveFile, pickID string, slot map[string]interface{
 		return refuse("No room in your pack for what's inside.")
 	}
 	gameutil.ConsumeItem(state, types.GeodeID, 1)
+	stats.AddMember(state, stats.GemTypes, g.Type)
 	gametime.AdvanceTime(state, max(gc.Mining.CrackMinutes, 1), true)
 	msg := fmt.Sprintf("You set the geode on a rock and tap round it with your %s until it splits. Inside, in a nest of crystal: a %s!",
 		strings.ToLower(condition.ItemName(pickID)), strings.ToLower(condition.ItemName(g.ID())))

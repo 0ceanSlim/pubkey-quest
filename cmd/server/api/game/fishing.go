@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"slices"
 	"sort"
@@ -29,6 +30,7 @@ import (
 	"pubkey-quest/cmd/server/game/travel"
 	"pubkey-quest/cmd/server/session"
 	"pubkey-quest/cmd/server/social"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/types"
 )
 
@@ -445,6 +447,9 @@ func addCatch(sess *session.GameSession, f fishing.Fish, spotID string, data map
 	st[condition.KeyLb] = f.Lb
 	fishMemory(sess).Landed(spotID, state.CurrentDay)
 	events.Record(state, events.FishCaught, id, 1)
+	stats.Count(state, stats.FishLanded, 1)
+	stats.AddMember(state, stats.FishSpecies, f.Species)
+	stats.Best(state, stats.FishOunces+f.Species, int64(math.Round(f.Lb*16)), f.Species)
 	lines := catchToll(sess, f.Size, data)
 	if added, _ := inventory.AddItemWithState(state, id, 1, st); added > 0 {
 		noteAcquired(state, id)

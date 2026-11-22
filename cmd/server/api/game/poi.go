@@ -55,6 +55,7 @@ func buildPOIDeps(state *types.SaveFile) (poi.Deps, error) {
 		},
 		ApplyEffect: func(s *types.SaveFile, id string) { _ = effects.ApplyEffect(s, id) },
 		AddItem: func(s *types.SaveFile, id string, qty int) {
+			noteFound(s, id) // found out in the world: a quick roll at a seam, a cache
 			if added, _ := inventory.AddItemToInventory(s, id, qty); added > 0 {
 				noteAcquired(s, id)
 			}

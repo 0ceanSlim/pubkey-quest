@@ -15,9 +15,9 @@ import (
 	"pubkey-quest/cmd/server/game/events"
 	"pubkey-quest/cmd/server/game/gems"
 	gaminventory "pubkey-quest/cmd/server/game/inventory"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/types"
 )
-
 
 // effectiveStats returns the player's ability scores with active-effect modifiers
 // (buffs, plus fatigue/exhaustion penalties) folded in — the stat block every
@@ -644,7 +644,6 @@ func ProcessPlayerHold(cs *types.CombatSession) ([]string, error) {
 	state.HeldPosition = true
 	return []string{"  You brace yourself, readying a counter-strike."}, nil
 }
-
 
 // ─── ProcessPlayerFlee ───────────────────────────────────────────────────────
 
@@ -1429,6 +1428,8 @@ func killRewards(cs *types.CombatSession, monster *types.MonsterInstance, save *
 		}
 		if ms != nil {
 			events.Record(ms, events.MonsterKilled, monster.Data.ID, 1)
+			stats.Count(ms, stats.Slain, 1)
+			stats.Best(ms, stats.ToughestKill, int64(monster.Data.XP), monster.Data.ID)
 		}
 	}
 
@@ -1443,6 +1444,9 @@ func killRewards(cs *types.CombatSession, monster *types.MonsterInstance, save *
 	if gem := gems.ForKill(gems.Config(), &monster.Data, gems.Global); gem != "" {
 		who := members[rand.Intn(len(members))]
 		who.Loot = appendOrStack(who.Loot, types.LootDrop{Item: gem, Quantity: 1})
+		if g, ok := gems.Parse(gems.Config(), gem); ok {
+			stats.AddMember(saveOf(who, save), stats.GemTypes, g.Type)
+		}
 	}
 
 	// Kill bonus: flat XP for the kill itself (set on tougher monsters, and on
