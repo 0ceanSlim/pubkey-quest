@@ -25,7 +25,7 @@ func TestKillCountsTowardStats(t *testing.T) {
 		cs := boardWith([]types.MonsterInstance{m})
 		killRewards(cs, &cs.Monsters[0], save, nil)
 	}
-	r, err := stats.Commit("npub_me", "save_1", p.Mark())
+	r, err := stats.Commit("npub_me", "save_1", p.Mark(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

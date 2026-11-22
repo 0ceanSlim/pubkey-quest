@@ -56,14 +56,14 @@ func TestCountOncePerPeriod(t *testing.T) {
 	for _, id := range []string{"save_1", "save_2", "save_3"} {
 		Open(npub, id, nil)
 		CountOnce(save(npub, id), "dailies_completed", "daily-fish-order", "2026-11-21")
-		if _, err := Commit(npub, id, 99); err != nil {
+		if _, err := Commit(npub, id, 99, nil); err != nil {
 			t.Fatal(err)
 		}
 	}
 	Open(npub, "save_1", nil)
-	CountOnce(save(npub, "save_1"), "dailies_completed", "daily-ore-order", "2026-11-21") // another daily
+	CountOnce(save(npub, "save_1"), "dailies_completed", "daily-ore-order", "2026-11-21")  // another daily
 	CountOnce(save(npub, "save_1"), "dailies_completed", "daily-fish-order", "2026-11-22") // the next day
-	Commit(npub, "save_1", 99)
+	Commit(npub, "save_1", 99, nil)
 
 	r, _ := Load(npub)
 	if r.Counters["dailies_completed"] != 3 {
@@ -81,7 +81,7 @@ func TestCommitGate(t *testing.T) {
 
 	Count(s, "monsters_slain", 1)
 	Open(npub, id, nil) // reloaded without saving
-	if _, err := Commit(npub, id, 99); err != nil {
+	if _, err := Commit(npub, id, 99, nil); err != nil {
 		t.Fatal(err)
 	}
 	if r, _ := Load(npub); r.Counters["monsters_slain"] != 0 {
@@ -92,11 +92,11 @@ func TestCommitGate(t *testing.T) {
 	Count(s, "monsters_slain", 2)
 	mark := p.Mark() // a relay save prepared here
 	Count(s, "monsters_slain", 5)
-	Commit(npub, id, mark)
+	Commit(npub, id, mark, nil)
 	if r, _ := Load(npub); r.Counters["monsters_slain"] != 2 {
 		t.Fatalf("after the first save %d kills, want 2", r.Counters["monsters_slain"])
 	}
-	Commit(npub, id, p.Mark())
+	Commit(npub, id, p.Mark(), nil)
 	if r, _ := Load(npub); r.Counters["monsters_slain"] != 7 {
 		t.Fatalf("after the second save %d kills, want 7", r.Counters["monsters_slain"])
 	}
@@ -111,7 +111,7 @@ func TestOpenRestores(t *testing.T) {
 	kept := pendingFor(save(npub, id)).Snapshot()
 
 	p := Open(npub, id, kept)
-	Commit(npub, id, p.Mark())
+	Commit(npub, id, p.Mark(), nil)
 	if r, _ := Load(npub); r.Sets["fish_species"]["carp"] == 0 {
 		t.Fatal("a journaled catch was lost")
 	}
@@ -125,7 +125,7 @@ func TestFailedCommitKeepsPending(t *testing.T) {
 	Count(save(npub, id), "fish_landed", 4)
 	good := Dir
 	Dir = filepath.Join(t.TempDir(), "missing", "\x00bad")
-	if _, err := Commit(npub, id, p.Mark()); err == nil {
+	if _, err := Commit(npub, id, p.Mark(), nil); err == nil {
 		t.Fatal("expected the write to fail")
 	}
 	Dir = good
@@ -135,12 +135,12 @@ func TestFailedCommitKeepsPending(t *testing.T) {
 	if err := os.MkdirAll(blocker, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Commit(npub, id, p.Mark()); err == nil {
+	if _, err := Commit(npub, id, p.Mark(), nil); err == nil {
 		t.Fatal("expected the write to fail")
 	}
 	os.Remove(blocker)
 
-	Commit(npub, id, p.Mark())
+	Commit(npub, id, p.Mark(), nil)
 	if r, _ := Load(npub); r.Counters["fish_landed"] != 4 {
 		t.Fatalf("fish landed %d after the retry, want 4", r.Counters["fish_landed"])
 	}
@@ -153,7 +153,7 @@ func TestOff(t *testing.T) {
 		t.Fatal("the store opened while off")
 	}
 	Count(save("npub1player", "save_1"), "fish_landed", 1) // must not panic
-	if r, err := Commit("npub1player", "save_1", 9); err != nil || r.Counters != nil {
+	if r, err := Commit("npub1player", "save_1", 9, nil); err != nil || r.Counters != nil {
 		t.Fatalf("a commit while off: %+v %v", r, err)
 	}
 	var p *Pending

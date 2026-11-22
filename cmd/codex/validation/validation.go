@@ -105,6 +105,13 @@ func ValidateAll() (*Result, error) {
 		result.Issues = append(result.Issues, survivalIssues...)
 	}
 
+	// Validate badges.json and its art
+	if badgeIssues, err := ValidateBadges(); err != nil {
+		return nil, err
+	} else {
+		result.Issues = append(result.Issues, badgeIssues...)
+	}
+
 	// Validate starting gear
 	if gearIssues, err := ValidateStartingGear(); err != nil {
 		return nil, err

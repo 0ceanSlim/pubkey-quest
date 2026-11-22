@@ -1448,6 +1448,8 @@ func migrateSystemsFiles() error {
 		"mining.json",
 		"gems.json",
 		"survival.json",
+		"badges.json",
+		"badge-media.json",
 	}
 
 	count := 0

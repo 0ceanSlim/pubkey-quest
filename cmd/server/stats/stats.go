@@ -192,7 +192,9 @@ type Record struct {
 	Once     map[string]string           `json:"once,omitempty"` // key|what → the last period counted
 	Sets     map[string]map[string]int64 `json:"sets,omitempty"` // set → member → first seen (unix)
 	Bests    map[string]BestEntry        `json:"bests,omitempty"`
-	Updated  int64                       `json:"updated_at"`
+	// Badges are the badges the player has earned: id → when (game/badges).
+	Badges  map[string]int64 `json:"badges,omitempty"`
+	Updated int64            `json:"updated_at"`
 }
 
 // BestEntry is a best-ever: the value, what it was, who, and when.
@@ -294,9 +296,15 @@ func write(npub string, r Record) error {
 	return os.Rename(tmp, path)
 }
 
+// Judge looks at a player's record after a kept save has been counted into
+// it, and adds what it earned (badges); it reports whether it added anything.
+type Judge func(r *Record, now int64) bool
+
 // Commit adds a session's stats up to mark to the player's record: the save
-// that covers them was just kept. It returns the record as it now stands.
-func Commit(npub, saveID string, mark int) (Record, error) {
+// that covers them was just kept. judge (nil for none) then looks at the
+// record and the save, and the whole of it is written at once. It returns the
+// record as it now stands.
+func Commit(npub, saveID string, mark int, judge Judge) (Record, error) {
 	if !Enabled {
 		return Record{}, nil
 	}
@@ -314,10 +322,17 @@ func Commit(npub, saveID string, mark int) (Record, error) {
 	if p != nil {
 		ops = p.take(mark)
 	}
-	if len(ops) == 0 {
+	now := time.Now().Unix()
+	if len(ops) > 0 {
+		r.Apply(ops, now)
+	}
+	// A save counts even with nothing pending: it can finish a quest or reach
+	// a level.
+	judged := judge != nil && judge(&r, now)
+	if len(ops) == 0 && !judged {
 		return r, nil
 	}
-	r.Apply(ops, time.Now().Unix())
+	r.Updated = now
 	if err := write(npub, r); err != nil {
 		p.putBack(ops) // they wait for the next save
 		return r, err

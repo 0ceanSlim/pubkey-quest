@@ -135,7 +135,7 @@ func TestJournalKeepsPendingStats(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	stats.Commit(npub, saveID, got.Stats.Mark())
+	stats.Commit(npub, saveID, got.Stats.Mark(), nil)
 	if r, _ := stats.Load(npub); r.Counters["fish_landed"] != 3 {
 		t.Fatalf("after the crash, fish landed %d, want 3", r.Counters["fish_landed"])
 	}
@@ -143,7 +143,7 @@ func TestJournalKeepsPendingStats(t *testing.T) {
 	stats.Count(&got.SaveData, "fish_landed", 5)
 	session.RemoveJournal(npub, saveID) // a clean quit
 	got, _ = session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
-	stats.Commit(npub, saveID, got.Stats.Mark())
+	stats.Commit(npub, saveID, got.Stats.Mark(), nil)
 	if r, _ := stats.Load(npub); r.Counters["fish_landed"] != 3 {
 		t.Fatalf("stats came back without the play they belonged to: %d", r.Counters["fish_landed"])
 	}

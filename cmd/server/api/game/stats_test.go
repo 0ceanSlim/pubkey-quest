@@ -33,7 +33,7 @@ func TestCatchCountsAtSave(t *testing.T) {
 	if r, _ := stats.Load(sess.Npub); r.Counters[stats.FishLanded] != 0 {
 		t.Fatal("a catch counted before any save")
 	}
-	commitStats(sess, sess.Stats.Mark())
+	commitStats(sess, sess.Stats.Mark(), &sess.SaveData)
 
 	r, _ := stats.Load(sess.Npub)
 	if r.Counters[stats.FishLanded] != 2 {
@@ -56,7 +56,7 @@ func TestNoteFound(t *testing.T) {
 	for _, id := range []string{"gem-ruby-small-uncut", "gem-black-pearl-tiny-fine", "iron-ore", "ring-ruby-small-fine", "longsword"} {
 		noteFound(state, id)
 	}
-	commitStats(sess, sess.Stats.Mark())
+	commitStats(sess, sess.Stats.Mark(), &sess.SaveData)
 	r, _ := stats.Load(sess.Npub)
 	if g := r.Sets[stats.GemTypes]; len(g) != 2 || g["ruby"] == 0 || g["black-pearl"] == 0 {
 		t.Errorf("gem types %v, want ruby and black-pearl", g)

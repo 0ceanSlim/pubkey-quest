@@ -23,7 +23,7 @@ func TestRepeatablesCountOncePerPeriod(t *testing.T) {
 		p := stats.Open("npub_me", id, nil)
 		markRepeatableDone(save, daily, now)
 		markRepeatableDone(save, weekly, now)
-		if _, err := stats.Commit("npub_me", id, p.Mark()); err != nil {
+		if _, err := stats.Commit("npub_me", id, p.Mark(), nil); err != nil {
 			t.Fatal(err)
 		}
 		stats.Close("npub_me", id)

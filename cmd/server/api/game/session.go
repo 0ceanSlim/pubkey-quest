@@ -413,8 +413,8 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 	session.RemoveJournal(request.Npub, request.SaveID)
 	// What you dropped isn't in it, so it's anyone's now.
 	publishGround(sess, groundMark)
-	// The play it covers counts now.
-	commitStats(sess, statsMark)
+	// The play it covers counts now, and what it earned.
+	earned := commitStats(sess, statsMark, &sess.SaveData)
 
 	log.Printf("✅ Session saved to disk: %s:%s", request.Npub, request.SaveID)
 
@@ -423,6 +423,9 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"message": "Game saved successfully",
 		"save_id": request.SaveID,
+	}
+	if len(earned) > 0 {
+		out["badges_earned"] = earned
 	}
 	for k, v := range news {
 		out[k] = v

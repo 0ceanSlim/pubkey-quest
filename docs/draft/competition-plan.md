@@ -88,7 +88,15 @@ cache's gem counts as found too). A best remembers the character who set it.
 - Store effects (server-stats.md §9): fish species set, fish landed, biggest per species (in
   ounces), gem types, ores, dailies per day per npub, monsters slain, toughest kill.
 
-### 3. Badges
+### 3. Badges — BUILT 2026-11-21
+
+`game-data/systems/badges.json` (the 43, migrated with `badge-media.json`), `game/badges` (`Judge`,
+the catalogs from game.db), judged inside `stats.Commit` so the record and its new badges are
+written together, against the save as it was kept (a relay save: as it was signed). Every kept
+save is judged, even with nothing pending. Save responses carry `badges_earned`.
+`--validate` checks rules, rims, art on Blossom and in the game, and warns on a quest with no
+badge.
+
 - `game-data/systems/badges.json`: the 43, each with id, name, description, rim and rule.
   `--migrate` loads it with `badge-media.json`. `--validate` checks every rule names a real
   quest, set or counter, and warns when a main, side, class or race quest has no badge.

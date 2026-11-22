@@ -1,0 +1,410 @@
+{
+  "_comment": "The badges (docs/draft/badges.md): achievements the Dungeon Master awards, judged at each kept save (game/badges). A rule sets exactly one of quest, any_quest, collection (fish, gems, ores: any of the player's characters; songs, towns, wilds, places: one character), level, or counter + at. rank groups a series shown by its highest earned. Art: badge-media.json.",
+  "badges": [
+    {
+      "id": "quest-caretakers-letter",
+      "name": "Heir to the Vault",
+      "description": "Claimed your inheritance from the vault your caretaker's letter sent you to.",
+      "rim": "gold",
+      "rule": {
+        "any_quest": [
+          "caretakers-letter-goldenhaven",
+          "caretakers-letter-ironpeak",
+          "caretakers-letter-kingdom",
+          "caretakers-letter-marshlight",
+          "caretakers-letter-millhaven",
+          "caretakers-letter-verdant"
+        ]
+      }
+    },
+    {
+      "id": "quest-the-rising-shadow",
+      "name": "The Rising Shadow",
+      "description": "Fetched what Oracle Seraphina's ritual needed, and saw the dark cloud over the mountains.",
+      "rim": "gold",
+      "rule": {
+        "quest": "the-rising-shadow"
+      }
+    },
+    {
+      "id": "quest-the-black-flame",
+      "name": "The Black Flame",
+      "description": "Put out the black flame in the old watchtower on the Merchant's Highway.",
+      "rim": "gold",
+      "rule": {
+        "quest": "the-black-flame"
+      }
+    },
+    {
+      "id": "quest-the-shadows-source",
+      "name": "The Shadow's Source",
+      "description": "Found the source of the corruption in the Sunken Temple.",
+      "rim": "gold",
+      "rule": {
+        "quest": "the-shadows-source"
+      }
+    },
+    {
+      "id": "quest-barbarian-fishing",
+      "name": "Barbarian Fishing",
+      "description": "Caught a leaping salmon with your bare hands for Ottar Bare-Hand.",
+      "rim": "silver",
+      "rule": {
+        "quest": "barbarian-fishing"
+      }
+    },
+    {
+      "id": "quest-rats-of-goldenhaven",
+      "name": "The Rats of Goldenhaven",
+      "description": "Cleared the tavern cellar of its oversized rats.",
+      "rim": "silver",
+      "rule": {
+        "quest": "rats-of-goldenhaven"
+      }
+    },
+    {
+      "id": "quest-the-missing-heirloom",
+      "name": "The Missing Heirloom",
+      "description": "Got the Mayor's signet ring back from the highway bandits.",
+      "rim": "silver",
+      "rule": {
+        "quest": "the-missing-heirloom"
+      }
+    },
+    {
+      "id": "quest-the-missing-mule",
+      "name": "The Missing Mule",
+      "description": "Brought Buttercup the mule back from the mountain pass.",
+      "rim": "silver",
+      "rule": {
+        "quest": "the-missing-mule"
+      }
+    },
+    {
+      "id": "quest-the-one-that-got-away",
+      "name": "The One That Got Away",
+      "description": "Landed big ones for Finn Brackwater, in more than one kind of water.",
+      "rim": "silver",
+      "rule": {
+        "quest": "the-one-that-got-away"
+      }
+    },
+    {
+      "id": "quest-stone-goldenhaven",
+      "name": "The Golden Toll",
+      "description": "Brought the Scalekeeper's crate in with its seal unbroken.",
+      "rim": "silver",
+      "rule": {
+        "quest": "stone-goldenhaven"
+      }
+    },
+    {
+      "id": "quest-stone-ironpeak",
+      "name": "A Stone Worth Carving",
+      "description": "Fetched heartstone from a kobold-held seam for Thorin Ironledger.",
+      "rim": "silver",
+      "rule": {
+        "quest": "stone-ironpeak"
+      }
+    },
+    {
+      "id": "quest-stone-kingdom",
+      "name": "The Crown's Ledger",
+      "description": "Found the missing page of the Royal Ledger of Bonds.",
+      "rim": "silver",
+      "rule": {
+        "quest": "stone-kingdom"
+      }
+    },
+    {
+      "id": "quest-stone-marshlight",
+      "name": "Prove Your Mettle",
+      "description": "Killed the merrow taking Marshlight's fishers, and burned their nest.",
+      "rim": "silver",
+      "rule": {
+        "quest": "stone-marshlight"
+      }
+    },
+    {
+      "id": "quest-stone-millhaven",
+      "name": "Keys Go Missing",
+      "description": "Found Rosie Lockwood's three lost keys.",
+      "rim": "silver",
+      "rule": {
+        "quest": "stone-millhaven"
+      }
+    },
+    {
+      "id": "quest-stone-verdant",
+      "name": "Root and Song",
+      "description": "Were heard by the heartwood sapling of Verdant.",
+      "rim": "silver",
+      "rule": {
+        "quest": "stone-verdant"
+      }
+    },
+    {
+      "id": "quest-waystone-kingdom",
+      "name": "The Dormant Spire",
+      "description": "Woke the Kingdom's waystone.",
+      "rim": "silver",
+      "rule": {
+        "quest": "waystone-kingdom"
+      }
+    },
+    {
+      "id": "quest-waystone-millhaven",
+      "name": "The Windmill Stone",
+      "description": "Found Millhaven's lost crown-stone and woke its waystone.",
+      "rim": "silver",
+      "rule": {
+        "quest": "waystone-millhaven"
+      }
+    },
+    {
+      "id": "quest-waystone-verdant",
+      "name": "The Elders' Song",
+      "description": "Freed Verdant's waystone from what was strangling it.",
+      "rim": "silver",
+      "rule": {
+        "quest": "waystone-verdant"
+      }
+    },
+    {
+      "id": "quest-waystone-goldenhaven",
+      "name": "The Harbor Beacon",
+      "description": "Brought Goldenhaven's lodestone beacon home.",
+      "rim": "silver",
+      "rule": {
+        "quest": "waystone-goldenhaven"
+      }
+    },
+    {
+      "id": "quest-waystone-marshlight",
+      "name": "The Source of the Fade",
+      "description": "Struck at the Fade where it rises from Marshlight's black water.",
+      "rim": "silver",
+      "rule": {
+        "quest": "waystone-marshlight"
+      }
+    },
+    {
+      "id": "quest-waystone-ironpeak",
+      "name": "Beneath the Flooded Mine",
+      "description": "Woke the Deepstone, and the whole waystone network with it.",
+      "rim": "silver",
+      "rule": {
+        "quest": "waystone-ironpeak"
+      }
+    },
+    {
+      "id": "quest-paladins-vow",
+      "name": "The Paladin's Vow",
+      "description": "Laid the restless spirits of the Forgotten Battlefield to rest.",
+      "rim": "bronze",
+      "rule": {
+        "quest": "paladins-vow"
+      }
+    },
+    {
+      "id": "quest-rogues-shadow-trial",
+      "name": "The Rogue's Shadow Trial",
+      "description": "Passed the Master of Shadows' trial.",
+      "rim": "bronze",
+      "rule": {
+        "quest": "rogues-shadow-trial"
+      }
+    },
+    {
+      "id": "quest-elven-heritage",
+      "name": "Elven Heritage",
+      "description": "Restored the light of the forest's waystones.",
+      "rim": "bronze",
+      "rule": {
+        "quest": "elven-heritage"
+      }
+    },
+    {
+      "id": "quest-sword-of-the-ancestors",
+      "name": "The Axe of the Ancestors",
+      "description": "Recovered your clan's lost axe from the depths of the Flooded Mine.",
+      "rim": "bronze",
+      "rule": {
+        "quest": "sword-of-the-ancestors"
+      }
+    },
+    {
+      "id": "every-fish",
+      "name": "Angler of the Realm",
+      "description": "Caught one of every fish.",
+      "rim": "gems",
+      "rule": {
+        "collection": "fish"
+      }
+    },
+    {
+      "id": "every-gem",
+      "name": "The Jeweller's Eye",
+      "description": "Found one of every gem, pearls too.",
+      "rim": "gems",
+      "rule": {
+        "collection": "gems"
+      }
+    },
+    {
+      "id": "every-ore",
+      "name": "Deep Delver",
+      "description": "Mined every ore, iron to adamantine.",
+      "rim": "gems",
+      "rule": {
+        "collection": "ores"
+      }
+    },
+    {
+      "id": "every-song",
+      "name": "Every Song Heard",
+      "description": "Heard every song in the realm.",
+      "rim": "gems",
+      "rule": {
+        "collection": "songs"
+      }
+    },
+    {
+      "id": "every-town",
+      "name": "Freedom of the Realm",
+      "description": "Visited every town.",
+      "rim": "gems",
+      "rule": {
+        "collection": "towns"
+      }
+    },
+    {
+      "id": "every-wild",
+      "name": "Wayfarer",
+      "description": "Crossed every wild region.",
+      "rim": "gems",
+      "rule": {
+        "collection": "wilds"
+      }
+    },
+    {
+      "id": "every-place",
+      "name": "Cartographer",
+      "description": "Found every place there is: every town, every wild and every place of note.",
+      "rim": "gems",
+      "rule": {
+        "collection": "places"
+      }
+    },
+    {
+      "id": "dailies-10",
+      "name": "A Reliable Hand",
+      "description": "Did 10 dailies for the vault keepers.",
+      "rim": "iron",
+      "rule": {
+        "counter": "dailies_completed",
+        "at": 10
+      }
+    },
+    {
+      "id": "dailies-50",
+      "name": "Trusted by the Vaults",
+      "description": "Did 50 dailies for the vault keepers.",
+      "rim": "iron",
+      "rule": {
+        "counter": "dailies_completed",
+        "at": 50
+      }
+    },
+    {
+      "id": "dailies-100",
+      "name": "Pillar of the Realm",
+      "description": "Did 100 dailies for the vault keepers.",
+      "rim": "legend",
+      "rule": {
+        "counter": "dailies_completed",
+        "at": 100
+      }
+    },
+    {
+      "id": "level-5",
+      "name": "Adventurer's Mark",
+      "description": "Reached level 5.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 5
+      }
+    },
+    {
+      "id": "level-10",
+      "name": "Sworn Blade",
+      "description": "Reached level 10.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 10
+      }
+    },
+    {
+      "id": "level-15",
+      "name": "Knight of the Realm",
+      "description": "Reached level 15.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 15
+      }
+    },
+    {
+      "id": "level-16",
+      "name": "Bannerlord",
+      "description": "Reached level 16.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 16
+      }
+    },
+    {
+      "id": "level-17",
+      "name": "Champion",
+      "description": "Reached level 17.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 17
+      }
+    },
+    {
+      "id": "level-18",
+      "name": "Paragon",
+      "description": "Reached level 18.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 18
+      }
+    },
+    {
+      "id": "level-19",
+      "name": "Dragonsworn",
+      "description": "Reached level 19.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 19
+      }
+    },
+    {
+      "id": "level-20",
+      "name": "Legend of the Realm",
+      "description": "Reached level 20.",
+      "rim": "level",
+      "rank": "level",
+      "rule": {
+        "level": 20
+      }
+    }
+  ]
+}

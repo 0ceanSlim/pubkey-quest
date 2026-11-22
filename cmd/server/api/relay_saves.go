@@ -175,10 +175,18 @@ func PublishSaveHandler(w http.ResponseWriter, r *http.Request) {
 	session.RemoveJournal(req.Npub, req.SaveID)
 	// What you dropped isn't in the save, so it's anyone's now.
 	game.PublishSavedGround(sess, pending.GroundMark)
-	// The play it covers counts now.
-	game.CommitSavedStats(sess, pending.StatsMark)
+	// The play it covers counts now, and what the save as it was signed earned.
+	var kept types.SaveFile
+	if err := json.Unmarshal(pending.DiskJSON, &kept); err != nil {
+		kept = sess.SaveData
+	}
+	earned := game.CommitSavedStats(sess, pending.StatsMark, &kept)
 	log.Printf("✅ Signed save %s… for %s:%s stored on %d/%d relays", shortID(ev.ID), req.Npub, req.SaveID, len(accepted), len(results))
-	writeJSON(w, map[string]any{"success": true, "event_id": ev.ID, "relays": accepted, "refused": refused})
+	out := map[string]any{"success": true, "event_id": ev.ID, "relays": accepted, "refused": refused}
+	if len(earned) > 0 {
+		out["badges_earned"] = earned
+	}
+	writeJSON(w, out)
 }
 
 func sameTags(a, b [][]string) bool {
