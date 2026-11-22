@@ -121,7 +121,19 @@ record and badges stay.
 - Tests: net worth counts the vault and container contents; deleting your best character drops
   you to the next one.
 
-### 5. The DM signs (official only)
+### 5. The DM signs (official only) — BUILT 2026-11-21
+
+`cmd/server/dm`: `Init` signs only with the DM configured, stats on and `saves.validation` on.
+Badge definitions (30009, art from `badge-media.json`) at start, re-signed only when one changes
+(`data/dm/definitions.json`). After each kept save (and a character deleted), and every 10
+minutes, a sweep signs what's waiting: an award (8) per badge not yet awarded, to the DM's
+relays and the player's read relays; a score (30762) per board whose value changed, to the DM's
+relays and `relay.gamestr.io`; and the record itself (30078, `d` =
+`pubkey-quest:stats:<player hex>`) when it changed since last mirrored. Event ids go back in the
+record (`Awarded`, `Score.Event`, `Mirrored`). A record missing from the server is rebuilt from
+the newest mirror on the DM's relays. Known gap: a score whose last character is deleted stays
+on Gamestr at its old value.
+
 - Badge definitions (kind 30009) signed at start when one is new or changed: image and thumbs
   from `badge-media.json`.
 - Awards (kind 8) and scores (kind 30762) signed at commit.

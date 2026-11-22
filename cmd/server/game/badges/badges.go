@@ -208,3 +208,9 @@ func complete(members []string, had func(string) bool) bool {
 	}
 	return true
 }
+
+// SetMedia replaces the loaded badge art (tests).
+func SetMedia(m *types.BadgeMediaConfig) {
+	mediaOnce.Do(func() {})
+	media = m
+}

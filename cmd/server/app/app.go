@@ -8,6 +8,7 @@ import (
 
 	"pubkey-quest/cmd/server/auth"
 	"pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/dm"
 	"pubkey-quest/cmd/server/game/character"
 	"pubkey-quest/cmd/server/game/discovery"
 	"pubkey-quest/cmd/server/game/events"
@@ -40,6 +41,8 @@ func Init() {
 		log.Fatalf("❌ Dungeon Master: %v", err)
 	} else if ok {
 		log.Printf("✅ Dungeon Master: %s", utils.AppConfig.DM.Npub)
+		// On official he signs badges and scores; anywhere else he doesn't.
+		dm.Init()
 	}
 
 	// Wire the event-recorder consumers: the quest objective tracker advances

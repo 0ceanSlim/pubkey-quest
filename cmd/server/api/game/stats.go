@@ -6,6 +6,7 @@ import (
 	"time"
 
 	serverdb "pubkey-quest/cmd/server/db"
+	"pubkey-quest/cmd/server/dm"
 	"pubkey-quest/cmd/server/game/badges"
 	"pubkey-quest/cmd/server/game/boards"
 	"pubkey-quest/cmd/server/game/character"
@@ -41,6 +42,10 @@ func commitStats(sess *session.GameSession, mark int, kept *SaveFile) []string {
 	}
 	if len(earned) > 0 {
 		log.Printf("🏅 %s earned %v", sess.Npub, earned)
+	}
+	// On official the DM signs what changed, in the background.
+	if dm.Signs() {
+		go dm.SweepPlayer(sess.Npub)
 	}
 	return earned
 }
@@ -84,5 +89,8 @@ func DropFromBoards(npub, saveID string) {
 	err := stats.Update(npub, func(r *stats.Record) bool { return boards.Drop(r, saveID, time.Now().Unix()) })
 	if err != nil {
 		log.Printf("⚠️ Couldn't take %s:%s off the boards: %v", npub, saveID, err)
+	}
+	if dm.Signs() {
+		go dm.SweepPlayer(npub)
 	}
 }

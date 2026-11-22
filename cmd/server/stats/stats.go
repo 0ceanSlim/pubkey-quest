@@ -198,8 +198,14 @@ type Record struct {
 	// last kept save: slot (save id) → board → entry (game/boards).
 	Standing map[string]map[string]Entry `json:"standing,omitempty"`
 	// Scores are the player's score on each board now (game/boards).
-	Scores  map[string]Score `json:"scores,omitempty"`
-	Updated int64            `json:"updated_at"`
+	Scores map[string]Score `json:"scores,omitempty"`
+	// Awarded are the Dungeon Master's signed awards (kind 8) of the badges
+	// above: badge id → event id (official only, cmd/server/dm).
+	Awarded map[string]string `json:"awarded,omitempty"`
+	Updated int64             `json:"updated_at"`
+	// Mirrored is the Updated this record had when the DM last published it
+	// to relays, its store of record (official only).
+	Mirrored int64 `json:"mirrored,omitempty"`
 }
 
 // Entry is a number on a board and whose it is.
@@ -282,6 +288,10 @@ func Load(npub string) (Record, error) {
 	return load(npub)
 }
 
+// Rebuild, when set (the DM, on official), fetches a player's record from
+// relays when the server has no copy: the relays are the store of record.
+var Rebuild func(npub string) (Record, bool)
+
 func load(npub string) (Record, error) {
 	var r Record
 	path, err := recordPath(npub)
@@ -290,6 +300,11 @@ func load(npub string) (Record, error) {
 	}
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
+		if Rebuild != nil {
+			if got, ok := Rebuild(npub); ok {
+				return got, write(npub, got)
+			}
+		}
 		return r, nil
 	}
 	if err != nil {
@@ -312,6 +327,29 @@ func Update(npub string, change func(r *Record) bool) error {
 	}
 	r.Updated = time.Now().Unix()
 	return write(npub, r)
+}
+
+// Note writes bookkeeping about a record (the DM's event ids) without
+// counting it as a change.
+func Note(npub string, change func(r *Record)) error {
+	recordMu.Lock()
+	defer recordMu.Unlock()
+	r, err := load(npub)
+	if err != nil {
+		return err
+	}
+	change(&r)
+	return write(npub, r)
+}
+
+// Players lists every player with a record.
+func Players() []string {
+	paths, _ := filepath.Glob(filepath.Join(Dir, "*.json"))
+	out := make([]string, 0, len(paths))
+	for _, p := range paths {
+		out = append(out, strings.TrimSuffix(filepath.Base(p), ".json"))
+	}
+	return out
 }
 
 func write(npub string, r Record) error {

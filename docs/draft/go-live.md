@@ -24,6 +24,10 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
       `saves.validation: true` (only then does the DM sign badges and scores).
 - [ ] After deploying the badge build: `codex --migrate` on each host (loads `badges.json` and
       `badge-media.json`).
+- [ ] After the official server first starts with stats on: check the DM's 43 badge
+      definitions (kind 30009) reached his relays (`data/dm/definitions.json` lists them).
+- [ ] Back up `data/stats/` and `data/dm/` on official with `data/` (the relays hold the
+      records too, but the server's copy is the fast one).
 - [ ] Gamestr: ask for Pubkey Quest to be listed with the DM's npub as its developer pubkey and
       `xp` as the main board. A sponsored spot, when you want one, is the same listing.
 
