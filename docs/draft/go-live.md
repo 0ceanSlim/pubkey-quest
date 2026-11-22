@@ -10,8 +10,8 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
 - [ ] **Back up his nsec** (password manager). `config.yml` is the only copy.
 - [x] `dm@oslim.dev` in oslim.dev's `nostr.json` (also whitelists him on wheat).
 - [x] Profile (kind 0), relay lists (10002, 10050) published; picture and banner on Blossom.
-- [ ] **Copy the whole `dm:` block to the test host's `config.yml`** (same key: test and
-      official share the DM).
+- [x] Test host (nodebox, `/home/satoshi/pubkey-test`, service runs as `satoshi`) gets **no** `dm:` block: without the key the DM
+      can't sign there whatever `saves.validation` says, and the nsec stays on fewer machines.
 - [ ] **Copy the `dm:` block to the official host's `config.yml`.**
 - [ ] At launch: switch the wiki link in `dm.about` from test.pubkey.quest/wiki to
       pubkey.quest/wiki and republish his profile.
@@ -22,8 +22,8 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
 - [ ] **Test host `config.yml`: `stats: enabled: true`.** Without it test counts nothing.
 - [ ] **Official host `config.yml`: `stats: enabled: true`,** with `saves.relay: true` and
       `saves.validation: true` (only then does the DM sign badges and scores).
-- [ ] After deploying the badge build: `codex --migrate` on each host (loads `badges.json` and
-      `badge-media.json`).
+- [ ] After deploying the badge build: `codex --migrate` on the official host (loads
+      `badges.json` and `badge-media.json`). Test needs nothing: `deploy-test.yml` migrates.
 - [ ] After the official server first starts with stats on: check the DM's 43 badge
       definitions (kind 30009) reached his relays (`data/dm/definitions.json` lists them).
 - [ ] Back up `data/stats/` and `data/dm/` on official with `data/` (the relays hold the
