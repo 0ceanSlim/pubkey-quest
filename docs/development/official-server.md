@@ -6,9 +6,10 @@ How the official server is built, configured and deployed. The design is in
 ## What runs there
 
 **One binary.** It's built by the **Release** workflow (`.github/workflows/release.yml`)
-after CI passes on `main`:
-- tagged `v0.1.N`, the version going up automatically;
-- published as a GitHub release with `SHA256SUMS`.
+when you push a version tag:
+- the tag must be on `main` and its commit must have passed CI;
+- published as a GitHub release with `SHA256SUMS`;
+- then deployed to pubkey.quest straight away (below).
 
 **What the binary carries:** the frontend bundle, the templates and art, and the game data.
 
@@ -68,9 +69,22 @@ There's no separate `codex --migrate` step, and no repo checkout on the server.
 
 ## Deploying
 
-Run **Actions → "Deploy: pubkey.quest" → Run workflow**, with a version or `latest`.
+**A version tag goes live.** Push to `main` as usual (test updates every time). When test is
+where you want production, tag that commit and push the tag:
 
-The workflow then:
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+Versions must sort above the last one (`v0.1.53` was the last automatic release). The Release
+workflow waits for CI on that commit, builds and publishes the release, then runs
+"Deploy: pubkey.quest" with it. Everything since the last tag reaches players at once.
+
+To redeploy or roll back by hand, run **Actions → "Deploy: pubkey.quest" → Run workflow** with a
+version or `latest`.
+
+The deploy then:
 1. downloads that release's binary;
 2. checks it against `SHA256SUMS`;
 3. keeps the old binary as `pubkey-quest.previous`;

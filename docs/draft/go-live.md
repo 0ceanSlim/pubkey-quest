@@ -23,8 +23,6 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
       "Stats store on" and no Dungeon Master line.
 - [ ] **Official host `config.yml`: `stats: enabled: true`,** with `saves.relay: true` and
       `saves.validation: true` (only then does the DM sign badges and scores).
-- [ ] After deploying the badge build: `codex --migrate` on the official host (loads
-      `badges.json` and `badge-media.json`). Test needs nothing: `deploy-test.yml` migrates.
 - [ ] After the official server first starts with stats on: check the DM's 43 badge
       definitions (kind 30009) reached his relays (`data/dm/definitions.json` lists them).
 - [ ] Back up `data/stats/` and `data/dm/` on official with `data/` (the relays hold the
@@ -33,4 +31,9 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
       `xp` as the main board. A sponsored spot, when you want one, is the same listing.
 
 ## Official launch
+- [ ] The official host set up per `docs/development/official-server.md` (service, `config.yml`,
+      a self-hosted runner labelled `official`). Without the runner a tag's deploy waits in the
+      queue.
+- [ ] Push the first beta tag (`git tag v0.2.0 && git push origin v0.2.0`): it builds the
+      release and deploys it. The binary rebuilds its own `game.db`; no `codex --migrate` there.
 - [ ] `launch.closed: false` on official.

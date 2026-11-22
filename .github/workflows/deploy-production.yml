@@ -1,16 +1,24 @@
 name: "Deploy: pubkey.quest"
 
-# Manual promote: install one CI release on the official server. Only release
-# binaries built and checksummed by the Release workflow ever run here
-# (docs/draft/relay-saves-plan.md §6). Setup: docs/development/official-server.md.
+# Install one CI release on the official server. A pushed version tag runs
+# this after building its release (release.yml); run it by hand to redeploy or
+# roll back to an older release. Only release binaries built and checksummed by
+# the Release workflow ever run here (docs/draft/relay-saves-plan.md §6).
+# Setup: docs/development/official-server.md.
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release to deploy (e.g. v0.1.12), or 'latest'"
+        description: "Release to deploy (e.g. v0.2.0), or 'latest'"
         required: true
         default: latest
+  workflow_call:
+    inputs:
+      version:
+        description: "Release to deploy"
+        required: true
+        type: string
 
 concurrency:
   group: deploy-production
@@ -26,7 +34,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          V="${{ github.event.inputs.version }}"
+          V="${{ inputs.version }}"
           if [ "$V" = "latest" ]; then
             V=$(gh release list -R "${{ github.repository }}" --limit 1 --json tagName -q '.[0].tagName')
           fi
