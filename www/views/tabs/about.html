@@ -1,161 +1,52 @@
 {{define "tab-about"}}
 <div id="tab-about" class="tab-content hidden">
   <div class="rounded-xl shadow-xl overflow-hidden win95-outset">
-    <div class="p-6 md:p-8">
-      <h2 class="text-3xl font-bold mb-6" style="color: var(--color-textHighlighted);">
-        📚 About Pubkey Quest
-      </h2>
-
-      <!-- Origin Story -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4">The Origin Story</h3>
-        <p class="mb-4 leading-relaxed">
-          Pubkey Quest began as a simple idea: <strong>what if your Nostr public key could become a D&D character?</strong>
-        </p>
-        <p class="mb-4 leading-relaxed">
-          Using deterministic algorithms, your unique npub generates a consistent hero with a specific race, class,
-          background, stats, and starting equipment. The same key always produces the same character—no randomness,
-          no RNG, just cryptographic destiny.
-        </p>
-        <p class="mb-4 leading-relaxed">
-          What started as character generation evolved into a full web-based RPG. Now you can take that deterministic
-          hero on actual adventures: explore locations, fight monsters, cast spells, complete quests, and build a legend.
+    <div class="p-6 md:p-8 space-y-8">
+      <div>
+        <h2 class="text-3xl font-bold mb-4" style="color: var(--color-textHighlighted);">📚 About Pubkey Quest</h2>
+        <p class="leading-relaxed">
+          A D&amp;D 5e-inspired RPG in your browser. Sign in with Nostr and your key becomes your hero:
+          race, class, background, ability scores and starting gear all come from your npub. The same key
+          always makes the same character.
         </p>
       </div>
 
-      <!-- How It Works -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4">How Deterministic Generation Works</h3>
-        <div class="space-y-4">
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">1. Your Nostr Key = The Seed</h4>
-            <p class="text-sm">
-              Your npub is hashed and used as the seed for all character generation. Same key = same character, always.
-            </p>
-          </div>
-
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">2. Race Selection</h4>
-            <p class="text-sm">
-              Weighted distribution determines your race (Human, Elf, Dwarf, etc.). Different races have
-              different probabilities based on fantasy population dynamics.
-            </p>
-          </div>
-
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">3. Class Selection</h4>
-            <p class="text-sm">
-              Your race influences class weights. Elves are more likely to be Rangers, Dwarves favor Fighters, etc.
-              The seed picks from these weighted options.
-            </p>
-          </div>
-
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">4. Background & Alignment</h4>
-            <p class="text-sm">
-              Background is influenced by class (Rogues get Criminal, Wizards get Sage). Alignment is independently
-              generated but flavors your character's personality.
-            </p>
-          </div>
-
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">5. Ability Scores</h4>
-            <p class="text-sm mb-2">
-              All six stats (STR, DEX, CON, INT, WIS, CHA) start at a base of 10. A weighted tier system determines
-              your total stat budget:
-            </p>
-            <ul class="text-sm ml-4 mb-2 space-y-1">
-              <li>• <strong>25% chance:</strong> 79-81 total points (slightly weaker)</li>
-              <li>• <strong>65% chance:</strong> 82-86 total points (average)</li>
-              <li>• <strong>10% chance:</strong> 87-89 total points (slightly stronger)</li>
-            </ul>
-            <p class="text-sm">
-              Your class's two primary stats are set to a minimum of 15 (e.g., Wizards get INT 15 + WIS 15).
-              Remaining points are distributed across all stats, capped at 16 per stat. As you level up to 20,
-              you'll earn 11 additional stat points to distribute, giving the strongest characters a maximum total of 100.
-            </p>
-          </div>
-
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2" style="color: var(--color-textHighlighted);">6. Starting Equipment</h4>
-            <p class="text-sm">
-              Class and background determine starting gear. Fighters get martial weapons and armor,
-              Wizards get spellbooks and component pouches, etc.
-            </p>
-          </div>
+      <div>
+        <h3 class="text-xl font-bold mb-3">What you can do</h3>
+        <div class="grid sm:grid-cols-2 gap-3 text-sm">
+          <div class="win95-inset p-3 rounded-lg"><b>🗺️ Explore</b> towns, roads and wilds, with day and night, weather and places to find.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>⚔️ Fight</b> on a grid with weapons, spells, class abilities and conditions.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>📜 Quest</b> through story and side quests, waystones, and dailies from the vault keepers.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>🍖 Survive</b> hunger, fatigue, the cold and the heat. Pack food, water and a fire.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>🎣 Gather</b> by fishing and mining. Cut gems at the jeweller and have them enchanted.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>👥 Play together</b> with friends, chat and parties that travel and fight as one.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>🏆 Compete</b> for badges and highscores, kept by the Dungeon Master.</div>
+          <div class="win95-inset p-3 rounded-lg"><b>💾 Save</b> when you choose to. No autosave: your progress is what you keep.</div>
         </div>
       </div>
 
-      <!-- Nostr Integration -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4">Nostr Integration</h3>
-        <p class="mb-4">
-          Pubkey Quest uses the Nostr protocol for authentication and future features:
-        </p>
-        <ul class="list-disc ml-6 space-y-2">
-          <li><strong>NIP-07:</strong> Nostr key signing for authentication</li>
-          <li><strong>Amber:</strong> Android key signer support</li>
-          <li><strong>Future:</strong> Save files as Nostr events for cross-client play</li>
-          <li><strong>Future:</strong> Achievement badges (NIP-58)</li>
-          <li><strong>Future:</strong> In-game notes and long-form articles</li>
+      <div>
+        <h3 class="text-xl font-bold mb-3">Yours, on Nostr</h3>
+        <ul class="list-disc ml-6 space-y-2 text-sm">
+          <li>Your saves are events you sign, kept on your own relays. The server checks them, never holds your key.</li>
+          <li>Badges are NIP-58 awards from the
+            <a href="https://njump.me/npub1sw8vxd4gapxhysytdqe0j95yks8hwx8a8z20rg9agsalhe5t5xrqrvmq3a" target="_blank" class="underline" style="color: var(--color-textHighlighted);">Dungeon Master</a>,
+            and highscores go to Gamestr.</li>
+          <li>The game is in beta: no wipes. What you earn now stays.</li>
         </ul>
       </div>
 
-      <!-- Tech Stack -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4">Tech Stack</h3>
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2">Backend</h4>
-            <ul class="text-sm space-y-1">
-              <li>• Go HTTP Server</li>
-              <li>• SQLite Database</li>
-              <li>• JSON Data Files</li>
-              <li>• Grain (Nostr Auth)</li>
-            </ul>
-          </div>
-          <div class="win95-inset p-4 rounded-lg">
-            <h4 class="font-bold mb-2">Frontend</h4>
-            <ul class="text-sm space-y-1">
-              <li>• Vanilla JavaScript</li>
-              <li>• TailwindCSS</li>
-              <li>• Go Templates</li>
-              <li>• Pixel Art Assets</li>
-            </ul>
-          </div>
-        </div>
+      <div>
+        <h3 class="text-xl font-bold mb-3">What's next</h3>
+        <p class="text-sm mb-2">The main story as one chain from level 1 to 20, quests and fights built for parties,
+          and more art, music and polish. Every change lands in
+          <a href="#updates" class="underline" style="color: var(--color-textHighlighted);">Updates</a>.</p>
       </div>
 
-      <!-- Registries & Resources -->
-      <div class="mb-8">
-        <h3 class="text-2xl font-bold mb-4">Community & Resources</h3>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <a
-            href="/alpha-registry"
-            class="win95-button pixel-clip p-4 text-center hover:opacity-80 transition"
-            style="color: var(--color-textPrimary);"
-          >
-            <div class="text-3xl mb-2">📜</div>
-            <div class="font-bold mb-1">Alpha Registry</div>
-            <div class="text-xs" style="color: var(--color-textMuted);">Pre-alpha testers & contributors</div>
-          </a>
-          <a
-            href="/legacy-registry"
-            class="win95-button pixel-clip p-4 text-center hover:opacity-80 transition"
-            style="color: var(--color-textPrimary);"
-          >
-            <div class="text-3xl mb-2">🗡️</div>
-            <div class="font-bold mb-1">Legacy Registry</div>
-            <div class="text-xs" style="color: var(--color-textMuted);">Hall of legendary heroes</div>
-          </a>
-        </div>
-      </div>
-
-      <!-- View Weights -->
-      <div class="text-center">
-        <a href="/data/systems/new-character/generation-weights.json" target="_blank" class="pixel-button pixel-clip px-6 py-3" style="color: var(--color-textPrimary);">
-          🔍 View Generation Weights (JSON)
-        </a>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="/alpha-registry" class="win95-button pixel-clip px-4 py-2 text-sm hover:opacity-80" style="color: var(--color-textPrimary);">📜 Alpha Registry</a>
+        <a href="/legacy-registry" class="win95-button pixel-clip px-4 py-2 text-sm hover:opacity-80" style="color: var(--color-textPrimary);">🗡️ Legacy Registry</a>
+        <a href="/data/systems/new-character/generation-weights.json" target="_blank" class="win95-button pixel-clip px-4 py-2 text-sm hover:opacity-80" style="color: var(--color-textPrimary);">🔍 Generation weights</a>
       </div>
     </div>
   </div>

@@ -15,7 +15,7 @@ import { logger } from '../lib/logger.js';
  */
 class TabManager {
     constructor() {
-        this.tabs = ['home', 'updates', 'roadmap', 'about', 'contribute', 'wiki'];
+        this.tabs = ['home', 'updates', 'about', 'contribute', 'wiki'];
         this.currentTab = 'home';
         this.init();
     }
@@ -26,7 +26,8 @@ class TabManager {
     init() {
         // Load tab from URL hash if present. "#updates/<id>" opens a tab and
         // scrolls to one entry in it (the in-game "what's new" links).
-        const [hash, anchor] = window.location.hash.slice(1).split('/');
+        let [hash, anchor] = window.location.hash.slice(1).split('/');
+        if (hash === 'roadmap') hash = 'about'; // the old Roadmap tab, folded into About
         if (hash && this.tabs.includes(hash)) {
             this.currentTab = hash;
         }
