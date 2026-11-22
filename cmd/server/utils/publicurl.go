@@ -82,13 +82,34 @@ func PublicURL(raw string, schemes ...string) bool {
 	return okScheme && PublicHost(u.Hostname())
 }
 
-// PublicRelays keeps the relay URLs (wss://, or ws://) that point at public hosts.
+// PublicRelays keeps the relay URLs (wss://, or ws://) that point at public
+// hosts, each written the way Grain keys its connections (RelayURL), once.
 func PublicRelays(urls []string) []string {
 	out := make([]string, 0, len(urls))
+	seen := map[string]bool{}
 	for _, u := range urls {
-		if PublicURL(u, "wss", "ws") {
-			out = append(out, u)
+		if !PublicURL(u, "wss", "ws") {
+			continue
+		}
+		if n := RelayURL(u); !seen[n] {
+			seen[n] = true
+			out = append(out, n)
 		}
 	}
 	return out
+}
+
+// RelayURL writes a relay URL as Grain's pool keys it: lowercase host, no
+// trailing slash, no fragment. Grain dials the normalized URL but sends by the
+// one it was given, so "wss://relay.example/" connects and then fails "not
+// connected" unless it's normalized first.
+func RelayURL(raw string) string {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || u.Host == "" {
+		return strings.TrimSpace(raw)
+	}
+	u.Host = strings.ToLower(u.Host)
+	u.Path = strings.TrimRight(u.Path, "/")
+	u.Fragment = ""
+	return u.String()
 }

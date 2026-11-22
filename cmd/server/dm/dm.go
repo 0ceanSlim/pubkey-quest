@@ -68,8 +68,8 @@ func Init() bool {
 	signer, pubHex = s, pub
 	stats.Rebuild = rebuild
 	go func() {
-		PublishDefinitions()
 		for {
+			PublishDefinitions() // any not yet out
 			SweepAll()
 			time.Sleep(10 * time.Minute)
 		}

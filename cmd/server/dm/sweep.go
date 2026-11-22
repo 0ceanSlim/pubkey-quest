@@ -17,6 +17,7 @@ import (
 
 	"pubkey-quest/cmd/server/game/badges"
 	"pubkey-quest/cmd/server/stats"
+	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/types"
 )
 
@@ -123,7 +124,7 @@ func rebuild(npub string) (stats.Record, bool) {
 	defer cancel()
 	filter := nostr.Filter{Authors: []string{pubHex}, Kinds: []int{KindAppData}, Tags: map[string][]string{"d": {recordD(player)}}}
 	var newest *nostr.Event
-	for ev := range c.StreamEvents(ctx, filter, relays()) {
+	for ev := range c.StreamEvents(ctx, filter, utils.PublicRelays(relays())) {
 		if ev.PubKey == pubHex && (newest == nil || ev.CreatedAt > newest.CreatedAt) {
 			newest = ev
 		}
@@ -151,7 +152,7 @@ func PublishDefinitions() {
 		json.Unmarshal(data, &published)
 	}
 	media := badges.Media().Badges
-	changed := 0
+	changed, failed := 0, 0
 	for _, b := range badges.Config().Badges {
 		h := definitionHash(b, media[b.ID])
 		if published[b.ID] == h {
@@ -160,7 +161,12 @@ func PublishDefinitions() {
 		if send(Definition(b, media[b.ID])) != "" {
 			published[b.ID] = h
 			changed++
+		} else {
+			failed++
 		}
+	}
+	if failed > 0 {
+		log.Printf("⚠️ Dungeon Master: %d badge definition(s) reached no relay; retrying at the next sweep", failed)
 	}
 	if changed == 0 {
 		return
