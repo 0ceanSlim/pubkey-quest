@@ -17,7 +17,8 @@ Status: **DRAFT 2026-11-21, for your review.** Nothing built. The engine, events
 
 **Ids:** a quest badge is `quest-<quest id>` (the caretaker's letters share
 `quest-caretakers-letter`); the rest are `every-fish`, `every-gem`, `every-ore`, `every-song`,
-`every-town`, `every-wild`, `every-place`, `level-20`, `dailies-10`, `dailies-50`, `dailies-100`.
+`every-town`, `every-wild`, `every-place`, `level-5` … `level-20`, `dailies-10`, `dailies-50`,
+`dailies-100`.
 
 ## 1. Main story — one per main quest
 
@@ -79,7 +80,6 @@ Most classes and races have no quest yet. Each one written later gets its badge.
 | **Freedom of the Realm** | visited every town | 9 towns | the save |
 | **Wayfarer** | crossed every wild region | 9 regions | the save |
 | **Cartographer** | found every place: towns, wilds and every point of interest | 51 today | the save |
-| **Legend of the Realm** | reached level 20 | — | the save |
 
 A set grows with content (a new fish species, a new town), so a badge says what it covered
 when it was earned, and a new member doesn't take an earned badge away.
@@ -94,19 +94,40 @@ when it was earned, and a new member doesn't take an earned badge away.
 
 Dailies count once per npub per day, however many of your characters do them.
 
+## 6. Levels — a rank that grows
+
+One badge at **levels 5, 10, 15, 16, 17, 18, 19 and 20**, each grander than the last (your call,
+2026-11-21). They're read from the save: a character who reaches the level earns it, and one
+who's already past it gets every step they've passed at their next save.
+
+**A player shows their highest.** Every level badge earned stays awarded, but the game's badge
+screen and the player's profile badges (kind 30008, which the game fills in) show only the
+highest, like a rank.
+
+| Badge | Level | Look |
+|---|---|---|
+| **Adventurer's Mark** | 5 | plain iron rim; a short sword and walking staff |
+| **Sworn Blade** | 10 | polished steel; longsword and round shield |
+| **Knight of the Realm** | 15 | gold with four rubies; sword, kite shield, laurel |
+| **Bannerlord** | 16 | gold ringed with rubies and a star; sword and war banner |
+| **Champion** | 17 | platinum with sapphires and small wings; enchanted sword |
+| **Paragon** | 18 | glowing mithral, diamonds, larger wings and a crown; runed sword, griffin shield |
+| **Dragonsworn** | 19 | glowing adamantine, dragon-scale wings, spiked crown; a dragon around a blade |
+| **Legend of the Realm** | 20 | super epic: obsidian with molten-gold runes, a crown of flames, golden dragon wings and a jewelled crown; a blazing hero's sword |
+
 ---
 
-**The list: 36 badges** (4 main, 17 side, 4 class and race, 8 collections, 3 milestones).
+**The list: 43 badges** (4 main, 17 side, 4 class and race, 7 collections, 3 milestones,
+8 levels).
 
-### Candidates (not in the 36; your call)
+### Candidates (not in the 43; your call)
 - **Every hearth:** all six stone quests. They're independent, so unlike the waystones it's a
   real extra.
 - **Bestiary:** slain every kind of monster. 75 kinds, and not all of them appear anywhere yet.
-- **Level steps:** 5, 10 and 15 on the way to Legend.
 - **Weeklies 5 / 25:** waits for weekly quests (none are written yet).
 - **Founder:** played during the open beta. Not completion, but a nice thank-you.
 
-## 6. The art
+## 7. The art
 
 - **One image per badge, 1024×1024**, NIP-58's recommended size, plus two thumbnails: 256 for
   badge lists and profiles, 64 for inline icons. The DM's kind 30009 definition carries
@@ -127,7 +148,8 @@ Dailies count once per npub per day, however many of your characters do them.
   - **gem-set:** collections;
   - **plain iron, notched by step:** milestones;
   - **legendary** (black obsidian, glowing gold runes, a crown of flames): the hardest few.
-    Today that's **Legend of the Realm** (level 20) and **Pillar of the Realm** (100 dailies).
+    Today that's **Pillar of the Realm** (100 dailies). The level badges have their own rising
+    rims, topped by Legend of the Realm.
     Any badge can be promoted to it at approval, and later extra-hard achievements get it too.
 - **You approve every badge one by one.** Candidates wait in `www/res/img/badges/_candidates/<id>/`
   (gitignored). Publish a pick with
