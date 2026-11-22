@@ -6,6 +6,8 @@ Gamestr's game directory is hardcoded in its site: `INITIAL_GAME_CONFIG` in
 **verified**. The DM already signs every score in their format (`cmd/server/dm/events.go`,
 kind 30762 to `wss://relay.gamestr.io`); listing only adds the name, art and board tabs.
 
+Sent as [teamgamestr/gamestr#68](https://github.com/teamgamestr/gamestr/pull/68) on 2026-11-22.
+
 Two ways in: a PR adding the entry below, or "Claim this game" on
 gamestr.io/games/pubkey-quest (a NIP-17 DM to Gamestr's pubkey `5748fbe6…2453`). The page only
 exists once a first score is published.
