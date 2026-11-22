@@ -100,6 +100,9 @@ One badge at **levels 5, 10, 15, 16, 17, 18, 19 and 20**, each grander than the 
 2026-11-21). They're read from the save: a character who reaches the level earns it, and one
 who's already past it gets every step they've passed at their next save.
 
+**The number is on the badge, big:** a bold numeral on a ribbon across the lower third,
+readable even as a 64-pixel thumb. It's the only text on any badge.
+
 **A player shows their highest.** Every level badge earned stays awarded, but the game's badge
 screen and the player's profile badges (kind 30008, which the game fills in) show only the
 highest, like a rank.
@@ -159,7 +162,9 @@ highest, like a rank.
   that, cut to 256 colours (`imagegen/quantize.go`, a median cut that splits where the colour
   error is largest). That takes the 1024 from about 1 MB to about 320 KB; the thumbs are about
   35 KB and 4 KB. Side by side with the original there's no visible difference.
-- **Picked so far:** Heir to the Vault, The One That Got Away and Angler of the Realm (Sunburst
-  v1 of each).
+- **Picked so far:** Heir to the Vault, The One That Got Away, Angler of the Realm, The Rising
+  Shadow, The Black Flame, The Shadow's Source, Barbarian Fishing and The Rats of Goldenhaven.
+  For the levels you chose the art of 5 (v2), 10 (v2), 15 (v1) and 20 (v1); Sunburst edits
+  those to add the number, and draws 16–19 with theirs, matched to 15 and 20.
 - **Hosted on the main server:** the files are committed and served at
   `https://pubkey.quest/res/img/badges/`, so a badge's image lives as long as the game does.
