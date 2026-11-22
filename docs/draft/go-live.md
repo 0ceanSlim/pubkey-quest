@@ -19,7 +19,8 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
       republish both. `offchain.pub` refused connections on 2026-11-21: check it.
 
 ## Stats, badges, highscores
-- [ ] **Test host `config.yml`: `stats: enabled: true`.** Without it test counts nothing.
+- [x] **Test host `config.yml`: `stats: enabled: true`.** Done 2026-11-22; the server logs
+      "Stats store on" and no Dungeon Master line.
 - [ ] **Official host `config.yml`: `stats: enabled: true`,** with `saves.relay: true` and
       `saves.validation: true` (only then does the DM sign badges and scores).
 - [ ] After deploying the badge build: `codex --migrate` on the official host (loads
