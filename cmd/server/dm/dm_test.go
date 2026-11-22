@@ -33,10 +33,11 @@ func asDM(t *testing.T) *sent {
 	}
 	s, _ := core.NewEventSigner(kp.PrivateKey)
 	oldSigner, oldPub, oldPublish := signer, pubHex, publishFn
-	oldOn, oldDir, oldDefs := stats.Enabled, stats.Dir, DefinitionsFile
+	oldOn, oldDir, oldDefs, oldPosts := stats.Enabled, stats.Dir, DefinitionsFile, PostsFile
 	signer, pubHex = s, kp.PublicKey
 	stats.Enabled, stats.Dir = true, t.TempDir()
 	DefinitionsFile = filepath.Join(t.TempDir(), "definitions.json")
+	PostsFile = filepath.Join(t.TempDir(), "posts.json")
 	got := &sent{}
 	publishFn = func(_ context.Context, ev *nostr.Event, relays []string) []string {
 		if got.fail {
@@ -47,7 +48,7 @@ func asDM(t *testing.T) *sent {
 	}
 	t.Cleanup(func() {
 		signer, pubHex, publishFn = oldSigner, oldPub, oldPublish
-		stats.Enabled, stats.Dir, DefinitionsFile = oldOn, oldDir, oldDefs
+		stats.Enabled, stats.Dir, DefinitionsFile, PostsFile = oldOn, oldDir, oldDefs, oldPosts
 	})
 	return got
 }

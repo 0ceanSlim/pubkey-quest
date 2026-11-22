@@ -27,8 +27,11 @@ listed. Newest work adds to the bottom of its section; tick items off as they're
       definitions (kind 30009) reached his relays (`data/dm/definitions.json` lists them).
 - [ ] Back up `data/stats/` and `data/dm/` on official with `data/` (the relays hold the
       records too, but the server's copy is the fast one).
-- [ ] Gamestr: ask for Pubkey Quest to be listed with the DM's npub as its developer pubkey and
-      `xp` as the main board. A sponsored spot, when you want one, is the same listing.
+- [ ] Gamestr: listed by a PR to teamgamestr/gamestr's `gameConfig.ts` or "Claim this game"; the
+      entry is drafted in `docs/draft/gamestr-listing.md`. A sponsored spot is `featured` there.
+- [ ] After the release with update posts: the DM's first run posts only the newest update as a
+      kind 1 note (`data/dm/posts.json` records each); every later update entry posts once when
+      its release goes live.
 
 ## Official launch
 - [x] The official host set up per `docs/development/official-server.md` (service, `config.yml`,

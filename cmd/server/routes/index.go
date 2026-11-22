@@ -17,7 +17,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		// The Wiki tab links to /wiki only on servers that serve one.
 		CustomData: map[string]interface{}{
 			"WikiEnabled": utils.AppConfig.Wiki.URL != "",
-			"Updates":     loadUpdates(),
+			"Updates":     utils.LoadUpdates(),
 		},
 	}
 

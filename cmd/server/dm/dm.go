@@ -70,6 +70,7 @@ func Init() bool {
 	go func() {
 		for {
 			PublishDefinitions() // any not yet out
+			PublishUpdates()     // a release's new update notes
 			SweepAll()
 			time.Sleep(10 * time.Minute)
 		}
