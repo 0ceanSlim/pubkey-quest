@@ -202,7 +202,12 @@ type Record struct {
 	// Awarded are the Dungeon Master's signed awards (kind 8) of the badges
 	// above: badge id → event id (official only, cmd/server/dm).
 	Awarded map[string]string `json:"awarded,omitempty"`
-	Updated int64             `json:"updated_at"`
+	// Gamestr is the Dungeon Master's one score for the player on Gamestr
+	// (kind 30762), once published, and Scored what it carried (dm.ScoreKey),
+	// so it's signed again only when the scores change (official only).
+	Gamestr string `json:"gamestr,omitempty"`
+	Scored  string `json:"scored,omitempty"`
+	Updated int64  `json:"updated_at"`
 	// Mirrored is the Updated this record had when the DM last published it
 	// to relays, its store of record (official only).
 	Mirrored int64 `json:"mirrored,omitempty"`
@@ -219,8 +224,8 @@ type Entry struct {
 type Score struct {
 	Entry
 	At int64 `json:"at"` // when it last changed
-	// Event is the Dungeon Master's signed score (kind 30762) for this value,
-	// once published; "" while it waits (official only).
+	// Event is this board's own Gamestr score (kind 30762), from before the
+	// Dungeon Master posted one per player (Record.Gamestr); it's retired.
 	Event string `json:"e,omitempty"`
 }
 

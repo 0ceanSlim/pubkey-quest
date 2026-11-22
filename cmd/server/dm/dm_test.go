@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/0ceanslim/grain/client/core"
@@ -80,13 +81,34 @@ func TestEvents(t *testing.T) {
 	if award.Kind != 8 || tag(award, "a")[1] != "30009:dmhex:every-fish" || tag(award, "p")[1] != "playerhex" {
 		t.Errorf("award %+v", award.Tags)
 	}
-	score := Score(boards.XP, stats.Score{Entry: stats.Entry{Value: 23400, Who: "Mara", Detail: "level 7 Druid"}}, "playerhex")
-	if score.Kind != 30762 || tag(score, "d")[1] != "pubkey-quest:playerhex:xp" || tag(score, "score")[1] != "23400" ||
-		tag(score, "level")[1] != "xp" || tag(score, "game")[1] != "pubkey-quest" {
+	r := stats.Record{Badges: map[string]int64{"level-5": 1, "every-fish": 2}, Scores: map[string]stats.Score{
+		boards.XP:                    {Entry: stats.Entry{Value: 23400, Who: "Mara", Detail: "level 7 Druid"}},
+		boards.NetWorth:              {Entry: stats.Entry{Value: 12685, Who: "Mara", Detail: "level 7 Druid"}},
+		boards.Biggest + "river-pike": {Entry: stats.Entry{Value: 310, Who: "Bram", Detail: "river-pike"}},
+		boards.Badges:                {Entry: stats.Entry{Value: 2}},
+	}}
+	score := Score(r, "playerhex")
+	if score.Kind != 30762 || tag(score, "d")[1] != "pubkey-quest:playerhex" || tag(score, "score")[1] != "23400" ||
+		tag(score, "game")[1] != "pubkey-quest" || tag(score, "level") != nil || tag(score, "mode") != nil ||
+		tag(score, "net-worth")[1] != "12685" || tag(score, "biggest-river-pike")[1] != "310" ||
+		tag(score, "achievements")[1] != "every-fish,level-5" {
 		t.Errorf("score %+v", score.Tags)
 	}
-	if score.Content != "Mara, level 7 Druid: 23,400 XP." {
-		t.Errorf("score line %q", score.Content)
+	want := "Mara, level 7 Druid: 23,400 XP.\nMara, level 7 Druid: worth 12,685 gold.\n2 badges from the Dungeon Master.\n" +
+		"Bram landed a 19 lb 6 oz river pike."
+	if score.Content != want {
+		t.Errorf("score words %q", score.Content)
+	}
+
+	// No XP yet: the score is 0, said of the character on another board.
+	delete(r.Scores, boards.XP)
+	if s := Score(r, "playerhex"); tag(s, "score")[1] != "0" || !strings.HasPrefix(s.Content, "Mara, level 7 Druid: 0 XP.") {
+		t.Errorf("no XP: %+v %q", s.Tags, s.Content)
+	}
+
+	old := Retired(boards.NetWorth, r.Scores[boards.NetWorth], "playerhex")
+	if tag(old, "d")[1] != "pubkey-quest:playerhex:net-worth" || tag(old, "state")[1] != "retired" {
+		t.Errorf("retired %+v", old.Tags)
 	}
 }
 
@@ -124,7 +146,7 @@ func TestSweep(t *testing.T) {
 
 	got.fail = true // the relays are down
 	SweepPlayer(npub)
-	if r, _ := stats.Load(npub); len(r.Awarded) != 0 || r.Scores[boards.XP].Event != "" || r.Mirrored != 0 {
+	if r, _ := stats.Load(npub); len(r.Awarded) != 0 || r.Gamestr != "" || r.Mirrored != 0 {
 		t.Fatalf("nothing was taken, but the record says %+v", r)
 	}
 
@@ -134,7 +156,7 @@ func TestSweep(t *testing.T) {
 		t.Fatalf("sent kinds %v, want 2 awards, 1 score, 1 record", k)
 	}
 	r, _ := stats.Load(npub)
-	if len(r.Awarded) != 2 || r.Scores[boards.XP].Event == "" || r.Mirrored != r.Updated {
+	if len(r.Awarded) != 2 || r.Gamestr == "" || r.Scored != ScoreKey(r) || r.Mirrored != r.Updated {
 		t.Fatalf("after the sweep: %+v", r)
 	}
 	for _, ev := range got.events {
@@ -153,6 +175,63 @@ func TestSweep(t *testing.T) {
 	SweepPlayer(npub)
 	if len(got.events) != n {
 		t.Fatalf("a second sweep sent %d more events", len(got.events)-n)
+	}
+
+	// A board gone (its only character deleted) is a new score too.
+	stats.Update(npub, func(r *stats.Record) bool {
+		r.Scores[boards.NetWorth] = stats.Score{Entry: stats.Entry{Value: 50}, At: 6}
+		return true
+	})
+	SweepPlayer(npub)
+	stats.Update(npub, func(r *stats.Record) bool { delete(r.Scores, boards.NetWorth); return true })
+	SweepPlayer(npub)
+	if k := got.kinds(); k[30762] != 3 {
+		t.Fatalf("sent %d scores, want 3", k[30762])
+	}
+	var last *nostr.Event
+	for _, ev := range got.events {
+		if ev.Kind == 30762 {
+			last = ev
+		}
+	}
+	if tag(last, "net-worth") != nil {
+		t.Errorf("the last score still has net worth: %+v", last.Tags)
+	}
+}
+
+// A player whose boards were each posted on their own gets those retired
+// once, when their one score first goes out.
+func TestSweepRetiresBoardScores(t *testing.T) {
+	got := asDM(t)
+	kp, _ := tools.GenerateKeyPair()
+	stats.Update(kp.Npub, func(r *stats.Record) bool {
+		r.Scores = map[string]stats.Score{
+			boards.XP:       {Entry: stats.Entry{Value: 150, Who: "Mara"}, At: 5, Event: "old-xp"},
+			boards.NetWorth: {Entry: stats.Entry{Value: 900, Who: "Mara"}, At: 5, Event: "old-worth"},
+		}
+		return true
+	})
+	SweepPlayer(kp.Npub)
+	retired, one := 0, 0
+	for _, ev := range got.events {
+		switch {
+		case ev.Kind == 30762 && tag(ev, "state")[1] == "retired":
+			retired++
+		case ev.Kind == 30762:
+			one++
+		}
+	}
+	if retired != 2 || one != 1 {
+		t.Fatalf("retired %d, scored %d; want 2 and 1", retired, one)
+	}
+
+	stats.Update(kp.Npub, func(r *stats.Record) bool {
+		r.Scores[boards.XP] = stats.Score{Entry: stats.Entry{Value: 300, Who: "Mara"}, At: 9}
+		return true
+	})
+	SweepPlayer(kp.Npub)
+	if k := got.kinds(); k[30762] != 4 {
+		t.Errorf("sent %d scores after a change, want 4 (no retiring again)", k[30762])
 	}
 }
 
