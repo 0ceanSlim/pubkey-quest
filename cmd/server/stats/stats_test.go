@@ -161,3 +161,28 @@ func TestOff(t *testing.T) {
 		t.Fatal("a nil Pending isn't safe")
 	}
 }
+
+// The highscores: every player's score on a board, highest first; a tie goes
+// to whoever got there first. A record written later shows straight away.
+func TestTop(t *testing.T) {
+	useStore(t)
+	resetBoards()
+	t.Cleanup(resetBoards)
+	for npub, s := range map[string]Score{
+		"npub_a": {Entry: Entry{Value: 500}, At: 20},
+		"npub_b": {Entry: Entry{Value: 900}, At: 30},
+		"npub_c": {Entry: Entry{Value: 500}, At: 10},
+	} {
+		if err := write(npub, Record{Scores: map[string]Score{"xp": s}}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got := Top("xp", 0)
+	if len(got) != 3 || got[0].Npub != "npub_b" || got[1].Npub != "npub_c" || got[2].Npub != "npub_a" {
+		t.Fatalf("board %+v, want b, c (first to 500), a", got)
+	}
+	write("npub_a", Record{Scores: map[string]Score{"xp": {Entry: Entry{Value: 1000}, At: 40}}})
+	if top := Top("xp", 1); len(top) != 1 || top[0].Npub != "npub_a" {
+		t.Fatalf("after a's new score: %+v", top)
+	}
+}

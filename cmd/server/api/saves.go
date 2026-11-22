@@ -370,6 +370,9 @@ func handleDeleteSave(w http.ResponseWriter, r *http.Request, npub string, saveI
 	ledger.Remove(npub, game.SaveDTag(saveID))
 	session.GetSessionManager().UnloadSession(npub, saveID)
 	session.RemoveJournal(npub, saveID)
+	// It leaves the boards: the player's next best character stands for them.
+	// Their lifetime record and badges stay.
+	game.DropFromBoards(npub, saveID)
 
 	if err := os.Remove(savePath); err != nil {
 		if os.IsNotExist(err) {

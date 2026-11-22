@@ -104,7 +104,16 @@ badge.
   `badge_award` row.
 - **Levels:** every step is awarded; only the highest is shown (badges.md §6).
 
-### 4. Boards
+### 4. Boards — BUILT 2026-11-21
+
+`game/boards`: each kept save records its character's standing (XP, net worth, quest points,
+places found) under its slot; `Rescore` sets the player's score on every board, the best
+character standing for them, plus the record boards (monsters slain, toughest kill, fish
+landed, biggest of each species, badges held). A score that changes gets a new time and an
+empty `Event`, so slice 5 knows to sign it. `gameutil.NetWorth`; `stats.Top` ranks a board from
+every record, kept in memory. Deleting a character drops it from the boards; the lifetime
+record and badges stay.
+
 - Standing boards from the kept save (XP, net worth, quest points, places discovered) into
   `slot_standing`; the player's best character stands for them. Record boards from the store
   (monsters slain, toughest kill, fish landed, biggest of each species, badges held).

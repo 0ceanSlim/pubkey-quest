@@ -193,8 +193,29 @@ type Record struct {
 	Sets     map[string]map[string]int64 `json:"sets,omitempty"` // set → member → first seen (unix)
 	Bests    map[string]BestEntry        `json:"bests,omitempty"`
 	// Badges are the badges the player has earned: id → when (game/badges).
-	Badges  map[string]int64 `json:"badges,omitempty"`
+	Badges map[string]int64 `json:"badges,omitempty"`
+	// Standing is each character's numbers on the standing boards at its
+	// last kept save: slot (save id) → board → entry (game/boards).
+	Standing map[string]map[string]Entry `json:"standing,omitempty"`
+	// Scores are the player's score on each board now (game/boards).
+	Scores  map[string]Score `json:"scores,omitempty"`
 	Updated int64            `json:"updated_at"`
+}
+
+// Entry is a number on a board and whose it is.
+type Entry struct {
+	Value  int64  `json:"v"`
+	Who    string `json:"w,omitempty"` // the character
+	Detail string `json:"d,omitempty"` // "level 7 Druid", a monster or a species
+}
+
+// Score is the player's score on one board.
+type Score struct {
+	Entry
+	At int64 `json:"at"` // when it last changed
+	// Event is the Dungeon Master's signed score (kind 30762) for this value,
+	// once published; "" while it waits (official only).
+	Event string `json:"e,omitempty"`
 }
 
 // BestEntry is a best-ever: the value, what it was, who, and when.
@@ -277,6 +298,22 @@ func load(npub string) (Record, error) {
 	return r, json.Unmarshal(data, &r)
 }
 
+// Update changes a player's record outside a save (a character deleted):
+// change reports whether it changed anything, and only then is it written.
+func Update(npub string, change func(r *Record) bool) error {
+	recordMu.Lock()
+	defer recordMu.Unlock()
+	r, err := load(npub)
+	if err != nil {
+		return err
+	}
+	if !change(&r) {
+		return nil
+	}
+	r.Updated = time.Now().Unix()
+	return write(npub, r)
+}
+
 func write(npub string, r Record) error {
 	path, err := recordPath(npub)
 	if err != nil {
@@ -293,7 +330,11 @@ func write(npub string, r Record) error {
 	if err := os.WriteFile(tmp, data, 0o644); err != nil {
 		return err
 	}
-	return os.Rename(tmp, path)
+	if err := os.Rename(tmp, path); err != nil {
+		return err
+	}
+	noteScores(npub, r.Scores)
+	return nil
 }
 
 // Judge looks at a player's record after a kept save has been counted into
