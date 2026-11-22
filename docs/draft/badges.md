@@ -162,9 +162,9 @@ highest, like a rank.
   that, cut to 256 colours (`imagegen/quantize.go`, a median cut that splits where the colour
   error is largest). That takes the 1024 from about 1 MB to about 320 KB; the thumbs are about
   35 KB and 4 KB. Side by side with the original there's no visible difference.
-- **Picked so far:** Heir to the Vault, The One That Got Away, Angler of the Realm, The Rising
-  Shadow, The Black Flame, The Shadow's Source, Barbarian Fishing and The Rats of Goldenhaven.
-  For the levels you chose the art of 5 (v2), 10 (v2), 15 (v1) and 20 (v1); Sunburst edits
-  those to add the number, and draws 16–19 with theirs, matched to 15 and 20.
+- **All 43 picked and published (2026-11-21):** v1 of each, except The Rising Shadow, The
+  Shadow's Source and Barbarian Fishing (v2). The level badges are your picks of the art (5 and
+  10 v2, 15 and 20 v1) with the number edited in, and 16–19 drawn to match, all v1. The 129
+  files come to about 16 MB.
 - **Hosted on the main server:** the files are committed and served at
   `https://pubkey.quest/res/img/badges/`, so a badge's image lives as long as the game does.
