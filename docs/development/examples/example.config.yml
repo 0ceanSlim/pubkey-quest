@@ -38,9 +38,10 @@ wiki:
 
 # The Dungeon Master (docs/draft/server-stats.md §6): this server's own Nostr identity.
 # He posts the game's news, signs badges and highscores, and takes bug reports and
-# support by DM. Give each server its own key, so test's events never pass for
-# official ones. The nsec is a private key: keep it here only (config.yml is
-# gitignored) and back it up. The server checks that npub matches it at start.
+# support by DM. Test and official share one DM; only a server with saves.validation
+# on (official) ever signs a badge or a score. The nsec is a private key: keep it here
+# only (config.yml is gitignored) and back it up. The server checks that npub matches
+# it at start.
 dm:
   name: "The Dungeon Master"
   about: ""
