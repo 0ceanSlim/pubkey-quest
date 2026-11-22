@@ -17,7 +17,31 @@ the order to build it in, and what it touches.
 | Signing and publishing | grain `core.EventSigner`, `UserContext.PublishEvent` | the DM's events |
 | The DM's key, relays, media | `utils.DMConfig`, `systems/badge-media.json` | who signs, where it goes, which images |
 
-## One change to the design: test plays badges, unsigned
+## Two changes to the draft (your calls, 2026-11-21)
+
+### The relays are the store
+Everything the store keeps is published, signed by the DM, so the relays hold the record and
+the server only keeps a copy:
+
+| Record | Event (signed by the DM) |
+|---|---|
+| A player's lifetime stats: counters, sets, bests | one addressable **kind 30078** per player, `d` = `pubkey-quest:stats:<player hex>`, replaced at each kept save |
+| A badge earned | **kind 8** award (NIP-58) |
+| A score | **kind 30762** (Gamestr) |
+
+- **The server's copy** is one small JSON file per player under `data/stats/`, like the save
+  ledger: fast to read at a save, and every board is built from these files in memory at
+  start. **It's a cache.** If it's lost, the server rebuilds it from the DM's events on his
+  relays (the newest `created_at` wins).
+- **A commit** writes the copy first, then publishes. A relay that's down just means a retry,
+  and a replaceable event that arrives twice changes nothing.
+- **The game relay** (the embedded Grain at `/relay`, [game-relay-plan.md](game-relay-plan.md))
+  becomes the first relay all of this goes to once it's built.
+- **Public by design:** the stats event holds only what the scores already show (fish caught,
+  dailies done, monsters slain), so nothing new is exposed.
+- So the draft's SQLite `stats.db` is dropped.
+
+### Test plays badges, unsigned
 
 Test is the production nightly, and it never signs (your rule). Under the draft as written, it
 would never *show* badges either, so you couldn't playtest them before launch. So:
@@ -26,15 +50,17 @@ would never *show* badges either, so you couldn't playtest them before launch. S
   badges and post scores **in the game**.
 - **Signing and publishing happen only with `saves.validation` on** (official). Test's badges
   and scores never leave the server: no kind 8 awards, no 30762 scores, no Gamestr.
-- Test's store is its own file, so nothing earned on test can reach official.
+- Test keeps only the server's copy (`data/stats/` on the test host), with nothing on relays,
+  so nothing earned on test can reach official.
 
 ## Slices
 
 Each slice is its own commit, tests first, and the game plays the same with `stats.enabled` off.
 
 ### 1. The store and the commit gate
-- `cmd/server/stats`: `data/stats.db` (SQLite, the server's existing driver), the six tables of
-  server-stats.md §3.
+- `cmd/server/stats`: a player's record (counters, sets, bests, badges, scores), kept as
+  `data/stats/<npub>.json` and, on official, published as the DM's kind 30078. Rebuilding it
+  from the DM's events when the file is missing.
 - **Pending per session**, keyed by npub + save id; journaled with the session (like its
   ground). Dropped on load.
 - **Commit at a kept save**: after `ledger.Record` on official, after the disk save on test. One
@@ -88,15 +114,14 @@ Each slice is its own commit, tests first, and the game plays the same with `sta
 - Ask Gamestr to list Pubkey Quest with the DM as its developer pubkey, `xp` as the main board.
   A sponsored spot, when you're ready, is the same listing.
 
-## Open (the draft's §11, still unanswered; my recommendation first)
-1. SQLite store, **yes**.
-2. Stats count at a kept save, **yes**.
-3. Store records per player, save-derived badges per character, **yes**.
-4. A daily counts once per player per day, **yes**.
-5. No opting out of badges or scores, **yes** for beta.
-6. The nine first boards (XP, net worth, quest points, places, badges, monsters slain, toughest
-   kill, biggest of each fish, fish landed), **yes**.
-7. Standing boards show the player's best character, **yes**.
-8. Net worth = base value of everything owned, gold and vault included, **yes**.
-9. Fish scores in ounces, **yes**.
-10. New: test earns and shows badges and scores in the game, unsigned. **Recommend yes.**
+## Decided (2026-11-21)
+- **The relays are the store** (above), not SQLite.
+- **Test earns and shows badges and scores in the game, unsigned.**
+- The draft's other calls stand: stats count at a kept save; lifetime records per player,
+  save-derived badges per character; a daily counts once per player per day; no opting out for
+  beta; the nine first boards; your best character stands for you on a board; net worth is the
+  base value of everything you own, gold and vault included; fish scores in ounces.
+
+## Later
+- **The DM logs in as admin.** Signing in to the game as the DM's npub opens admin controls
+  (server-stats.md §6, "Admin role"). It's not part of this build.
