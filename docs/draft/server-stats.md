@@ -113,7 +113,7 @@ discovered (§7). They're computed from the accepted save at each save, not stor
 | Monsters slain | a lifetime count | counter |
 | Toughest kill | the highest-CR monster ever defeated | best per npub |
 | Each character's standing | XP, net worth and the like for *each* of the npub's characters, so the board can show the best one (§7) | row per npub × slot × board; a cache, rebuildable from the accepted saves |
-| Score published | the player's one Gamestr score and what it carried, so an unchanged one isn't re-sent | one per npub |
+| Scores published | the last Gamestr score sent per board, so an unchanged one isn't re-sent | row per npub × board |
 
 ### Neither
 - **An action log.** The store keeps aggregates, never "what you did at 14:02".
@@ -362,30 +362,24 @@ are integers and CRs come as 1/8, 1/4, 1/2.
 | `dailies-completed` | count | record | mostly measures who logs in most |
 
 ### The event
-One addressable event per player, `d` = `game:player`: XP is the `score` Gamestr ranks, and
-every other board rides along as a tag of its own, so a save simply replaces it. Gamestr's
-listing turns each tag into a tab (`leaderboards` → `scoreTag`; `docs/draft/gamestr-listing.md`).
-A score per board, as first built, showed on Gamestr as one list of unrelated numbers.
+One addressable event per player per board. The `d` tag is `game:player:level`, and Gamestr's
+`level` is our board, so each save simply replaces the old score.
 
 ```json
 {
   "kind": 30762,
   "pubkey": "<the DM>",
-  "content": "Mara, level 7 Druid: 23,400 XP.
-Mara, level 7 Druid: worth 12,685 gold.
-2 badges from the Dungeon Master.",
+  "content": "Mara, level 7 Druid: 23,400 XP.",
   "tags": [
-    ["d", "pubkey-quest:<player hex>"],
+    ["d", "pubkey-quest:<player hex>:xp"],
     ["game", "pubkey-quest"],
     ["i", "https://pubkey.quest"],
     ["k", "web"],
     ["score", "23400"],
     ["p", "<player hex>"],
     ["state", "active"],
-    ["t", "rpg"],
-    ["net-worth", "12685"],
-    ["badges", "2"],
-    ["achievements", "every-fish,level-5"]
+    ["level", "xp"],
+    ["t", "rpg"]
   ]
 }
 ```
@@ -395,9 +389,8 @@ Mara, level 7 Druid: worth 12,685 gold.
 - No `mode` tag: the game is always online, and a score isn't from one mode.
 - **Scores are integers,** so fish weights go in **ounces** (19 lb 6 oz = 310). The content
   line carries the readable form: "Mara landed a 19 lb 6 oz river pike."
-- `achievements` carries the player's badge ids.
-- The per-board events posted before this (`d` = `game:player:board`) are re-sent once with
-  `state` `retired`, which Gamestr hides.
+- Gamestr's optional `achievements` tag (comma-separated ids) can carry the player's badge ids
+  on the `xp` event, so Gamestr shows badges next to the headline score.
 - Published to `wss://relay.gamestr.io`, the game relay and the DM's write relays. **Test**
   publishes to `wss://test.gamestr.io` under the test DM.
 

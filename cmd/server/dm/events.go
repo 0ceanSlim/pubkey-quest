@@ -3,7 +3,6 @@ package dm
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -56,80 +55,9 @@ func Award(badgeID, dmHex, playerHex string) *nostr.Event {
 	}}
 }
 
-// Score is a player's one score on Gamestr (kind 30762): their XP, which
-// Gamestr ranks, with every other board along as a tag of its own and a line
-// of the words. Gamestr keeps the newest. The boards themselves are ours
-// (game/boards, the in-game Highscores).
-func Score(r stats.Record, playerHex string) *nostr.Event {
-	xp := r.Scores[boards.XP]
-	lines := []string{ScoreLine(boards.XP, xp)}
-	if xp.Who == "" { // no XP yet: say who from another board
-		for _, b := range scoreBoards(r) {
-			if s := r.Scores[b]; s.Who != "" {
-				xp.Who, xp.Detail = s.Who, s.Detail
-				lines[0] = ScoreLine(boards.XP, xp)
-				break
-			}
-		}
-	}
-	tags := [][]string{
-		{"d", GameTag + ":" + playerHex},
-		{"game", GameTag},
-		{"i", GameURL},
-		{"k", "web"},
-		{"score", strconv.FormatInt(xp.Value, 10)},
-		{"p", playerHex},
-		{"state", "active"},
-		{"t", "rpg"},
-	}
-	for _, b := range scoreBoards(r) {
-		tags = append(tags, []string{b, strconv.FormatInt(r.Scores[b].Value, 10)})
-		lines = append(lines, ScoreLine(b, r.Scores[b]))
-	}
-	if len(r.Badges) > 0 {
-		ids := make([]string, 0, len(r.Badges))
-		for id := range r.Badges {
-			ids = append(ids, id)
-		}
-		sort.Strings(ids)
-		tags = append(tags, []string{"achievements", strings.Join(ids, ",")})
-	}
-	return &nostr.Event{Kind: KindScore, CreatedAt: time.Now().Unix(), Content: strings.Join(lines, "\n"), Tags: tags}
-}
-
-// scoreBoards are the player's boards besides XP, in the order the score
-// lists them: the fixed boards, then the biggest fish by species.
-func scoreBoards(r stats.Record) []string {
-	var out, fish []string
-	for _, b := range []string{boards.NetWorth, boards.QuestPoints, boards.Places, boards.Badges,
-		boards.Slain, boards.Toughest, boards.FishLanded} {
-		if _, ok := r.Scores[b]; ok {
-			out = append(out, b)
-		}
-	}
-	for b := range r.Scores {
-		if strings.HasPrefix(b, boards.Biggest) {
-			fish = append(fish, b)
-		}
-	}
-	sort.Strings(fish)
-	return append(out, fish...)
-}
-
-// ScoreKey is what a player's Gamestr score carries, so it's signed again
-// only when that changes: each board's value.
-func ScoreKey(r stats.Record) string {
-	parts := make([]string, 0, len(r.Scores))
-	for b, s := range r.Scores {
-		parts = append(parts, b+"="+strconv.FormatInt(s.Value, 10))
-	}
-	sort.Strings(parts)
-	return strings.Join(parts, ";")
-}
-
-// Retired takes down a board's own score from before the DM posted one per
-// player: the same event, its state "retired", which Gamestr hides.
-func Retired(board string, s stats.Score, playerHex string) *nostr.Event {
+// Score is a player's score on a board (kind 30762), one per player per
+// board: Gamestr keeps the newest.
+func Score(board string, s stats.Score, playerHex string) *nostr.Event {
 	return &nostr.Event{Kind: KindScore, CreatedAt: time.Now().Unix(), Content: ScoreLine(board, s), Tags: [][]string{
 		{"d", GameTag + ":" + playerHex + ":" + board},
 		{"game", GameTag},
@@ -137,8 +65,24 @@ func Retired(board string, s stats.Score, playerHex string) *nostr.Event {
 		{"k", "web"},
 		{"score", strconv.FormatInt(s.Value, 10)},
 		{"p", playerHex},
-		{"state", "retired"},
+		{"state", "active"},
 		{"level", board},
+		{"t", "rpg"},
+	}}
+}
+
+// RetiredPlayerScore takes down the one score per player the DM posted in
+// v0.2.3 (d = game:player): the same event, its state "retired", which
+// Gamestr hides.
+func RetiredPlayerScore(playerHex string) *nostr.Event {
+	return &nostr.Event{Kind: KindScore, CreatedAt: time.Now().Unix(), Tags: [][]string{
+		{"d", GameTag + ":" + playerHex},
+		{"game", GameTag},
+		{"i", GameURL},
+		{"k", "web"},
+		{"score", "0"},
+		{"p", playerHex},
+		{"state", "retired"},
 	}}
 }
 

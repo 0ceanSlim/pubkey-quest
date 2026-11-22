@@ -12,12 +12,9 @@ Two ways in: a PR adding the entry below, or "Claim this game" on
 gamestr.io/games/pubkey-quest (a NIP-17 DM to Gamestr's pubkey `5748fbe6…2453`). The page only
 exists once a first score is published.
 
-The DM posts **one score per player**: XP in `score`, which Gamestr ranks, and each other
-board in a tag of its own (`net-worth`, `quest-points`, …), so `leaderboards` gives each board a
-tab, read by `scoreTag` from that one event. (It first posted a score per board, which an
-unlisted game shows as one mixed list; those are retired.) The biggest-fish boards
-(`biggest-<species>`, ounces) ride along as tags but stay on our own Scores tab: 24 more tabs
-is too many there.
+Our `level` tag names the board, so `leaderboardSplit` gives each board its own tab. The
+biggest-fish boards (`biggest-<species>`, ounces) stay on our own Scores tab: 24 more tabs is
+too many there.
 
 ```ts
   // Pubkey Quest
@@ -33,15 +30,21 @@ is too many there.
       "npub1sw8vxd4gapxhysytdqe0j95yks8hwx8a8z20rg9agsalhe5t5xrqrvmq3a",
     featured: false,
     addedAt: "2026-11-22",
-    leaderboards: [
-      { label: "Experience", scoreTag: "score", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Net worth", scoreTag: "net-worth", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Quest points", scoreTag: "quest-points", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Places found", scoreTag: "places-discovered", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Badges", scoreTag: "badges", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Monsters slain", scoreTag: "monsters-slain", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Toughest kill", scoreTag: "toughest-kill", direction: "desc", deduplicateByPlayer: "latest" },
-      { label: "Fish landed", scoreTag: "fish-landed", direction: "desc", deduplicateByPlayer: "latest" },
-    ],
+    leaderboardSplit: {
+      splitTag: "level",
+      direction: "desc",
+      deduplicateByPlayer: "latest",
+      layout: "tabs",
+      values: [
+        { value: "xp", label: "Experience" },
+        { value: "net-worth", label: "Net worth" },
+        { value: "quest-points", label: "Quest points" },
+        { value: "places-discovered", label: "Places found" },
+        { value: "badges", label: "Badges" },
+        { value: "monsters-slain", label: "Monsters slain" },
+        { value: "toughest-kill", label: "Toughest kill" },
+        { value: "fish-landed", label: "Fish landed" },
+      ],
+    },
   },
 ```

@@ -59,15 +59,19 @@ func SweepPlayer(npub string) {
 			}
 		}
 	}
-	// The player's one Gamestr score, once their scores have changed.
-	scored, key := "", ScoreKey(r)
-	if len(r.Scores) > 0 && key != r.Scored {
-		if r.Gamestr == "" {
-			retireBoards(r, player)
+	// v0.2.3's one score per player retired its board scores: retire it and
+	// post every board again.
+	reposted := r.Gamestr != "" && send(RetiredPlayerScore(player), ScoreRelays...) != ""
+	signed := map[string]stats.Score{}
+	for board, s := range r.Scores {
+		if s.Event == "" || reposted {
+			if ev := send(Score(board, s, player), ScoreRelays...); ev != "" {
+				s.Event = ev
+				signed[board] = s
+			}
 		}
-		scored = send(Score(r, player), ScoreRelays...)
 	}
-	if len(awarded) > 0 || scored != "" {
+	if len(awarded) > 0 || len(signed) > 0 || reposted {
 		stats.Note(npub, func(r *stats.Record) {
 			if r.Awarded == nil {
 				r.Awarded = map[string]string{}
@@ -75,9 +79,18 @@ func SweepPlayer(npub string) {
 			for id, ev := range awarded {
 				r.Awarded[id] = ev
 			}
-			if scored != "" {
-				r.Gamestr = scored
-				r.Scored = key // a score that changed since waits for the next sweep
+			if reposted {
+				r.Gamestr = ""
+				for board, s := range r.Scores {
+					s.Event = "" // one no relay took waits for the next sweep
+					r.Scores[board] = s
+				}
+			}
+			for board, s := range signed {
+				// Only if it's still the score that was signed.
+				if now, ok := r.Scores[board]; ok && now.Entry == s.Entry && now.At == s.At {
+					r.Scores[board] = s
+				}
 			}
 		})
 	}
@@ -96,16 +109,6 @@ func SweepPlayer(npub string) {
 			rec.Mirrored = r.Updated
 		}
 	})
-}
-
-// retireBoards takes down the scores the DM posted a board at a time, before
-// one per player, so Gamestr doesn't rank them against each other.
-func retireBoards(r stats.Record, player string) {
-	for board, s := range r.Scores {
-		if s.Event != "" && send(Retired(board, s, player), ScoreRelays...) == "" {
-			log.Printf("⚠️ Dungeon Master: the old %s score %s reached no relay", board, s.Event)
-		}
-	}
 }
 
 // inboxOf is a player's read relays, where their awards are delivered.
