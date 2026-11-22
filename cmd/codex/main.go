@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"pubkey-quest/cmd/codex/charactereditor"
 	"pubkey-quest/cmd/codex/config"
@@ -47,6 +48,7 @@ func main() {
 	dryRunFlag := flag.Bool("dry-run", false, "When used with cleanup flags, preview changes without modifying files")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 	generateImagesFlag := flag.String("generate-images", "", "Generate sprite candidates from a batch spec JSON and exit (dev tool)")
+	badgeArtFlag := flag.String("badge-art", "", "Publish approved badge candidates as web images and exit: id=v1[,id=v2…] (docs/draft/badges.md)")
 	configFlag := flag.String("config", "", "Path to config file (default: ./codex-config.yml)")
 	decodeSaveFlag := flag.String("decode-save", "", "Print a save (compact, a signed save event, or a disk save file) as a readable character sheet and exit")
 	wikiFlag := flag.String("wiki", "", "Generate the Gollum wiki's reference pages from game-data into this wiki repo checkout and exit")
@@ -303,6 +305,30 @@ func main() {
 	if cfg.PixelLab.APIKey != "" {
 		editor.PixelLabClient = pixellab.NewClient(cfg.PixelLab.APIKey)
 		log.Printf("✅ PixelLab client initialized")
+	}
+
+	// Approved badge art → the full image and thumbs a badge definition links.
+	if *badgeArtFlag != "" {
+		failed := false
+		for _, pick := range strings.Split(*badgeArtFlag, ",") {
+			id, cand, ok := strings.Cut(strings.TrimSpace(pick), "=")
+			if !ok {
+				fmt.Printf("❌ %q: want id=v1\n", pick)
+				failed = true
+				continue
+			}
+			files, err := imagegen.PublishBadge(imagegen.BadgeDir, id, cand)
+			if err != nil {
+				fmt.Printf("❌ %s: %v\n", id, err)
+				failed = true
+				continue
+			}
+			fmt.Printf("✅ %s ← %s: %s\n", id, cand, strings.Join(files, ", "))
+		}
+		if failed {
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
 
 	// Standalone image-generation batch (dev tool): generate candidates and exit.

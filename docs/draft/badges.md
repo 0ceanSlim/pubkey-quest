@@ -15,11 +15,15 @@ Status: **DRAFT 2026-11-21, for your review.** Nothing built. The engine, events
 
 ---
 
+**Ids:** a quest badge is `quest-<quest id>` (the caretaker's letters share
+`quest-caretakers-letter`); the rest are `every-fish`, `every-gem`, `every-ore`, `every-song`,
+`every-town`, `every-wild`, `every-place`, `level-20`, `dailies-10`, `dailies-50`, `dailies-100`.
+
 ## 1. Main story — one per main quest
 
 Main is **one chain that runs through every level** and carries the story and lore. Today it's
-the caretaker's letter and the shadow arc. Every main quest added later gets its badge from the
-same rule.
+the caretaker's letter and the shadow arc. More main quests are coming, and each gets its badge
+from the same rule.
 
 | Badge | Earned by | Note |
 |---|---|---|
@@ -104,8 +108,10 @@ Dailies count once per npub per day, however many of your characters do them.
 
 ## 6. The art
 
-- **One image per badge, 1024×1024**, NIP-58's size. The DM's badge definition also lists 256 and
-  64 thumbnails, scaled down from it.
+- **One image per badge, 1024×1024**, NIP-58's recommended size, plus two thumbnails: 256 for
+  badge lists and profiles, 64 for inline icons. The DM's kind 30009 definition carries
+  `["image", "<url>/<id>.jpg", "1024x1024"]`, `["thumb", "<url>/<id>-256.jpg", "256x256"]` and
+  `["thumb", "<url>/<id>-64.jpg", "64x64"]`.
 - **Made with gpt-image-2**, the scene-art path, at medium quality: about 4¢ an image, so roughly
   $3 for the 36 with a spare candidate each.
 - **Style: the DM's own.** His portrait is the reference: chunky pixel art with black outlines
@@ -115,8 +121,15 @@ Dailies count once per npub per day, however many of your characters do them.
   - **silver:** side quests;
   - **bronze:** class and race;
   - **gem-set:** collections;
-  - **plain iron, notched by step:** milestones.
-- **Files:** `www/res/img/badges/<id>.png`, served from the official site so the event's
-  `image` URL lives as long as the game does.
-
-A style trial (three badges) comes first, before the other 33.
+  - **plain iron, notched by step:** milestones;
+  - **legendary** (black obsidian, glowing gold runes, a crown of flames): the hardest few.
+    Today that's **Legend of the Realm** (level 20) and **Pillar of the Realm** (100 dailies).
+    Any badge can be promoted to it at approval, and later extra-hard achievements get it too.
+- **You approve every badge one by one.** Candidates wait in `www/res/img/badges/_candidates/<id>/`
+  (gitignored). Publish a pick with
+  `go run ./cmd/codex --badge-art every-fish=v1,level-20=v2`.
+- **Web-optimised:** `--badge-art` writes `www/res/img/badges/<id>.jpg` (1024) and
+  `<id>-256.jpg`, `<id>-64.jpg`. JPEG at quality 85 looks the same as the 2 MB PNG and weighs
+  about 300 KB, 25 KB and 3 KB; WebP was no smaller, and JPEG works in every Nostr client.
+- **Hosted on the main server:** the files are committed and served at
+  `https://pubkey.quest/res/img/badges/`, so a badge's image lives as long as the game does.
