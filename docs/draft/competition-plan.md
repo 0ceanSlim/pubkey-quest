@@ -57,7 +57,11 @@ would never *show* badges either, so you couldn't playtest them before launch. S
 
 Each slice is its own commit, tests first, and the game plays the same with `stats.enabled` off.
 
-### 1. The store and the commit gate
+### 1. The store and the commit gate — BUILT 2026-11-21
+
+`cmd/server/stats` (pending per session, `Commit`, the record file), committed from the disk save and
+the relay save, journaled, `stats.enabled` in config. Publishing the record is slice 5.
+
 - `cmd/server/stats`: a player's record (counters, sets, bests, badges, scores), kept as
   `data/stats/<npub>.json` and, on official, published as the DM's kind 30078. Rebuilding it
   from the DM's events when the file is missing.

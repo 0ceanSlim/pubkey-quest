@@ -9,6 +9,7 @@ import (
 	"github.com/0ceanslim/grain/client/core/tools"
 
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -103,5 +104,47 @@ func TestJournalKeepsOwnDrops(t *testing.T) {
 	got, _ = session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
 	if l := got.Ground.List(here, npub); len(l) != 0 {
 		t.Fatalf("drops came back without the play they belonged to: %+v", l)
+	}
+}
+
+// The stats play added since the last save are journaled with it, and come
+// back with it after a crash; a clean load doesn't bring them.
+func TestJournalKeepsPendingStats(t *testing.T) {
+	session.JournalDir = t.TempDir()
+	oldOn, oldDir := stats.Enabled, stats.Dir
+	stats.Enabled, stats.Dir = true, t.TempDir()
+	t.Cleanup(func() { stats.Enabled, stats.Dir = oldOn, oldDir })
+
+	npub, err := tools.EncodePubkey("7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e")
+	if err != nil {
+		t.Fatal(err)
+	}
+	saveID := "save_78"
+	load := func(string, string) (*types.SaveFile, error) { return &types.SaveFile{}, nil }
+
+	sess, err := session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stats.Count(&sess.SaveData, "fish_landed", 3)
+	if err := session.WriteJournal(sess); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stats.Commit(npub, saveID, got.Stats.Mark())
+	if r, _ := stats.Load(npub); r.Counters["fish_landed"] != 3 {
+		t.Fatalf("after the crash, fish landed %d, want 3", r.Counters["fish_landed"])
+	}
+
+	stats.Count(&got.SaveData, "fish_landed", 5)
+	session.RemoveJournal(npub, saveID) // a clean quit
+	got, _ = session.NewSessionManager().LoadSession(npub, saveID, load, nil, nil, nil)
+	stats.Commit(npub, saveID, got.Stats.Mark())
+	if r, _ := stats.Load(npub); r.Counters["fish_landed"] != 3 {
+		t.Fatalf("stats came back without the play they belonged to: %d", r.Counters["fish_landed"])
 	}
 }

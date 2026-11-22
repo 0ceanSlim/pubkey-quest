@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -35,6 +36,9 @@ type journalEntry struct {
 	// Ground is what the player had dropped since their last save, at the
 	// same moment: the save above still lacks it, so it comes back with it.
 	Ground []world.Pile `json:"ground,omitempty"`
+	// Stats are the lifetime stats the play since the last save added, which
+	// count once a save covers them.
+	Stats []stats.Op `json:"stats,omitempty"`
 }
 
 // journalPath builds a flat, filesystem-safe path for a session's journal file.
@@ -51,6 +55,7 @@ func WriteJournal(sess *GameSession) error {
 		SavedAt: time.Now().Unix(),
 		Save:    sess.SaveData,
 		Ground:  sess.Ground.Snapshot(),
+		Stats:   sess.Stats.Snapshot(),
 	}
 	data, err := json.Marshal(entry)
 	if err != nil {
@@ -90,6 +95,15 @@ func RecoverJournaledSave(npub, saveID, diskSavePath string) *types.SaveFile {
 func recoveredGround(npub, saveID, diskSavePath string) []world.Pile {
 	if entry := readJournal(npub, saveID, diskSavePath); entry != nil {
 		return entry.Ground
+	}
+	return nil
+}
+
+// recoveredStats is the pending stats kept in the journal that
+// RecoverJournaledSave restores a session from (none if it doesn't).
+func recoveredStats(npub, saveID, diskSavePath string) []stats.Op {
+	if entry := readJournal(npub, saveID, diskSavePath); entry != nil {
+		return entry.Stats
 	}
 	return nil
 }

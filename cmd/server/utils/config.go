@@ -89,6 +89,15 @@ type Config struct {
 	Wiki   WikiConfig   `yaml:"wiki"`
 	Relays RelaysConfig `yaml:"relays"`
 	DM     DMConfig     `yaml:"dm"`
+	Stats  StatsConfig  `yaml:"stats"`
+}
+
+// StatsConfig switches on the lifetime stats store that badges and
+// highscores are judged on (docs/draft/competition-plan.md). Test and
+// official both run it; only a server with saves.validation on signs and
+// publishes what it earns.
+type StatsConfig struct {
+	Enabled bool `yaml:"enabled"`
 }
 
 // RelaysConfig overrides the game's default relay set: where players with no

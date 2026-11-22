@@ -7,6 +7,7 @@ import (
 	"pubkey-quest/cmd/server/game/locks"
 	"pubkey-quest/cmd/server/game/mining"
 	"pubkey-quest/cmd/server/game/poi"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -69,6 +70,11 @@ type GameSession struct {
 	// Ground holds items dropped on the ground per location — server-authoritative,
 	// memory-only. Drop moves an item here; pickup takes it back. Nil-safe.
 	Ground *world.GroundStore `json:"-"`
+
+	// Stats are the lifetime stats this session's play has added since its
+	// last kept save (stats.Pending): committed by the next save, dropped by
+	// a reload. Nil when the store is off; nil-safe.
+	Stats *stats.Pending `json:"-"`
 
 	// POINPCs are the people a POI walk just introduced (Thistle at her wagon):
 	// they have no schedule in a city, so talking to them is allowed only while
@@ -367,6 +373,9 @@ type PendingSave struct {
 	// GroundMark is where the player's own drops stood (Ground.Mark): those up
 	// to it go on the shared ground once the save is kept.
 	GroundMark int
+	// StatsMark is where the session's pending stats stood: those up to it
+	// count once the save is kept.
+	StatsMark int
 }
 
 // QuestMarks is where a save's quests stood: the active stage of each, which

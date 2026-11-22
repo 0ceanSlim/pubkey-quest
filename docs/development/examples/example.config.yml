@@ -54,3 +54,9 @@ dm:
   inbox: []   # his NIP-17 DM relays (kind 10050): where bug reports and support reach him
   npub: ""
   nsec: ""
+
+# Lifetime stats for badges and highscores (docs/draft/competition-plan.md): counted at each
+# kept save, kept in data/stats/. Test and official both run it; only a server with
+# saves.validation on (official) signs and publishes badges and scores as the DM.
+stats:
+  enabled: false

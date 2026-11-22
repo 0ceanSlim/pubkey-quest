@@ -401,7 +401,7 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write to disk using existing save logic
-	groundMark := sess.Ground.Mark()
+	groundMark, statsMark := sess.Ground.Mark(), sess.Stats.Mark()
 	savePath := session.GetSavePath(request.Npub, request.SaveID)
 	if err := session.WriteSaveFile(savePath, &sess.SaveData); err != nil {
 		log.Printf("❌ Failed to write save file: %v", err)
@@ -413,6 +413,8 @@ func SaveSessionHandler(w http.ResponseWriter, r *http.Request) {
 	session.RemoveJournal(request.Npub, request.SaveID)
 	// What you dropped isn't in it, so it's anyone's now.
 	publishGround(sess, groundMark)
+	// The play it covers counts now.
+	commitStats(sess, statsMark)
 
 	log.Printf("✅ Session saved to disk: %s:%s", request.Npub, request.SaveID)
 

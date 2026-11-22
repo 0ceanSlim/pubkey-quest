@@ -14,6 +14,7 @@ import (
 	"pubkey-quest/cmd/server/game/inventory"
 	"pubkey-quest/cmd/server/game/spellbook"
 	"pubkey-quest/cmd/server/game/status"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/cmd/server/world"
 	"pubkey-quest/types"
 )
@@ -178,8 +179,12 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 		BuildingStates:     make(map[string]bool),
 		Ground:             world.NewGroundStore(),
 	}
-	// Restored from a crash journal: so are the drops made since the last save.
+	// Restored from a crash journal: so are the drops made since the last save,
+	// and the stats that play added.
 	session.Ground.Restore(recoveredGround(npub, saveID, GetSavePath(npub, saveID)))
+	session.Stats = stats.Open(npub, saveID, recoveredStats(npub, saveID, GetSavePath(npub, saveID)))
+	// The stats recorder finds the session's pending stats by the save's owner.
+	session.SaveData.InternalNpub, session.SaveData.InternalID = npub, saveID
 
 	// Initialize building states and NPCs for current location
 	timeOfDay := saveData.TimeOfDay
@@ -245,7 +250,10 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 		LastActionGameTime: saveData.CurrentDay*1440 + saveData.TimeOfDay,
 		BuildingStates:     make(map[string]bool),
 		Ground:             world.NewGroundStore(),
+		// A reload rewinds to the save, so the stats played since go too.
+		Stats: stats.Open(npub, saveID, nil),
 	}
+	session.SaveData.InternalNpub, session.SaveData.InternalID = npub, saveID
 
 	// Initialize building states and NPCs for current location
 	timeOfDay := saveData.TimeOfDay
@@ -331,6 +339,7 @@ func (sm *SessionManager) UnloadSession(npub, saveID string) {
 
 	key := sessionKey(npub, saveID)
 	delete(sm.sessions, key)
+	stats.Close(npub, saveID)
 }
 
 // GetAllSessions returns all active sessions (for debugging)

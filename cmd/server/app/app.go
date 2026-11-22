@@ -14,6 +14,7 @@ import (
 	"pubkey-quest/cmd/server/game/quest"
 	"pubkey-quest/cmd/server/presence"
 	"pubkey-quest/cmd/server/session"
+	"pubkey-quest/cmd/server/stats"
 	"pubkey-quest/cmd/server/utils"
 	"pubkey-quest/cmd/server/world"
 )
@@ -26,6 +27,12 @@ func Init() {
 
 	if err := auth.InitializeGrainClient(&utils.AppConfig); err != nil {
 		log.Fatalf("Failed to initialize Grain client: %v", err)
+	}
+
+	// Lifetime stats for badges and highscores, counted at each kept save.
+	stats.Enabled = utils.AppConfig.Stats.Enabled
+	if stats.Enabled {
+		log.Println("✅ Stats store on (data/stats)")
 	}
 
 	// The Dungeon Master: the server's own Nostr identity (docs/draft/server-stats.md §6).

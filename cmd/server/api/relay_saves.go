@@ -175,6 +175,8 @@ func PublishSaveHandler(w http.ResponseWriter, r *http.Request) {
 	session.RemoveJournal(req.Npub, req.SaveID)
 	// What you dropped isn't in the save, so it's anyone's now.
 	game.PublishSavedGround(sess, pending.GroundMark)
+	// The play it covers counts now.
+	game.CommitSavedStats(sess, pending.StatsMark)
 	log.Printf("✅ Signed save %s… for %s:%s stored on %d/%d relays", shortID(ev.ID), req.Npub, req.SaveID, len(accepted), len(results))
 	writeJSON(w, map[string]any{"success": true, "event_id": ev.ID, "relays": accepted, "refused": refused})
 }
