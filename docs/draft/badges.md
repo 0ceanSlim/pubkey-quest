@@ -134,8 +134,8 @@ highest, like a rank.
 
 - **One image per badge, 1024×1024**, NIP-58's recommended size, plus two thumbnails: 256 for
   badge lists and profiles, 64 for inline icons. The DM's kind 30009 definition carries
-  `["image", "<url>/<id>.png", "1024x1024"]`, `["thumb", "<url>/<id>-256.png", "256x256"]` and
-  `["thumb", "<url>/<id>-64.png", "64x64"]`.
+  `["image", <image>, "1024x1024"]`, `["thumb", <thumb_256>, "256x256"]` and
+  `["thumb", <thumb_64>, "64x64"]`, the URLs from `badge-media.json`.
 - **Made with gpt-image-2.6 Sunburst at high quality,** OpenAI's newest quality model (your
   call: no cheaper model; it beat gpt-image-2 in a side-by-side trial). It draws the
   transparent background itself (spec `"background": "transparent"`). For a model that can't,
@@ -166,5 +166,8 @@ highest, like a rank.
   Shadow's Source and Barbarian Fishing (v2). The level badges are your picks of the art (5 and
   10 v2, 15 and 20 v1) with the number edited in, and 16–19 drawn to match, all v1. The 129
   files come to about 16 MB.
-- **Hosted on the main server:** the files are committed and served at
-  `https://pubkey.quest/res/img/badges/`, so a badge's image lives as long as the game does.
+- **Hosted on Blossom, as the DM's media (your call, 2026-11-21):** all 129 files are uploaded
+  to `blossom.oslim.dev`, signed by the DM, and `game-data/systems/badge-media.json` maps each
+  badge to its image and thumbs. His kind 30009 definitions link those URLs. The same files stay
+  in `www/res/img/badges/` for the game to draw. A Blossom URL is the file's sha256, so redrawn
+  art gets a new URL: upload it and update the map.

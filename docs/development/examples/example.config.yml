@@ -44,8 +44,8 @@ wiki:
 dm:
   name: "The Dungeon Master"
   about: ""
-  picture: "" # e.g. https://pubkey.quest/res/img/dm/avatar.jpg
-  banner: ""  # e.g. https://pubkey.quest/res/img/dm/banner.jpg
+  picture: "" # his media lives on Blossom, e.g. https://blossom.oslim.dev/<sha256>.jpg
+  banner: ""
   nip05: ""   # e.g. dm@oslim.dev
   relays: []  # his NIP-65 relays (kind 10002): where his posts, badges and scores go
   inbox: []   # his NIP-17 DM relays (kind 10050): where bug reports and support reach him

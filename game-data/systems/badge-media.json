@@ -1,0 +1,221 @@
+{
+  "_comment": "Where each badge's art lives on Blossom, uploaded by the Dungeon Master (docs/draft/badges.md). His NIP-58 badge definitions (kind 30009) link these: image is 1024x1024, the thumbs 256 and 64. The same files are in www/res/img/badges/ for the game. Blossom URLs are the file's sha256, so a changed image gets a new URL here.",
+  "server": "https://blossom.oslim.dev",
+  "badges": {
+    "dailies-10": {
+      "thumb_256": "https://blossom.oslim.dev/073405e9b78f6bc267693b858a88be41478adbd1ab440ed55f43fc0ec73eda31.png",
+      "thumb_64": "https://blossom.oslim.dev/0666e0c02a40b2f28f469b2b8bef592aad5e58e91459bd01894b9df9f271336e.png",
+      "image": "https://blossom.oslim.dev/b51fb760baef0df8cea15bda6d3b04df3dfc083f1e576c9dcf32595c9e1bbf17.png"
+    },
+    "dailies-100": {
+      "thumb_256": "https://blossom.oslim.dev/6ecaab079087679610424e14bcfeafa81e7c1a60060009261c326a08c53f74ce.png",
+      "thumb_64": "https://blossom.oslim.dev/d5aac3b4ccb55b65c98a0257bf5f86dd38b357bbc2b041a9fa8fba4e3bd3d96a.png",
+      "image": "https://blossom.oslim.dev/09962e3a809f92b74cb56fd00448be35181a8b8be389459ab38f2e42d36a7690.png"
+    },
+    "dailies-50": {
+      "thumb_256": "https://blossom.oslim.dev/c5864d7877bc664462f3c8109600b0f2d35fbfde10e5fc715376689563f53a48.png",
+      "thumb_64": "https://blossom.oslim.dev/4de8fca86702c3500313b85e9f9082a124397989b04d3c09a4dfc35b64011b2b.png",
+      "image": "https://blossom.oslim.dev/1804b03042aa86472cd05611c56ebfaead9c1d6acb912865103cb2408df5f582.png"
+    },
+    "every-fish": {
+      "thumb_256": "https://blossom.oslim.dev/eea0cc338d312476b80a7bdd0917fcf31e405d018bbb1a3f959025c238b89e40.png",
+      "thumb_64": "https://blossom.oslim.dev/73a6fcfadb2c9f99711c199555c90035945a1b7c4e40133079bfdfcad739b814.png",
+      "image": "https://blossom.oslim.dev/85e1ca0736d293442e60e3db415a483f5447c2592752faa7ea99b5bd0029e2fb.png"
+    },
+    "every-gem": {
+      "thumb_256": "https://blossom.oslim.dev/4b638593a0f7b13516278422945dad1c168e959328eee975a0807ecf717b148f.png",
+      "thumb_64": "https://blossom.oslim.dev/0a7e4b63066338503f70d831212ec4d5180585dab276818aecf39312b49ff5d6.png",
+      "image": "https://blossom.oslim.dev/ffc088a8af16835300a8c64b1043eaedd682917f5a1f6a25c1ed0aaa1857c534.png"
+    },
+    "every-ore": {
+      "thumb_256": "https://blossom.oslim.dev/0aa70bf7167bca67e64af1d78b7eed4c8f149fbd76f993d6b9dbddf7d2c3041d.png",
+      "thumb_64": "https://blossom.oslim.dev/2cff42b3b5b1575c543e1a67f9baa44dd6c1d50c2c162185bd55b4e7b23237d7.png",
+      "image": "https://blossom.oslim.dev/d0732b1a84cd2e5567630b06f7b48168f7c7024f36b77132be0c2df3bd83976a.png"
+    },
+    "every-place": {
+      "thumb_256": "https://blossom.oslim.dev/e4d89c9e4daa0ee2b67d4cb3e806794a62519c5c131d5a0df6d1eb3279a4f202.png",
+      "thumb_64": "https://blossom.oslim.dev/082aef5e3da4e7929e416ee6a7cfdb22f02a093f5fb9f188f8cf06c3ec9021bf.png",
+      "image": "https://blossom.oslim.dev/3522b4fb191db3bf942089e312116b2dd48413f719ad53f94bbc3933f77831d7.png"
+    },
+    "every-song": {
+      "thumb_256": "https://blossom.oslim.dev/c22a90141a1ef73a3d189e9ae9e637dd2d576feb6274b5bb3fc0f8f6a5d6f331.png",
+      "thumb_64": "https://blossom.oslim.dev/f15b17f61c9f2a18ddff41ffe39bad3005d5392506f4d1ce7ad73ffbe196b977.png",
+      "image": "https://blossom.oslim.dev/f2e07ca0e498828c98ed8606cc93de9be294e399283484f038102a1d272224c3.png"
+    },
+    "every-town": {
+      "thumb_256": "https://blossom.oslim.dev/7ffbc4f969c08eca4c635e71bf5deed5b4dfb9f08c222474fb6c4d503742aef6.png",
+      "thumb_64": "https://blossom.oslim.dev/a611c13e264a1113bf4acaa5c29c4a4070b2a37cc8c30bddbe1da804bb4af4b6.png",
+      "image": "https://blossom.oslim.dev/b1fe1a32ad067acd38e1eb29f2db248fcc764fa6b21dd9fe1f8981bd197cfb0d.png"
+    },
+    "every-wild": {
+      "thumb_256": "https://blossom.oslim.dev/764888890625b1184d8efc5d2db2500dccda35c6ed9ce75de85cc174072bdc86.png",
+      "thumb_64": "https://blossom.oslim.dev/28c7fa13afe4d24e2381be7cdb718cb9e2b23bbec924800ff74185007c3c011d.png",
+      "image": "https://blossom.oslim.dev/4dc460746fd0ec486e06aedec3368b23fc8df0146a3d1ea2b8984cebcb9b170d.png"
+    },
+    "level-10": {
+      "thumb_256": "https://blossom.oslim.dev/cf67f3d60254c549d9158337a8b1353256f22c7f90ed3953d0d879dce9044517.png",
+      "thumb_64": "https://blossom.oslim.dev/52b31d3a67d6c6f72664838477a2a32da8c487656abe8c72c04df984d230b755.png",
+      "image": "https://blossom.oslim.dev/3dd41466222eccf1318732c7d96757467cc8373f6c70bab36a15b93d3876ee0f.png"
+    },
+    "level-15": {
+      "thumb_256": "https://blossom.oslim.dev/436c49ea4da0192f458597defa85d0977b3da7f47dd406dcd45975c8967b7fa0.png",
+      "thumb_64": "https://blossom.oslim.dev/bfe95f5c57c47e70599faec555134c82775f696be0ca7e556811788a42c07f8f.png",
+      "image": "https://blossom.oslim.dev/5f733c05889c7589a961ee05bf99230c67c38d7163c69b9146f14301bd876c41.png"
+    },
+    "level-16": {
+      "thumb_256": "https://blossom.oslim.dev/6d873c135e973056fb7c4ec777e7a8dcce9af13020048f550975eb199be64512.png",
+      "thumb_64": "https://blossom.oslim.dev/46b9cbffd97bd3f9eea3d2e91ae950dd812c31df12ab5dd2693b111c9e386f3e.png",
+      "image": "https://blossom.oslim.dev/bfaf39d276ad333bed6858979a4e424161cc0e0718b25329f06c2dac09099952.png"
+    },
+    "level-17": {
+      "thumb_256": "https://blossom.oslim.dev/5405823d4550f3c3f2ab3a96b33b91c2bb197e2b7dae776e30f2c030f18753d6.png",
+      "thumb_64": "https://blossom.oslim.dev/1a22d6d9df245351ed0a52d2eb3df649499575a60332f251823478c7d8353597.png",
+      "image": "https://blossom.oslim.dev/415c89be51b93cc38e4783f01b01391c82a8707adff87f1cc46f4018f8a213bd.png"
+    },
+    "level-18": {
+      "thumb_256": "https://blossom.oslim.dev/aa69092343c45186b779bf62e770b5b658dbbb37aab9bc4976b00f3386fd9b5b.png",
+      "thumb_64": "https://blossom.oslim.dev/3b4d4b78e7b446e717948a62e39deaded10e6c6fd419f31820e25a8bdbba11e3.png",
+      "image": "https://blossom.oslim.dev/dc168aa0c71728caadb8d3695bc1b594c87c37826354c6b5f9cd011e5a708d77.png"
+    },
+    "level-19": {
+      "thumb_256": "https://blossom.oslim.dev/bb2b88aab7e30ddf43d237282cd5857f6704d7a736fa1ba0f8564713bcc38814.png",
+      "thumb_64": "https://blossom.oslim.dev/f566a6412f889a944b9207a93acb405d6171ffb6441744c4e935f8d380be2b82.png",
+      "image": "https://blossom.oslim.dev/48458ff8aaeb533150db0e1edc9a775545ee05e27805dd9da60eef270201b367.png"
+    },
+    "level-20": {
+      "thumb_256": "https://blossom.oslim.dev/4dd6cfffa7afb50792974f028a2aefcb3dac23023f5746c5ebabe3c8e54e7b37.png",
+      "thumb_64": "https://blossom.oslim.dev/b48234ab4c7659a34653f576ae376ee4e4b017f3bd9cd2f1bd1e9a7e9d351c6e.png",
+      "image": "https://blossom.oslim.dev/b3ceff463b87f21b8020d5dd4672c6fe7a27ac6fbb5de5c0f6d91b44157b96d4.png"
+    },
+    "level-5": {
+      "thumb_256": "https://blossom.oslim.dev/b0920875ae9150e606c4467249e433726d39f09ed8236a418899f65a88ad4c46.png",
+      "thumb_64": "https://blossom.oslim.dev/91053683c5dac99b79b5557634984538d9007effe74f06a2e7a1b405e4400bfb.png",
+      "image": "https://blossom.oslim.dev/abf5416f36d37d49426334277e0148f2cafcb4217b79ed7e3319bb9531e0bd0d.png"
+    },
+    "quest-barbarian-fishing": {
+      "thumb_256": "https://blossom.oslim.dev/7f1957f21bd7b856efaaf557bcd85d42bb7692a1ccfddd085755b77eed001762.png",
+      "thumb_64": "https://blossom.oslim.dev/c545a18fd385969099dc5595ae6c51bf81209db59b70516ffdee80cf1509bd92.png",
+      "image": "https://blossom.oslim.dev/e6691d04c17fdb9c02446349674cff0ab801b315cf6453445463e95e1530843e.png"
+    },
+    "quest-caretakers-letter": {
+      "thumb_256": "https://blossom.oslim.dev/b16eb131bbe68c9d1996ba444cba1590f00a97f5c1df4f10ba8fcf92daa94cf0.png",
+      "thumb_64": "https://blossom.oslim.dev/a54e99a8dd97fa6afd42ec7a47ccbac436a35b0bebbad1cd390b4eef61d58cce.png",
+      "image": "https://blossom.oslim.dev/17adf88f8958409cb6a5aa35cc41097c043c51c8b621572e437df36b6fd9c7ce.png"
+    },
+    "quest-elven-heritage": {
+      "thumb_256": "https://blossom.oslim.dev/e5d0d576c41e1aa95af26ed1cdadadda5e57d0271fdcfc815eae8af47bb2be60.png",
+      "thumb_64": "https://blossom.oslim.dev/c75e2b1261c4bd0901d8fcb4be5e7815f7965d665f673ce5bf6618b587625b26.png",
+      "image": "https://blossom.oslim.dev/2fcfc00d669321e07e0310a6122dfd5baa96aec4af0258e012aa5cf85df084f0.png"
+    },
+    "quest-paladins-vow": {
+      "thumb_256": "https://blossom.oslim.dev/7d39a9d3f7da38a7347f93c0530d2c19e22328730dc6e59766848c86f15a83f6.png",
+      "thumb_64": "https://blossom.oslim.dev/05924bd5ae47f3710f562051a835b609c49d4aacfb176711feb0ee95d8eb7a68.png",
+      "image": "https://blossom.oslim.dev/d90662f5f77dbaf2e1dd6949c49b8eef3f11480d5d2e9b4f8c2c51653dddfa4f.png"
+    },
+    "quest-rats-of-goldenhaven": {
+      "thumb_256": "https://blossom.oslim.dev/91402d58ec34bf696913cb729d031cb4486a08e4cd9961fda2e31fbb05be9aec.png",
+      "thumb_64": "https://blossom.oslim.dev/8ddea71d854c2f453c5c3106e0d33f7afc372a3e3ea71188f26ca9b8150d5809.png",
+      "image": "https://blossom.oslim.dev/774d713ed5039a669f5398af9c3ef68e2c031910d68bb6da097cb1b5413ca947.png"
+    },
+    "quest-rogues-shadow-trial": {
+      "thumb_256": "https://blossom.oslim.dev/835b4e4e9e4e5bb6187def272dba15a41bad7258afa0caca6e241a622220b3c2.png",
+      "thumb_64": "https://blossom.oslim.dev/9a46414741505781494cb157dcf40c6ff211209839a92bed0aa311e3f17c9b85.png",
+      "image": "https://blossom.oslim.dev/9414d07ac95508c594ccaf53a773249ee7d866acc492ee7a967c053c5b0eb1a5.png"
+    },
+    "quest-stone-goldenhaven": {
+      "thumb_256": "https://blossom.oslim.dev/40e2041ef6984bc3403ed32376ce98b356b93bbcdf4c98c171cf9f22078edbf9.png",
+      "thumb_64": "https://blossom.oslim.dev/7176149789b8216cfd2a84c15542c55620eb773b723181254476165690173548.png",
+      "image": "https://blossom.oslim.dev/e39b7e4b994e9a4064ddc5d950d439cfab489580d3b51db97bd8da1d1c4a7d51.png"
+    },
+    "quest-stone-ironpeak": {
+      "thumb_256": "https://blossom.oslim.dev/d142352b88a7f02174047dd48fc0574b2c36712a9a2ed66794df53465aacc377.png",
+      "thumb_64": "https://blossom.oslim.dev/dc7dbf703aef1335744f146053faf9393fef387d0df94b2f844bae3158bfea1d.png",
+      "image": "https://blossom.oslim.dev/be66149ef8da7346da40f430929a2c9f06b46b53f5f55c4fcf4d7ae120331d33.png"
+    },
+    "quest-stone-kingdom": {
+      "thumb_256": "https://blossom.oslim.dev/5e955381630c786a304db63b20399f90f303aa7338b34ca534dca2976dac3051.png",
+      "thumb_64": "https://blossom.oslim.dev/f0e8b246b8cfc543d2232f0c4413ab1f5176c70e60b76e63121aac852a8099f1.png",
+      "image": "https://blossom.oslim.dev/c4d6e78c2c7e2c0d1c6dd3b12d3a8449baf0ad7cc4c78599d63ee3622d6e258f.png"
+    },
+    "quest-stone-marshlight": {
+      "thumb_256": "https://blossom.oslim.dev/b5eac6c8a28fcd935ceb612927c685b47aa7061f02dc2fced02d18eb50e7f9f7.png",
+      "thumb_64": "https://blossom.oslim.dev/01f3b20dca8bcdbfe4ae3aa0e4158949a0b76e5fe1fb497261c92bf3b7d6c397.png",
+      "image": "https://blossom.oslim.dev/bb3620a2ad9adb425be83cc5c212d966827a97f175c473cda577f42d934cfd8c.png"
+    },
+    "quest-stone-millhaven": {
+      "thumb_256": "https://blossom.oslim.dev/2c04a208e12cd315365319b361ed4489680fb7b799f5ab6bb891c0aed79afd9f.png",
+      "thumb_64": "https://blossom.oslim.dev/3bc09941cec85f701b8d2fb4d00434969fd356a1af9604d4da3e9a8841f6a566.png",
+      "image": "https://blossom.oslim.dev/2250bd23f6bcfc107e98b8c77fbe26f606648733cdd87a723ceb5196d3c27432.png"
+    },
+    "quest-stone-verdant": {
+      "thumb_256": "https://blossom.oslim.dev/bb5b898ee93a4f48ddd6b367886a2a78f5a5334c946369ddd9beb0db20b8fe0a.png",
+      "thumb_64": "https://blossom.oslim.dev/08cd6c8160cfec0631146088cf0481fbc9b17fe7e531500afe81253821b798b3.png",
+      "image": "https://blossom.oslim.dev/8738f8d8de5bb0e6779ad630e983bb577f1cf5d15a399d4374c7c3dd706932fc.png"
+    },
+    "quest-sword-of-the-ancestors": {
+      "thumb_256": "https://blossom.oslim.dev/52167cf6928fa0d58495346011c030e31a47ba0dd2a34b1acf178f2bf376fda3.png",
+      "thumb_64": "https://blossom.oslim.dev/336965576854ca4bd71488765de2e9518ae9d1639054c0f5ad6f0dad76ccff34.png",
+      "image": "https://blossom.oslim.dev/6324dbd613c84b7da5a1df82818bf49b0157de5a25fd85f7d750c1540e282939.png"
+    },
+    "quest-the-black-flame": {
+      "thumb_256": "https://blossom.oslim.dev/0d2070be79a3e692087c3e58f286fb07099fa2971bfdb75e2ca8a0f2f5465559.png",
+      "thumb_64": "https://blossom.oslim.dev/412a5e789965b6dd9d7d0302169f4055926720bc58937d3036139f56eabe0e08.png",
+      "image": "https://blossom.oslim.dev/9d90e29cf774fee92498508ba213db0a97bf2b8e8ed65032d0146f7a6f88ffce.png"
+    },
+    "quest-the-missing-heirloom": {
+      "thumb_256": "https://blossom.oslim.dev/93c6b54e29e5b6ebe86bc12231a63e8611ab53037a5ebdb3021c708cfaae4cea.png",
+      "thumb_64": "https://blossom.oslim.dev/63c5c7f63be28f0687e94aa18aba584e192ae7105cddf93794c872d55c8e45f9.png",
+      "image": "https://blossom.oslim.dev/557b6b5a0176a59c4f40bba2ecb7a4c126538dedd57078e9b34b953f9dcb40fa.png"
+    },
+    "quest-the-missing-mule": {
+      "thumb_256": "https://blossom.oslim.dev/145fc0da029d5d20fba17d31847c42adf3809d0692c5664faa0cfe672a5756c2.png",
+      "thumb_64": "https://blossom.oslim.dev/32b010eecf067625404f64719852a0ad669dae5ade6c9af824a1e66690025ed8.png",
+      "image": "https://blossom.oslim.dev/7c0520a94271e5204b50b21cbe6a071073496d0f6c60dc7015e3ac2c19f4679c.png"
+    },
+    "quest-the-one-that-got-away": {
+      "thumb_256": "https://blossom.oslim.dev/c63cb98a3babc76ffb720de5898e87b2caf5788c0c7c3cbb818c45ccebffd295.png",
+      "thumb_64": "https://blossom.oslim.dev/40b2e9e6fa9760a2b01a9039daa6b4d88c5fdc13fed252d0b12ac9497747cbb2.png",
+      "image": "https://blossom.oslim.dev/0d9039cec7906b3656137883ba7198228548241141173d86640e6403afeb0775.png"
+    },
+    "quest-the-rising-shadow": {
+      "thumb_256": "https://blossom.oslim.dev/bf8783013136e0e52a4034039b755c90b0171f7f211237bc5feddd2f8a18674e.png",
+      "thumb_64": "https://blossom.oslim.dev/04c2f13e7df30b46328fde8eb721bf5167ba2f35aeed4ed3ed3c5873c043c06a.png",
+      "image": "https://blossom.oslim.dev/522c15008ce2f91dbfe001e5640272b07b0d06be3e811ed5135e50432825d0fa.png"
+    },
+    "quest-the-shadows-source": {
+      "thumb_256": "https://blossom.oslim.dev/a5a9504d8724f856f7712f9689d1565a8b6c427e8a3400655c6acc89aa998cfb.png",
+      "thumb_64": "https://blossom.oslim.dev/3039960e670217461696168d20d09b6ee6d91097c607709f574e36f57cdf31f0.png",
+      "image": "https://blossom.oslim.dev/0c822cf96fa91cfa316b97da6794e960db8233795d5f07ef076ef0229bdce472.png"
+    },
+    "quest-waystone-goldenhaven": {
+      "thumb_256": "https://blossom.oslim.dev/85a129a7aa9d7be4a553eef4da9dd62226fe1517ef95b834017942224fcf63d6.png",
+      "thumb_64": "https://blossom.oslim.dev/6cd29d10547495be6b8d0231a35e863b2b3fe329654006df28649ea677533679.png",
+      "image": "https://blossom.oslim.dev/8b59d6f533e764ae051a3eb73c02822e857f14a4cff53b6f2585e2f2ea7878ab.png"
+    },
+    "quest-waystone-ironpeak": {
+      "thumb_256": "https://blossom.oslim.dev/f7a82d2dcb4a6426a2c9d860b47a2350a0d00a5e362c20b21a69a92d97f35a63.png",
+      "thumb_64": "https://blossom.oslim.dev/c458e3026146a99eccfec45cb57c58aefe35d6f2303318278c7728330e4a763e.png",
+      "image": "https://blossom.oslim.dev/0de4922f7a477e5aaa09cfdb2caf8123a21f876969444138cbafbc1d224be49e.png"
+    },
+    "quest-waystone-kingdom": {
+      "thumb_256": "https://blossom.oslim.dev/06131e3ee3bf839b76e8c4ba1b7a5110ceca9d996a7cac528ac0335d0e9f81ec.png",
+      "thumb_64": "https://blossom.oslim.dev/490a01138bca421ab387a2e37152a1ab27276350cc63c8230792b28242d843cc.png",
+      "image": "https://blossom.oslim.dev/4895739412c23caa45136b177e6bdce19d8ab856d000fa4c2648583ab02afb18.png"
+    },
+    "quest-waystone-marshlight": {
+      "thumb_256": "https://blossom.oslim.dev/8fd2f2368dd95effd58cdc6911ff51332fb414c2ef0bbe1ec77710e25a913701.png",
+      "thumb_64": "https://blossom.oslim.dev/d90721109d0d94e26fa1c03ca3fd909cb3eb4ffbc385293f6fd5e255e569afe7.png",
+      "image": "https://blossom.oslim.dev/8bc644628f18eacf4c62672ba29fee845288ec9f6dc403d3985f90889711841c.png"
+    },
+    "quest-waystone-millhaven": {
+      "thumb_256": "https://blossom.oslim.dev/eb47e4d78b339e6d0bf418e625c9123a31d85f95d2d3775f14d86980e08127ab.png",
+      "thumb_64": "https://blossom.oslim.dev/6aafaa91b263edf283fab0ffb1af1b07dc684180a63dd8c479a4a4da11610aea.png",
+      "image": "https://blossom.oslim.dev/95a445509f9335a12d94ac2121e694eab2513c58e4ea3c20507d7b73dded905e.png"
+    },
+    "quest-waystone-verdant": {
+      "thumb_256": "https://blossom.oslim.dev/854451ef8e3bbaec2506034ab4d35e61e55c8f249ee84a575004f83a8cf7e461.png",
+      "thumb_64": "https://blossom.oslim.dev/a24effd82a175f9ed0f7332ab023b50b32d51739a5231d7d20d87e06462d65d3.png",
+      "image": "https://blossom.oslim.dev/fe7f559446a0f2172f3badab3296e32868cf4899c994e82a280b7954cd371d60.png"
+    }
+  }
+}

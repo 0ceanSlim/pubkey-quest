@@ -44,6 +44,9 @@ as a future consumer), [Gamestr for developers](https://gamestr.io/developers) (
   never awards a badge or signs a score: the store and everything it signs run only with
   `saves.validation` on, which test never has (§4). The badge list is
   [badges.md](badges.md).
+- **His media lives on Blossom** (`blossom.oslim.dev`, which admits him through his oslim.dev
+  NIP-05): his profile picture and banner, and every badge image (`systems/badge-media.json`).
+  Anything new he publishes with an image is uploaded there first, signed by him (kind 24242).
 - **His face:** the hooded reader with the crackling book is his profile picture
   (`www/res/img/dm/avatar.jpg`), and the world map is his banner (`www/res/img/dm/banner.jpg`,
   a 3:1 cut of `map/world-map.png`).
@@ -244,8 +247,8 @@ shows things from that npub, and the server signs as it.
 dm:
   name: "The Dungeon Master"
   about: "…"
-  picture: "https://pubkey.quest/res/img/dm/avatar.jpg"
-  banner: "https://pubkey.quest/res/img/dm/banner.jpg"
+  picture: "https://blossom.oslim.dev/<sha256>.jpg"
+  banner: "https://blossom.oslim.dev/<sha256>.jpg"
   nip05: "dm@oslim.dev"
   relays: [ "wss://wheat.oslim.dev/", … ]   # his kind 10002: where his events go
   inbox:  [ "wss://wheat.oslim.dev/", … ]   # his kind 10050: where DMs to him go
