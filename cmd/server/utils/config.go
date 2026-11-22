@@ -70,6 +70,8 @@ type DMConfig struct {
 	Picture string `yaml:"picture"` // profile picture URL
 	Banner  string `yaml:"banner"`  // profile banner URL
 	Nip05   string `yaml:"nip05"`   // e.g. dm@oslim.dev
+	Lud16   string `yaml:"lud16"`   // Lightning address, e.g. dm@oslim.dev
+	Website string `yaml:"website"` // e.g. https://pubkey.quest
 	// Relays is his NIP-65 list (kind 10002, read and write): where his posts,
 	// badges and scores go. Inbox is his NIP-17 list (kind 10050): where bug
 	// reports and support DMs reach him.

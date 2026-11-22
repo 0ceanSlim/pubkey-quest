@@ -48,6 +48,8 @@ dm:
   picture: "" # his media lives on Blossom, e.g. https://blossom.oslim.dev/<sha256>.jpg
   banner: ""
   nip05: ""   # e.g. dm@oslim.dev
+  lud16: ""   # his Lightning address, for zaps, e.g. dm@oslim.dev
+  website: "" # e.g. https://pubkey.quest
   relays: []  # his NIP-65 relays (kind 10002): where his posts, badges and scores go
   inbox: []   # his NIP-17 DM relays (kind 10050): where bug reports and support reach him
   npub: ""

@@ -519,3 +519,33 @@ and boards.
 15. **Server firsts:** **Recommend later,** opt-in only.
 16. **The DM's name:** "The Dungeon Master", or an in-world name? **Recommend "The Dungeon
     Master"** on the profile; it reads well in any Nostr client.
+
+## 12. What else the DM keeps on Nostr (2026-11-21)
+
+Your question: what else can live on relays, signed by the DM? The rule I'd hold to: **only
+what's fine being public forever.** Relays don't forget, and a NIP-09 delete is only a request.
+So support DMs, IPs and anything private stay off; game facts the server already stands behind
+go on.
+
+### Done
+- **His profile** carries the links and the Lightning address: `website` pubkey.quest; the wiki
+  and the codex in the bio; `lud16` = `dm@oslim.dev`. The wiki link is the test wiki until launch,
+  because pubkey.quest/wiki shows "not open yet" until then. Switch it at launch.
+- **Zaps:** `dm@oslim.dev` already pays out: oslim.dev answers any name with an invoice from your
+  node ("Payment to dm") and supports zap receipts. Tips to the DM land in your wallet.
+
+### Candidates, each its own decision
+| What | Event | Why |
+|---|---|---|
+| **Release notes** | kind 1 note on each official release, made from that release's `updates.json` entries; a big one also as a kind 30023 long-form article | `updates.json` stays the source (CLAUDE.md); the DM is its broadcast. Test is the nightly, so only promoted releases get a post. |
+| **Signed releases** | NIP-94 kind 1063 with each release binary's sha256, with the binary on Blossom | anyone can check an official binary against the DM's key |
+| **The ledger, mirrored** | one addressable kind 30078 per player and slot (`d` = `pubkey-quest:ledger:<npub>:<slot>`), holding the last accepted save event id | the official server's one irreplaceable record becomes recoverable from relays if its disk dies, and anyone can tell which of a player's saves is the official one. Save ids are already public, so nothing new leaks. |
+| **Lifetime stats, mirrored** | one kind 30078 per player with the store's counters and sets | the same backup for the stats store. Optional: scores and badges already publish the parts that matter. |
+| **The game itself** | NIP-89 kind 31990 app handler for Pubkey Quest | Nostr clients can learn the game exists and open its save events in it |
+| **Server firsts** | kind 1 note: "first to finish *The Rising Shadow*" | flair; opt-in only (§11, question 15) |
+
+### Gamestr
+Highscores are already designed for Gamestr (§7): kind 30762 scores signed by the DM, so they
+show as verified. **When you're ready, a sponsored spot on Gamestr** is just a listing for the
+same game: nothing in the build changes.
+
