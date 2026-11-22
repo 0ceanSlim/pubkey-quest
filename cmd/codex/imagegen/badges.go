@@ -19,17 +19,27 @@ const BadgeDir = "www/res/img/badges"
 // full image and its thumbs. <id>.png is the first; the rest are <id>-<n>.png.
 var BadgeSizes = []int{1024, 256, 64}
 
+// BadgeModel is the model badge art is drawn with (gpt-image-2.6 Sunburst, at
+// high quality, on its own transparent background): a bare variant name picks
+// its candidate.
+const BadgeModel = "gpt-image-2.6-sunburst"
+
 // PublishBadge turns an approved candidate into the badge's web images. The
-// candidate is a variant name ("v2" → _candidates/<id>/gpt-image-2-v2.png) or a
-// path. PNG, as a badge's background is transparent (the candidate was keyed
-// out, keyout.go). It returns the files written.
+// candidate is a variant name ("v2" → _candidates/<id>/<BadgeModel>-v2.png), a
+// candidate's file name without .png ("gpt-image-2-v1"), or a path. PNG, as a
+// badge's background is transparent, cut to 256 colours (quantize.go). It
+// returns the files written.
 func PublishBadge(dir, id, candidate string) ([]string, error) {
 	if id == "" || strings.ContainsAny(id, `/\.`) {
 		return nil, fmt.Errorf("bad badge id %q", id)
 	}
 	src := candidate
-	if !strings.ContainsAny(candidate, `/\.`) {
-		src = filepath.Join(dir, "_candidates", id, "gpt-image-2-"+candidate+".png")
+	if !strings.ContainsAny(candidate, `/\`) && !strings.HasSuffix(candidate, ".png") {
+		name := candidate
+		if strings.HasPrefix(candidate, "v") {
+			name = BadgeModel + "-" + candidate
+		}
+		src = filepath.Join(dir, "_candidates", id, name+".png")
 	}
 	f, err := os.Open(src)
 	if err != nil {
@@ -53,7 +63,7 @@ func PublishBadge(dir, id, candidate string) ([]string, error) {
 		if err != nil {
 			return out, err
 		}
-		err = (&png.Encoder{CompressionLevel: png.BestCompression}).Encode(w, dst)
+		err = (&png.Encoder{CompressionLevel: png.BestCompression}).Encode(w, Quantize(dst, 256))
 		if cerr := w.Close(); err == nil {
 			err = cerr
 		}

@@ -22,7 +22,7 @@ func TestPublishBadge(t *testing.T) {
 			src.Set(x, y, color.RGBA{uint8(x / 4), uint8(y / 4), 90, 255})
 		}
 	}
-	f, _ := os.Create(filepath.Join(cand, "gpt-image-2-v2.png"))
+	f, _ := os.Create(filepath.Join(cand, BadgeModel+"-v2.png"))
 	png.Encode(f, src)
 	f.Close()
 

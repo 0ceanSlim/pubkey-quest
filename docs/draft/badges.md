@@ -112,11 +112,10 @@ Dailies count once per npub per day, however many of your characters do them.
   badge lists and profiles, 64 for inline icons. The DM's kind 30009 definition carries
   `["image", "<url>/<id>.png", "1024x1024"]`, `["thumb", "<url>/<id>-256.png", "256x256"]` and
   `["thumb", "<url>/<id>-64.png", "64x64"]`.
-- **Made with gpt-image-2 at high quality** (your call: no cheaper model). gpt-image-2 can't draw
-  on transparency, so each badge is drawn on flat magenta (spec `"key": "#ff00ff"`) and codex
-  keys it out (`imagegen/keyout.go`): a flood fill from the edge, stopped by the rim's outline,
-  then the magenta tint is taken off the edge pixels. The drawn original is kept beside each
-  candidate as `-raw.png`.
+- **Made with gpt-image-2.6 Sunburst at high quality,** OpenAI's newest quality model (your
+  call: no cheaper model; it beat gpt-image-2 in a side-by-side trial). It draws the
+  transparent background itself (spec `"background": "transparent"`). For a model that can't,
+  codex can key out a flat colour instead (spec `"key": "#ff00ff"`, `imagegen/keyout.go`).
 - **Style: the DM's own.** His portrait is the reference: chunky pixel art with black outlines
   on aged parchment.
 - **Each badge is a round medallion on a transparent background,** with its own emblem. The rim
@@ -135,6 +134,10 @@ Dailies count once per npub per day, however many of your characters do them.
   `go run ./cmd/codex --badge-art every-fish=v1,level-20=v2`.
 - **Web images:** `--badge-art` writes `www/res/img/badges/<id>.png` (1024) and
   `<id>-256.png`, `<id>-64.png`. PNG, because the background is transparent and JPEG can't hold
-  that.
+  that, cut to 256 colours (`imagegen/quantize.go`, a median cut that splits where the colour
+  error is largest). That takes the 1024 from about 1 MB to about 320 KB; the thumbs are about
+  35 KB and 4 KB. Side by side with the original there's no visible difference.
+- **Picked so far:** Heir to the Vault, The One That Got Away and Angler of the Realm (Sunburst
+  v1 of each).
 - **Hosted on the main server:** the files are committed and served at
   `https://pubkey.quest/res/img/badges/`, so a badge's image lives as long as the game does.
