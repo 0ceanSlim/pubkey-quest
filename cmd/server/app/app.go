@@ -87,7 +87,7 @@ func Start(mux *http.ServeMux) {
 	// save waits on relays for up to 20 s).
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", port),
-		Handler:           auth.RateLimit(auth.LaunchGate(auth.RequireIdentity(session.SerializeRequests(mux)))),
+		Handler:           auth.RateLimit(auth.KeepLogin(auth.LaunchGate(auth.RequireIdentity(session.SerializeRequests(mux))))),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      60 * time.Second,

@@ -95,6 +95,7 @@ func startSessionCleanup(ctx context.Context) {
 				if mgr := session.SessionMgr; mgr != nil {
 					mgr.CleanupSessions(sessionMaxIdle)
 				}
+				FlushLogins()
 			}
 		}
 	}()
@@ -106,6 +107,7 @@ func ShutdownGrainClient() error {
 	if grainCancel != nil {
 		grainCancel()
 	}
+	FlushLogins()
 	if err := connection.CloseCoreClient(); err != nil {
 		log.Printf("⚠️ Error closing grain core client: %v", err)
 		return err

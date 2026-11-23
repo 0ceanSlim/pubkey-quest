@@ -137,6 +137,11 @@ func (auth *AuthHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Keep it on disk too, so a restart doesn't sign them out (logins.go).
+	if c := sessionCookie(w); c != nil {
+		keepLogin(c.Value, userSession)
+	}
+
 	// Generate npub for response
 	npub, _ := tools.EncodePubkey(userSession.PublicKey)
 
@@ -162,6 +167,7 @@ func (auth *AuthHandler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 
 	// Clear session using grain session manager
 	if session.SessionMgr != nil {
+		forgetLogin(session.SessionMgr.GetSessionToken(r))
 		session.SessionMgr.ClearSession(w, r)
 	}
 
