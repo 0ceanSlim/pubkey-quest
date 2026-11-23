@@ -1081,6 +1081,8 @@ export async function enterBuilding(buildingId) {
  */
 export async function exitBuilding() {
     logger.debug('Exiting building');
+    // The vault is the keeper's, inside: it doesn't come out with you.
+    if (window.vaultOpen) closeVaultUI();
 
     try {
         const result = await gameAPI.sendAction('exit_building', {});

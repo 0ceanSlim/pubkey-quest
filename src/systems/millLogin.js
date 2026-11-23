@@ -475,10 +475,11 @@ function reconnect(why) {
  */
 async function tryRestore(session) {
     try {
-        // Amber: MILL.restore would rebuild it without our callback (it reads
-        // that off the picker, which a reload hasn't opened), and Amber then
-        // answers on the clipboard, which Android browsers rarely let a page
-        // read: you approve and the game waits. Build it with the callback.
+        // Amber: MILL.restore would rebuild it without a callback (it reads that
+        // off the picker, which a reload hasn't opened), and MILL then reads the
+        // clipboard itself, with no paste card when the browser won't let it.
+        // With one, MILL waits on the channel the Amber hook above fills. Needs
+        // nothing but the server session: no connection to keep alive.
         if (session.signingMethod === 'amber') {
             installSigner(MILL.signers.createNIP55Signer({
                 pubkey: session.publicKey,
