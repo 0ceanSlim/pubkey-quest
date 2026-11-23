@@ -15,7 +15,7 @@ import { nip19, getEventHash, verifyEvent } from 'nostr-tools';
 import { createWrap } from 'nostr-tools/nip59';
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
-import { getActiveSigner } from '../systems/millLogin.js';
+import { getActiveSigner, requireSigner } from '../systems/millLogin.js';
 import { socialHooks, appendChatLine, startWhisper, noteWhisperFrom, playerRow, openPlayerMenu } from './socialUI.js';
 import { crestSVG } from './crest.js';
 
@@ -68,8 +68,7 @@ async function loadFriends(refresh = false) {
 
 /** Edit one person in one of your lists (contacts / mutes), signed here. */
 async function editList(endpoint, kind, hex, add) {
-    const signer = getActiveSigner();
-    if (!signer?.signEvent) throw new Error('Your signer isn\'t ready yet.');
+    const signer = await requireSigner('to change your lists');
     const cur = await (await fetch(endpoint)).json();
     const ev = cur?.event ?? null;
     let tags = (ev?.tags ?? []).map(t => [...t]);

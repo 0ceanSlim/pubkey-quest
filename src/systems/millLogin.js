@@ -249,9 +249,84 @@ export function openMillLogin() {
         tip: false,
         amberCallback: `${window.location.origin}/api/auth/amber-callback`,
         onConnected: (result) => finishLogin(result),
+        // MILL keeps callbacks across opens: clear a reconnect's.
+        onClose: () => {},
     });
 
     injectMillResponsiveStyles();
+}
+
+// The restore in flight after a page reload (restoreSignerFromSession).
+let restoring = null;
+
+// Reconnecting is your key again, never a new one: the picker without "I'm new here".
+const noNewKey = (l) => ({ ...l, methods: l.methods.filter((m) => m !== 'newkey') });
+const RECONNECT_LAYOUT = {
+    ...noNewKey(LOGIN_LAYOUT),
+    platforms: Object.fromEntries(Object.entries(LOGIN_LAYOUT.platforms).map(([k, l]) => [k, noNewKey(l)])),
+};
+
+/**
+ * The player's signer, for anything that signs (a save, a deletion, a list
+ * edit). The signer lives only as long as the tab (MILL keeps it in
+ * sessionStorage) while the server session lasts a week, so coming back in a
+ * new tab can find you logged in with nothing to sign with: then MILL opens
+ * to reconnect it, with the key you're playing as.
+ * @param {string} [why] what the signature is for: "to save"
+ * @returns {Promise<object>} the signer
+ */
+export async function requireSigner(why = 'to keep playing') {
+    if (activeSigner?.signEvent) return activeSigner;
+    if (restoring) {
+        await restoring;
+        if (activeSigner?.signEvent) return activeSigner;
+    }
+    // One reconnect at a time: a second open would orphan the first's callbacks.
+    reconnecting ??= reconnect(why).finally(() => { reconnecting = null; });
+    return reconnecting;
+}
+
+let reconnecting = null;
+
+function reconnect(why) {
+    const want = (window.sessionManager?.getPublicKey?.() || '').toLowerCase();
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        const settle = (fn, v) => { if (!settled) { settled = true; fn(v); } };
+        MILL.open({
+            appName: 'Pubkey Quest',
+            theme: pubkeyQuestTheme(),
+            layout: 'grid',
+            ...RECONNECT_LAYOUT,
+            callout: false,
+            density: window.matchMedia?.('(max-width: 480px)').matches ? 'compact' : 'comfortable',
+            header: {
+                logo: '/res/img/static/logo.png',
+                logoHeight: 64,
+                eyebrow: false,
+                title: 'Reconnect your signer',
+                message: `Your signer didn't come back with this tab. Reconnect it ${why}, with the key you're playing as.`,
+                align: 'center',
+            },
+            pomegranate: true,
+            tip: false,
+            amberCallback: `${window.location.origin}/api/auth/amber-callback`,
+            onConnected: (result) => {
+                if (want && String(result.pubkey || '').toLowerCase() !== want) {
+                    try { result.signer?.disconnect?.(); } catch (_) { /* best effort */ }
+                    settle(reject, new Error("That's a different key from the one you're playing as."));
+                } else if (result.signer?.signEvent) {
+                    installSigner(result.signer);
+                    settle(resolve, result.signer);
+                } else {
+                    settle(reject, new Error("That sign-in can't sign."));
+                }
+                MILL.close();
+            },
+            onClose: () => settle(reject, new Error("Your signer isn't connected.")),
+        });
+        injectMillResponsiveStyles();
+    });
 }
 
 /**
@@ -262,10 +337,11 @@ export function openMillLogin() {
  */
 async function tryRestore(session) {
     try {
-        const signer = await MILL.restore({
-            method: session.signingMethod,
-            pubkey: session.publicKey,
-        });
+        // A locked extension may never answer getPublicKey: give up after 8s.
+        const signer = await Promise.race([
+            MILL.restore({ method: session.signingMethod, pubkey: session.publicKey }),
+            new Promise((r) => setTimeout(() => r(null), 8000)),
+        ]);
         if (!signer || typeof signer.signEvent !== 'function') return false;
         installSigner(signer);
         return true;
@@ -284,7 +360,12 @@ async function tryRestore(session) {
  * connections). No-op if there's nothing to restore.
  * @param {{ publicKey?: string, signingMethod?: string } | null} session
  */
-export async function restoreSignerFromSession(session) {
+export function restoreSignerFromSession(session) {
+    restoring = restoreSigner(session).finally(() => { restoring = null; });
+    return restoring;
+}
+
+async function restoreSigner(session) {
     if (!session || !session.publicKey || !session.signingMethod) return;
     if (session.signingMethod === 'none') return;
 
@@ -324,5 +405,6 @@ export function clearMillSigner() {
 // Expose for inline template handlers (nav-play.html, auth.js login screen).
 if (typeof window !== 'undefined') {
     window.openMillLogin = openMillLogin;
+    window.requireSigner = requireSigner;
     window.MILL = MILL;
 }

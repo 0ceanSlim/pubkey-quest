@@ -2,12 +2,19 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
-      "id": "2026-11-22-fixes",
+      "id": "2026-11-22-stability",
       "when": "November 22, 2026",
       "icon": "🔧",
-      "size": "minor",
-      "title": "Fixes: camping on the road, slow loading",
-      "summary": "Making camp on the road now stops your trip: you wake where you lay down, not further along or in the next town. And opening a save no longer holds up everyone else's game while it loads."
+      "size": "major",
+      "title": "Stability update",
+      "summary": "Fixes for the first day of the beta: loading, signing and a road that walked you in your sleep.",
+      "highlights": [
+        "Opening a save no longer holds up everyone else's game while it loads",
+        "Come back in a new tab and your signer is gone? The game now asks you to reconnect it when you save, instead of failing",
+        "A save that won't load says why, with a way back to your saves",
+        "Making camp on the road stops your trip: you wake where you lay down, not in the next town",
+        "Save errors say what went wrong, and a moment offline no longer signs you out"
+      ]
     },
     {
       "id": "2026-11-22-open-beta",

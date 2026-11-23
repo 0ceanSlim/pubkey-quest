@@ -16,7 +16,7 @@
 
 import { logger } from '../lib/logger.js';
 import { gameAPI } from '../lib/api.js';
-import { getActiveSigner } from '../systems/millLogin.js';
+import { requireSigner } from '../systems/millLogin.js';
 import { crestSVG } from './crest.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -244,8 +244,10 @@ async function uploadToBlossom(file) {
     const server = _blossom[0];
     if (!server) return;
     if (file.size > 8 * 1024 * 1024) { say('That image is over 8 MB.', '#f87171'); return; }
-    const signer = getActiveSigner();
-    if (!signer?.signEvent) { say('Your signer isn\'t ready — paste a link instead.', '#f87171'); return; }
+    let signer;
+    try {
+        signer = await requireSigner('to upload a portrait');
+    } catch (err) { say(`${err.message} Paste a link instead.`, '#f87171'); return; }
     try {
         say('Uploading…');
         const hash = await sha256Hex(await file.arrayBuffer());

@@ -229,6 +229,8 @@ func FriendsHandler(w http.ResponseWriter, r *http.Request) {
 	status := lastSeen(ctx, entry.friends)
 	viewerNpub, saveID := r.URL.Query().Get("npub"), r.URL.Query().Get("save_id")
 
+	profiles := friendProfiles(ctx, entry.friends)
+
 	resp := FriendsResponse{Success: true, Friends: []FriendView{}, Follows: []string{}}
 	for _, pk := range entry.follows {
 		if n, err := tools.EncodePubkey(pk); err == nil {
@@ -241,7 +243,7 @@ func FriendsHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		fv := FriendView{Npub: npub, LastEventAt: status[pk].last, Client: status[pk].client}
-		prof := fetchProfile(pk)
+		prof := profiles[pk]
 		fv.Name = prof.Profile.DisplayName
 		if fv.Name == "" {
 			fv.Name = prof.Profile.Name
@@ -261,6 +263,48 @@ func FriendsHandler(w http.ResponseWriter, r *http.Request) {
 		return a.LastEventAt > b.LastEventAt
 	})
 	writeJSON(w, resp)
+}
+
+// friendProfiles fetches friends' profiles side by side, each a relay round
+// trip when it isn't cached. Fetched one after another they could run past the
+// server's write timeout; a profile not back within 8 seconds is left out
+// (the friend goes by their npub).
+func friendProfiles(ctx context.Context, friends []string) map[string]ProfileResponse {
+	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
+	var mu sync.Mutex
+	out := make(map[string]ProfileResponse, len(friends))
+	slots := make(chan struct{}, 8)
+	done := make(chan struct{})
+	var wg sync.WaitGroup
+	for _, pk := range friends {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			select {
+			case slots <- struct{}{}:
+			case <-ctx.Done():
+				return
+			}
+			defer func() { <-slots }()
+			prof := fetchProfile(pk)
+			mu.Lock()
+			out[pk] = prof
+			mu.Unlock()
+		}()
+	}
+	go func() { wg.Wait(); close(done) }()
+	select {
+	case <-done:
+	case <-ctx.Done():
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	got := make(map[string]ProfileResponse, len(out))
+	for k, v := range out {
+		got[k] = v
+	}
+	return got
 }
 
 // ─── Editing your own lists (kind 3 contacts, kind 10000 mutes) ──────────────

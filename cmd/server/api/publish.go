@@ -1,10 +1,12 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	grainCache "github.com/0ceanslim/grain/client/cache"
 	"github.com/0ceanslim/grain/client/connection"
@@ -103,7 +105,10 @@ func PublishHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	relays := routeWrites(uc, req.Event)
-	results, err := uc.PublishEvent(r.Context(), req.Event, utils.PublicRelays(relays))
+	// Inside the server's write timeout, whatever the relays do.
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	results, err := uc.PublishEvent(ctx, req.Event, utils.PublicRelays(relays))
 	if err != nil {
 		log.Printf("❌ Failed to publish %s for %s...: %v", label, shortKey(user.PublicKey), err)
 		writeJSONStatus(w, http.StatusInternalServerError, PublishResponse{

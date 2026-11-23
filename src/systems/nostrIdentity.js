@@ -14,6 +14,7 @@
 
 import { logger } from '../lib/logger.js';
 import { API_BASE_URL } from '../config/constants.js';
+import { requireSigner } from './millLogin.js';
 
 /** NIP-89: tells other clients what published an event. */
 const CLIENT_TAG = ['client', 'Pubkey Quest'];
@@ -22,24 +23,15 @@ const CLIENT_TAG = ['client', 'Pubkey Quest'];
 export const PROFILE_FIELDS = ['display_name', 'name', 'picture', 'about', 'nip05', 'lud16', 'website'];
 
 /**
- * Sign an event with MILL's signer.
- *
- * MILL installs itself as window.nostr, but a page reload rebuilds it
- * asynchronously and NIP-07 extensions inject late, so wait briefly rather than
- * failing on a race.
+ * Sign an event with the player's MILL signer (never window.nostr: MILL doesn't
+ * install itself there, and an extension there may hold another key).
  *
  * @param {object} draft - Unsigned event (kind, content, tags)
  * @returns {Promise<object>} the signed event
  */
 async function sign(draft) {
-    for (const delay of [0, 250, 500, 1000, 2000]) {
-        if (window.nostr?.signEvent) break;
-        await new Promise((r) => setTimeout(r, delay));
-    }
-    if (!window.nostr?.signEvent) {
-        throw new Error('No signer available — sign in again to make changes');
-    }
-    return window.nostr.signEvent({
+    const signer = await requireSigner('to make changes');
+    return signer.signEvent({
         created_at: Math.floor(Date.now() / 1000),
         content: '',
         ...draft,

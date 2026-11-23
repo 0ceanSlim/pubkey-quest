@@ -111,7 +111,7 @@ export function finishLoading() {
     }, wait);
 }
 
-/** Show why loading stopped (the caller decides where to go next). */
+/** Show why loading stopped, with a way on: back to the saves, or try again. */
 export function failLoading(message) {
     clearInterval(noteTimer);
     clearInterval(quipTimer);
@@ -119,6 +119,22 @@ export function failLoading(message) {
     if (note) {
         note.style.color = '#f87171';
         note.textContent = message;
+        if (!el('pq-loading-actions')) {
+            const actions = document.createElement('div');
+            actions.id = 'pq-loading-actions';
+            actions.style.cssText = 'margin-top: 12px; display: flex; gap: 8px; justify-content: center;';
+            const button = (label, go) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = label;
+                b.style.cssText = 'font: inherit; font-size: 8px; padding: 6px 10px; background: #374151; color: #e5e7eb; border: 2px outset #6b7280; cursor: pointer;';
+                b.onclick = go;
+                actions.appendChild(b);
+            };
+            button('Back to saves', () => { window.location.href = '/saves'; });
+            button('Try again', () => window.location.reload());
+            note.after(actions);
+        }
     }
 }
 

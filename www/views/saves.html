@@ -353,11 +353,11 @@ async function deleteSave(saveData, setStatus) {
   let deletion = null;
   if (saveData.event_id) {
     // NIP-09: ask the relays to delete the save by its address and last event.
-    const signer = window.pqSigner;
     const pubkey = window.sessionManager?.getPublicKey?.();
-    if (!signer?.signEvent || !pubkey) {
-      throw new Error('Your signer isn\'t ready — sign in again to delete a save from your relays.');
+    if (!pubkey || !window.requireSigner) {
+      throw new Error('Sign in again to delete a save from your relays.');
     }
+    const signer = await window.requireSigner('to delete this save from your relays');
     setStatus('Sign the deletion request…');
     try {
       deletion = await signer.signEvent({

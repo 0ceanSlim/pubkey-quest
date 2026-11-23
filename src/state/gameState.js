@@ -343,13 +343,20 @@ export async function initializeGame() {
     // player's relays).
     const loadingSave = (async () => {
         logger.info('🔄 Initializing session in Go memory...');
+        // The server waits on relays for a signed save; past a minute, say so.
         const initResponse = await fetch('/api/session/init', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ npub: session.npub, save_id: saveID }),
+            signal: AbortSignal.timeout(60000),
+        }).catch((err) => {
+            throw new Error(err?.name === 'TimeoutError' ? 'the server took too long to load it' : 'the server couldn\'t be reached');
         });
         if (!initResponse.ok) {
-            throw new Error(`Failed to initialize session: ${initResponse.status}`);
+            // The server's reason ("this server has no record of that save"),
+            // without its "Failed to initialize session:" prefixes.
+            const why = (await initResponse.text().catch(() => '')).trim().split(': ').pop();
+            throw new Error(why || `the server answered ${initResponse.status}`);
         }
         const initResult = await initResponse.json();
         logger.info('✅ Session loaded into Go memory:', initResult);
@@ -408,9 +415,7 @@ export async function initializeGame() {
 
         } catch (saveError) {
             logger.error('Failed to load specific save:', saveError);
-            failLoading("Couldn't load this save. Back to your saves…");
-            // Redirect back to saves page
-            setTimeout(() => window.location.href = '/saves', 2000);
+            failLoading(`Couldn't load this save: ${saveError.message}.`);
             return;
         }
 

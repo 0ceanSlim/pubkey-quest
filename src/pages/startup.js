@@ -184,8 +184,9 @@ class PubkeyQuestStartup {
         // Visibility change handler for session monitoring
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && window.sessionManager) {
-                // Check session when tab becomes visible
-                window.sessionManager.checkExistingSession();
+                // Check session when tab becomes visible (offline for a moment:
+                // the next check settles it)
+                window.sessionManager.checkExistingSession().catch(() => {});
             }
         });
 
@@ -311,6 +312,8 @@ class PubkeyQuestStartup {
      * Called when initialization fails
      */
     onInitializationFailed(error) {
+        // The loading screen sits over #game-app: take it away so this shows.
+        document.getElementById('pq-loading')?.remove();
         const gameContainer = document.getElementById('game-app');
         if (gameContainer) {
             gameContainer.innerHTML = `

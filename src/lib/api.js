@@ -8,6 +8,7 @@
  */
 
 import { logger } from './logger.js';
+import { requireSigner } from '../systems/millLogin.js';
 import { eventBus } from './events.js';
 import { API_BASE_URL } from '../config/constants.js';
 import { handleWorldHandoff } from '../systems/worldHandoff.js';
@@ -208,15 +209,12 @@ class GameAPI {
             // Relay saves: the server handed back the save event to sign. A
             // save only counts once it's signed and a relay has stored it.
             if (result.sign) {
-                const signer = window.pqSigner;
-                if (!signer?.signEvent) {
-                    throw new Error('Your signer isn\'t ready — sign in again to save.');
-                }
+                const signer = await requireSigner('to save');
                 let signed;
                 try {
                     signed = await signer.signEvent(result.sign);
-                } catch (_) {
-                    throw new Error('Save cancelled — it wasn\'t signed.');
+                } catch (err) {
+                    throw new Error(`Save not signed: ${err?.message || 'cancelled'}`);
                 }
                 const pub = await fetch(`${API_BASE_URL}/saves/publish`, {
                     method: 'POST',

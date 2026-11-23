@@ -12,7 +12,7 @@ import { API_BASE_URL } from '../config/constants.js';
 import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 // Registers window.openMillLogin and exposes the signer-restore helper. All
 // interactive login now goes through MILL (see systems/millLogin.js).
-import { restoreSignerFromSession, clearMillSigner, getActiveSigner } from '../systems/millLogin.js';
+import { restoreSignerFromSession, clearMillSigner, requireSigner } from '../systems/millLogin.js';
 
 // Session status enum
 export const SessionStatus = {
@@ -128,7 +128,11 @@ class SessionManager {
             }
         } catch (error) {
             logger.error('Session check error:', error);
-            this.currentStatus = SessionStatus.ERROR;
+            // A network blip (a phone waking up) isn't a logout: keep a session
+            // we already had, and the next check settles it.
+            if (this.currentStatus !== SessionStatus.ACTIVE) {
+                this.currentStatus = SessionStatus.ERROR;
+            }
             throw error;
         }
     }
@@ -253,16 +257,9 @@ class SessionManager {
      * @returns {Promise<object>} the signed proof event
      */
     async signLoginProof() {
-        // After a page reload the signer is rebuilt asynchronously (and NIP-07
-        // extensions inject late) — give it a few seconds to appear.
-        for (const delay of [0, 250, 500, 1000, 2000]) {
-            if (getActiveSigner()?.signEvent) break;
-            await new Promise((r) => setTimeout(r, delay));
-        }
-        const signer = getActiveSigner();
-        if (!signer?.signEvent) {
-            throw new Error('No signer available to prove your key — log in again');
-        }
+        // After a page reload the signer is rebuilt asynchronously; if it
+        // doesn't come back, the player reconnects it.
+        const signer = await requireSigner('to stay signed in');
         const resp = await fetch(`${API_BASE_URL}/auth/challenge`);
         const ch = await resp.json().catch(() => null);
         if (!resp.ok || !ch?.success || !ch.challenge) {
