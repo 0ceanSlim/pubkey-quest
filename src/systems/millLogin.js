@@ -107,61 +107,76 @@ async function readAmberFromClipboard(ask, pasted) {
         if (t && amberAsk === ask) giveMillAmber(t);
         return !!t;
     } catch (_) {
-        return false; // not allowed without a tap, or not at all
+        return false; // not focused yet, not allowed without a tap, or not at all
     }
 }
 
+const AMBER_BTN = 'font-size:12px; font-weight:bold; color:#fff; cursor:pointer; padding:10px 8px; '
+    + 'border-top:2px solid %l; border-left:2px solid %l; border-right:2px solid %d; border-bottom:2px solid %d; background:%b;';
+const amberBtn = (b, l, d) => AMBER_BTN.replaceAll('%b', b).replaceAll('%l', l).replaceAll('%d', d);
+
 function showAmberPasteCard(ask) {
     if (document.getElementById('pq-amber-paste')) return;
-    const card = document.createElement('div');
-    card.id = 'pq-amber-paste';
-    card.style.cssText = 'position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:2147483647;'
-        + 'width:min(340px,calc(100vw - 32px));padding:12px;background:var(--color-bg-secondary,#c0c0c0);'
-        + 'color:var(--color-text-primary,#000);border:2px outset #fff;font-size:14px;box-shadow:4px 4px 0 #0008';
-    card.innerHTML = `
-        <div style="font-weight:bold;margin-bottom:6px">Back from Amber</div>
-        <div style="margin-bottom:8px">Amber copied its answer. Paste it here to carry on.</div>
-        <input type="text" placeholder="Long-press here and Paste" autocomplete="off"
-               style="width:100%;box-sizing:border-box;padding:6px;margin-bottom:6px;border:2px inset #fff;font-size:14px">
-        <div class="pq-amber-err" style="display:none;color:#a00;margin-bottom:6px">That isn't Amber's answer to this request.</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button type="button" data-act="paste" style="padding:4px 12px">Paste</button>
-            <button type="button" data-act="cancel" style="padding:4px 12px">Cancel</button>
+    const box = document.createElement('div');
+    box.id = 'pq-amber-paste';
+    box.style.cssText = 'position:fixed; inset:0; z-index:2147483647; display:flex; align-items:center; '
+        + 'justify-content:center; padding:16px; background:rgba(0,0,0,0.6);';
+    box.innerHTML = `
+        <div style="width:360px; max-width:100%; background:#2a2a2a; color:#e5e7eb; border-top:2px solid #6a6a6a; border-left:2px solid #6a6a6a; border-right:2px solid #111; border-bottom:2px solid #111; box-shadow:0 0 24px rgba(0,0,0,0.8);">
+            <div style="padding:6px 10px; font-size:12px; font-weight:bold; color:#fff; background:#7c5c12;">📱 BACK FROM AMBER</div>
+            <div style="padding:12px 10px; display:flex; flex-direction:column; gap:10px;">
+                <div style="font-size:11px; line-height:1.6;">Amber copied its answer. Tap Paste to hand it to the game.</div>
+                <button type="button" data-act="paste" style="${amberBtn('#166534', '#22c55e', '#14532d')}">📋 Paste</button>
+                <div data-err style="display:none; font-size:10px; line-height:1.6; color:#fca5a5;"></div>
+                <input type="text" inputmode="none" placeholder="or long-press, Paste" autocomplete="off"
+                       style="width:100%; box-sizing:border-box; padding:10px 8px; font-size:16px; color:#e5e7eb; background:#1a1a1a; border-top:2px solid #111; border-left:2px solid #111; border-right:2px solid #3a3a3a; border-bottom:2px solid #3a3a3a;">
+                <button type="button" data-act="cancel" style="${amberBtn('#4a4a4a', '#6a6a6a', '#222')}">Cancel</button>
+            </div>
         </div>`;
-    const input = card.querySelector('input');
-    const err = card.querySelector('.pq-amber-err');
+    const input = box.querySelector('input');
+    const err = box.querySelector('[data-err]');
+    const say = (text) => { err.textContent = text; err.style.display = ''; };
     const take = (text) => {
         const t = amberAnswer(text, ask, true);
         if (t && amberAsk === ask) giveMillAmber(t);
-        else err.style.display = '';
+        else say("That isn't Amber's answer to this request. Approve it in Amber again, then paste.");
     };
     input.addEventListener('paste', (e) => {
         e.preventDefault();
         take(e.clipboardData?.getData('text'));
     });
     input.addEventListener('change', () => take(input.value));
-    card.querySelector('[data-act="paste"]').addEventListener('click', async () => {
-        if (!(await readAmberFromClipboard(ask, true))) {
-            err.textContent = 'Couldn’t read the clipboard: long-press the box and choose Paste.';
-            err.style.display = '';
+    box.querySelector('[data-act="paste"]').addEventListener('click', async () => {
+        if (!(await readAmberFromClipboard(ask, true)) && amberAsk === ask) {
+            say('Couldn’t read the clipboard. Long-press the box below and choose Paste.');
         }
     });
-    card.querySelector('[data-act="cancel"]').addEventListener('click', () => giveMillAmber(null, 'Cancelled'));
-    document.body.appendChild(card);
+    box.querySelector('[data-act="cancel"]').addEventListener('click', () => giveMillAmber(null, 'Cancelled'));
+    document.body.appendChild(box);
     setTimeout(() => {
         if (amberAsk === ask) amberAsk = null;
-        card.remove();
+        box.remove();
     }, Math.max(0, ask.until - Date.now()));
 }
 
-// Back in this tab with a request out: take the answer if the browser lets us
-// read it, otherwise ask for a paste.
+// Back in this tab with a request out: read the answer as soon as the browser
+// lets us. Focus can land a moment after the tab shows, so keep trying for a
+// couple of seconds before asking for a paste, and keep trying behind the card.
+let amberWatching = null;
+
 async function amberReturned() {
     const ask = amberAsk;
-    if (!ask || Date.now() > ask.until) return;
-    await new Promise((r) => setTimeout(r, 400)); // let the clipboard settle
-    if (amberAsk === ask && !(await readAmberFromClipboard(ask, false)) && amberAsk === ask) {
-        showAmberPasteCard(ask);
+    if (!ask || amberWatching === ask) return;
+    amberWatching = ask;
+    try {
+        const askAt = Date.now() + 2000;
+        while (amberAsk === ask && Date.now() < ask.until && !document.hidden) {
+            await new Promise((r) => setTimeout(r, 400));
+            if (document.hasFocus() && (await readAmberFromClipboard(ask, false))) return;
+            if (amberAsk === ask && Date.now() > askAt) showAmberPasteCard(ask);
+        }
+    } finally {
+        if (amberWatching === ask) amberWatching = null;
     }
 }
 
@@ -183,6 +198,7 @@ if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) amberReturned();
     });
+    window.addEventListener('focus', () => amberReturned());
 }
 
 // The signer MILL produced (or restored) for this page — the only thing that
