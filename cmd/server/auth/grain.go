@@ -218,12 +218,10 @@ func (auth *AuthHandler) HandleSession(w http.ResponseWriter, r *http.Request) {
 
 // HandleAmberCallback is the page Amber's NIP-55 redirect lands on. MILL asks
 // Amber to append its result as a `#event=` fragment, which browsers never send
-// to the server — so this page reads the result client-side. At
-// /api/auth/amber-callback/<code> it posts it to the server for the game tab
-// with that code (amber.go: Amber opens the default browser, which may not be
-// the one the game is in); without a code it forwards it over MILL's
-// amber-callback channel in this browser (localStorage key "mill:amber:result"
-// plus a postMessage to window.opener). The result is a
+// to the server — so this page reads the result client-side and forwards it
+// verbatim over MILL's amber-callback channel (localStorage key
+// "mill:amber:result" plus a postMessage to window.opener), where MILL's
+// awaitAmberResult listener in the original tab picks it up. The result is a
 // bare pubkey for get_public_key and a full signed event for sign_event, so it
 // must not be parsed or reduced here. A legacy `?event=` query is still read.
 // No session is created — that happens uniformly in HandleLogin once MILL
@@ -265,28 +263,11 @@ const amberRelayHTML = `<!DOCTYPE html>
 				}
 			} catch (e) {}
 			if (!event && !error) error = 'No result received from Amber';
-			var m = document.getElementById('msg');
-			// The game's one-time code (/api/auth/amber-callback/<code>): post the
-			// answer to the server, which reaches the game in any browser or the
-			// installed app (amber.go). Without one, hand it over in this browser.
-			var code = (window.location.pathname.match(/\/amber-callback\/([0-9a-f]{32})$/) || [])[1];
-			if (code) {
-				fetch('/api/auth/amber-result', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ code: code, event: event, error: error }),
-					keepalive: true,
-				}).catch(function () {
-					m.className = 'err';
-					m.textContent = "Couldn't reach Pubkey Quest. Check your connection and try again.";
-					error = error || 'unreachable';
-				});
-			} else {
-				try { localStorage.setItem('mill:amber:result', JSON.stringify({ event: event, error: error, ts: Date.now() })); } catch (e) {}
-				try { if (window.opener) window.opener.postMessage({ amberEvent: event, amberError: error }, '*'); } catch (e) {}
-			}
+			try { localStorage.setItem('mill:amber:result', JSON.stringify({ event: event, error: error, ts: Date.now() })); } catch (e) {}
+			try { if (window.opener) window.opener.postMessage({ amberEvent: event, amberError: error }, '*'); } catch (e) {}
 			// Drop the result from the URL so a reload can't replay it.
 			try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+			var m = document.getElementById('msg');
 			if (error) {
 				m.className = 'err';
 				m.textContent = 'Amber error: ' + error;
@@ -298,7 +279,7 @@ const amberRelayHTML = `<!DOCTYPE html>
 			setTimeout(function () {
 				try { window.close(); } catch (e) {}
 				setTimeout(function () {
-					if (!error) m.textContent = 'Approved. Switch back to Pubkey Quest (the browser or app you were playing in); you can close this tab.';
+					if (!error) m.textContent = 'Approved. Switch back to your Pubkey Quest tab; you can close this one.';
 				}, 300);
 			}, 400);
 		})();

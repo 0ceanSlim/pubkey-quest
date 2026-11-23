@@ -63,52 +63,125 @@ const LOGIN_LAYOUT = {
     },
 };
 
-// Where Amber (NIP-55) sends its answer. Amber opens it in the phone's default
-// browser, which may not be the one you play in (or the installed app), so
-// browser storage can't carry the answer back: the page posts it to the server
-// under this tab's one-time code (cmd/server/auth/amber.go) and the tab
-// collects it.
-const amberCode = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
-const amberCallback = () => `${window.location.origin}/api/auth/amber-callback/${amberCode}`;
+// Amber (NIP-55) answers either by opening a callback link or by copying the
+// answer and closing. A link opens in the phone's default browser, which needn't
+// be the one you play in (or the installed app), so we take the clipboard:
+// Amber hands you straight back to this tab. MILL is still given a callback URL,
+// which keeps it waiting on its localStorage channel ('mill:amber:result'); each
+// request has the URL taken out as it fires, and that channel is filled from the
+// clipboard here: read on return when the browser allows it, otherwise pasted
+// on the "Back from Amber" card (a paste needs no permission).
+const amberCallback = () => `${window.location.origin}/api/auth/amber-callback`;
+const AMBER_WAIT_MS = 60_000; // MILL gives up on an Amber answer after a minute
 
-// MILL fires each Amber request as a click on a nostrsigner: link and waits for
-// the answer on its localStorage channel ('mill:amber:result'). From that click
-// until the answer comes (MILL gives up at 60s), ask the server for it, and
-// hand it to MILL as its own callback page would.
-let amberWaitUntil = 0;
-let amberPolling = false;
+let amberAsk = null; // { type, event, until } for the request out at Amber
 
-async function collectAmberAnswer() {
-    if (amberPolling) return;
-    amberPolling = true;
-    try {
-        while (Date.now() < amberWaitUntil) {
-            try {
-                const resp = await fetch(`/api/auth/amber-result?code=${amberCode}`, { cache: 'no-store' });
-                if (resp.status === 200) {
-                    const { event = null, error = null } = await resp.json();
-                    localStorage.setItem('mill:amber:result', JSON.stringify({ event, error, ts: Date.now() }));
-                    amberWaitUntil = 0;
-                    return;
-                }
-            } catch (_) { /* offline for a moment: try again */ }
-            await new Promise((r) => setTimeout(r, 1000));
+/** Amber's answer to the request out, from clipboard text, or null. */
+function amberAnswer(text, ask, pasted) {
+    const t = (text || '').trim();
+    if (!t) return null;
+    if (ask.type === 'sign_event') {
+        // The request's own event, signed: an old one left on the clipboard isn't.
+        try {
+            const got = JSON.parse(t);
+            const want = JSON.parse(ask.event || '{}');
+            return got.sig && got.kind === want.kind && got.created_at === want.created_at
+                && got.content === want.content ? t : null;
+        } catch (_) {
+            return null;
         }
-    } finally {
-        amberPolling = false;
+    }
+    if (ask.type === 'get_public_key') return /^([0-9a-f]{64}|npub1[0-9a-z]+)$/i.test(t) ? t : null;
+    return pasted ? t : null; // anything else only on the player's say-so
+}
+
+function giveMillAmber(event, error = null) {
+    amberAsk = null;
+    document.getElementById('pq-amber-paste')?.remove();
+    localStorage.setItem('mill:amber:result', JSON.stringify({ event, error, ts: Date.now() }));
+}
+
+async function readAmberFromClipboard(ask, pasted) {
+    try {
+        const t = amberAnswer(await navigator.clipboard.readText(), ask, pasted);
+        if (t && amberAsk === ask) giveMillAmber(t);
+        return !!t;
+    } catch (_) {
+        return false; // not allowed without a tap, or not at all
+    }
+}
+
+function showAmberPasteCard(ask) {
+    if (document.getElementById('pq-amber-paste')) return;
+    const card = document.createElement('div');
+    card.id = 'pq-amber-paste';
+    card.style.cssText = 'position:fixed;left:50%;top:20%;transform:translateX(-50%);z-index:2147483647;'
+        + 'width:min(340px,calc(100vw - 32px));padding:12px;background:var(--color-bg-secondary,#c0c0c0);'
+        + 'color:var(--color-text-primary,#000);border:2px outset #fff;font-size:14px;box-shadow:4px 4px 0 #0008';
+    card.innerHTML = `
+        <div style="font-weight:bold;margin-bottom:6px">Back from Amber</div>
+        <div style="margin-bottom:8px">Amber copied its answer. Paste it here to carry on.</div>
+        <input type="text" placeholder="Long-press here and Paste" autocomplete="off"
+               style="width:100%;box-sizing:border-box;padding:6px;margin-bottom:6px;border:2px inset #fff;font-size:14px">
+        <div class="pq-amber-err" style="display:none;color:#a00;margin-bottom:6px">That isn't Amber's answer to this request.</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button type="button" data-act="paste" style="padding:4px 12px">Paste</button>
+            <button type="button" data-act="cancel" style="padding:4px 12px">Cancel</button>
+        </div>`;
+    const input = card.querySelector('input');
+    const err = card.querySelector('.pq-amber-err');
+    const take = (text) => {
+        const t = amberAnswer(text, ask, true);
+        if (t && amberAsk === ask) giveMillAmber(t);
+        else err.style.display = '';
+    };
+    input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        take(e.clipboardData?.getData('text'));
+    });
+    input.addEventListener('change', () => take(input.value));
+    card.querySelector('[data-act="paste"]').addEventListener('click', async () => {
+        if (!(await readAmberFromClipboard(ask, true))) {
+            err.textContent = 'Couldn’t read the clipboard: long-press the box and choose Paste.';
+            err.style.display = '';
+        }
+    });
+    card.querySelector('[data-act="cancel"]').addEventListener('click', () => giveMillAmber(null, 'Cancelled'));
+    document.body.appendChild(card);
+    setTimeout(() => {
+        if (amberAsk === ask) amberAsk = null;
+        card.remove();
+    }, Math.max(0, ask.until - Date.now()));
+}
+
+// Back in this tab with a request out: take the answer if the browser lets us
+// read it, otherwise ask for a paste.
+async function amberReturned() {
+    const ask = amberAsk;
+    if (!ask || Date.now() > ask.until) return;
+    await new Promise((r) => setTimeout(r, 400)); // let the clipboard settle
+    if (amberAsk === ask && !(await readAmberFromClipboard(ask, false)) && amberAsk === ask) {
+        showAmberPasteCard(ask);
     }
 }
 
 if (typeof document !== 'undefined') {
     document.addEventListener('click', (e) => {
-        if (e.target?.closest?.('a[href^="nostrsigner:"]')) {
-            amberWaitUntil = Date.now() + 70_000;
-            collectAmberAnswer();
-        }
+        const a = e.target?.closest?.('a[href^="nostrsigner:"]');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        const q = href.indexOf('?');
+        if (q < 0) return;
+        const params = new URLSearchParams(href.slice(q + 1));
+        params.delete('callbackUrl'); // → Amber answers on the clipboard
+        a.setAttribute('href', `${href.slice(0, q)}?${params}`);
+        let event = '';
+        try { event = decodeURIComponent(href.slice('nostrsigner:'.length, q)); } catch (_) { /* no event */ }
+        document.getElementById('pq-amber-paste')?.remove();
+        amberAsk = { type: params.get('type'), event, until: Date.now() + AMBER_WAIT_MS };
     }, true);
-    // A phone may pause this tab while you're in Amber: look again on return.
     document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && Date.now() < amberWaitUntil) collectAmberAnswer();
+        if (!document.hidden) amberReturned();
     });
 }
 

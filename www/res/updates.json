@@ -6,8 +6,8 @@
       "when": "November 22, 2026",
       "icon": "📱",
       "size": "minor",
-      "title": "Amber signs after a reload",
-      "summary": "If you sign with Amber, approving no longer leaves the game waiting: Amber's answer now reaches the game even when Amber opens a different browser, or you play from the installed app, and after a reload."
+      "title": "Amber brings you back to the game",
+      "summary": "If you sign with Amber, approving now takes you straight back to where you were playing, in any browser or the installed app, and no longer leaves the game waiting, even after a reload. If your browser won't let the game read Amber's answer, a small card asks you to paste it."
     },
     {
       "id": "2026-11-22-stability",
