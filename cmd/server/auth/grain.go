@@ -267,16 +267,20 @@ const amberRelayHTML = `<!DOCTYPE html>
 			try { if (window.opener) window.opener.postMessage({ amberEvent: event, amberError: error }, '*'); } catch (e) {}
 			// Drop the result from the URL so a reload can't replay it.
 			try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+			var m = document.getElementById('msg');
 			if (error) {
-				var m = document.getElementById('msg');
 				m.className = 'err';
 				m.textContent = 'Amber error: ' + error;
 			}
+			// Amber opens this as a tab of its own. The game is waiting in the
+			// tab you came from, and has the answer now: close this one if the
+			// browser lets us, or say where to go. (Loading the site here
+			// instead left players on a second copy, the game still waiting.)
 			setTimeout(function () {
-				try {
-					if (window.opener && !window.opener.closed) { window.close(); }
-					else { window.location.href = '/'; }
-				} catch (e) { window.location.href = '/'; }
+				try { window.close(); } catch (e) {}
+				setTimeout(function () {
+					if (!error) m.textContent = 'Approved. Switch back to your Pubkey Quest tab; you can close this one.';
+				}, 300);
 			}, 400);
 		})();
 	</script>

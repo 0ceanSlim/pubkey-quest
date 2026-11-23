@@ -63,6 +63,10 @@ const LOGIN_LAYOUT = {
     },
 };
 
+// Where Amber (NIP-55) sends its answer: the server's page that hands it to
+// this tab (cmd/server/auth/grain.go, HandleAmberCallback).
+const amberCallback = () => `${window.location.origin}/api/auth/amber-callback`;
+
 // The signer MILL produced (or restored) for this page — the only thing that
 // signs for the player. Never installed as window.nostr (see the module doc).
 let activeSigner = null;
@@ -247,7 +251,7 @@ export function openMillLogin() {
         pomegranate: true,
         // MILL's default tip recommends NIP-07; off-message when leading with Google.
         tip: false,
-        amberCallback: `${window.location.origin}/api/auth/amber-callback`,
+        amberCallback: amberCallback(),
         onConnected: (result) => finishLogin(result),
         // MILL keeps callbacks across opens: clear a reconnect's.
         onClose: () => {},
@@ -310,7 +314,7 @@ function reconnect(why) {
             },
             pomegranate: true,
             tip: false,
-            amberCallback: `${window.location.origin}/api/auth/amber-callback`,
+            amberCallback: amberCallback(),
             onConnected: (result) => {
                 if (want && String(result.pubkey || '').toLowerCase() !== want) {
                     try { result.signer?.disconnect?.(); } catch (_) { /* best effort */ }
@@ -337,6 +341,18 @@ function reconnect(why) {
  */
 async function tryRestore(session) {
     try {
+        // Amber: MILL.restore would rebuild it without our callback (it reads
+        // that off the picker, which a reload hasn't opened), and Amber then
+        // answers on the clipboard, which Android browsers rarely let a page
+        // read: you approve and the game waits. Build it with the callback.
+        if (session.signingMethod === 'amber') {
+            installSigner(MILL.signers.createNIP55Signer({
+                pubkey: session.publicKey,
+                callbackUrl: amberCallback(),
+                appName: 'Pubkey Quest',
+            }));
+            return true;
+        }
         // A locked extension may never answer getPublicKey: give up after 8s.
         const signer = await Promise.race([
             MILL.restore({ method: session.signingMethod, pubkey: session.publicKey }),

@@ -2,6 +2,14 @@
   "_comment": "Player-facing update notes, newest first. The homepage Updates tab and the in-game \"what's new\" popup both render from this file. Add an entry with anything players will notice. size: \"major\" shows highlights in the popup even when it isn't the newest missed; \"minor\" shows one line.",
   "updates": [
     {
+      "id": "2026-11-22-amber",
+      "when": "November 22, 2026",
+      "icon": "📱",
+      "size": "minor",
+      "title": "Amber signs after a reload",
+      "summary": "Signing in with Amber, a save after you reload or come back no longer waits forever once you've approved it: Amber's answer comes back to the game, and the tab Amber opens tells you to switch back."
+    },
+    {
       "id": "2026-11-22-stability",
       "when": "November 22, 2026",
       "icon": "🔧",
