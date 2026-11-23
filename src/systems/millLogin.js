@@ -63,9 +63,54 @@ const LOGIN_LAYOUT = {
     },
 };
 
-// Where Amber (NIP-55) sends its answer: the server's page that hands it to
-// this tab (cmd/server/auth/grain.go, HandleAmberCallback).
-const amberCallback = () => `${window.location.origin}/api/auth/amber-callback`;
+// Where Amber (NIP-55) sends its answer. Amber opens it in the phone's default
+// browser, which may not be the one you play in (or the installed app), so
+// browser storage can't carry the answer back: the page posts it to the server
+// under this tab's one-time code (cmd/server/auth/amber.go) and the tab
+// collects it.
+const amberCode = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+const amberCallback = () => `${window.location.origin}/api/auth/amber-callback/${amberCode}`;
+
+// MILL fires each Amber request as a click on a nostrsigner: link and waits for
+// the answer on its localStorage channel ('mill:amber:result'). From that click
+// until the answer comes (MILL gives up at 60s), ask the server for it, and
+// hand it to MILL as its own callback page would.
+let amberWaitUntil = 0;
+let amberPolling = false;
+
+async function collectAmberAnswer() {
+    if (amberPolling) return;
+    amberPolling = true;
+    try {
+        while (Date.now() < amberWaitUntil) {
+            try {
+                const resp = await fetch(`/api/auth/amber-result?code=${amberCode}`, { cache: 'no-store' });
+                if (resp.status === 200) {
+                    const { event = null, error = null } = await resp.json();
+                    localStorage.setItem('mill:amber:result', JSON.stringify({ event, error, ts: Date.now() }));
+                    amberWaitUntil = 0;
+                    return;
+                }
+            } catch (_) { /* offline for a moment: try again */ }
+            await new Promise((r) => setTimeout(r, 1000));
+        }
+    } finally {
+        amberPolling = false;
+    }
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+        if (e.target?.closest?.('a[href^="nostrsigner:"]')) {
+            amberWaitUntil = Date.now() + 70_000;
+            collectAmberAnswer();
+        }
+    }, true);
+    // A phone may pause this tab while you're in Amber: look again on return.
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && Date.now() < amberWaitUntil) collectAmberAnswer();
+    });
+}
 
 // The signer MILL produced (or restored) for this page — the only thing that
 // signs for the player. Never installed as window.nostr (see the module doc).

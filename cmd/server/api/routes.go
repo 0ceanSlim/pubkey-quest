@@ -263,6 +263,14 @@ func registerAuthRoutes(mux *http.ServeMux) {
 	// @Success 200 {object} map[string]interface{}
 	// @Router /api/auth/amber-callback [get]
 	mux.HandleFunc("/api/auth/amber-callback", authHandler.HandleAmberCallback)
+	// The same page with the game tab's one-time code (auth/amber.go).
+	mux.HandleFunc("/api/auth/amber-callback/", authHandler.HandleAmberCallback)
+
+	// @Summary Amber answer relay
+	// @Description POST: the callback page leaves Amber's answer under the game tab's code; GET ?code=: the game tab collects it once (204 until it arrives)
+	// @Tags Auth
+	// @Router /api/auth/amber-result [get]
+	mux.HandleFunc("/api/auth/amber-result", authHandler.HandleAmberResult)
 }
 
 // ============================================================================
