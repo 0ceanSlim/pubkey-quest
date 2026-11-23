@@ -150,7 +150,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "We have shows at 9 PM every night! But listen—Rokgar at the door only lets in strong, powerful music. Drums, horns, battle chants! None of that soft stuff! Book before 8 PM. Want to see tonight's lineup?",
+      "text": "We have shows at 9 PM every night! But listen—Rokgar at the door only lets in strong, powerful music. Drums, horns, battle chants! None of that soft stuff! Book before 8 PM and bring your instrument. Book and don't show, and no warrior here will respect you. Want to see tonight's lineup?",
       "options": [
         "see_available_shows",
         "main_menu"
@@ -209,6 +209,182 @@
       "hunger_restored": 1,
       "special_effects": [
         "well_rested"
+      ]
+    }
+  },
+  "show_config": {
+    "show_time": 1260,
+    "booking_deadline": 1200,
+    "shows_by_day": {
+      "0": [
+        {
+          "id": "marshlight-war-drums",
+          "name": "War Drums",
+          "description": "Drums that set the hall pounding",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        },
+        {
+          "id": "marshlight-battle-horn",
+          "name": "Battle Horn",
+          "description": "Horn calls to rouse warriors",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "1": [
+        {
+          "id": "marshlight-chant-of-the-fen",
+          "name": "Chant of the Fen",
+          "description": "Battle chants over a pounding drum",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        },
+        {
+          "id": "marshlight-marsh-shawm",
+          "name": "Marsh Shawm",
+          "description": "A shawm as harsh as a war cry",
+          "required_instruments": [
+            "shawm"
+          ],
+          "base_gold": 14,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "2": [
+        {
+          "id": "marshlight-warband-pipes",
+          "name": "Warband Pipes",
+          "description": "Pipes that march warriors to battle",
+          "required_instruments": [
+            "bagpipe"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "marshlight-blood-and-drum",
+          "name": "Blood and Drum",
+          "description": "Fast, heavy drumming",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "3": [
+        {
+          "id": "marshlight-rokgars-favourite",
+          "name": "Rokgar's Favourite",
+          "description": "The horn tunes the doorman lets through",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "marshlight-swamp-squall",
+          "name": "Swamp Squall",
+          "description": "Shawm and stamping feet",
+          "required_instruments": [
+            "shawm"
+          ],
+          "base_gold": 14,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "4": [
+        {
+          "id": "marshlight-clan-war-pipes",
+          "name": "Clan War Pipes",
+          "description": "Pipes for the old orc war songs",
+          "required_instruments": [
+            "bagpipe"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "marshlight-iron-drums",
+          "name": "Iron Drums",
+          "description": "Drumming that rattles the lanterns",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "5": [
+        {
+          "id": "marshlight-warhost",
+          "name": "Warhost",
+          "description": "Drum and horn: a whole warband in sound",
+          "required_instruments": [
+            "drum",
+            "horn"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "marshlight-horn-of-the-marsh",
+          "name": "Horn of the Marsh",
+          "description": "Horn calls for the busy night",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "6": [
+        {
+          "id": "marshlight-grishkas-war-night",
+          "name": "Grishka's War Night",
+          "description": "Pipes and drums to end the week",
+          "required_instruments": [
+            "bagpipe",
+            "drum"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "marshlight-last-stand",
+          "name": "Last Stand",
+          "description": "A shawm lament for fallen warriors",
+          "required_instruments": [
+            "shawm"
+          ],
+          "base_gold": 14,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
       ]
     }
   }

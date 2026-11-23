@@ -150,7 +150,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "We have music every night at 9 PM! Loud, rhythmic stuff the miners love—nothin' fancy! Need yer instruments and book before 8 PM. Want to see what's on tonight?",
+      "text": "We have music every night at 9 PM! Loud, rhythmic stuff the miners love—nothin' fancy! Book before 8 PM and bring yer instrument. Leave my miners waitin' and every tunnel in the mountain will know yer name. Want to see what's on tonight?",
       "options": [
         "see_available_shows",
         "main_menu"
@@ -209,6 +209,182 @@
       "hunger_restored": 1,
       "special_effects": [
         "well_rested"
+      ]
+    }
+  },
+  "show_config": {
+    "show_time": 1260,
+    "booking_deadline": 1200,
+    "shows_by_day": {
+      "0": [
+        {
+          "id": "ironpeak-hammer-beat",
+          "name": "Hammer Beat",
+          "description": "Drumming to the rhythm of the forges",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        },
+        {
+          "id": "ironpeak-shift-horn",
+          "name": "Shift Horn",
+          "description": "The horn calls miners know by heart",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "1": [
+        {
+          "id": "ironpeak-deep-dulcimer",
+          "name": "Deep Dulcimer",
+          "description": "Hammered strings that ring like struck ore",
+          "required_instruments": [
+            "dulcimer"
+          ],
+          "base_gold": 15,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "ironpeak-tunnel-drums",
+          "name": "Tunnel Drums",
+          "description": "Booming drums for a tired shift",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "2": [
+        {
+          "id": "ironpeak-mountain-pipes",
+          "name": "Mountain Pipes",
+          "description": "Pipes that echo off the peaks",
+          "required_instruments": [
+            "bagpipe"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "ironpeak-foremans-horn",
+          "name": "Foreman's Horn",
+          "description": "Loud, plain, and on the beat",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "3": [
+        {
+          "id": "ironpeak-anvil-night",
+          "name": "Anvil Night",
+          "description": "Drums and stamping boots",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        },
+        {
+          "id": "ironpeak-ore-and-strings",
+          "name": "Ore and Strings",
+          "description": "Dulcimer songs of old dwarven halls",
+          "required_instruments": [
+            "dulcimer"
+          ],
+          "base_gold": 15,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "4": [
+        {
+          "id": "ironpeak-clan-pipes",
+          "name": "Clan Pipes",
+          "description": "Pipes for the clan songs",
+          "required_instruments": [
+            "bagpipe"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "ironpeak-pick-and-horn",
+          "name": "Pick and Horn",
+          "description": "Work songs, horn-led",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "5": [
+        {
+          "id": "ironpeak-payday-stomp",
+          "name": "Payday Stomp",
+          "description": "Drum and horn for a full hall with full purses",
+          "required_instruments": [
+            "drum",
+            "horn"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "ironpeak-forge-drums",
+          "name": "Forge Drums",
+          "description": "Steady drumming for the busy night",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "6": [
+        {
+          "id": "ironpeak-stonebrew-special",
+          "name": "Stonebrew Special",
+          "description": "Pipes and dulcimer, Helga's favourite",
+          "required_instruments": [
+            "bagpipe",
+            "dulcimer"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "ironpeak-quiet-shift",
+          "name": "Quiet Shift",
+          "description": "Softer dulcimer for the morning crew",
+          "required_instruments": [
+            "dulcimer"
+          ],
+          "base_gold": 15,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
       ]
     }
   }

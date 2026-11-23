@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 
 	"pubkey-quest/cmd/server/db"
 	"pubkey-quest/cmd/server/game/character"
@@ -101,19 +102,8 @@ func HandleBookShowAction(state *types.SaveFile, session SessionProvider, params
 		}, nil
 	}
 
-	// Check if player has required instruments
-	requiredInstruments, _ := selectedShow["required_instruments"].([]interface{})
-	for _, instrRaw := range requiredInstruments {
-		instrument, _ := instrRaw.(string)
-		if !gameutil.PlayerHasItem(state, instrument) {
-			return &types.GameActionResponse{
-				Success: false,
-				Message: fmt.Sprintf("You need a %s to perform this show", instrument),
-				Color:   "red",
-			}, nil
-		}
-	}
-
+	// No instrument needed to book: you need it at show time, and a booking you
+	// don't play costs you (CheckMissedShows), which the booking says.
 	// One show a day. The day it was played is kept with the save
 	// (types.Limits): a booking alone is session memory, and a reload once
 	// let a player book and play again the same day.
@@ -157,9 +147,14 @@ func HandleBookShowAction(state *types.SaveFile, session SessionProvider, params
 	showName, _ := selectedShow["name"].(string)
 	log.Printf("🎭 Booked show '%s' (ID: %s) at %s for day %d", showName, showID, venueID, state.CurrentDay)
 
+	msg := fmt.Sprintf("Booked '%s' for tonight at %s. Bring %s.", showName, ShowClock(showTime), InstrumentList(ShowInstruments(selectedShow)))
+	if missing := MissingInstruments(state, selectedShow); len(missing) > 0 {
+		msg += fmt.Sprintf(" You still need %s.", InstrumentList(missing))
+	}
+	msg += " If you don't play, word gets around: -2 Charisma for a day."
 	return &types.GameActionResponse{
 		Success: true,
-		Message: fmt.Sprintf("Booked '%s' for tonight at 9 PM!", showName),
+		Message: msg,
 		Color:   "green",
 		Data: map[string]interface{}{
 			"booked_shows": bookedShows,
@@ -215,7 +210,7 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 	if timeDiff < 0 || timeDiff > 30 {
 		return &types.GameActionResponse{
 			Success: false,
-			Message: "It's not show time yet (show starts at 9 PM)",
+			Message: fmt.Sprintf("It's not show time yet (the show starts at %s)", ShowClock(showTime)),
 			Color:   "yellow",
 		}, nil
 	}
@@ -226,24 +221,20 @@ func HandlePlayShowAction(state *types.SaveFile, session PerformShowSessionProvi
 		return nil, fmt.Errorf("show data not found in booking")
 	}
 
-	// Get required instruments and find the first one the player has
-	requiredInstruments, _ := showData["required_instruments"].([]interface{})
-	var instrumentID string
-	for _, instrRaw := range requiredInstruments {
-		instr, _ := instrRaw.(string)
-		if gameutil.PlayerHasItem(state, instr) {
-			instrumentID = instr
-			break
-		}
-	}
-
-	if instrumentID == "" {
+	// Every instrument the show names (a duo needs both); the first sets how hard
+	// it is to play.
+	if missing := MissingInstruments(state, showData); len(missing) > 0 {
 		return &types.GameActionResponse{
 			Success: false,
-			Message: "You don't have the required instrument!",
+			Message: fmt.Sprintf("You need %s to play this show.", InstrumentList(missing)),
 			Color:   "red",
 		}, nil
 	}
+	instruments := ShowInstruments(showData)
+	if len(instruments) == 0 {
+		return nil, fmt.Errorf("show names no instrument")
+	}
+	instrumentID := instruments[0]
 
 	// Load instrument difficulty data
 	instrumentData, err := loadInstrumentData(instrumentID)
@@ -444,4 +435,58 @@ func loadInstrumentData(instrumentID string) (map[string]interface{}, error) {
 	}
 
 	return performance, nil
+}
+
+// ShowInstruments lists the instruments a show is played on.
+func ShowInstruments(show map[string]interface{}) []string {
+	raw, _ := show["required_instruments"].([]interface{})
+	var out []string
+	for _, r := range raw {
+		if id, _ := r.(string); id != "" {
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// MissingInstruments lists the show's instruments the player isn't carrying.
+func MissingInstruments(state *types.SaveFile, show map[string]interface{}) []string {
+	var missing []string
+	for _, id := range ShowInstruments(show) {
+		if !gameutil.PlayerHasItem(state, id) {
+			missing = append(missing, id)
+		}
+	}
+	return missing
+}
+
+// InstrumentList says instruments in a sentence: "a lute", "a lute and a flute".
+func InstrumentList(ids []string) string {
+	names := make([]string, len(ids))
+	for i, id := range ids {
+		names[i] = "a " + strings.ReplaceAll(id, "-", " ")
+	}
+	switch len(names) {
+	case 0:
+		return "your instrument"
+	case 1:
+		return names[0]
+	}
+	return strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1]
+}
+
+// ShowClock says a time of day the way innkeepers do: "9 PM", "8:30 PM".
+func ShowClock(minutes int) string {
+	h, m := (minutes/60)%24, minutes%60
+	half := "AM"
+	if h >= 12 {
+		half = "PM"
+	}
+	if h = h % 12; h == 0 {
+		h = 12
+	}
+	if m == 0 {
+		return fmt.Sprintf("%d %s", h, half)
+	}
+	return fmt.Sprintf("%d:%02d %s", h, m, half)
 }

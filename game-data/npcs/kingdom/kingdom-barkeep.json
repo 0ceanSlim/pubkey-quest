@@ -112,7 +112,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "We have live music every night at 9 PM! Different shows are available depending on the day of the week. You'll need the right instruments to perform. Bookings must be made before 8 PM. Interested in booking a show?",
+      "text": "We have live music every night at 9 PM! Different shows are available depending on the day of the week. Bookings must be made before 8 PM, and bring the right instruments to play. Book and don't turn up, and the whole city will hear of it by morning. Interested in booking a show?",
       "options": [
         "see_available_shows",
         "main_menu"

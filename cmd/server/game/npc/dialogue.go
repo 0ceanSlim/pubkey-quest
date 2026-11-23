@@ -463,48 +463,24 @@ func handleBookShowDialogue(state *types.SaveFile, session SessionProvider, npcI
 		}
 	}
 
-	// Check instrument availability for each show (but include all shows)
+	// Every show is bookable; each says which of its instruments you're not
+	// carrying yet, so you can decide (you need them by show time).
 	var allShows []map[string]interface{}
-	hasAnyBookableShow := false
 	for _, show := range availableShows {
 		if showMap, ok := show.(map[string]interface{}); ok {
-			requiredInstruments, _ := showMap["required_instruments"].([]interface{})
-			hasAllInstruments := true
-			var missingInstruments []string
-			for _, instrRaw := range requiredInstruments {
-				instrument, _ := instrRaw.(string)
-				if !gameutil.PlayerHasItem(state, instrument) {
-					hasAllInstruments = false
-					missingInstruments = append(missingInstruments, instrument)
-				}
-			}
-
-			// Add instrument availability info to the show
-			showWithAvailability := make(map[string]interface{})
+			listed := make(map[string]interface{}, len(showMap)+1)
 			for k, v := range showMap {
-				showWithAvailability[k] = v
+				listed[k] = v
 			}
-			showWithAvailability["can_book"] = hasAllInstruments
-			showWithAvailability["missing_instruments"] = missingInstruments
-
-			allShows = append(allShows, showWithAvailability)
-
-			if hasAllInstruments {
-				hasAnyBookableShow = true
-			}
+			listed["missing_instruments"] = MissingInstruments(state, showMap)
+			allShows = append(allShows, listed)
 		}
-	}
-
-	// Modify message if player can't book any shows
-	displayMessage := responseText
-	if !hasAnyBookableShow {
-		displayMessage = "Here are tonight's available shows. You'll need the right instruments to book a performance."
 	}
 
 	// Return show selection UI with all shows
 	return &types.GameActionResponse{
 		Success: true,
-		Message: displayMessage,
+		Message: responseText,
 		Color:   "yellow",
 		Delta: map[string]interface{}{
 			"show_booking": map[string]interface{}{

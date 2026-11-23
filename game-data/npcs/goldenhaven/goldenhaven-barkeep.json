@@ -150,7 +150,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "Every night at 9 PM, we have the loudest music on the river! River shanties, drums, horns—music that carries across the water! Ye need yer instruments and book before 8 PM. Want to see what's on tonight?",
+      "text": "Every night at 9 PM, we have the loudest music on the river! River shanties, drums, horns—music that carries across the water! Book before 8 PM and bring yer instrument. Book and don't show, and the whole river hears of it. Want to see what's on tonight?",
       "options": [
         "see_available_shows",
         "main_menu"
@@ -209,6 +209,182 @@
       "hunger_restored": 1,
       "special_effects": [
         "well_rested"
+      ]
+    }
+  },
+  "show_config": {
+    "show_time": 1260,
+    "booking_deadline": 1200,
+    "shows_by_day": {
+      "0": [
+        {
+          "id": "goldenhaven-shanty-night",
+          "name": "Shanty Night",
+          "description": "Stomping river shanties the whole room sings",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        },
+        {
+          "id": "goldenhaven-bargemens-horn",
+          "name": "Bargemen's Horn",
+          "description": "Horn calls loud enough to reach the far bank",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "1": [
+        {
+          "id": "goldenhaven-river-pipes",
+          "name": "River Pipes",
+          "description": "Bagpipes skirling over the water",
+          "required_instruments": [
+            "bagpipe"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "goldenhaven-dockside-shawm",
+          "name": "Dockside Shawm",
+          "description": "A shawm as loud as a gull fight",
+          "required_instruments": [
+            "shawm"
+          ],
+          "base_gold": 14,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "2": [
+        {
+          "id": "goldenhaven-harbour-jig",
+          "name": "Harbour Jig",
+          "description": "Quick jigs for dancing sailors",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "goldenhaven-thunder-on-the-water",
+          "name": "Thunder on the Water",
+          "description": "Drums that rattle the tankards",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "3": [
+        {
+          "id": "goldenhaven-captains-call",
+          "name": "Captain's Call",
+          "description": "Reylia's favourite horn tunes",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "goldenhaven-dockside-reels",
+          "name": "Dockside Reels",
+          "description": "Reels for a crowd fresh off the barges",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "4": [
+        {
+          "id": "goldenhaven-storm-pipes",
+          "name": "Storm Pipes",
+          "description": "Pipes for a rough night on the river",
+          "required_instruments": [
+            "bagpipe"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "goldenhaven-rowdy-drums",
+          "name": "Rowdy Drums",
+          "description": "A drum battle with the regulars",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "5": [
+        {
+          "id": "goldenhaven-full-crew",
+          "name": "Full Crew",
+          "description": "Horn and drum together, the full crew sound",
+          "required_instruments": [
+            "horn",
+            "drum"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "goldenhaven-shawm-and-squall",
+          "name": "Shawm and Squall",
+          "description": "Wild shawm tunes for the busy night",
+          "required_instruments": [
+            "shawm"
+          ],
+          "base_gold": 14,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "6": [
+        {
+          "id": "goldenhaven-anchor-night",
+          "name": "Anchor Night",
+          "description": "Pipes and drums to close the week",
+          "required_instruments": [
+            "bagpipe",
+            "drum"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "goldenhaven-last-call-horn",
+          "name": "Last Call Horn",
+          "description": "One last blast before the bell",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
       ]
     }
   }

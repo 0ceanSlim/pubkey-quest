@@ -1570,7 +1570,9 @@ export function showShowBookingUI(bookingData) {
         font-size: 8px;
         color: #cccccc;
     `;
-    infoBanner.innerHTML = `<span style="color: #fbbf24;">Show Time:</span> ${showTimeHour}:${showTimeMin.toString().padStart(2, '0')} • Select a performance:`;
+    infoBanner.innerHTML = `<span style="color: #fbbf24;">Show Time:</span> ${showTimeHour}:${showTimeMin.toString().padStart(2, '0')} • Select a performance:`
+        + `<div style="margin-top: 3px; line-height: 1.4; color: #fca5a5;">Bring the instruments by show time (✗ = not carrying it). `
+        + `Book and don't play, and word gets around: -2 Charisma for a day.</div>`;
     contentArea.appendChild(infoBanner);
 
     // Shows list
@@ -1587,9 +1589,14 @@ export function showShowBookingUI(bookingData) {
             cursor: pointer;
         `;
 
-        // Format required instruments
+        // Each instrument, marked with whether you're carrying it: booking
+        // doesn't need it, playing does.
+        const missing = new Set(show.missing_instruments || []);
         const instruments = show.required_instruments.map(inst => {
-            return inst.charAt(0).toUpperCase() + inst.slice(1);
+            const name = inst.charAt(0).toUpperCase() + inst.slice(1).replace(/-/g, ' ');
+            return missing.has(inst)
+                ? `<span style="color: #f87171;">${name} ✗</span>`
+                : `<span style="color: #86efac;">${name} ✓</span>`;
         }).join(', ');
 
         // Calculate charisma bonus display
@@ -1601,7 +1608,7 @@ export function showShowBookingUI(bookingData) {
                     <div style="color: #fbbf24; font-size: 9px; font-weight: bold; margin-bottom: 2px;">${show.name}</div>
                     <div style="color: #9ca3af; font-size: 7px; margin-bottom: 3px; line-height: 1.3;">${show.description}</div>
                     <div style="font-size: 7px; color: #6b7280; line-height: 1.4;">
-                        <div>Req: ${instruments}</div>
+                        <div>Needs: ${instruments}</div>
                         <div style="color: #10b981;">Pay: ${show.base_gold}g + ${show.base_xp}xp${charBonus > 0 ? ` (+${charBonus}g/CHA)` : ''}</div>
                     </div>
                 </div>
@@ -1681,7 +1688,7 @@ async function bookShow(showId, npcId) {
             await refreshGameState();
             updateAllDisplays();
         } else {
-            showMessage(result.error || 'Failed to book show', 'error');
+            showMessage(result.message || result.error || 'Failed to book show', 'error');
         }
     } catch (error) {
         logger.error('Error booking show:', error);

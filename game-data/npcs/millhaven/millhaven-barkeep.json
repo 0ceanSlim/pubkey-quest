@@ -150,7 +150,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "We have live music every night at 9 PM! All musicians are welcome here—we love a good performance! Shows vary by the day. You'll need your instruments, and bookings close at 8 PM. Want to see tonight's options?",
+      "text": "We have live music every night at 9 PM! All musicians are welcome here—we love a good performance! Shows vary by the day. Bookings close at 8 PM; just bring your instrument along. If you book and don't come, folk talk, and it'll take a day to live down. Want to see tonight's options?",
       "options": [
         "see_available_shows",
         "main_menu"
@@ -209,6 +209,182 @@
       "hunger_restored": 1,
       "special_effects": [
         "well_rested"
+      ]
+    }
+  },
+  "show_config": {
+    "show_time": 1260,
+    "booking_deadline": 1200,
+    "shows_by_day": {
+      "0": [
+        {
+          "id": "millhaven-harvest-flute",
+          "name": "Harvest Flute",
+          "description": "Cheerful tunes from the fields",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "millhaven-hearth-lute",
+          "name": "Hearth Lute",
+          "description": "Warm songs by the fire",
+          "required_instruments": [
+            "lute"
+          ],
+          "base_gold": 15,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "1": [
+        {
+          "id": "millhaven-meadow-pipes",
+          "name": "Meadow Pipes",
+          "description": "Pan flute melodies for a sunny evening",
+          "required_instruments": [
+            "pan-flute"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "millhaven-barn-dance-drums",
+          "name": "Barn Dance Drums",
+          "description": "A steady beat for dancing",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "2": [
+        {
+          "id": "millhaven-millers-dulcimer",
+          "name": "Miller's Dulcimer",
+          "description": "Bright hammered strings",
+          "required_instruments": [
+            "dulcimer"
+          ],
+          "base_gold": 15,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "millhaven-village-horn",
+          "name": "Village Horn",
+          "description": "Old village calls and songs",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "3": [
+        {
+          "id": "millhaven-ballads-of-home",
+          "name": "Ballads of Home",
+          "description": "Lyre songs about the road home",
+          "required_instruments": [
+            "lyre"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "millhaven-kitchen-flute",
+          "name": "Kitchen Flute",
+          "description": "Light tunes while supper cooks",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "4": [
+        {
+          "id": "millhaven-viol-by-candlelight",
+          "name": "Viol by Candlelight",
+          "description": "Slow viol for a quiet room",
+          "required_instruments": [
+            "viol"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "millhaven-stories-and-strings",
+          "name": "Stories and Strings",
+          "description": "Tall tales told over a lute",
+          "required_instruments": [
+            "lute"
+          ],
+          "base_gold": 15,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "5": [
+        {
+          "id": "millhaven-family-band",
+          "name": "Family Band",
+          "description": "Lute and flute, played like kin",
+          "required_instruments": [
+            "lute",
+            "flute"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "millhaven-busy-night-drums",
+          "name": "Busy Night Drums",
+          "description": "Drumming for a packed common room",
+          "required_instruments": [
+            "drum"
+          ],
+          "base_gold": 8,
+          "base_xp": 6,
+          "charisma_gold_bonus": 1
+        }
+      ],
+      "6": [
+        {
+          "id": "millhaven-sweetwater-supper",
+          "name": "Sweetwater Supper",
+          "description": "Pan flute and dulcimer, Marigold's choice",
+          "required_instruments": [
+            "pan-flute",
+            "dulcimer"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "millhaven-quiet-horn",
+          "name": "Quiet Horn",
+          "description": "Soft horn tunes to close the week",
+          "required_instruments": [
+            "horn"
+          ],
+          "base_gold": 10,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
       ]
     }
   }

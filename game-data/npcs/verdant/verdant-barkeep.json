@@ -150,7 +150,7 @@
       ]
     },
     "ask_about_shows": {
-      "text": "Every evening at 9 PM, we have live music here beneath the trees. Gentle melodies that honor nature—lutes, flutes, lyres, and such. You'll need your instruments, and you must book before 8 PM. Want to see tonight's performance?",
+      "text": "Every evening at 9 PM, we have live music here beneath the trees. Gentle melodies that honor nature—lutes, flutes, lyres, and such. Book before 8 PM and bring your instrument. An empty stage after a promise is remembered here for a day. Want to see tonight's performance?",
       "options": [
         "see_available_shows",
         "main_menu"
@@ -209,6 +209,182 @@
       "hunger_restored": 1,
       "special_effects": [
         "well_rested"
+      ]
+    }
+  },
+  "show_config": {
+    "show_time": 1260,
+    "booking_deadline": 1200,
+    "shows_by_day": {
+      "0": [
+        {
+          "id": "verdant-moonlit-lute",
+          "name": "Moonlit Lute",
+          "description": "Gentle lute under the great boughs",
+          "required_instruments": [
+            "lute"
+          ],
+          "base_gold": 15,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "verdant-birdsong-flute",
+          "name": "Birdsong Flute",
+          "description": "Melodies the birds answer",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "1": [
+        {
+          "id": "verdant-glade-lyre",
+          "name": "Glade Lyre",
+          "description": "Old elven songs on the lyre",
+          "required_instruments": [
+            "lyre"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "verdant-reed-song",
+          "name": "Reed Song",
+          "description": "Pan flute tunes from the riverbank",
+          "required_instruments": [
+            "pan-flute"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "2": [
+        {
+          "id": "verdant-rain-dulcimer",
+          "name": "Rain Dulcimer",
+          "description": "Soft hammered strings like rain on leaves",
+          "required_instruments": [
+            "dulcimer"
+          ],
+          "base_gold": 15,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "verdant-evening-flute",
+          "name": "Evening Flute",
+          "description": "A slow flute for dusk",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "3": [
+        {
+          "id": "verdant-ancient-boughs",
+          "name": "Ancient Boughs",
+          "description": "A viol lament for the oldest trees",
+          "required_instruments": [
+            "viol"
+          ],
+          "base_gold": 16,
+          "base_xp": 12,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "verdant-leaf-and-lute",
+          "name": "Leaf and Lute",
+          "description": "Light lute pieces",
+          "required_instruments": [
+            "lute"
+          ],
+          "base_gold": 15,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "4": [
+        {
+          "id": "verdant-starlight-lyre",
+          "name": "Starlight Lyre",
+          "description": "Lyre songs for a clear night",
+          "required_instruments": [
+            "lyre"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        },
+        {
+          "id": "verdant-wind-pipes",
+          "name": "Wind Pipes",
+          "description": "Pan flute like wind through branches",
+          "required_instruments": [
+            "pan-flute"
+          ],
+          "base_gold": 14,
+          "base_xp": 10,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "5": [
+        {
+          "id": "verdant-grove-duet",
+          "name": "Grove Duet",
+          "description": "Lute and flute in harmony",
+          "required_instruments": [
+            "lute",
+            "flute"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "verdant-dulcimer-dance",
+          "name": "Dulcimer Dance",
+          "description": "Bright tunes for the busy night",
+          "required_instruments": [
+            "dulcimer"
+          ],
+          "base_gold": 15,
+          "base_xp": 11,
+          "charisma_gold_bonus": 2
+        }
+      ],
+      "6": [
+        {
+          "id": "verdant-nightbreeze-rite",
+          "name": "Nightbreeze Rite",
+          "description": "Lyre and viol, Faelyn's favourite",
+          "required_instruments": [
+            "lyre",
+            "viol"
+          ],
+          "base_gold": 24,
+          "base_xp": 17,
+          "charisma_gold_bonus": 3
+        },
+        {
+          "id": "verdant-dawn-flute",
+          "name": "Dawn Flute",
+          "description": "A quiet flute to end the week",
+          "required_instruments": [
+            "flute"
+          ],
+          "base_gold": 12,
+          "base_xp": 8,
+          "charisma_gold_bonus": 2
+        }
       ]
     }
   }

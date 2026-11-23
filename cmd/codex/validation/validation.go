@@ -1246,6 +1246,9 @@ func validateNPCFile(filePath string) []Issue {
 	for _, p := range givesProblems(npc) {
 		issues = append(issues, Issue{Type: "error", Category: "npcs", File: filename, Field: "dialogue", Message: p})
 	}
+	for _, p := range showProblems(npc) {
+		issues = append(issues, Issue{Type: "error", Category: "npcs", File: filename, Field: "show_config", Message: p})
+	}
 	var typed types.NPCData
 	if json.Unmarshal(data, &typed) == nil {
 		for _, p := range EnchanterProblems(&typed) {
@@ -1302,6 +1305,21 @@ func npcItemRefs(npc map[string]interface{}) []npcItemRef {
 	if storage, ok := npc["storage_config"].(map[string]interface{}); ok {
 		listIDs(storage["registration_items"], "storage_config.registration_items", "id", "item_id")
 	}
+	if shows, ok := npc["show_config"].(map[string]interface{}); ok {
+		byDay, _ := shows["shows_by_day"].(map[string]interface{})
+		for day, raw := range byDay {
+			list, _ := raw.([]interface{})
+			for _, sh := range list {
+				m, _ := sh.(map[string]interface{})
+				instr, _ := m["required_instruments"].([]interface{})
+				for _, i := range instr {
+					if id, _ := i.(string); id != "" {
+						refs = append(refs, npcItemRef{id, "show_config.shows_by_day." + day})
+					}
+				}
+			}
+		}
+	}
 	if dialogue, ok := npc["dialogue"].(map[string]interface{}); ok {
 		for key, raw := range dialogue {
 			node, _ := raw.(map[string]interface{})
@@ -1320,6 +1338,56 @@ func npcItemRefs(npc map[string]interface{}) []npcItemRef {
 		}
 	}
 	return refs
+}
+
+// showProblems checks performances: an NPC that offers to book a show (a
+// "book_show" action on its schedule or dialogue) needs a show_config, and
+// every show needs an id, a name and an instrument to be played on.
+func showProblems(npc map[string]interface{}) []string {
+	offers := false
+	sched, _ := npc["schedule"].([]interface{})
+	for _, raw := range sched {
+		e, _ := raw.(map[string]interface{})
+		acts, _ := e["available_actions"].([]interface{})
+		for _, a := range acts {
+			offers = offers || a == "book_show"
+		}
+	}
+	dialogue, _ := npc["dialogue"].(map[string]interface{})
+	for _, raw := range dialogue {
+		node, _ := raw.(map[string]interface{})
+		offers = offers || node["action"] == "book_show"
+	}
+	cfg, ok := npc["show_config"].(map[string]interface{})
+	if !ok {
+		if offers {
+			return []string{"offers to book shows (book_show) but has no show_config"}
+		}
+		return nil
+	}
+	var problems []string
+	showTime, _ := cfg["show_time"].(float64)
+	deadline, _ := cfg["booking_deadline"].(float64)
+	if showTime <= 0 || deadline <= 0 || deadline > showTime {
+		problems = append(problems, "show_time and booking_deadline must be set, with booking closing before the show")
+	}
+	byDay, _ := cfg["shows_by_day"].(map[string]interface{})
+	if len(byDay) == 0 {
+		problems = append(problems, "show_config has no shows_by_day")
+	}
+	for day, raw := range byDay {
+		list, _ := raw.([]interface{})
+		for i, sh := range list {
+			m, _ := sh.(map[string]interface{})
+			id, _ := m["id"].(string)
+			name, _ := m["name"].(string)
+			instr, _ := m["required_instruments"].([]interface{})
+			if id == "" || name == "" || len(instr) == 0 {
+				problems = append(problems, fmt.Sprintf("shows_by_day.%s[%d] needs an id, a name and at least one instrument", day, i))
+			}
+		}
+	}
+	return problems
 }
 
 // givesProblems checks commissions: a node that "gives" items is reached only
