@@ -7,7 +7,7 @@
       "icon": "📱",
       "size": "minor",
       "title": "Amber signs after a reload",
-      "summary": "Signing in with Amber, a save after you reload or come back no longer waits forever once you've approved it: Amber's answer comes back to the game, and the tab Amber opens tells you to switch back."
+      "summary": "If you sign with Amber, saving after a reload no longer waits forever once you've approved: Amber's answer reaches the game, and the tab Amber opens tells you to switch back."
     },
     {
       "id": "2026-11-22-stability",
