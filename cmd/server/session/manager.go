@@ -142,17 +142,18 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 	if err := ValidSlot(npub, saveID); err != nil {
 		return nil, err
 	}
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
 	key := sessionKey(npub, saveID)
 
 	// Check if already loaded
-	if session, exists := sm.sessions[key]; exists {
+	sm.mu.RLock()
+	session, exists := sm.sessions[key]
+	sm.mu.RUnlock()
+	if exists {
 		return session, nil
 	}
 
-	// Load save file from disk
+	// Load the save outside the lock: a signed save is fetched from relays,
+	// which can take seconds, and every player's requests need the lock.
 	saveData, err := loadSave(npub, saveID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load save file: %w", err)
@@ -168,7 +169,7 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 	}
 
 	// Create new session in memory
-	session := &GameSession{
+	session = &GameSession{
 		Npub:               npub,
 		SaveID:             saveID,
 		SaveData:           *saveData,
@@ -209,6 +210,11 @@ func (sm *SessionManager) LoadSession(npub, saveID string, loadSave func(string,
 	// Initialize snapshot for delta system
 	session.InitializeSnapshot()
 
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	if loaded, exists := sm.sessions[key]; exists {
+		return loaded, nil // a load of the same save finished first
+	}
 	sm.sessions[key] = session
 
 	return session, nil
@@ -219,12 +225,10 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 	if err := ValidSlot(npub, saveID); err != nil {
 		return nil, err
 	}
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
 	key := sessionKey(npub, saveID)
 
-	// Load save file from disk (even if session exists in memory)
+	// Load save file from disk (even if session exists in memory), outside
+	// the lock like LoadSession.
 	saveData, err := loadSave(npub, saveID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load save file: %w", err)
@@ -278,7 +282,9 @@ func (sm *SessionManager) ReloadSession(npub, saveID string, loadSave func(strin
 	// Initialize snapshot for delta system
 	session.InitializeSnapshot()
 
+	sm.mu.Lock()
 	sm.sessions[key] = session
+	sm.mu.Unlock()
 	log.Printf("🔄 Session reloaded from disk (discarded in-memory changes): %s", key)
 
 	return session, nil

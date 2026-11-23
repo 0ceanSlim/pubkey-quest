@@ -191,6 +191,7 @@ func HandleWildernessSleepAction(state *types.SaveFile, partyFire bool, session 
 	case gameutil.PlayerHasItem(state, "blanket"):
 		comfort = comfortBlanket
 	}
+	state.TravelStopped = true // you make camp: nobody walks in their sleep
 	return applySleep(state, comfort, false, partyFire, session, npcIdsFunc)
 }
 
@@ -200,6 +201,7 @@ func HandleCampSleepAction(state *types.SaveFile, partyFire bool, session SleepS
 	if !CanSleepNow(state.TimeOfDay) {
 		return &types.GameActionResponse{Success: false, Message: "It's not time to sleep yet — make camp after 9 PM.", Color: "yellow"}, nil
 	}
+	state.TravelStopped = true // you make camp: nobody walks in their sleep
 	return applySleep(state, comfortBedroll, false, partyFire, session, npcIdsFunc)
 }
 
